@@ -4,8 +4,8 @@ Design work for a client-side AI harness that lets someone with only a phone pro
 and operate real infrastructure, without trusting any party that could act on their
 behalf.
 
-No code yet. This repository holds the specification, the domain language, and the
-decisions taken so far.
+No code yet. This repository holds the domain language, the decisions taken so far, and
+the reasoning that produced them.
 
 `tau-web` is a working name.
 
@@ -37,7 +37,8 @@ First two intended tenants:
 |---|---|
 | [`CONTEXT.md`](./CONTEXT.md) | Domain glossary. The canonical term for each concept, aliases to avoid, and flagged ambiguities. Read this first. |
 | [`docs/adr/`](./docs/adr/) | Architecture decision records. What was decided, why, and which alternatives were rejected and on what grounds. |
-| [`rust-first-ai-harness-pwa-spec.md`](./rust-first-ai-harness-pwa-spec.md) | Earlier specification draft: Rust/WASM PWA, async shell, WASI command runtime, harness kernel. Predates the ADRs; where they disagree, the ADRs are newer. |
+| [`docs/design/`](./docs/design/) | The design session the ADRs came out of: problem framing, the three approaches weighed, open questions with the evidence behind each, and what three rounds of adversarial review found. Partly superseded by the ADRs, and the only record of why this approach was chosen over the others. |
+| [`docs/archive/`](./docs/archive/) | Superseded documents, kept because later work cites them. Currently the original Rust/WASM PWA specification. |
 
 ## The decisions, in the order they forced each other
 
