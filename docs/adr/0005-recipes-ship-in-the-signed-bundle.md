@@ -33,7 +33,7 @@ steps and a weaker guarantee.
 
 **Fetched or user-supplied, unsigned.** Rejected outright. A text file that steers
 every model on every member, changeable without shipping anything, is cheaper to
-attack than a model provider.
+attack than an inference provider.
 
 ## Consequences
 

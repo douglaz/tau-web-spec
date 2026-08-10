@@ -32,8 +32,10 @@ is not known before the AI runs it.
 _Avoid_: script, playbook, runbook, template
 
 **Recipe library**:
-The collection of recipes available to an AI instance. Shared with lnrent, which
-already provisions from its own deterministic scripts.
+The collection of recipes available to a session. The *format* is a candidate shared
+primitive with lnrent, which already provisions from its own deterministic scripts; the
+library itself is not shared, because each project ships its own set inside its own
+signed bundle.
 
 ### Roles
 
@@ -102,7 +104,7 @@ access), then destroy the machine and restart under a different domain (costs a
 server). Moving inside a domain is free; moving between domains costs money.
 
 **Action transcript**:
-A browser-side record of what one AI instance actually did, captured before
+A browser-side record of what one session actually did, captured before
 transmission. Useful for the operator to read and for a member's own drift detection.
 It is **not** evidence about a machine, because no second model may inspect it against
 that machine.
@@ -123,7 +125,7 @@ machine chooses to tell it.
 ### Diversity
 
 **Inference provider**:
-The service endpoint an AI instance talks to. Distinguishable at runtime via
+The service endpoint a session talks to. Distinguishable at runtime via
 `X-Provider-Name`.
 _Avoid_: AI provider, model provider, LLM vendor
 

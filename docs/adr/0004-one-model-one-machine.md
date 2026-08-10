@@ -55,6 +55,14 @@ they differ in both. Two models at one provider share a domain; two providers se
 the same weights share a domain. Getting this pairing wrong in either direction breaks
 the assumption silently.
 
+**That last paragraph is amended by
+[ADR-0007](./0007-trust-is-counted-in-two-layers-and-shown.md).** Treating a domain as
+an indivisible pair is too strict for the default product: procured inference routes
+every member through one proxy by design, so read literally the pairing rule collapses
+every default configuration to a single domain and forbids the arrangement the rest of
+this ADR assumes. Domains are now counted per layer — weights and proxy separately —
+and one-domain-one-machine holds at each. Everything else here stands unchanged.
+
 **Honest mistakes ship silently.** On a first-time setup a misconfiguration is the
 likely failure, not a hostile model, and this design has no mechanism that catches it
 across members. The threshold protects funds; it does not protect against everyone
