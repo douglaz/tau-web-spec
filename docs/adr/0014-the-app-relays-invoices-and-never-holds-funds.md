@@ -34,9 +34,11 @@ for the right claim rather than blending them into one confidence.
 
 ## Consequences
 
-**The vendor-account friction is now the real onboarding problem.** Inference is solved:
-PayPerQ takes Lightning with no registration, so funding several providers is a few
-invoices. Cloud vendors are not: they want an account, a card, and a recurring billing
+**The vendor-account friction is now the real onboarding problem.** Paying for inference
+is nearly solved: PayPerQ takes Lightning with no registration, so funding several
+providers is a few invoices — subject to the browser reachability that
+[ADR-0007](./0007-trust-is-counted-in-two-layers-and-shown.md) records as still
+unverified. Cloud vendors are not: they want an account, a card, and a recurring billing
 relationship, and a 3-of-5 federation across distinct vendors means several of those.
 App-relayed invoices cannot fix this, because vendors do not sell that way.
 

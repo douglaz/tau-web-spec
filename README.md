@@ -35,7 +35,8 @@ First two intended tenants:
 
 | Path | What it is |
 |---|---|
-| [`CONTEXT.md`](./CONTEXT.md) | Domain glossary. The canonical term for each concept, aliases to avoid, and flagged ambiguities. Read this first. |
+| [`executive-summary.md`](./executive-summary.md) | The whole design in one read: the problem, who it is for, how it works, the security claim stated exactly, what must still be trusted, and what is unresolved. Start here. |
+| [`CONTEXT.md`](./CONTEXT.md) | Domain glossary. The canonical term for each concept, aliases to avoid, and flagged ambiguities. |
 | [`docs/adr/`](./docs/adr/) | Architecture decision records. What was decided, why, and which alternatives were rejected and on what grounds. |
 | [`docs/design/`](./docs/design/) | The design session the ADRs came out of: problem framing, the three approaches weighed, open questions with the evidence behind each, and what three rounds of adversarial review found. Partly superseded by the ADRs, and the only record of why this approach was chosen over the others. |
 | [`docs/archive/`](./docs/archive/) | Superseded documents, kept because later work cites them. Currently the original Rust/WASM PWA specification. |
@@ -79,6 +80,7 @@ The app bundle remains the one common-mode component and the largest concentrate
 
 - Contents of Hetzner Robot's rescue `host_key` field — one authenticated call answers it
 - PayPerQ browser reachability — a CORS probe
+- A second cloud vendor's CORS behaviour — the same probe Hetzner got, ~80 lines of curl
 - An SSH client compiled to `wasm32-unknown-unknown` over a WebSocket — the one real spike
 - When to prompt an operator to resume or abandon a stalled setup, since machines bill while it waits
 

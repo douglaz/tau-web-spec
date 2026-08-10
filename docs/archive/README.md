@@ -6,7 +6,7 @@ Superseded documents, kept because later work cites them.
 
 The original specification: a Rust-first PWA with a Tau-derived harness kernel, an
 async shell over `brush-parser`, WASI command modules, a capability-scoped tool layer,
-21 crates, and milestones M0–M6.
+29 crates, and milestones M0–M6.
 
 It is archived rather than deleted for two reasons. It is still the only detailed
 treatment of the execution layer — the shell, the WASI module set, the relay
