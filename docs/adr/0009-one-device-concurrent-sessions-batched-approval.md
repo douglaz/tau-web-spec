@@ -55,7 +55,9 @@ total monthly and annual cost, every vendor and region, and what recurring means
 a coherent state the operator can act on, not an error. The recovery ladder in
 [ADR-0004](./0004-one-model-one-machine.md) applies per member, independently.
 
-**Concurrency must be bounded and tuned for mobile.** The tau-web spec already rates
+**Concurrency must be bounded and tuned for mobile.** The archived specification
+([`docs/archive/rust-first-ai-harness-pwa-spec.md`](../archive/rust-first-ai-harness-pwa-spec.md))
+already rates
 mobile memory pressure as a high risk and defaults its command-worker pool to one on
 mobile; five concurrent sessions each holding a model stream and a remote session needs
 the same treatment.

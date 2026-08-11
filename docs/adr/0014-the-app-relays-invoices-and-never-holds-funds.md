@@ -45,9 +45,15 @@ App-relayed invoices cannot fix this, because vendors do not sell that way.
 **lnrent is therefore load-bearing for this product, not merely a second tenant.**
 Renting machines for sats with no account is the same escape hatch for cloud vendors
 that PayPerQ is for inference. Without something like it, the multi-vendor requirement
-in [ADR-0004](./0004-one-model-one-machine.md) collides with the target operator's
-willingness to open several billing relationships, and vendor diversity quietly collapses
-to whatever they already had an account with.
+collides with the target operator's willingness to open several billing relationships, and
+vendor diversity quietly collapses to whatever they already had an account with. That
+requirement is *not* stated in [ADR-0004](./0004-one-model-one-machine.md), which an
+earlier version of this line cited: ADR-0004 is about model access and says nothing about
+cloud vendors. It rests on
+[ADR-0006](./0006-single-origin-with-reproducible-builds.md)'s per-member vendor
+diversification plus the correlated-fault argument in
+[ADR-0010](./0010-members-reach-each-other-on-one-authenticated-port.md), and `spec.md`
+records that it deserves a decision record of its own.
 
 **Abandoning a setup has a direct cost the app cannot cancel.** Since the vendor
 relationship is the operator's, only the operator can stop the billing — the app can

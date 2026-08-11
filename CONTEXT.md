@@ -84,9 +84,11 @@ Saying "five models" when all five ride one proxy is true about weights and fals
 about proxies, so both counts are shown, never a single blended number.
 
 **Procured inference**:
-The default path. The operator pays one fee and the publisher selects models across
-available proxies. Adds no new trusted party, because the publisher is already trusted
-for the bundle, but it does mean the publisher chooses the weights.
+The default path. The operator pays one fee and the publisher selects the models, reaching
+them through the one aggregator it has — so **every member rides a single proxy by design**,
+which is exactly why a collision is shown rather than blocked. Adds no new trusted party,
+because the publisher is already trusted for the bundle, but it does mean the publisher
+chooses the weights.
 
 **Bring-your-own inference**:
 The advanced path. The operator supplies their own provider tokens or runs inference
@@ -127,9 +129,12 @@ machine chooses to tell it.
 ### Diversity
 
 **Inference provider**:
-The service endpoint a session talks to. Distinguishable at runtime via
-`X-Provider-Name`.
-_Avoid_: AI provider, model provider, LLM vendor
+The party that actually serves the weights for a request, named at runtime by
+`X-Provider-Name`. **Distinct from the proxy the session connects to**: on the default path
+a session talks to an aggregator, which routes to one of these. Two machines whose requests
+land at the same inference provider share a party that neither displayed count covers,
+because the two counted layers are weights and proxy and this is neither.
+_Avoid_: AI provider, model provider, LLM vendor, serving provider
 
 **Model**:
 The weights behind an inference provider. Two providers may serve the same model, so

@@ -15,11 +15,12 @@ any one party the ability to act on all of them.
 That is the goal, not an achieved property. Several parties remain trusted, and the
 specification names each of them by hand rather than claiming the list is empty.
 
-There is no code yet. What exists is a domain language, fifteen decisions recording what
-was chosen and which alternatives were rejected, a design record with three rounds of
-adversarial review, and an archived specification of the execution layer. A working proof
-of concept in a separate repository has established the one external fact everything
-depends on: a browser can call a cloud vendor's API directly.
+There is no code in this repository. What exists is the specification this summarises, a
+domain language, fifteen decisions recording what was chosen and — for most of them — which
+alternatives were rejected, a design record with three rounds of adversarial review, and an
+archived specification of the execution layer. A working proof of concept in a separate
+repository has established the one external fact everything depends on: a browser can call a
+cloud vendor's API directly.
 
 ## The problem
 
@@ -68,10 +69,14 @@ decides what to run. A script stops dead at the first surprise, and the AI exist
 for the surprises. Recipes ship inside the signed bundle, because a recipe is prose that
 steers every member at once and diversity buys nothing against it.
 
-**One trust domain, one machine.** Each model accesses exactly one machine and never
-touches one it did not provision. Access composes, not intent. Five sessions run
-concurrently on the one device the operator owns, each on different weights, with all five
-machine creations approved together before any work begins.
+**One session, one machine.** Each model accesses exactly one machine and never touches
+one it did not provision. Access composes, not intent. Five sessions run concurrently on
+the one device the operator owns, each configured with a different model — what a session
+is actually configured with, since the inference provider that ends up serving it is known
+only from the response, and whether two models rest on different *weights* is not checkable
+at all — with all five machine creations approved together before any work begins. That access rule is absolute; how many
+*distinct* trust domains are in play is a separate count, and at the proxy layer the
+default product deliberately shares one — which is displayed rather than forbidden.
 
 **The deliverable is a locked-down machine, demonstrated** by a lightweight self-directed
 pentest — a **competence check, not an integrity check**. A model examining its own machine
@@ -91,9 +96,10 @@ same terms as a credential, and a model able to attack four other machines produ
 
 **The browser reaches a machine over SSH**, verifying the host key against a fingerprint
 obtained by other means, through a relay that carries ciphertext. Once the right key is
-pinned the transport is irrelevant to confidentiality and integrity. Under the fallback
-that pins on first contact it is not, which is why that fallback is a floor rather than a
-plan.
+pinned the transport is irrelevant to confidentiality and integrity. Under the fallback that
+pins on first contact it is not — and that fallback is currently the only route reachable on
+the cloud path, while being itself unusable until a pin can survive a replaced phone. The
+channel is chosen, not built, and this is the sharpest reason why.
 
 **A vault is not finished when it is created.** Each member is periodically re-checked by
 its own session, including a review of advisories for the software it runs. That
@@ -123,13 +129,17 @@ layer is the one that gets exploited.
 
 ## What must still be trusted
 
-- **The app bundle** — the one component not diversified, and it carries the recipes.
+- **The app bundle** — the largest component not diversified, and it carries the recipes.
   Reproducible builds would make compromise detectable, not preventable, and neither they
   nor the watchdogs that would give them meaning exist yet. The largest concentrated risk.
 - **The cloud vendor**, under every design considered. It owns the machine's memory and
   disk. Pinning buys transport safety, not vendor independence.
 - **The inference proxy**, and on the default path there is only one of it — the thinnest
   layer in the default product even when the weights count looks healthy.
+- **The inference provider behind that proxy**, which actually runs the weights and can
+  rewrite everything routed to it. Neither displayed count covers it.
+- **Whoever signs the vault software**, since every member installs the same release —
+  common-mode in the same shape as the bundle.
 - **The operator's device**, which holds the credentials and carries all five sessions.
 - **The publisher**, on the default path, because it selects the models.
 - **A majority of the models**, being both honest *and* competent.
@@ -139,11 +149,22 @@ named so the list cannot grow quietly.
 
 ## What is not settled
 
-The specification carries fifteen open questions in one maintained list. Five gate the
+The specification carries twenty open questions in one maintained list. Six gate the
 work: the SSH client compiled to WebAssembly, which is the single item most likely to fail;
-who runs the relay and under what policy; whether weights-level diversity is enforceable at
-all, which the security claim is conditional on; the cloud-account floor that makes lnrent
+who *operates* the relay, since what it must do is already settled; how the browser
+authenticates *itself* to a
+machine, which host-key pinning does nothing for, and what happens to browser-held key
+material when a phone is replaced; whether weights-level diversity is enforceable at all,
+which the security claim is conditional on; the cloud-account floor that makes lnrent
 structural; and what the product should do about a stalled setup that keeps billing.
+
+Two of the twenty are decisions worth re-opening rather than gaps. The recovery ladder was
+written before trust domains were counted per layer, and escalating a stuck machine to a
+stronger model puts new weights on it — safe only if those weights are not running another
+member, which no decision record says. And the option of letting
+each machine serve its own bridge, removing the relay entirely, was rejected because it
+needed a domain name the target operator does not have — and certificates for bare IP
+addresses have since made that premise false.
 
 ## Status
 

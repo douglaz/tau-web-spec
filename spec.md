@@ -21,12 +21,17 @@ refers to rather than repeats:
 | Where | What it holds |
 |---|---|
 | [`CONTEXT.md`](./CONTEXT.md) | The domain glossary — the canonical term for each concept, the aliases to avoid, and the ambiguities that must always be qualified. |
-| [`docs/adr/`](./docs/adr/) | The fifteen decisions, each with the alternatives that were rejected and the grounds for rejecting them. This document states *what* was decided; an ADR is where *why* lives. |
+| [`docs/adr/`](./docs/adr/) | The fifteen decisions, and for most of them the alternatives that were rejected and the grounds for rejecting them — some in a `Considered options` section, some inline, and a few not at all. This document states *what* was decided; an ADR is where *why* lives. |
 | [`docs/design/`](./docs/design/) | A record of the design session held on 2026-08-07, kept as history. It is the only account of why this approach was chosen over the two others weighed against it. |
 | [`docs/archive/`](./docs/archive/) | The original Rust/WASM PWA specification — the execution layer, in far more detail than anything here. Superseded as a plan, retained because it is the only treatment of the machinery and because the decisions cite its section numbers. |
 
 [`executive-summary.md`](./executive-summary.md) is a shorter read of this document for
 someone who wants the shape without the detail.
+
+One document referred to here lives outside this repository: **`ai-vps-harness`**, the
+proof of concept, which established that a browser can call a cloud vendor's API directly.
+Its own `§` numbers are cited a few times below and in the decision records; they are not
+this document's and not the archived specification's.
 
 The two specifications sit at different levels and were written in the opposite order to
 how they should be read. The archived one is the execution layer: a Rust-first PWA
@@ -84,7 +89,8 @@ hobby.
 
 ## Constraints
 
-Five constraints bound every decision here. The fourth is not satisfied today.
+Six constraints bound every decision here. The fourth is not satisfied today, and the
+sixth is counted and displayed rather than enforced.
 
 1. **The mobile browser is the runtime.** No install, no extension, no native package,
    no desktop, no terminal. A normal HTTPS URL on Android Chrome and iOS Safari.
@@ -95,12 +101,32 @@ Five constraints bound every decision here. The fourth is not satisfied today.
    the application's own origin, included in a model request, or persisted in a log.
 4. **No party the operator must trust with the ability to act.** A transport that can
    only stall or drop is acceptable; one that can read or inject is not. **This is
-   unsatisfied today**, which is why the first stage has no remote channel at all. It is
-   expected to be satisfied once the SSH spike passes, and host-key verification is the
-   intended mechanism — chosen, not proven.
-5. **Members must not share a trust domain.** Counted per layer rather than as an
-   indivisible pair, for the reason
-   [ADR-0007](./docs/adr/0007-trust-is-counted-in-two-layers-and-shown.md) gives.
+   unsatisfied today**, which is why the first stage has no remote channel at all.
+   Host-key verification is the intended mechanism — chosen, not proven — but passing the
+   SSH spike is *not* sufficient to satisfy this constraint. It is satisfied only on a
+   route that pins the fingerprint **out of band**, and today none of those is available
+   on the cloud path: route 1 is dedicated-servers-only and a separate integration, route
+   2 is unverified, route 3 is blocked behind open question 15. That leaves route 4, the
+   trust-on-first-use floor, under which a hostile relay can have its own key pinned at
+   first contact and read the session from then on
+   ([ADR-0015](./docs/adr/0015-the-browser-reaches-a-machine-over-pinned-ssh.md)). The
+   spike is necessary and the routes are what make it sufficient.
+5. **Members must not share a cloud vendor.** The vendor owns its machine's memory and
+   disk and is trusted under every design considered, so two members at one vendor is one
+   party able to act on both — the correlated fault a threshold cannot absorb
+   ([ADR-0006](./docs/adr/0006-single-origin-with-reproducible-builds.md) diversifies
+   cloud vendors per member for exactly this reason). Nothing in the design forces vendor
+   sharing, so unlike the proxy layer below this one stays a requirement. What makes it
+   hard is the account floor under [Money](#money) — a reason it is expensive, not a
+   reason it is optional.
+6. **Independence between members is counted per layer and shown, not enforced.**
+   Weights and proxy are counted separately, and a collision at either layer is
+   displayed rather than blocked
+   ([ADR-0007](./docs/adr/0007-trust-is-counted-in-two-layers-and-shown.md)). Blocking
+   would make the default configuration impossible, because procured inference routes
+   every member through one proxy by design — so at the proxy layer the default product
+   *does* share a domain, deliberately and visibly. Independence is the security
+   parameter; it is not a precondition this product can enforce.
 
 ## Architecture
 
@@ -173,12 +199,16 @@ A **session** is one run of the harness under one set of model weights, responsi
 exactly one machine. A federation is provisioned by several concurrent sessions on a
 single device ([ADR-0009](./docs/adr/0009-one-device-concurrent-sessions-batched-approval.md)).
 
-**One trust domain, one machine.** Each domain accesses exactly one machine and never
-reads, audits, or touches a machine it did not provision
+**One session, one machine.** Each session accesses exactly one machine and never reads,
+audits, or touches a machine it did not provision
 ([ADR-0004](./docs/adr/0004-one-model-one-machine.md)). Access is what composes, not
-intent: letting one domain touch two machines halves the number of malicious domains
+intent: letting one model touch two machines halves the number of malicious models
 needed to reach a k-of-n threshold. Any verification scheme in which one model inspects
 another's work therefore weakens the exact property it appears to strengthen.
+
+This rule about access is absolute. The separate question of *how many distinct trust
+domains are in play* is not a rule at all but a count, and it comes out differently at
+each layer.
 
 **A trust domain is counted at two layers, never as one blended number**
 ([ADR-0007](./docs/adr/0007-trust-is-counted-in-two-layers-and-shown.md)):
@@ -217,11 +247,19 @@ never competes with itself for attention. Five concurrent workers producing inte
 popups on a phone is modal fatigue in its purest form, and the operator cannot tell which
 member is asking.
 
-**Recovery is a ladder.** Retry; then escalate to a stronger model *inside the same trust
-domain*, which is free because that domain already has access; then destroy the machine
-and restart under a different domain, which costs a server. A stuck machine may never be
-handed to a second domain. Partial failure is the normal case and must be a coherent
-state the operator can act on, not an error.
+**Recovery is a ladder.** Retry; then escalate to a stronger model behind the same proxy;
+then destroy the machine and restart under a different domain, which costs a server. A
+stuck machine is never handed to a session that did not provision it — past the middle
+rung it is destroyed instead.
+
+The middle rung is cheap because the proxy already had access, so escalating behind it
+grants that party nothing new. But the stronger model is *new weights on that machine*,
+and that is harmless only while those weights are not also running another member —
+otherwise one model has a foothold on two machines, the composition the threshold cannot
+survive. [ADR-0004](./docs/adr/0004-one-model-one-machine.md) predates the per-layer
+counting that makes this visible and still calls the rung unconditionally free; question
+20 records that it needs amending. Partial failure is the normal case and must be a
+coherent state the operator can act on, not an error.
 
 ### What a session delivers
 
@@ -297,7 +335,9 @@ once the right key is pinned the transport underneath is irrelevant to confident
 and integrity.
 
 Four routes to the fingerprint exist, from vendor API retrieval down to trust-on-first-use
-with continuity as the always-works floor. **Under the routes that pin out of band a
+with continuity as the floor. That floor is *not* currently a working fallback: a pin lives
+in browser storage, and question 3 records what happens when that storage is cleared or the
+phone is replaced. **Under the routes that pin out of band a
 hostile relay is a denial of service and nothing worse. Under trust-on-first-use it is
 not**: at first contact there is nothing to check the key against, so a hostile relay can
 present its own, have it pinned, and read the session from then on. Every retrieval and
@@ -364,15 +404,17 @@ buys many queries. Per-member routing evidence is separate and comes from respon
 metadata.
 
 **Inference has two paths.** *Procured* is the default: the operator pays one fee and the
-publisher selects models across available proxies. It adds no new trusted party, because
-the publisher is already trusted for the bundle — but it does mean the publisher chooses
-the weights, and it routes every member through one proxy by design. *Bring-your-own* is
+publisher selects the models. It adds no new trusted party, because the publisher is
+already trusted for the bundle — but it does mean the publisher chooses the weights, and on
+the default path it reaches them all through one aggregator, so every member is routed
+through a single proxy. *Bring-your-own* is
 the advanced path: the operator supplies provider tokens or runs inference locally,
 removing the publisher from model selection and, locally, the proxy layer entirely.
 
-**This is where lnrent becomes structural.** Paying for inference is nearly solved — an
-aggregator that takes Lightning with no registration makes funding several providers a few
-invoices. Cloud vendors are not: they want an account, a card, and a recurring billing
+**This is where lnrent becomes structural.** Paying for inference is *nearly* solved — an
+aggregator that takes Lightning with no registration would make funding several providers a
+few invoices, subject to the browser reachability that question 9 records as still unprobed.
+Cloud vendors are not: they want an account, a card, and a recurring billing
 relationship, and a 3-of-5 federation across distinct vendors means several of those.
 Invoice relay cannot fix it, because vendors do not sell that way. Without something like
 lnrent, the multi-vendor requirement collides with the operator's willingness to open
@@ -393,7 +435,8 @@ behaviourally identical to phishing, and the target operator is precisely the pe
 equipped to tell the difference. Teaching Bitcoin users that the same app legitimately
 lives at several addresses trains the reflex that gets them robbed.
 
-So the bundle remains the one common-mode component, and it carries the recipes.
+So the bundle remains a common-mode component — the largest, and the one that carries the
+recipes, though not the only one: see the vault-software signer below.
 Reproducible builds make a compromised bundle detectable, not preventable, and the target
 operator will not verify a hash on a phone. The mitigation that matters is **third-party
 watchdogs** — independent parties routinely fetching and comparing the served bundle, so
@@ -409,9 +452,26 @@ its headers any day and the probe is the only thing that would say so.
 These may never be violated. They are product-level and distinct from the ten numbered
 invariants in the archived execution-layer specification.
 
-1. **No model MUST ever read, audit, or touch a machine it did not provision.** This
-   holds at each trust layer independently, and it has no exception for recovery,
-   debugging, or auditing.
+1. **A session MUST NOT be given access to more than one machine, and MUST NOT read,
+   audit, or touch a machine another session provisioned.** Access is what composes, not
+   intent: a model with a foothold on two members halves the number of malicious domains
+   needed to reach k-of-n ([ADR-0004](./docs/adr/0004-one-model-one-machine.md)). No
+   exception for debugging, for auditing, or for any scheme in which one model inspects
+   another's machine. **Exposure is permanent for the life of the machine**: a model that
+   has touched a machine counts as touching it until that machine is destroyed, because
+   ending a session does not remove whatever the model may already have left behind. So the
+   recovery ladder's middle rung stays inside this rule only while the stronger model has
+   not run — and will not later run — any other member; past that rung the machine is
+   destroyed rather than handed on.
+
+   **What this invariant reaches, and what it does not.** The product decides which machine
+   a session may touch, so that part is enforceable and absolute. It does not decide
+   whether two sessions configured with different models are served the *same weights* —
+   nothing observable tells it (question 4). Identical weights behind two members is
+   therefore a **collision, displayed under constraint 6** — not a violation of this
+   invariant, and not something an implementation can be required to prevent. The security
+   claim is conditional on that distinctness for exactly this reason, and saying so here is
+   what keeps this list enforceable rather than aspirational.
 2. **The product MUST NOT present any claim as verified.** There is no verification
    layer. "Verified" and "no anomalies found" are claims this design cannot make.
 3. **The box plane MUST NOT have a path to the cloud plane.** A machine never holds a
@@ -419,8 +479,8 @@ invariants in the archived execution-layer specification.
    mid-way through box-plane work.
 4. **Cloud-plane actions MUST be approved on structured facts, never on command text.**
 5. **Credentials MUST NOT leave browser memory** — not to storage, not to the app's own
-   origin, not into a model request, not into a log. The injection route for SSH host keys
-   is a known conflict with this and is unresolved; see the open questions.
+   origin, not into a model request, not into a log. The injection route for SSH host
+   keys is a known conflict with this, and open question 15 is where it is tracked.
 6. **The AI MUST NOT touch key material.** Recovery descriptors come from the operator.
    Member keys are generated on the machine and never exported.
 7. **Recipes and advisory feed lists MUST ship in the signed bundle** and MUST NOT be
@@ -434,8 +494,26 @@ invariants in the archived execution-layer specification.
     mutually authenticated**, with everything else denied at the vendor firewall.
 12. **A federation MUST NOT be formed until every member is provisioned, hardened, and
     reachable.**
-13. **An SSH session MUST verify the host key against a pinned fingerprint.**
+13. **An SSH session MUST check the host key against the stored fingerprint, and a key
+    that does not match MUST halt the session.** Exactly one moment is exempt and it is
+    the reason route 4 is a floor: under trust-on-first-use there is no stored
+    fingerprint at first contact, so that contact is trusted rather than verified and
+    MUST be presented to the operator as such. No other path may accept an unverified
+    key.
 14. **The app MUST NOT hold, forward, or custody funds.**
+15. **Two machines of one federation MUST NOT be created at the same cloud vendor.**
+    Stated in machines rather than members deliberately: nothing has joined a federation
+    when this rule has to bind, so a rule about "members" would not reach the first stage
+    at all. The vendor owns its machines' memory and disk, so two of them at one vendor is
+    a single party able to act on both — the correlated fault invariant 11 exists to prevent at the network layer,
+    arriving instead through the billing relationship. Unlike every other entry here this
+    one has no decision record of its own: it rests on
+    [ADR-0006](./docs/adr/0006-single-origin-with-reproducible-builds.md)'s statement that
+    cloud vendors are diversified per member, which is background to a decision about
+    *origin* diversity, plus the correlated-fault argument in
+    [ADR-0010](./docs/adr/0010-members-reach-each-other-on-one-authenticated-port.md). It
+    is the one rule in the first stage that blocks rather than displays, so it should have
+    a record of its own.
 
 ## The security claim, stated exactly
 
@@ -477,10 +555,19 @@ Named plainly, because the product's pitch is the opposite of asking for trust.
   disk. Host-key pinning buys transport safety, not vendor independence; vendor
   independence is what multi-vendor membership buys.
 - **The inference proxy — and on the default path there is only one of it.** Procured
-  inference routes every member's requests through the aggregators the publisher has, so
-  the normal configuration is five sets of weights behind a single proxy. That proxy can
+  inference means the publisher picks the models, and it has one aggregator that reaches
+  them all, so the normal configuration is five sets of weights behind a single proxy.
+  (Adding a second is a supported move, not a redesign — that is the point of counting the
+  layer separately.) That proxy can
   alter every prompt and response it carries, which makes it the thinnest layer in the
   default product even when the weights count looks healthy.
+- **The inference provider behind the proxy.** The aggregator does not run the weights; it
+  routes to whoever does, and that party — the one `X-Provider-Name` names, per
+  [`CONTEXT.md`](./CONTEXT.md) — sees and can rewrite every prompt and response sent to it,
+  exactly as the proxy can, for whichever share of members land there. Two machines served
+  by the same one share a party that neither count displays, because the counted layers are
+  weights and proxy and this is neither (question 4). It is named here because the list is
+  meant to be exhaustive even where the counting is not yet settled.
 - **The operator's device.** It holds the credentials, runs the bundle, and carries all
   five concurrent sessions, so it is common-mode across every member. A deliberate trade:
   requiring five devices would defend against a compromised phone while guaranteeing that
@@ -490,6 +577,22 @@ Named plainly, because the product's pitch is the opposite of asking for trust.
   as the escape hatch. If that escape hatch is ever dropped, the arrangement stops being
   defensible.
 - **A majority of the models**, being both honest *and* competent.
+
+- **Whoever signs the vault software the members run.** Recipes install the same release on
+  every member, so its signer is common-mode across the federation in the same shape as the
+  bundle — which means
+  [ADR-0005](./docs/adr/0005-recipes-ship-in-the-signed-bundle.md)'s claim that the bundle
+  is "the only remaining single point of total compromise" is one party short — as is
+  [ADR-0006](./docs/adr/0006-single-origin-with-reproducible-builds.md)'s "the bundle is
+  the remaining single point of total compromise," which says the same thing in a record
+  this document does not otherwise amend. Artifact pinning would bound this; nothing here
+  specifies it yet.
+
+This list covers the parties **this design asks the operator to trust that an ordinary
+setup would not**. It deliberately stops short of the stack everything runs on — the
+operating system, its package repositories, the certificate authorities, the hardware —
+which are trusted here no more and no less than anywhere else, and which would make the
+list unbounded without making it more honest.
 
 Two parties are trusted narrowly rather than fully, and both are named so the list cannot
 grow quietly. The **coordinator** is trusted during setup, as the only party contacting
@@ -511,13 +614,21 @@ Recipes are local-only here. Both machines are configured entirely through boot-
 user-data, which needs no relay, no WASM SSH client, and no answer to the channel
 question. Acceptance is these predicates:
 
-1. Two sessions, each on different model weights, each create exactly one machine at a
-   different cloud vendor.
+1. Two sessions, each configured with a **different model**, each create exactly one
+   machine at a different cloud vendor. Stated in what a session is actually *configured
+   with* — a proxy endpoint and a model — because the **inference provider** is whoever
+   that proxy routes to and is known only from the response
+   ([`CONTEXT.md`](./CONTEXT.md)). Whether two different models rest on different weights
+   is not checkable at all (question 4), so a criterion written in weights would pass or
+   fail on something nothing can measure.
 2. For each machine the app persists a provenance record naming the cloud vendor, the
    inference provider, and the model identifier, surviving a page reload and a browser
    restart.
-3. A provenance collision is **displayed** — per layer, never blended — at the moment the
-   operator can still act on it.
+3. A trust-domain collision is **displayed** — at each layer separately, never blended —
+   at the moment the operator can still act on it. A **shared cloud vendor blocks the
+   create** and says why: ADR-0007 reversed blocking for the proxy layer specifically,
+   because procured inference shares a proxy by design, and that reasoning does not reach
+   vendors, which nothing forces anyone to share.
 4. A local-only recipe with at least two blocks runs end to end, and the user-data
    submitted to the vendor API is byte-identical to what the approval screen displayed.
 5. None of the four credentials — two vendor tokens, two inference keys — appears in a
@@ -528,13 +639,16 @@ question. Acceptance is these predicates:
 7. All of the above pass on Android Chrome and iOS Safari, through a normal HTTPS URL,
    with no install.
 
-The second stage adds remote blocks over the channel, and cannot be estimated until the
-SSH spike resolves.
+The second stage adds remote blocks over the channel **and everything that turns machines
+into a federation** — the coordinator, federation formation, all-or-nothing creation. Both
+halves wait on the same thing: the coordinator has to reach five member APIs on machines
+with no valid certificate, so it needs the channel as much as recipes do. Neither can be
+estimated until the SSH spike resolves.
 
 ## The decisions
 
-Each is a consequence of the ones above it. The rejected alternatives and the grounds for
-rejecting them live in the records themselves.
+Each is a consequence of the ones above it. Where a decision had a real alternative, the
+record carries it and the grounds for rejecting it.
 
 | ADR | Decision |
 |---|---|
@@ -566,37 +680,69 @@ repository is history.
    is async and tokio-shaped. This is unproven work of the same character as the archived
    specification's M0 gates, and it is the item most likely to fail. Treat a failure as
    the thing that pushes remote blocks out of the second stage entirely.
-2. **Who runs the relay, and under what policy.** Reinstating one reverses
-   `ai-vps-harness` §4, which listed it as explicitly absent. It must authenticate the
-   user, enforce destination policy, and prevent generic open-proxy behaviour. It is also
-   a candidate lnrent tenant.
-3. **Weights-level diversity may not be enforceable.** The available runtime signal names
-   the *serving provider*, not the weights behind it. If it stays that way, the honest
-   position is to enforce provider diversity, say so plainly in the interface, and stop
-   claiming more. The security claim is conditional on this.
-4. **The cloud-account floor.** Cloud vendors want an account, a card, and a recurring
+2. **Who operates the relay, and how a browser gets a credential for it.** What the relay
+   must *do* is settled — authenticate the user, enforce destination policy, prevent
+   generic open-proxy behaviour, per the archived specification's §21 — so one open half is
+   who runs a component that learns which operator connects where and when, and how an
+   operator would know. The other is that "authenticate the user" implies a scoped
+   short-lived token whose issuer, identity model, first issuance, and reacquisition after
+   browser storage is lost are all unspecified; done carelessly that adds an identity party
+   to the trusted list. Reinstating a relay at all reverses the proof of concept's own §4,
+   which listed one as explicitly absent. It is also a candidate lnrent tenant.
+3. **How the browser authenticates itself to a machine.** Host-key verification proves the
+   *machine* to the browser and nothing in the other direction; sshd still wants a client
+   credential. Where the browser gets a client private key, how the matching public key
+   reaches the machine, and what happens to that key across sessions are all unspecified —
+   and a client key held in browser memory only, per invariant 5, has no obvious recovery
+   story. It is the first new credential class beyond the four the first stage counts —
+   the route-3 host private key at question 15 would be the second — and it gates the
+   second stage as surely as the spike does.
+
+   **The same problem runs the other way, for host fingerprints.** A pin lives in browser
+   storage, and browser storage is cleared, evicted, or left behind when the operator
+   replaces a phone. The machine is still there and still has its key, but nothing local
+   attests to it. Treating that as a first contact hands a hostile relay the pin that
+   routes 1 to 3 exist to prevent; refusing to connect strands the operator from their own
+   vault. Neither is acceptable, so durable export or an authenticated re-verification path
+   has to exist before the channel is real.
+4. **Weights-level diversity may not be enforceable, and the inference provider is counted
+   nowhere.** The available runtime signal names the *inference provider*, not the weights
+   behind it, so if that does not change, the honest position is to enforce provider
+   diversity, say so plainly in the interface, and stop claiming more — the security claim
+   is conditional on this. The second half is that the inference provider is a distinct party
+   from both the aggregator and the weights, and a compromised one can rewrite every prompt
+   and response routed to it, exactly as a proxy can, for whichever share of members land
+   there. [ADR-0007](./docs/adr/0007-trust-is-counted-in-two-layers-and-shown.md) counts
+   two layers and does not count this one. Whether it deserves a third layer, or folds into
+   the proxy count, is undecided — and until it is, a healthy-looking pair of numbers may
+   still hide a shared party.
+5. **The cloud-account floor.** Cloud vendors want an account, a card, and a recurring
    relationship, several times over, and invoice relay cannot fix it. This is what makes
-   lnrent structural rather than a second tenant.
-5. **A stalled setup bills.** Federation creation is all-or-nothing, approvals are batched
+   lnrent structural rather than a second tenant, and it is what makes constraint 5 hard.
+6. **A stalled setup bills.** Federation creation is all-or-nothing, approvals are batched
    up front, and nothing runs while the app is closed — so an interrupted setup is five
    machines billing with no progress. The product needs an opinion about when to prompt for
    resume or abandonment.
 
 ### One call, one probe, or one boot from closing
 
-6. **What Hetzner Robot's rescue `host_key` field actually returns** — full public keys,
-   fingerprints, which algorithms. Undocumented. One authenticated call answers it.
-7. **Whether Hetzner Cloud's rescue action returns host keys the way Robot's does.**
+7. **What Hetzner Robot's rescue `host_key` field actually returns** — full public keys,
+   fingerprints, which algorithms. Undocumented. One authenticated call answers it, and the
+   same call should re-check that Robot is still reachable from a browser at all: that
+   result rests on a single recorded probe, and vendor CORS headers are exactly the kind of
+   external dependency the continuous probe elsewhere in this document exists to catch
+   regressing.
+8. **Whether Hetzner Cloud's rescue action returns host keys the way Robot's does.**
    Unverified, and it matters first, because the cloud product is where this starts.
-8. **Whether the second inference proxy is reachable from a browser at all.** An
+9. **Whether the second inference proxy is reachable from a browser at all.** An
    OpenAI-compatible API does not imply an origin may call it. This needs the same probe
    the first proxy got before the trust panel can offer it as a one-tap action.
-9. **Whether a second cloud vendor's API permits a browser origin.** Roughly eighty lines
-   of curl — the existing probe is a template, not a drop-in, since it hardcodes the first
-   vendor's base URLs, paths, and assertions. Vendor independence depends on the answer.
-   Candidates include Vultr, DigitalOcean, Linode, and lnrent itself, which is interesting
-   because it needs no cloud account at all.
-10. **Whether the proof of concept's cloud-init boots an unreachable machine.** A code-read
+10. **Whether a second cloud vendor's API permits a browser origin.** Roughly eighty lines
+    of curl — the existing probe is a template, not a drop-in, since it hardcodes the first
+    vendor's base URLs, paths, and assertions. Constraint 5 depends on the answer.
+    Candidates include Vultr, DigitalOcean, Linode, and lnrent itself, which is interesting
+    because it needs no cloud account at all.
+11. **Whether the proof of concept's cloud-init boots an unreachable machine.** A code-read
     finding, not an observed failure: its user list has no default entry and sets an empty
     authorized-keys list, so the vendor's injected keys reach no account. The fix is one
     line and nobody has booted the file. Do this before anything depends on being able to
@@ -604,28 +750,89 @@ repository is history.
 
 ### Design-level, still unanswered
 
-11. **The recipe format schema.** Frontmatter fields, the local/remote block marker, how a
+12. **The recipe format schema.** Frontmatter fields, the local/remote block marker, how a
     block returns structured data to the next one, versioning, signing. Designing a second
     consumer for an undefined format is premature until this exists.
-12. **What executes recipe commands locally in the browser.** Either a WASI host with
+13. **What executes recipe commands locally in the browser.** Either a WASI host with
     uutils guests, as the archived specification assumes, or a small set of purpose-built
     commands. This is deliberately not decided in advance: the scope is to be derived from
     real recipes rather than guessed, and the archived specification's answers here are
     currently guesses.
-13. **Mid-recipe recovery at step granularity.** Duplicate-create protection is designed
+14. **Mid-recipe recovery at step granularity.** Duplicate-create protection is designed
     but the provisioning state machine it needs is not built, and a multi-step recipe needs
     the same idea per step on top of it.
-14. **Reproducible builds and the watchdogs that would make them mean something.** Neither
+15. **Whether injecting the SSH host key is permitted, and on what terms.** Route 3 writes
+    a *private* host key into boot-time user-data, which the vendor stores — squarely
+    against invariant 5. [ADR-0015](./docs/adr/0015-the-browser-reaches-a-machine-over-pinned-ssh.md)
+    says the contradiction may not be left standing, and there is only one way out: carve a
+    **narrow exception for the injected server host key specifically**, before the route is
+    used. Not a rewrite of invariant 5 down to "vendor and inference credentials" — that
+    phrasing would quietly strip the SSH *client* private key (question 3) and the relay
+    token (question 2) of the same protection, which is a larger hole than the one being
+    patched. Scrubbing and rotating the key after first boot limits exposure but resolves
+    nothing; the key has already been exported. That decision has not been taken, and route
+    3 cannot be used until it is.
+16. **What "locked down" means, per vendor — and who may run the check.** A pentest can
+    only assert what it checks, so the checklist is part of the signed recipe set
+    ([ADR-0011](./docs/adr/0011-the-ai-delivers-a-locked-down-machine.md)) — and it does
+    not exist yet for any vendor. Until it does, the deliverable in
+    [What a session delivers](#what-a-session-delivers) has no definition to be measured
+    against.
+
+    The second half is a live divergence between current records. This document and
+    `CONTEXT.md` describe the pentest as **self-directed** — the machine's own session,
+    never another member. ADR-0011 and
+    [ADR-0010](./docs/adr/0010-members-reach-each-other-on-one-authenticated-port.md) also
+    permit it to run "from the trusted coordinator." Those are different objects: a
+    coordinator-run scan is deterministic code reading a machine, which `CONTEXT.md` calls
+    a **verifier** and which is explicitly not a defence against a hostile model — so it
+    cannot substitute for the competence check, whatever else it is worth. Nothing yet says
+    which the deliverable requires.
+17. **Reproducible builds and the watchdogs that would make them mean something.** Neither
     exists. Until they do, the bundle's integrity rests on trusting the host outright.
-15. **Content-Security-Policy gaps.** There is no `wss:` entry today, runtime admission of
-    the policy is unverified, and adopting the Robot route adds one more static entry.
+18. **Content-Security-Policy gaps.** There is no WebSocket entry today; when one is added
+    it must name the relay's exact `wss://` origin rather than the bare `wss:` scheme,
+    which would permit a WebSocket to every secure origin there is. Runtime admission of
+    the policy is also unverified, and adopting the Robot route adds one more static entry.
+19. **Whether the relay is still necessary, now that certificates for bare IP addresses
+    exist.** [ADR-0015](./docs/adr/0015-the-browser-reaches-a-machine-over-pinned-ssh.md)
+    rejected having the machine obtain its own certificate and serve its own bridge —
+    removing the third party altogether — because it needed a DNS name the target operator
+    does not have. Public CAs now issue short-lived WebPKI certificates for IP addresses,
+    and a machine has a public IP, so that premise no longer holds. This does not reverse
+    the decision, and nothing here has re-weighed it: issuance against an address the
+    operator does not own long-term, renewal on a days-long cadence for a machine that must
+    stay reachable, address changes, and whether a machine terminating its own TLS beats a
+    relay that carries ciphertext it cannot read are all unexamined. It is on this list
+    because a rejection resting on a false premise should not be left standing quietly.
+20. **Two places where the decision records still say more than this document does.** Both
+    concern one-domain-one-machine after
+    [ADR-0007](./docs/adr/0007-trust-is-counted-in-two-layers-and-shown.md) split a domain
+    into two layers, and neither has been reconciled.
+    - **The recovery ladder.**
+      [ADR-0004](./docs/adr/0004-one-model-one-machine.md) calls the middle rung free
+      because "escalating within a domain grants no access that domain does not already
+      have," written while a domain meant an indivisible provider-and-weights pair.
+      Escalation is cheap at the proxy layer and puts new weights on the machine, so it is
+      safe only if those weights are not running another member — a condition none of the
+      three records states. `CONTEXT.md` is furthest off: "escalate to a stronger model
+      inside the same trust domain (free, because that domain already has access)" cannot
+      describe escalating to a stronger model at all once a domain is counted per layer,
+      since same-domain then means same weights.
+    - **The rule itself.** ADR-0004 says "one-domain-one-machine holds at each" layer and
+      ADR-0007 says "the one-machine-per-domain rule still holds"; `CONTEXT.md` states it
+      with no layer qualification at all. Read literally, all three forbid procured
+      inference, which those same records require to remain the default. This document
+      states the coherent version — the rule binds *access*, collisions are displayed —
+      and that divergence is recorded here rather than left for a reader to discover by
+      following a link for the *why* and finding the opposite.
 
 ## Status and the next move
 
 Nothing here has touched a real server. The proof of concept can call a cloud vendor's API
 directly from a browser and has established there is no CORS obstacle — the one external
-fact everything depends on. It cannot yet create a machine, and its approval screen and
-provisioning state machine are unbuilt.
+fact everything depends on. It cannot yet create a machine, and the provisioning state
+machine is unbuilt.
 
 The cheapest way to find out which of these decisions is wrong is not to write code. It is
 to **write three recipes by hand — create a machine, harden it, install one vault member —

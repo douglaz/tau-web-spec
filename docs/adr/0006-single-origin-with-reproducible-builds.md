@@ -33,6 +33,12 @@ can serve a good bundle to anyone who looks like a checker while serving a bad o
 target. Reproducible builds make this detectable, not preventable, and the target
 operator will not verify a hash on a phone.
 
+**That sentence is one party short**, and so is the same claim in
+[ADR-0005](./0005-recipes-ship-in-the-signed-bundle.md). Every member installs the same
+vault software release, so whoever signs it is common-mode across the federation in the
+same shape as the bundle. The bundle remains the largest such component and the argument
+below is unaffected; "the remaining" is the word that overstates.
+
 The mitigation that matters is therefore **third-party watchdogs**, not user
 verification: if independent parties routinely fetch and compare the served bundle
 against the published hash, an attacker cannot know who is checking. That only works if
