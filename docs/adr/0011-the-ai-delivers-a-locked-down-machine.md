@@ -52,10 +52,11 @@ it is closed; it does not produce, see, or carry secrets.
 contacts all five members, which is permitted because it is deterministic code from the
 signed bundle, already inside the trusted set. No model gains a second foothold.
 
-**The coordinator's reach needs the same channel as everything else.** Calling five
-member APIs from a browser hits the reachability problem in Open Question 1 of the
-design doc; a freshly provisioned machine has no WebPKI-valid certificate, so this
-almost certainly rides the SSH channel rather than direct HTTPS.
+**The coordinator's reach needs the same channel as everything else.** A freshly
+provisioned machine has no WebPKI-valid certificate, so calling five member APIs from a
+browser almost certainly rides the pinned SSH channel
+([ADR-0015](./0015-the-browser-reaches-a-machine-over-pinned-ssh.md)) rather than direct
+HTTPS.
 
 **"Locked down" needs a definition, per vendor.** The pentest can only assert what it
 checks, so the checklist is part of the recipe set and therefore ships signed

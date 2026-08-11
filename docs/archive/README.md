@@ -14,9 +14,10 @@ requirements in §21, the untrusted-content rules in §20.5 — and nothing has 
 that material. And the decision records cite its section numbers directly, so the
 numbering has to stay reachable.
 
-Read it as a design study, not as a plan of record. It predates every decision in
-[`docs/adr/`](../adr/) and the domain language in [`CONTEXT.md`](../../CONTEXT.md), and
-where it disagrees with them, they are newer. In particular it assumes a scope —
+Read it as a design study, not as a plan of record. It predates [`spec.md`](../../spec.md),
+every decision in [`docs/adr/`](../adr/), and the domain language in
+[`CONTEXT.md`](../../CONTEXT.md), and where it disagrees with them, they are newer. In
+particular it assumes a scope —
 milestone-ordered delivery of a full kernel plus shell — that
 [the design session](../design/2026-08-07-office-hours.md) rejected in favour of a much
 smaller first move.

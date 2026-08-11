@@ -3,17 +3,17 @@
 Design session, 2026-08-07. Revised twice; three rounds of adversarial review, scoring
 5 → 7 → 8.
 
-**Status: superseded in part, 2026-08-10.** The decision records in
+**This is a historical record, not a current document.** It states what was believed and
+decided on the day, and it is not maintained. The decision records in
 [`docs/adr/`](../adr/) and the glossary in [`CONTEXT.md`](../../CONTEXT.md) came out of
-grilling this document, and where they disagree with it, they win. Two things here are
-withdrawn outright: premise 5's browser-side deviation diff, since
-[ADR-0001](../adr/0001-recipes-are-instructions-not-scripts.md) makes recipes prose and
-there is nothing left to diff; and the cross-check this document proposed, since
-[ADR-0004](../adr/0004-one-model-one-machine.md) establishes that any model inspecting
-another's machine gains a second foothold. Passages that later decisions have overtaken
-are marked inline where they occur, rather than rewritten; everything unmarked stands.
-This is the only record of why approach C was chosen over A and B, and of what the
-reviews found.
+grilling this document, and [`spec.md`](../../spec.md) is the current statement of the
+system — including the only maintained list of open questions. Where this record differs
+from those, those win, without exception. Nothing here is amended or marked in place,
+because nothing here claims to be current.
+
+It is kept because it is the only account of why approach C was chosen over A and B, of
+what three rounds of adversarial review found, and of the reasoning behind conclusions
+the decision records state without re-deriving.
 
 **Repos referenced.** Two local, two remote. Every `§` below is prefixed with which
 spec it belongs to, because both local specs have a §2, §3, §8, §10, §12 and §14.
@@ -93,11 +93,7 @@ latter. The gap is Open Question 9b.
 - **The AI must be free to act.** Future VPS adversity is not enumerable in advance.
   Restricting authority to keep the AI safe breaks the only reason the AI is there.
 - **Multi-vendor by necessity.** Federation members must not share a cloud vendor or
-  an inference provider. *Refined by
-  [ADR-0007](../adr/0007-trust-is-counted-in-two-layers-and-shown.md):* independence is
-  counted per layer, and on the default path a shared **proxy** is normal and permitted
-  — what must differ is the model weights. Read as an absolute, this bullet would forbid
-  procured inference entirely.
+  an inference provider.
 - **Credentials stay in browser memory.** `AVH` enforces this structurally:
   `SecretString` implements neither `Clone` nor `Serialize`, `build_prompt` takes
   types that cannot carry one, and the transport re-checks the joined origin before
@@ -212,11 +208,9 @@ Two browser instances, two inference providers, each provisions one machine. The
 records and displays provenance. Build only what that needs. Risk: **medium**, not low.
 
 Effort, split to the stage the plan is organized around:
-- **v0: human ~10-12 weeks / assisted ~2-3 weeks.** This assumed provenance exchange
-  would be manual export/paste, and that federation join is out of scope, which the v0
-  scope decision states. The paste assumption is not merely discharged but removed:
-  Open Question 9a decides there is **no** exchange step at all, because concurrent
-  sessions on one device share storage. The estimate is therefore conservative here.
+- **v0: human ~10-12 weeks / assisted ~2-3 weeks.** This assumes provenance exchange
+  is manual export/paste, and that federation join is out of scope, which the v0 scope
+  decision states.
 - **v1: not estimable until Open Question 1b resolves.** One branch of Next Step 3
   (cloud-init only, cut remote blocks) makes v1 cost zero. The other requires a WASM
   SSH client spike plus a relay to build or operate.
@@ -318,13 +312,6 @@ Consequences that follow and should not be re-derived later: for **confidentiali
 integrity** the relay is an availability dependency, not a trust one, so relay
 redundancy is cheap, a hostile relay is a denial-of-service and nothing worse, and the
 relay itself is a candidate lnrent tenant.
-
-**That holds only for the routes that pin the host key out of band — routes 1 to 3.** It
-fails for route 4 below, the trust-on-first-use floor: at first contact there is nothing
-to check the key against, so a hostile relay can present its own host key, have it
-pinned, and read or alter the session from then on. Under TOFU the relay is trusted at
-first contact, and "denial of service and nothing worse" is wrong. This is the reason
-routes 1 to 3 exist and the reason route 4 is a floor rather than a plan.
 
 **But "availability dependency only" is too clean, and the gap is operational.** A
 WebSocket-to-arbitrary-TCP relay with no authentication is an open proxy and will be
@@ -493,23 +480,11 @@ what "two browser instances" means concretely (two devices, two profiles, two or
 one phone). If both instances are the same origin on one device, premise 3's isolation
 claim is false while success criterion 1 still passes.
 
-**CLOSED by [ADR-0011](../adr/0011-the-ai-delivers-a-locked-down-machine.md).** The AI
-never touches key material: recovery descriptors come from the operator, member keys are
-generated on the machine and never exported. "Two browser instances" is settled by
-[ADR-0009](../adr/0009-one-device-concurrent-sessions-batched-approval.md) as concurrent
-sessions on one device, separated by model weights rather than by hardware. The
-Reviewer Concerns section below still lists this as undefined; it is not.
+**9. Cross-session exchange. Two separable problems.**
 
-**9. Cross-session exchange. Two separable problems; one has since dissolved.**
-
-**9a. Exchanging a provenance record between sessions. CLOSED, not by solving it but by
-removing it.** This was a problem only while sessions were assumed to live on separate
-devices sharing no backend. Per
-[ADR-0009](../adr/0009-one-device-concurrent-sessions-batched-approval.md)
-a federation is provisioned by concurrent sessions on **one device**, which share
-storage. There is nothing to exchange and no manual export/paste step. The earlier v0
-effort estimate was conditioned on this being scoped to paste; the condition is now
-satisfied more cheaply than assumed.
+**9a. Exchanging a provenance record between sessions.** This is a problem only while
+sessions are assumed to live on separate devices sharing no backend. Sessions running
+concurrently on one device share storage, and then there is nothing to exchange.
 
 **9b. Agreeing on one federation. v1, open.** Exchanging member descriptors and public
 keys and running a join between instances that share no backend is a multi-party
@@ -554,14 +529,6 @@ hidden behind the word "predicate."
    to **manual export and paste** for v0; if that is rejected, this criterion moves to
    v1 and v0's effort estimate no longer holds.
 
-   **Superseded on both counts.** *Blocking* is reversed by
-   [ADR-0007](../adr/0007-trust-is-counted-in-two-layers-and-shown.md): procured
-   inference shares a proxy by design, so blocking on a shared proxy would make the
-   default configuration impossible. A collision is **shown, not blocked**. The *paste*
-   precondition is removed by
-   [ADR-0009](../adr/0009-one-device-concurrent-sessions-batched-approval.md): sessions
-   run concurrently on one device and share storage, so there is nothing to exchange.
-   The effort estimate below rests on the same withdrawn assumption.
 4. A local-only recipe with at least two blocks runs end to end, and the exact
    user-data submitted to the vendor API is byte-identical to what the approval screen
    displayed. (v1: the same predicate for command bytes sent over the OQ1 SSH channel,
@@ -657,11 +624,6 @@ Three rounds of adversarial review, scoring 5 → 7 → 8. What remains unresolv
    honest fallback being endpoint diversity plus truthful UI labelling. Both are stated
    conditionally in the text rather than resolved. A reader who needs premise 3 to be
    true should treat it as a design goal, not a property.
-
-   **Half of this is now settled.** Key isolation is closed by
-   [ADR-0011](../adr/0011-the-ai-delivers-a-locked-down-machine.md) — see OQ8 above.
-   The weights-diversity half stands open and is still the reason premise 3 is a goal
-   rather than a property.
 
 Not re-reviewed: the Hetzner Robot `host_key` material, the custom-image install flow,
 and the relay abuse-control section were added after the third round. They carry the

@@ -4,6 +4,8 @@ A client-side AI harness that lets someone with only a phone provision and opera
 real infrastructure, without trusting any party that could act on their behalf. Its
 first tenants are Bitcoin custody (btc-policy) and server rental over Bitcoin (lnrent).
 
+This is the domain glossary. [`spec.md`](./spec.md) is the specification itself.
+
 ## Language
 
 ### Execution planes

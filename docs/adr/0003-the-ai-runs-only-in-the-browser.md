@@ -1,8 +1,9 @@
 # The AI runs only in the browser; a machine is a target, never an actor
 
-The AI lives in the operator's browser. It issues box-plane commands over SSH and
-cloud-plane operations through typed operations. A provisioned machine never holds an
-inference key or a vendor API token and never initiates work.
+The AI lives in the operator's browser. It issues box-plane commands over SSH
+([ADR-0015](./0015-the-browser-reaches-a-machine-over-pinned-ssh.md)) and cloud-plane
+operations through typed operations. A provisioned machine never holds an inference key
+or a vendor API token and never initiates work.
 
 We chose this because an inference key on a machine is a credential living outside
 browser memory, which violates the constraint the whole product rests on: credentials
