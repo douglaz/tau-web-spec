@@ -82,9 +82,9 @@ bound — so an untyped call means approving a key's full authority at a host, a
 interface has to say that rather than imply a limit. The box plane has no path to the cloud
 plane.
 
-**Recipes are instructions, not scripts.** The AI reads prose plus example commands and
+**Briefs are instructions, not scripts.** The AI reads prose plus example commands and
 decides what to run. A script stops dead at the first surprise, and the AI exists precisely
-for the surprises. Recipes ship inside the signed bundle, because a recipe is prose that
+for the surprises. Briefs ship inside the signed bundle, because a brief is prose that
 steers every member at once and diversity buys nothing against it.
 
 **One session, one machine.** Each model accesses exactly one machine and never touches
@@ -176,7 +176,7 @@ set a hosted service picks for you, silently and unlisted.**
 
 **Added by this product** — the only tier the design controls, and the only one an invariant
 guards. The app bundle and its publisher, which is the application rather than a third party
-but is not diversified and carries the recipes, making it the largest concentrated risk. The
+but is not diversified and carries the briefs, making it the largest concentrated risk. The
 relay, the one genuinely new third party, which cannot read a session pinned out of band but
 does learn who connects where. The coordinator, narrowly and during setup, as the only party
 that contacts every member.
@@ -210,5 +210,5 @@ Nothing here has touched a real server. The proof of concept can talk to a vendo
 a browser; it cannot yet create a machine.
 
 The cheapest way to find out which of these decisions is wrong is not to write code. It is
-to **write three recipes by hand — create a machine, harden it, install one vault member —
+to **write three briefs by hand — create a machine, harden it, install one vault member —
 and run them against a disposable project.**

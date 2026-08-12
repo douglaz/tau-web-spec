@@ -7,8 +7,8 @@ published source. We do not diversify the origin across federation members.
 This is a deliberate exception to the pattern used everywhere else. Models, inference
 providers, cloud vendors, and machines are all diversified per member so that no single
 party reaches a threshold. The bundle is not, and it therefore remains the one
-common-mode component in the system, carrying the recipes as well
-([ADR-0005](./0005-recipes-ship-in-the-signed-bundle.md)).
+common-mode component in the system, carrying the briefs as well
+([ADR-0005](./0005-briefs-ship-in-the-signed-bundle.md)).
 
 ## Considered options
 
@@ -34,7 +34,7 @@ target. Reproducible builds make this detectable, not preventable, and the targe
 operator will not verify a hash on a phone.
 
 **That sentence is one party short**, and so is the same claim in
-[ADR-0005](./0005-recipes-ship-in-the-signed-bundle.md). Every member installs the same
+[ADR-0005](./0005-briefs-ship-in-the-signed-bundle.md). Every member installs the same
 vault software release, so whoever signs it is common-mode across the federation in the
 same shape as the bundle. The bundle remains the largest such component and the argument
 below is unaffected; "the remaining" is the word that overstates.

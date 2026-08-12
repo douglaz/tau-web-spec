@@ -6,7 +6,7 @@ firewall, register key. These are typed operations carrying structured metadata,
 each is approved individually. **Box plane** covers shell execution on a machine the
 operator already owns. It is free-form, never pre-approved, always recorded.
 
-We chose this because [ADR-0001](./0001-recipes-are-instructions-not-scripts.md) makes
+We chose this because [ADR-0001](./0001-briefs-are-instructions-not-scripts.md) makes
 what-will-run unknowable in advance, so approval needs structured facts from somewhere
 other than the command text. The two planes turn out to have genuinely different
 shapes: spending money is an enumerable API, and `ai-vps-harness` demonstrated that by
@@ -33,7 +33,7 @@ distinguishes them at the moment that matters.
 
 The box plane has no path to the cloud plane. A machine never holds a vendor API
 token, so work that needs a cloud-plane action must return to the browser, even when
-the AI is mid-way through box-plane work. A recipe may *suggest* resizing a machine;
+the AI is mid-way through box-plane work. A brief may *suggest* resizing a machine;
 only a typed operation can do it.
 
 Approval means two different things and the UI must not blur them: approving one

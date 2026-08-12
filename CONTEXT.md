@@ -30,19 +30,22 @@ machine already paid for. Cloud-plane work has no such bound — it can spend or
 where the harness can type an action it shows the facts, and where it cannot it records the
 call and states plainly that the credential's authority is unknown to it.
 
-### Recipes
+### Briefs
 
-**Recipe**:
+**Brief**:
 A document of instructions the AI reads and improvises from — prose plus example
 commands, in the shape of an agent skill. It is *not* executed verbatim, so what runs
 is not known before the AI runs it.
 _Avoid_: script, playbook, runbook, template
 
-**Recipe library**:
-The collection of recipes available to a session. The *format* is a candidate shared
-primitive with lnrent, which already provisions from its own deterministic scripts; the
-library itself is not shared, because each project ships its own set inside its own
-signed bundle.
+**Brief library**:
+The collection of briefs available to a session, shipped inside the signed bundle.
+
+The format is **not** a shared primitive with lnrent, though an earlier version of this
+entry called it a candidate one. lnrent's *recipes* are executables its daemon runs with high
+privilege; these are prose that must never be run as written. They are not two spellings of
+one artifact and cannot be merged. What is real is a **layering**: one of these documents
+can tell the AI to invoke an lnrent hook as a deterministic tool.
 
 ### Roles
 
@@ -51,11 +54,24 @@ One run of the harness under one set of model weights, responsible for exactly o
 machine. Its deliverable is a provisioned, hardened, reachable machine that it has
 demonstrated is locked down. It never touches key material.
 
+**Operator**:
+The human at the browser — the person who holds the credentials, approves the operations,
+and owns the machines. Deliberately abstract over the tenants: under btc-policy this is a
+custody owner funding a vault, under lnrent a seller renting capacity out, and both of
+those projects define **their own** narrower `Operator` for their own domain. Not a
+customer, not an end user of anything the operator later runs.
+_Avoid_: user, admin, owner, customer
+
 **Coordinator**:
 AI-free deterministic code, trusted during setup, running from the signed bundle on the
 operator's device. It takes member endpoints plus operator-supplied recovery descriptors
 and forms the federation by calling member APIs. It is the only party that contacts
 every member, which is permitted precisely because it is not a model.
+
+**btc-policy uses this word for a different component** — its operational relay, trusted
+until the wrench attack and untrusted after, with an enumerated list of what a compromised
+one can do. Different phase, opposite trust posture. Check the register in the meta project
+before carrying the term across a repository boundary.
 
 **Member**:
 A machine running the vault software as part of a federation. Generates its own key
@@ -70,7 +86,7 @@ Never run from another member.
 ### Trust and verification
 
 **Tenant**:
-A project built on the harness, supplying its own recipes, its own software, and its own
+A project built on the harness, supplying its own briefs, its own software, and its own
 security requirements. btc-policy and lnrent are the first two; ad hoc use is a tenant of
 one machine and no requirements. **The harness never sets a tenant's threshold** — it
 isolates and counts, and the tenant says what the counts must be.
@@ -232,10 +248,10 @@ is cloud plane, so it's a typed operation and the user sees a card.
 user already owns. It cannot reach the vendor's firewall, because the box plane has no
 path to the cloud plane.
 
-**Dev:** What if the recipe says to resize the machine because it ran out of disk?
+**Dev:** What if the brief says to resize the machine because it ran out of disk?
 
 **Domain expert:** Then the AI stops and raises a cloud-plane operation, because that
-one spends money. The recipe can *suggest* it. Only a typed operation can *do* it.
+one spends money. The brief can *suggest* it. Only a typed operation can *do* it.
 
 **Dev:** Machine 1 looks misconfigured. Can I point the model from machine 2 at it to
 check?

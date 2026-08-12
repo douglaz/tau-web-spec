@@ -59,5 +59,5 @@ browser almost certainly rides the pinned SSH channel
 HTTPS.
 
 **"Locked down" needs a definition, per vendor.** The pentest can only assert what it
-checks, so the checklist is part of the recipe set and therefore ships signed
-([ADR-0005](./0005-recipes-ship-in-the-signed-bundle.md)).
+checks, so the checklist is part of the brief set and therefore ships signed
+([ADR-0005](./0005-briefs-ship-in-the-signed-bundle.md)).

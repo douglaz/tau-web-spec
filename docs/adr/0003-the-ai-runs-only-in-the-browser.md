@@ -40,7 +40,7 @@ the PWA is closed as a non-goal (§3) and treats browser suspension as a first-c
 problem (§19), so it is a confirmation rather than a new limit.
 
 Long operations must be resumable across a locked phone rather than assuming a screen
-stays awake, which is a real constraint on iOS. Recipe steps therefore need to be
+stays awake, which is a real constraint on iOS. Brief steps therefore need to be
 individually resumable, and progress must survive the harness worker being killed.
 
 The periodic security audit of a running vault requires the operator to open the app.

@@ -35,7 +35,7 @@ its security section that assume a threshold exists.
 
 ## Considered options
 
-**The harness owns all security**, with tenants supplying only recipes and software. This
+**The harness owns all security**, with tenants supplying only briefs and software. This
 keeps the documents nearly intact and is the smaller change. Rejected because lnrent and ad
 hoc use would inherit federation machinery that does not apply to them, and because the
 harness would go on making a claim only one tenant can support — the specific defect that
@@ -69,9 +69,13 @@ honest about a smaller claim rather than borrowing the vault's.
 the regress has no bottom and a flat list reads as a scorecard the design is losing. Only
 the third tier is the harness's to control, and only it is guarded by an invariant.
 
-**The recipe format becomes an ecosystem concern.** It was already a candidate shared
-primitive with lnrent; with a meta project it has somewhere to live that is neither
-project's.
+**The brief format is not an ecosystem primitive after all.** This record called it a
+candidate one, following the glossary. Reading lnrent directly showed why it cannot be:
+its *recipes* are executables its daemon runs with high privilege, while these are prose that
+must never be run as written — and each project's glossary bans a word the other's
+definition uses. What the meta project holds instead is the *layering* between them, and the
+fact that tau-web's "brief" and lnrent's "recipe" were the same word until this
+rename separated them.
 
 **Two projects now have to agree on where a decision belongs**, and the failure mode is a
 decision recorded in neither. The meta project owns anything that spans tenants; this

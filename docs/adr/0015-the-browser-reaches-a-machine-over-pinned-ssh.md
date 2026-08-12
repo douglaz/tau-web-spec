@@ -116,7 +116,7 @@ bridge*, not whether one is needed — the browser still cannot open a raw TCP s
 
 **No remote channel at all**, with every machine configured entirely through boot-time
 user-data. This is not rejected so much as deferred: it is what the first stage actually
-does, and if the three hand-written recipes called for under [`spec.md`](../../spec.md)
+does, and if the three hand-written briefs called for under [`spec.md`](../../spec.md)
 § Status and the next move show that every step can be expressed as boot-time
 configuration, the channel stops gating provisioning. It cannot
 be the whole answer, because the coordinator still has to reach five member APIs on

@@ -66,7 +66,7 @@ anywhere the point is that nobody else can act for you.
 
 So: a harness that runs in the browser, provisions and operates machines the operator rents
 and controls, and makes authenticated calls on their behalf. **Tenants build on it** —
-supplying their own recipes, their own software, and their own security requirements
+supplying their own briefs, their own software, and their own security requirements
 ([ADR-0016](./docs/adr/0016-the-harness-isolates-and-counts-tenants-set-thresholds.md)).
 Two are intended, and ad hoc use is a third that needs neither of them:
 
@@ -206,15 +206,15 @@ known beforehand, and what an untyped call runs under, because nothing types it.
 **A scope names where a credential goes, not what it can do**, and the two cases differ in
 what stops the damage. Box-plane work is bounded by the machine. An untyped call is bounded
 only by the credential — so approving one is approving that key's full authority at that
-host, for as long as it is valid, whatever the recipe intended at the time. Where a service
+host, for as long as it is valid, whatever the brief intended at the time. Where a service
 offers a scoped or read-only key, using one is the only thing that actually narrows this,
 and it is the operator's move rather than the harness's.
 
-### Recipes
+### Briefs
 
-A recipe is a document of prose plus example commands, in the shape of an agent skill.
+A brief is a document of prose plus example commands, in the shape of an agent skill.
 The AI reads it and decides what to actually run; it is not executed verbatim
-([ADR-0001](./docs/adr/0001-recipes-are-instructions-not-scripts.md)). A script stops
+([ADR-0001](./docs/adr/0001-briefs-are-instructions-not-scripts.md)). A script stops
 dead at the first surprise — a changed image name, a package that will not install, a
 service that will not start — and the AI exists precisely for the surprises. A setup
 nobody can finish sends the operator back to a custodian, which is worse than the risks
@@ -225,18 +225,22 @@ approval to draw on structured facts from the cloud plane rather than on command
 Adaptations also do not accumulate — the same problem may be solved differently on two
 runs, and the library does not improve on its own.
 
-**Recipes ship inside the signed application bundle**
-([ADR-0005](./docs/adr/0005-recipes-ship-in-the-signed-bundle.md)). Nothing fetches a
-recipe at runtime and operators cannot supply their own. A recipe is prose that steers a
-model, which is prompt injection by design, and every member reads the same recipe — so
+**Briefs ship inside the signed application bundle**
+([ADR-0005](./docs/adr/0005-briefs-ship-in-the-signed-bundle.md)). Nothing fetches a
+brief at runtime and operators cannot supply their own. A brief is prose that steers a
+model, which is prompt injection by design, and every member reads the same brief — so
 whoever can change one reaches every member at once. That defeats the honest-majority
 assumption rather than being absorbed by it: n honest, competent models faithfully
 following poisoned instructions all produce the wrong machine, and agree with each other
-perfectly while doing it. The recipe is the one component where diversity buys nothing,
+perfectly while doing it. The brief is the one component where diversity buys nothing,
 so it is locked instead.
 
-The recipe *format* is a candidate shared primitive with lnrent. The *library* is not
-shared: each project ships its own set inside its own bundle.
+The format is **not** shared with lnrent, though this document previously called it a
+candidate shared primitive. lnrent's *recipes* are executables its daemon runs with high
+privilege; these are prose that must never be run as written, and no format spans both. The
+real relationship is a **layering** — one of these documents can tell the AI to invoke an
+lnrent hook as a deterministic tool. The library is not shared either: each project ships
+its own set inside its own bundle.
 
 ### Sessions, trust domains, and diversity
 
@@ -367,7 +371,7 @@ requirement: a policy co-signer inspects exact PSBTs precisely because it does n
 its peers.
 
 Because firewall rules are cloud-plane, the deny-by-default posture is visible to the
-operator, and a recipe cannot quietly widen it.
+operator, and a brief cannot quietly widen it.
 
 ### The browser-to-machine channel
 
@@ -417,7 +421,7 @@ attack delivered through the feature meant to make the vault safer. Three rules 
 fetched content is typed as untrusted and can never authorize an action by itself;
 advisory review **reports, it does not act**, so any resulting change is a normal
 operation needing normal approval however urgent the advisory claims to be; and the set
-of feeds ships signed like the recipes, since a feed URL changeable at runtime steers
+of feeds ships signed like the briefs, since a feed URL changeable at runtime steers
 every member at once.
 
 The first of those three is a general rule, not a rule about advisories. Any box-plane
@@ -481,7 +485,7 @@ equipped to tell the difference. Teaching Bitcoin users that the same app legiti
 lives at several addresses trains the reflex that gets them robbed.
 
 So the bundle remains a common-mode component — the largest, and the one that carries the
-recipes, though not the only one: see the vault-software signer below.
+briefs, though not the only one: see the vault-software signer below.
 Reproducible builds make a compromised bundle detectable, not preventable, and the target
 operator will not verify a hash on a phone. The mitigation that matters is **third-party
 watchdogs** — independent parties routinely fetching and comparing the served bundle, so
@@ -533,7 +537,7 @@ invariants in the archived execution-layer specification.
    keys is a known conflict with this, and open question 15 is where it is tracked.
 6. **The AI MUST NOT touch key material.** Recovery descriptors come from the operator.
    Member keys are generated on the machine and never exported.
-7. **Recipes and advisory feed lists MUST ship in the signed bundle** and MUST NOT be
+7. **Briefs and advisory feed lists MUST ship in the signed bundle** and MUST NOT be
    fetched, configured, or substituted at runtime.
 8. **All tool output and fetched external content MUST be typed as untrusted** and MUST
    NOT authorize an action on its own, declare capabilities, or override policy.
@@ -677,10 +681,10 @@ is exactly the set a hosted service picks on your behalf, silently and unlisted.
   weights and proxy and this is neither (question 4). It is named here because the list is
   meant to be exhaustive even where the counting is not yet settled.
 - **A majority of the models**, being both honest *and* competent.
-- **Whoever signs the vault software the members run.** Recipes install the same release on
+- **Whoever signs the vault software the members run.** Briefs install the same release on
   every member, so its signer is common-mode across the federation in the same shape as the
   bundle — which means
-  [ADR-0005](./docs/adr/0005-recipes-ship-in-the-signed-bundle.md)'s claim that the bundle
+  [ADR-0005](./docs/adr/0005-briefs-ship-in-the-signed-bundle.md)'s claim that the bundle
   is "the only remaining single point of total compromise" is one party short — as is
   [ADR-0006](./docs/adr/0006-single-origin-with-reproducible-builds.md)'s "the bundle is
   the remaining single point of total compromise," which says the same thing in a record
@@ -696,7 +700,7 @@ someone decides it should.
 
 - **The app bundle, and the publisher who serves it.** This is the application itself
   rather than a third party, but it is not diversified across members and it carries the
-  recipes, so a compromised host can serve one build that misbehaves on every member — and
+  briefs, so a compromised host can serve one build that misbehaves on every member — and
   can serve a good bundle to anyone who looks like a checker. **The largest concentrated
   risk in the design.** On the default path the publisher also selects the models, which is
   acceptable only because it is already trusted for the bundle and because bring-your-own
@@ -725,7 +729,7 @@ It is not a vault and it is not a claim that anyone's bitcoin is safe. What it s
 provenance rather than proving it, since a provenance record is a local claim and forgery
 resistance is out of scope at this stage.
 
-Recipes are local-only here. Both machines are configured entirely through boot-time
+Briefs are local-only here. Both machines are configured entirely through boot-time
 user-data, which needs no relay, no WASM SSH client, and no answer to the channel
 question. Acceptance is these predicates:
 
@@ -744,7 +748,7 @@ question. Acceptance is these predicates:
    create** and says why: ADR-0007 reversed blocking for the proxy layer specifically,
    because procured inference shares a proxy by design, and that reasoning does not reach
    vendors, which nothing forces anyone to share.
-4. A local-only recipe with at least two blocks runs end to end, and the user-data
+4. A local-only brief with at least two blocks runs end to end, and the user-data
    submitted to the vendor API is byte-identical to what the approval screen displayed.
 5. None of the four credentials — two vendor tokens, two inference keys — appears in a
    request to the app origin, in any model request body, in IndexedDB, in local storage,
@@ -757,7 +761,7 @@ question. Acceptance is these predicates:
 The second stage adds remote blocks over the channel **and everything that turns machines
 into a federation** — the coordinator, federation formation, all-or-nothing creation. Both
 halves wait on the same thing: the coordinator has to reach five member APIs on machines
-with no valid certificate, so it needs the channel as much as recipes do. Neither can be
+with no valid certificate, so it needs the channel as much as briefs do. Neither can be
 estimated until the SSH spike resolves.
 
 ## The decisions
@@ -767,11 +771,11 @@ record carries it and the grounds for rejecting it.
 
 | ADR | Decision |
 |---|---|
-| [0001](./docs/adr/0001-recipes-are-instructions-not-scripts.md) | Recipes are instructions the AI reads, not scripts it executes |
+| [0001](./docs/adr/0001-briefs-are-instructions-not-scripts.md) | Briefs are instructions the AI reads, not scripts it executes |
 | [0002](./docs/adr/0002-cloud-plane-and-box-plane.md) | Cloud-plane actions are typed operations; box-plane actions are free shell |
 | [0003](./docs/adr/0003-the-ai-runs-only-in-the-browser.md) | The AI runs only in the browser; a machine is a target, never an actor |
 | [0004](./docs/adr/0004-one-model-one-machine.md) | One model, one machine, and an honest-majority assumption |
-| [0005](./docs/adr/0005-recipes-ship-in-the-signed-bundle.md) | Recipes ship in the signed app bundle |
+| [0005](./docs/adr/0005-briefs-ship-in-the-signed-bundle.md) | Briefs ship in the signed app bundle |
 | [0006](./docs/adr/0006-single-origin-with-reproducible-builds.md) | One origin, with reproducible builds |
 | [0007](./docs/adr/0007-trust-is-counted-in-two-layers-and-shown.md) | Trust is counted in two layers, and shown rather than scored |
 | [0008](./docs/adr/0008-three-of-five-default-and-its-economic-floor.md) | 3-of-5 by default, and the economic floor it implies |
@@ -867,16 +871,16 @@ repository is history.
 
 ### Design-level, still unanswered
 
-12. **The recipe format schema.** Frontmatter fields, the local/remote block marker, how a
+12. **The brief format schema.** Frontmatter fields, the local/remote block marker, how a
     block returns structured data to the next one, versioning, signing. Designing a second
     consumer for an undefined format is premature until this exists.
-13. **What executes recipe commands locally in the browser.** Either a WASI host with
+13. **What executes brief commands locally in the browser.** Either a WASI host with
     uutils guests, as the archived specification assumes, or a small set of purpose-built
     commands. This is deliberately not decided in advance: the scope is to be derived from
-    real recipes rather than guessed, and the archived specification's answers here are
+    real briefs rather than guessed, and the archived specification's answers here are
     currently guesses.
-14. **Mid-recipe recovery at step granularity.** Duplicate-create protection is designed
-    but the provisioning state machine it needs is not built, and a multi-step recipe needs
+14. **Mid-brief recovery at step granularity.** Duplicate-create protection is designed
+    but the provisioning state machine it needs is not built, and a multi-step brief needs
     the same idea per step on top of it.
 15. **Whether injecting the SSH host key is permitted, and on what terms.** Route 3 writes
     a *private* host key into boot-time user-data, which the vendor stores — squarely
@@ -890,7 +894,7 @@ repository is history.
     nothing; the key has already been exported. That decision has not been taken, and route
     3 cannot be used until it is.
 16. **What "locked down" means, per vendor — and who may run the check.** A pentest can
-    only assert what it checks, so the checklist is part of the signed recipe set
+    only assert what it checks, so the checklist is part of the signed brief set
     ([ADR-0011](./docs/adr/0011-the-ai-delivers-a-locked-down-machine.md)) — and it does
     not exist yet for any vendor. Until it does, the deliverable in
     [What a session delivers](#what-a-session-delivers) has no definition to be measured
@@ -952,10 +956,10 @@ fact everything depends on. It cannot yet create a machine, and the provisioning
 machine is unbuilt.
 
 The cheapest way to find out which of these decisions is wrong is not to write code. It is
-to **write three recipes by hand — create a machine, harden it, install one vault member —
+to **write three briefs by hand — create a machine, harden it, install one vault member —
 and run them against a disposable project.** That settles three things nothing else can:
 which commands genuinely need to run in the browser versus on the machine, whether the
-local/remote split is a seam a recipe author trips over, and, most valuable, which steps
+local/remote split is a seam a brief author trips over, and, most valuable, which steps
 could not be expressed as boot-time configuration at all.
 
 If the answer to the last one is "none," provisioning needs no live channel and this plan

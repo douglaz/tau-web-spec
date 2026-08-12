@@ -26,7 +26,7 @@ what lets the plane generalize without the blast-radius reasoning collapsing.
 
 Not a set of actions. **A credential's authority.** A full-access key approved for one host
 has authorized everything that key can do at that host, for as long as it is valid, whatever
-the recipe intended at the time. A read-only or spend-capped key bounds the damage by
+the brief intended at the time. A read-only or spend-capped key bounds the damage by
 construction.
 
 So the boundary is the credential, and the harness does not control it. It could ask for the
@@ -39,7 +39,7 @@ and is not one.
 ## Considered options
 
 **Typed adapters only**, with a service callable solely where an adapter exists and adapters
-shipping signed like recipes ([ADR-0005](./0005-recipes-ship-in-the-signed-bundle.md)). This
+shipping signed like briefs ([ADR-0005](./0005-briefs-ship-in-the-signed-bundle.md)). This
 keeps "enumerable, therefore approvable" true everywhere and was the tempting answer.
 Rejected because it narrows the platform to services someone has already adapted, which
 forecloses the ad hoc and unforeseen use cases that are the point of a platform, and puts a

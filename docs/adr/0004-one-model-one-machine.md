@@ -21,7 +21,7 @@ another model that now has access.
 
 **Transcript comparison**: compare what two models did, rather than granting access to
 a machine. Rejected on practicality before this constraint was even reached — two
-models following the same prose recipe run different commands in different orders, and
+models following the same prose brief run different commands in different orders, and
 deriving comparable effects from arbitrary shell is the undecidable problem from
 [ADR-0002](./0002-cloud-plane-and-box-plane.md).
 

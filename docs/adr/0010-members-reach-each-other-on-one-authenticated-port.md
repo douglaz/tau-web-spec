@@ -48,5 +48,5 @@ foothold wearing a helpful hat. Security checks run from the machine itself
 coordinator, never sideways.
 
 **Firewall rules are cloud-plane and therefore approved.** The deny-by-default posture
-is visible to the operator rather than being an implementation detail, and a recipe
+is visible to the operator rather than being an implementation detail, and a brief
 cannot quietly widen it — widening requires a typed operation and an approval.
