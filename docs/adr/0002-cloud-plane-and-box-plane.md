@@ -39,3 +39,12 @@ only a typed operation can do it.
 Approval means two different things and the UI must not blur them: approving one
 cloud-plane operation with its facts shown, versus approving a scope that box-plane
 work runs under.
+
+**The cloud plane is broadened by
+[ADR-0017](./0017-off-machine-calls-and-scope-approval.md).** Defining it as operations *at
+a vendor* left the harness's authenticated calls to any other third-party service with
+nowhere to sit — neither an infrastructure operation nor shell on a machine the operator
+owns. The plane now covers any action taken **off** the operator's machines with a
+credential they supplied, and carries a second approval mode for the ones no adapter types.
+The reasoning above is unchanged and the axis it was reaching for is stated plainly there:
+off-machine versus on-machine, each side with its own bound rather than a shared one.

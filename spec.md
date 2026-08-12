@@ -21,7 +21,7 @@ refers to rather than repeats:
 | Where | What it holds |
 |---|---|
 | [`CONTEXT.md`](./CONTEXT.md) | The domain glossary — the canonical term for each concept, the aliases to avoid, and the ambiguities that must always be qualified. |
-| [`docs/adr/`](./docs/adr/) | The sixteen decisions, and for most of them the alternatives that were rejected and the grounds for rejecting them — some in a `Considered options` section, some inline, and a few not at all. This document states *what* was decided; an ADR is where *why* lives. |
+| [`docs/adr/`](./docs/adr/) | The seventeen decisions, and for most of them the alternatives that were rejected and the grounds for rejecting them — some in a `Considered options` section, some inline, and a few not at all. This document states *what* was decided; an ADR is where *why* lives. |
 | [`docs/design/`](./docs/design/) | A record of the design session held on 2026-08-07, kept as history. It is the only account of why this approach was chosen over the two others weighed against it. |
 | [`docs/archive/`](./docs/archive/) | The original Rust/WASM PWA specification — the execution layer, in far more detail than anything here. Superseded as a plan, retained because it is the only treatment of the machinery and because the decisions cite its section numbers. |
 
@@ -172,22 +172,43 @@ the harness worker being killed.
 Actions split into two planes with different rules
 ([ADR-0002](./docs/adr/0002-cloud-plane-and-box-plane.md)).
 
-**Cloud plane** covers anything that spends money or changes infrastructure at a vendor:
-create, destroy, resize, firewall, register key. These are typed operations carrying
-structured metadata, and each is approved on its own facts rather than on command text.
+**Cloud plane** covers any action taken **off** the operator's machines with a credential
+they supplied — creating, destroying, resizing, firewalling or paying at a vendor, and
+equally a call to any other third-party service
+([ADR-0017](./docs/adr/0017-off-machine-calls-and-scope-approval.md)). It has two approval
+modes:
+
+- **Typed operations**, where an adapter exists: the action carries structured metadata and
+  each one is approved on its own facts rather than on command text.
+- **Untyped calls**, where none does: the operator approves a *scope* — this credential,
+  this host — every call is recorded before it is sent, and the harness **claims nothing
+  about what the credential can do.** It usually cannot know: most services publish no
+  machine-readable statement of what a key authorizes, and a bound stated on a guess is
+  worse than none.
 
 **Box plane** covers shell execution on a machine the operator already owns. It is
 free-form, never pre-approved, always recorded.
 
-The split exists because the two have genuinely different shapes. Spending money is an
-enumerable API; configuring a machine is not, and that is exactly where unanticipated
-problems live. The blast radii differ by orders of magnitude — box-plane code can ruin
-one machine the operator already bought, cloud-plane code can spend a credit card.
+The split is **off-machine versus on-machine**, and each side carries its own reasoning
+rather than sharing one. Box-plane work can be free-form because the worst case is ruining
+one machine the operator already bought — that bound is what makes it tolerable. Cloud-plane
+work has no such bound: it can spend a credit card, publish irreversibly, or read an entire
+account. Where the harness can type the action it shows the facts; where it cannot, the
+operator is authorizing **a credential's authority rather than a set of actions**, and the
+interface has to say so in those terms.
 
-**Approval means two different things and the interface must not blur them.** Approving
-an *operation* means seeing structured facts about one cloud-plane action and permitting
-it. Approving a *scope* means permitting a class of activity in advance, which is what
-box-plane work runs under, because its contents are not known beforehand.
+**Approval means two different things and the interface must not blur them.** Approving an
+*operation* means seeing structured facts about one action and permitting it — available
+only where an adapter types the action. Approving a *scope* means permitting a class of
+activity in advance, which is what box-plane work runs under, because its contents are not
+known beforehand, and what an untyped call runs under, because nothing types it.
+
+**A scope names where a credential goes, not what it can do**, and the two cases differ in
+what stops the damage. Box-plane work is bounded by the machine. An untyped call is bounded
+only by the credential — so approving one is approving that key's full authority at that
+host, for as long as it is valid, whatever the recipe intended at the time. Where a service
+offers a scoped or read-only key, using one is the only thing that actually narrows this,
+and it is the operator's move rather than the harness's.
 
 ### Recipes
 
@@ -501,7 +522,12 @@ invariants in the archived execution-layer specification.
 3. **The box plane MUST NOT have a path to the cloud plane.** A machine never holds a
    vendor API token. Work needing a cloud-plane action returns to the browser, even
    mid-way through box-plane work.
-4. **Cloud-plane actions MUST be approved on structured facts, never on command text.**
+4. **A typed cloud-plane operation MUST be approved on structured facts, never on command
+   text — and an untyped call MUST NOT be presented as though its scope bounds what the
+   credential can do.** A scope names where a key goes. For box-plane work the machine
+   bounds the damage; for an untyped call nothing does, and an approval screen that reads
+   like a limit is the overstatement this design refuses everywhere else
+   ([ADR-0017](./docs/adr/0017-off-machine-calls-and-scope-approval.md)).
 5. **Credentials MUST NOT leave browser memory** — not to storage, not to the app's own
    origin, not into a model request, not into a log. The injection route for SSH host
    keys is a known conflict with this, and open question 15 is where it is tracked.
@@ -520,7 +546,11 @@ invariants in the archived execution-layer specification.
     fingerprint at first contact, so that contact is trusted rather than verified and
     MUST be presented to the operator as such. No other path may accept an unverified
     key.
-12. **The app MUST NOT hold, forward, or custody funds.** A Bitcoin wallet able to pay for
+12. **Every off-machine call made with an operator credential MUST be recorded before it is
+    sent.** For a typed operation this is bookkeeping. For an untyped call it is the *only*
+    safeguard standing behind it, since the harness cannot bound what the credential
+    authorizes — which is what makes it an invariant rather than a described behaviour.
+13. **The app MUST NOT hold, forward, or custody funds.** A Bitcoin wallet able to pay for
     machines is an intended future capability and it collides with this, so the collision is
     recorded rather than resolved. Self-custody would not breach
     [ADR-0014](./docs/adr/0014-the-app-relays-invoices-and-never-holds-funds.md)'s
@@ -537,15 +567,15 @@ belong to that tenant and move with it. They are listed here, unchanged, until t
 project exists — and an implementer building for a tenant without a threshold is not bound
 by them.
 
-13. **Members MUST NOT be reachable from each other except on the vault protocol port,
+14. **Members MUST NOT be reachable from each other except on the vault protocol port,
     mutually authenticated**, with everything else denied at the vendor firewall.
-14. **A federation MUST NOT be formed until every member is provisioned, hardened, and
+15. **A federation MUST NOT be formed until every member is provisioned, hardened, and
     reachable.**
-15. **Two machines of one federation MUST NOT be created at the same cloud vendor.**
+16. **Two machines of one federation MUST NOT be created at the same cloud vendor.**
     Stated in machines rather than members deliberately: nothing has joined a federation
     when this rule has to bind, so a rule about "members" would not reach the first stage
     at all. The vendor owns its machines' memory and disk, so two of them at one vendor is
-    a single party able to act on both — the correlated fault invariant 13 exists to prevent
+    a single party able to act on both — the correlated fault invariant 14 exists to prevent
     at the network layer, arriving instead through the billing relationship. Unlike every
     other entry here this one has no decision record of its own: it rests on
     [ADR-0006](./docs/adr/0006-single-origin-with-reproducible-builds.md)'s statement that
@@ -753,6 +783,7 @@ record carries it and the grounds for rejecting it.
 | [0014](./docs/adr/0014-the-app-relays-invoices-and-never-holds-funds.md) | The app relays invoices and never holds funds |
 | [0015](./docs/adr/0015-the-browser-reaches-a-machine-over-pinned-ssh.md) | The browser reaches a machine over SSH, pinned at the application layer |
 | [0016](./docs/adr/0016-the-harness-isolates-and-counts-tenants-set-thresholds.md) | The harness isolates and counts; tenants set thresholds |
+| [0017](./docs/adr/0017-off-machine-calls-and-scope-approval.md) | Off-machine calls generalize the cloud plane; untyped ones are approved by scope |
 
 ## Open questions
 

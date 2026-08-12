@@ -16,7 +16,7 @@ That is the goal, not an achieved property. Several parties remain trusted, and 
 specification names each of them by hand rather than claiming the list is empty.
 
 There is no code in this repository. What exists is the specification this summarises, a
-domain language, sixteen decisions recording what was chosen and — for most of them — which
+domain language, seventeen decisions recording what was chosen and — for most of them — which
 alternatives were rejected, a design record with three rounds of adversarial review, and an
 archived specification of the execution layer. A working proof of concept in a separate
 repository has established the one external fact everything depends on: a browser can call a
@@ -66,13 +66,21 @@ inference key, no vendor token, and never initiates work. The consequence is acc
 rather than worked around — nothing runs while the app is closed, so every step must be
 resumable across a locked phone.
 
-**Actions split into two planes.** Cloud-plane actions — create, destroy, resize, firewall,
-pay — are typed operations approved on structured facts rather than on command text.
-Box-plane actions are free-form shell on a machine the operator already owns: nothing is
-pre-approved, because nothing is known in advance, but the class of activity runs under an
-approved scope and everything is recorded. Spending money is an enumerable API; configuring
-a machine is not, and that is exactly where unanticipated problems live. The box plane has
-no path to the cloud plane.
+**Actions split into two planes, off-machine and on.** The **cloud plane** is anything done
+off the operator's machines with a credential they supplied — creating or paying at a vendor,
+and equally a call to any other service. Where an adapter types the action it is approved on
+structured facts rather than command text; where none does, the operator approves a scope
+naming the credential and the host, every call is recorded before it is sent, and the harness
+**claims nothing about what that credential can do** — for most services it cannot know. The
+**box plane** is free-form shell on a machine the operator already owns: nothing is
+pre-approved, because nothing is known in advance, but it runs under an approved scope and
+everything is recorded.
+
+Each side carries its own bound rather than sharing one. Box-plane work can be free-form
+because the worst case is ruining a machine already paid for. Cloud-plane work has no such
+bound — so an untyped call means approving a key's full authority at a host, and the
+interface has to say that rather than imply a limit. The box plane has no path to the cloud
+plane.
 
 **Recipes are instructions, not scripts.** The AI reads prose plus example commands and
 decides what to run. A script stops dead at the first surprise, and the AI exists precisely

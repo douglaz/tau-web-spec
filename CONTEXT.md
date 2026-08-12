@@ -11,9 +11,12 @@ This is the domain glossary. [`spec.md`](./spec.md) is the specification itself.
 ### Execution planes
 
 **Cloud plane**:
-The set of actions expressed as typed operations against a vendor's API — creating,
-destroying, resizing, or paying for infrastructure. Enumerable, and therefore
-approvable with structured metadata.
+Any action taken **off** the operator's machines with a credential they supplied — creating
+or paying for infrastructure, and equally a call to any other third-party service. Carries
+two approval modes. **Typed operation**: an adapter exists, the action is expressed as
+structured facts, and each one is approved individually. **Untyped call**: no adapter, so the
+operator approves a scope instead, and the harness claims nothing about what the credential
+can do.
 _Avoid_: control plane, provisioning layer, API layer
 
 **Box plane**:
@@ -21,9 +24,11 @@ Free-form shell execution on a machine the operator already owns. Not enumerable
 pre-approved, always recorded. This is where unanticipated problems get solved.
 _Avoid_: data plane, runtime layer, remote shell
 
-The split exists because the two have different shapes. Spending money is an
-enumerable API; configuring a machine is not. The blast radius of box-plane code is
-one machine already paid for; the blast radius of cloud-plane code is a credit card.
+The split is **off-machine versus on-machine**, and each side carries its own reasoning
+rather than sharing one. Box-plane work can be free-form because the worst case is ruining a
+machine already paid for. Cloud-plane work has no such bound — it can spend or publish — so
+where the harness can type an action it shows the facts, and where it cannot it records the
+call and states plainly that the credential's authority is unknown to it.
 
 ### Recipes
 
@@ -207,7 +212,10 @@ version nothing has joined a federation, so a machine is not yet a member.
 - **Approve an operation** — the user sees structured facts about one cloud-plane
   action and permits it. Only possible on the cloud plane.
 - **Approve a scope** — the user permits a class of activity in advance. This is what
-  box-plane work runs under, because its contents are not known in advance.
+  box-plane work runs under, because its contents are not known in advance, and what an
+  untyped cloud-plane call runs under, because no adapter exists to type it. **A scope names
+  where a credential goes, not what it can do.** For box-plane work the machine bounds the
+  damage; for an untyped call nothing does, and the interface may not imply otherwise.
 
 ## Example dialogue
 
