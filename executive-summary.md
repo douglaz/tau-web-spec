@@ -16,7 +16,7 @@ That is the goal, not an achieved property. Several parties remain trusted, and 
 specification names each of them by hand rather than claiming the list is empty.
 
 There is no code in this repository. What exists is the specification this summarises, a
-domain language, fifteen decisions recording what was chosen and — for most of them — which
+domain language, sixteen decisions recording what was chosen and — for most of them — which
 alternatives were rejected, a design record with three rounds of adversarial review, and an
 archived specification of the execution layer. A working proof of concept in a separate
 repository has established the one external fact everything depends on: a browser can call a
@@ -28,26 +28,36 @@ Agentic AI is desktop-gated. Technical users run real harnesses against the best
 and get an AI that *acts*; everyone else gets a chat box. The people who would gain most
 have only a phone.
 
-The obvious fix is a hosted agent platform, and for one class of task it is unavailable in
-principle. Anything whose value depends on *not* trusting a host — self-custody, key
-management, sovereign infrastructure — cannot be delegated to a host. A single party that
-provisions every member of a Bitcoin custody federation has defeated the federation,
-whatever its intentions.
+**And the gap is widening.** Most people are mobile-only and will stay that way, while both
+mobile platforms keep tightening what may be installed outside their stores. The browser is
+not a compromise accepted for convenience — it is the last route by which a non-technical
+person reaches real compute, and real AI, without someone else configuring it for them.
 
-Two intended tenants: **btc-policy**, self-hosted Bitcoin custody built on a federation of
-policy co-signers, and **lnrent**, server rental paid over Bitcoin. The second turns out to
-be load-bearing for the first, because a federation across five vendors means five billing
+The obvious fix is a hosted agent platform, and for one class of task it is unavailable in
+principle. Anything whose value depends on *not* trusting a host cannot be delegated to one,
+because the host becomes the party you were trying not to need. A vault whose members were
+all provisioned by a single party has been defeated by that party, whatever its intentions.
+
+So: a harness in the browser that provisions and operates machines the operator rents and
+controls. **Tenants build on it.** Two are intended — **btc-policy**, self-hosted Bitcoin
+custody on a federation of policy co-signers, and **lnrent**, server rental paid over
+Bitcoin — and ad hoc use is a third that needs neither. The second turns out to be
+load-bearing for the first, because a federation across five vendors means five billing
 relationships, and renting for sats with no account is the only escape from that.
 
 ## Who it is for
 
-Sharper than "non-technical users." The default threshold is 3-of-5, so five machines, so
-**€275 per year** at the reference price before inference. At a willingness to pay roughly
-1% per year for custody, that implies holdings near €27,500. Nothing here makes sense for
-someone holding €1,000: the floor is three machines and three machines cost what they cost.
+Someone mobile-only who wants a machine — or a service, or an authenticated call — that is
+theirs rather than a hosted product's. Deliberately wider than any one tenant, and the
+harness has no narrower answer.
 
-The target is **a non-technical person with meaningful Bitcoin** — real reason to leave a
-custodian, and a fee that is negligible against the amount at stake.
+Each tenant's economics then differ sharply, and they are tenant facts rather than product
+facts. **btc-policy** defaults to 3-of-5, so five machines, so **€275 per year** at the
+reference price before inference — implying holdings near €27,500 at roughly 1% per year for
+custody, and making no sense at all for someone holding €1,000. That tenant's target is a
+non-technical person with meaningful Bitcoin. **lnrent** inverts the arithmetic: an operator
+is one machine, and dedicated hardware is the best value for rental. **Ad hoc use** carries
+neither.
 
 ## How it works
 
@@ -109,13 +119,24 @@ reports rather than acts, and the feed list ships signed.
 
 ## The security claim, stated exactly
 
-**No single model provisioned enough members to reach the threshold.**
+The harness and its tenants claim **different** things, and blurring them is how a single
+machine ends up shipping under a vault's guarantee.
 
-That is the whole claim, and it is conditional on the trust domains being genuinely
-distinct. If several endpoints serve the same weights, the operator has one model rather
-than five and the claim is vacuous — and at the weights layer that distinctness may not be
-enforceable at all, which makes this a design goal rather than a demonstrated property
-until it is.
+**The harness claims** that no session reaches a machine it did not provision, that a
+model's blast radius is the machines it provisioned, and that the trusted set is fixed and
+small. What it *removes* is the party that would otherwise pick the operator's vendor, model
+and configuration while holding their credentials.
+
+**It does not claim the model is honest, and cannot.** With one machine there is no
+threshold, so nothing absorbs a malicious model — a compromised one owns the machine it just
+configured. Ad hoc use ships under that smaller claim rather than borrowing a larger one.
+
+**btc-policy stacks its own on top:** *no single model provisioned enough members to reach
+the threshold.* That needs a vault, and it is conditional on the trust domains being
+genuinely distinct — if several endpoints serve the same weights, the operator has one model
+rather than five and it is vacuous. At the weights layer that distinctness may not be
+enforceable at all, which makes it a design goal rather than a demonstrated property until
+it is.
 
 There is no verification layer and nothing may imply one. Any scheme where a second model
 inspects a finished machine hands that model a second foothold. "Verified" and "no
@@ -129,23 +150,32 @@ layer is the one that gets exploited.
 
 ## What must still be trusted
 
-- **The app bundle** — the largest component not diversified, and it carries the recipes.
-  Reproducible builds would make compromise detectable, not preventable, and neither they
-  nor the watchdogs that would give them meaning exist yet. The largest concentrated risk.
-- **The cloud vendor**, under every design considered. It owns the machine's memory and
-  disk. Pinning buys transport safety, not vendor independence.
-- **The inference proxy**, and on the default path there is only one of it — the thinnest
-  layer in the default product even when the weights count looks healthy.
-- **The inference provider behind that proxy**, which actually runs the weights and can
-  rewrite everything routed to it. Neither displayed count covers it.
-- **Whoever signs the vault software**, since every member installs the same release —
-  common-mode in the same shape as the bundle.
-- **The operator's device**, which holds the credentials and carries all five sessions.
-- **The publisher**, on the default path, because it selects the models.
-- **A majority of the models**, being both honest *and* competent.
+There is no zero. Everything runs on silicon, an operating system, a browser, a model, a
+vendor — chase that regress far enough and you are fabricating chips by hand. So the list is
+not short, and the useful question is not how many parties but **who chose them**.
 
-The **coordinator** and the **relay** are trusted narrowly rather than fully, and both are
-named so the list cannot grow quietly.
+**Unavoidable**, true of any software at all: the operator's device — its silicon, its
+operating system, its browser — and the stack underneath the machines, their package
+repositories and the certificate authorities.
+
+**Elective** — real trust, chosen by the operator or the publisher and changeable. The cloud
+vendor, which owns its machine's memory and disk. The inference proxy, of which the default
+path has exactly one, making it the thinnest layer even when the weights count looks healthy.
+The inference provider behind it, which actually runs the weights and is covered by neither
+displayed count. A majority of the models, being both honest *and* competent. Whoever signs
+the vault software, since every member installs the same release. **This is precisely the
+set a hosted service picks for you, silently and unlisted.**
+
+**Added by this product** — the only tier the design controls, and the only one an invariant
+guards. The app bundle and its publisher, which is the application rather than a third party
+but is not diversified and carries the recipes, making it the largest concentrated risk. The
+relay, the one genuinely new third party, which cannot read a session pinned out of band but
+does learn who connects where. The coordinator, narrowly and during setup, as the only party
+that contacts every member.
+
+What the product removes is the party that would otherwise choose every entry in the middle
+tier and hold the credentials too: the service operator. That is the whole claim, and it is
+smaller than "trustless" — but it survives the regress.
 
 ## What is not settled
 

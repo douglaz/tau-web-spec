@@ -21,7 +21,7 @@ refers to rather than repeats:
 | Where | What it holds |
 |---|---|
 | [`CONTEXT.md`](./CONTEXT.md) | The domain glossary — the canonical term for each concept, the aliases to avoid, and the ambiguities that must always be qualified. |
-| [`docs/adr/`](./docs/adr/) | The fifteen decisions, and for most of them the alternatives that were rejected and the grounds for rejecting them — some in a `Considered options` section, some inline, and a few not at all. This document states *what* was decided; an ADR is where *why* lives. |
+| [`docs/adr/`](./docs/adr/) | The sixteen decisions, and for most of them the alternatives that were rejected and the grounds for rejecting them — some in a `Considered options` section, some inline, and a few not at all. This document states *what* was decided; an ADR is where *why* lives. |
 | [`docs/design/`](./docs/design/) | A record of the design session held on 2026-08-07, kept as history. It is the only account of why this approach was chosen over the two others weighed against it. |
 | [`docs/archive/`](./docs/archive/) | The original Rust/WASM PWA specification — the execution layer, in far more detail than anything here. Superseded as a plan, retained because it is the only treatment of the machinery and because the decisions cite its section numbers. |
 
@@ -51,14 +51,24 @@ and get an AI that *acts*; everyone else gets a chat box, because installing and
 configuring a harness takes technical knowledge and usually a desktop. The people who
 would gain the most have only a phone.
 
-The obvious fix is a hosted agent platform, and for one class of task it is unavailable
-in principle. Anything whose value depends on *not* trusting a host — self-custody, key
-management, sovereign infrastructure — cannot be delegated to a host. A single party
-that provisions every member of a Bitcoin custody federation has defeated the
-federation, whatever its intentions. For those tasks the gap can only be closed in the
-browser.
+**That gap is widening, not closing.** Most people are mobile-only and will stay that way,
+and both mobile platforms keep tightening what may be installed outside their stores. The
+browser is therefore not a compromise accepted for convenience — it is the last route by
+which a non-technical person reaches real compute, and real AI, without a third party
+configuring it for them. That is why constraint 1 is a constraint and not a preference.
 
-Two intended tenants:
+The obvious fix is a hosted agent platform, and for one class of task it is unavailable in
+principle. Anything whose value depends on *not* trusting a host cannot be delegated to a
+host, because the host becomes the party you were trying not to need. Self-custody, key
+management, sovereign infrastructure: a vault whose members were all provisioned by one
+party has been defeated by that party whatever its intentions, and the same shape recurs
+anywhere the point is that nobody else can act for you.
+
+So: a harness that runs in the browser, provisions and operates machines the operator rents
+and controls, and makes authenticated calls on their behalf. **Tenants build on it** —
+supplying their own recipes, their own software, and their own security requirements
+([ADR-0016](./docs/adr/0016-the-harness-isolates-and-counts-tenants-set-thresholds.md)).
+Two are intended, and ad hoc use is a third that needs neither of them:
 
 - **[btc-policy](https://github.com/douglaz/btc-policy)** — self-hosted Bitcoin custody:
   multisig plus Miniscript descriptors, a federation of policy co-signers that inspect
@@ -74,18 +84,25 @@ tenant, for the reason given under [Money](#money).
 
 ## Who it is for
 
-Sharper than "non-technical users." The threshold is 3-of-5 by default
-([ADR-0008](./docs/adr/0008-three-of-five-default-and-its-economic-floor.md)), which
-means five machines, which at the `cx22` reference price of €4.59/month is **€275 per
-year** before inference. A 2-of-3 federation is €165. At a willingness to pay roughly 1%
-per year for custody, those imply holdings near €27,500 and €16,500 respectively. There
-is no configuration that makes sense for someone holding €1,000: the floor is three
-machines and three machines cost what they cost.
+Someone who is mobile-only and wants a machine — or a service, or an authenticated call —
+that is theirs rather than a hosted product's. That is deliberately wider than any single
+tenant, and the harness has no narrower answer to give.
 
-The target is therefore **a non-technical person with meaningful Bitcoin** — someone with
-real reason to leave a custodian, for whom the fee is negligible against the amount at
-stake. Stating this is better than letting someone discover it after budgeting for a
-hobby.
+**Each tenant's economics differ sharply, and they are tenant facts rather than product
+facts** ([ADR-0016](./docs/adr/0016-the-harness-isolates-and-counts-tenants-set-thresholds.md)).
+
+- **btc-policy.** 3-of-5 by default
+  ([ADR-0008](./docs/adr/0008-three-of-five-default-and-its-economic-floor.md)) means five
+  machines, which at the `cx22` reference price of €4.59/month is **€275 per year** before
+  inference; a 2-of-3 federation is €165. At a willingness to pay roughly 1% per year for
+  custody, those imply holdings near €27,500 and €16,500. No vault configuration makes sense
+  for someone holding €1,000 — the floor is three machines and three machines cost what they
+  cost. *That tenant's* target is a non-technical person with meaningful Bitcoin, worth
+  stating plainly rather than letting someone discover it after budgeting for a hobby.
+- **lnrent.** The arithmetic inverts. An operator is one machine, not five, and dedicated
+  hardware is the best value per unit of capacity for rental — so the cost that makes a vault
+  expensive makes a rental server sensible.
+- **Ad hoc use.** One machine, no threshold, no federation, and none of the above.
 
 ## Constraints
 
@@ -99,18 +116,25 @@ sixth is counted and displayed rather than enforced.
    there.
 3. **Credentials stay in browser memory.** No credential is written to storage, sent to
    the application's own origin, included in a model request, or persisted in a log.
-4. **No party the operator must trust with the ability to act.** A transport that can
-   only stall or drop is acceptable; one that can read or inject is not. **This is
-   unsatisfied today**, which is why the first stage has no remote channel at all.
-   Host-key verification is the intended mechanism — chosen, not proven — but passing the
-   SSH spike is *not* sufficient to satisfy this constraint. It is satisfied only on a
-   route that pins the fingerprint **out of band**, and today none of those is available
-   on the cloud path: route 1 is dedicated-servers-only and a separate integration, route
-   2 is unverified, route 3 is blocked behind open question 15. That leaves route 4, the
-   trust-on-first-use floor, under which a hostile relay can have its own key pinned at
-   first contact and read the session from then on
-   ([ADR-0015](./docs/adr/0015-the-browser-reaches-a-machine-over-pinned-ssh.md)). The
-   spike is necessary and the routes are what make it sufficient.
+4. **Beyond the application itself, this product adds one third party — the relay — and it
+   must not be able to read or inject.** A transport that can only stall or drop is
+   acceptable. This constrains what the *product introduces*, not trust the operator
+   already carries: their phone, their cloud vendor, the model they chose. That
+   distinction is the whole of
+   [What must still be trusted](#what-must-still-be-trusted), and stating the constraint
+   any other way makes it unsatisfiable rather than unsatisfied — everything runs on
+   something. On the default inference path the publisher is a second added party, removed
+   by bring-your-own inference.
+
+   **Satisfied under any route that pins the host key out of band; violated under
+   trust-on-first-use**, where the relay is trusted at first contact and can have its own
+   key pinned
+   ([ADR-0015](./docs/adr/0015-the-browser-reaches-a-machine-over-pinned-ssh.md)). No
+   out-of-band route exists on the cloud path today: route 1 is dedicated-only and a
+   separate integration, **route 2 does not exist** — Hetzner Cloud's rescue action returns
+   an action and a root password and no host key — and route 3 is blocked behind question
+   15. That is why the first stage has no remote channel at all. Passing the SSH spike is
+   necessary and does not by itself satisfy this; the routes are what make it sufficient.
 5. **Members must not share a cloud vendor.** The vendor owns its machine's memory and
    disk and is trusted under every design considered, so two members at one vendor is one
    party able to act on both — the correlated fault a threshold cannot absorb
@@ -490,24 +514,40 @@ invariants in the archived execution-layer specification.
 9. **Trust counts MUST be shown per layer and MUST NOT be blended into a single score.**
 10. **The trusted-party list MUST NOT grow silently.** Any feature adding a party to it is
     a change of the same weight as a schema migration.
-11. **Members MUST NOT be reachable from each other except on the vault protocol port,
-    mutually authenticated**, with everything else denied at the vendor firewall.
-12. **A federation MUST NOT be formed until every member is provisioned, hardened, and
-    reachable.**
-13. **An SSH session MUST check the host key against the stored fingerprint, and a key
+11. **An SSH session MUST check the host key against the stored fingerprint, and a key
     that does not match MUST halt the session.** Exactly one moment is exempt and it is
     the reason route 4 is a floor: under trust-on-first-use there is no stored
     fingerprint at first contact, so that contact is trusted rather than verified and
     MUST be presented to the operator as such. No other path may accept an unverified
     key.
-14. **The app MUST NOT hold, forward, or custody funds.**
+12. **The app MUST NOT hold, forward, or custody funds.** A Bitcoin wallet able to pay for
+    machines is an intended future capability and it collides with this, so the collision is
+    recorded rather than resolved. Self-custody would not breach
+    [ADR-0014](./docs/adr/0014-the-app-relays-invoices-and-never-holds-funds.md)'s
+    *reasoning* — nobody is asked to trust an intermediary — but it changes what a bundle
+    compromise costs, from misconfiguring machines to spending the money, behind the one
+    risk this document already calls unmitigated. Whoever builds it settles this first.
+
+### Supplied by btc-policy, not by the harness
+
+The three below are federation rules. They bind wherever a tenant requires a threshold and
+mean nothing for a single machine, so under
+[ADR-0016](./docs/adr/0016-the-harness-isolates-and-counts-tenants-set-thresholds.md) they
+belong to that tenant and move with it. They are listed here, unchanged, until the meta
+project exists — and an implementer building for a tenant without a threshold is not bound
+by them.
+
+13. **Members MUST NOT be reachable from each other except on the vault protocol port,
+    mutually authenticated**, with everything else denied at the vendor firewall.
+14. **A federation MUST NOT be formed until every member is provisioned, hardened, and
+    reachable.**
 15. **Two machines of one federation MUST NOT be created at the same cloud vendor.**
     Stated in machines rather than members deliberately: nothing has joined a federation
     when this rule has to bind, so a rule about "members" would not reach the first stage
     at all. The vendor owns its machines' memory and disk, so two of them at one vendor is
-    a single party able to act on both — the correlated fault invariant 11 exists to prevent at the network layer,
-    arriving instead through the billing relationship. Unlike every other entry here this
-    one has no decision record of its own: it rests on
+    a single party able to act on both — the correlated fault invariant 13 exists to prevent
+    at the network layer, arriving instead through the billing relationship. Unlike every
+    other entry here this one has no decision record of its own: it rests on
     [ADR-0006](./docs/adr/0006-single-origin-with-reproducible-builds.md)'s statement that
     cloud vendors are diversified per member, which is background to a decision about
     *origin* diversity, plus the correlated-fault argument in
@@ -517,14 +557,32 @@ invariants in the archived execution-layer specification.
 
 ## The security claim, stated exactly
 
-**No single model provisioned enough members to reach the threshold.**
+The harness and its tenants make **different** claims, and blurring them is how a single
+machine ends up shipping under a vault's guarantee
+([ADR-0016](./docs/adr/0016-the-harness-isolates-and-counts-tenants-set-thresholds.md)).
 
-That is the whole claim, and it is conditional on the trust domains being genuinely
-distinct. If several endpoints serve the same weights, the operator has one model rather
-than five and the claim is vacuous — which is why the counting is shown to them, and why
-the weights-diversity item in the open questions matters: at that layer distinctness may
-not be enforceable at all, and until it is, this is a design goal rather than a
-demonstrated property.
+**What the harness claims.** No session reaches a machine it did not provision. A model's
+blast radius is the machines it provisioned — no more, and no fewer. The trusted set is
+fixed and small, sorted below into what any software requires, what the operator chose, and
+what this product adds; only the third tier is the harness's to control and it holds three
+entries. What the harness *removes* is the party that would otherwise choose the operator's
+vendor, model and configuration while holding their credentials.
+
+**What the harness does not claim, and cannot: that the model is honest.** With one machine
+there is no threshold, so nothing absorbs a malicious model — a compromised one owns the
+machine it just configured, and no mechanism here notices. The pentest is a competence check
+by its own definition and the verifier reads what the machine chooses to tell it, so neither
+closes this. Ad hoc use ships under the smaller claim rather than borrowing a larger one.
+
+**What btc-policy stacks on top:**
+
+> **No single model provisioned enough members to reach the threshold.**
+
+That claim needs a vault. It is conditional on the trust domains being genuinely distinct:
+if several endpoints serve the same weights the operator has one model rather than five and
+it is vacuous — which is why the counting is shown to them, and why the weights-diversity
+item in the open questions matters. At that layer distinctness may not be enforceable at
+all, and until it is, this is a design goal rather than a demonstrated property.
 
 There is no verification layer and nothing in the product may imply one. Every scheme
 where a second model inspects a finished machine hands that model a second foothold and
@@ -545,12 +603,32 @@ first version a local claim rather than evidence.
 
 ## What must still be trusted
 
-Named plainly, because the product's pitch is the opposite of asking for trust.
+Everything runs on something. The phone's silicon, its operating system, the browser, the
+model, whoever serves it, the cloud vendor, the server's firmware — any of them could carry
+a backdoor, and following that regress to the end leaves you hand-fabricating chips in a
+Faraday cage. **There is no zero.** So this section does not try to be short. It tries to be
+accurate, and it sorts the parties by the one distinction that changes what anybody can do
+about them: who chose them.
 
-- **The app bundle.** The one component not diversified across members, and it carries the
-  recipes. A compromised host can serve one build that misbehaves on every member, and can
-  serve a good bundle to anyone who looks like a checker. This is the largest concentrated
-  risk in the design.
+### Unavoidable
+
+True of any software anyone runs, and not improved by this design.
+
+- **The operator's device** — its silicon, its operating system, its browser. It holds the
+  credentials, runs the bundle, and carries all five concurrent sessions, so it is
+  common-mode across every member. A deliberate trade: requiring five devices would defend
+  against a compromised phone while guaranteeing that an operator who owns one phone never
+  finishes setup.
+- **The stack underneath everything** — the operating systems on the machines, their
+  package repositories, the certificate authorities. Trusted here no more and no less than
+  anywhere else. Naming each one would make this list unbounded without making it more
+  honest.
+
+### Elective
+
+Real trust, and **the operator or the publisher chose it and could choose otherwise.** This
+is exactly the set a hosted service picks on your behalf, silently and unlisted.
+
 - **The cloud vendor**, under every design considered. It owns the machine's memory and
   disk. Host-key pinning buys transport safety, not vendor independence; vendor
   independence is what multi-vendor membership buys.
@@ -568,16 +646,7 @@ Named plainly, because the product's pitch is the opposite of asking for trust.
   by the same one share a party that neither count displays, because the counted layers are
   weights and proxy and this is neither (question 4). It is named here because the list is
   meant to be exhaustive even where the counting is not yet settled.
-- **The operator's device.** It holds the credentials, runs the bundle, and carries all
-  five concurrent sessions, so it is common-mode across every member. A deliberate trade:
-  requiring five devices would defend against a compromised phone while guaranteeing that
-  an operator who owns one phone never finishes setup.
-- **The publisher**, on the default path, because it selects the models. Acceptable only
-  because it is already trusted for the bundle and because bring-your-own inference exists
-  as the escape hatch. If that escape hatch is ever dropped, the arrangement stops being
-  defensible.
 - **A majority of the models**, being both honest *and* competent.
-
 - **Whoever signs the vault software the members run.** Recipes install the same release on
   every member, so its signer is common-mode across the federation in the same shape as the
   bundle — which means
@@ -588,19 +657,35 @@ Named plainly, because the product's pitch is the opposite of asking for trust.
   this document does not otherwise amend. Artifact pinning would bound this; nothing here
   specifies it yet.
 
-This list covers the parties **this design asks the operator to trust that an ordinary
-setup would not**. It deliberately stops short of the stack everything runs on — the
-operating system, its package repositories, the certificate authorities, the hardware —
-which are trusted here no more and no less than anywhere else, and which would make the
-list unbounded without making it more honest.
+### Added by this product
 
-Two parties are trusted narrowly rather than fully, and both are named so the list cannot
-grow quietly. The **coordinator** is trusted during setup, as the only party contacting
-every member, permitted because it is deterministic code rather than a model. The
-**relay**, once it exists, cannot read or alter a session whose host key was pinned out of
-band — but it learns connection metadata, and one that authenticates callers and
-constrains destinations decides who may connect where. Under trust-on-first-use it is
-trusted outright at first contact.
+The only set the design controls, and therefore the only one worth an invariant. **Invariant
+10 guards this tier** — a feature that adds an entry here is a change of the same weight as
+a schema migration. The other two tiers grow when the world does; this one grows only when
+someone decides it should.
+
+- **The app bundle, and the publisher who serves it.** This is the application itself
+  rather than a third party, but it is not diversified across members and it carries the
+  recipes, so a compromised host can serve one build that misbehaves on every member — and
+  can serve a good bundle to anyone who looks like a checker. **The largest concentrated
+  risk in the design.** On the default path the publisher also selects the models, which is
+  acceptable only because it is already trusted for the bundle and because bring-your-own
+  inference exists as the escape hatch. If that hatch is ever dropped, the arrangement stops
+  being defensible.
+- **The relay**, once it exists — the one genuinely new third party, and trusted narrowly.
+  It cannot read or alter a session whose host key was pinned out of band, but it learns
+  connection metadata, and one that authenticates callers and constrains destinations
+  decides who may connect where. Under trust-on-first-use it is trusted outright at first
+  contact.
+- **The coordinator**, narrowly and during setup only, as the only party that contacts every
+  member. It is deterministic code running from the signed bundle on the operator's own
+  device, so it is the application rather than a separate party — but it is listed because
+  its reach is broader than anything else the application does.
+
+**What this product actually removes** is the party that would otherwise pick every entry in
+the elective tier and hold the credentials besides: the service operator. That is the whole
+of the claim. It is a smaller claim than "trustless" and it is one that survives contact
+with the regress above.
 
 ## What the first stage must demonstrate
 
@@ -667,6 +752,7 @@ record carries it and the grounds for rejecting it.
 | [0013](./docs/adr/0013-ongoing-operation-periodic-pentest-and-advisory-watch.md) | Ongoing operation: periodic pentest and advisory watch |
 | [0014](./docs/adr/0014-the-app-relays-invoices-and-never-holds-funds.md) | The app relays invoices and never holds funds |
 | [0015](./docs/adr/0015-the-browser-reaches-a-machine-over-pinned-ssh.md) | The browser reaches a machine over SSH, pinned at the application layer |
+| [0016](./docs/adr/0016-the-harness-isolates-and-counts-tenants-set-thresholds.md) | The harness isolates and counts; tenants set thresholds |
 
 ## Open questions
 

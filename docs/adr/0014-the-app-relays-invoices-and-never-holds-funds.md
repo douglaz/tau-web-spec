@@ -59,3 +59,19 @@ records that it deserves a decision record of its own.
 relationship is the operator's, only the operator can stop the billing — the app can
 destroy machines ([ADR-0012](./0012-a-federation-is-created-only-when-every-member-works.md))
 but cannot close accounts.
+
+**A wallet is intended, and this decision does not yet cover it.** Paying for machines and
+services from inside the harness is a wanted capability. Self-custody would not contradict
+the reasoning above, since no intermediary appears and nobody is asked to trust more — but
+it does not follow that it is free. Key material would share an origin, a process and a
+storage layer with the model, which
+[ADR-0011](./0011-the-ai-delivers-a-locked-down-machine.md) keeps apart; and a compromised
+bundle would move from misconfiguring machines to spending funds, against a bundle that
+[ADR-0006](./0006-single-origin-with-reproducible-builds.md) already records as
+undefended — reproducible builds do not exist and nobody runs the watchdogs. The live
+options are a separate origin (which
+[ADR-0006](./0006-single-origin-with-reproducible-builds.md) rejected for user safety, an
+objection that would have to be answered rather than ignored), the same bundle with this
+consequence rewritten, or a tenant of its own. **This is deferred, not decided**, and it is
+recorded here because a wallet is the kind of feature that arrives looking harmless and
+lands on the invariant most easily violated by accident.

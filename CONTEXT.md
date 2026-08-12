@@ -64,11 +64,30 @@ Never run from another member.
 
 ### Trust and verification
 
+**Tenant**:
+A project built on the harness, supplying its own recipes, its own software, and its own
+security requirements. btc-policy and lnrent are the first two; ad hoc use is a tenant of
+one machine and no requirements. **The harness never sets a tenant's threshold** — it
+isolates and counts, and the tenant says what the counts must be.
+_Avoid_: app, plugin, integration, use case
+
 **Honest-majority assumption**:
-The security claim of the whole system: a majority of the models used across a
-federation are honest and competent. Byzantine in shape. There is no verification
-layer, and nothing may imply one.
+**btc-policy's** security claim, not the harness's: a majority of the models used across a
+federation are honest and competent. Byzantine in shape. It needs a threshold to mean
+anything, so it says nothing about a single machine — where nothing absorbs a malicious
+model and the honest claim is smaller. There is no verification layer, and nothing may
+imply one.
 _Avoid_: trustless, verified, provably secure
+
+**Trust tier**:
+Which kind of trust a party represents, since the regress has no bottom and a flat list
+reads as a scorecard. **Unavoidable** — the device, its OS, the browser, the stack
+underneath; true of any software. **Elective** — the cloud vendor, the proxy, the inference
+provider, the models; real trust that the operator or publisher chose and could change, and
+exactly the set a hosted service picks for you silently. **Added** — the bundle and its
+publisher, the relay, the coordinator; the only tier the design controls and the only one an
+invariant guards.
+_Avoid_: trust score, threat level
 
 **Trust domain**:
 An independent way for an AI to be compromised. There are two layers and they are
