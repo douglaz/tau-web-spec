@@ -19,19 +19,25 @@ third party (the relay), removes the party that would otherwise choose the opera
 vendor, model and configuration while holding their credentials, and bounds a model's blast
 radius to the machines it provisioned. That is true for one machine and for five.
 
-## What this moves
+## What this moves — corrected after reading btc-policy
 
-Tenant-specific material leaves this repository for a meta project where the projects
-coordinate. Whole: 3-of-5 and its economics, member-to-member reachability, all-or-nothing
-federation creation. Split down a real seam: the honest-majority half of
-[ADR-0004](./0004-one-model-one-machine.md) from its one-session-one-machine half, the
-effective-threshold framing of
+An earlier version of this section sent the tenant material to the meta project. Reading
+btc-policy showed most of it has nowhere to go because **it is already there, in stronger
+form**: 3-of-5 is a special case of btc-policy ADR-0013's derived shape rule (exactly
+n = 2t−1, with the two requirements that force it), and vendor diversity is a special case
+of btc-policy ADR-0009's "no correlation class reaches quorum", where a hosting provider is
+one correlation class among several. tau-web has been carrying weaker restatements of
+decisions the tenant owns with rationale.
+
+So the disposition is **retire and point**, not move. The meta project holds only the
+coordination layer — the ecosystem map and the term register — and tau-web's
+federation-specific invariants stand marked as the tenant's until they are replaced by
+pointers to btc-policy's own records. What does still need a seam is the split material:
+the honest-majority half of [ADR-0004](./0004-one-model-one-machine.md) from its
+one-session-one-machine half, the effective-threshold framing of
 [ADR-0007](./0007-trust-is-counted-in-two-layers-and-shown.md) from its two-layer counting,
 and the coordinator half of
 [ADR-0011](./0011-the-ai-delivers-a-locked-down-machine.md) from its pentest half.
-
-`spec.md` loses its audience section, its federation acceptance criteria, and the parts of
-its security section that assume a threshold exists.
 
 ## Considered options
 

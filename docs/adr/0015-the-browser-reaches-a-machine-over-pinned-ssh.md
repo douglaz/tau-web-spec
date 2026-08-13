@@ -105,14 +105,24 @@ Public CAs now issue WebPKI certificates for bare **IP addresses** under short-l
 profiles, and a VPS has a public IP — so the DNS requirement is no longer the blocker it
 was when this was first weighed.
 
-That does not reverse the decision here, and this record does not pretend to have
-re-weighed it. What it changes is that the rejection can no longer rest on "the operator
-has no domain": a real evaluation now has to cover issuance against an address the operator
-does not own long-term, renewal on a days-long cadence for a machine that must stay
-reachable, what happens when the address changes, and whether a machine terminating its own
-TLS is a better or worse trust story than a relay carrying ciphertext it cannot read.
-Question 19 in [`spec.md`](../../spec.md) is where that sits. Note it changes *who runs the
-bridge*, not whether one is needed — the browser still cannot open a raw TCP socket.
+**Re-weighed and rejected again, on grounds that stay true: Certificate Transparency.**
+Every publicly trusted certificate is published in permanent, searchable logs, and browsers
+require it — there is no quiet issuance. A certificate for a bare IP publishes that IP. For
+a federation this means the members' addresses appear as a correlated, timestamped set —
+several issuances minutes apart across several hosting providers, a distinctive pattern an
+observer can mine continuously — which hands an adversary exactly the grouping the vault
+tenant's own rule exists to deny ("no correlation class reaches quorum", btc-policy
+ADR-0009). The comparison is: one relay learns connection metadata, or everyone learns the
+topology, forever, unpublishably. The relay wins.
+
+Renewal compounds it: IP certificates are short-lived, so every member re-announces itself
+in the log on a days-long cadence for the life of the vault, and must keep a validation
+path open to do so. None of this touches an lnrent box, whose address is already public by
+design in its Nostr listing — but an lnrent box does not need a certificate, because the
+relay already reaches it. The option remains attractive for an operator who owns a domain,
+where the log entry names the domain rather than the machine and the grouping is not
+exposed. Note the option changes *who runs the bridge*, not whether one is needed — the
+browser still cannot open a raw TCP socket.
 
 **No remote channel at all**, with every machine configured entirely through boot-time
 user-data. This is not rejected so much as deferred: it is what the first stage actually

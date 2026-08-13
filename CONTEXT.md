@@ -92,6 +92,15 @@ one machine and no requirements. **The harness never sets a tenant's threshold**
 isolates and counts, and the tenant says what the counts must be.
 _Avoid_: app, plugin, integration, use case
 
+**Access model**:
+A tenant's decision about whether its machines remain enterable after delivery — decided by
+the tenant like the threshold, adapted to by the harness. **Maintained** — the session can
+go back in, so ongoing operation means repair, patching, and the full re-check (lnrent, ad
+hoc use). **Sealed** — the door is welded shut after setup by the tenant's own design, so
+ongoing operation degrades to an external surface probe and an advisory watch whose only
+remedy is replacement (btc-policy, where sealing is what makes duress protection real).
+_Avoid_: maintenance mode, managed/unmanaged
+
 **Honest-majority assumption**:
 **btc-policy's** security claim, not the harness's: a majority of the models used across a
 federation are honest and competent. Byzantine in shape. It needs a threshold to mean
@@ -135,17 +144,25 @@ The advanced path. The operator supplies their own provider tokens or runs infer
 locally, removing the publisher from model selection and, with local inference, the
 proxy layer entirely.
 
-**One trust domain, one machine**:
-The invariant that protects the assumption. A trust domain accesses exactly one
-machine and never reads, audits, or touches a machine it did not provision. Access
-composes; letting one domain touch two machines halves the number of malicious domains
-needed to reach a k-of-n threshold.
+**One session, one machine**:
+The invariant that protects the assumption, stated at the layer where it can hold. A
+session accesses exactly one machine and never reads, audits, or touches a machine it did
+not provision, and **no set of model weights ever touches more than one machine** —
+exposure lasting for the machine's life, since ending a session removes nothing a model may
+have left behind. Access composes; a model with a foothold on two machines halves the
+number of malicious domains needed to reach a k-of-n threshold. The **proxy** layer is
+deliberately outside this rule: on the default path one proxy serves every member, counted
+and displayed rather than forbidden.
+_Avoid_: one trust domain one machine (the pre-split form, which forbids the default
+product at the proxy layer)
 
 **Recovery ladder**:
-What happens when a model cannot finish its machine. Retry, then escalate to a
-stronger model **inside the same trust domain** (free, because that domain already has
-access), then destroy the machine and restart under a different domain (costs a
-server). Moving inside a domain is free; moving between domains costs money.
+What happens when a model cannot finish its machine. Retry; then escalate to a stronger
+model **behind the same proxy** — cheap because the proxy gains no access it lacked, but
+conditional, because the stronger model is new weights on the machine and must not be
+weights another member is running; then destroy the machine and restart under a different
+domain, which costs a server. A stuck machine is never handed to a session that did not
+provision it.
 
 **Action transcript**:
 A browser-side record of what one session actually did, captured before

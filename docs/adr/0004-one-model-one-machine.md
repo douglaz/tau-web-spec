@@ -60,8 +60,22 @@ the assumption silently.
 an indivisible pair is too strict for the default product: procured inference routes
 every member through one proxy by design, so read literally the pairing rule collapses
 every default configuration to a single domain and forbids the arrangement the rest of
-this ADR assumes. Domains are now counted per layer — weights and proxy separately —
-and one-domain-one-machine holds at each. Everything else here stands unchanged.
+this ADR assumes. Domains are now counted per layer — weights and proxy separately.
+
+**Amended again once the per-layer counting was carried through.** The first amendment's
+"one-domain-one-machine holds at each layer" repeats the same mistake one level down: at
+the **proxy** layer the default product deliberately puts one domain on every machine, so
+the rule cannot hold there and was never meant to. The rule that holds is about **access**:
+a session touches exactly one machine, and no set of weights touches more than one. The
+proxy layer is counted and displayed, not bound.
+
+The recovery ladder above carries the same pre-split language and the same correction. "The
+middle rung is free — escalating within a domain grants no access that domain does not
+already have" was written when a domain meant the indivisible pair. Per layer, the rung is
+free at the **proxy** layer only; the stronger model is *new weights on the machine*, and it
+is safe exactly when those weights are not also running another member — otherwise one model
+gains the two-machine foothold this whole record exists to prevent. Escalation is therefore
+conditional, not free, and `spec.md` states the operative form.
 
 **Honest mistakes ship silently.** On a first-time setup a misconfiguration is the
 likely failure, not a hostile model, and this design has no mechanism that catches it

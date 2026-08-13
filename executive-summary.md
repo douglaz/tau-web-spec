@@ -16,7 +16,7 @@ That is the goal, not an achieved property. Several parties remain trusted, and 
 specification names each of them by hand rather than claiming the list is empty.
 
 There is no code in this repository. What exists is the specification this summarises, a
-domain language, seventeen decisions recording what was chosen and — for most of them — which
+domain language, eighteen decisions recording what was chosen and — for most of them — which
 alternatives were rejected, a design record with three rounds of adversarial review, and an
 archived specification of the execution layer. A working proof of concept in a separate
 repository has established the one external fact everything depends on: a browser can call a
@@ -119,11 +119,15 @@ pins on first contact it is not — and that fallback is currently the only rout
 the cloud path, while being itself unusable until a pin can survive a replaced phone. The
 channel is chosen, not built, and this is the sharpest reason why.
 
-**A vault is not finished when it is created.** Each member is periodically re-checked by
-its own session, including a review of advisories for the software it runs. That
-deliberately opens a foothold — an advisory reading "critical: upgrade immediately" is a
-supply-chain attack delivered through the audit — so fetched content is untrusted, review
-reports rather than acts, and the feed list ships signed.
+**A machine is not finished when it is delivered.** Each is periodically re-checked by its
+own session, and advisories for the software it runs are reviewed. How far the re-check can
+go is the tenant's call — its *access model*: maintained machines (lnrent, ad hoc) get
+repair, patching and the full re-check; sealed ones (btc-policy welds the door shut after
+setup, deliberately) get an outside-only surface probe and advisories whose sole remedy is
+replacement. The advisory watch deliberately opens a foothold — an advisory reading
+"critical: upgrade immediately" is a supply-chain attack delivered through the audit — so
+fetched content is untrusted, review reports rather than acts, and the feed list ships
+signed.
 
 ## The security claim, stated exactly
 
@@ -187,28 +191,27 @@ smaller than "trustless" — but it survives the regress.
 
 ## What is not settled
 
-The specification carries twenty open questions in one maintained list. Six gate the
+The specification carries eighteen open questions in one maintained list. Six gate the
 work: the SSH client compiled to WebAssembly, which is the single item most likely to fail;
 who *operates* the relay, since what it must do is already settled; how the browser
-authenticates *itself* to a
-machine, which host-key pinning does nothing for, and what happens to browser-held key
-material when a phone is replaced; whether weights-level diversity is enforceable at all,
-which the security claim is conditional on; the cloud-account floor that makes lnrent
-structural; and what the product should do about a stalled setup that keeps billing.
-
-Two of the twenty are decisions worth re-opening rather than gaps. The recovery ladder was
-written before trust domains were counted per layer, and escalating a stuck machine to a
-stronger model puts new weights on it — safe only if those weights are not running another
-member, which no decision record says. And the option of letting
-each machine serve its own bridge, removing the relay entirely, was rejected because it
-needed a domain name the target operator does not have — and certificates for bare IP
-addresses have since made that premise false.
+authenticates *itself* to a machine, which host-key pinning does nothing for, and what
+happens to browser-held key material when a phone is replaced; whether weights-level
+diversity is enforceable at all, which the security claim is conditional on; the
+cloud-account floor that makes lnrent structural; and what the product should do about a
+stalled setup that keeps billing. Under the first-stage decision, the channel questions
+gate week one rather than a later phase.
 
 ## Status
 
 Nothing here has touched a real server. The proof of concept can talk to a vendor API from
 a browser; it cannot yet create a machine.
 
-The cheapest way to find out which of these decisions is wrong is not to write code. It is
-to **write three briefs by hand — create a machine, harden it, install one vault member —
-and run them against a disposable project.**
+The first stage is **one lnrent box on a dedicated server, over the full channel** — the
+hardest machinery on purpose, so the item most likely to fail (an SSH client compiled to
+WebAssembly) fails in week one or clears the way. The vault, with its concurrent sessions,
+trust panel and federation, is the second stage and reuses the channel the first one
+proves.
+
+The cheapest way to find out which of these decisions is wrong is still not to write code:
+run the first stage by hand once against a disposable dedicated server, and write the
+briefs for its steps as you go — they are the first three the product needs.

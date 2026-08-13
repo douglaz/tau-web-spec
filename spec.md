@@ -21,7 +21,7 @@ refers to rather than repeats:
 | Where | What it holds |
 |---|---|
 | [`CONTEXT.md`](./CONTEXT.md) | The domain glossary — the canonical term for each concept, the aliases to avoid, and the ambiguities that must always be qualified. |
-| [`docs/adr/`](./docs/adr/) | The seventeen decisions, and for most of them the alternatives that were rejected and the grounds for rejecting them — some in a `Considered options` section, some inline, and a few not at all. This document states *what* was decided; an ADR is where *why* lives. |
+| [`docs/adr/`](./docs/adr/) | The eighteen decisions, and for most of them the alternatives that were rejected and the grounds for rejecting them — some in a `Considered options` section, some inline, and a few not at all. This document states *what* was decided; an ADR is where *why* lives. |
 | [`docs/design/`](./docs/design/) | A record of the design session held on 2026-08-07, kept as history. It is the only account of why this approach was chosen over the two others weighed against it. |
 | [`docs/archive/`](./docs/archive/) | The original Rust/WASM PWA specification — the execution layer, in far more detail than anything here. Superseded as a plan, retained because it is the only treatment of the machinery and because the decisions cite its section numbers. |
 
@@ -306,8 +306,8 @@ grants that party nothing new. But the stronger model is *new weights on that ma
 and that is harmless only while those weights are not also running another member —
 otherwise one model has a foothold on two machines, the composition the threshold cannot
 survive. [ADR-0004](./docs/adr/0004-one-model-one-machine.md) predates the per-layer
-counting that makes this visible and still calls the rung unconditionally free; question
-20 records that it needs amending. Partial failure is the normal case and must be a
+counting that makes this visible and originally called the rung unconditionally free; it
+now carries an amendment stating the condition. Partial failure is the normal case and must be a
 coherent state the operator can act on, not an error.
 
 ### What a session delivers
@@ -403,12 +403,24 @@ item most likely to fail.
 
 ### Ongoing operation
 
-A vault is not finished when it is created. Each member is periodically re-checked by
-**its own** session: the pentest is re-run, and upstream releases and security advisories
-for the software that member runs are reviewed
+A machine is not finished when it is delivered. Things break, software rots, and
+configurations drift — and the operator has no sysadmin, which is the gap this product
+exists to close. So each machine is periodically re-checked by **its own** session, and
+upstream releases and security advisories for the software it runs are reviewed
 ([ADR-0013](./docs/adr/0013-ongoing-operation-periodic-pentest-and-advisory-watch.md)).
 This is the work an AI is unusually well suited to and a non-technical operator will never
-do, and not doing it is how a correctly-built vault becomes a vulnerable one over a year.
+do, and not doing it is how a correctly-built machine becomes a vulnerable one over a year.
+
+**How much of that is possible is the tenant's decision, not the harness's** — it follows
+from the tenant's *access model*, exactly as the threshold does
+([ADR-0016](./docs/adr/0016-the-harness-isolates-and-counts-tenants-set-thresholds.md)).
+On **maintained** machines — lnrent boxes, ad hoc use — the session goes back in: repair,
+patching, the full re-check. On **sealed** machines it cannot, by the tenant's own design:
+btc-policy uninstalls SSH after setup and forbids upgrade-in-place, precisely so nobody can
+be forced back into a vault node. There the re-check degrades honestly to an external
+surface probe — deny-everything-but-one-port is observable from outside, through the relay
+— and an advisory watch whose only remedy is rotating to a successor vault. Runtime
+monitoring stays the tenant's own: every vault node is already its own watchtower.
 
 It requires the operator to open the app, since nothing runs while it is closed, so the
 product needs a way to make a lapsed check loudly visible without being able to do
@@ -723,46 +735,47 @@ with the regress above.
 
 ## What the first stage must demonstrate
 
-The first stage provisions **two independent machines and joins them into no federation.**
-It is not a vault and it is not a claim that anyone's bitcoin is safe. What it supports is
-"these two machines have visibly different provenance" — and even that *displays*
-provenance rather than proving it, since a provenance record is a local claim and forgery
-resistance is out of scope at this stage.
+The first stage provisions **one lnrent box on a dedicated server, over the full channel**
+([ADR-0018](./docs/adr/0018-first-stage-is-one-lnrent-box-on-dedicated.md)). One session,
+one machine, one real tenant, and deliberately the hardest machinery: Robot offers no
+pre-boot configuration at all, so nothing can be done to the machine except through the
+channel — which forces the WASM SSH spike, the relay, and the rescue flow to succeed or
+fail in week one. It replaces the two-cloud-machine diversity demo the design session
+chose: that staged a vault argument the platform no longer leads with, proved the easy
+machinery, and deferred both hard problems.
 
-Briefs are local-only here. Both machines are configured entirely through boot-time
-user-data, which needs no relay, no WASM SSH client, and no answer to the channel
-question. Acceptance is these predicates:
+Acceptance is these predicates:
 
-1. Two sessions, each configured with a **different model**, each create exactly one
-   machine at a different cloud vendor. Stated in what a session is actually *configured
-   with* — a proxy endpoint and a model — because the **inference provider** is whoever
-   that proxy routes to and is known only from the response
-   ([`CONTEXT.md`](./CONTEXT.md)). Whether two different models rest on different weights
-   is not checkable at all (question 4), so a criterion written in weights would pass or
-   fail on something nothing can measure.
-2. For each machine the app persists a provenance record naming the cloud vendor, the
-   inference provider, and the model identifier, surviving a page reload and a browser
-   restart.
-3. A trust-domain collision is **displayed** — at each layer separately, never blended —
-   at the moment the operator can still act on it. A **shared cloud vendor blocks the
-   create** and says why: ADR-0007 reversed blocking for the proxy layer specifically,
-   because procured inference shares a proxy by design, and that reasoning does not reach
-   vendors, which nothing forces anyone to share.
-4. A local-only brief with at least two blocks runs end to end, and the user-data
-   submitted to the vendor API is byte-identical to what the approval screen displayed.
-5. None of the four credentials — two vendor tokens, two inference keys — appears in a
-   request to the app origin, in any model request body, in IndexedDB, in local storage,
-   in service-worker caches, or in any log.
-6. A create interrupted between intent and confirmation, then resumed, results in exactly
-   one machine.
+1. The session activates Robot rescue as a **typed operation**, retrieves the rescue host
+   key from the API response, and connects with **no trust-on-first-use at either hop**:
+   the rescue key is pinned from the API, and the installed system's host keys are
+   generated inside the rescue session, per machine, and read before reboot.
+2. The system is installed and hardened entirely through box-plane work over the pinned
+   channel, and every byte sent to the machine is **recorded before transmission**; the
+   transcript matches what was sent.
+3. The machine ends **locked down and demonstrated**: the deliverable of
+   [What a session delivers](#what-a-session-delivers), with `lnrentd` running and
+   reachable.
+4. The machine is **maintained**, and the story is exercised: at least one later session
+   re-enters over the same pinned channel and re-runs the check.
+5. No credential — the Robot credential, the inference key, or the SSH client private
+   key — appears in a request to the app origin, in any model request body, in IndexedDB,
+   in local storage, in service-worker caches, or in any log. The client key is a **new
+   credential class** (question 3) and its handling is stated, not silently extended.
+6. A rescue activation interrupted between intent and confirmation, then resumed, results
+   in exactly one rescue session and one install.
 7. All of the above pass on Android Chrome and iOS Safari, through a normal HTTPS URL,
    with no install.
 
-The second stage adds remote blocks over the channel **and everything that turns machines
-into a federation** — the coordinator, federation formation, all-or-nothing creation. Both
-halves wait on the same thing: the coordinator has to reach five member APIs on machines
-with no valid certificate, so it needs the channel as much as briefs do. Neither can be
-estimated until the SSH spike resolves.
+Provenance is still recorded — vendor, inference provider, model, surviving reload and
+restart — but with one machine there is nothing to compare it against; the panel and
+collision display arrive with the tenant that needs them.
+
+The second stage brings the vault: Cloud machines, multiple concurrent sessions, the trust
+panel, the coordinator, federation formation, all-or-nothing creation — and Cloud's
+unsolved identity problem, since route 2 is dead and injection is blocked behind question
+15. It reuses the channel the first stage proved. If the spike fails instead, the fallback
+is the old cloud-first stage with the channel question reopened.
 
 ## The decisions
 
@@ -788,6 +801,7 @@ record carries it and the grounds for rejecting it.
 | [0015](./docs/adr/0015-the-browser-reaches-a-machine-over-pinned-ssh.md) | The browser reaches a machine over SSH, pinned at the application layer |
 | [0016](./docs/adr/0016-the-harness-isolates-and-counts-tenants-set-thresholds.md) | The harness isolates and counts; tenants set thresholds |
 | [0017](./docs/adr/0017-off-machine-calls-and-scope-approval.md) | Off-machine calls generalize the cloud plane; untyped ones are approved by scope |
+| [0018](./docs/adr/0018-first-stage-is-one-lnrent-box-on-dedicated.md) | The first stage is one lnrent box on a dedicated server, over the full channel |
 
 ## Open questions
 
@@ -848,7 +862,10 @@ repository is history.
 ### One call, one probe, or one boot from closing
 
 7. **What Hetzner Robot's rescue `host_key` field actually returns** — full public keys,
-   fingerprints, which algorithms. Undocumented. One authenticated call answers it, and the
+   fingerprints, which algorithms. Undocumented, and **now first-stage-blocking**: route 1
+   is the first stage's identity chain
+   ([ADR-0018](./docs/adr/0018-first-stage-is-one-lnrent-box-on-dedicated.md)). One
+   authenticated call answers it, and the
    same call should re-check that Robot is still reachable from a browser at all: that
    result rests on a single recorded probe, and vendor CORS headers are exactly the kind of
    external dependency the continuous probe elsewhere in this document exists to catch
@@ -915,39 +932,6 @@ repository is history.
     it must name the relay's exact `wss://` origin rather than the bare `wss:` scheme,
     which would permit a WebSocket to every secure origin there is. Runtime admission of
     the policy is also unverified, and adopting the Robot route adds one more static entry.
-19. **Whether the relay is still necessary, now that certificates for bare IP addresses
-    exist.** [ADR-0015](./docs/adr/0015-the-browser-reaches-a-machine-over-pinned-ssh.md)
-    rejected having the machine obtain its own certificate and serve its own bridge —
-    removing the third party altogether — because it needed a DNS name the target operator
-    does not have. Public CAs now issue short-lived WebPKI certificates for IP addresses,
-    and a machine has a public IP, so that premise no longer holds. This does not reverse
-    the decision, and nothing here has re-weighed it: issuance against an address the
-    operator does not own long-term, renewal on a days-long cadence for a machine that must
-    stay reachable, address changes, and whether a machine terminating its own TLS beats a
-    relay that carries ciphertext it cannot read are all unexamined. It is on this list
-    because a rejection resting on a false premise should not be left standing quietly.
-20. **Two places where the decision records still say more than this document does.** Both
-    concern one-domain-one-machine after
-    [ADR-0007](./docs/adr/0007-trust-is-counted-in-two-layers-and-shown.md) split a domain
-    into two layers, and neither has been reconciled.
-    - **The recovery ladder.**
-      [ADR-0004](./docs/adr/0004-one-model-one-machine.md) calls the middle rung free
-      because "escalating within a domain grants no access that domain does not already
-      have," written while a domain meant an indivisible provider-and-weights pair.
-      Escalation is cheap at the proxy layer and puts new weights on the machine, so it is
-      safe only if those weights are not running another member — a condition none of the
-      three records states. `CONTEXT.md` is furthest off: "escalate to a stronger model
-      inside the same trust domain (free, because that domain already has access)" cannot
-      describe escalating to a stronger model at all once a domain is counted per layer,
-      since same-domain then means same weights.
-    - **The rule itself.** ADR-0004 says "one-domain-one-machine holds at each" layer and
-      ADR-0007 says "the one-machine-per-domain rule still holds"; `CONTEXT.md` states it
-      with no layer qualification at all. Read literally, all three forbid procured
-      inference, which those same records require to remain the default. This document
-      states the coherent version — the rule binds *access*, collisions are displayed —
-      and that divergence is recorded here rather than left for a reader to discover by
-      following a link for the *why* and finding the opposite.
-
 ## Status and the next move
 
 Nothing here has touched a real server. The proof of concept can call a cloud vendor's API
@@ -955,14 +939,18 @@ directly from a browser and has established there is no CORS obstacle — the on
 fact everything depends on. It cannot yet create a machine, and the provisioning state
 machine is unbuilt.
 
-The cheapest way to find out which of these decisions is wrong is not to write code. It is
-to **write three briefs by hand — create a machine, harden it, install one vault member —
-and run them against a disposable project.** That settles three things nothing else can:
-which commands genuinely need to run in the browser versus on the machine, whether the
-local/remote split is a seam a brief author trips over, and, most valuable, which steps
-could not be expressed as boot-time configuration at all.
+The cheapest way to find out which of these decisions is wrong is still not to write code.
+It is to **run the first stage by hand once**: activate Robot rescue on a disposable
+dedicated server, read what `host_key` actually returns (question 7), install and harden
+from inside the rescue session, stand up `lnrentd` — and write the briefs for those steps
+as you go, since they are the first three briefs the product needs. That settles what
+nothing else can: whether the no-TOFU chain works end to end, which commands genuinely
+need the browser versus the machine, and whether the brief format survives contact with a
+real install.
 
-If the answer to the last one is "none," provisioning needs no live channel and this plan
-gets dramatically smaller — though the channel itself does not disappear, because the
-coordinator still has to reach five member APIs on machines with no valid certificate, and
-the periodic re-check has to reach a running member long after boot.
+The old assignment's sharpest question — which steps could not be expressed as boot-time
+configuration at all — is answered by fiat on this path: on Robot, none can be, so the
+channel gates everything. It returns as a real question in the second stage on Cloud,
+where user-data exists and could shrink the channel's role in provisioning — though never
+to zero, because the coordinator still has to reach member APIs on machines with no valid
+certificate, and the periodic re-check has to reach a running machine long after boot.
