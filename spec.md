@@ -106,8 +106,9 @@ facts** ([ADR-0016](./docs/adr/0016-the-harness-isolates-and-counts-tenants-set-
 
 ## Constraints
 
-Six constraints bound every decision here. The fourth is not satisfied today, and the
-sixth is counted and displayed rather than enforced.
+Six constraints bound every decision here. The fourth is satisfied only where a host key
+can be pinned out of band — the first stage's dedicated path, not yet the cloud path —
+and the sixth is counted and displayed rather than enforced.
 
 1. **The mobile browser is the runtime.** No install, no extension, no native package,
    no desktop, no terminal. A normal HTTPS URL on Android Chrome and iOS Safari.
@@ -123,8 +124,9 @@ sixth is counted and displayed rather than enforced.
    distinction is the whole of
    [What must still be trusted](#what-must-still-be-trusted), and stating the constraint
    any other way makes it unsatisfiable rather than unsatisfied — everything runs on
-   something. On the default inference path the publisher is a second added party, removed
-   by bring-your-own inference.
+   something. On the default inference path the publisher additionally selects the models —
+   a wider role for a party already trusted for the bundle, not a second added party —
+   and bring-your-own inference removes that role.
 
    **Satisfied under any route that pins the host key out of band; violated under
    trust-on-first-use**, where the relay is trusted at first contact and can have its own
@@ -133,14 +135,18 @@ sixth is counted and displayed rather than enforced.
    out-of-band route exists on the cloud path today: route 1 is dedicated-only and a
    separate integration, **route 2 does not exist** — Hetzner Cloud's rescue action returns
    an action and a root password and no host key — and route 3 is blocked behind question
-   15. That is why the first stage has no remote channel at all. Passing the SSH spike is
+   14. That is why the first stage runs on dedicated hardware, where route 1 pins out of
+   band ([ADR-0018](./docs/adr/0018-first-stage-is-one-lnrent-box-on-dedicated.md)); the
+   cloud path's identity problem belongs to the second stage. Passing the SSH spike is
    necessary and does not by itself satisfy this; the routes are what make it sufficient.
 5. **Members must not share a cloud vendor.** The vendor owns its machine's memory and
    disk and is trusted under every design considered, so two members at one vendor is one
    party able to act on both — the correlated fault a threshold cannot absorb
    ([ADR-0006](./docs/adr/0006-single-origin-with-reproducible-builds.md) diversifies
    cloud vendors per member for exactly this reason). Nothing in the design forces vendor
-   sharing, so unlike the proxy layer below this one stays a requirement. What makes it
+   sharing, so unlike the proxy layer below this one is enforced — at the shipped default
+   of one vendor per machine, relaxable by the tenant toward its own quorum-relative bound
+   and never past it (invariant 16 states how the two strengths relate). What makes it
    hard is the account floor under [Money](#money) — a reason it is expensive, not a
    reason it is optional.
 6. **Independence between members is counted per layer and shown, not enforced.**
@@ -181,7 +187,7 @@ modes:
 - **Typed operations**, where an adapter exists: the action carries structured metadata and
   each one is approved on its own facts rather than on command text.
 - **Untyped calls**, where none does: the operator approves a *scope* — this credential,
-  this host — every call is recorded before it is sent, and the harness **claims nothing
+  this origin — every call is recorded before it is sent, and the harness **claims nothing
   about what the credential can do.** It usually cannot know: most services publish no
   machine-readable statement of what a key authorizes, and a bound stated on a guess is
   worse than none.
@@ -209,6 +215,19 @@ only by the credential — so approving one is approving that key's full authori
 host, for as long as it is valid, whatever the brief intended at the time. Where a service
 offers a scoped or read-only key, using one is the only thing that actually narrows this,
 and it is the operator's move rather than the harness's.
+
+**"Where it goes" is an exact origin, and a redirect that leaves it ends the call.**
+Browsers follow redirects automatically, and a credential riding in a custom header rides
+along to the new origin — a body does too, under 307/308 — so an approved host with an
+open redirect would otherwise launder the credential to an origin nobody approved, in a
+request never recorded. (A query-string credential is not replayed by the browser; only a
+server that echoes it into the redirect target forwards it.) The header case alone is
+enough, and the mechanics force the strict form: under browser fetch, following is
+automatic unless disabled — the redirected request would be sent before any check could
+run — so **every scoped call is sent with redirect following disabled**, and a redirect
+response simply ends the call. The browser returns a blocked redirect opaque, destination
+hidden, so nothing can be auto-surfaced for approval: reaching wherever the service moved
+starts from what the service documents, as a new scope.
 
 ### Briefs
 
@@ -248,8 +267,10 @@ A **session** is one run of the harness under one set of model weights, responsi
 exactly one machine. A federation is provisioned by several concurrent sessions on a
 single device ([ADR-0009](./docs/adr/0009-one-device-concurrent-sessions-batched-approval.md)).
 
-**One session, one machine.** Each session accesses exactly one machine and never reads,
-audits, or touches a machine it did not provision
+**One session, one machine.** Each session is bound to exactly one machine — the one it
+provisions, the maintained one it re-enters, or the stuck one it takes over on the
+recovery ladder — and never reads, audits, or
+touches any other
 ([ADR-0004](./docs/adr/0004-one-model-one-machine.md)). Access is what composes, not
 intent: letting one model touch two machines halves the number of malicious models
 needed to reach a k-of-n threshold. Any verification scheme in which one model inspects
@@ -284,22 +305,29 @@ setup.
 **Why concurrent.** Nothing runs while the app is closed, so sequential provisioning
 would multiply the time the operator must hold a phone awake by the member count. A
 twenty-minute install becomes a hundred-minute one. Concurrency costs nothing in
-security, since the invariant is one domain per machine and simultaneity does not change
-which domain touches which machine. It is bounded by mobile memory and proxy rate limits,
+security, since the invariant binds each session to exactly one machine — with
+weights-level separation
+the goal the assignment serves — and simultaneity does not change which session touches
+which machine. It is bounded by mobile memory and proxy rate limits,
 which are reasons to cap concurrency rather than to serialize it.
 
 **Why approvals batch.** Every machine creation is known before anything starts, so all
 of them fit in one screen showing the whole federation and its true recurring cost.
-Everything unpredictable is box-plane, which needs no approval by construction.
-Mid-flight cloud-plane actions are rare by definition, so a queue for them is cheap and
+"Everything unpredictable is box-plane" was true when it was written and gained one
+exception when off-machine calls generalized: the unpredictable cloud case is now the
+untyped call, and its **scope approval rides the same rules** — approved with the
+up-front batch when the brief names the service, and joining the mid-flight queue when
+one is discovered later. No untyped call runs before its scope is approved.
+Mid-flight cloud-plane interactions stay rare by definition, so the queue is cheap and
 never competes with itself for attention. Five concurrent workers producing interleaved
 popups on a phone is modal fatigue in its purest form, and the operator cannot tell which
 member is asking.
 
 **Recovery is a ladder.** Retry; then escalate to a stronger model behind the same proxy;
 then destroy the machine and restart under a different domain, which costs a server. A
-stuck machine is never handed to a session that did not provision it — past the middle
-rung it is destroyed instead.
+stuck machine moves only up its own ladder: re-bound to the successor session at the
+middle rung (invariant 1's third binding form), destroyed past it — never handed to any
+other session.
 
 The middle rung is cheap because the proxy already had access, so escalating behind it
 grants that party nothing new. But the stronger model is *new weights on that machine*,
@@ -312,16 +340,19 @@ coherent state the operator can act on, not an error.
 
 ### What a session delivers
 
-A session's deliverable is a machine that is provisioned, hardened, running the vault
-software, reachable, and **shown to be locked down** by a lightweight self-directed
+A session's deliverable is a machine that is provisioned, hardened, running the software
+its tenant calls for — the vault software under btc-policy, `lnrentd` under lnrent —
+reachable, and **shown to be locked down** by a lightweight self-directed
 pentest — open ports, default credentials, sshd posture, exposed services
 ([ADR-0011](./docs/adr/0011-the-ai-delivers-a-locked-down-machine.md)). Hardening is a
 property the session demonstrates, not a step it reports having performed.
 
 **The pentest is a competence check, not an integrity check.** A model examining its own
-machine proves nothing against a malicious model, and does not need to, because malice is
-what the threshold absorbs. What it raises confidence in is the *competent* half of the
-honest-majority assumption. Honest-but-sloppy is the likely failure on a first-time
+machine proves nothing against a malicious model. Where the tenant has a threshold it does
+not need to — malice is what the threshold absorbs, and the check raises confidence in the
+*competent* half of the honest-majority assumption. On a single-machine tenant nothing
+absorbs malice and the pentest does not pretend to: that risk is accepted, as the security
+claim states plainly. Either way, honest-but-sloppy is the likely failure on a first-time
 setup, and it is the one this catches. It never runs from another member.
 
 The job is deliberately not uniform across vendors, because the vendors are not uniform.
@@ -359,8 +390,8 @@ the vendor firewall
 
 **Network reachability is a foothold on the same terms as a credential.** If the five
 machines can reach each other, a model controlling machine 1 can attack machines 2
-through 5 directly, and the one-domain-one-machine invariant is broken by the network
-rather than by any grant. This matters more than it first appears: a k-of-n threshold
+through 5 directly, and the access invariant — one session, one machine — is broken by
+the network rather than by any grant. This matters more than it first appears: a k-of-n threshold
 assumes faults are **independent**, and one model able to attack four other machines
 produces *correlated* faults — the one assumption a Byzantine threshold cannot survive
 losing.
@@ -383,8 +414,9 @@ it. The check that matters happens inside the SSH protocol at the application la
 once the right key is pinned the transport underneath is irrelevant to confidentiality
 and integrity.
 
-Four routes to the fingerprint exist, from vendor API retrieval down to trust-on-first-use
-with continuity as the floor. That floor is *not* currently a working fallback: a pin lives
+Four routes to the fingerprint were identified — vendor API retrieval down to
+trust-on-first-use with continuity as the floor — and one, Cloud-side retrieval, is
+verified dead. The floor is *not* currently a working fallback: a pin lives
 in browser storage, and question 3 records what happens when that storage is cleared or the
 phone is replaced. **Under the routes that pin out of band a
 hostile relay is a denial of service and nothing worse. Under trust-on-first-use it is
@@ -414,12 +446,15 @@ do, and not doing it is how a correctly-built machine becomes a vulnerable one o
 **How much of that is possible is the tenant's decision, not the harness's** — it follows
 from the tenant's *access model*, exactly as the threshold does
 ([ADR-0016](./docs/adr/0016-the-harness-isolates-and-counts-tenants-set-thresholds.md)).
-On **maintained** machines — lnrent boxes, ad hoc use — the session goes back in: repair,
-patching, the full re-check. On **sealed** machines it cannot, by the tenant's own design:
+On **maintained** machines — lnrent boxes, ad hoc use — the machine is re-entered: a later
+session, bound to it as its one machine under invariant 1, does repair, patching, the full
+re-check. On **sealed** machines nothing re-enters, by the tenant's own design:
 btc-policy uninstalls SSH after setup and forbids upgrade-in-place, precisely so nobody can
 be forced back into a vault node. There the re-check degrades honestly to an external
-surface probe — deny-everything-but-one-port is observable from outside, through the relay
-— and an advisory watch whose only remedy is rotating to a successor vault. Runtime
+surface probe — deny-everything-but-one-port is observable from outside, through the relay,
+though the result is only as trustworthy as the relay that carries it and is shown as what
+the relay reported, never as verified — and an advisory watch whose only remedy is rotating
+to a successor vault. Runtime
 monitoring stays the tenant's own: every vault node is already its own watchtower.
 
 It requires the operator to open the app, since nothing runs while it is closed, so the
@@ -474,7 +509,7 @@ removing the publisher from model selection and, locally, the proxy layer entire
 
 **This is where lnrent becomes structural.** Paying for inference is *nearly* solved — an
 aggregator that takes Lightning with no registration would make funding several providers a
-few invoices, subject to the browser reachability that question 9 records as still unprobed.
+few invoices, subject to the browser reachability that question 8 records as still unprobed.
 Cloud vendors are not: they want an account, a card, and a recurring billing
 relationship, and a 3-of-5 federation across distinct vendors means several of those.
 Invoice relay cannot fix it, because vendors do not sell that way. Without something like
@@ -497,7 +532,7 @@ equipped to tell the difference. Teaching Bitcoin users that the same app legiti
 lives at several addresses trains the reflex that gets them robbed.
 
 So the bundle remains a common-mode component — the largest, and the one that carries the
-briefs, though not the only one: see the vault-software signer below.
+briefs, though not the only one: see the software signer below.
 Reproducible builds make a compromised bundle detectable, not preventable, and the target
 operator will not verify a hash on a phone. The mitigation that matters is **third-party
 watchdogs** — independent parties routinely fetching and comparing the served bundle, so
@@ -513,20 +548,44 @@ its headers any day and the probe is the only thing that would say so.
 These may never be violated. They are product-level and distinct from the ten numbered
 invariants in the archived execution-layer specification.
 
-1. **A session MUST NOT be given access to more than one machine, and MUST NOT read,
-   audit, or touch a machine another session provisioned.** Access is what composes, not
+1. **A session MUST be bound to exactly one machine and MUST NOT read, audit, or touch
+   any machine it is not bound to.** A session is bound by provisioning a machine; by
+   re-entry, on a maintained machine only; or by the recovery ladder's escalation, which
+   re-binds a half-provisioned machine to the successor session under the rung's
+   condition — a machine mid-provisioning is neither provisioned nor maintained, and
+   without this third form the ladder's middle rung would be unreachable. **Binding is an
+   operator act in the browser,
+   made before any channel access**: the operator assigns the machine at session creation,
+   for provisioning, re-entry, or escalation, and connecting is never what creates the
+   binding —
+   otherwise a refused session and a re-entering one would be indistinguishable at the
+   relay. Access is what composes, not
    intent: a model with a foothold on two members halves the number of malicious domains
    needed to reach k-of-n ([ADR-0004](./docs/adr/0004-one-model-one-machine.md)). No
    exception for debugging, for auditing, or for any scheme in which one model inspects
    another's machine. **Exposure is permanent for the life of the machine**: a model that
    has touched a machine counts as touching it until that machine is destroyed, because
    ending a session does not remove whatever the model may already have left behind. So the
-   recovery ladder's middle rung stays inside this rule only while the stronger model has
-   not run — and will not later run — any other member; past that rung the machine is
-   destroyed rather than handed on.
+   recovery ladder's middle rung stays inside this rule only while the stronger
+   configured model is not assigned — and will never be assigned — to any other member;
+   past that rung the machine is
+   destroyed rather than handed on. **Re-entry stays inside this rule the same way**: the
+   machine outlives its sessions, so a later session may be bound to it — but to it alone,
+   and the configured model that session runs counts as having touched it permanently,
+   under the same condition as the rung: the product never assigns it to another machine.
+   Assignment is what the product controls and these conditions bind at that layer;
+   whether two configured models are secretly the same weights is the unobservable case
+   below, a displayed collision.
 
-   **What this invariant reaches, and what it does not.** The product decides which machine
-   a session may touch, so that part is enforceable and absolute. It does not decide
+   **What this invariant reaches, and what it does not.** It binds the harness's own
+   channels — the box-plane channel and typed operations — where the product decides which
+   machine a session may touch, so there it is enforceable and absolute. An approved
+   untyped scope is outside its reach: if the service behind the scope can itself
+   administer machines, what bounds the session there is the credential's authority,
+   counted in the blast radius and shown until the credential is revoked or rotated —
+   which is why invariant 4
+   refuses scopes at known vendors, and why the security claim states machines *plus
+   scopes* rather than resting on this invariant alone. It does not decide
    whether two sessions configured with different models are served the *same weights* —
    nothing observable tells it (question 4). Identical weights behind two members is
    therefore a **collision, displayed under constraint 6** — not a violation of this
@@ -543,10 +602,28 @@ invariants in the archived execution-layer specification.
    credential can do.** A scope names where a key goes. For box-plane work the machine
    bounds the damage; for an untyped call nothing does, and an approval screen that reads
    like a limit is the overstatement this design refuses everywhere else
-   ([ADR-0017](./docs/adr/0017-off-machine-calls-and-scope-approval.md)).
-5. **Credentials MUST NOT leave browser memory** — not to storage, not to the app's own
+   ([ADR-0017](./docs/adr/0017-off-machine-calls-and-scope-approval.md)). **A scope MUST
+   NOT name a vendor the harness knows**: a vendor control API
+   reaches every machine on the account — machines other sessions are bound to — and with
+   no adapter the harness cannot see which resource a call touches, so an untyped scope
+   there is a path around invariant 1 that nothing records at the machine level. Vendor
+   APIs are typed operations or nothing — and **a typed operation that names an existing
+   machine MUST be authorized against the calling session's binding**: a session's vendor
+   operations reach its own machine and account-level creation, nothing else, enforced by
+   the adapter rather than left to the approval screen. Beyond the vendors it knows, the
+   harness cannot classify what a third-party credential administers — that reach is
+   exactly what the blast-radius statement counts an active scope as, and the approval
+   screen says so rather than implying the service was vetted.
+5. **Credentials the harness holds MUST NOT leave browser memory** — not to storage, not
+   to the app's own
    origin, not into a model request, not into a log. The injection route for SSH host
-   keys is a known conflict with this, and open question 15 is where it is tracked.
+   keys is a known conflict with this, and open question 14 is where it is tracked. The
+   invariant covers what the operator supplies and what the harness generates; a secret a
+   service returns inside an untyped response is outside the harness's sight and outside
+   this rule's reach —
+   [ADR-0017](./docs/adr/0017-off-machine-calls-and-scope-approval.md) records that limit,
+   and the moment such a secret is supplied *to* the harness as a credential, it is
+   covered.
 6. **The AI MUST NOT touch key material.** Recovery descriptors come from the operator.
    Member keys are generated on the machine and never exported.
 7. **Briefs and advisory feed lists MUST ship in the signed bundle** and MUST NOT be
@@ -566,9 +643,16 @@ invariants in the archived execution-layer specification.
     sent.** For a typed operation this is bookkeeping. For an untyped call it is the *only*
     safeguard standing behind it, since the harness cannot bound what the credential
     authorizes — which is what makes it an invariant rather than a described behaviour.
+    A call interrupted between the record and a confirmed response has an **unknown
+    outcome** — as does one whose response the browser refuses to disclose, since a
+    CORS-blocked simple request was still sent — and for an untyped call no adapter
+    exists to find out. So the record MUST
+    carry that unresolved state, the harness MUST NOT retry the call on its own or report
+    it as failed, and
+    reconciliation belongs to the operator, at the service.
 13. **The app MUST NOT hold, forward, or custody funds.** A Bitcoin wallet able to pay for
     machines is an intended future capability and it collides with this, so the collision is
-    recorded rather than resolved. Self-custody would not breach
+    recorded rather than resolved (question 18). Self-custody would not breach
     [ADR-0014](./docs/adr/0014-the-app-relays-invoices-and-never-holds-funds.md)'s
     *reasoning* — nobody is asked to trust an intermediary — but it changes what a bundle
     compromise costs, from misconfiguring machines to spending the money, behind the one
@@ -579,27 +663,35 @@ invariants in the archived execution-layer specification.
 The three below are federation rules. They bind wherever a tenant requires a threshold and
 mean nothing for a single machine, so under
 [ADR-0016](./docs/adr/0016-the-harness-isolates-and-counts-tenants-set-thresholds.md) they
-belong to that tenant and move with it. They are listed here, unchanged, until the meta
-project exists — and an implementer building for a tenant without a threshold is not bound
-by them.
+belong to that tenant and move with it. They are listed here, unchanged, until pointers
+into btc-policy's own records replace them — the meta project exists but holds only the
+coordination layer, the ecosystem map and the term register — and an implementer building
+for a tenant without a threshold is not bound by them.
 
 14. **Members MUST NOT be reachable from each other except on the vault protocol port,
     mutually authenticated**, with everything else denied at the vendor firewall.
 15. **A federation MUST NOT be formed until every member is provisioned, hardened, and
     reachable.**
-16. **Two machines of one federation MUST NOT be created at the same cloud vendor.**
+16. **No cloud vendor's machines may reach a federation's quorum — the tenant's rule,
+    which binds. The harness ships a stricter default: one vendor, one machine.**
     Stated in machines rather than members deliberately: nothing has joined a federation
-    when this rule has to bind, so a rule about "members" would not reach the first stage
-    at all. The vendor owns its machines' memory and disk, so two of them at one vendor is
+    when this rule has to bind, so a rule about "members" would not reach provisioning at
+    all. The vendor owns its machines' memory and disk, so two of them at one vendor is
     a single party able to act on both — the correlated fault invariant 14 exists to prevent
-    at the network layer, arriving instead through the billing relationship. Unlike every
+    at the network layer, arriving instead through the billing relationship. The two
+    statements are one rule at two strengths: btc-policy ADR-0009's quorum-relative form is
+    the bound an implementation MUST enforce, and the flat one-vendor-per-machine form is
+    the default the harness applies — relaxable by the tenant toward its own bound, never
+    past it, and never by the harness on its own. An implementation that blocks at the
+    default and lets the tenant open it to the bound satisfies both. Unlike every
     other entry here this one has no decision record of its own: it rests on
     [ADR-0006](./docs/adr/0006-single-origin-with-reproducible-builds.md)'s statement that
     cloud vendors are diversified per member, which is background to a decision about
     *origin* diversity, plus the correlated-fault argument in
     [ADR-0010](./docs/adr/0010-members-reach-each-other-on-one-authenticated-port.md). It
-    is the one rule in the first stage that blocks rather than displays, so it should have
-    a record of its own.
+    is the rule whose collision **blocks** where the weights and proxy layers only display
+    (constraint 6) — first binding in the second
+    stage, with the vault — so it should have a record of its own.
 
 ## The security claim, stated exactly
 
@@ -607,11 +699,19 @@ The harness and its tenants make **different** claims, and blurring them is how 
 machine ends up shipping under a vault's guarantee
 ([ADR-0016](./docs/adr/0016-the-harness-isolates-and-counts-tenants-set-thresholds.md)).
 
-**What the harness claims.** No session reaches a machine it did not provision. A model's
-blast radius is the machines it provisioned — no more, and no fewer. The trusted set is
-fixed and small, sorted below into what any software requires, what the operator chose, and
-what this product adds; only the third tier is the harness's to control and it holds three
-entries. What the harness *removes* is the party that would otherwise choose the operator's
+**What the harness claims.** No session reaches a machine it is not bound to **through
+anything the harness controls** — bound by
+provisioning it, by re-entry on a maintained machine, or by the recovery ladder's
+escalation of a stuck one. A model's blast radius is the
+machines its weights have touched — plus, once an untyped scope is approved for its
+session, that credential's authority at that origin, which may itself reach machines the
+harness cannot see; the two are stated together because neither alone is the boundary.
+Every approved scope appears in the trust display **until its credential is revoked or
+rotated** — closing the approval does not un-trust a service that still holds the key.
+Nothing beyond those two. The trusted set is named rather
+than small — sorted below into what any software requires, what the operator chose, and
+what this product adds — and the tier this product adds is fixed: only it is the harness's
+to control, and it holds three entries. What the harness *removes* is the party that would otherwise choose the operator's
 vendor, model and configuration while holding their credentials.
 
 **What the harness does not claim, and cannot: that the model is honest.** With one machine
@@ -693,8 +793,19 @@ is exactly the set a hosted service picks on your behalf, silently and unlisted.
   weights and proxy and this is neither (question 4). It is named here because the list is
   meant to be exhaustive even where the counting is not yet settled.
 - **A majority of the models**, being both honest *and* competent.
-- **Whoever signs the vault software the members run.** Briefs install the same release on
-  every member, so its signer is common-mode across the federation in the same shape as the
+- **Any service an approved untyped call reaches.** The operator hands it a credential
+  whose authority the harness cannot bound, so for the life of that key the service is
+  trusted with everything the key can do. This class cannot be enumerated in advance —
+  which is why it is named here as a class, and why each approved scope must appear in the
+  trust display until its credential is revoked or rotated — not merely while the approval
+  stands, since closing it does not un-trust a service that still holds the key — rather
+  than in this list by name
+  ([ADR-0017](./docs/adr/0017-off-machine-calls-and-scope-approval.md)).
+- **Whoever signs the software the machines run** — the vault software under btc-policy,
+  `lnrentd` under lnrent, whatever a brief installs for ad hoc use. For a single machine
+  the signer is trusted for that machine, the same shape as any installed software. For a
+  federation it is sharper: briefs install the same release on
+  every member, so the signer is common-mode across the federation in the same shape as the
   bundle — which means
   [ADR-0005](./docs/adr/0005-briefs-ship-in-the-signed-bundle.md)'s claim that the bundle
   is "the only remaining single point of total compromise" is one party short — as is
@@ -746,10 +857,18 @@ machinery, and deferred both hard problems.
 
 Acceptance is these predicates:
 
-1. The session activates Robot rescue as a **typed operation**, retrieves the rescue host
+1. The session registers its SSH client public key with Robot as a **typed operation** —
+   Robot's `authorized_key` field takes fingerprints of keys already registered there, not
+   raw keys — then activates rescue the same way, passing that fingerprint, triggers the
+   reboot into
+   it the same way — activation only configures the next boot; Robot's reset call is
+   its own typed operation, since nothing else can restart a machine the harness cannot
+   yet reach — retrieves the rescue host
    key from the API response, and connects with **no trust-on-first-use at either hop**:
    the rescue key is pinned from the API, and the installed system's host keys are
-   generated inside the rescue session, per machine, and read before reboot.
+   generated inside the rescue session, per machine, and read before reboot. The response
+   also carries a generated **root password**; it is never used — the client key is the
+   credential — and it is **redacted before the response is recorded or reaches a model**.
 2. The system is installed and hardened entirely through box-plane work over the pinned
    channel, and every byte sent to the machine is **recorded before transmission**; the
    transcript matches what was sent.
@@ -758,23 +877,35 @@ Acceptance is these predicates:
    reachable.
 4. The machine is **maintained**, and the story is exercised: at least one later session
    re-enters over the same pinned channel and re-runs the check.
-5. No credential — the Robot credential, the inference key, or the SSH client private
-   key — appears in a request to the app origin, in any model request body, in IndexedDB,
+5. No credential — the Robot credential, the rescue root password Robot returns, the
+   inference key, the SSH client private key,
+   or whatever credential the relay turns out to require (question 2) — appears in a
+   request to the app origin, in any model request body, in IndexedDB,
    in local storage, in service-worker caches, or in any log. The client key is a **new
    credential class** (question 3) and its handling is stated, not silently extended.
-6. A rescue activation interrupted between intent and confirmation, then resumed, results
-   in exactly one rescue session and one install.
+6. A rescue activation or its reset, interrupted between intent and confirmation, then
+   resumed, results in exactly one rescue session and one install.
 7. All of the above pass on Android Chrome and iOS Safari, through a normal HTTPS URL,
    with no install.
+8. A channel access that does not present the bound session's authorization — however
+   well-formed the attempt — is **refused**. With one machine, nothing exercises the
+   harness's central access rule by accident: this predicate shows the refusal is enforced
+   by mechanism rather than satisfied by scarcity, and it is distinguishable from
+   predicate 4's re-entry precisely because binding is the operator's act, not the
+   connection's.
 
 Provenance is still recorded — vendor, inference provider, model, surviving reload and
-restart — but with one machine there is nothing to compare it against; the panel and
-collision display arrive with the tenant that needs them.
+restart — and the per-layer counts are still shown, per invariant 9: for one machine they
+read one at each layer that exists — one set of weights, one proxy on the procured path,
+and no proxy entry at all under local inference, which removes that layer rather than
+counting it. The smaller claim, stated as numbers. What waits is
+comparison: with one machine there is no collision to display, so the collision display
+and the operable panel arrive with the tenant that needs them.
 
 The second stage brings the vault: Cloud machines, multiple concurrent sessions, the trust
 panel, the coordinator, federation formation, all-or-nothing creation — and Cloud's
 unsolved identity problem, since route 2 is dead and injection is blocked behind question
-15. It reuses the channel the first stage proved. If the spike fails instead, the fallback
+14. It reuses the channel the first stage proved. If the spike fails instead, the fallback
 is the old cloud-first stage with the channel question reopened.
 
 ## The decisions
@@ -785,13 +916,13 @@ record carries it and the grounds for rejecting it.
 | ADR | Decision |
 |---|---|
 | [0001](./docs/adr/0001-briefs-are-instructions-not-scripts.md) | Briefs are instructions the AI reads, not scripts it executes |
-| [0002](./docs/adr/0002-cloud-plane-and-box-plane.md) | Cloud-plane actions are typed operations; box-plane actions are free shell |
+| [0002](./docs/adr/0002-cloud-plane-and-box-plane.md) | Cloud-plane actions are typed operations, box-plane actions are free shell — untyped calls arrive with 0017 |
 | [0003](./docs/adr/0003-the-ai-runs-only-in-the-browser.md) | The AI runs only in the browser; a machine is a target, never an actor |
 | [0004](./docs/adr/0004-one-model-one-machine.md) | One model, one machine, and an honest-majority assumption |
 | [0005](./docs/adr/0005-briefs-ship-in-the-signed-bundle.md) | Briefs ship in the signed app bundle |
 | [0006](./docs/adr/0006-single-origin-with-reproducible-builds.md) | One origin, with reproducible builds |
 | [0007](./docs/adr/0007-trust-is-counted-in-two-layers-and-shown.md) | Trust is counted in two layers, and shown rather than scored |
-| [0008](./docs/adr/0008-three-of-five-default-and-its-economic-floor.md) | 3-of-5 by default, and the economic floor it implies |
+| [0008](./docs/adr/0008-three-of-five-default-and-its-economic-floor.md) | 3-of-5 as btc-policy's default, and the economic floor it implies |
 | [0009](./docs/adr/0009-one-device-concurrent-sessions-batched-approval.md) | One device, concurrent sessions, approvals batched up front |
 | [0010](./docs/adr/0010-members-reach-each-other-on-one-authenticated-port.md) | Members reach each other on one authenticated port, everything else denied |
 | [0011](./docs/adr/0011-the-ai-delivers-a-locked-down-machine.md) | The AI delivers a locked-down machine and demonstrates it, per vendor |
@@ -813,8 +944,10 @@ repository is history.
 1. **The SSH client spike.** An SSH implementation compiled to `wasm32-unknown-unknown`
    with its transport swapped for a WebSocket. `russh` is the realistic Rust candidate but
    is async and tokio-shaped. This is unproven work of the same character as the archived
-   specification's M0 gates, and it is the item most likely to fail. Treat a failure as
-   the thing that pushes remote blocks out of the second stage entirely.
+   specification's M0 gates, and it is the item most likely to fail. A failure sinks this
+   stage's whole approach: the recorded fallback is the old cloud-first stage, with the
+   channel question reopened
+   ([ADR-0018](./docs/adr/0018-first-stage-is-one-lnrent-box-on-dedicated.md)).
 2. **Who operates the relay, and how a browser gets a credential for it.** What the relay
    must *do* is settled — authenticate the user, enforce destination policy, prevent
    generic open-proxy behaviour, per the archived specification's §21 — so one open half is
@@ -829,9 +962,10 @@ repository is history.
    credential. Where the browser gets a client private key, how the matching public key
    reaches the machine, and what happens to that key across sessions are all unspecified —
    and a client key held in browser memory only, per invariant 5, has no obvious recovery
-   story. It is the first new credential class beyond the four the first stage counts —
-   the route-3 host private key at question 15 would be the second — and it gates the
-   second stage as surely as the spike does.
+   story. It is a new credential class, and the first stage counts it — acceptance
+   predicate 5 names it beside the Robot credential and the inference key; the route-3
+   host private key at question 14 would be the next — and it gates the *first* stage as
+   surely as the spike does.
 
    **The same problem runs the other way, for host fingerprints.** A pin lives in browser
    storage, and browser storage is cleared, evicted, or left behind when the operator
@@ -858,29 +992,26 @@ repository is history.
    up front, and nothing runs while the app is closed — so an interrupted setup is five
    machines billing with no progress. The product needs an opinion about when to prompt for
    resume or abandonment.
-
-### One call, one probe, or one boot from closing
-
 7. **What Hetzner Robot's rescue `host_key` field actually returns** — full public keys,
-   fingerprints, which algorithms. Undocumented, and **now first-stage-blocking**: route 1
+   fingerprints, which algorithms. Undocumented, and **first-stage-blocking**: route 1
    is the first stage's identity chain
-   ([ADR-0018](./docs/adr/0018-first-stage-is-one-lnrent-box-on-dedicated.md)). One
-   authenticated call answers it, and the
+   ([ADR-0018](./docs/adr/0018-first-stage-is-one-lnrent-box-on-dedicated.md)), which is
+   why this sits among the gates despite being one authenticated call from closing. The
    same call should re-check that Robot is still reachable from a browser at all: that
    result rests on a single recorded probe, and vendor CORS headers are exactly the kind of
    external dependency the continuous probe elsewhere in this document exists to catch
    regressing.
-8. **Whether Hetzner Cloud's rescue action returns host keys the way Robot's does.**
-   Unverified, and it matters first, because the cloud product is where this starts.
-9. **Whether the second inference proxy is reachable from a browser at all.** An
+
+### One probe or one boot from closing
+8. **Whether the second inference proxy is reachable from a browser at all.** An
    OpenAI-compatible API does not imply an origin may call it. This needs the same probe
    the first proxy got before the trust panel can offer it as a one-tap action.
-10. **Whether a second cloud vendor's API permits a browser origin.** Roughly eighty lines
+9. **Whether a second cloud vendor's API permits a browser origin.** Roughly eighty lines
     of curl — the existing probe is a template, not a drop-in, since it hardcodes the first
     vendor's base URLs, paths, and assertions. Constraint 5 depends on the answer.
     Candidates include Vultr, DigitalOcean, Linode, and lnrent itself, which is interesting
     because it needs no cloud account at all.
-11. **Whether the proof of concept's cloud-init boots an unreachable machine.** A code-read
+10. **Whether the proof of concept's cloud-init boots an unreachable machine.** A code-read
     finding, not an observed failure: its user list has no default entry and sets an empty
     authorized-keys list, so the vendor's injected keys reach no account. The fix is one
     line and nobody has booted the file. Do this before anything depends on being able to
@@ -888,18 +1019,18 @@ repository is history.
 
 ### Design-level, still unanswered
 
-12. **The brief format schema.** Frontmatter fields, the local/remote block marker, how a
+11. **The brief format schema.** Frontmatter fields, the local/remote block marker, how a
     block returns structured data to the next one, versioning, signing. Designing a second
     consumer for an undefined format is premature until this exists.
-13. **What executes brief commands locally in the browser.** Either a WASI host with
+12. **What executes brief commands locally in the browser.** Either a WASI host with
     uutils guests, as the archived specification assumes, or a small set of purpose-built
     commands. This is deliberately not decided in advance: the scope is to be derived from
     real briefs rather than guessed, and the archived specification's answers here are
     currently guesses.
-14. **Mid-brief recovery at step granularity.** Duplicate-create protection is designed
+13. **Mid-brief recovery at step granularity.** Duplicate-create protection is designed
     but the provisioning state machine it needs is not built, and a multi-step brief needs
     the same idea per step on top of it.
-15. **Whether injecting the SSH host key is permitted, and on what terms.** Route 3 writes
+14. **Whether injecting the SSH host key is permitted, and on what terms.** Route 3 writes
     a *private* host key into boot-time user-data, which the vendor stores — squarely
     against invariant 5. [ADR-0015](./docs/adr/0015-the-browser-reaches-a-machine-over-pinned-ssh.md)
     says the contradiction may not be left standing, and there is only one way out: carve a
@@ -910,7 +1041,7 @@ repository is history.
     patched. Scrubbing and rotating the key after first boot limits exposure but resolves
     nothing; the key has already been exported. That decision has not been taken, and route
     3 cannot be used until it is.
-16. **What "locked down" means, per vendor — and who may run the check.** A pentest can
+15. **What "locked down" means, per vendor — and who may run the check.** A pentest can
     only assert what it checks, so the checklist is part of the signed brief set
     ([ADR-0011](./docs/adr/0011-the-ai-delivers-a-locked-down-machine.md)) — and it does
     not exist yet for any vendor. Until it does, the deliverable in
@@ -926,12 +1057,31 @@ repository is history.
     a **verifier** and which is explicitly not a defence against a hostile model — so it
     cannot substitute for the competence check, whatever else it is worth. Nothing yet says
     which the deliverable requires.
-17. **Reproducible builds and the watchdogs that would make them mean something.** Neither
+16. **Reproducible builds and the watchdogs that would make them mean something.** Neither
     exists. Until they do, the bundle's integrity rests on trusting the host outright.
-18. **Content-Security-Policy gaps.** There is no WebSocket entry today; when one is added
+17. **Content-Security-Policy gaps.** There is no WebSocket entry today; when one is added
     it must name the relay's exact `wss://` origin rather than the bare `wss:` scheme,
     which would permit a WebSocket to every secure origin there is. Runtime admission of
     the policy is also unverified, and adopting the Robot route adds one more static entry.
+    **Untyped calls collide with all of this**: a scope can name a host the shipped policy
+    has never heard of, and `connect-src` is fixed once the app loads — so either the
+    policy stays exact and a genuinely new service waits for a release, or it widens and
+    gives up the hardening. [ADR-0017](./docs/adr/0017-off-machine-calls-and-scope-approval.md)
+    rejected "a release between the operator and any new service" as the reason to allow
+    untyped calls at all, so the collision is real and nothing resolves it yet. CORS is
+    the same gate held by the other side: no service is reachable unless it permits the
+    app's origin, only a probe can establish that, and the untyped-call promise is bounded
+    by both.
+18. **Where a wallet could live, if it is ever built.** Paying for machines and services
+    from inside the harness is an intended capability, and invariant 13 collides with it.
+    [ADR-0014](./docs/adr/0014-the-app-relays-invoices-and-never-holds-funds.md) holds the
+    three live options — a separate origin, which
+    [ADR-0006](./docs/adr/0006-single-origin-with-reproducible-builds.md) rejected for
+    user safety and whose objection would have to be answered rather than ignored; the
+    same bundle, with invariant 13 rewritten and the undefended-bundle risk repriced from
+    misconfiguring machines to spending funds; or a tenant of its own. None is chosen.
+    Whoever builds it settles this first.
+
 ## Status and the next move
 
 Nothing here has touched a real server. The proof of concept can call a cloud vendor's API
@@ -953,4 +1103,5 @@ configuration at all — is answered by fiat on this path: on Robot, none can be
 channel gates everything. It returns as a real question in the second stage on Cloud,
 where user-data exists and could shrink the channel's role in provisioning — though never
 to zero, because the coordinator still has to reach member APIs on machines with no valid
-certificate, and the periodic re-check has to reach a running machine long after boot.
+certificate. The periodic re-check is not a second reason there: vault nodes are sealed,
+so their re-check is an external probe through the relay, never a session inside.

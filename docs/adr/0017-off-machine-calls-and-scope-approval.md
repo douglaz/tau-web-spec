@@ -8,7 +8,8 @@ modes:
   and approved individually. This is the cloud plane as
   [ADR-0002](./0002-cloud-plane-and-box-plane.md) defined it, unchanged.
 - **Untyped calls** — no adapter exists. The operator approves a **scope**: this credential,
-  this host. The harness shows what it knows, records every call before sending it, and
+  this origin — scheme, host, and port, exactly as the consequences below require. The
+  harness shows what it knows, records every call before sending it, and
   **claims nothing about what the credential can do.**
 
 We chose this because the harness makes authenticated calls on the operator's behalf and the
@@ -82,3 +83,84 @@ reasoning rather than sharing one.
 create nor verify them. Where a service offers scoped keys, using one is the only thing that
 actually reduces the exposure — and the product should say so, without implying it has
 checked.
+
+**A scope never names a vendor the harness knows, and typed operations are bound to the
+session's machine.** The
+new-service case this record exists for is a *third-party* service. A cloud vendor's
+control API is different in kind: its credential reaches every machine on the account,
+including machines other sessions are bound to, and with no adapter the harness cannot
+see which resource a given call touches — so an untyped scope there would hand one
+session a path around the access invariant that nothing records at the machine level.
+Vendor APIs are typed operations or nothing; a vendor with no adapter is not yet usable,
+which is the cost of keeping the isolation claim true. Typing alone is not enough — an
+adapter MUST refuse a typed operation naming a machine the calling session is not bound
+to, because a displayed-and-approved delete of the wrong machine is still the wrong
+machine. And the refusal has an honest boundary: only *known vendors* can be classified
+by hostname. A third-party deployment or networking service — a CI runner, a mesh VPN —
+may well administer machines, the harness cannot know, and that unknown authority is
+precisely what the blast-radius statement counts an active scope as. The ban is
+enforceable where classification is; everywhere else the claim narrows instead of
+pretending.
+
+**An untyped response can carry a secret the harness cannot see.** A call that mints or
+rotates a credential returns it in a response whose schema no adapter understands, so
+nothing can reliably redact it before the response reaches the model and the record. The
+harness does not pretend otherwise: minting credentials through an untyped call moves the
+new secret into model context and into the transcript, the interface must not imply the
+response was scrubbed, and a brief that needs a fresh credential should say the operator
+mints it at the service and supplies it — the path every other credential already takes.
+
+**One redaction is enforceable, and it is mandatory: the harness's own held credentials.**
+A service can echo the key it was sent — account endpoints do — and that key is a string
+the harness holds and can recognize. Every untyped response is scanned for the harness's
+held credentials before it reaches the model or the record, and any occurrence is
+redacted; without this, one echoing endpoint forwards a harness-held credential into
+model context against the credential invariant. The scan sees exact values only — an
+encoded or transformed reflection is beyond it, which belongs to the honest limit above,
+not to a claim of scrubbing.
+
+**An approved scope adds a trusted party for the life of the credential, not of the
+approval.** The service behind an untyped
+call holds a credential the harness cannot bound, which puts it in the elective trust tier
+as a class — unenumerable in advance, so it is the one entry the trusted-party list names
+as a class rather than by name. Each scope has to appear in the trust display **until its
+credential is revoked or rotated**: closing the approval stops new calls, but it does not
+invalidate a bearer key the service has seen, erase copies the endpoint kept, or undo
+anything set in motion while the scope was open — so removing the entry at mere closure
+would understate a live exposure.
+
+**A scope is an exact origin, and cross-origin redirects are not followed.** "This host"
+must mean one origin, because browsers follow redirects automatically, and a credential in
+a custom header is carried to the new origin — a body too, under 307/308. (A query-string
+credential is not replayed by the browser; only a server echoing it into the redirect
+target forwards it.) An approved host with an open redirect would otherwise forward the
+credential to
+an origin nobody approved, in a request sent without being recorded — breaking both the
+scope's meaning and the recording invariant at once. The mechanics leave exactly one safe
+setting: under browser fetch, following is automatic unless disabled and the redirected
+request is transmitted before application code can compare origins, while a disabled
+redirect comes back opaque with its destination hidden. So scoped calls are sent with
+redirect following disabled, a redirect response ends the call, and the new endpoint — if
+it is wanted — is a new scope the operator approves from what the service documents, not
+from a response the browser will not show.
+
+**The browser itself gates which services are reachable, twice.** Content-Security-Policy
+is the gate the bundle imposes on itself, below. CORS is the gate the *service* holds: a
+credentialed cross-origin call succeeds only if the service permits the app's origin, which
+most were never configured to do and which only a real probe can establish — the same
+empirical fact the vendor CORS probes settle one vendor at a time. The "ad hoc and
+unforeseen" reach that justified rejecting adapters-only is therefore bounded: some
+services will never be callable from a browser at all, and the product must say that
+plainly when a scope's first call fails there, rather than implying every named host is
+reachable. **A CORS failure is an unknown outcome, not a failed call**: for a simple
+request — a query-keyed GET, a form-encoded POST — the browser sends the request and only
+then refuses to disclose the response, so the service may have acted. Every unreadable
+response is recorded as unresolved under the recording invariant's unknown-outcome rule,
+never reported as "the call failed," and never retried automatically.
+
+**The scope collides with Content-Security-Policy, and nothing resolves it yet.** The
+hardening this design wants elsewhere is an exact-origin `connect-src`, but `connect-src`
+is fixed once the app loads, and the whole point of an untyped call is a host no release
+enumerated. Either the policy stays exact and a genuinely new service waits for a release —
+the cost this record rejected — or it widens for hosts approved at runtime and gives that
+hardening up. The specification's Content-Security-Policy question tracks it.

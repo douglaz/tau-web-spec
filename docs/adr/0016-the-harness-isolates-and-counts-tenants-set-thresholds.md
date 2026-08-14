@@ -17,7 +17,10 @@ and ad hoc use actually are.
 It also gives the platform a claim that survives without a federation. The harness adds one
 third party (the relay), removes the party that would otherwise choose the operator's
 vendor, model and configuration while holding their credentials, and bounds a model's blast
-radius to the machines it provisioned. That is true for one machine and for five.
+radius to the machines its weights have touched — plus, under
+[ADR-0017](./0017-off-machine-calls-and-scope-approval.md), any credential authority
+standing approved for its session as an untyped scope: the bound is stated in full, not
+made to look smaller. That is true for one machine and for five.
 
 ## What this moves — corrected after reading btc-policy
 
@@ -61,7 +64,10 @@ direction.
 ## Consequences
 
 **The harness cannot state a threshold-based security claim.** What it can state is
-narrower and holds everywhere: no session reaches a machine it did not provision, the
+narrower and holds everywhere: no session reaches a machine it is not bound to (bound by
+provisioning, by maintained re-entry, or by recovery escalation — `spec.md` invariant 1
+states the
+operative form), the
 counts are shown per layer and never blended, and the added-trust tier is fixed and small.
 A tenant stacks its own claim on top.
 

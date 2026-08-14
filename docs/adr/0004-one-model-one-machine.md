@@ -62,11 +62,20 @@ every member through one proxy by design, so read literally the pairing rule col
 every default configuration to a single domain and forbids the arrangement the rest of
 this ADR assumes. Domains are now counted per layer — weights and proxy separately.
 
-**Amended again once the per-layer counting was carried through.** The first amendment's
-"one-domain-one-machine holds at each layer" repeats the same mistake one level down: at
+**Amended again once the per-layer counting was carried through.** An earlier version of
+the amendment above ended "and one-domain-one-machine holds at each" — repeating the same
+mistake one level down: at
 the **proxy** layer the default product deliberately puts one domain on every machine, so
 the rule cannot hold there and was never meant to. The rule that holds is about **access**:
-a session touches exactly one machine, and no set of weights touches more than one. The
+a session is bound to exactly one machine — `spec.md` invariant 1 defines the binding,
+including re-entry on a maintained machine, which supersedes this record's opening
+absolute ("No model ever reads, audits, or touches a machine it did not provision":
+written before an access
+model existed, and read literally it forbids the re-entry the current first stage
+requires). The weights-level form — no set of weights on more than one machine — is the
+**goal the binding serves**, not an enforceable rule of its own: the product enforces what
+it assigns, and two sessions unobservably served the same weights are a displayed
+collision under the two-layer count, not a violation. The
 proxy layer is counted and displayed, not bound.
 
 The recovery ladder above carries the same pre-split language and the same correction. "The

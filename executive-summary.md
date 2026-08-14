@@ -70,7 +70,7 @@ resumable across a locked phone.
 off the operator's machines with a credential they supplied — creating or paying at a vendor,
 and equally a call to any other service. Where an adapter types the action it is approved on
 structured facts rather than command text; where none does, the operator approves a scope
-naming the credential and the host, every call is recorded before it is sent, and the harness
+naming the credential and the origin, every call is recorded before it is sent, and the harness
 **claims nothing about what that credential can do** — for most services it cannot know. The
 **box plane** is free-form shell on a machine the operator already owns: nothing is
 pre-approved, because nothing is known in advance, but it runs under an approved scope and
@@ -87,8 +87,9 @@ decides what to run. A script stops dead at the first surprise, and the AI exist
 for the surprises. Briefs ship inside the signed bundle, because a brief is prose that
 steers every member at once and diversity buys nothing against it.
 
-**One session, one machine.** Each model accesses exactly one machine and never touches
-one it did not provision. Access composes, not intent. Five sessions run concurrently on
+**One session, one machine.** Each session is bound to exactly one machine — the one it
+provisions, the maintained one it re-enters, or the stuck one it takes over on the
+recovery ladder — and never touches any other. Access composes, not intent. Five sessions run concurrently on
 the one device the operator owns, each configured with a different model — what a session
 is actually configured with, since the inference provider that ends up serving it is known
 only from the response, and whether two models rest on different *weights* is not checkable
@@ -98,9 +99,9 @@ default product deliberately shares one — which is displayed rather than forbi
 
 **The deliverable is a locked-down machine, demonstrated** by a lightweight self-directed
 pentest — a **competence check, not an integrity check**. A model examining its own machine
-proves nothing against a malicious model and does not need to, because malice is what the
-threshold absorbs. What it catches is honest-but-sloppy, the likely failure on a first-time
-setup.
+proves nothing against a malicious model — a threshold absorbs malice where the tenant has
+one, and a single-machine tenant simply accepts that risk. What it catches is
+honest-but-sloppy, the likely failure on a first-time setup.
 
 **The coordinator is AI-free.** Deterministic code from the signed bundle forms the
 federation by calling member APIs. It is the only party contacting all five members,
@@ -134,8 +135,13 @@ signed.
 The harness and its tenants claim **different** things, and blurring them is how a single
 machine ends up shipping under a vault's guarantee.
 
-**The harness claims** that no session reaches a machine it did not provision, that a
-model's blast radius is the machines it provisioned, and that the trusted set is fixed and
+**The harness claims** that no session reaches a machine it is not bound to *through
+anything the harness controls* — bound by
+provisioning it, by maintained re-entry, or by recovery escalation — that a model's blast
+radius is
+the machines its weights have touched plus any approved untyped scope, whose credential
+authority may itself reach machines the harness cannot see, and that the tier of trust it
+adds is fixed and
 small. What it *removes* is the party that would otherwise pick the operator's vendor, model
 and configuration while holding their credentials.
 
@@ -174,8 +180,10 @@ repositories and the certificate authorities.
 vendor, which owns its machine's memory and disk. The inference proxy, of which the default
 path has exactly one, making it the thinnest layer even when the weights count looks healthy.
 The inference provider behind it, which actually runs the weights and is covered by neither
-displayed count. A majority of the models, being both honest *and* competent. Whoever signs
-the vault software, since every member installs the same release. **This is precisely the
+displayed count. A majority of the models, being both honest *and* competent. Any service an
+approved untyped call hands a credential to, for the life of that key. Whoever signs the
+software the machines run — common-mode across a federation, since every member installs
+the same release. **This is precisely the
 set a hosted service picks for you, silently and unlisted.**
 
 **Added by this product** — the only tier the design controls, and the only one an invariant
@@ -191,15 +199,16 @@ smaller than "trustless" — but it survives the regress.
 
 ## What is not settled
 
-The specification carries eighteen open questions in one maintained list. Six gate the
+The specification carries eighteen open questions in one maintained list. Seven gate the
 work: the SSH client compiled to WebAssembly, which is the single item most likely to fail;
 who *operates* the relay, since what it must do is already settled; how the browser
 authenticates *itself* to a machine, which host-key pinning does nothing for, and what
 happens to browser-held key material when a phone is replaced; whether weights-level
 diversity is enforceable at all, which the security claim is conditional on; the
-cloud-account floor that makes lnrent structural; and what the product should do about a
-stalled setup that keeps billing. Under the first-stage decision, the channel questions
-gate week one rather than a later phase.
+cloud-account floor that makes lnrent structural; what the product should do about a
+stalled setup that keeps billing; and what Robot's rescue `host_key` field actually
+returns, one authenticated call that the first stage's identity chain rests on. Under the
+first-stage decision, the channel questions gate week one rather than a later phase.
 
 ## Status
 

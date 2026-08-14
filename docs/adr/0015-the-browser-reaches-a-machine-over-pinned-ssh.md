@@ -25,8 +25,8 @@ phone-only operator can reach a machine at all.
 ## How the fingerprint is obtained
 
 Everything rests on pinning the *right* key, so the routes to it are part of the
-decision rather than an implementation detail. Four exist, in descending order of
-strength.
+decision rather than an implementation detail. Four were identified, in descending order
+of strength; the second is verified dead.
 
 **Route 1 — retrieve, dedicated servers.** Hetzner's Robot webservice exposes `host_key`
 on `GET` and `POST /boot/{server-number}/rescue`. The harness activates rescue over
@@ -50,9 +50,13 @@ pinned. That defeats host-key pinning and member isolation at the same time, and
 silently. Reusing an image for the operating system is fine and is the point; reusing it
 for identity is not.
 
-**Route 2 — retrieve, cloud VPS.** Whether the Cloud API's rescue action returns host
-keys the way Robot's does is unverified, and matters first, because the cloud product is
-where this starts.
+**Route 2 — retrieve, cloud VPS. Dead, and verified dead.** Hetzner Cloud's rescue action
+returns an action and a root password and no host key — checked against the API client
+when [ADR-0018](./0018-first-stage-is-one-lnrent-box-on-dedicated.md) moved the first
+stage to dedicated. An earlier version of this paragraph called the route unverified and
+first in line, because the cloud product was where this was expected to start; the cloud
+path's identity problem now belongs to the second stage, with routes 3 and 4 its only
+candidates.
 
 **Route 3 — inject.** The browser generates the host keypair and writes it into
 `/etc/ssh/` through cloud-init. No retrieval endpoint is needed at any vendor and the
@@ -119,19 +123,24 @@ Renewal compounds it: IP certificates are short-lived, so every member re-announ
 in the log on a days-long cadence for the life of the vault, and must keep a validation
 path open to do so. None of this touches an lnrent box, whose address is already public by
 design in its Nostr listing — but an lnrent box does not need a certificate, because the
-relay already reaches it. The option remains attractive for an operator who owns a domain,
-where the log entry names the domain rather than the machine and the grouping is not
-exposed. Note the option changes *who runs the bridge*, not whether one is needed — the
-browser still cannot open a raw TCP socket.
+relay already reaches it. Owning a domain does not dissolve the objection either, only
+relocates it: per-member hostnames under one registrable domain land in the same logs and
+resolve in public DNS to the member IPs, regrouping the federation just as visibly. What a
+domain buys is the *possibility* of hiding the grouping — a wildcard certificate, names
+that resolve nothing publicly — and any such scheme would need its own evaluation before
+claiming the log stays silent. Note the option changes *who runs the bridge*, not whether
+one is needed — the browser still cannot open a raw TCP socket.
 
 **No remote channel at all**, with every machine configured entirely through boot-time
-user-data. This is not rejected so much as deferred: it is what the first stage actually
-does, and if the three hand-written briefs called for under [`spec.md`](../../spec.md)
-§ Status and the next move show that every step can be expressed as boot-time
-configuration, the channel stops gating provisioning. It cannot
-be the whole answer, because the coordinator still has to reach five member APIs on
-machines with no valid certificate, and the periodic re-check has to reach a running
-member long after boot.
+user-data. This *was* the first stage until
+[ADR-0018](./0018-first-stage-is-one-lnrent-box-on-dedicated.md) replaced it: Robot has no
+user-data, so the current first stage runs the full channel and this escape hatch is gone
+for it. The question stays real for the second stage on Cloud, where user-data could still
+shrink the channel's role in provisioning — though never to zero, because the coordinator
+still has to reach five member APIs on machines with no valid certificate. (The periodic
+re-check is no longer a reason: vault nodes are sealed after setup, so their re-check is
+an external probe through the relay, not a session inside —
+[ADR-0013](./0013-ongoing-operation-periodic-pentest-and-advisory-watch.md)'s amendment.)
 
 ## Consequences
 

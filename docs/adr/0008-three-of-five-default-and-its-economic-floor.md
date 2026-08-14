@@ -39,3 +39,14 @@ threshold. Reducing the member *count* is not available: it is the security para
 domain model already carries `Price { hourly, monthly }`, so the information exists;
 the approval screen has to show the annual figure for the whole federation, not the
 hourly figure for one machine.
+
+## Amended: this is btc-policy's default, not the harness's
+
+Everything above is a tenant fact under
+[ADR-0016](./0016-the-harness-isolates-and-counts-tenants-set-thresholds.md): the
+threshold, the cost table, and the audience it implies belong to btc-policy, which records
+the shape rule in stronger form (exactly n = 2t−1, its own ADR-0013). The harness never
+sets a threshold — it isolates and counts, and the tenant says what the counts must be.
+The reasoning above stands unchanged; only its owner moved. The economic-floor consequence
+survives for any tenant that needs several machines, which is why the account floor stays
+a harness question.

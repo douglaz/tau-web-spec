@@ -80,7 +80,8 @@ material locally and never exports it.
 **Lightweight pentest**:
 A session probing its own machine for open ports, default credentials, and exposed
 services. A **competence** check, not an integrity check: it proves nothing against a
-malicious model and does not need to, because malice is what the threshold absorbs.
+malicious model — where the tenant has a threshold, malice is what the threshold absorbs;
+a single-machine tenant accepts that risk uncovered.
 Never run from another member.
 
 ### Trust and verification
@@ -113,7 +114,9 @@ _Avoid_: trustless, verified, provably secure
 Which kind of trust a party represents, since the regress has no bottom and a flat list
 reads as a scorecard. **Unavoidable** — the device, its OS, the browser, the stack
 underneath; true of any software. **Elective** — the cloud vendor, the proxy, the inference
-provider, the models; real trust that the operator or publisher chose and could change, and
+provider, the models, any service an approved untyped call hands a credential to, and the
+signer of the software the machines run; real trust that the
+operator or publisher chose and could change, and
 exactly the set a hosted service picks for you silently. **Added** — the bundle and its
 publisher, the relay, the coordinator; the only tier the design controls and the only one an
 invariant guards.
@@ -146,13 +149,18 @@ proxy layer entirely.
 
 **One session, one machine**:
 The invariant that protects the assumption, stated at the layer where it can hold. A
-session accesses exactly one machine and never reads, audits, or touches a machine it did
-not provision, and **no set of model weights ever touches more than one machine** —
-exposure lasting for the machine's life, since ending a session removes nothing a model may
-have left behind. Access composes; a model with a foothold on two machines halves the
-number of malicious domains needed to reach a k-of-n threshold. The **proxy** layer is
-deliberately outside this rule: on the default path one proxy serves every member, counted
-and displayed rather than forbidden.
+session accesses exactly one machine and never reads, audits, or touches a machine another
+session provisioned — except by re-binding: a later session re-enters a **maintained**
+machine, or takes over a stuck one at the recovery ladder's middle rung, each bound to
+that machine as its own. That binding is what the product can enforce.
+Whether two machines end up served the *same weights* it cannot observe, so that case is a
+displayed collision under the two-layer count, not a violation — the weights-level form,
+no set of weights on more than one machine, is the goal the binding serves. Exposure lasts
+for the machine's life, since ending a session removes nothing a model may have left
+behind. Access composes; a model with a foothold on two machines halves the number of
+malicious domains needed to reach a k-of-n threshold. The **proxy** layer is deliberately
+outside this rule: on the default path one proxy serves every member, counted and
+displayed rather than forbidden.
 _Avoid_: one trust domain one machine (the pre-split form, which forbids the default
 product at the proxy layer)
 
@@ -160,9 +168,10 @@ product at the proxy layer)
 What happens when a model cannot finish its machine. Retry; then escalate to a stronger
 model **behind the same proxy** — cheap because the proxy gains no access it lacked, but
 conditional, because the stronger model is new weights on the machine and must not be
-weights another member is running; then destroy the machine and restart under a different
-domain, which costs a server. A stuck machine is never handed to a session that did not
-provision it.
+assigned to another member; then destroy the machine and restart under a different
+domain, which costs a server. Escalation re-binds the stuck machine to the successor
+session — the third binding form — and past that rung the machine moves nowhere: it is
+destroyed, never handed to any other session.
 
 **Action transcript**:
 A browser-side record of what one session actually did, captured before
@@ -204,8 +213,9 @@ threshold below the nominal one. It is **shown, not blocked** — blocking would
 default configuration impossible, since procured inference shares a proxy by design.
 
 **Threshold**:
-How many members must agree. **3-of-5 by default**; 2-of-3 for testing and small
-values. Chosen for the operator rather than by them.
+How many members must agree. A tenant fact — this default is **btc-policy's**: 3-of-5,
+with 2-of-3 for testing and small values, chosen for the operator rather than by them.
+The harness never sets one; it isolates and counts.
 
 **Effective threshold**:
 The threshold expressed in trust domains rather than in members, per layer. A 3-of-5
@@ -242,9 +252,9 @@ many queries — that evidence is `X-Provider-Name` on each response.
 version nothing has joined a federation, so a machine is not yet a member.
 
 **"Approve"** means two different things and both are in play.
-- **Approve an operation** — the user sees structured facts about one cloud-plane
+- **Approve an operation** — the operator sees structured facts about one cloud-plane
   action and permits it. Only possible on the cloud plane.
-- **Approve a scope** — the user permits a class of activity in advance. This is what
+- **Approve a scope** — the operator permits a class of activity in advance. This is what
   box-plane work runs under, because its contents are not known in advance, and what an
   untyped cloud-plane call runs under, because no adapter exists to type it. **A scope names
   where a credential goes, not what it can do.** For box-plane work the machine bounds the
@@ -257,12 +267,12 @@ plane?
 
 **Domain expert:** Both, and they're different acts. Editing `nftables` on the machine
 is box plane — free bash, transcript, no modal. Adding a firewall rule at the vendor
-is cloud plane, so it's a typed operation and the user sees a card.
+is cloud plane, so it's a typed operation and the operator sees a card.
 
 **Dev:** Can't the AI just do it on the box and skip the card?
 
 **Domain expert:** On the box, yes, and that's fine, it only affects a machine the
-user already owns. It cannot reach the vendor's firewall, because the box plane has no
+operator already owns. It cannot reach the vendor's firewall, because the box plane has no
 path to the cloud plane.
 
 **Dev:** What if the brief says to resize the machine because it ran out of disk?

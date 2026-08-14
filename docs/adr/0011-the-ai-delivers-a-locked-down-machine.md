@@ -61,3 +61,15 @@ HTTPS.
 **"Locked down" needs a definition, per vendor.** The pentest can only assert what it
 checks, so the checklist is part of the brief set and therefore ships signed
 ([ADR-0005](./0005-briefs-ship-in-the-signed-bundle.md)).
+
+## Amended: the deliverable is the tenant's software
+
+"Running the vault software" above is btc-policy's case, written before
+[ADR-0016](./0016-the-harness-isolates-and-counts-tenants-set-thresholds.md) separated the
+harness from its tenants. The operative form — `spec.md` § What a session delivers — is
+the software the machine's tenant calls for: the vault software under btc-policy,
+`lnrentd` under lnrent. The lockdown demonstration and the pentest's competence framing
+are unchanged — though the body's "malice is what the threshold absorbs" holds only where
+a threshold exists; for a single-machine tenant nothing absorbs malice and `spec.md`
+states the accepted risk. The coordinator consequences are the federation half ADR-0016
+marks for its seam.

@@ -16,7 +16,10 @@ indivisible pair.
 An earlier version of this paragraph added "the one-machine-per-domain rule still holds,"
 which is wrong at exactly the layer this record legalises: on the default path the proxy
 domain touches every machine, by design. The rule that survives the split is about
-**access** — one session per machine, and no set of weights on more than one — while the
+**access** — each session bound to exactly one machine, with the weights-level form the
+goal the assignment
+serves, since unobservable weight reuse is a displayed collision rather than a violation —
+while the
 proxy layer is counted and displayed rather than bound. The same correction applies to
 ADR-0004's recovery ladder: escalating to a stronger model is free at the proxy layer and
 conditional at the weights layer, since the new weights must not already be running

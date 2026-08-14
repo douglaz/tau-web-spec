@@ -22,6 +22,15 @@ one. Concurrency costs nothing in security, because the invariant is one trust d
 per machine and running them at the same time does not change which domain touches
 which machine.
 
+"One trust domain per machine" above predates
+[ADR-0007](./0007-trust-is-counted-in-two-layers-and-shown.md)'s per-layer split, under
+which the proxy domain touches every machine on the default path by design. The rule that
+holds is access — each session bound to exactly one machine, with the weights-level form
+the goal the
+assignment serves — and the
+argument survives restated: simultaneity does not change which session touches which
+machine.
+
 The limits are mobile memory and proxy rate limits, which are reasons to bound
 concurrency, not to serialize it. There is also a demonstration benefit: five different
 models doing the same job visibly differently, at the same time, is the thesis rendered
@@ -41,6 +50,13 @@ definition, so a queue for them is cheap and never competes with itself for atte
 Rejected: per-member approval as each session reaches its gate. Five concurrent workers
 producing interleaved popups on a phone is modal fatigue in its purest form, and the
 operator cannot tell which member is asking.
+
+"Everything unpredictable is box-plane" gained one exception when
+[ADR-0017](./0017-off-machine-calls-and-scope-approval.md) generalized off-machine calls:
+the unpredictable cloud case is now the untyped call. The batching survives — a scope the
+brief names is approved with the up-front batch, one discovered mid-flight joins the same
+rare queue as a mid-flight typed operation, and no untyped call runs before its scope is
+approved.
 
 ## Consequences
 

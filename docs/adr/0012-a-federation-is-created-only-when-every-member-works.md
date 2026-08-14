@@ -12,8 +12,10 @@ was shown and approved, and none of those differences are visible from a progres
 ## Consequences
 
 **"Four up, one stuck" is not a state, it is an unfinished setup.** The recovery ladder
-in [ADR-0004](./0004-one-model-one-machine.md) applies to the stuck member: retry,
-escalate within its trust domain, then destroy and restart under a different domain.
+in [ADR-0004](./0004-one-model-one-machine.md) applies to the stuck member: retry;
+escalate to a stronger model behind the same proxy — conditional, per that record's
+second amendment, since the stronger model is new weights that must not be running
+another member; then destroy and restart under different weights.
 The other four wait.
 
 **The operator pays for waiting machines.** Approval is batched up front

@@ -1,8 +1,11 @@
 # The first stage is one lnrent box on a dedicated server, over the full channel
 
 The first thing built is a single dedicated machine running the lnrent daemon, provisioned
-and hardened end to end by one session through the real channel: Robot rescue activated as
-a typed operation, the host key retrieved from the rescue API and pinned with no
+and hardened end to end by one session through the real channel: the session's SSH public
+key registered with Robot, rescue activated with its fingerprint, and the reboot into it
+triggered — three typed operations, since activation only configures the next boot and
+`authorized_key` takes fingerprints of registered keys — the host key retrieved from the
+rescue API and pinned with no
 trust-on-first-use, the system installed from inside the trusted rescue session with
 per-machine host keys generated there, box-plane hardening over SSH, the lockdown
 demonstrated, and at least one later re-entry — because an lnrent box is a **maintained**
@@ -14,7 +17,7 @@ provenance diversity.
 
 ## Why the replacement
 
-**The operator picked the hardest case on purpose** — if the maximal path works, the rest
+**The hardest case was picked on purpose** — if the maximal path works, the rest
 is subsetting. Dedicated is that path: Robot offers no pre-boot configuration at all (only
 `os`, `dist`, `lang`, `keyboard`, `authorized_key` — verified against the API reference),
 so nothing can be done to the machine except through the channel. Building here forces the
@@ -71,7 +74,10 @@ question stays real for the *second* stage on Cloud.
 **Some first-stage acceptance criteria do not survive.** Two vendors, two sessions,
 collision display, and user-data byte-identity all belonged to the diversity demo. What
 replaces them: the pinned-channel predicates, the recorded box-plane transcript matching
-what was sent, the lockdown demonstration, one maintained-machine re-entry, and the same
+what was sent, the lockdown demonstration, one maintained-machine re-entry, a
+binding-refusal predicate — channel access without the bound session's authorization
+denied, because with
+one machine nothing exercises the access rule by accident — and the same
 credential and mobile-browser predicates as before — restated for a Robot credential and
 an SSH client key.
 

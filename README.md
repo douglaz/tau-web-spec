@@ -4,10 +4,14 @@ Design work for a client-side AI harness that lets someone with only a phone pro
 and operate real infrastructure, without trusting any party that could act on their
 behalf.
 
-**That is the goal, not an achieved property.** Several parties are still trusted, the
-specification names each of them, and the security claim it can actually make is one
-sentence: *no single model provisioned enough members to reach the threshold.* "Verified"
-is not a claim this design can make.
+**That is the goal, not an achieved property.** Several parties are still trusted, and the
+specification names each of them. The harness's own claim is about isolation: a model's
+blast radius is the machines its weights have touched — plus any approved credential
+scope — and no session reaches a machine it is not bound to through anything the harness
+controls.
+The vault claim — *no single model provisioned enough members to reach the threshold* —
+belongs to btc-policy, the tenant that stacks it on top. "Verified" is not a claim this
+design can make.
 
 No code yet. This repository holds the specification, the domain language, the decisions
 taken so far, and the reasoning that produced them.
