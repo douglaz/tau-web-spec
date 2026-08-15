@@ -45,7 +45,10 @@ property the vault already guarantees, rather than on one it would have to acqui
 **A pentest cannot run from another member.** One member scanning another is the same
 foothold wearing a helpful hat. Security checks run from the machine itself
 (see [ADR-0011](./0011-the-ai-delivers-a-locked-down-machine.md)) or from the trusted
-coordinator, never sideways.
+coordinator, never sideways. (Per
+[ADR-0021](./0021-the-surface-pentest-is-outside-in.md): the coordinator's part is the
+deterministic verifier only, and the periodic outside probe belongs to the scanner —
+"never sideways" is the part that stands unchanged.)
 
 **Firewall rules are cloud-plane and therefore approved.** The deny-by-default posture
 is visible to the operator rather than being an implementation detail, and a brief

@@ -144,23 +144,24 @@ redirect following disabled, a redirect response ends the call, and the new endp
 it is wanted — is a new scope the operator approves from what the service documents, not
 from a response the browser will not show.
 
-**The browser itself gates which services are reachable, twice.** Content-Security-Policy
-is the gate the bundle imposes on itself, below. CORS is the gate the *service* holds: a
-credentialed cross-origin call succeeds only if the service permits the app's origin, which
-most were never configured to do and which only a real probe can establish — the same
-empirical fact the vendor CORS probes settle one vendor at a time. The "ad hoc and
-unforeseen" reach that justified rejecting adapters-only is therefore bounded: some
-services will never be callable from a browser at all, and the product must say that
-plainly when a scope's first call fails there, rather than implying every named host is
-reachable. **A CORS failure is an unknown outcome, not a failed call**: for a simple
+**Calls are direct-first, and CORS decides only the path, not the reach.** The browser
+reaches a service itself wherever the service permits a browser (CORS); where it refuses,
+the call may ride the relay as a **tunneled fallback** — TLS terminating in the browser,
+the relay carrying ciphertext to a destination its policy allows — so a CORS-refusing
+service is a routing fact, not a dead end
+([ADR-0019](./0019-the-publisher-operates-the-default-relay.md)'s amendment: the relay is
+never in a path the browser can take alone). **On the direct path, a CORS failure is an
+unknown outcome, not a failed call**: for a simple
 request — a query-keyed GET, a form-encoded POST — the browser sends the request and only
 then refuses to disclose the response, so the service may have acted. Every unreadable
 response is recorded as unresolved under the recording invariant's unknown-outcome rule,
 never reported as "the call failed," and never retried automatically.
 
-**The scope collides with Content-Security-Policy, and nothing resolves it yet.** The
-hardening this design wants elsewhere is an exact-origin `connect-src`, but `connect-src`
-is fixed once the app loads, and the whole point of an untyped call is a host no release
-enumerated. Either the policy stays exact and a genuinely new service waits for a release —
-the cost this record rejected — or it widens for hosts approved at runtime and gives that
-hardening up. The specification's Content-Security-Policy question tracks it.
+**Content-Security-Policy is not the boundary; approval and recording are.** The
+collision an earlier version of this paragraph recorded — exact `connect-src` versus
+hosts no release enumerated — is resolved by deciding which side gives: the design does
+not restrict what the harness can *reach*, it restricts what runs without the operator's
+say. The policy stays exact where exactness is free (the relay's `wss://` origin) and
+permissive for `https:`, stated plainly. What contains a subverted session is not a
+frozen list but the scope model itself: no credential moves without an approved scope,
+every call is recorded before it is sent, and the destination rules above still bind.

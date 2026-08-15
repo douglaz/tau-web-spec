@@ -79,10 +79,21 @@ material locally and never exports it.
 
 **Lightweight pentest**:
 A session probing its own machine for open ports, default credentials, and exposed
-services. A **competence** check, not an integrity check: it proves nothing against a
+services, at delivery. A **competence** check, not an integrity check: it proves nothing
+against a
 malicious model — where the tenant has a threshold, malice is what the threshold absorbs;
 a single-machine tenant accepts that risk uncovered.
-Never run from another member.
+Never run from another member. The *periodic, outside* check is a different object — see
+**Scanner**.
+
+**Scanner**:
+A run of a specialist model — chosen by the operator, possibly precisely for being good at
+security — that probes machines' **public surfaces** through the relay, after first-online
+and periodically. Not a session: bound to no machine, and therefore it MUST hold no
+machine credential and no channel — addresses in, observations out. Its cost is topology
+(one model sees the member set, displayed as a named row); its findings are untrusted
+reports that never gate, never act, and are never called verified.
+_Avoid_: auditor, verifier (that word means the deterministic checklist), watchdog
 
 ### Trust and verification
 
@@ -110,11 +121,29 @@ model and the honest claim is smaller. There is no verification layer, and nothi
 imply one.
 _Avoid_: trustless, verified, provably secure
 
+**Attest**:
+The cloud path's introduction route: at machine creation the browser plants a one-time
+MAC secret in boot configuration, and the machine's first boot posts its host-key
+fingerprints stamped under that secret, through the relay, back to the browser. The relay
+cannot forge a stamp, so there is no trust-on-first-use; the vendor could, but already
+owns the machine. A one-shot voucher, worthless after first boot — not a credential, and
+no private key ever leaves the browser.
+_Avoid_: attestation (the hardware-TPM sense), remote attestation
+
+**Recovery sheet**:
+An exported record of host-key fingerprints plus the SSH client key wrapped under a
+passphrase — the fast path for recovering a replaced phone, and **mandatory before a
+cloud machine's setup completes**, optional on dedicated where the rescue ceremony always
+works. Sensitive in the same way a seed backup is, and presented to the operator in those
+terms.
+_Avoid_: backup (unqualified), export file
+
 **Trust tier**:
 Which kind of trust a party represents, since the regress has no bottom and a flat list
 reads as a scorecard. **Unavoidable** — the device, its OS, the browser, the stack
 underneath; true of any software. **Elective** — the cloud vendor, the proxy, the inference
-provider, the models, any service an approved untyped call hands a credential to, and the
+provider, the models, the scanner's model when one is engaged, any service an approved
+untyped call hands a credential to, and the
 signer of the software the machines run; real trust that the
 operator or publisher chose and could change, and
 exactly the set a hosted service picks for you silently. **Added** — the bundle and its
@@ -123,17 +152,20 @@ invariant guards.
 _Avoid_: trust score, threat level
 
 **Trust domain**:
-An independent way for an AI to be compromised. There are two layers and they are
-counted separately rather than collapsed:
+An independent way for an AI to be compromised. Two configured layers are counted
+separately rather than collapsed, plus one observed:
 - **Weights domain** — the model itself. Two members using different weights survive
   one set of weights being backdoored, even through a shared proxy.
 - **Proxy domain** — the aggregator routing the request (OpenRouter, PayPerQ). A
   compromised proxy can alter every prompt and response it carries, whatever weights
   are behind it.
+- **Provider, observed** — the party that actually served each response, read from
+  `X-Provider-Name`. Chosen per request by the proxy, so counted historically: it says
+  where witnessed traffic landed and never promises where the next request lands.
 
 Independence at one layer is real protection at that layer and none at the other.
 Saying "five models" when all five ride one proxy is true about weights and false
-about proxies, so both counts are shown, never a single blended number.
+about proxies, so all counts are shown, never a single blended number.
 
 **Procured inference**:
 The default path. The operator pays one fee and the publisher selects the models, reaching
@@ -198,8 +230,8 @@ machine chooses to tell it.
 The party that actually serves the weights for a request, named at runtime by
 `X-Provider-Name`. **Distinct from the proxy the session connects to**: on the default path
 a session talks to an aggregator, which routes to one of these. Two machines whose requests
-land at the same inference provider share a party that neither displayed count covers,
-because the two counted layers are weights and proxy and this is neither.
+land at the same inference provider share a party the **observed** third count reports —
+as history, never as a forward promise, since the proxy picks the provider per request.
 _Avoid_: AI provider, model provider, LLM vendor, serving provider
 
 **Model**:
@@ -208,7 +240,8 @@ provider diversity does not imply model diversity. This distinction is the whole
 security argument, not a pedantic one.
 
 **Collision**:
-Two machines sharing a trust domain at either layer. A collision reduces the effective
+Two machines sharing a trust domain at any counted layer, the observed provider layer
+included. A collision reduces the effective
 threshold below the nominal one. It is **shown, not blocked** — blocking would make the
 default configuration impossible, since procured inference shares a proxy by design.
 

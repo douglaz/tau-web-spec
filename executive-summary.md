@@ -16,7 +16,7 @@ That is the goal, not an achieved property. Several parties remain trusted, and 
 specification names each of them by hand rather than claiming the list is empty.
 
 There is no code in this repository. What exists is the specification this summarises, a
-domain language, eighteen decisions recording what was chosen and — for most of them — which
+domain language, twenty-one decisions recording what was chosen and — for most of them — which
 alternatives were rejected, a design record with three rounds of adversarial review, and an
 archived specification of the execution layer. A working proof of concept in a separate
 repository has established the one external fact everything depends on: a browser can call a
@@ -78,7 +78,7 @@ everything is recorded.
 
 Each side carries its own bound rather than sharing one. Box-plane work can be free-form
 because the worst case is ruining a machine already paid for. Cloud-plane work has no such
-bound — so an untyped call means approving a key's full authority at a host, and the
+bound — so an untyped call means approving a key's full authority at an origin, and the
 interface has to say that rather than imply a limit. The box plane has no path to the cloud
 plane.
 
@@ -106,7 +106,9 @@ honest-but-sloppy, the likely failure on a first-time setup.
 **The coordinator is AI-free.** Deterministic code from the signed bundle forms the
 federation by calling member APIs. It is the only party contacting all five members,
 permitted precisely because it is not a model. Federation creation is all-or-nothing, so
-abandonment has to be a first-class action.
+abandonment has to be a first-class action — and an unfinished, still-billing setup owns
+the app's opening screen, running cost first, with abandonment leading after a week of no
+progress.
 
 **Members reach each other only on the vault protocol port**, mutually authenticated,
 everything else denied at the vendor firewall — because reachability is a foothold on the
@@ -115,13 +117,19 @@ same terms as a credential, and a model able to attack four other machines produ
 
 **The browser reaches a machine over SSH**, verifying the host key against a fingerprint
 obtained by other means, through a relay that carries ciphertext. Once the right key is
-pinned the transport is irrelevant to confidentiality and integrity. Under the fallback that
-pins on first contact it is not — and that fallback is currently the only route reachable on
-the cloud path, while being itself unusable until a pin can survive a replaced phone. The
-channel is chosen, not built, and this is the sharpest reason why.
+pinned the transport is irrelevant to confidentiality and integrity. On dedicated hardware
+the vendor API hands over the key; on the cloud path, where retrieval is dead, a designed
+but unproven route — *attest*, the machine introducing its own key under a one-time secret
+planted at creation — closes the gap without trusting first contact. A pin no longer dies
+with the phone: recovery roots in the vendor account, with a mandatory recovery sheet on
+cloud machines. The channel is chosen, not built.
 
-**A machine is not finished when it is delivered.** Each is periodically re-checked by its
-own session, and advisories for the software it runs are reviewed. How far the re-check can
+**A machine is not finished when it is delivered.** Each is periodically re-checked —
+inside by its
+own session where the tenant allows re-entry, outside by a **scanner**: a specialist model
+of the operator's choosing that probes public surfaces through the relay with no
+credential and no access, whose findings are reports rather than gates — and advisories
+for the software it runs are reviewed. How far the re-check can
 go is the tenant's call — its *access model*: maintained machines (lnrent, ad hoc) get
 repair, patching and the full re-check; sealed ones (btc-policy welds the door shut after
 setup, deliberately) get an outside-only surface probe and advisories whose sole remedy is
@@ -160,8 +168,11 @@ There is no verification layer and nothing may imply one. Any scheme where a sec
 inspects a finished machine hands that model a second foothold. "Verified" and "no
 anomalies found" are claims this design cannot make.
 
-Independence is counted at **two layers and never blended into one score** — how many
-distinct sets of weights, and how many distinct proxies route the requests. Five members on
+Independence is counted at **two configured layers plus one observed, never blended into
+one score** — how many
+distinct sets of weights, how many distinct proxies route the requests, and, read from
+response headers as history rather than promise, how many distinct providers actually
+served the traffic. Five members on
 five sets of weights behind one proxy survive a backdoored model and do not survive a
 backdoored proxy. One number would be a lie about whichever layer is thin, and the thin
 layer is the one that gets exploited.
@@ -179,8 +190,10 @@ repositories and the certificate authorities.
 **Elective** — real trust, chosen by the operator or the publisher and changeable. The cloud
 vendor, which owns its machine's memory and disk. The inference proxy, of which the default
 path has exactly one, making it the thinnest layer even when the weights count looks healthy.
-The inference provider behind it, which actually runs the weights and is covered by neither
-displayed count. A majority of the models, being both honest *and* competent. Any service an
+The inference provider behind it, which actually runs the weights — counted as the
+observed third layer, which reports where traffic landed and promises nothing forward. A majority of the models, being both honest *and* competent. The scanner's model when the
+operator engages one — trusted with topology and honest reporting, never with access. Any
+service an
 approved untyped call hands a credential to, for the life of that key. Whoever signs the
 software the machines run — common-mode across a federation, since every member installs
 the same release. **This is precisely the
@@ -189,8 +202,11 @@ set a hosted service picks for you, silently and unlisted.**
 **Added by this product** — the only tier the design controls, and the only one an invariant
 guards. The app bundle and its publisher, which is the application rather than a third party
 but is not diversified and carries the briefs, making it the largest concentrated risk. The
-relay, the one genuinely new third party, which cannot read a session pinned out of band but
-does learn who connects where. The coordinator, narrowly and during setup, as the only party
+relay — publisher-operated by default, so less a new party than the publisher's second
+capability, with bring-your-own swapping the operator — which cannot read a session pinned
+out of band but
+does learn who connects where; a bootstrap seat, direct-first and minimum-usage, until a
+relay on the operator's own machine takes over. The coordinator, narrowly and during setup, as the only party
 that contacts every member.
 
 What the product removes is the party that would otherwise choose every entry in the middle
@@ -199,14 +215,15 @@ smaller than "trustless" — but it survives the regress.
 
 ## What is not settled
 
-The specification carries eighteen open questions in one maintained list. Seven gate the
+The specification carries seventeen open questions in one maintained list. Six gate the
 work: the SSH client compiled to WebAssembly, which is the single item most likely to fail;
-who *operates* the relay, since what it must do is already settled; how the browser
-authenticates *itself* to a machine, which host-key pinning does nothing for, and what
-happens to browser-held key material when a phone is replaced; whether weights-level
+the relay's identity system, now that its operator is decided (publisher default,
+bring-your-own escape); the recovery machinery — vendor account as root, the attest
+introduction, the rescue ceremony, the mandatory cloud recovery sheet — designed but
+unproven until it runs once; whether weights-level
 diversity is enforceable at all, which the security claim is conditional on; the
-cloud-account floor that makes lnrent structural; what the product should do about a
-stalled setup that keeps billing; and what Robot's rescue `host_key` field actually
+cloud-account floor that makes lnrent structural; and what Robot's rescue `host_key`
+field actually
 returns, one authenticated call that the first stage's identity chain rests on. Under the
 first-stage decision, the channel questions gate week one rather than a later phase.
 

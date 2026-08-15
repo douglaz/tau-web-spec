@@ -25,8 +25,11 @@ phone-only operator can reach a machine at all.
 ## How the fingerprint is obtained
 
 Everything rests on pinning the *right* key, so the routes to it are part of the
-decision rather than an implementation detail. Four were identified, in descending order
-of strength; the second is verified dead.
+decision rather than an implementation detail. Five are identified — numbered in the
+order they were found, listed strongest first, which puts the fifth before the fourth;
+the second is verified dead, and the fifth was added by
+[ADR-0020](./0020-recovery-roots-in-the-vendor-account.md) after the first four left the
+cloud path with no out-of-band introduction at all.
 
 **Route 1 — retrieve, dedicated servers.** Hetzner's Robot webservice exposes `host_key`
 on `GET` and `POST /boot/{server-number}/rescue`. The harness activates rescue over
@@ -73,6 +76,18 @@ already been exported and the vendor may have kept a copy, and nothing done afte
 makes an absolute invariant retroactively true. The contradiction may not be left standing,
 and it may not be papered over with rotation either.
 
+**Route 5 — attest.** At creation, the browser generates a one-time MAC secret and places
+it in user-data beside the client public key. A first-boot hook computes an HMAC of the
+machine's freshly generated host-key fingerprints under the secret and posts
+fingerprints-plus-stamp out through the relay; the browser verifies the stamp against the
+secret only it held. A relay cannot substitute a key it cannot stamp, so there is no
+trust-on-first-use; the vendor could forge a stamp but already owns the machine outright,
+so the route hands it nothing. Unlike route 3, no private key rides in user-data — the
+secret is a one-shot introduction voucher, worthless after first boot. Works at any
+vendor with boot-time user-data, which is exactly the set where routes 1 and 2 do not.
+Designed, not yet run: the specification's question 3 tracks the probe
+([ADR-0020](./0020-recovery-roots-in-the-vendor-account.md)).
+
 **Route 4 — trust on first use, plus continuity.** Accept the key on first connect, pin
 it, alarm on any later change. This is what ordinary SSH clients do. It needs no endpoint
 and puts no key in user-data, and it still detects a **network or relay** attacker that
@@ -87,8 +102,11 @@ Continuity also assumes the pin survives, and a pin lives in browser storage —
 cleared, evicted, or left behind on a replaced phone. The machine is unchanged and still
 holds its key, but nothing local can attest to it any more. Treating that as a fresh first
 contact re-opens the exact window this route already concedes; refusing the connection
-locks the operator out of their own vault. Route 4 is therefore not usable until pins can
-be durably exported or re-verified some other way.
+locks the operator out of their own vault. Route 4 was therefore unusable until pins
+could be durably exported or re-verified some other way —
+[ADR-0020](./0020-recovery-roots-in-the-vendor-account.md) now supplies both, the
+recovery sheet for export and the vendor-account ceremonies for re-verification, so the
+objection has an answer; route 4 stays a floor for the reasons below.
 
 Route 4 is a floor, not a plan, and the reason is stated in the consequences below.
 

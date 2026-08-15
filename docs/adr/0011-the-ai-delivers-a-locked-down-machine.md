@@ -37,7 +37,10 @@ first-time setup, and it is the one this catches.
 The pentest runs from the machine itself or from the trusted coordinator. It never runs
 from another member, because that would be the foothold
 [ADR-0010](./0010-members-reach-each-other-on-one-authenticated-port.md) exists to
-prevent.
+prevent. ("From the trusted coordinator" was imprecise, and
+[ADR-0021](./0021-the-surface-pentest-is-outside-in.md) corrects it: what the coordinator
+may run is the deterministic verifier; the delivery pentest is the session's own, and the
+periodic outside check belongs to the scanner.)
 
 ## Key isolation, finally specified
 

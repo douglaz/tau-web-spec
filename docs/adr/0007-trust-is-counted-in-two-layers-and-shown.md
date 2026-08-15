@@ -58,3 +58,17 @@ dropped, this ADR stops being defensible.
 **PayPerQ's browser reachability is unverified.** OpenRouter's CORS behaviour was
 established empirically; an OpenAI-compatible API does not imply an origin may call it.
 This needs the same curl probe before the panel can offer it as a one-tap action.
+
+## Amended: a third count, observed rather than configured
+
+The two layers above are what the operator or the publisher *configured*. The runtime
+signal showed a third party neither covers: the **inference provider** behind the
+aggregator — chosen per request by the proxy, able to rewrite everything it carries, and
+shareable between members without either configured count moving. It is now counted too,
+and differently: a per-response, historical count built from `X-Provider-Name` — "across
+the responses seen, N distinct providers served these members" — labeled **observed**,
+because it can change on the next request and covers only witnessed traffic. Provider
+collisions are shown, never blocked, and never restated as forward distinctness: absence
+of observed sharing is not evidence of separation. The never-blend rule is unchanged —
+three numbers, three labels, no score — and the display cost is nothing new, since the
+header is already recorded for provenance.
