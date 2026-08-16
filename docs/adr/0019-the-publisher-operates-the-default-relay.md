@@ -6,8 +6,9 @@ The WebSocket-to-TCP relay of
 origin instead — bring-your-own, the same escape hatch
 [ADR-0007](./0007-trust-is-counted-in-two-layers-and-shown.md) holds open for inference —
 and a rentable relay remains a candidate lnrent tenant for later. For the first stage,
-the relay credential is a **token issued out of band and pasted once**: it lives in
-browser memory under the credential invariant, and it adds no issuer, no identity model,
+the relay credential is a **token issued out of band and pasted once**: it is held under
+the credential invariant (encrypted at rest, per its named persistence exception), and it
+adds no issuer, no identity model,
 and no new party. The identity system a real user base needs is deliberately not designed
 here; it is the second-stage half of the open question this record narrows.
 
@@ -28,11 +29,15 @@ trust accounting must say so rather than average it away.
 
 ## Considered options
 
-**The operator self-hosts the relay.** The only option under which no third party sees
-metadata. Rejected because it contradicts the audience: a phone-only non-technical
+**The operator self-hosts the relay.** The option that moves metadata visibility to the
+smallest set — the hosting machine's own vendor still sees it, since the vendor owns the
+machine, but no party beyond those already trusted for that machine. Rejected as the
+*starting point* because it contradicts the audience: a phone-only non-technical
 operator cannot stand up a relay, and a design whose first step requires the thing the
-product exists to make unnecessary has failed before it starts. It survives as the
-power-user end of bring-your-own.
+product exists to make unnecessary has failed before it starts. (The amendment below
+supersedes the finality of this rejection: self-hosting is the *destination*, reached
+through the product itself once a maintained machine exists — just never the starting
+point.)
 
 **An independent third party.** Splits metadata visibility from the bundle holder, which
 is genuinely better on paper. Rejected for now because it adds a real new trusted party —
@@ -55,28 +60,34 @@ existence.
 
 **Bring-your-own relay is load-bearing, not decorative.** Exactly as with inference: if
 the escape hatch is ever dropped, publisher-default stops being defensible and this
-record stops holding. The Content-Security-Policy consequence follows — the exact
-`wss://` origin in `connect-src` becomes a configured value rather than a constant, which
-the specification's Content-Security-Policy question already tracks.
+record stops holding. The Content-Security-Policy consequence follows — the relay origin
+becomes a configured value rather than a constant, which is exactly why the policy does
+not pin it: a frozen list cannot hold an operator-chosen origin, and the specification's
+Content-Security-Policy question records that the policy is not the boundary.
 
 **The first stage runs on the publisher's relay with a pasted token.** No account system,
 no issuer, no reacquisition story — those are second-stage work, and doing them
 carelessly is how an identity party gets added to the trusted list. What the first stage
 proves is the channel; what it deliberately does not prove is enrollment.
 
-**Relay redundancy stays cheap.** Under out-of-band pinning a hostile relay is a denial
-of service and nothing worse, so a second relay — publisher-run or rented — is an
-availability move, not a trust move, and adding one never requires re-judging this
-record.
+**Relay redundancy stays cheap — under the same operator.** Under out-of-band pinning a
+hostile relay is a denial
+of service and nothing worse, so a second relay under the operator already trusted is an
+availability move. An **independently operated** second relay is different: its operator
+becomes another observer of connection metadata and enters the trust display like any
+relay operator — an availability move *and* a trust change, priced as such.
 
 ## Amended: the publisher relay is a bootstrap, and minimum usage is the goal
 
 Two clarifications sharpen the decision above. **First, direct-first**: the relay is never
 in a path the browser can take alone. An off-machine call goes straight from the browser
 to the service whenever the service permits it; the relay carries only what cannot go
-direct — raw TCP always (SSH), and, as a fallback, untyped calls whose destination refuses
+direct — raw TCP always (SSH); as a fallback, untyped calls whose destination refuses
 browser CORS, tunneled under TLS that terminates in the browser so the relay stays a
-carrier of ciphertext. Minimum usage is a design property, not an accident.
+carrier of ciphertext; and the one machine-originated message in the design, the attest
+post, delivered to a drop-box the browser opened in advance
+([ADR-0020](./0020-recovery-roots-in-the-vendor-account.md)'s amendment). Minimum usage
+is a design property, not an accident.
 
 **Second, the publisher's seat is transitional.** The trajectory is a relay on the
 operator's **own machine** — the first lnrent box can host it, and a relay is deliberately
@@ -86,4 +97,9 @@ operator has any machine, someone must carry the bytes that provision the first 
 After that, every session the publisher's relay still carries is a choice the operator
 can end. The metadata visibility this record prices in is therefore transitional by
 design, and the trust display should show which relay is in use and that moving off the
-default is one action away.
+default is one action away. Self-hosting has its own honest price, named rather than
+hidden: the hosting machine's **bound model** has box-plane reach over whatever the relay
+retains, so the relay-install brief configures no connection logging, and the trust
+display prices the host machine's model as a potential metadata observer regardless —
+for a vault, that model can see the member topology, the same cost the scanner's row
+already names.

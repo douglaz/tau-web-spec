@@ -21,7 +21,9 @@ The other four wait.
 **The operator pays for waiting machines.** Approval is batched up front
 ([ADR-0009](./0009-one-device-concurrent-sessions-batched-approval.md)), so all five
 machines exist and bill from the moment they are created, while one member is being
-retried or replaced. A setup that stalls overnight costs a night of five machines for
+retried or replaced. (The prompt-for-resume-or-abandonment opinion this record asked for
+has since been decided: an unfinished setup owns the app's opening screen — `spec.md`
+records the behaviour.) A setup that stalls overnight costs a night of five machines for
 zero federations. The approval screen therefore has to say what happens if setup does
 not complete, not only what the monthly cost is when it does.
 

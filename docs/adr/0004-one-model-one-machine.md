@@ -8,8 +8,10 @@ fault assumption.
 We chose this because access is the thing that composes, not intent. A model that can
 read a second machine has a foothold on two members, so permitting each model to touch
 two machines halves the number of malicious models required to reach a k-of-n
-threshold. Any verification scheme that involves one model inspecting another's work
-therefore weakens the exact property it appears to strengthen.
+threshold. Any verification scheme that involves one model inspecting another's machine
+from inside
+therefore weakens the exact property it appears to strengthen (the outside-only scanner
+of ADR-0021 is the later, access-free exception).
 
 ## Considered options
 
@@ -75,7 +77,7 @@ model existed, and read literally it forbids the re-entry the current first stag
 requires). The weights-level form — no set of weights on more than one machine — is the
 **goal the binding serves**, not an enforceable rule of its own: the product enforces what
 it assigns, and two sessions unobservably served the same weights are a displayed
-collision under the two-layer count, not a violation. The
+collision under the per-layer counts, not a violation. The
 proxy layer is counted and displayed, not bound.
 
 The recovery ladder above carries the same pre-split language and the same correction. "The

@@ -58,8 +58,8 @@ returns an action and a root password and no host key — checked against the AP
 when [ADR-0018](./0018-first-stage-is-one-lnrent-box-on-dedicated.md) moved the first
 stage to dedicated. An earlier version of this paragraph called the route unverified and
 first in line, because the cloud product was where this was expected to start; the cloud
-path's identity problem now belongs to the second stage, with routes 3 and 4 its only
-candidates.
+path's identity problem now belongs to the second stage — route 5 below is designed for
+exactly it, with routes 3 and 4 behind it.
 
 **Route 3 — inject.** The browser generates the host keypair and writes it into
 `/etc/ssh/` through cloud-init. No retrieval endpoint is needed at any vendor and the
@@ -140,8 +140,11 @@ topology, forever, unpublishably. The relay wins.
 Renewal compounds it: IP certificates are short-lived, so every member re-announces itself
 in the log on a days-long cadence for the life of the vault, and must keep a validation
 path open to do so. None of this touches an lnrent box, whose address is already public by
-design in its Nostr listing — but an lnrent box does not need a certificate, because the
-relay already reaches it. Owning a domain does not dissolve the objection either, only
+design in its Nostr listing. An lnrent box serving as the operator's own *relay* is the
+one machine that does need a WebPKI certificate — a browser demands `wss://` — and the CT
+objection does not bite it, because its address is already public by design; certificate
+provisioning belongs to the relay-install brief. An lnrent box that is not a relay needs
+no certificate, because a relay already reaches it. Owning a domain does not dissolve the objection either, only
 relocates it: per-member hostnames under one registrable domain land in the same logs and
 resolve in public DNS to the member IPs, regrouping the federation just as visibly. What a
 domain buys is the *possibility* of hiding the grouping — a wildcard certificate, names
@@ -164,10 +167,10 @@ an external probe through the relay, not a session inside —
 
 **The relay is untrusted for content — except under route 4, where it is trusted at
 first contact.** This exception is easy to state wrongly and was stated wrongly at first.
-Under routes 1 to 3 the fingerprint is known before the first connection, so a hostile
+Under routes 1 to 3 and 5 the fingerprint is known before the first connection, so a hostile
 relay is a denial of service and nothing worse. Under route 4 there is nothing to check
 the first key against, so a hostile relay can present its own, have it pinned, and read
-and alter the session from then on. Every route that retrieves or injects the
+and alter the session from then on. Every route that retrieves, injects, or attests the
 fingerprint exists to avoid exactly this, and it is why route 4 is a floor.
 
 **The relay holds real authority over who may connect where, while holding none over
@@ -193,12 +196,16 @@ is acceptable only because the vendor already owns the machine's memory and disk
 nothing short of a hardware root of trust the vendor will not provide would change it.
 
 **The relay is a candidate lnrent tenant**, and relay redundancy is cheap under routes 1
-to 3 precisely because availability is the only property at stake there.
+to 3 and 5 precisely because availability is the only property at stake there — cheap
+under the *same operator*; an independently operated relay is a new metadata observer
+([ADR-0019](./0019-the-publisher-operates-the-default-relay.md)).
 
-**Content-Security-Policy needs a WebSocket entry** it does not have today, and one more
-static entry if route 1 is adopted. It must name the relay's **exact `wss://` origin**, not
-the bare `wss:` scheme: a scheme-wide source permits a WebSocket to every secure origin
-there is, so an injection or an unintended path would reach anywhere while appearing to
-respect the policy. Per-machine addresses never appear in `connect-src` at all, because the
-browser connects to the relay's fixed origin and the machine address is a parameter inside
-the WebSocket — which is precisely why one exact origin suffices.
+**Content-Security-Policy needs a WebSocket entry** it does not have today. An earlier
+version of this consequence required the relay's exact `wss://` origin; the policy
+posture has since changed (the specification's Content-Security-Policy question): CSP is
+not the security boundary — approval and the relay's own destination policy are — and a
+bring-your-own or self-hosted relay origin cannot live in a frozen list, so the entry is
+permissive and says so. What stands unchanged: per-machine addresses never appear in
+`connect-src` at all, because the
+browser connects to a relay origin and the machine address is a parameter inside the
+WebSocket.

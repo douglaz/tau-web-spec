@@ -65,8 +65,9 @@ _Avoid_: user, admin, owner, customer
 **Coordinator**:
 AI-free deterministic code, trusted during setup, running from the signed bundle on the
 operator's device. It takes member endpoints plus operator-supplied recovery descriptors
-and forms the federation by calling member APIs. It is the only party that contacts
-every member, which is permitted precisely because it is not a model.
+and forms the federation by calling member APIs. It is the only party that reaches
+inside every member, which is permitted precisely because it is not a model (the scanner,
+a model, touches only public surfaces).
 
 **btc-policy uses this word for a different component** — its operational relay, trusted
 until the wrench attack and untrusted after, with an enumerated list of what a compromised
@@ -90,7 +91,9 @@ Never run from another member. The *periodic, outside* check is a different obje
 A run of a specialist model — chosen by the operator, possibly precisely for being good at
 security — that probes machines' **public surfaces** through the relay, after first-online
 and periodically. Not a session: bound to no machine, and therefore it MUST hold no
-machine credential and no channel — addresses in, observations out. Its cost is topology
+machine credential and no channel — addresses in, observations out — and it composes no
+probe traffic: the probes are a fixed allowlisted toolset, the model only picks targets
+and reads results. Its cost is topology
 (one model sees the member set, displayed as a named row); its findings are untrusted
 reports that never gate, never act, and are never called verified.
 _Avoid_: auditor, verifier (that word means the deterministic checklist), watchdog
@@ -126,14 +129,26 @@ The cloud path's introduction route: at machine creation the browser plants a on
 MAC secret in boot configuration, and the machine's first boot posts its host-key
 fingerprints stamped under that secret, through the relay, back to the browser. The relay
 cannot forge a stamp, so there is no trust-on-first-use; the vendor could, but already
-owns the machine. A one-shot voucher, worthless after first boot — not a credential, and
-no private key ever leaves the browser.
-_Avoid_: attestation (the hardware-TPM sense), remote attestation
+owns the machine. The voucher is a short-lived introduction credential: it expires, is single-use (the
+browser verifies the first valid stamp and discards the secret; the relay only buffers),
+and is scrubbed from the machine after first boot — and no
+private key ever leaves the browser.
+_Avoid_: remote attestation, TPM attestation (the hardware senses; "attestation" for
+route 5 itself is fine)
+
+**Exposure ledger**:
+The per-machine history of every configured model that has ever touched it — how
+invariant 1's permanent exposure is tracked. Persisted encrypted at rest and exported in
+the recovery sheet; restored from a sheet it is a floor, not a census, and a machine
+recovered without it carries unknown past exposure, displayed as such.
+_Avoid_: audit log, history (unqualified)
 
 **Recovery sheet**:
-An exported record of host-key fingerprints plus the SSH client key wrapped under a
+An exported record of host-key fingerprints, the exposure ledger, and the SSH client key
+wrapped under a
 passphrase — the fast path for recovering a replaced phone, and **mandatory before a
-cloud machine's setup completes**, optional on dedicated where the rescue ceremony always
+maintained cloud machine's setup completes** (a sealed tenant's machines need none: their
+pins die at sealing), optional on dedicated where the rescue ceremony always
 works. Sensitive in the same way a seed backup is, and presented to the operator in those
 terms.
 _Avoid_: backup (unqualified), export file
@@ -186,7 +201,7 @@ session provisioned — except by re-binding: a later session re-enters a **main
 machine, or takes over a stuck one at the recovery ladder's middle rung, each bound to
 that machine as its own. That binding is what the product can enforce.
 Whether two machines end up served the *same weights* it cannot observe, so that case is a
-displayed collision under the two-layer count, not a violation — the weights-level form,
+displayed collision under the per-layer counts, not a violation — the weights-level form,
 no set of weights on more than one machine, is the goal the binding serves. Exposure lasts
 for the machine's life, since ending a session removes nothing a model may have left
 behind. Access composes; a model with a foothold on two machines halves the number of
@@ -213,14 +228,17 @@ that machine.
 _Avoid_: audit trail, proof
 
 **Provenance record**:
-The claim that a given machine was provisioned by a specific cloud vendor, inference
-provider, and model. Durable, and in the first version a local claim rather than
+The claim that a given machine was provisioned by a specific cloud vendor and configured
+model, plus the *set* of inference providers observed serving it — per-request routing
+means one machine can accumulate several. Durable, and in the first version a local claim
+rather than
 evidence.
 _Avoid_: attestation, certificate, lineage
 
 **Verifier**:
 A deterministic program that reads a machine and reports its security-relevant state,
-run by that machine's own model. Useful for drift and honest mistakes within one
+run by that machine's own model — or by the coordinator, during setup only, its one
+window. Useful for drift and honest mistakes within one
 member. Explicitly **not** a defence against a hostile AI, because it reads what the
 machine chooses to tell it.
 
@@ -253,8 +271,8 @@ The harness never sets one; it isolates and counts.
 **Effective threshold**:
 The threshold expressed in trust domains rather than in members, per layer. A 3-of-5
 federation on five sets of weights behind one proxy is 3-of-5 against backdoored
-weights and 1-of-1 against a backdoored proxy. Both numbers are true and both are
-shown.
+weights and 1-of-1 against a backdoored proxy. All the counts are true and all are
+shown, the observed provider count beside them, never blended.
 
 ### Money
 
@@ -323,6 +341,8 @@ destroy it and start again.
 
 **Dev:** So nothing ever checks anyone's work?
 
-**Domain expert:** Nothing does. The claim is not "we verified it." The claim is "no
+**Domain expert:** Nothing goes inside to check. The scanner probes every machine's
+public surface from outside — no credential, fixed probes, reports only. The claim is
+still not "we verified it." The claim is "no
 single model provisioned enough members to matter." Those are different sentences and
 only the second one is true, so only the second one gets said.

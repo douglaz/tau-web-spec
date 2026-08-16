@@ -39,7 +39,8 @@ from another member, because that would be the foothold
 [ADR-0010](./0010-members-reach-each-other-on-one-authenticated-port.md) exists to
 prevent. ("From the trusted coordinator" was imprecise, and
 [ADR-0021](./0021-the-surface-pentest-is-outside-in.md) corrects it: what the coordinator
-may run is the deterministic verifier; the delivery pentest is the session's own, and the
+may run is the deterministic verifier, during setup — its only window; the delivery
+pentest is the session's own, and the
 periodic outside check belongs to the scanner.)
 
 ## Key isolation, finally specified
@@ -52,7 +53,7 @@ it is closed; it does not produce, see, or carry secrets.
 ## Consequences
 
 **The coordinator is trusted during setup and is AI-free.** It is the only party that
-contacts all five members, which is permitted because it is deterministic code from the
+reaches inside all five members, which is permitted because it is deterministic code from the
 signed bundle, already inside the trusted set. No model gains a second foothold.
 
 **The coordinator's reach needs the same channel as everything else.** A freshly

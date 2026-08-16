@@ -62,7 +62,9 @@ neither.
 ## How it works
 
 **The AI runs only in the browser.** A machine is a target, never an actor: it holds no
-inference key, no vendor token, and never initiates work. The consequence is accepted
+inference key, no vendor token, and never initiates work — its one outbound message to
+the harness, the
+attest introduction, acts on nothing on its behalf. The consequence is accepted
 rather than worked around — nothing runs while the app is closed, so every step must be
 resumable across a locked phone.
 
@@ -104,7 +106,7 @@ one, and a single-machine tenant simply accepts that risk. What it catches is
 honest-but-sloppy, the likely failure on a first-time setup.
 
 **The coordinator is AI-free.** Deterministic code from the signed bundle forms the
-federation by calling member APIs. It is the only party contacting all five members,
+federation by calling member APIs. It is the only party reaching inside all five members,
 permitted precisely because it is not a model. Federation creation is all-or-nothing, so
 abandonment has to be a first-class action — and an unfinished, still-billing setup owns
 the app's opening screen, running cost first, with abandonment leading after a week of no
@@ -121,7 +123,8 @@ pinned the transport is irrelevant to confidentiality and integrity. On dedicate
 the vendor API hands over the key; on the cloud path, where retrieval is dead, a designed
 but unproven route — *attest*, the machine introducing its own key under a one-time secret
 planted at creation — closes the gap without trusting first contact. A pin no longer dies
-with the phone: recovery roots in the vendor account, with a mandatory recovery sheet on
+with the phone: recovery roots in the vendor account, with a recovery sheet mandatory on
+maintained
 cloud machines. The channel is chosen, not built.
 
 **A machine is not finished when it is delivered.** Each is periodically re-checked —
@@ -165,7 +168,8 @@ enforceable at all, which makes it a design goal rather than a demonstrated prop
 it is.
 
 There is no verification layer and nothing may imply one. Any scheme where a second model
-inspects a finished machine hands that model a second foothold. "Verified" and "no
+inspects a finished machine from inside hands that model a second foothold — the scanner
+never goes inside; it reads the public surface only. "Verified" and "no
 anomalies found" are claims this design cannot make.
 
 Independence is counted at **two configured layers plus one observed, never blended into
@@ -206,8 +210,9 @@ relay — publisher-operated by default, so less a new party than the publisher'
 capability, with bring-your-own swapping the operator — which cannot read a session pinned
 out of band but
 does learn who connects where; a bootstrap seat, direct-first and minimum-usage, until a
-relay on the operator's own machine takes over. The coordinator, narrowly and during setup, as the only party
-that contacts every member.
+relay on a maintained machine of the operator's own takes over. The coordinator, narrowly
+and during setup, as the only party
+that reaches inside every member.
 
 What the product removes is the party that would otherwise choose every entry in the middle
 tier and hold the credentials too: the service operator. That is the whole claim, and it is
@@ -219,7 +224,7 @@ The specification carries seventeen open questions in one maintained list. Six g
 work: the SSH client compiled to WebAssembly, which is the single item most likely to fail;
 the relay's identity system, now that its operator is decided (publisher default,
 bring-your-own escape); the recovery machinery — vendor account as root, the attest
-introduction, the rescue ceremony, the mandatory cloud recovery sheet — designed but
+introduction, the rescue ceremony, the maintained-cloud recovery sheet — designed but
 unproven until it runs once; whether weights-level
 diversity is enforceable at all, which the security claim is conditional on; the
 cloud-account floor that makes lnrent structural; and what Robot's rescue `host_key`

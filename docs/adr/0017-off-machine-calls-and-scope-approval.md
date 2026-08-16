@@ -144,24 +144,37 @@ redirect following disabled, a redirect response ends the call, and the new endp
 it is wanted — is a new scope the operator approves from what the service documents, not
 from a response the browser will not show.
 
-**Calls are direct-first, and CORS decides only the path, not the reach.** The browser
+**Untyped calls are direct-first, and CORS decides only the path, not the reach.** The
+browser
 reaches a service itself wherever the service permits a browser (CORS); where it refuses,
-the call may ride the relay as a **tunneled fallback** — TLS terminating in the browser,
+an **untyped call** may ride the relay as a **tunneled fallback** — TLS terminating in
+the browser,
 the relay carrying ciphertext to a destination its policy allows — so a CORS-refusing
 service is a routing fact, not a dead end
 ([ADR-0019](./0019-the-publisher-operates-the-default-relay.md)'s amendment: the relay is
-never in a path the browser can take alone). **On the direct path, a CORS failure is an
-unknown outcome, not a failed call**: for a simple
-request — a query-keyed GET, a form-encoded POST — the browser sends the request and only
-then refuses to disclose the response, so the service may have acted. Every unreadable
-response is recorded as unresolved under the recording invariant's unknown-outcome rule,
-never reported as "the call failed," and never retried automatically.
+never in a path the browser can take alone). The tunnel is untyped-only: typed vendor
+adapters stay direct fetch, which is why the per-vendor CORS probes stay real questions.
+And the route is decided **before anything side-effecting is sent**, by a dedicated
+harmless probe: the browser cannot tell a refused preflight from a blocked response —
+both surface as the same opaque network error — so route selection never reads the
+failure of a real call. The first use of an origin sends a deliberate no-side-effect
+probe (an OPTIONS request); if the probe fails *for any reason*, the scope routes to the
+tunnel before any side-effecting call exists. Every untyped call still carries a custom
+header so no simple request exists, and a side-effecting call's own failure NEVER
+triggers a tunnel resend — that would be the automatic retry of an unknown-outcome call
+that the recording invariant forbids. (The forced preflight exists because a *simple* request — a query-keyed GET, a
+form-encoded POST — would be transmitted before the browser refuses to disclose its
+response, leaving the service possibly acted and the outcome unknowable. Untyped calls
+therefore never make one; should an unreadable response occur anyway, it is recorded as
+unresolved under the recording invariant's unknown-outcome rule, never reported as "the
+call failed," and never retried automatically.)
 
 **Content-Security-Policy is not the boundary; approval and recording are.** The
 collision an earlier version of this paragraph recorded — exact `connect-src` versus
 hosts no release enumerated — is resolved by deciding which side gives: the design does
 not restrict what the harness can *reach*, it restricts what runs without the operator's
-say. The policy stays exact where exactness is free (the relay's `wss://` origin) and
-permissive for `https:`, stated plainly. What contains a subverted session is not a
+say. The policy is permissive for `https:` and `wss:` alike — relay exactness was only
+free while the relay origin was a constant, and the bring-your-own and self-hosted
+trajectories make it configuration. What contains a subverted session is not a
 frozen list but the scope model itself: no credential moves without an approved scope,
 every call is recorded before it is sent, and the destination rules above still bind.

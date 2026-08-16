@@ -15,7 +15,8 @@ and left the security section unable to describe a single machine — which is w
 and ad hoc use actually are.
 
 It also gives the platform a claim that survives without a federation. The harness adds one
-third party (the relay), removes the party that would otherwise choose the operator's
+component in every session's path (the relay — under ADR-0019 a capability of the
+already-trusted publisher by default, not a new party), removes the party that would otherwise choose the operator's
 vendor, model and configuration while holding their credentials, and bounds a model's blast
 radius to the machines its weights have touched — plus, under
 [ADR-0017](./0017-off-machine-calls-and-scope-approval.md), any credential authority

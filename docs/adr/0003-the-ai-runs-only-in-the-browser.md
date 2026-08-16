@@ -3,7 +3,10 @@
 The AI lives in the operator's browser. It issues box-plane commands over SSH
 ([ADR-0015](./0015-the-browser-reaches-a-machine-over-pinned-ssh.md)) and cloud-plane
 operations through typed operations. A provisioned machine never holds an inference key
-or a vendor API token and never initiates work.
+or a vendor API token and never initiates work. (The one machine-originated message to the harness added
+later — the attest introduction of ADR-0020 — acts on nothing on the machine's behalf;
+its only authority is the one-time introduction, handled as the short-lived credential
+ADR-0020 classifies. The rule stands.)
 
 We chose this because an inference key on a machine is a credential living outside
 browser memory, which violates the constraint the whole product rests on: credentials
@@ -13,7 +16,8 @@ that can act, and the reason this project exists is that no such party should ex
 An earlier draft of this ADR justified the decision by saying it protected a
 "cross-check" comparing what two models did. That justification is withdrawn. See
 [ADR-0004](./0004-one-model-one-machine.md): there is no cross-check, because any
-mechanism where one model inspects another's machine gives that model a second
+mechanism where one model inspects another's machine from inside gives that model a
+second
 foothold. The decision stands on the credential argument alone, which is stronger and
 does not depend on a verification mechanism that does not exist.
 
