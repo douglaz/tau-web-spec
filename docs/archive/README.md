@@ -14,7 +14,7 @@ requirements in §21, the untrusted-content rules in §20.5 — and nothing has 
 that material. And the decision records cite its section numbers directly, so the
 numbering has to stay reachable.
 
-Read it as a design study, not as a plan of record. It predates [`spec.md`](../../spec.md),
+Read it as a design study, not as a plan of record. It predates [`00-overview.md`](../../00-overview.md),
 every decision in [`docs/adr/`](../adr/), and the domain language in
 [`CONTEXT.md`](../../CONTEXT.md), and where it disagrees with them, they are newer. In
 particular it assumes a scope —

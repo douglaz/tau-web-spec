@@ -66,8 +66,7 @@ direction.
 
 **The harness cannot state a threshold-based security claim.** What it can state is
 narrower and holds everywhere: no session reaches a machine it is not bound to (bound by
-provisioning, by maintained re-entry, or by recovery escalation — `spec.md` invariant 1
-states the
+provisioning, by maintained re-entry, or by recovery escalation — `SEC-1` states the
 operative form), the
 counts are shown per layer and never blended, and the added-trust tier is fixed and small.
 A tenant stacks its own claim on top.

@@ -1,94 +1,71 @@
 # One model, one machine, and an honest-majority assumption
 
-Each model accesses exactly one machine. No model ever reads, audits, or touches a
-machine it did not provision. Security rests on assuming that a majority of the models
-used across a federation are honest and competent, in the same shape as a Byzantine
+A session accesses exactly one machine. Security rests on assuming that a majority of the
+models used across a federation are honest and competent, in the same shape as a Byzantine
 fault assumption.
 
-We chose this because access is the thing that composes, not intent. A model that can
-read a second machine has a foothold on two members, so permitting each model to touch
-two machines halves the number of malicious models required to reach a k-of-n
-threshold. Any verification scheme that involves one model inspecting another's machine
-from inside
-therefore weakens the exact property it appears to strengthen (the outside-only scanner
-of ADR-0021 is the later, access-free exception).
+We chose this because access is the thing that composes, not intent. A model that can read a
+second machine has a foothold on two members, so permitting each model to touch two machines
+halves the number of malicious models required to reach a k-of-n threshold. Any verification
+scheme in which one model inspects another's machine **from inside** therefore weakens the
+exact property it appears to strengthen. The outside-only scanner of
+[ADR-0021](./0021-the-surface-pentest-is-outside-in.md) is the deliberate exception that
+proves the rule, because it grants no access at all.
+
+The operative statement is `SEC-1`, which defines binding, its three forms, and its
+cryptographic enforcement. This record holds the reasoning and the rejected alternatives.
 
 ## Considered options
 
-**Cross-audit**: a second model, on a different inference provider, reads a finished
-machine and reports anomalies. This is the option worth recording as rejected, because
-it is intuitively appealing and will be proposed again. It sounds like defence in
-depth. It is actually a second foothold. The auditor is not a neutral observer; it is
-another model that now has access.
+**Cross-audit**: a second model, on a different inference provider, reads a finished machine
+and reports anomalies. This is the option worth recording as rejected, because it is
+intuitively appealing and will be proposed again. It sounds like defence in depth. It is
+actually a second foothold. The auditor is not a neutral observer; it is another model that
+now has access.
 
-**Transcript comparison**: compare what two models did, rather than granting access to
-a machine. Rejected on practicality before this constraint was even reached — two
-models following the same prose brief run different commands in different orders, and
-deriving comparable effects from arbitrary shell is the undecidable problem from
+**Transcript comparison**: compare what two models did, rather than granting access to a
+machine. Rejected on practicality before this constraint was even reached — two models
+following the same prose brief run different commands in different orders, and deriving
+comparable effects from arbitrary shell is the undecidable problem from
 [ADR-0002](./0002-cloud-plane-and-box-plane.md).
 
-**A deterministic verifier** that reads a machine and reports its state. Rejected
-earlier and for a separate reason: it reads what the machine chooses to tell it, so it
-cannot beat a hostile AI. It remains useful for drift detection and honest mistakes
-inside a single member, run by that member's own model.
+**A deterministic verifier** that reads a machine and reports its state. Rejected as a defence
+against a hostile AI for a separate reason: it reads what the machine chooses to tell it. It
+remains useful for drift detection and honest mistakes inside a single member, run by that
+member's own session or by the coordinator during setup.
 
 ## Consequences
 
-**There is no verification layer.** The security claim is one sentence and it is true:
-no single model provisioned enough members to reach the threshold. Nothing in the
-product may imply more than that. "No anomalies found" and "verified" are both claims
-this design cannot make.
+**There is no verification layer.** Nothing in the product may imply more than the claim.
+"No anomalies found" and "verified" are both claims this design cannot make.
 
-**Model diversity becomes the security parameter, not a preference.** If a user
-configures three inference providers that all serve the same underlying weights, they
-have one model, not three, and the honest-majority assumption is vacuous. Telling
-providers apart from models is therefore a correctness requirement.
+**Model diversity is the security parameter, not a preference.** If a user configures three
+inference providers that all serve the same underlying weights, they have one model, not
+three, and the honest-majority assumption is vacuous.
 
-**A model that fails partway through cannot be replaced on its machine.** Handing a
-stuck machine to a second trust domain would violate the invariant. Recovery is a
-ladder: retry, then escalate to a stronger model *inside the same trust domain*, then
-destroy the machine and restart under a different domain. The middle rung is free —
-escalating within a domain grants no access that domain does not already have — so
-only genuine failures cost a server.
+**Domains are counted per layer, not as an indivisible pair.** Treating a trust domain as the
+pair of provider and weights is too strict for the default product: procured inference routes
+every member through one proxy by design, so read literally that pairing collapses every
+default configuration to a single domain and forbids the arrangement this record assumes.
+Weights and proxy are counted separately, with the provider counted as observed
+([ADR-0007](./0007-trust-is-counted-in-two-layers-and-shown.md)).
 
-**The unit is a trust domain, not a model.** A trust domain is the pair of an
-inference provider and the weights it serves, and two accesses are independent only if
-they differ in both. Two models at one provider share a domain; two providers serving
-the same weights share a domain. Getting this pairing wrong in either direction breaks
-the assumption silently.
+**The rule that survives the split is about access, not about domains.** A session is bound to
+exactly one machine. The weights-level form — no set of weights on more than one machine — is
+the **goal the binding serves**, not an enforceable rule of its own: the product enforces what
+it assigns, and two sessions unobservably served the same weights are a displayed collision
+rather than a violation. The proxy layer is counted and displayed, never bound.
 
-**That last paragraph is amended by
-[ADR-0007](./0007-trust-is-counted-in-two-layers-and-shown.md).** Treating a domain as
-an indivisible pair is too strict for the default product: procured inference routes
-every member through one proxy by design, so read literally the pairing rule collapses
-every default configuration to a single domain and forbids the arrangement the rest of
-this ADR assumes. Domains are now counted per layer — weights and proxy separately.
+**A model that fails partway through cannot be replaced on its machine.** Recovery is a ladder:
+retry; escalate to a stronger model behind the same proxy; then destroy the machine and restart
+under a different domain.
 
-**Amended again once the per-layer counting was carried through.** An earlier version of
-the amendment above ended "and one-domain-one-machine holds at each" — repeating the same
-mistake one level down: at
-the **proxy** layer the default product deliberately puts one domain on every machine, so
-the rule cannot hold there and was never meant to. The rule that holds is about **access**:
-a session is bound to exactly one machine — `spec.md` invariant 1 defines the binding,
-including re-entry on a maintained machine, which supersedes this record's opening
-absolute ("No model ever reads, audits, or touches a machine it did not provision":
-written before an access
-model existed, and read literally it forbids the re-entry the current first stage
-requires). The weights-level form — no set of weights on more than one machine — is the
-**goal the binding serves**, not an enforceable rule of its own: the product enforces what
-it assigns, and two sessions unobservably served the same weights are a displayed
-collision under the per-layer counts, not a violation. The
-proxy layer is counted and displayed, not bound.
+> **The middle rung looks free and is not.** Escalating behind the same proxy grants that party
+> nothing it lacked, which is where the reasoning usually stops. But the stronger model is
+> **new weights on that machine**, and that is harmless only while those weights are not also
+> running another member. Otherwise one model gains the two-machine foothold this entire record
+> exists to prevent. The rung is conditional, and `SEC-1` states the condition.
 
-The recovery ladder above carries the same pre-split language and the same correction. "The
-middle rung is free — escalating within a domain grants no access that domain does not
-already have" was written when a domain meant the indivisible pair. Per layer, the rung is
-free at the **proxy** layer only; the stronger model is *new weights on the machine*, and it
-is safe exactly when those weights are not also running another member — otherwise one model
-gains the two-machine foothold this whole record exists to prevent. Escalation is therefore
-conditional, not free, and `spec.md` states the operative form.
-
-**Honest mistakes ship silently.** On a first-time setup a misconfiguration is the
-likely failure, not a hostile model, and this design has no mechanism that catches it
-across members. The threshold protects funds; it does not protect against everyone
-being sloppy in the same way.
+**Honest mistakes ship silently.** On a first-time setup a misconfiguration is the likely
+failure, not a hostile model, and this design has no mechanism that catches one made the same
+way by everybody. The threshold protects funds; it does not protect against uniform sloppiness.

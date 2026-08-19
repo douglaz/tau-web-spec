@@ -4,149 +4,82 @@ Work arising from the [engineering review of 2026-08-19](docs/review/2026-08-19-
 which reviewed the corpus at `726ad44`. Each task names the finding it came from, so nobody
 has to reopen the review to know why it exists.
 
-Nothing here has been applied yet. Until a task is checked, the current text in `spec.md`
-and the decision records is what ships.
+**Everything except T1 has been applied.** T1 needs real hardware and is the operator's to
+run; it gates construction, not documentation.
 
-**T6 is a barrier.** It moves every file the other documentation tasks edit. Do it first, or
-do those edits twice.
+## Open
 
-## Blocking
-
-- [ ] **T1 — Run the first stage by hand, before any code.**
+- [ ] **T1 — Run the first stage by hand, before any code.** *(`STG-2`)*
       Activate rescue on a disposable dedicated server; read what the rescue endpoint's
       `host_key` field actually returns; read what the automatic Linux install operation
       returns in the same sitting; rehearse the ceremony end to end; write the three briefs
       from the real install as you go.
-      *Why:* the item the plan calls most likely to fail is de-risked by five production
+      *Why:* the item the plan called most likely to fail is de-risked by several production
       implementations of the same architecture; the item that is genuinely unanswered costs
-      one authenticated call and gates route 1.
-      *Verify:* open question 6 closes, or route 1 is refuted and the first stage is
-      reconsidered. Record the install path decision either way.
+      one authenticated call and the whole identity chain rests on it.
+      *Verify:* `CNF-48` recorded. `OPN-6` closes, or `CHN-R1` is refuted and the first stage
+      is reconsidered.
 
-- [ ] **T2 — Write ADR-0022: the state model.**
-      Where durable state lives, the append-only journal, the single-writer worker,
-      commit-before-side-effect, crash recovery, per-tool replay safety. State it in current
-      terms rather than citing the archive.
-      *Why:* four current rules depend on machinery specified only in a document the
-      specification declares superseded, which is why the recording invariant restates two
-      of the archive's invariants in fresh prose.
-      *Files:* `docs/adr/0022-*.md`, `spec.md`
-      *Verify:* the recording invariant and the mid-brief-recovery question both cite it;
-      neither restates it.
+- [ ] **T19 — Design the durable remote job record.** *(partially applied)*
+      The requirement is stated (`STA-9`), a conformance item exists (`CNF-40`, deferred tier),
+      and the gap is tracked (`OPN-18`). What is **not** done is the mechanism: how a
+      long-running remote command gets an identity and an authoritative status a reconnecting
+      session can query.
+      *Why:* the journal knows which commands were sent, not which finished after the worker
+      died. Convergence answers this for short commands only.
+      *Verify:* `CNF-40` becomes testable, or `OPN-18` records that convergence alone suffices
+      and why.
 
-- [ ] **T3 — One SSH client keypair per machine.**
-      Only that session's public key reaches that machine's `authorized_keys`. The
-      coordinator holds all of them during setup, stated explicitly. Recovery sheet carries
-      N; Robot registration becomes one typed operation per machine.
-      *Why:* one shared key opens every machine, so the access invariant is enforced only by
-      the harness's own routing code, and the eighth predicate cannot demonstrate a mechanism.
-      *Files:* `spec.md`, `docs/adr/0015-*.md`, `docs/adr/0020-*.md`
-      *Verify:* a session cannot authenticate to a machine it is not bound to. The failure
-      comes from SSH.
+## Applied
 
-- [ ] **T4 — The AI is a trusted party; rewrite the two invariants that pretend otherwise.**
-      Move "the AI never touches key material" to the tenant group. Scope "no path to the
-      cloud plane" to the harness's own. State the general posture: minimize what the model
-      can reach, count what remains.
-      *Why:* both are unenforceable once the model holds root, and both are tenant
-      requirements wearing harness clothes.
-      *Files:* `spec.md`, `docs/adr/0016-*.md`
-      *Verify:* every remaining MUST NOT in the invariant list is enforceable by something
-      other than intent.
-
-- [ ] **T5 — Replace the credential prohibition with an inventory.**
-      Every credential class, where it lives, its lifetime, what it authorizes, how it dies.
-      Anything without a row is forbidden. Include the operator-supplied tenant secret:
-      redacted by value from the transcript, out of model context on delivery, counted in
-      the blast radius.
-      *Why:* a ban with exceptions has needed correction three times, against eleven
-      credential classes actually in play.
-      *Files:* `spec.md`
-      *Verify:* the credential predicate asserts against the table rather than against a
-      prose list.
-
-- [ ] **T6 — Restructure into topic files with stable requirement identifiers.**
-      Numbered topic files; every constraint, invariant, question and predicate gets a
-      permanent identifier with a topic prefix; cross-references go by identifier. The
-      summary and glossary stop carrying counts and normative rules.
-      *Why:* rules identified by list position mean two renumberings have already consumed
-      reviewer rounds re-verifying cross-references, and the same fact lives in four files.
-      *Files:* all
-      *Verify:* no cross-reference in the corpus is a bare ordinal.
-
-- [ ] **T7 — Build the conformance checklist, tiered, with six new blocking items.**
-      Each item names the requirement it proves and is written so it can become a test.
-      Tier by whether the operator can undo it, would know without the control, and whether
-      an autonomous retrying caller can trigger it. Add: box-plane cannot reach the cloud
-      plane; a typed operation on an unbound machine is refused; briefs and feeds cannot be
-      substituted at runtime; tool output claiming authority does not get it; a session
-      cannot authenticate to a machine it is not bound to; an interrupted brief converges on
-      re-run.
-      *Why:* three of thirteen invariants have a predicate that would catch a violation.
-      *Verify:* every stage-one-exercisable invariant has an item.
-
-- [ ] **T8 — Name the distributions and pin the artifact source.**
-      State Alpine and NixOS and why they force custom installation on this vendor. Add the
-      artifact source as an untrusted dependency pinned by content hash supplied from the
-      browser, and give it a row in the elective trust tier.
-      *Why:* a party that decides what every machine runs is currently unnamed and unpinned,
-      with the same blast radius as the bundle.
-      *Files:* `spec.md`, `docs/adr/0011-*.md`, `docs/adr/0018-*.md`
-
-## Same branch
-
-- [ ] **T9 — Split the CSP decision by directive.** `connect-src` permissive as decided;
-      `script-src`, `object-src` and `base-uri` strict, with the bundle-injection reasoning
-      stated. *Injected code never calls the approval path.*
-      *Files:* `spec.md`, `docs/adr/0017-*.md`
-
-- [ ] **T10 — Rewrite decision-record bodies that amendments reversed.** Append for
-      additions; rewrite for reversals. Carry superseded reasoning forward only where the
-      old approach is one a fresh reader would arrive at independently.
-      *Files:* `docs/adr/0020-*.md`, `docs/adr/0004-*.md`, `docs/adr/0015-*.md`
-
-- [ ] **T11 — Add seven diagrams, renderable on GitHub (```mermaid).** The five fingerprint
-      routes as a decision tree; the attest sequence; session binding and the coordinator's
-      reach; the recovery ladder; the recovery matrix; the two planes and their approval
-      modes; the first-stage sequence.
-
-- [ ] **T12 — Scope the exposure ledger; state that an unfinished setup is device-bound.**
-      Staleness and conservative-binding rules bind only a maintained-plus-threshold tenant,
-      which none currently is. Resume where the setup started, or abandon.
-      *Files:* `spec.md`, `docs/adr/0020-*.md`
-
-- [ ] **T13 — Price the relay as learning member topology.** Restate the Certificate
-      Transparency comparison as one chosen party against everyone, permanently.
-      *Files:* `docs/adr/0015-*.md`, `docs/adr/0019-*.md`, `spec.md`
-
-- [ ] **T14 — Price the tunnel's root store; mark it designed-but-unbuilt.** A bundled
-      certificate-authority set grows the trusted list against the invariant that guards it.
-      *Files:* `spec.md`, `docs/adr/0017-*.md`, `docs/adr/0019-*.md`
-
-- [ ] **T15 — State attest post ordering and bounded retry.** Backoff until acknowledged or
-      a deadline; scrub on whichever comes first; deadline inside the voucher's expiry.
-      *Files:* `docs/adr/0020-*.md`
-
-- [ ] **T16 — State that remote box-plane execution is command-granular**, and that
-      recording commits per command before transmission.
-      *Files:* `spec.md`
-
-- [ ] **T17 — Add the memory measurement as a conformance item.** Peak memory of one session
-      during a full install, both mobile browsers, with the five-session projection stated
-      against the platform's tab budget.
-      *Files:* conformance checklist, `docs/adr/0009-*.md`
-
-- [ ] **T18 — Correct the first-stage record.** Say why rescue is required. Narrow "the rest
-      is subsetting" to what dedicated rescue actually covers. Raise the tenant predicate
-      above "running and reachable."
-      *Files:* `docs/adr/0018-*.md`, `spec.md`
-
-## Follow-up
-
-- [ ] **T19 — Specify a durable remote job record**, so a reconnecting session can learn
-      whether a long-running command finished rather than inferring it. Declarative system
-      state reduces this without removing it.
-
-- [ ] **T20 — State what the first stage does not test:** account acquisition, webservice
-      user setup, relay enrolment, inference funding. A developer can pass every predicate
-      while a phone-only operator still cannot begin.
+- [x] **T2 — ADR-0022, the state model.** Written: single writer, append-only journal in
+      origin-private storage, append-before-apply, intent-before-effect, per-tool retry safety,
+      crash recovery. Requirements at `STA-1`–`STA-9`. The archive returns to prior art.
+- [x] **T3 — One SSH client keypair per machine.** `SEC-1` now states cryptographic
+      enforcement; `SEC-5` row 3 carries the lifecycle; the coordinator's grant is named as
+      distinct rather than borrowed. Tested by `CNF-5`, `CNF-6`, `STG-13`.
+- [x] **T4 — The AI is a trusted party.** `04-security-model.md` opens with the posture. The
+      key-material rule moved to the tenant group as `SEC-T4`; `SEC-3` scopes to the harness's
+      own cloud plane; `SEC-6` states minimize-and-count for everything else.
+- [x] **T5 — Credential inventory.** `SEC-5` is a thirteen-row table replacing the
+      prohibition-with-exceptions, including the tenant-secret row and its root-shell caveat.
+      Enforced by `CNF-13`.
+- [x] **T6 — Topic files with stable identifiers.** `00`–`08`, prefixes `OVR`/`ARC`/`CHN`/
+      `STA`/`SEC`/`TRU`/`STG`/`CNF`/`OPN`. `spec.md` is retired; every cross-reference goes by
+      identifier. The glossary is definitions only; the summary carries no counts.
+- [x] **T7 — Tiered conformance checklist.** `07-conformance.md`, with the tiering rule and
+      twenty-four BLOCKING items. The six new ones are `CNF-6`, `CNF-11`, `CNF-16`, `CNF-26`,
+      `CNF-34`, `CNF-37`.
+- [x] **T8 — Distributions named, artifact source pinned.** `ARC-24` states Alpine and NixOS
+      and why they force custom installation; `ARC-25` pins the source by content hash;
+      `TRU-E8` puts it in the elective tier; `CNF-24` tests it.
+- [x] **T9 — CSP split by directive.** `ARC-33`: `connect-src` permissive,
+      `script-src`/`object-src`/`base-uri` strict, with the injected-code reasoning stated.
+- [x] **T10 — Reversed ADR bodies rewritten.** ADR-0020 and ADR-0004 rewritten to state
+      current decisions, with superseded reasoning kept **only** where it is a trap a fresh
+      reader would re-derive (the voucher-is-not-a-credential reading; the
+      drop-box-enforces-single-use design; the middle-rung-is-free reading). Stale narration
+      removed from ADR-0015.
+- [x] **T11 — Diagrams, GitHub-renderable.** Nine mermaid figures: system context, the two
+      planes, session binding and coordinator reach, the recovery ladder, the five fingerprint
+      routes, the attest sequence, the recovery matrix, the trust tiers, the first-stage
+      sequence.
+- [x] **T12 — Ledger scoped; setup device-bound.** `STA-11` states that the staleness rules
+      bind only a maintained-plus-threshold tenant and why none exists; `ARC-22` states that an
+      unfinished setup is resumed where it started or abandoned.
+- [x] **T13 — Relay topology priced.** `CHN-13` and `TRU-A2` say the relay learns the member
+      topology; the Certificate Transparency comparison is restated as one chosen party against
+      everyone, permanently.
+- [x] **T14 — Tunnel priced and marked unbuilt.** `CHN-12` states the bundled certificate-
+      authority cost and marks the capability designed-but-unpriced; `OPN-20` tracks it.
+- [x] **T15 — Attest ordering and retry.** `CHN-6`: backoff until acknowledged or a deadline,
+      scrub on whichever comes first, deadline inside the voucher's expiry. `CNF-18` tests it.
+- [x] **T16 — Command-granular execution and recording.** `ARC-7` and `ARC-8`, with the cost
+      stated: anything interactive is the brief's problem, not a live terminal's.
+- [x] **T17 — Memory measurement.** `STG-15` and `CNF-45` require peak memory of one session
+      during a full install on both browsers, with the five-session projection.
+- [x] **T18 — First-stage record corrected.** `STG-3` states why rescue is required; `STG-19`
+      narrows the subsetting claim to what dedicated rescue actually covers; `STG-8` raises the
+      tenant predicate above running-and-reachable.
+- [x] **T20 — What the first stage does not test.** `STG-18`: acquisition, relay enrolment,
+      inference funding, and a phone-only operator getting started at all.

@@ -1,0 +1,177 @@
+# 06 — What the first stage must demonstrate
+
+**STG-1** The first stage provisions **one lnrent box on a dedicated server, over the full
+channel** ([ADR-0018](./docs/adr/0018-first-stage-is-one-lnrent-box-on-dedicated.md)). One
+session, one machine, one real tenant, and deliberately the hardest machinery: Robot offers
+no boot-time user-data at all, so nothing can be done to the machine except through the
+channel — which forces the WASM SSH client, the relay, and the rescue flow to succeed or fail
+in week one.
+
+It replaces the two-cloud-machine diversity demo the design session chose: that staged a
+vault argument the platform no longer leads with, proved the easy machinery, and deferred
+both hard problems.
+
+**STG-2 Construction gates on running the stage by hand, once, first.** Activate rescue on a
+disposable dedicated server; read what `host_key` actually returns; read what the automatic
+Linux install operation returns in the same sitting; rehearse the ceremony end to end; write
+the three briefs from the real install as you go.
+
+The reason is that the two risks are wildly mismatched. Browser-resident SSH over a
+WebSocket-to-TCP bridge ships in production in several independent implementations, so the
+item the plan called most likely to fail is a library-selection risk with fallbacks. What is
+genuinely unanswered is what Robot's rescue endpoint returns (`OPN-6`), and that costs one
+authenticated call while the whole identity chain rests on it. Spending weeks of construction
+before making that call is the wrong order.
+
+## Why the install runs from inside rescue
+
+**STG-3** Two reasons, both load-bearing, and neither was previously recorded:
+
+1. **The rescue endpoint is what publishes the host key.** That is `CHN-R1`, and it is the
+   only route on any product today that pins out of band without putting a private key in
+   user-data.
+2. **The chosen distributions are not on offer.** Robot's automatic Linux installation takes a
+   fixed catalog, and neither Alpine nor NixOS is in it (`ARC-24`). Custom image installation
+   is therefore mandatory on this path rather than the optimisation ADR-0011 calls it.
+
+Either reason alone would justify rescue. Together they close the question of whether a
+single typed install operation could replace the whole flow: it could not, because it cannot
+install what this design runs.
+
+## The sequence
+
+```mermaid
+sequenceDiagram
+    participant OP as Operator
+    participant B as Browser session
+    participant RB as Robot API
+    participant RL as Relay
+    participant M as Machine
+
+    OP->>B: bind this session to this machine
+    Note over B: generates a keypair for<br/>THIS machine only — SEC-1
+    B->>RB: register client public key (typed op 1)
+    B->>RB: activate rescue with that fingerprint (typed op 2)
+    RB-->>B: host_key + generated root password
+    Note over B: pins the fingerprint · redacts the<br/>root password before recording — SEC-5 row 9
+    B->>RB: reset, to boot into rescue (typed op 3)
+    B->>RL: open WebSocket
+    RL->>M: TCP :22
+    B->>M: SSH, verified against the pinned key — SEC-11
+    Note over B,M: no trust-on-first-use at this hop
+    B->>M: write the system, per command, recorded first — ARC-8
+    M->>M: pull artifact, verify content hash — ARC-25
+    Note over M: installed system's host keys<br/>generated HERE, per machine
+    B->>M: read the installed host keys, before reboot
+    Note over B: pins them — no TOFU at this hop either
+    B->>RB: reboot into the installed system
+    B->>M: SSH, verified against the second pinned key
+    B->>M: harden · demonstrate lockdown · start the daemon
+    Note over OP,M: later: a second session re-enters<br/>over the same pinned channel
+```
+
+## Acceptance
+
+**STG-4** The session registers its SSH client public key with Robot as a **typed
+operation** — Robot's `authorized_key` field takes fingerprints of keys already registered
+there, not raw keys — then activates rescue the same way, passing that fingerprint, and
+triggers the reboot the same way, since activation only configures the next boot and the
+reset call is its own typed operation. It retrieves the rescue host key from the API response
+and connects with **no trust-on-first-use at either hop**: the rescue key is pinned from the
+API, and the installed system's host keys are generated inside the rescue session, per
+machine, and read before reboot. The response also carries a generated **root password**; it
+is never used, and it is **redacted before the response is recorded or reaches a model**.
+
+**STG-5** The system is installed and hardened entirely through box-plane work over the
+pinned channel, **command by command**, each recorded before transmission (`ARC-8`), and the
+transcript matches what was sent.
+
+**STG-6** The artifact the install pulls is **verified against a content hash supplied by the
+browser** (`ARC-25`), and a mismatch halts the install.
+
+**STG-7** The machine ends **locked down and demonstrated**: the deliverable of `ARC-17`,
+with the tenant's daemon running.
+
+**STG-8 The tenant does something, not merely runs.** A daemon that starts and publishes
+nothing demonstrates the installer, not the tenant. This predicate requires a real tenant
+outcome — a published listing, and at least one order accepted and delivered — **or** an
+explicit, recorded statement of why that is out of scope for this stage and which stage
+carries it. "Running and reachable" alone does not discharge it.
+
+**STG-9** The machine is **maintained**, and the story is exercised: at least one later
+session re-enters over the same pinned channel and re-runs the check.
+
+**STG-10** No credential — the Robot credential, the rescue root password, the inference key,
+the SSH client private key, or the relay token — appears in a request to the app origin, in
+any model request body, or in any log; and none appears in origin-private storage, local
+storage, or service-worker caches outside the encrypted-at-rest store `SEC-5` names.
+Cleartext nowhere.
+
+**STG-11** A rescue activation or its reset, interrupted between intent and confirmation,
+then resumed, results in exactly one rescue session and one install.
+
+**STG-12** A brief interrupted mid-run — by a phone lock, a killed worker, a dropped session
+— and re-run from the top **converges** rather than duplicating (`ARC-10`). This is the
+predicate most likely to fail on iOS, and the one the by-hand rehearsal should be designed to
+stress.
+
+**STG-13** A channel access that does not present the bound session's own keypair — however
+well-formed the attempt — is **refused, by SSH**. With one machine, nothing exercises the
+access rule by accident: this predicate shows the refusal is enforced by mechanism rather
+than satisfied by scarcity, and it is distinguishable from `STG-9`'s re-entry precisely
+because binding is the operator's act, not the connection's.
+
+**STG-14** All of the above pass on Android Chrome and iOS Safari, through a normal HTTPS
+URL, with no install.
+
+## Measurements, required but not pass/fail
+
+**STG-15** Peak memory of one session during a full install, on both mobile browsers, with
+the five-session projection stated against each platform's tab budget. The concurrency
+decision (`ARC-13`) rests on five sessions sharing a phone, chosen against an acknowledged
+high memory risk, and no number has ever been taken. One session is what this stage runs,
+which makes it the only cheap opportunity to learn whether five is possible.
+
+**STG-16** Wall-clock duration of a full install over the channel, and the transcript size it
+produces.
+
+## Provenance in the first stage
+
+**STG-17** Provenance is still recorded — vendor, inference provider, model, surviving reload
+and restart — and the per-layer counts are still shown per `SEC-9`. The configured counts read
+one: one set of weights, one proxy on the procured path, no proxy entry at all under local
+inference. The observed provider count reports whatever the traffic shows, which even for one
+machine can exceed one, since the proxy picks the provider per request. The smaller claim,
+stated as numbers.
+
+What waits is comparison: with one machine there is no collision to display, so the collision
+display and the operable panel arrive with the tenant that needs them.
+
+## What the first stage does not test
+
+**STG-18** Stated because a passing stage would otherwise read as a working product.
+
+- **Acquisition.** The stage assumes an existing vendor account, an already-rented dedicated
+  server, and a Robot webservice user. It tests none of them.
+- **Relay enrolment.** The token is issued out of band and pasted once. There is no issuer,
+  no identity model and no reacquisition story; that is `OPN-2`.
+- **Inference funding.** Assumed already funded.
+- **A phone-only non-technical operator getting started at all.** A developer can pass every
+  predicate above while the target operator still cannot begin. That gap is the product
+  thesis, and nothing in this stage measures it.
+
+**STG-19 "If the maximal path works, the rest is subsetting" is too strong.** Dedicated rescue
+demonstrates the channel, the pinning chain, the box plane, the transcript and one re-entry.
+It demonstrates **none** of: attestation (`CHN-R5`), boot-time user-data, recovery-sheet
+handling, second-vendor reachability, concurrent sessions, federation formation, or threshold
+isolation. Those are orthogonal systems that arrive with the second stage, not subsets of this
+one. The honest claim is that this stage de-risks the channel, which is the item everything
+else waits on.
+
+## The second stage
+
+Brings the vault: Cloud machines, multiple concurrent sessions, the trust panel, the
+coordinator, federation formation, all-or-nothing creation — and Cloud's identity problem:
+`CHN-R2` dead, `CHN-R3` blocked behind `OPN-13`, `CHN-R5` designed for exactly this and
+unproven. It reuses the channel the first stage proved. If the SSH client fails instead, the
+fallback is the old cloud-first stage with the channel question reopened.

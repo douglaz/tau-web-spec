@@ -23,7 +23,7 @@ while the
 proxy layer is counted and displayed rather than bound. The same correction applies to
 ADR-0004's recovery ladder: escalating to a stronger model is free at the proxy layer and
 conditional at the weights layer, since the new weights must not already be running
-another member. `spec.md` states both in their operative form.
+another member. `SEC-1` and `ARC-16` state both in their operative form.
 
 The layers protect against different things and neither substitutes for the other.
 Five members on five sets of weights behind one proxy survive a backdoored model and do

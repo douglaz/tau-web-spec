@@ -70,10 +70,10 @@ checks, so the checklist is part of the brief set and therefore ships signed
 
 "Running the vault software" above is btc-policy's case, written before
 [ADR-0016](./0016-the-harness-isolates-and-counts-tenants-set-thresholds.md) separated the
-harness from its tenants. The operative form — `spec.md` § What a session delivers — is
+harness from its tenants. The operative form — `ARC-17` — is
 the software the machine's tenant calls for: the vault software under btc-policy,
 `lnrentd` under lnrent. The lockdown demonstration and the pentest's competence framing
 are unchanged — though the body's "malice is what the threshold absorbs" holds only where
-a threshold exists; for a single-machine tenant nothing absorbs malice and `spec.md`
+a threshold exists; for a single-machine tenant nothing absorbs malice and `SEC-CLAIM`
 states the accepted risk. The coordinator consequences are the federation half ADR-0016
 marks for its seam.

@@ -52,7 +52,7 @@ earlier version of this line cited: ADR-0004 is about model access and says noth
 cloud vendors. It rests on
 [ADR-0006](./0006-single-origin-with-reproducible-builds.md)'s per-member vendor
 diversification plus the correlated-fault argument in
-[ADR-0010](./0010-members-reach-each-other-on-one-authenticated-port.md), and `spec.md`
+[ADR-0010](./0010-members-reach-each-other-on-one-authenticated-port.md), and `SEC-T3`
 records that it deserves a decision record of its own.
 
 **Abandoning a setup has a direct cost the app cannot cancel.** Since the vendor

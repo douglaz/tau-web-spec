@@ -1,248 +1,205 @@
 # Executive summary
 
-A short read of [`spec.md`](./spec.md), which is the full statement of the system.
-Everything here is stated there in more detail, and where the two differ, the
-specification wins. It is also the only place the open questions are maintained.
+A short read of the specification, which begins at [`00-overview.md`](./00-overview.md).
+Everything here is stated there in more detail, and where the two differ, the specification
+wins. **This document carries no counts and no normative rules** — those live in the numbered
+topic files under their own identifiers, so that changing one changes it in one place.
 
 ## What it is
 
-tau-web is a client-side AI harness: an application that runs entirely in a phone browser
-and provisions real infrastructure on its operator's behalf. Nothing provisions a machine
-except the operator's own device — no server-side agent, no hosted orchestrator. It exists
-so that a non-technical person can stand up machines whose value depends on not handing
-any one party the ability to act on all of them.
+tau-web is a client-side AI harness: an application that runs entirely in a phone browser and
+provisions real infrastructure on its operator's behalf. Nothing provisions a machine except
+the operator's own device — no server-side agent, no hosted orchestrator. It exists so that a
+non-technical person can stand up machines whose value depends on not handing any one party the
+ability to act on all of them.
 
-That is the goal, not an achieved property. Several parties remain trusted, and the
-specification names each of them by hand rather than claiming the list is empty.
+That is the goal, not an achieved property. Several parties remain trusted, and
+[`05-trust.md`](./05-trust.md) names each of them by hand rather than claiming the list is
+empty.
 
-There is no code in this repository. What exists is the specification this summarises, a
-domain language, twenty-one decisions recording what was chosen and — for most of them — which
-alternatives were rejected, a design record with three rounds of adversarial review, and an
-archived specification of the execution layer. A working proof of concept in a separate
-repository has established the one external fact everything depends on: a browser can call a
-cloud vendor's API directly.
+There is no code in this repository. What exists is the specification, a domain language, a set
+of decision records with the alternatives they rejected, a conformance checklist, a design
+record carrying three rounds of adversarial review, an engineering review, and an archived
+specification of the execution layer. A proof of concept in a separate repository has
+established the one external fact everything depends on: a browser can call a cloud vendor's
+API directly.
 
 ## The problem
 
-Agentic AI is desktop-gated. Technical users run real harnesses against the best models
-and get an AI that *acts*; everyone else gets a chat box. The people who would gain most
-have only a phone.
+Agentic AI is desktop-gated. Technical users run real harnesses against the best models and get
+an AI that *acts*; everyone else gets a chat box. The people who would gain most have only a
+phone.
 
 **And the gap is widening.** Most people are mobile-only and will stay that way, while both
-mobile platforms keep tightening what may be installed outside their stores. The browser is
-not a compromise accepted for convenience — it is the last route by which a non-technical
-person reaches real compute, and real AI, without someone else configuring it for them.
+mobile platforms keep tightening what may be installed outside their stores. The browser is not
+a compromise accepted for convenience — it is the last route by which a non-technical person
+reaches real compute without someone else configuring it for them.
 
 The obvious fix is a hosted agent platform, and for one class of task it is unavailable in
 principle. Anything whose value depends on *not* trusting a host cannot be delegated to one,
-because the host becomes the party you were trying not to need. A vault whose members were
-all provisioned by a single party has been defeated by that party, whatever its intentions.
+because the host becomes the party you were trying not to need. A vault whose members were all
+provisioned by a single party has been defeated by that party, whatever its intentions.
 
 So: a harness in the browser that provisions and operates machines the operator rents and
-controls. **Tenants build on it.** Two are intended — **btc-policy**, self-hosted Bitcoin
-custody on a federation of policy co-signers, and **lnrent**, server rental paid over
-Bitcoin — and ad hoc use is a third that needs neither. The second turns out to be
-load-bearing for the first, because a federation across five vendors means five billing
-relationships, and renting for sats with no account is the only escape from that.
-
-## Who it is for
-
-Someone mobile-only who wants a machine — or a service, or an authenticated call — that is
-theirs rather than a hosted product's. Deliberately wider than any one tenant, and the
-harness has no narrower answer.
-
-Each tenant's economics then differ sharply, and they are tenant facts rather than product
-facts. **btc-policy** defaults to 3-of-5, so five machines, so **€275 per year** at the
-reference price before inference — implying holdings near €27,500 at roughly 1% per year for
-custody, and making no sense at all for someone holding €1,000. That tenant's target is a
-non-technical person with meaningful Bitcoin. **lnrent** inverts the arithmetic: an operator
-is one machine, and dedicated hardware is the best value for rental. **Ad hoc use** carries
-neither.
+controls. **Tenants build on it** — Bitcoin custody, server rental over Bitcoin, and ad hoc use
+that needs neither. The second turns out to be load-bearing for the first, because a federation
+across several vendors means several billing relationships, and renting for sats with no account
+is the only escape from that.
 
 ## How it works
 
-**The AI runs only in the browser.** A machine is a target, never an actor: it holds no
-inference key, no vendor token, and never initiates work — its one outbound message to
-the harness, the
-attest introduction, acts on nothing on its behalf. The consequence is accepted
-rather than worked around — nothing runs while the app is closed, so every step must be
-resumable across a locked phone.
+**The AI runs only in the browser, and it is a trusted party.** A machine is a target, never an
+actor: it holds no inference key and no vendor token belonging to the harness, and it never
+initiates work. Its one outbound message, the attest introduction, acts on nothing on its
+behalf.
 
-**Actions split into two planes, off-machine and on.** The **cloud plane** is anything done
-off the operator's machines with a credential they supplied — creating or paying at a vendor,
-and equally a call to any other service. Where an adapter types the action it is approved on
-structured facts rather than command text; where none does, the operator approves a scope
-naming the credential and the origin, every call is recorded before it is sent, and the harness
-**claims nothing about what that credential can do** — for most services it cannot know. The
-**box plane** is free-form shell on a machine the operator already owns: nothing is
-pre-approved, because nothing is known in advance, but it runs under an approved scope and
-everything is recorded.
+But the model has a root shell on the machine it is bound to, and the design says so plainly
+rather than pretending a rule could take that away. It is the operator's agent, which is the
+whole point. What the harness does is **minimize** what the model can reach and **count** what
+remains — and where a tenant genuinely needs the model kept away from secrets, that tenant
+designs its procedure for it, as Bitcoin custody does by sealing its nodes after setup.
 
-Each side carries its own bound rather than sharing one. Box-plane work can be free-form
-because the worst case is ruining a machine already paid for. Cloud-plane work has no such
-bound — so an untyped call means approving a key's full authority at an origin, and the
-interface has to say that rather than imply a limit. The box plane has no path to the cloud
-plane.
+The consequence is accepted rather than worked around: nothing runs while the app is closed, so
+every step must survive a locked phone. Durable state is an append-only journal, and an
+interrupted brief is re-run from the top and converges rather than resuming a step it cannot
+identify.
 
-**Briefs are instructions, not scripts.** The AI reads prose plus example commands and
-decides what to run. A script stops dead at the first surprise, and the AI exists precisely
-for the surprises. Briefs ship inside the signed bundle, because a brief is prose that
-steers every member at once and diversity buys nothing against it.
+**Actions split into two planes, off-machine and on.** The **cloud plane** is anything done off
+the operator's machines with a credential they supplied. Where an adapter types the action it is
+approved on structured facts; where none does, the operator approves a *scope* naming the
+credential and the origin, every call is recorded before it is sent, and the harness **claims
+nothing about what that credential can do** — for most services it cannot know. The **box plane**
+is command-at-a-time shell on a machine the operator already owns: nothing is pre-approved,
+because nothing is known in advance, and everything is recorded before transmission.
 
-**One session, one machine.** Each session is bound to exactly one machine — the one it
-provisions, the maintained one it re-enters, or the stuck one it takes over on the
-recovery ladder — and never touches any other. Access composes, not intent. Five sessions run concurrently on
-the one device the operator owns, each configured with a different model — what a session
-is actually configured with, since the inference provider that ends up serving it is known
-only from the response, and whether two models rest on different *weights* is not checkable
-at all — with all five machine creations approved together before any work begins. That access rule is absolute; how many
-*distinct* trust domains are in play is a separate count, and at the proxy layer the
-default product deliberately shares one — which is displayed rather than forbidden.
+Each side carries its own bound. Box-plane work can be free-form because the worst case is
+ruining a machine already paid for. Cloud-plane work has no such bound, so an untyped call means
+approving a key's full authority at an origin, and the interface has to say that rather than
+imply a limit.
 
-**The deliverable is a locked-down machine, demonstrated** by a lightweight self-directed
-pentest — a **competence check, not an integrity check**. A model examining its own machine
-proves nothing against a malicious model — a threshold absorbs malice where the tenant has
-one, and a single-machine tenant simply accepts that risk. What it catches is
-honest-but-sloppy, the likely failure on a first-time setup.
+**Briefs are instructions, not scripts.** The AI reads prose plus example commands and decides
+what to run. A script stops dead at the first surprise, and the AI exists precisely for the
+surprises. Briefs ship inside the signed bundle, because a brief steers every member at once and
+diversity buys nothing against it.
 
-**The coordinator is AI-free.** Deterministic code from the signed bundle forms the
-federation by calling member APIs. It is the only party reaching inside all five members,
-permitted precisely because it is not a model. Federation creation is all-or-nothing, so
-abandonment has to be a first-class action — and an unfinished, still-billing setup owns
-the app's opening screen, running cost first, with abandonment leading after a week of no
-progress.
+**One session, one machine, and the lock is real.** Each session is bound to exactly one machine
+by an operator act before anything connects, and **each holds its own SSH keypair**, so only that
+session's public key reaches that machine. A session cannot authenticate to a machine it is not
+bound to, and the refusal comes from SSH rather than from the harness declining to call itself.
+Access composes, not intent. Sessions run concurrently on the one device the operator owns, each
+configured with a different model, with all machine creations approved together before any work
+begins.
 
-**Members reach each other only on the vault protocol port**, mutually authenticated,
-everything else denied at the vendor firewall — because reachability is a foothold on the
-same terms as a credential, and a model able to attack four other machines produces
-*correlated* faults, the one assumption a threshold cannot survive losing.
+**The deliverable is a locked-down machine, demonstrated** by a lightweight self-directed pentest
+— a **competence check, not an integrity check**. A model examining its own machine proves nothing
+against a malicious model. What it catches is honest-but-sloppy, the likely failure on a
+first-time setup.
 
-**The browser reaches a machine over SSH**, verifying the host key against a fingerprint
-obtained by other means, through a relay that carries ciphertext. Once the right key is
-pinned the transport is irrelevant to confidentiality and integrity. On dedicated hardware
-the vendor API hands over the key; on the cloud path, where retrieval is dead, a designed
-but unproven route — *attest*, the machine introducing its own key under a one-time secret
-planted at creation — closes the gap without trusting first contact. A pin no longer dies
-with the phone: recovery roots in the vendor account, with a recovery sheet mandatory on
-maintained
-cloud machines. The channel is chosen, not built.
+**The coordinator is AI-free.** Deterministic code from the signed bundle forms the federation by
+calling member APIs, holding every machine's keypair for the setup window and no longer. It is
+the only party reaching inside all members, permitted precisely because it is not a model.
+Federation creation is all-or-nothing, so abandonment has to be a first-class action — and an
+unfinished, still-billing setup owns the app's opening screen.
 
-**A machine is not finished when it is delivered.** Each is periodically re-checked —
-inside by its
-own session where the tenant allows re-entry, outside by a **scanner**: a specialist model
-of the operator's choosing that probes public surfaces through the relay with no
-credential and no access, whose findings are reports rather than gates — and advisories
-for the software it runs are reviewed. How far the re-check can
-go is the tenant's call — its *access model*: maintained machines (lnrent, ad hoc) get
-repair, patching and the full re-check; sealed ones (btc-policy welds the door shut after
-setup, deliberately) get an outside-only surface probe and advisories whose sole remedy is
-replacement. The advisory watch deliberately opens a foothold — an advisory reading
-"critical: upgrade immediately" is a supply-chain attack delivered through the audit — so
-fetched content is untrusted, review reports rather than acts, and the feed list ships
-signed.
+**Members reach each other only on the vault protocol port**, mutually authenticated, everything
+else denied at the vendor firewall — because reachability is a foothold on the same terms as a
+credential, and a model able to attack four other machines produces *correlated* faults, the one
+assumption a threshold cannot survive losing.
+
+**The browser reaches a machine over SSH**, verifying the host key against a fingerprint obtained
+by other means, through a relay that carries ciphertext. On dedicated hardware the vendor API
+hands over the key; on the cloud path, where retrieval is dead, a designed but unproven route —
+*attest*, the machine introducing its own key under a one-time secret planted at creation —
+closes the gap without trusting first contact. A pin no longer dies with the phone: recovery
+roots in the vendor account, with a recovery sheet mandatory on maintained cloud machines.
+
+**The system is written from inside a rescue environment**, for two reasons: rescue is what
+publishes the host key, and the chosen distributions are not on the vendor's installer menu. That
+makes the **artifact source** — wherever the bits come from — a party that decides what every
+machine runs, so it is pinned by a content hash the browser supplies, in the same discipline as
+the relay pinned by host key.
+
+**A machine is not finished when it is delivered.** Each is periodically re-checked — inside by
+its own session where the tenant allows re-entry, outside by a **scanner**: a specialist model of
+the operator's choosing that probes public surfaces through the relay with no credential and no
+access, whose findings are reports rather than gates. The advisory watch deliberately opens a
+foothold, so fetched content is untrusted, review reports rather than acts, and the feed list
+ships signed.
 
 ## The security claim, stated exactly
 
-The harness and its tenants claim **different** things, and blurring them is how a single
-machine ends up shipping under a vault's guarantee.
+The harness and its tenants claim **different** things, and blurring them is how a single machine
+ends up shipping under a vault's guarantee.
 
-**The harness claims** that no session reaches a machine it is not bound to *through
-anything the harness controls* — bound by
-provisioning it, by maintained re-entry, or by recovery escalation — that a model's blast
-radius is
-the machines its weights have touched plus any approved untyped scope, whose credential
-authority may itself reach machines the harness cannot see, and that the tier of trust it
-adds is fixed and
-small. What it *removes* is the party that would otherwise pick the operator's vendor, model
-and configuration while holding their credentials.
+**The harness claims** that no session reaches a machine it is not bound to *through anything the
+harness controls*, and that a model's blast radius is the machines its weights have touched, plus
+any approved untyped scope, plus any tenant secret placed on those machines — all three stated
+together, because no one of them alone is the boundary. What it *removes* is the party that would
+otherwise pick the operator's vendor, model and configuration while holding their credentials.
 
-**It does not claim the model is honest, and cannot.** With one machine there is no
-threshold, so nothing absorbs a malicious model — a compromised one owns the machine it just
-configured. Ad hoc use ships under that smaller claim rather than borrowing a larger one.
+**It does not claim the model is honest, and cannot.** With one machine there is no threshold, so
+nothing absorbs a malicious model — a compromised one owns the machine it just configured. Ad hoc
+use ships under that smaller claim rather than borrowing a larger one.
 
-**btc-policy stacks its own on top:** *no single model provisioned enough members to reach
-the threshold.* That needs a vault, and it is conditional on the trust domains being
-genuinely distinct — if several endpoints serve the same weights, the operator has one model
-rather than five and it is vacuous. At the weights layer that distinctness may not be
-enforceable at all, which makes it a design goal rather than a demonstrated property until
-it is.
+**Bitcoin custody stacks its own on top:** *no single model provisioned enough members to reach
+the threshold.* That needs a vault, and it is conditional on the trust domains being genuinely
+distinct — if several endpoints serve the same weights, the operator has one model rather than
+five and it is vacuous.
 
-There is no verification layer and nothing may imply one. Any scheme where a second model
-inspects a finished machine from inside hands that model a second foothold — the scanner
-never goes inside; it reads the public surface only. "Verified" and "no
-anomalies found" are claims this design cannot make.
+There is no verification layer and nothing may imply one. Any scheme where a second model inspects
+a finished machine from inside hands that model a second foothold. "Verified" and "no anomalies
+found" are claims this design cannot make.
 
-Independence is counted at **two configured layers plus one observed, never blended into
-one score** — how many
-distinct sets of weights, how many distinct proxies route the requests, and, read from
-response headers as history rather than promise, how many distinct providers actually
-served the traffic. Five members on
-five sets of weights behind one proxy survive a backdoored model and do not survive a
-backdoored proxy. One number would be a lie about whichever layer is thin, and the thin
+Independence is counted at **two configured layers plus one observed, never blended into one
+score**. Members on several sets of weights behind one proxy survive a backdoored model and do not
+survive a backdoored proxy. One number would be a lie about whichever layer is thin, and the thin
 layer is the one that gets exploited.
 
 ## What must still be trusted
 
-There is no zero. Everything runs on silicon, an operating system, a browser, a model, a
-vendor — chase that regress far enough and you are fabricating chips by hand. So the list is
-not short, and the useful question is not how many parties but **who chose them**.
+There is no zero. Everything runs on silicon, an operating system, a browser, a model, a vendor.
+So the list is not short, and the useful question is not how many parties but **who chose them**.
 
-**Unavoidable**, true of any software at all: the operator's device — its silicon, its
-operating system, its browser — and the stack underneath the machines, their package
-repositories and the certificate authorities.
+**Unavoidable**, true of any software at all: the operator's device, and the stack underneath the
+machines.
 
-**Elective** — real trust, chosen by the operator or the publisher and changeable. The cloud
-vendor, which owns its machine's memory and disk. The inference proxy, of which the default
-path has exactly one, making it the thinnest layer even when the weights count looks healthy.
-The inference provider behind it, which actually runs the weights — counted as the
-observed third layer, which reports where traffic landed and promises nothing forward. A majority of the models, being both honest *and* competent. The scanner's model when the
-operator engages one — trusted with topology and honest reporting, never with access. Any
-service an
-approved untyped call hands a credential to, for the life of that key. Whoever signs the
-software the machines run — common-mode across a federation, since every member installs
-the same release. **This is precisely the
-set a hosted service picks for you, silently and unlisted.**
+**Elective** — real trust, chosen and changeable. The cloud vendor, which owns its machine's
+memory and disk. The inference proxy, of which the default path has exactly one. The provider
+behind it. A majority of the models, honest *and* competent. The scanner's model. Any service an
+approved untyped call hands a credential to. Whoever signs the software the machines run. And the
+artifact source, which decides what every machine boots. **This is precisely the set a hosted
+service picks for you, silently and unlisted.**
 
 **Added by this product** — the only tier the design controls, and the only one an invariant
-guards. The app bundle and its publisher, which is the application rather than a third party
-but is not diversified and carries the briefs, making it the largest concentrated risk. The
-relay — publisher-operated by default, so less a new party than the publisher's second
-capability, with bring-your-own swapping the operator — which cannot read a session pinned
-out of band but
-does learn who connects where; a bootstrap seat, direct-first and minimum-usage, until a
-relay on a maintained machine of the operator's own takes over. The coordinator, narrowly
-and during setup, as the only party
-that reaches inside every member.
+guards. The app bundle and its publisher, which is not diversified and carries the briefs, making
+it the largest concentrated risk. The relay, publisher-operated by default, which cannot read a
+session pinned out of band but does learn the member topology — a bootstrap seat, direct-first,
+until a relay on a machine of the operator's own takes over. The coordinator, narrowly and during
+setup.
 
-What the product removes is the party that would otherwise choose every entry in the middle
-tier and hold the credentials too: the service operator. That is the whole claim, and it is
-smaller than "trustless" — but it survives the regress.
+What the product removes is the party that would otherwise choose every entry in the middle tier
+and hold the credentials too: the service operator. That is the whole claim, and it is smaller
+than "trustless" — but it survives the regress.
 
 ## What is not settled
 
-The specification carries seventeen open questions in one maintained list. Six gate the
-work: the SSH client compiled to WebAssembly, which is the single item most likely to fail;
-the relay's identity system, now that its operator is decided (publisher default,
-bring-your-own escape); the recovery machinery — vendor account as root, the attest
-introduction, the rescue ceremony, the maintained-cloud recovery sheet — designed but
-unproven until it runs once; whether weights-level
-diversity is enforceable at all, which the security claim is conditional on; the
-cloud-account floor that makes lnrent structural; and what Robot's rescue `host_key`
-field actually
-returns, one authenticated call that the first stage's identity chain rests on. Under the
-first-stage decision, the channel questions gate week one rather than a later phase.
+The maintained list is [`08-open-questions.md`](./08-open-questions.md), and each entry says what
+would close it. The ones that gate the work are the SSH client compiled to WebAssembly; the
+relay's identity system; the recovery machinery, designed but unproven until it runs once;
+whether weights-level diversity is enforceable at all, which the security claim is conditional
+on; the cloud-account floor that makes rental structural; and what the dedicated vendor's rescue
+endpoint actually returns — one authenticated call that the first stage's whole identity chain
+rests on.
 
 ## Status
 
-Nothing here has touched a real server. The proof of concept can talk to a vendor API from
-a browser; it cannot yet create a machine.
+Nothing here has touched a real server. The proof of concept can talk to a vendor API from a
+browser; it cannot yet create a machine.
 
-The first stage is **one lnrent box on a dedicated server, over the full channel** — the
-hardest machinery on purpose, so the item most likely to fail (an SSH client compiled to
-WebAssembly) fails in week one or clears the way. The vault, with its concurrent sessions,
-trust panel and federation, is the second stage and reuses the channel the first one
-proves.
+The first stage is **one rental box on a dedicated server, over the full channel** — the hardest
+machinery on purpose. Construction gates on running that stage **by hand, once**, against a
+disposable server: it settles in an afternoon what the corpus otherwise discovers over weeks, and
+it produces the first briefs the product needs as a by-product.
 
-The cheapest way to find out which of these decisions is wrong is still not to write code:
-run the first stage by hand once against a disposable dedicated server, and write the
-briefs for its steps as you go — they are the first three the product needs.
+The vault, with its concurrent sessions, trust panel and federation, is the second stage and
+reuses the channel the first one proves.

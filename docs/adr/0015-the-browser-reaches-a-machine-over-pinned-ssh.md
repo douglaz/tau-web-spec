@@ -56,10 +56,8 @@ for identity is not.
 **Route 2 — retrieve, cloud VPS. Dead, and verified dead.** Hetzner Cloud's rescue action
 returns an action and a root password and no host key — checked against the API client
 when [ADR-0018](./0018-first-stage-is-one-lnrent-box-on-dedicated.md) moved the first
-stage to dedicated. An earlier version of this paragraph called the route unverified and
-first in line, because the cloud product was where this was expected to start; the cloud
-path's identity problem now belongs to the second stage — route 5 below is designed for
-exactly it, with routes 3 and 4 behind it.
+stage to dedicated. The cloud path's identity problem belongs to the second stage: route 5
+below is designed for exactly it, with routes 3 and 4 behind it.
 
 **Route 3 — inject.** The browser generates the host keypair and writes it into
 `/etc/ssh/` through cloud-init. No retrieval endpoint is needed at any vendor and the
@@ -200,12 +198,11 @@ to 3 and 5 precisely because availability is the only property at stake there �
 under the *same operator*; an independently operated relay is a new metadata observer
 ([ADR-0019](./0019-the-publisher-operates-the-default-relay.md)).
 
-**Content-Security-Policy needs a WebSocket entry** it does not have today. An earlier
-version of this consequence required the relay's exact `wss://` origin; the policy
-posture has since changed (the specification's Content-Security-Policy question): CSP is
-not the security boundary — approval and the relay's own destination policy are — and a
-bring-your-own or self-hosted relay origin cannot live in a frozen list, so the entry is
-permissive and says so. What stands unchanged: per-machine addresses never appear in
-`connect-src` at all, because the
-browser connects to a relay origin and the machine address is a parameter inside the
-WebSocket.
+**Content-Security-Policy splits by directive** (`ARC-33`). `connect-src` is permissive for
+`https:` and `wss:` alike, because a bring-your-own or self-hosted relay origin cannot live
+in a frozen list, and because approval and the relay's own destination policy are what bound
+an off-machine call. `script-src`, `object-src` and `base-uri` stay strict, because they bind
+a different case entirely: code the harness never meant to run does not call the approval
+path. What stands unchanged either way: per-machine addresses never appear in `connect-src`
+at all, because the browser connects to a relay origin and the machine address is a parameter
+inside the WebSocket.

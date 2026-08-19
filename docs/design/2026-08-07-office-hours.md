@@ -6,7 +6,8 @@ Design session, 2026-08-07. Revised twice; three rounds of adversarial review, s
 **This is a historical record, not a current document.** It states what was believed and
 decided on the day, and it is not maintained. The decision records in
 [`docs/adr/`](../adr/) and the glossary in [`CONTEXT.md`](../../CONTEXT.md) came out of
-grilling this document, and [`spec.md`](../../spec.md) is the current statement of the
+grilling this document, and [`00-overview.md`](../../00-overview.md) is the entry point to
+the current statement of the
 system — including the only maintained list of open questions. Where this record differs
 from those, those win, without exception. Nothing here is amended or marked in place,
 because nothing here claims to be current.
