@@ -23,6 +23,7 @@ refers to rather than repeats:
 | [`CONTEXT.md`](./CONTEXT.md) | The domain glossary — the canonical term for each concept, the aliases to avoid, and the ambiguities that must always be qualified. |
 | [`docs/adr/`](./docs/adr/) | The twenty-one decisions, and for most of them the alternatives that were rejected and the grounds for rejecting them — some in a `Considered options` section, some inline, and a few not at all. This document states *what* was decided; an ADR is where *why* lives. |
 | [`docs/design/`](./docs/design/) | A record of the design session held on 2026-08-07, kept as history. It is the only account of why this approach was chosen over the two others weighed against it. |
+| [`docs/review/`](./docs/review/) | Review records, kept as history. The engineering review of 2026-08-19 took twenty-one decisions that **this document does not yet reflect**; [`TASKS.md`](./TASKS.md) tracks the work. Until a task is done, the text here is what ships. |
 | [`docs/archive/`](./docs/archive/) | The original Rust/WASM PWA specification — the execution layer, in far more detail than anything here. Superseded as a plan, retained because it is the only treatment of the machinery and because the decisions cite its section numbers. |
 
 [`executive-summary.md`](./executive-summary.md) is a shorter read of this document for

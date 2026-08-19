@@ -27,6 +27,11 @@ everything else in the repository.
 [`executive-summary.md`](./executive-summary.md) is a shorter read of the same material,
 for the shape without the detail.
 
+[`TASKS.md`](./TASKS.md) is the open work, arising from the
+[engineering review of 2026-08-19](./docs/review/2026-08-19-engineering-review.md). Those
+decisions are taken but not yet applied, so where a task contradicts the specification, the
+specification is still what ships.
+
 ## The two intended tenants
 
 - [btc-policy](https://github.com/douglaz/btc-policy) — self-hosted Bitcoin custody.
