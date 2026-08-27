@@ -2,10 +2,13 @@
 
 **STG-1** The first stage provisions **one lnrent box on a dedicated server, over the full
 channel** ([ADR-0018](./docs/adr/0018-first-stage-is-one-lnrent-box-on-dedicated.md)). One
-session, one machine, one real tenant, and deliberately the hardest machinery: Robot offers
-no boot-time user-data at all, so nothing can be done to the machine except through the
-channel — which forces the WASM SSH client, the relay, and the rescue flow to succeed or fail
-in week one.
+session, one machine, one real tenant.
+
+**Dedicated because it is the only place the identity chain closes.** On Cloud there is no way
+today to obtain a host key without trusting first contact — `CHN-R2` is dead, `CHN-R3` is
+blocked, `CHN-R5` is unproven — so `OVR-4` is satisfied nowhere. On dedicated it closes at both
+hops. The corollary is that Robot offers no boot-time user-data at all, so nothing can be done
+to the machine except through the channel: a cost this stage accepts, not a benefit it seeks.
 
 It replaces the two-cloud-machine diversity demo the design session chose: that staged a
 vault argument the platform no longer leads with, proved the easy machinery, and deferred

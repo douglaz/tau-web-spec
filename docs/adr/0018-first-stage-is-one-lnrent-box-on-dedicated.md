@@ -17,20 +17,35 @@ provenance diversity.
 
 ## Why the replacement
 
-**The hardest case was picked on purpose** — if the maximal path works, the rest
-is subsetting. Dedicated is that path: Robot offers no pre-boot configuration at all (only
-`os`, `dist`, `lang`, `keyboard`, `authorized_key` — verified against the API reference),
-so nothing can be done to the machine except through the channel. Building here forces the
-WASM SSH spike, the relay, and the rescue flow — the three things most likely to sink the
-plan — in week one rather than month three.
+**Dedicated is the only place the identity chain closes.** This is the argument that carries
+the decision. Hetzner Cloud's rescue returns an action and a root password and **no host
+key**, verified against the API client — route 2 of
+[ADR-0015](./0015-the-browser-reaches-a-machine-over-pinned-ssh.md) is dead. Injection is
+blocked behind the specification's `OPN-13`, and attest is designed but has never run. So on
+Cloud today there is no way to obtain a host key without trusting first contact, and `OVR-4`
+is satisfied nowhere.
 
-**The old first stage proved the easy half and deferred both hard ones.** Boot-time
-user-data is the machinery Cloud makes trivial, while the channel waited — and the identity
-problem waited too, and got worse: Hetzner Cloud's rescue returns no host key (route 2 of
-[ADR-0015](./0015-the-browser-reaches-a-machine-over-pinned-ssh.md) is dead, verified
-against the API client), so the "easy" path has the *hardest* identity story. Dedicated is
-the one place a host key can be retrieved and pinned with no trust-on-first-use at either
-hop.
+On dedicated it closes at both hops: the rescue host key comes from the API before the first
+connection, and the installed system's keys are generated inside that trusted rescue session
+and read before reboot. **The "easy" path has the hardest identity story**, which inverts the
+intuition and is the whole of why this stage looks backwards and is not.
+
+The corollary is that Robot offers no pre-boot configuration at all — only `os`, `dist`,
+`lang`, `keyboard` and `authorized_key`, verified against the API reference — so nothing can
+be done to the machine except through the channel. That is a consequence of the choice rather
+than a reason for it: it means the channel gates everything, which is a cost this stage
+accepts rather than a benefit it seeks.
+
+> **A superseded ranking, kept because it is re-derivable.** This record originally led with
+> a different argument: pick the hardest path so that the WASM SSH client, the relay and the
+> rescue flow — "the three things most likely to sink the plan" — fail in week one rather
+> than month three. That ranking no longer holds. A deployed Rust browser SSH client exists
+> on this exact target with a published configuration
+> ([ADR-0024](./0024-the-ssh-client-is-rust-following-a-known-good-configuration.md)), and
+> the relay has reusable references too. "Browser SSH is the scary part, front-load it" is
+> what a fresh reader will conclude on their own, so it is worth saying plainly that it was
+> concluded here, and was wrong. What was genuinely unknown, and still is, is what Robot's
+> rescue endpoint returns — one authenticated call, which `STG-2` now gates construction on.
 
 **The platform frame removed the old stage's reason to exist.** The two-machine demo
 staged the vault thesis — visibly different provenance, the trust panel. Under
