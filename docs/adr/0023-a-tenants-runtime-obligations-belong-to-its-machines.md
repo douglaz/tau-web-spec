@@ -55,6 +55,37 @@ the actor, and `ADR-0003` is about the actor.
 **Let the harness hold a background worker that acts on the tenant's behalf.** Rejected because
 it is a hosted orchestrator with extra steps, and the absence of one is the product.
 
+## Amended: an obligation may be delegated, and a selling machine holds no spending authority
+
+The body above offers a tenant two dispositions — meet the obligation on the machine, or accept
+that the harness is not a fit. There is a third, and it is the one that makes a selling machine
+safe: **discharge the obligation at a third party the operator chose, which notifies the
+machine.**
+
+This matters because following the original rule to its end produces a bad place. A machine that
+sells slices hosts strangers. A machine that takes payment for those slices holds payment
+credentials, because receiving is a runtime obligation and the body above puts those on the
+machine. So the two rules together put a hot wallet on a box running untrusted guest code, and a
+single container escape takes the operator's money.
+
+**The resolution is removal, not isolation** (`ARC-37`). A multi-tenant machine holds no
+spendable key material:
+
+- **On-chain**, it holds an extended *public* key. It derives a fresh receive address per order
+  and observes settlement, and it cannot spend. An escaped guest finds nothing worth taking.
+- **Lightning cannot be watch-only** — receiving requires an online node holding channel state
+  and signing — so it is delegated to a receiving service that notifies the machine.
+
+Stated as removal on purpose: a boundary between a stranger and a hot wallet has to hold every
+time, while a machine with no spending authority has nothing for a boundary to protect. It is
+the move `SEC-13` already makes for the app and `ARC-30` for inference credits, applied to a
+machine that sells.
+
+The delegation has an honest price and it is named rather than absorbed: the receiving service
+is an elective trusted party (`TRU-E9`), it sees the payment flow, and it custodies value
+between receipt and sweep. That exposure is bounded by sweep frequency and by the operator's
+choice of service, and it is far smaller than the one it replaces.
+
 ## Consequences
 
 **Not every project can be a tenant, and that is now sayable in advance.** A project whose value

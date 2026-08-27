@@ -98,6 +98,17 @@ peer, meet a deadline. The harness cannot meet one, so a tenant's runtime obliga
 obligation it cannot move onto a machine is not a fit for this harness.
 _Avoid_: background job, daemon work (both describe the mechanism rather than the duty)
 
+**Watch-only** · `ARC-37`
+Holding the public half of a key and nothing else: enough to derive addresses and observe that
+payment arrived, never enough to spend. What a multi-tenant machine holds instead of a wallet.
+_Avoid_: read-only (too general), cold (that describes where a key is, not whether one is present)
+
+**Delegated obligation** · `ARC-38`
+A runtime obligation met at a third party the operator chose, which notifies the machine, rather
+than on the machine itself. The disposition that keeps a credential off a box hosting strangers,
+at the price of an elective trusted party.
+_Avoid_: outsourced, hosted (both suggest the harness arranged it; the operator did)
+
 **Multi-tenant machine** · `ARC-36`
 A machine that serves parties the operator has never met — a rented slice, a hosted guest.
 Hardening one is a different problem from hardening a single-purpose box, and its network

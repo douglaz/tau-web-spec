@@ -38,6 +38,28 @@ per-vendor checklist behind `OPN-14` were written for the single-purpose case. A
 renting reachable slices also needs its own stated network posture; `SEC-T1`'s
 deny-everything-but-one-port is btc-policy's rule and binds only there.
 
+**ARC-37** A multi-tenant machine MUST NOT hold **spendable** key material. Receiving is
+watch-only or delegated:
+
+- **On-chain**, the machine holds an extended *public* key and nothing else. It derives a
+  fresh receive address per order and observes settlement. It cannot spend, so an escaped
+  guest finds nothing to take.
+- **Lightning cannot be watch-only** — receiving requires an online node holding channel state
+  and signing — so it is **delegated** to a receiving service the operator chose, which takes
+  the payment and notifies the machine (`ARC-38`).
+
+The rule is stated as removal rather than as isolation on purpose. A boundary between a
+stranger and a hot wallet is a boundary that has to hold every time; a machine with no
+spending authority has nothing for the boundary to protect. This is the same move `SEC-13`
+makes for the app and `ARC-30` makes for inference credits, applied to a machine that sells.
+
+**ARC-38** A runtime obligation (`ARC-35`) may be discharged **at a third party the operator
+chose, which notifies the machine**, rather than on the machine itself. This is the disposition
+that keeps a credential off a box hosting strangers. Its price is an elective trusted party
+(`TRU-E9`) which must be named under `SEC-10` rather than absorbed, and which custodies value
+between receipt and sweep — a real exposure, bounded by sweep frequency and by the operator's
+own choice of service, and far smaller than the alternative it replaces.
+
 ## Two planes
 
 **ARC-3** Actions split into two planes with different rules

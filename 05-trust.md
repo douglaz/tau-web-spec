@@ -22,6 +22,7 @@ flowchart LR
         E6[Untyped-scope services]
         E7[Software signer]
         E8[Artifact source]
+        E9[Delegated receiving service]
     end
     subgraph A["Added by this product — the only tier the design controls"]
         A1[Bundle + publisher]
@@ -93,6 +94,13 @@ what every machine runs**, which is the same blast radius as the bundle. It is p
 hash supplied from the browser (`ARC-25`), which makes it detectable rather than trusted
 blindly, in the same discipline as the relay pinned by host key. Until the pin exists in an
 implementation, this party is trusted outright.
+
+**TRU-E9 — A delegated receiving service, where a tenant uses one.** Under `ARC-38` a runtime
+obligation may be met at a third party that notifies the machine, and for Lightning that is the
+only way to keep spending authority off a multi-tenant box. That party sees the payment flow and
+custodies value between receipt and sweep. It is elective — the operator picks it and can pick
+another — and it is named here rather than absorbed, because `SEC-10` prices an unlisted addition
+as a schema migration. The exposure is bounded by how often the operator sweeps.
 
 ## Added by this product
 
