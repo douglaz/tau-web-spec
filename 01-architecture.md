@@ -19,6 +19,25 @@ Every step MUST be resumable across a locked phone, and progress MUST survive th
 worker being killed — which is what `03-state-and-recovery.md` specifies and `STA-9`
 constrains.
 
+## What the harness does not do
+
+**ARC-35** The harness provisions and operates; it MUST NOT serve. Any obligation a tenant
+must meet **while the operator's browser is closed** has to be met on the machine, by the
+tenant's own software, without a harness credential
+([ADR-0023](./docs/adr/0023-a-tenants-runtime-obligations-belong-to-its-machines.md)).
+
+This is a constraint on what can be a tenant, and it is worth checking before building rather
+than after. A project whose value depends on answering the outside world while the operator is
+away must put that answer on the machine — with no off-machine credential, since `SEC-3`
+forbids one and `SEC-6` notes that a model with root would read it anyway — or accept that it
+is not a fit. For lnrent that resolves to the machine being the capacity it sells.
+
+**ARC-36** A machine that serves parties the operator has never met is **multi-tenant**, and
+its hardening is a different problem from a single-purpose box. `ARC-17`'s deliverable and the
+per-vendor checklist behind `OPN-14` were written for the single-purpose case. A machine
+renting reachable slices also needs its own stated network posture; `SEC-T1`'s
+deny-everything-but-one-port is btc-policy's rule and binds only there.
+
 ## Two planes
 
 **ARC-3** Actions split into two planes with different rules

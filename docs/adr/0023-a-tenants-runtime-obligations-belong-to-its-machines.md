@@ -1,0 +1,78 @@
+# A tenant's runtime obligations belong to its machines
+
+The harness runs only while the operator's browser is open. So **any obligation a tenant must
+meet while it is closed has to be met on the machine, by the tenant's own software, without a
+harness credential.** The harness provisions and operates; it does not serve.
+
+This is a constraint on what can be a tenant, and it is stated as one because it is easier to
+discover here than to discover after building.
+
+We chose this because the alternative is a machine that acts on its own initiative, which is
+the arrangement [ADR-0003](./0003-the-ai-runs-only-in-the-browser.md) exists to prevent, and
+because [ADR-0010](./0010-members-reach-each-other-on-one-authenticated-port.md) already
+settled the identical question for the other tenant. There, routing member traffic through
+the operator's device was rejected in one sentence: *a vault that also cannot operate while
+the app is closed is not a vault.* The same sentence rewrites for any tenant with a runtime.
+
+## What it means for the first tenant
+
+lnrent sells servers, and a buyer who pays at 03:14 cannot wait for the seller to wake up. As
+implemented today the daemon answers that buyer by creating a cloud VPS with a vendor token it
+holds — which is the arrangement `SEC-3` forbids, and which is why tau-web replaces that path
+rather than automating it.
+
+Under this decision the resolution is that **the operator's machine is the capacity being
+sold.** The daemon rents slices of the hardware it runs on. Fulfilment is local, needs no
+cloud-plane action and no browser, and the daemon never needs a vendor credential because it
+never provisions off-machine. `SEC-3` then holds by construction rather than by policy.
+
+This also repairs an argument [ADR-0018](./0018-first-stage-is-one-lnrent-box-on-dedicated.md)
+was making without the architecture to support it. It justifies dedicated hardware as "the best
+value per unit of capacity for rental," which is only true if the dedicated box **is** the
+capacity. A box that merely hosts a control plane brokering VPSs elsewhere gets no benefit from
+being good value per unit of capacity. The claim and the design now agree.
+
+**Whether lnrent takes that shape is lnrent's decision, not this one.** What this record fixes
+is the harness side: a tenant needing fulfilment while the operator sleeps must put it on the
+machine, and the harness will not supply a credential that lets the machine reach off it.
+
+## Considered options
+
+**Queue the obligation until the operator opens the app.** Requires no change to anything and
+is honest about the constraint, which is this design's habit elsewhere. Rejected because it
+does not survive the scenario: a buyer who paid for a two-hour server and receives it eleven
+hours later did not buy a server, and no marketplace survives that. The same objection sinks any
+tenant with a real-time obligation.
+
+**Give the tenant's software a narrow, capped credential** — one vendor, spend-limited,
+create-only — so it can provision on demand with bounded damage. This is the tempting answer and
+it deserves recording, because the cap is real: `ARC-5` already names narrow credentials as the
+operator's genuine lever. Rejected because the cap is a vendor feature the harness can neither
+create nor verify, and because a credential-holding daemon on a machine the model has root on is
+a credential the model can read (`SEC-6`). Bounding the damage is not the same as not creating
+the actor, and `ADR-0003` is about the actor.
+
+**Let the harness hold a background worker that acts on the tenant's behalf.** Rejected because
+it is a hosted orchestrator with extra steps, and the absence of one is the product.
+
+## Consequences
+
+**Not every project can be a tenant, and that is now sayable in advance.** A project whose value
+depends on responding to the outside world while the operator is away must either put that
+response on the machine with no off-machine credential, or accept that it is not a fit. Checking
+this early is cheaper than discovering it during a first stage.
+
+**The machine may become multi-tenant, and "locked down" has to absorb that.** If a machine sells
+slices of itself, it hosts parties the operator has never met. `ARC-17`'s deliverable and the
+per-vendor checklist behind `OPN-14` were written for a single-purpose box, and a box with hostile
+local guests is a different hardening problem. This is a real cost of the decision and it is named
+rather than discovered.
+
+**The network posture needs a tenant-shaped answer.** `SEC-T1`'s deny-everything-but-one-port is
+btc-policy's rule and binds only there, but a machine renting reachable slices needs its own
+stated posture, and "the firewall denies everything the tenant did not ask for" is not yet
+written down for any tenant but the vault.
+
+**The harness's own claim is unchanged.** It still provisions, hardens, and re-enters. What it
+does not do is stay awake, and this record makes that a property tenants design around rather
+than a gap they discover.

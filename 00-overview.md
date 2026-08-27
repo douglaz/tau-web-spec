@@ -93,6 +93,12 @@ Two are intended, and ad hoc use is a third that needs neither of them:
   operations, the daemon holds no cloud credential, and the project's existing provisioning
   scripts move into the harness as briefs and adapters.
 
+  **The operator's machine is then the capacity being sold** — the daemon rents slices of
+  the hardware it runs on, so fulfilling an order needs no cloud-plane action and no open
+  browser (`ARC-35`, [ADR-0023](./docs/adr/0023-a-tenants-runtime-obligations-belong-to-its-machines.md)).
+  That is what makes dedicated hardware the right shape for this tenant rather than merely
+  a cheap place to park a control plane.
+
 The second turns out to be load-bearing for the first rather than merely a second tenant,
 for the reason given in [`01-architecture.md`](./01-architecture.md#money).
 
@@ -232,3 +238,4 @@ an ADR is where *why* lives.
 | [0020](./docs/adr/0020-recovery-roots-in-the-vendor-account.md) | Recovery roots in the vendor account; the cloud pin is introduced by attestation |
 | [0021](./docs/adr/0021-the-surface-pentest-is-outside-in.md) | The surface pentest is outside-in, and may use a specialist model |
 | [0022](./docs/adr/0022-durable-state-is-an-append-only-journal.md) | Durable state is an append-only journal in origin-private storage |
+| [0023](./docs/adr/0023-a-tenants-runtime-obligations-belong-to-its-machines.md) | A tenant's runtime obligations belong to its machines |

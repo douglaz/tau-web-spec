@@ -37,7 +37,10 @@ staged the vault thesis — visibly different provenance, the trust panel. Under
 [ADR-0016](./0016-the-harness-isolates-and-counts-tenants-set-thresholds.md) the harness's
 own claim needs no federation, and under the tenant economics the vault is the tenant whose
 hardware this stage's dedicated server would be wrong for — while for lnrent, dedicated is
-the best value per unit of capacity. One stage, one tenant, correct hardware, a real user
+the best value per unit of capacity. (That argument only earns itself once the box **is** the
+capacity being sold, which
+[ADR-0023](./0023-a-tenants-runtime-obligations-belong-to-its-machines.md) settled; a box
+merely hosting a control plane gains nothing from being good value per unit of capacity.) One stage, one tenant, correct hardware, a real user
 at the end: an operator with a rentable box.
 
 ## Considered options

@@ -91,6 +91,19 @@ A project built on the harness, supplying its own briefs, its own software, and 
 security requirements. The harness never sets a tenant's threshold; it isolates and counts.
 _Avoid_: app, plugin, integration, use case
 
+**Runtime obligation** · `ARC-35`
+Something a tenant must do while the operator's browser is closed — answer a buyer, serve a
+peer, meet a deadline. The harness cannot meet one, so a tenant's runtime obligations are its
+**machines'**, discharged by its own software with no off-machine credential. A project with an
+obligation it cannot move onto a machine is not a fit for this harness.
+_Avoid_: background job, daemon work (both describe the mechanism rather than the duty)
+
+**Multi-tenant machine** · `ARC-36`
+A machine that serves parties the operator has never met — a rented slice, a hosted guest.
+Hardening one is a different problem from hardening a single-purpose box, and its network
+posture is the tenant's to state.
+_Avoid_: shared host, multi-user (neither carries the untrusted-guest sense)
+
 **Access model** · `ARC-27`
 A tenant's decision about whether its machines remain enterable after delivery. **Maintained**
 — the session can go back in. **Sealed** — the door is welded shut after setup by the tenant's
