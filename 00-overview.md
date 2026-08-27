@@ -239,3 +239,4 @@ an ADR is where *why* lives.
 | [0021](./docs/adr/0021-the-surface-pentest-is-outside-in.md) | The surface pentest is outside-in, and may use a specialist model |
 | [0022](./docs/adr/0022-durable-state-is-an-append-only-journal.md) | Durable state is an append-only journal in origin-private storage |
 | [0023](./docs/adr/0023-a-tenants-runtime-obligations-belong-to-its-machines.md) | A tenant's runtime obligations belong to its machines |
+| [0024](./docs/adr/0024-the-ssh-client-is-rust-following-a-known-good-configuration.md) | The SSH client is Rust, following a known-good configuration |

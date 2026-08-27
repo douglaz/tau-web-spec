@@ -13,11 +13,12 @@ that does not match MUST halt the session. Exactly one moment is exempt and it i
 contact, so that contact is trusted rather than verified and MUST be presented to the
 operator as such. No other path may accept an unverified key.
 
-**CHN-3** The mechanism is chosen, not proven. It needs an SSH client compiled to
-`wasm32-unknown-unknown` with its transport swapped for a WebSocket (`OPN-1`). The
-architecture itself is not in doubt — browser-resident SSH over a WebSocket-to-TCP bridge
-ships in production in several independent implementations — but the specific library port
-does.
+**CHN-3** The mechanism is chosen **and demonstrated elsewhere**. Browser-resident SSH over a
+WebSocket-to-TCP bridge ships in production in several independent implementations, including a
+Rust one on `wasm32-unknown-unknown` using the same UI and build stack this design specifies
+([ADR-0024](./docs/adr/0024-the-ssh-client-is-rust-following-a-known-good-configuration.md)).
+What remains is integration and one property the references skip: **host-key pinning**
+(`SEC-11`, `OPN-1`).
 
 ## The five routes to a fingerprint
 

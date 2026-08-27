@@ -9,19 +9,39 @@ probe with a multi-week spike as though they were the same size.
 
 ## Gating
 
-**OPN-1 — The SSH client spike.** An SSH implementation compiled to
-`wasm32-unknown-unknown` with its transport swapped for a WebSocket. `russh` is the realistic
-Rust candidate but is async and tokio-shaped, and its WebAssembly target is an open upstream
-item.
+**OPN-1 — The SSH client.** An SSH implementation compiled to `wasm32-unknown-unknown` with
+its transport swapped for a WebSocket. It gates, because nothing works without one.
 
-*Recalibrated.* The **architecture** is not in doubt: browser-resident SSH over a
-WebSocket-to-TCP bridge ships in production in several independent implementations, every one
-of them written in Go against `x/crypto/ssh`. So this is a library-selection risk with at
-least three routes — port the Rust candidate, use the Go path and accept a second language
-and a larger binary, or vendor an existing client — rather than a bet the plan can lose. It
-still gates, because nothing works without one.
+*Recalibrated twice, and the second time changed the answer.* This was called the item most
+likely to sink the plan. It is not, and two earlier characterisations of it were wrong:
 
-*Closes when:* an SSH session reaches a real machine from a mobile browser through a relay.
+- **"The architecture is unproven" — false.** Browser-resident SSH over a WebSocket-to-TCP
+  bridge ships in production in several independent implementations.
+- **"Every implementation is Go, so Rust means pioneering" — also false.**
+  [`Ar4l/sshmux`](https://github.com/Ar4l/sshmux) is a deployed Rust one, on
+  `wasm32-unknown-unknown`, with Leptos CSR and a Trunk build and no npm — the stack the
+  archived specification recommends, arrived at independently.
+- **The blocker cited was the wrong blocker.** russh issue #224 concerns WASI under
+  wasmtime/wasmer, a different target with different problems, and it was never about the
+  browser.
+
+The known-good configuration is published: `russh` with `default-features = false` and the
+`ring` backend, `ring` with `wasm32_unknown_unknown_js`, `ws_stream_wasm` for the socket, and
+`getrandom_backend="wasm_js"` in rustflags. The one genuine blocker is that russh's current
+default crypto backend does not support this target, which a feature flag settles
+([ADR-0024](./docs/adr/0024-the-ssh-client-is-rust-following-a-known-good-configuration.md)).
+
+**Size is settled too, and it favours Rust.** The reference deployment is ~1.5 MB raw and
+**~574 KB gzipped for the whole application** — terminal and UI included — against ~4.94 MB for
+the Go equivalent.
+
+*What actually remains:* carrying the configuration to russh's current release, and proving
+**host-key pinning**, which is the one thing the references skip — most accept any key, and the
+best of them offers a `Changed{old, new}` status that `SEC-11` and `CHN-R4` want. Estimated at
+one to three engineer-weeks to an authenticated interactive shell.
+
+*Closes when:* an SSH session reaches a real machine from a mobile browser through a relay,
+**and refuses a mismatched host key** (`CNF-21`).
 
 **OPN-2 — The relay's identity system.** What the relay must *do* is settled (`CHN-8`) and
 who runs it is decided (`CHN-11`). What stays open, and gates the second stage: the real token

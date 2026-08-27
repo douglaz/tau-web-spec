@@ -16,12 +16,14 @@ disposable dedicated server; read what `host_key` actually returns; read what th
 Linux install operation returns in the same sitting; rehearse the ceremony end to end; write
 the three briefs from the real install as you go.
 
-The reason is that the two risks are wildly mismatched. Browser-resident SSH over a
-WebSocket-to-TCP bridge ships in production in several independent implementations, so the
-item the plan called most likely to fail is a library-selection risk with fallbacks. What is
-genuinely unanswered is what Robot's rescue endpoint returns (`OPN-6`), and that costs one
-authenticated call while the whole identity chain rests on it. Spending weeks of construction
-before making that call is the wrong order.
+The reason is that the two risks are wildly mismatched, and research has widened the gap
+rather than narrowed it. The SSH client is no longer a bet: a deployed Rust implementation
+exists on the same target, with the same UI and build stack this design specifies, and its
+configuration is published
+([ADR-0024](./docs/adr/0024-the-ssh-client-is-rust-following-a-known-good-configuration.md)).
+What is genuinely unanswered is what Robot's rescue endpoint returns (`OPN-6`), and that costs
+one authenticated call while the whole identity chain rests on it. Spending weeks of
+construction before making that call is the wrong order.
 
 ## Why the install runs from inside rescue
 

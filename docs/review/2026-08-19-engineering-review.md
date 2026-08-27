@@ -39,9 +39,16 @@ and Cloud findings.
 - **Browser-resident SSH over a WebSocket-to-TCP bridge is shipping in production**, in at
   least five independent implementations, including Tailscale's SSH Console (a full
   userspace network stack and SSH client compiled to WebAssembly) and Google's WASSH in
-  Secure Shell. Every one is written in Go against `x/crypto/ssh`. The open item on the
-  Rust candidate is its WebAssembly target, which is a library-selection risk rather than
-  an architectural unknown. Verified by search, 2026-08-19.
+  Secure Shell. Verified by search, 2026-08-19.
+
+  **Two claims in this paragraph were wrong, corrected 2026-08-27 by deeper research.** It
+  said every implementation was written in Go, and that the open item on the Rust candidate
+  was its WebAssembly target. A deployed Rust implementation exists on
+  `wasm32-unknown-unknown` using this design's own recommended UI and build stack, and the
+  upstream issue cited concerned WASI rather than the browser. `OPN-1` and
+  [ADR-0024](../adr/0024-the-ssh-client-is-rust-following-a-known-good-configuration.md)
+  carry the current facts; this record is history and is corrected here only because a reader
+  would otherwise act on the error.
 - **The lnrent daemon, as implemented today, requires a DigitalOcean API token at runtime**
   (`DO_TOKEN`), and creates and destroys machines itself through recipe hooks. Only
   DigitalOcean is implemented; the README lists Hetzner and bring-your-own-host as not yet
