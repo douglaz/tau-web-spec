@@ -109,6 +109,14 @@ than on the machine itself. The disposition that keeps a credential off a box ho
 at the price of an elective trusted party.
 _Avoid_: outsourced, hosted (both suggest the harness arranged it; the operator did)
 
+**Declared surface** · `ARC-39`
+What a tenant says should be reachable on its machine. The lockdown check and the scanner
+measure what actually answers against it, so the finding is *undeclared* surface rather than
+open ports as such. It does not catch hostile use of declared surface, and a wide declaration
+buys a weak check.
+_Avoid_: allowlist, firewall rules (both name a mechanism; this is the tenant's statement of
+intent, which a mechanism then enforces)
+
 **Multi-tenant machine** · `ARC-36`
 A machine that serves parties the operator has never met — a rented slice, a hosted guest.
 Hardening one is a different problem from hardening a single-purpose box, and its network

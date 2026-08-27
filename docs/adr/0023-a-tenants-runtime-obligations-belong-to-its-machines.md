@@ -99,10 +99,10 @@ per-vendor checklist behind `OPN-14` were written for a single-purpose box, and 
 local guests is a different hardening problem. This is a real cost of the decision and it is named
 rather than discovered.
 
-**The network posture needs a tenant-shaped answer.** `SEC-T1`'s deny-everything-but-one-port is
-btc-policy's rule and binds only there, but a machine renting reachable slices needs its own
-stated posture, and "the firewall denies everything the tenant did not ask for" is not yet
-written down for any tenant but the vault.
+**The network posture needed a tenant-shaped answer, and has one.** `SEC-T1`'s
+deny-everything-but-one-port is btc-policy's rule and binds only there. `ARC-39` supplies the
+general form: the tenant declares its intended listening surface and the checks measure against
+that declaration, so undeclared surface is the finding rather than open ports as such.
 
 **The harness's own claim is unchanged.** It still provisions, hardens, and re-enters. What it
 does not do is stay awake, and this record makes that a property tenants design around rather

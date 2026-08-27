@@ -114,9 +114,13 @@ exception is decided, or the route is abandoned.
 
 **OPN-14 — What "locked down" means, per vendor.** A pentest can only assert what it checks, so
 the checklist is part of the signed brief set — and it does not exist yet for any vendor. Until
-it does, `ARC-17`'s deliverable has no definition to be measured against. Who may run which
-check is no longer open: `ARC-26` settled it. *Closes when:* a checklist exists for the first
-stage's vendor.
+it does, `ARC-17`'s deliverable has no definition to be measured against.
+
+Two parts are no longer open. Who may run which check was settled by `ARC-26`. And the *shape* of
+the surface half is settled by `ARC-39`: the tenant declares its intended listening surface and
+the check measures against it, so the checklist's job is the declaration format plus the
+non-surface items — default credentials, sshd posture, and whatever the vendor makes possible.
+*Closes when:* a checklist exists for the first stage's vendor.
 
 **OPN-15 — Reproducible builds and the watchdogs that would make them mean something.** Neither
 exists. Until they do, the bundle's integrity rests on trusting the host outright, and `TRU-A1`

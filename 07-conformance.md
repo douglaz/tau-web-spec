@@ -112,6 +112,20 @@ yet.
 - [ ] **CNF-25 · PRE-SCALE** The vendor firewall does not privilege the relay's source
       addresses (`ARC-23`), so the scanner's view equals the world's.
 
+## The deliverable — `ARC-17`, `ARC-39`
+
+- [ ] **CNF-49 · BLOCKING** The tenant's declared listening surface exists, and the delivery
+      check measures what actually answers against it. A machine with no declaration does not
+      pass, because there is nothing to measure against.
+- [ ] **CNF-50 · BLOCKING** An **undeclared** listener is reported as a finding. Verified by
+      starting one and confirming both the delivery check and a scanner run name it.
+- [ ] **CNF-51 · PRE-SCALE** A declared listener is **not** reported as a finding, so the check
+      is usable on a machine whose product is reachable ports.
+- [ ] **CNF-52 · BLOCKING** On a multi-tenant machine, no spendable key material is present
+      (`ARC-37`). Verified by searching the machine for private key material after a full
+      install; watch-only public material is expected and permitted. BLOCKING because a wallet
+      on a box hosting strangers is the escaped-secret family, and a leak outlives the incident.
+
 ## Approval and recording — `SEC-4`, `SEC-12`
 
 - [ ] **CNF-26 · BLOCKING** A typed operation naming a machine the calling session is not
@@ -176,9 +190,14 @@ Not pass/fail. Required to be recorded.
 
 ## The blocking count
 
-Twenty-four items are BLOCKING. Every one of them sits in an irreversible family, and every
+Twenty-eight items are BLOCKING. Every one of them sits in an irreversible family, and every
 one is exercisable by the first stage except `CNF-8`, which needs a coordinator and therefore
 the second.
+
+The most recent additions are `CNF-49` and `CNF-50`, which make the deliverable measurable at
+all on a machine whose product is reachable ports, and `CNF-52`, which sits in the
+escaped-secret family: a multi-tenant machine holding spendable key material is one container
+escape away from the operator's money.
 
 If that number grows without an irreversible family behind the addition, the tier has stopped
 meaning anything.

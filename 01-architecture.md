@@ -291,9 +291,26 @@ not an error.
 
 **ARC-17** A session's deliverable is a machine that is provisioned, hardened, running the
 software its tenant calls for, reachable, and **shown to be locked down** by a lightweight
-self-directed pentest — open ports, default credentials, sshd posture, exposed services
+self-directed pentest — default credentials, sshd posture, and the listening surface measured
+against `ARC-39`'s declaration
 ([ADR-0011](./docs/adr/0011-the-ai-delivers-a-locked-down-machine.md)). Hardening is a
 property the session demonstrates, not a step it reports having performed.
+
+**ARC-39** A tenant MUST declare the machine's intended **listening surface**, and the lockdown
+check and the scanner both compare what actually answers against that declaration. **The finding
+is undeclared surface**, not open ports as such.
+
+Checking against a fixed deny-everything rule only works for a machine that serves nothing.
+`SEC-T1` is that rule and it is btc-policy's, so on a machine whose product *is* reachable ports
+the old shape flags the business model. The declaration fixes both tenants with one mechanism: a
+vault node declares its one protocol port and the check is exactly as strict as it always was; a
+machine selling slices declares its slice range and its own service, and the check now finds what
+matters — a listener nobody declared. A guest who opened something outside their slice, a service
+a brief started and forgot, a debug port left behind by the install.
+
+What it does **not** find is hostile use of declared surface, and it may not be reported as
+though it did (`SEC-2`). A wide declaration buys a weak check, which is the tenant's choice to
+make and the operator's to see.
 
 **The pentest is a competence check, not an integrity check.** A model examining its own
 machine proves nothing against a malicious model. Where the tenant has a threshold it does
@@ -399,8 +416,8 @@ re-check has an inside and an outside, with different owners
 
 - **Inside** — anything needing the channel — belongs to the machine's own session and
   nobody else, because access composes.
-- **Outside** — the public surface through the relay: which ports answer, whether
-  deny-everything-but-one-port holds — is the **scanner's**: a specialist model of the
+- **Outside** — the public surface through the relay: which ports answer, and whether that
+  matches `ARC-39`'s declaration — is the **scanner's**: a specialist model of the
   operator's choosing, run after first-online and periodically, holding member addresses and
   no credential, no channel, no binding. **The model never composes probe traffic**: the
   probes are a deterministic allowlisted toolset, and the model picks targets and reads

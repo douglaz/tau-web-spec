@@ -66,6 +66,26 @@ HTTPS.
 checks, so the checklist is part of the brief set and therefore ships signed
 ([ADR-0005](./0005-briefs-ship-in-the-signed-bundle.md)).
 
+## Amended: the surface is measured against a declaration, not against deny-all
+
+"Open ports, exposed services" inherited its meaning from
+[ADR-0010](./0010-members-reach-each-other-on-one-authenticated-port.md)'s
+deny-everything-but-one-port posture, which is btc-policy's rule. That made the check
+unusable for a tenant whose product is reachable ports: every slice a rental box sells looks
+exactly like the finding the check was built to raise, so the pentest would report the
+business model forever and the operator would learn to ignore it.
+
+The operative form is `ARC-39`: the tenant **declares** the intended listening surface, and
+both the delivery check and the periodic scanner compare what answers against that
+declaration. **Undeclared surface is the finding.** A vault node declares one port and loses
+no strictness; a machine renting slices declares its range and gains a check that finds a
+guest who escaped their slice, a service a brief forgot to stop, or a debug port left by the
+install.
+
+The limit is real and is not to be smoothed over: this finds *undeclared* surface, never
+hostile use of *declared* surface. A wide declaration buys a weak check. `SEC-2` already
+forbids reporting either as verified.
+
 ## Amended: the deliverable is the tenant's software
 
 "Running the vault software" above is btc-policy's case, written before
