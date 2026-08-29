@@ -290,27 +290,40 @@ not an error.
 ## What a session delivers
 
 **ARC-17** A session's deliverable is a machine that is provisioned, hardened, running the
-software its tenant calls for, reachable, and **shown to be locked down** by a lightweight
-self-directed pentest — default credentials, sshd posture, and the listening surface measured
-against `ARC-39`'s declaration
+software its tenant calls for **in the state that tenant's declaration calls for**, reachable,
+and **shown to be locked down** by a lightweight self-directed pentest — default credentials,
+sshd posture, and everything `ARC-39`'s declaration names
 ([ADR-0011](./docs/adr/0011-the-ai-delivers-a-locked-down-machine.md)). Hardening is a
 property the session demonstrates, not a step it reports having performed.
 
-**ARC-39** A tenant MUST declare the machine's intended **listening surface**, and the lockdown
-check and the scanner both compare what actually answers against that declaration. **The finding
-is undeclared surface**, not open ports as such.
+**ARC-39** A tenant MUST supply a **delivery declaration**: a statement of what must be true of
+a finished machine. The lockdown check and the scanner measure the machine against it, and
+**the finding is a difference from the declaration**, never a property the harness assumed.
 
-Checking against a fixed deny-everything rule only works for a machine that serves nothing.
-`SEC-T1` is that rule and it is btc-policy's, so on a machine whose product *is* reachable ports
-the old shape flags the business model. The declaration fixes both tenants with one mechanism: a
-vault node declares its one protocol port and the check is exactly as strict as it always was; a
-machine selling slices declares its slice range and its own service, and the check now finds what
-matters — a listener nobody declared. A guest who opened something outside their slice, a service
-a brief started and forgot, a debug port left behind by the install.
+**The harness does not know what a finished machine looks like, and must not guess.** One tenant
+needs a service enabled and surviving every reboot, because it has to answer while the operator
+sleeps (`ARC-35`). Another needs a node that is running now and dies on the first reboot, because
+sealing is what makes its duress protection real. Both are correct, and any general rule the
+harness invented would contradict one of them. This is the same move the design already makes for
+the threshold (ADR-0016), the access model (`ARC-27`), and now everything else it needs to
+demonstrate.
 
-What it does **not** find is hostile use of declared surface, and it may not be reported as
-though it did (`SEC-2`). A wide declaration buys a weak check, which is the tenant's choice to
-make and the operator's to see.
+A declaration covers at least:
+
+- **The listening surface.** What should answer, so that *undeclared* surface is the finding
+  rather than open ports as such. Checking against a fixed deny-everything rule only works for a
+  machine that serves nothing; `SEC-T1` is that rule and it is btc-policy's. A vault node declares
+  its one protocol port and loses no strictness; a machine selling slices declares its range and
+  gains a check that finds a guest who escaped their slice, a service a brief started and forgot,
+  or a debug port left by the install.
+- **Service lifecycle.** Whether the tenant's software must merely be running at delivery, or be
+  enabled and survive a restart. The harness has no opinion; it demonstrates whichever was
+  declared.
+
+**What the check does not find** is hostile use of *declared* surface, or a machine that satisfies
+a declaration which is itself wrong. A vague or wide declaration buys a weak check. That is the
+tenant's choice to make and the operator's to see, and it may not be reported as more than it is
+(`SEC-2`).
 
 **The pentest is a competence check, not an integrity check.** A model examining its own
 machine proves nothing against a malicious model. Where the tenant has a threshold it does

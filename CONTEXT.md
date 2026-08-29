@@ -109,13 +109,15 @@ than on the machine itself. The disposition that keeps a credential off a box ho
 at the price of an elective trusted party.
 _Avoid_: outsourced, hosted (both suggest the harness arranged it; the operator did)
 
-**Declared surface** · `ARC-39`
-What a tenant says should be reachable on its machine. The lockdown check and the scanner
-measure what actually answers against it, so the finding is *undeclared* surface rather than
-open ports as such. It does not catch hostile use of declared surface, and a wide declaration
-buys a weak check.
+**Delivery declaration** · `ARC-39`
+A tenant's statement of what must be true of a finished machine — its listening surface, its
+service lifecycle, whatever else it needs demonstrated. The harness measures against it rather
+than assuming, because tenants disagree: one needs a service enabled and surviving reboot,
+another needs a node that dies on reboot by design. A difference from the declaration is the
+finding. It does not catch hostile use of declared surface, nor a declaration that is itself
+wrong, and a vague one buys a weak check.
 _Avoid_: allowlist, firewall rules (both name a mechanism; this is the tenant's statement of
-intent, which a mechanism then enforces)
+intent, which a mechanism then enforces), spec (too broad)
 
 **Multi-tenant machine** · `ARC-36`
 A machine that serves parties the operator has never met — a rented slice, a hosted guest.

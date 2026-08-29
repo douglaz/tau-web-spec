@@ -97,11 +97,12 @@ browser** (`ARC-25`), and a mismatch halts the install.
 **STG-7** The machine ends **locked down and demonstrated**: the deliverable of `ARC-17`,
 with the tenant's daemon running.
 
-**STG-8 The tenant does something, not merely runs.** A daemon that starts and publishes
-nothing demonstrates the installer, not the tenant. This predicate requires a real tenant
-outcome — a published listing, and at least one order accepted and delivered — **or** an
-explicit, recorded statement of why that is out of scope for this stage and which stage
-carries it. "Running and reachable" alone does not discharge it.
+*`STG-8` retired.* It required a real tenant outcome — a published listing and a delivered
+order — or a written statement of why not. Both halves were wrong. The first tested **lnrent**
+rather than tau-web, which is the boundary ADR-0016 exists to draw. The second was an opt-out,
+making it the only criterion here an essay could satisfy. What the harness owes is covered by
+`STG-7` against `ARC-17`, and that a declaration exists at all is `CNF-49`. Identifiers are not
+positional, so nothing renumbers.
 
 **STG-9** The machine is **maintained**, and the story is exercised: at least one later
 session re-enters over the same pinned channel and re-runs the check.

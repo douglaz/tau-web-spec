@@ -79,7 +79,8 @@ run; it gates construction, not documentation.
 - [x] **T17 — Memory measurement.** `STG-15` and `CNF-45` require peak memory of one session
       during a full install on both browsers, with the five-session projection.
 - [x] **T18 — First-stage record corrected.** `STG-3` states why rescue is required; `STG-19`
-      narrows the subsetting claim to what dedicated rescue actually covers; `STG-8` raises the
-      tenant predicate above running-and-reachable.
+      narrows the subsetting claim to what dedicated rescue actually covers. *(`STG-8` raised
+      the tenant predicate above running-and-reachable, then was retired: it tested lnrent
+      rather than tau-web. `ARC-39`'s delivery declaration carries the harness's half.)*
 - [x] **T20 — What the first stage does not test.** `STG-18`: acquisition, relay enrolment,
       inference funding, and a phone-only operator getting started at all.

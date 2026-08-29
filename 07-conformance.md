@@ -114,13 +114,17 @@ yet.
 
 ## The deliverable — `ARC-17`, `ARC-39`
 
-- [ ] **CNF-49 · BLOCKING** The tenant's declared listening surface exists, and the delivery
-      check measures what actually answers against it. A machine with no declaration does not
-      pass, because there is nothing to measure against.
+- [ ] **CNF-49 · BLOCKING** The tenant's delivery declaration exists, and the delivery check
+      measures the machine against it. A machine with no declaration does not pass, because
+      there is nothing to measure against.
 - [ ] **CNF-50 · BLOCKING** An **undeclared** listener is reported as a finding. Verified by
       starting one and confirming both the delivery check and a scanner run name it.
 - [ ] **CNF-51 · PRE-SCALE** A declared listener is **not** reported as a finding, so the check
       is usable on a machine whose product is reachable ports.
+- [ ] **CNF-53 · PRE-SCALE** The declared **service lifecycle** is demonstrated as declared, and
+      the harness asserts nothing beyond it. A tenant declaring a service enabled and
+      restart-surviving has that verified; a tenant declaring a deliberately non-durable node
+      is not failed for it.
 - [ ] **CNF-52 · BLOCKING** On a multi-tenant machine, no spendable key material is present
       (`ARC-37`). Verified by searching the machine for private key material after a full
       install; watch-only public material is expected and permitted. BLOCKING because a wallet

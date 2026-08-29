@@ -75,12 +75,16 @@ unusable for a tenant whose product is reachable ports: every slice a rental box
 exactly like the finding the check was built to raise, so the pentest would report the
 business model forever and the operator would learn to ignore it.
 
-The operative form is `ARC-39`: the tenant **declares** the intended listening surface, and
-both the delivery check and the periodic scanner compare what answers against that
-declaration. **Undeclared surface is the finding.** A vault node declares one port and loses
-no strictness; a machine renting slices declares its range and gains a check that finds a
-guest who escaped their slice, a service a brief forgot to stop, or a debug port left by the
-install.
+The operative form is `ARC-39`: the tenant supplies a **delivery declaration** — what must be
+true of a finished machine — and both the delivery check and the periodic scanner measure
+against it. **A difference from the declaration is the finding**, never a property the harness
+assumed.
+
+The listening surface is one part of that declaration and the reason it was written, but not
+the whole of it. Service lifecycle is another, and it shows why the harness must not
+generalise: a rental box needs its daemon enabled and surviving reboot, while a sealed vault
+node is deliberately non-durable — reboot is death, by its tenant's own design. A harness rule
+requiring durability would have contradicted a documented tenant fact.
 
 The limit is real and is not to be smoothed over: this finds *undeclared* surface, never
 hostile use of *declared* surface. A wide declaration buys a weak check. `SEC-2` already
