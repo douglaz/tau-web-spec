@@ -69,8 +69,7 @@ a returning session can converge on rather than reconstruct.
 
 For a *long-running* remote command — a build, a disk write — convergence is not enough on its
 own, because the returning session cannot cheaply tell "still running" from "died halfway."
-That needs a durable remote job record with an authoritative status, and it is recorded as an
-open question rather than designed here.
+The amendment below closes that.
 
 **Recording becomes cheap enough to be mandatory.** Box-plane execution is command-granular
 rather than a byte stream, so the durable write happens once per command rather than once per
@@ -86,3 +85,53 @@ must not drift, which is why each now points at the other rather than restating 
 keys, the relay token, the host-key pins and the exposure ledger persist here because ongoing
 operation cannot survive a restart without them. The credential inventory names them with
 their lifetimes; this record says where they physically live.
+
+## Amended: the machine keeps its own record, and it is advisory
+
+The consequence above left one thing open — the returning session cannot tell a still-running
+command from a dead one — and named a durable remote job record as the answer without designing
+it. `STA-20` and `STA-21` now do.
+
+**Every box-plane command is a job, uniformly.** The machine writes, to persistent disk, the
+command **as received**, its output, its exit code once it has one, and enough to tell whether
+the process is alive. On reconnect the session reads that instead of guessing.
+
+Uniformity is the point rather than an excess. The alternative is marking which commands are
+long, and nobody can predict that — a package install is seconds most days and minutes when a
+mirror struggles — so the mispredicted command is exactly the one that outlives its session.
+Removing the prediction removes the failure, and `ARC-7`'s round trip per command already
+dominates the cost.
+
+**Recording the command, not only the result, buys a cross-check nobody asked for.** The browser
+journal holds what was sent, written before transmission; the machine holds what it received.
+Comparing them catches truncation, quoting damage and mangled multi-line input. It catches
+nothing against a hostile machine, which writes whatever it likes, so it stands where the
+deterministic verifier stands and is reported as no more than that.
+
+### Considered options
+
+**A terminal multiplexer as the substrate.** The obvious tool for surviving a disconnect, and it
+does that well — plus a developer can attach mid-install and watch, which is genuinely useful
+during a by-hand rehearsal. Rejected as the *record* for two reasons that are decisive here. It
+dies with the machine, taking every session and all scrollback, so after a reboot a returning
+session learns nothing at all — and this design's own first stage crosses a reboot, from rescue
+into the installed system. And it returns rendered scrollback rather than bytes: escape
+sequences, hard-wrapped lines, and a bounded history that silently drops the start of long
+output, which is a poor foundation for a transcript meant to reconcile against what was sent.
+Exit status is also second-class there, needing `remain-on-exit` and pane polling rather than
+`echo $?`.
+
+**Hosting the wrapper inside a multiplexer is not the same choice, and is permitted.** The files
+remain the record; the multiplexer only adds a live view. The two compose, and framing them as
+alternatives was a mistake.
+
+**A service-manager unit** — `systemd-run` with its status and journal capture — is the nicest
+answer available, on one of the two declared distributions. The other uses a different init
+system entirely, so adopting it would generalise from one distribution's shape. `setsid` plus a
+file behaves identically on both.
+
+**Convergence alone, closing the question as unnecessary.** Tempting because a declarative
+distribution makes re-running cheap and its build lock makes a concurrent second run fail
+cleanly rather than corrupt. Rejected because the other declared distribution has no equivalent
+lock, so this too would generalise from one shape — and a still-running command re-run
+concurrently is the corruption case the whole question exists for.

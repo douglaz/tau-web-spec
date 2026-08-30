@@ -160,11 +160,13 @@ have to be answered rather than ignored — the same bundle, with `SEC-13` rewri
 undefended-bundle risk repriced from misconfiguring machines to spending funds, or a tenant of
 its own. None is chosen. Whoever builds it settles this first.
 
-**OPN-18 — A durable remote job record.** The journal knows which commands were transmitted; it
-cannot know which completed after the worker died (`STA-9`). Convergence answers this for short
-commands. For a long-running one, an authoritative status a reconnecting session can query is
-what closes the gap. *Closes when:* `CNF-40` passes, or the design records that convergence
-alone is sufficient and why.
+**OPN-18 — A durable remote job record.** *Closed by design; open only as implementation.*
+`STA-20` makes every box-plane command a job whose record holds the command as received, its
+output, its exit code and its liveness, on persistent disk. `STA-21` states the limit: the record
+is machine-reported and advisory, and comparing it against the browser journal catches honest
+mistakes rather than a hostile machine.
+[ADR-0022](./docs/adr/0022-durable-state-is-an-append-only-journal.md)'s amendment carries the
+reasoning and the three rejected alternatives. *Closes when:* `CNF-40` passes.
 
 **OPN-19 — Transcript retention.** A maintained machine accumulates command records for its
 whole life in an encrypted store on a phone, and nothing states when they compact or expire.

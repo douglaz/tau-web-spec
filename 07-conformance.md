@@ -167,8 +167,17 @@ yet.
 - [ ] **CNF-39 · PRE-SCALE** After a killed worker, replay classifies incomplete calls, cancels
       those that cannot still exist, and surfaces uncertain ones without resuming them
       (`STA-7`).
-- [ ] **CNF-40 · DEFERRED** A long-running remote command's completion is determined from a
-      durable remote job record rather than inferred (`STA-9`, `OPN-18`).
+- [ ] **CNF-40 · BLOCKING** A command still running when the session dropped is **not**
+      re-run on reconnect. Verified by starting a long command, killing the session, and
+      confirming the returning session waits on the job record rather than launching a second
+      one (`STA-20`). This is the corruption case, which is why it blocks.
+- [ ] **CNF-54 · PRE-SCALE** A completed command's exit code and output are read from the job
+      record after a session drop, not inferred from machine state.
+- [ ] **CNF-55 · PRE-SCALE** A job record survives a reboot, and its absence of a live process
+      is read as "died" rather than as ambiguous.
+- [ ] **CNF-56 · PRE-SCALE** The command recorded by the machine matches the command the
+      browser journal recorded before sending. A mismatch is surfaced as a finding, and is
+      never described as verification (`STA-21`).
 
 ## Trust display — `SEC-9`, `SEC-10`
 
@@ -194,14 +203,15 @@ Not pass/fail. Required to be recorded.
 
 ## The blocking count
 
-Twenty-eight items are BLOCKING. Every one of them sits in an irreversible family, and every
+Twenty-nine items are BLOCKING. Every one of them sits in an irreversible family, and every
 one is exercisable by the first stage except `CNF-8`, which needs a coordinator and therefore
 the second.
 
-The most recent additions are `CNF-49` and `CNF-50`, which make the deliverable measurable at
-all on a machine whose product is reachable ports, and `CNF-52`, which sits in the
-escaped-secret family: a multi-tenant machine holding spendable key material is one container
-escape away from the operator's money.
+Recent additions: `CNF-49` and `CNF-50` make the deliverable measurable at all on a machine
+whose product is reachable ports. `CNF-52` sits in the escaped-secret family, since a
+multi-tenant machine holding spendable key material is one container escape away from the
+operator's money. `CNF-40` sits in destroyed-data: re-running a command that is still running
+is the corruption case `STA-20` exists to prevent.
 
 If that number grows without an irreversible family behind the addition, the tier has stopped
 meaning anything.

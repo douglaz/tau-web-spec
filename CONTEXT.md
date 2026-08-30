@@ -109,6 +109,13 @@ than on the machine itself. The disposition that keeps a credential off a box ho
 at the price of an elective trusted party.
 _Avoid_: outsourced, hosted (both suggest the harness arranged it; the operator did)
 
+**Job record** · `STA-20`, `STA-21`
+What the machine keeps about one box-plane command: the command **as received**, its output, its
+exit code, and whether the process is still alive. Read on reconnect instead of guessing whether
+a command finished. Machine-reported and advisory — the browser journal stays authoritative for
+what was *sent*, and comparing the two catches honest mistakes, never a hostile machine.
+_Avoid_: log, transcript (the transcript is the browser's, and authoritative)
+
 **Delivery declaration** · `ARC-39`
 A tenant's statement of what must be true of a finished machine — its listening surface, its
 service lifecycle, whatever else it needs demonstrated. The harness measures against it rather

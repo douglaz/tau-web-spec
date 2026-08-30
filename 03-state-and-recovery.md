@@ -42,11 +42,36 @@ query is permitted and required where a tool supports one; doing it *again* is n
 **STA-9 The journal records what was sent, not what the machine did with it.** This is the
 honest limit of `STA-2` across the channel. A phone that locks mid-install kills the worker
 and the SSH session with it; on reconnect the journal knows exactly which commands were
-transmitted and nothing about which completed. Convergence (`ARC-10`) is the answer for
-short commands. For a long-running one — a build, a disk write — a **durable remote job
-record** with an authoritative status a reconnecting session can query is what closes the
-gap, and `OPN-18` tracks it. A declarative distribution (`ARC-24`) narrows the problem
-substantially without removing it.
+transmitted and nothing about which completed. Four outcomes are indistinguishable from the
+journal alone: never arrived, started and died with the session, **still running**, or finished
+with the output lost. Re-running is safe for three of them and is the corruption case for the
+third.
+
+**STA-20 Every box-plane command runs as a durable job**, and the machine keeps a record of it
+on persistent disk holding: the **command as received**, its output, its exit code once it has
+one, and enough to tell whether it is still alive. On reconnect the session reads that record
+rather than guessing — exit code present means finished, process alive means wait, neither
+means it died and `ARC-10`'s convergence applies.
+
+*Uniformly, rather than only for commands somebody marked long.* Nobody can reliably predict
+which command is slow — a package install is ten seconds most days and ten minutes when a
+mirror is struggling — and the mispredicted one is precisely the command that outlives its
+session. Removing the prediction removes the failure. `ARC-7` already pays a round trip per
+command, so the marginal cost is small against latency already being spent.
+
+The mechanism is POSIX and holds no init-system opinion, because `ARC-24` declares two
+distributions with different init systems and anything specific to one would be false on the
+other. **Jobs may be hosted inside a terminal multiplexer** so a human can attach and watch a
+long install — useful during `STG-2`'s by-hand rehearsal — but that is an observation
+convenience and never the record. The multiplexer dies with the machine; the files do not, and
+after a reboot their absence correctly reads as "died".
+
+**STA-21 The job record is machine-reported and advisory.** The browser journal is authoritative
+for what was **sent** (`STA-3`, `ARC-8`); the machine's record says what it **received** and what
+happened next. Comparing the two catches truncation, quoting damage and a mangled multi-line
+command — the honest-mistake class, and a real one. It catches nothing against a machine that
+lies, because such a machine writes whatever it likes. This stands exactly where the
+deterministic verifier stands and MUST NOT be reported as more (`SEC-2`).
 
 ## The exposure ledger
 

@@ -4,8 +4,9 @@ Work arising from the [engineering review of 2026-08-19](docs/review/2026-08-19-
 which reviewed the corpus at `726ad44`. Each task names the finding it came from, so nobody
 has to reopen the review to know why it exists.
 
-**Everything except T1 has been applied.** T1 needs real hardware and is the operator's to
-run; it gates construction, not documentation.
+**Everything except T1 has been applied**, plus further decisions from the grilling sessions
+that followed. T1 needs real hardware and is the operator's to run; it gates construction, not
+documentation.
 
 ## Open
 
@@ -19,16 +20,6 @@ run; it gates construction, not documentation.
       one authenticated call and the whole identity chain rests on it.
       *Verify:* `CNF-48` recorded. `OPN-6` closes, or `CHN-R1` is refuted and the first stage
       is reconsidered.
-
-- [ ] **T19 — Design the durable remote job record.** *(partially applied)*
-      The requirement is stated (`STA-9`), a conformance item exists (`CNF-40`, deferred tier),
-      and the gap is tracked (`OPN-18`). What is **not** done is the mechanism: how a
-      long-running remote command gets an identity and an authoritative status a reconnecting
-      session can query.
-      *Why:* the journal knows which commands were sent, not which finished after the worker
-      died. Convergence answers this for short commands only.
-      *Verify:* `CNF-40` becomes testable, or `OPN-18` records that convergence alone suffices
-      and why.
 
 ## Applied
 
@@ -48,7 +39,7 @@ run; it gates construction, not documentation.
       `STA`/`SEC`/`TRU`/`STG`/`CNF`/`OPN`. `spec.md` is retired; every cross-reference goes by
       identifier. The glossary is definitions only; the summary carries no counts.
 - [x] **T7 — Tiered conformance checklist.** `07-conformance.md`, with the tiering rule and
-      twenty-four BLOCKING items. The six new ones are `CNF-6`, `CNF-11`, `CNF-16`, `CNF-26`,
+      twenty-nine BLOCKING items at the time of writing. The six new ones were `CNF-6`, `CNF-11`, `CNF-16`, `CNF-26`,
       `CNF-34`, `CNF-37`.
 - [x] **T8 — Distributions named, artifact source pinned.** `ARC-24` states Alpine and NixOS
       and why they force custom installation; `ARC-25` pins the source by content hash;
@@ -82,5 +73,14 @@ run; it gates construction, not documentation.
       narrows the subsetting claim to what dedicated rescue actually covers. *(`STG-8` raised
       the tenant predicate above running-and-reachable, then was retired: it tested lnrent
       rather than tau-web. `ARC-39`'s delivery declaration carries the harness's half.)*
+- [x] **T19 — The durable remote job record.** Designed. `STA-20` makes every box-plane
+      command a job recording the command as received, its output, its exit code and its
+      liveness, on persistent disk, POSIX-only so both declared distributions behave the same.
+      `STA-21` states that it is machine-reported and advisory, and that comparing it against
+      the browser journal catches honest mistakes rather than a hostile machine.
+      [ADR-0022](docs/adr/0022-durable-state-is-an-append-only-journal.md)'s amendment carries
+      the reasoning and rejects three alternatives: a terminal multiplexer as the record, a
+      service-manager unit, and convergence alone. `CNF-40` moves to BLOCKING; `CNF-54` to
+      `CNF-56` cover the rest. `OPN-18` closes on implementation.
 - [x] **T20 — What the first stage does not test.** `STG-18`: acquisition, relay enrolment,
       inference funding, and a phone-only operator getting started at all.
