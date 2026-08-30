@@ -160,6 +160,13 @@ secret, through a relay drop-box, back to the browser.
 _Avoid_: remote attestation, TPM attestation (the hardware senses; "attestation" for route 5
 itself is fine)
 
+**Relay pass** · `CHN-15`, `CHN-16`
+What buys access to the relay. Obtained by paying an invoice, not by holding an account: an
+opaque random string against which the relay records the destinations it may reach and when it
+expires. There is no identity behind it and no recovery flow — a lost pass is re-bought.
+_Avoid_: token (the first stage's hand-issued one was a token; this is bought), subscription,
+API key (both imply an account behind them)
+
 **Drop-box** · `CHN-4`
 A one-time buffer the browser opens at the relay before creating a machine, so a first-boot
 machine has somewhere to post. The relay buffers; it cannot verify what it holds.

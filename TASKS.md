@@ -39,7 +39,7 @@ documentation.
       `STA`/`SEC`/`TRU`/`STG`/`CNF`/`OPN`. `spec.md` is retired; every cross-reference goes by
       identifier. The glossary is definitions only; the summary carries no counts.
 - [x] **T7 — Tiered conformance checklist.** `07-conformance.md`, with the tiering rule and
-      twenty-nine BLOCKING items at the time of writing. The six new ones were `CNF-6`, `CNF-11`, `CNF-16`, `CNF-26`,
+      a tiered BLOCKING set whose additions must each name an irreversible family. The six new ones were `CNF-6`, `CNF-11`, `CNF-16`, `CNF-26`,
       `CNF-34`, `CNF-37`.
 - [x] **T8 — Distributions named, artifact source pinned.** `ARC-24` states Alpine and NixOS
       and why they force custom installation; `ARC-25` pins the source by content hash;

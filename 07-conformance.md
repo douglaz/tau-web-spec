@@ -130,6 +130,19 @@ yet.
       install; watch-only public material is expected and permitted. BLOCKING because a wallet
       on a box hosting strangers is the escaped-secret family, and a leak outlives the incident.
 
+## Relay access — `CHN-15`, `CHN-16`
+
+- [ ] **CNF-57 · BLOCKING** An unpaid caller is refused. The relay is not usable without a
+      valid, unexpired pass. Verified by connecting with none, with an expired one, and with a
+      revoked one.
+- [ ] **CNF-58 · BLOCKING** A pass reaches only the destinations recorded against it, and only
+      on the SSH port. Verified by attempting an undeclared destination and a different port.
+- [ ] **CNF-59 · PRE-SCALE** Obtaining a pass requires no account, no email address and no
+      identifier the operator supplies. Verified by buying one end to end without contacting
+      the publisher.
+- [ ] **CNF-60 · PRE-SCALE** A revoked pass stops working immediately, including on a
+      connection already open (`STA-17`).
+
 ## Approval and recording — `SEC-4`, `SEC-12`
 
 - [ ] **CNF-26 · BLOCKING** A typed operation naming a machine the calling session is not
@@ -201,17 +214,20 @@ Not pass/fail. Required to be recorded.
 - [ ] **CNF-48** What Robot's rescue `host_key` field actually returns, and what the automatic
       Linux install operation returns (`OPN-6`, `STG-2`).
 
-## The blocking count
+## The blocking tier
 
-Twenty-nine items are BLOCKING. Every one of them sits in an irreversible family, and every
-one is exercisable by the first stage except `CNF-8`, which needs a coordinator and therefore
-the second.
+Every BLOCKING item sits in one of the irreversible families named above, and every one is
+exercisable by the first stage except `CNF-8`, which needs a coordinator and therefore the
+second.
 
-Recent additions: `CNF-49` and `CNF-50` make the deliverable measurable at all on a machine
-whose product is reachable ports. `CNF-52` sits in the escaped-secret family, since a
-multi-tenant machine holding spendable key material is one container escape away from the
-operator's money. `CNF-40` sits in destroyed-data: re-running a command that is still running
-is the corruption case `STA-20` exists to prevent.
+**No count is written here on purpose.** It went stale three times in a week, which is exactly
+the drift the identifier scheme exists to prevent — a number restated in prose is a fact with
+no owner. `grep -c '· BLOCKING'` is authoritative.
 
-If that number grows without an irreversible family behind the addition, the tier has stopped
-meaning anything.
+What matters is the rule, not the total: **an addition to this tier must name the irreversible
+family behind it.** `CNF-52` is escaped-secret — a multi-tenant machine holding spendable key
+material is one container escape from the operator's money. `CNF-40` is destroyed-data —
+re-running a command that is still running is the corruption case `STA-20` exists to prevent.
+`CNF-57` and `CNF-58` are boundary-crossed: an unpaid caller or an undeclared destination turns
+the relay into the open proxy `CHN-8` forbids. If an item cannot name its family, it is
+PRE-SCALE and the tier still means something.

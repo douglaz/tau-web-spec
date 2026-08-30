@@ -179,6 +179,28 @@ the operator's own maintained machine once one exists.
 `CHN-R4` it is not**: at first contact there is nothing to check the key against, so a
 hostile relay can present its own, have it pinned, and read the session from then on.
 
+**CHN-15** Relay access is **bought, not granted**
+([ADR-0025](./docs/adr/0025-relay-access-is-bought-not-granted.md)). The relay answers an
+unauthenticated request with `402` and an invoice over ordinary HTTPS; the operator's own wallet
+pays it (`ARC-30`, `SEC-13`); the relay observes its own invoice settle and issues an **opaque
+random pass**. Against that pass it records the destinations it may reach and when it expires.
+The pass is presented when the WebSocket opens.
+
+**No account, and therefore no identity party.** That is the point: an account system is a party
+that knows every operator and can deny them service, which `SEC-10` prices as a schema
+migration. Losing a pass is not a recovery problem — the operator buys another, which is why
+`STA-14` can list it among what dies with the phone without needing a restoration path.
+
+**CHN-16** A pass's **destination record is the authorization**, not a separate system. A pass
+is bought before the machines exist, so its destination list grows as the operator creates them
+— which is the moment the relay learns topology, already priced at `CHN-13`.
+
+Payment alone does not satisfy `CHN-8`: a relay forwarding wherever it is told is a paid proxy
+rather than an open one. What makes it defensible is the combination — forward only to the SSH
+port, only to destinations recorded against that pass, capped in number, rate limited, and
+revocable the moment abuse is seen. Payment raises the cost of abuse and makes revocation
+meaningful; the destination record does the narrowing.
+
 **CHN-12** The **tunneled fallback for untyped calls is designed and unpriced, and MUST NOT
 be presented as settled routing.** TLS terminating in the browser requires a TLS client
 inside WebAssembly, and browsers do not expose their root certificate store to it. Such a

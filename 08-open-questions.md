@@ -43,14 +43,19 @@ one to three engineer-weeks to an authenticated interactive shell.
 *Closes when:* an SSH session reaches a real machine from a mobile browser through a relay,
 **and refuses a mismatched host key** (`CNF-21`).
 
-**OPN-2 — The relay's identity system.** What the relay must *do* is settled (`CHN-8`) and
-who runs it is decided (`CHN-11`). What stays open, and gates the second stage: the real token
-system — issuer, identity model, first issuance, scoping and lifetime, and reacquisition after
-browser storage is lost. Done carelessly that adds an identity party to the trusted list, which
-is why it was deliberately not decided in passing.
+**OPN-2 — The relay's access system.** *Closed by design; open only as implementation.* There is
+no identity model, because there is no identity: access is **bought** (`CHN-15`,
+[ADR-0025](./docs/adr/0025-relay-access-is-bought-not-granted.md)). Issuance is a payment,
+scoping and lifetime are the destination record `CHN-16` describes, and reacquisition is another
+purchase rather than a recovery flow.
 
-*Closes when:* a new operator can obtain a relay token without the publisher hand-issuing one,
-and the trusted-party list is unchanged by how.
+That satisfies the closure criterion this question was written with: a new operator obtains
+access without the publisher hand-issuing anything, and the trusted-party list is unchanged,
+since the publisher was already there as the relay's operator (`TRU-A2`) and being paid adds
+nobody.
+
+*Closes when:* an operator who has never contacted the publisher buys a pass and reaches a
+machine with it.
 
 **OPN-3 — The recovery machinery is designed and unproven.** The design is recorded across
 `03-state-and-recovery.md` and `CHN-R5`. What stays open is empirical: the attest hook has to

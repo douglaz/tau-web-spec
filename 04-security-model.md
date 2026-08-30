@@ -134,7 +134,7 @@ outgrown, because adding a credential means adding a row.
 | 1 | Vendor API credential | Operator | Browser memory only | One session | Full account authority at that vendor | Session ends |
 | 2 | Inference key | Operator (BYO) or publisher (procured) | Browser memory only | One session | Inference spend | Session ends |
 | 3 | **SSH client private key, one per machine** | Harness-generated | Encrypted at rest; exported in the sheet | Machine lifetime | Login to **that one machine** | Removed from the machine on Replace (`STA-17`) |
-| 4 | Relay token | Issued out of band, pasted | Encrypted at rest | Until re-issued | Use of the relay | Revoked and re-issued on Replace |
+| 4 | **Relay pass** | Bought (`CHN-15`); pasted out of band in the first stage | Encrypted at rest | Until it expires or is re-issued | Reaching the destinations recorded against it, on the SSH port | Expires; revoked and re-issued on Replace; lost passes are re-bought, not recovered |
 | 5 | Host-key pins | Vendor API, rescue, or attest | Encrypted at rest; exported in the sheet | Machine lifetime | Nothing — integrity reference | Machine destroyed |
 | 6 | Exposure ledger | Harness-derived | Encrypted at rest; exported in the sheet | Machine lifetime | Nothing — record | Machine destroyed |
 | 7 | Attest voucher (MAC secret) | Harness-generated | Boot user-data, once | Until first valid stamp, or expiry | **One** host-key introduction | Scrubbed at first boot (`CHN-6`); secret discarded by the browser |

@@ -112,7 +112,7 @@ processes, and it is the one party that always knows which machines exist.
 | Host-key pins | The vendor login |
 | The SSH client private keys | The inference account |
 | The machine inventory | The app URL |
-| The relay token | A relay token re-issued out of band |
+| The relay pass | A relay pass, **re-bought** rather than recovered (`CHN-15`) |
 | Action transcripts | The recovery sheet, **if exported** |
 | Provenance records | |
 | The exposure ledger | |
