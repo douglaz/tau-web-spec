@@ -34,7 +34,7 @@ flowchart TD
     R2 --> R2D["☠️ DEAD, verified<br/>rescue returns an action and a<br/>root password. No host key"]
     R2D --> R5["CHN-R5 — attest<br/>one-time MAC secret in user-data;<br/>machine stamps and introduces<br/>its own key via a drop-box<br/>🔶 designed, unproven — OPN-3"]
     R5 -->|"if the post never arrives"| FB["Recorded fallback:<br/>recreate, or keyed rescue<br/>with the leap of faith displayed"]
-    R5 -.->|"was the only hope before attest"| R3["CHN-R3 — inject<br/>private host key rides in user-data<br/>🚫 BLOCKED behind OPN-13"]
+    R5 -.->|"was the only hope before attest"| R3["CHN-R3 — inject<br/>private host key rides in user-data,<br/>re-fetchable from metadata forever<br/>🚫 ABANDONED"]
     FB --> R4["CHN-R4 — trust on first use<br/>+ continuity. The floor.<br/>⚠️ violates OVR-4 at first contact"]
     classDef live fill:#e8f5e9,stroke:#4a7c59
     classDef dead fill:#ffebee,stroke:#a54a4a
@@ -68,17 +68,31 @@ for identity is not.
 **CHN-R2 — retrieve, cloud VPS. Dead, and verified dead.** Hetzner Cloud's rescue action
 returns an action and a root password and no host key, checked against the API client. The
 cloud path's identity problem belongs to the second stage; `CHN-R5` is designed for exactly
-it, with `CHN-R3` and `CHN-R4` behind it.
+it, with `CHN-R4` behind it as the floor and `CHN-R3` abandoned.
 
-**CHN-R3 — inject.** The browser generates the host keypair and writes it into `/etc/ssh/`
-through cloud-init. No retrieval endpoint is needed at any vendor and the browser knows the
-fingerprint because it made the key. The cost is that the *private* host key rides in
-user-data, which the vendor stores. **This route MUST NOT be used until `OPN-13` resolves**,
-and the only resolution is a narrow, named exception in the credential inventory for the
-injected server host key specifically. Widening it to "vendor and inference credentials"
-would strip the same protection from the SSH client keys and the relay token, opening a
-larger hole than it closes. Scrubbing and rotating after first boot is a mitigation, not a
-resolution.
+**CHN-R3 — inject. Abandoned.** The browser generates the host keypair and writes it into
+`/etc/ssh/` through cloud-init. No retrieval endpoint is needed at any vendor and the browser
+knows the fingerprint because it made the key. **This route MUST NOT be used.**
+
+The recorded objection was that the *private* host key rides in user-data, which the vendor
+stores, contradicting the credential inventory. The objection that actually ends it is worse
+and was missed: **boot-time user-data is served back to the machine by the vendor's metadata
+endpoint for the life of the instance.** Anything running on that machine can re-fetch the host
+private key at any time and impersonate the machine — passing the fingerprint check, because it
+is genuinely the pinned key. The proposed mitigation cannot reach it: scrubbing deletes
+cloud-init's cached copy on disk and the endpoint goes on serving the original.
+
+`ARC-36` sharpens it. A machine renting slices hosts parties the operator has never met, and a
+guest querying the metadata endpoint obtains a permanent impersonation credential for the box it
+is a guest on.
+
+**The contrast with `CHN-R5` is the whole reason one survives and the other does not.** Attest
+puts a *short-lived* credential in a permanently-readable place; injection puts a *permanent*
+one there. A voucher that expires and is single-use is worthless to a later reader. A host
+private key never expires.
+
+Attest covers the same vendors — anywhere with boot-time user-data — so nothing is lost but the
+route.
 
 **CHN-R5 — attest.** At creation, the browser generates a one-time MAC secret and places it
 in user-data beside the client public key. A first-boot hook computes an HMAC of the
@@ -143,6 +157,14 @@ deadline passes, and MUST scrub the voucher on whichever comes first, with the d
 inside the voucher's expiry. Networking at first boot is exactly when routing and DNS are
 least settled; a single-shot post followed by an irreversible scrub converts a transient
 blip into a destroyed machine, on the one route that has no alternative.
+
+**The scrub is defence in depth, and MUST NOT be described as the bound.** It removes
+cloud-init's cached copy from disk; the vendor's metadata endpoint goes on serving the original
+user-data for the life of the instance, so the voucher and the drop-box URL stay re-fetchable by
+anything on the machine. **What actually bounds the exposure is `CHN-7`: the voucher expires and
+is single-use**, so a later reader finds it consumed. The realistic window is the minutes before
+any tenant software exists. A machine that blocks its own metadata endpoint after first boot
+closes the rest, and that is a hardening step to declare (`ARC-39`) rather than assume.
 
 **CHN-7** The attest voucher is a **short-lived introduction credential**, not a
 non-credential. Possession of the voucher and the drop-box lets an actor stamp an

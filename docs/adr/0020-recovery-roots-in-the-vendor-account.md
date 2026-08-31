@@ -28,9 +28,9 @@ Unlike route 3, **no private key leaves the browser and none rides in user-data.
 
 **It authorizes an introduction, which is the whole game.** Possession of the voucher and the
 drop-box lets an actor stamp an *arbitrary* fingerprint the browser will then trust. So it
-carries a credential's lifecycle: it expires, it is single-use, the first-boot hook scrubs it
-from the machine's cloud-init artifacts, and it is redacted from anything recorded or shown to
-a model.
+carries a credential's lifecycle: **it expires and it is single-use** — which is what actually
+bounds it — the first-boot hook scrubs it from the machine's cloud-init artifacts as defence in
+depth, and it is redacted from anything recorded or shown to a model.
 
 > **A trap worth naming, because it is where anyone reasoning from first principles lands.**
 > A one-shot secret that is worthless after first boot looks like it needs no credential
@@ -65,7 +65,7 @@ The hook retries with backoff until the relay acknowledges or a deadline passes,
 whichever comes first, with the deadline inside the voucher's expiry. Networking at first boot
 is exactly when routing and DNS are least settled, and a single-shot post followed by an
 irreversible scrub would convert a two-second blip into a destroyed machine — on the one route
-that has no alternative, since route 2 is dead and route 3 is blocked.
+that has no alternative, since route 2 is dead and route 3 is abandoned.
 
 ## Considered options
 
@@ -120,9 +120,16 @@ them for a tenant they do not govern.
 and the post must traverse the relay; cloud-init's `phone_home` module already posts host-key
 material, so the mechanism is conventional, but nothing here has run it.
 
-**Question 13 narrows.** Route 3's blocked status was the only path to a cloud pin; attest
-removes that pressure. Injection stays recorded and blocked, but it is no longer the cloud
-path's only hope.
+**Question 13 closes, and route 3 is abandoned rather than merely blocked.** Attest removed the
+pressure by covering the same vendors; a later finding removed the route entirely. Boot-time
+user-data stays served by the vendor's metadata endpoint for the instance's life, so an injected
+host private key is permanently re-fetchable by anything on the machine, and no scrub reaches it.
+
+**That finding corrects this record's own scrub claim.** The voucher's scrub removes cloud-init's
+disk cache, not the metadata copy. What bounds the voucher is that it **expires and is
+single-use**, so a later reader finds it consumed — which is exactly why attest survives the fact
+that kills injection. A short-lived credential in a permanently-readable place is bounded by its
+expiry; a permanent one is not bounded at all.
 
 **Inventory recovery makes the vendor list authoritative.** Listing the account is how a new
 phone learns what exists, and that listing is performed by the deterministic recovery flow under

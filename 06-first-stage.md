@@ -6,7 +6,7 @@ session, one machine, one real tenant.
 
 **Dedicated because it is the only place the identity chain closes.** On Cloud there is no way
 today to obtain a host key without trusting first contact — `CHN-R2` is dead, `CHN-R3` is
-blocked, `CHN-R5` is unproven — so `OVR-4` is satisfied nowhere. On dedicated it closes at both
+abandoned, `CHN-R5` is unproven — so `OVR-4` is satisfied nowhere. On dedicated it closes at both
 hops. The corollary is that Robot offers no boot-time user-data at all, so nothing can be done
 to the machine except through the channel: a cost this stage accepts, not a benefit it seeks.
 
@@ -178,6 +178,5 @@ else waits on.
 
 Brings the vault: Cloud machines, multiple concurrent sessions, the trust panel, the
 coordinator, federation formation, all-or-nothing creation — and Cloud's identity problem:
-`CHN-R2` dead, `CHN-R3` blocked behind `OPN-13`, `CHN-R5` designed for exactly this and
-unproven. It reuses the channel the first stage proved. If the SSH client fails instead, the
+`CHN-R2` dead, `CHN-R3` abandoned, `CHN-R5` designed for exactly this and unproven. It reuses the channel the first stage proved. If the SSH client fails instead, the
 fallback is the old cloud-first stage with the channel question reopened.

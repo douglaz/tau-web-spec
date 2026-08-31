@@ -88,9 +88,13 @@ yet.
       screen that offers it states plainly that a model with root can read it afterwards.
 - [ ] **CNF-17 · BLOCKING** An untyped response containing a harness-held credential is
       redacted before it reaches the model or the record. Exact-value scan.
-- [ ] **CNF-18 · BLOCKING** The attest voucher is scrubbed from the machine's cloud-init
-      artifacts, on acknowledgement or at the deadline, whichever comes first (`CHN-6`).
-      Verified by reading the machine's disk after first boot.
+- [ ] **CNF-18 · BLOCKING** The attest voucher **expires and is single-use**, which is what
+      bounds it (`CHN-7`). Verified by replaying a stamp after collection and after expiry, and
+      confirming both are refused.
+- [ ] **CNF-61 · PRE-SCALE** The voucher is scrubbed from the machine's cloud-init artifacts on
+      acknowledgement or at the deadline (`CHN-6`), verified by reading the machine's disk. This
+      is defence in depth: the vendor's metadata endpoint still serves the original user-data, so
+      a disk scrub is **not** the bound and must not be recorded as one.
 - [ ] **CNF-19 · PRE-SCALE** The recovery sheet is passphrase-wrapped, its export screen states
       what it can do in the wrong hands, and a maintained cloud machine's setup does not
       complete without it (`STA-15`).

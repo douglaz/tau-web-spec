@@ -126,16 +126,21 @@ than the machine.
 makes it close to free. What remains is empirical and is tested rather than reasoned:
 `CNF-37`.
 
-**OPN-13 — Whether injecting the SSH host key is permitted, and on what terms.** `CHN-R3`
-writes a *private* host key into boot-time user-data, which the vendor stores. There is one way
-out: a **narrow exception naming that key and no other** in `SEC-5`, decided before the route is
-used. Not a widening to "vendor and inference credentials" — that phrasing would quietly strip
-the SSH *client* keys and the relay token of the same protection, a larger hole than the one
-being patched. Scrubbing and rotating after first boot limits exposure but resolves nothing.
+**OPN-13 — Whether injecting the SSH host key is permitted.** **Closed: the route is
+abandoned.** No credential-inventory exception is needed, because there is nothing left to
+except.
 
-*The pressure has dropped:* attest (`CHN-R5`) now covers the cloud introduction this route was
-the only hope for, so injection stays blocked without blocking anything else. *Closes when:* the
-exception is decided, or the route is abandoned.
+It was blocked on the objection that a private host key rides in user-data, which the vendor
+stores. It is abandoned on a stronger one: **user-data is served back to the machine by the
+vendor's metadata endpoint for the life of the instance**, so anything running there can
+re-fetch the host private key and impersonate the machine, passing the fingerprint check
+because it is genuinely the pinned key. Scrubbing deletes cloud-init's disk cache and the
+endpoint keeps serving the original, so the proposed mitigation cannot reach it. `ARC-36`
+sharpens it further: a guest on a machine renting slices can query that endpoint.
+
+`CHN-R5` covers the same vendors, so nothing is lost. The distinction worth carrying forward:
+**a short-lived credential in a permanently-readable place is bounded by its expiry; a permanent
+one is not bounded at all.**
 
 **OPN-14 — What "locked down" means, per vendor.** A pentest can only assert what it checks, so
 the checklist is part of the signed brief set — and it does not exist yet for any vendor. Until

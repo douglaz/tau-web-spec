@@ -59,20 +59,28 @@ when [ADR-0018](./0018-first-stage-is-one-lnrent-box-on-dedicated.md) moved the 
 stage to dedicated. The cloud path's identity problem belongs to the second stage: route 5
 below is designed for exactly it, with routes 3 and 4 behind it.
 
-**Route 3 — inject.** The browser generates the host keypair and writes it into
-`/etc/ssh/` through cloud-init. No retrieval endpoint is needed at any vendor and the
-browser knows the fingerprint because it made the key. The cost is that the *private*
-host key rides in user-data, which the vendor stores — so this route contradicts the
-invariant that credentials never leave browser memory. There is exactly one way to resolve
-that and it is not a technical one: **carve a narrow exception for the injected server host
-key specifically, before the route is used.** The exception has to name that key and no
-other — widening it to "vendor and inference credentials" would strip the same protection
-from the SSH client private key and the relay's own token, opening a larger hole than it
-closes. Scrubbing and rotating the key after
-first boot is worth doing, but it is a mitigation and not a resolution — the key has
-already been exported and the vendor may have kept a copy, and nothing done afterwards
-makes an absolute invariant retroactively true. The contradiction may not be left standing,
-and it may not be papered over with rotation either.
+**Route 3 — inject. Abandoned.** The browser generates the host keypair and writes it into
+`/etc/ssh/` through cloud-init. No retrieval endpoint is needed at any vendor and the browser
+knows the fingerprint because it made the key.
+
+It was blocked for a long time on the recorded objection: the *private* host key rides in
+user-data, which the vendor stores, contradicting the credential inventory, and the only way out
+would be a narrow exception naming that key and no other — never a widening to "vendor and
+inference credentials", which would strip the same protection from the SSH client keys and the
+relay's own token, a larger hole than the one being patched.
+
+**It is abandoned on a stronger objection that the block never named.** Boot-time user-data is
+served back to the machine by the vendor's metadata endpoint for the life of the instance.
+Anything on that machine can re-fetch the host private key whenever it likes and impersonate the
+machine, passing the fingerprint check because it *is* the pinned key. The proposed mitigation
+cannot reach that: scrubbing deletes cloud-init's on-disk cache while the endpoint keeps serving
+the original. Rotation afterwards does not help either, because the window is the whole life of
+the instance rather than the first boot.
+
+Route 5 covers the same vendors — anywhere with boot-time user-data — so abandoning this costs
+nothing but the route itself. The distinction that lets one live and not the other is worth
+keeping in mind wherever user-data is used: **a short-lived credential in a permanently-readable
+place is bounded by its expiry; a permanent one is not bounded at all.**
 
 **Route 5 — attest.** At creation, the browser generates a one-time MAC secret and places
 it in user-data beside the client public key. A first-boot hook computes an HMAC of the

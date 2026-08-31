@@ -183,8 +183,9 @@ removes that role.
 **Satisfied under any route that pins the host key out of band; violated under
 trust-on-first-use**, where the relay is trusted at first contact and can have its own key
 pinned. No out-of-band route exists on the cloud path today: `CHN-R1` is dedicated-only and
-a separate integration, **`CHN-R2` does not exist**, and `CHN-R3` is blocked behind
-`OPN-13`. That is why the first stage runs on dedicated hardware
+a separate integration, **`CHN-R2` does not exist**, and `CHN-R3` is **abandoned** —
+user-data stays readable from the vendor's metadata endpoint for the instance's life, so an
+injected host key would be permanently re-fetchable by anything on the machine. That is why the first stage runs on dedicated hardware
 ([ADR-0018](./docs/adr/0018-first-stage-is-one-lnrent-box-on-dedicated.md)). For the cloud
 path, **`CHN-R5` — attest** — is designed to close exactly this gap; it has not yet run,
 and `OPN-3` tracks the probe. Passing the SSH spike is necessary and does not by itself

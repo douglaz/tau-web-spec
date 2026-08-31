@@ -21,7 +21,7 @@ provenance diversity.
 the decision. Hetzner Cloud's rescue returns an action and a root password and **no host
 key**, verified against the API client — route 2 of
 [ADR-0015](./0015-the-browser-reaches-a-machine-over-pinned-ssh.md) is dead. Injection is
-blocked behind the specification's `OPN-13`, and attest is designed but has never run. So on
+abandoned, and attest is designed but has never run. So on
 Cloud today there is no way to obtain a host key without trusting first contact, and `OVR-4`
 is satisfied nowhere.
 

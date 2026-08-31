@@ -143,7 +143,7 @@ outgrown, because adding a credential means adding a row.
 | 10 | Recovery sheet passphrase | Operator-chosen | Never stored anywhere | Operator's memory | Unwraps the sheet | Not applicable |
 | 11 | Untyped-scope credential | Operator | Browser memory only | Until the operator revokes or rotates it | **Unbounded at that origin** | Operator revokes at the service |
 | 12 | **Tenant secret placed on a machine** | Operator | Browser memory, then the machine | Machine lifetime | Whatever the tenant's software uses it for | Machine destroyed, or operator rotates |
-| 13 | Injected SSH host private key | Harness-generated | *Would* ride boot user-data | — | Impersonation of the machine | **BLOCKED — `CHN-R3` may not be used until `OPN-13` resolves** |
+| 13 | ~~Injected SSH host private key~~ | — | — | — | — | **Row retired. `CHN-R3` is abandoned**: user-data stays readable from the vendor's metadata endpoint for the instance's life, so the key would be permanently re-fetchable by anything on the machine. No exception wording fixes that. |
 
 **Row 12 carries a caveat that MUST be stated wherever it is offered.** Delivery redaction
 keeps the secret out of the transcript and out of model context *on the way in*. It does not
