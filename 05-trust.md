@@ -119,6 +119,12 @@ On the default path the publisher also selects the models, which is acceptable o
 is already trusted for the bundle and because bring-your-own inference exists as the escape
 hatch. If that hatch is ever dropped, the arrangement stops being defensible.
 
+**This entry covers governance as well as compromise.** Because briefs ship in the bundle, the
+publisher decides which tenants can exist and when a tenant's change reaches operators
+(`ARC-40`). That is authority exercised legitimately rather than a failure mode, and it is
+listed here because an unnamed power is exactly what this section exists to prevent. It is a
+bootstrap seat with a stated trajectory, not a resting state.
+
 **TRU-A2 — The relay**, once it exists. It cannot read or alter a session whose host key was
 pinned out of band, but **it learns the member topology** — which operator, which destination,
 when, accumulated, is the member set (`CHN-13`) — and one that authenticates callers and

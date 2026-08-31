@@ -46,6 +46,34 @@ common-mode across every member and it carries the briefs too. The hosting-integ
 gap, already open and already lacking reproducible-build attestation, is now the
 largest concentrated risk in the system.
 
+## Amended: this makes the publisher a gatekeeper of tenancy
+
+The consequences above were written about *iteration speed* — fixing a brief needs a release.
+Under [ADR-0016](./0016-the-harness-isolates-and-counts-tenants-set-thresholds.md), which came
+later and made tau-web a platform with tenants, the same rule means something larger: **a tenant
+cannot exist without the publisher shipping its briefs.** Tenants supply their own software and
+their own security requirements, and are otherwise independent — but the instructions that
+install them live in someone else's signed bundle, so the publisher decides which tenants there
+are and when any of their changes reach an operator.
+
+That is authority, not merely friction, and it belongs named. `ARC-40` states it and `TRU-A1`
+carries it in the added tier beside the compromise risk.
+
+**It is a bootstrap seat, and this record already knew the destination.** The considered option
+rejected above — a different brief per member, from a different author — was called "the correct
+destination", rejected because "an ecosystem cannot be bootstrapped by one project." The same
+answer applies one level up: the publisher writes and signs every brief because there is nobody
+else yet. Briefs are shaped as agent skills, and skills went the same way — a curated
+first-party set first, third-party authorship after.
+
+**What must survive that opening is this record's actual security property**, which is not about
+who signs: briefs are locked and never fetched at runtime, because prose that steers a model
+reaches every member at once and diversity buys nothing against it. What changes when third-party
+briefs arrive is *who the operator trusts for a brief's content*. Note that trusting the tenant's
+own signer would add nobody new — `TRU-E7` already trusts whoever signs the software those briefs
+install — so the eventual step is smaller than it looks. It still needs deciding when it arrives,
+rather than guessing now.
+
 **Nothing is shared with lnrent here.** An earlier version of this line said the format
 was shared and only distribution was not. lnrent's *recipes* are executables its daemon
 runs with high privilege; briefs are prose that must never be run as written, and no format

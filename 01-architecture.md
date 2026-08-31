@@ -32,11 +32,16 @@ away must put that answer on the machine — with no off-machine credential, sin
 forbids one and `SEC-6` notes that a model with root would read it anyway — or accept that it
 is not a fit. For lnrent that resolves to the machine being the capacity it sells.
 
-**ARC-36** A machine that serves parties the operator has never met is **multi-tenant**, and
-its hardening is a different problem from a single-purpose box. `ARC-17`'s deliverable and the
-per-vendor checklist behind `OPN-14` were written for the single-purpose case. A machine
-renting reachable slices also needs its own stated network posture; `SEC-T1`'s
-deny-everything-but-one-port is btc-policy's rule and binds only there.
+**ARC-36** A machine that serves parties the operator has never met is **multi-tenant**. This
+is a definition rather than a rule: it names the class `ARC-37` binds, and what such a machine
+must demonstrate is whatever its tenant declares under `ARC-39` — including its listening
+surface, since `SEC-T1`'s deny-everything-but-one-port is btc-policy's rule and binds only
+there.
+
+*What this requirement used to say* was that hardening a multi-tenant machine is a different
+problem and that `ARC-17` and `OPN-14` were written for the single-purpose case. Both are now
+handled: the declaration covers the difference, and the harness does not need to know what a
+guest boundary looks like in order to check that the declared one holds.
 
 **ARC-37** A multi-tenant machine MUST NOT hold **spendable** key material. Receiving is
 watch-only or delegated:
@@ -174,6 +179,26 @@ change one reaches every member at once. That defeats the honest-majority assump
 than being absorbed by it: n honest, competent models faithfully following poisoned
 instructions all produce the wrong machine, and agree with each other perfectly while doing
 it. The brief is the one component where diversity buys nothing, so it is locked instead.
+
+**ARC-40 The publisher writes and signs every brief today, and that is a power worth naming.**
+Because briefs ship in the bundle (`ARC-11`), the publisher decides **which tenants can exist**
+and **when a tenant's change reaches operators**. A tenant is otherwise independent — it supplies
+its own software and its own security requirements
+([ADR-0016](./docs/adr/0016-the-harness-isolates-and-counts-tenants-set-thresholds.md)) — but it
+cannot ship a brief fix, add a vendor, or appear at all without the publisher agreeing and
+cutting a release.
+
+This is a **bootstrap seat**, in the same sense as `CHN-11`'s relay: held because there is nobody
+else yet, not because the design wants it there. The trajectory is the one agent skills took, and
+`ARC-9` already borrows their shape — a curated first-party set first, third-party authorship
+after. `ADR-0005` reaches the same place from the other direction when it rejects multi-author
+briefs "for now" because an ecosystem cannot be bootstrapped by one project.
+
+**What must survive every step is `ARC-11`'s actual property**: briefs are locked and never
+fetched at runtime. What changes as third-party briefs arrive is *who the operator trusts for a
+brief's content*, and that is a trust-tier question to answer when it arrives rather than to
+guess at now. Until then the honest statement is that the publisher's entry in the added tier
+covers governance as well as compromise (`TRU-A1`).
 
 The format is **not** shared with lnrent. That project's *recipes* are executables its
 daemon runs with high privilege; these are prose that must never be run as written, and no

@@ -86,9 +86,12 @@ AI, because it reads what the machine chooses to tell it.
 
 ### Tenancy
 
-**Tenant** · `ADR-0016`
-A project built on the harness, supplying its own briefs, its own software, and its own
-security requirements. The harness never sets a tenant's threshold; it isolates and counts.
+**Tenant** · `ADR-0016`, `ARC-40`
+A project built on the harness, supplying its own software, its own security requirements and
+the content of its own briefs. The harness never sets a tenant's threshold; it isolates and
+counts. **Independent in every respect but one**: briefs ship in the publisher's signed bundle,
+so today the publisher decides which tenants exist and when their changes reach operators. A
+bootstrap seat with a stated trajectory, not a property of the design.
 _Avoid_: app, plugin, integration, use case
 
 **Runtime obligation** · `ARC-35`
