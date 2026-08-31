@@ -185,7 +185,7 @@ than "trustless" — but it survives the regress.
 
 The maintained list is [`08-open-questions.md`](./08-open-questions.md), and each entry says what
 would close it. The ones that gate the work are the SSH client compiled to WebAssembly; the
-relay's identity system; the recovery machinery, designed but unproven until it runs once;
+the recovery machinery, designed but unproven until it runs once;
 whether weights-level diversity is enforceable at all, which the security claim is conditional
 on; the cloud-account floor that makes rental structural; and what the dedicated vendor's rescue
 endpoint actually returns — one authenticated call that the first stage's whole identity chain

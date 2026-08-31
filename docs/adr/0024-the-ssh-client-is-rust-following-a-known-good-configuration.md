@@ -32,10 +32,16 @@ policy — per-machine keypairs over routing checks (`SEC-1`), removal over isol
 
 Two beliefs that shaped the earlier framing turned out to be false, and both were load-bearing.
 
-**"Every implementation is Go."** [`Ar4l/sshmux`](https://github.com/Ar4l/sshmux) is a deployed
-Rust browser SSH client on `wasm32-unknown-unknown`, served statically, mobile-first, built
-with Trunk and Leptos CSR — which is the UI framework and build shape the archived
-specification already recommends. A second Rust instance exists using Chrome's Direct Sockets
+**"Every implementation is Go."** [`Ar4l/sshmux`](https://github.com/Ar4l/sshmux) is a Rust
+browser SSH client on `wasm32-unknown-unknown`, served statically, mobile-first, built with
+Trunk and Leptos CSR — which is the UI framework and build shape the archived specification
+already recommends.
+
+**It is an existence proof, not a production deployment, and this record originally overstated
+it.** One author, no stars or forks, created and last pushed in July 2026. What it demonstrates
+is that the configuration below works and the architecture is reachable in Rust — which is
+exactly what was in doubt. It does not demonstrate maturity, and nothing should be inherited
+from it but the configuration. A second Rust instance exists using Chrome's Direct Sockets
 and no relay at all, and a third vendors a russh fork carrying `russh-cryptovec`'s WASM
 platform module.
 
@@ -50,7 +56,7 @@ The working configuration is published and was independently derived twice:
 russh = { version = "…", default-features = false, features = ["flate2", "ring"] }
 ring  = { version = "0.17", features = ["wasm32_unknown_unknown_js"] }
 ws_stream_wasm = "0.7"          # under cfg(target_arch = "wasm32")
-# rustflags: --cfg getrandom_backend="wasm_js"
+# rustflags: --cfg getrandom_backend="wasm_js"     # getrandom 0.3 only; 0.4 dropped this
 ```
 
 Connect with `russh::client::connect_stream`, not `connect`: it accepts any
@@ -59,9 +65,10 @@ Connect with `russh::client::connect_stream`, not `connect`: it accepts any
 `io-util`, `rt` and `time`; a dependency that enables `net` or `rt-multi-thread` breaks the
 build, which is the failure mode to watch for.
 
-**Size settles in Rust's favour rather than against it.** The reference deployment is ~1.5 MB
-raw and **~574 KB gzipped over the wire** for the entire application — Leptos UI and an in-wasm
-terminal included — against ~4.94 MB for the Go equivalent.
+**Size settles in Rust's favour rather than against it.** The reference build's WebAssembly
+module is ~1.5 MB raw and **~574 KB gzipped**; the whole application is ~584 KB gzipped, UI and
+in-wasm terminal included — against ~4.94 MB for the Go equivalent. (An earlier version of this
+record attributed the 574 KB figure to the whole application; it is the module.)
 
 ## Considered options
 

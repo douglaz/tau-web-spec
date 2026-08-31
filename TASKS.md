@@ -64,7 +64,9 @@ documentation.
 - [x] **T14 — Tunnel priced and marked unbuilt.** `CHN-12` states the bundled certificate-
       authority cost and marks the capability designed-but-unpriced; `OPN-20` tracks it.
 - [x] **T15 — Attest ordering and retry.** `CHN-6`: backoff until acknowledged or a deadline,
-      scrub on whichever comes first, deadline inside the voucher's expiry. `CNF-18` tests it.
+      scrub on whichever comes first, deadline inside the voucher's expiry. `CNF-18` tests the
+      voucher's expiry and single-use; the retry, backoff and deadline ordering are **not yet
+      tested**.
 - [x] **T16 — Command-granular execution and recording.** `ARC-7` and `ARC-8`, with the cost
       stated: anything interactive is the brief's problem, not a live terminal's.
 - [x] **T17 — Memory measurement.** `STG-15` and `CNF-45` require peak memory of one session

@@ -14,8 +14,9 @@ contact, so that contact is trusted rather than verified and MUST be presented t
 operator as such. No other path may accept an unverified key.
 
 **CHN-3** The mechanism is chosen **and demonstrated elsewhere**. Browser-resident SSH over a
-WebSocket-to-TCP bridge ships in production in several independent implementations, including a
-Rust one on `wasm32-unknown-unknown` using the same UI and build stack this design specifies
+WebSocket-to-TCP bridge ships in production in several Go implementations, and exists as a
+single-author proof in Rust on `wasm32-unknown-unknown` using the same UI and build stack this
+design specifies
 ([ADR-0024](./docs/adr/0024-the-ssh-client-is-rust-following-a-known-good-configuration.md)).
 What remains is integration and one property the references skip: **host-key pinning**
 (`SEC-11`, `OPN-1`).
@@ -76,11 +77,19 @@ knows the fingerprint because it made the key. **This route MUST NOT be used.**
 
 The recorded objection was that the *private* host key rides in user-data, which the vendor
 stores, contradicting the credential inventory. The objection that actually ends it is worse
-and was missed: **boot-time user-data is served back to the machine by the vendor's metadata
-endpoint for the life of the instance.** Anything running on that machine can re-fetch the host
-private key at any time and impersonate the machine — passing the fingerprint check, because it
-is genuinely the pinned key. The proposed mitigation cannot reach it: scrubbing deletes
-cloud-init's cached copy on disk and the endpoint goes on serving the original.
+and was missed: **on the vendors this design targets, boot-time user-data is served back to the
+machine by the metadata endpoint for the life of the instance.** Anything running on that
+machine can re-fetch the host private key at any time and impersonate the machine — passing the
+fingerprint check, because it is genuinely the pinned key. The proposed mitigation cannot reach
+it: scrubbing deletes cloud-init's cached copy on disk and the endpoint goes on serving the
+original.
+
+**This is vendor-dependent and must not be restated as universal.** It holds on DigitalOcean,
+which documents that user data cannot be modified after creation, and in practice on Hetzner
+Cloud — whose user-data route is undocumented and which removed its EC2-compatible metadata
+routes in August 2026, so the surface drifts. It is **false on AWS**, where user data is mutable
+on a stopped instance, can be cleared entirely, and where the metadata service can be disabled
+outright. A reader porting this reasoning to another vendor must check rather than assume.
 
 `ARC-36` sharpens it. A machine renting slices hosts parties the operator has never met, and a
 guest querying the metadata endpoint obtains a permanent impersonation credential for the box it
@@ -238,7 +247,7 @@ first-stage work touches this.
 
 **CHN-13** The relay learns the **member topology**, and the product MUST say so. Which
 operator, which destination, when, accumulated over time, *is* the member set for a
-federation. That is the same knowledge `TRU-E6` prices as a named trust row for the scanner,
+federation. That is the same knowledge `TRU-E5` prices as a named trust row for the scanner,
 and calling it merely "connection metadata" understates it.
 
 It cannot read or alter a session pinned out of band, so the addition is visibility, not

@@ -28,9 +28,11 @@ tenant's own software, without a harness credential
 
 This is a constraint on what can be a tenant, and it is worth checking before building rather
 than after. A project whose value depends on answering the outside world while the operator is
-away must put that answer on the machine — with no off-machine credential, since `SEC-3`
-forbids one and `SEC-6` notes that a model with root would read it anyway — or accept that it
-is not a fit. For lnrent that resolves to the machine being the capacity it sells.
+away must put that answer on the machine — with no **harness** credential, since `SEC-3`
+forbids that and `SEC-6` notes a model with root would read it anyway — or accept that it is
+not a fit. A tenant's *own* credential on its own machine is permitted (`SEC-3`'s scope note,
+`SEC-5` row 12) and is what `ARC-38`'s delegated receiving needs in order to authenticate to
+the service it delegates to. For lnrent that resolves to the machine being the capacity it sells.
 
 **ARC-36** A machine that serves parties the operator has never met is **multi-tenant**. This
 is a definition rather than a rule: it names the class `ARC-37` binds, and what such a machine
@@ -254,7 +256,7 @@ mobile memory pressure as a high risk and defaults its command-worker pool to on
 mobile; five concurrent sessions each holding a model stream and a remote session need the
 same treatment. **No number has ever been measured**, and the first stage runs exactly one
 session, which makes it the only cheap opportunity to learn whether five is possible —
-`CNF-24` requires the measurement.
+`CNF-45` requires the measurement.
 
 **ARC-14** A trust domain MUST be counted at two configured layers plus one observed, never
 as one blended number
@@ -419,7 +421,7 @@ ones. This is confirmed to be btc-policy's own premise rather than a new require
 Because firewall rules are cloud-plane, the deny-by-default posture is visible to the
 operator, and a brief cannot quietly widen it.
 
-**The firewall MUST NOT privilege the relay's source addresses** — no allowlist, no
+**ARC-41** The firewall MUST NOT privilege the relay's source addresses — no allowlist, no
 relay-only port — because a privileged source would make the relay-side surface larger than
 the world's, and the scanner's no-access argument (`ARC-26`) depends on it being equal.
 
@@ -464,7 +466,7 @@ re-check has an inside and an outside, with different owners
   bounded output.
 
 What the scanner costs is **topology**: its full inference path sees the member set, model,
-proxy and provider alike, a named row in the trust display (`TRU-E6`). What it produces is
+proxy and provider alike, a named row in the trust display (`TRU-E5`). What it produces is
 reports: observations that never gate, never act, and are never called verified.
 
 **ARC-27** How much of the re-check is possible follows from the tenant's **access model**,

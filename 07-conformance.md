@@ -114,7 +114,7 @@ yet.
 - [ ] **CNF-24 · BLOCKING** The install artifact is verified against a browser-supplied content
       hash, and a mismatch halts the install (`ARC-25`, `STG-6`).
 - [ ] **CNF-25 · PRE-SCALE** The vendor firewall does not privilege the relay's source
-      addresses (`ARC-23`), so the scanner's view equals the world's.
+      addresses (`ARC-41`), so the scanner's view equals the world's.
 
 ## The deliverable — `ARC-17`, `ARC-39`
 
@@ -145,7 +145,9 @@ yet.
       identifier the operator supplies. Verified by buying one end to end without contacting
       the publisher.
 - [ ] **CNF-60 · PRE-SCALE** A revoked pass stops working immediately, including on a
-      connection already open (`STA-17`).
+      connection already open. **The normative rule for terminating a live connection does not
+      yet exist**: `STA-17` says only that the pass is revoked and re-issued, and `CHN-15`
+      describes issuance rather than teardown. Until one is written this item cannot pass.
 
 ## Approval and recording — `SEC-4`, `SEC-12`
 
@@ -220,9 +222,16 @@ Not pass/fail. Required to be recorded.
 
 ## The blocking tier
 
-Every BLOCKING item sits in one of the irreversible families named above, and every one is
-exercisable by the first stage except `CNF-8`, which needs a coordinator and therefore the
-second.
+Every BLOCKING item sits in one of the irreversible families named above. **They are not all
+exercisable by the first stage**, and an earlier version of this paragraph wrongly claimed only
+`CNF-8` was not. At least four are out of reach: `CNF-8` needs a coordinator; `CNF-18` needs the
+attest machinery `STG-19` says the first stage demonstrates none of; `CNF-57` and `CNF-58` need
+the purchase-and-pass system `STG-18` says the stage does not have, since it runs on a pasted
+token. `CNF-6` and `CNF-26` need a second session, and the stage has one.
+
+**The tiers therefore need per-stage scoping**, which this file does not yet have. Until it
+does, the header's "before it touches a real vendor account" cannot be met literally — several
+items require touching one.
 
 **No count is written here on purpose.** It went stale three times in a week, which is exactly
 the drift the identifier scheme exists to prevent — a number restated in prose is a fact with

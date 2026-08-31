@@ -113,9 +113,9 @@ facts.**
 
 - **btc-policy.** 3-of-5 by default
   ([ADR-0008](./docs/adr/0008-three-of-five-default-and-its-economic-floor.md)) means five
-  machines, which at the `cx22` reference price of €4.59/month is **€275 per year** before
-  inference; a 2-of-3 federation is €165. At a willingness to pay roughly 1% per year for
-  custody, those imply holdings near €27,500 and €16,500. No vault configuration makes sense
+  machines, which at roughly €6/month for a small instance including its IPv4 is **about €360
+  per year** before inference; a 2-of-3 federation is about €216. At a willingness to pay
+  roughly 1% per year for custody, those imply holdings near €36,000 and €22,000. No vault configuration makes sense
   for someone holding €1,000 — the floor is three machines and three machines cost what they
   cost. *That tenant's* target is a non-technical person with meaningful Bitcoin, worth
   stating plainly rather than letting someone discover it after budgeting for a hobby.
@@ -148,7 +148,7 @@ flowchart TD
 ```
 
 The relay is **direct-first**: it carries only what the browser cannot do alone. See
-`ARC-14`.
+`CHN-10`.
 
 ## Constraints
 

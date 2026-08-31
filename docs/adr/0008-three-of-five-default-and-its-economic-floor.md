@@ -11,17 +11,22 @@ control they will accept unchanged anyway.
 
 ## Consequences
 
-**Every member is a recurring bill, and the bill is the real constraint.** At the
-`cx22` price used in the harness fixtures, €4.59/month:
+**Every member is a recurring bill, and the bill is the real constraint.** At roughly €6/month
+for a small instance including its IPv4:
 
 | Configuration | Machines | Annual cost |
 |---|---|---|
-| 3-of-5 | 5 | €275 |
-| 2-of-3 | 3 | €165 |
+| 3-of-5 | 5 | ~€360 |
+| 2-of-3 | 3 | ~€216 |
+
+*An earlier version of this table used €4.59/month for a `cx22`. That was wrong twice over: the
+plan is deprecated and can no longer be ordered, and €4.59 was its **USD** price with IPv4, not
+its euro one. The figures below moved accordingly. Prices are illustrative and go stale — what
+does not go stale is that the floor is three machines and three machines cost what they cost.*
 
 **This defines the audience more narrowly than the product thesis does.** At a
 willingness to pay roughly 1% per year for custody, 3-of-5 implies holdings near
-€27,500 and 2-of-3 implies near €16,500. There is no configuration that makes sense
+€36,000 and 2-of-3 implies near €22,000. There is no configuration that makes sense
 for someone holding €1,000, because the floor is three machines and three machines cost
 what they cost.
 

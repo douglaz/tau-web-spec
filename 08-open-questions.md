@@ -21,9 +21,10 @@ likely to sink the plan. It is not, and two earlier characterisations of it were
 - **"The architecture is unproven" — false.** Browser-resident SSH over a WebSocket-to-TCP
   bridge ships in production in several independent implementations.
 - **"Every implementation is Go, so Rust means pioneering" — also false.**
-  [`Ar4l/sshmux`](https://github.com/Ar4l/sshmux) is a deployed Rust one, on
-  `wasm32-unknown-unknown`, with Leptos CSR and a Trunk build and no npm — the stack the
-  archived specification recommends, arrived at independently.
+  [`Ar4l/sshmux`](https://github.com/Ar4l/sshmux) is a Rust one, on `wasm32-unknown-unknown`,
+  with Leptos CSR and a Trunk build and no npm — the stack the archived specification
+  recommends, arrived at independently. **An existence proof, not a production deployment**:
+  one author, no stars, July 2026. It settles reachability, not maturity.
 - **The blocker cited was the wrong blocker.** russh issue #224 concerns WASI under
   wasmtime/wasmer, a different target with different problems, and it was never about the
   browser.
@@ -75,7 +76,7 @@ fingerprints, which algorithms. Undocumented, and **first-stage-blocking**: `CHN
 first stage's identity chain, which is why this sits among the gates despite being one
 authenticated call from closing. The same call should re-check that Robot is still reachable
 from a browser at all, since that result rests on a single recorded probe, and should read what
-the automatic Linux install operation returns while it is there (`STG-3`).
+the automatic Linux install operation returns while it is there (`STG-2`).
 
 *Closes when:* `CNF-48` is recorded. This is the cheapest item on the list and the one the most
 rests on, which is why `STG-2` gates construction on it.

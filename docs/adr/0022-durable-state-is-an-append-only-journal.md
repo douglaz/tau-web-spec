@@ -63,9 +63,10 @@ limit and it lands entirely on the box plane. Arbitrary shell on a remote machin
 declare itself idempotent, so its only honest retry safety is never-automatic, and its
 recovery path is to reconnect, read the machine's state and converge — which makes
 convergence a **brief-authoring rule** rather than a subsystem. A declarative distribution
-([ADR-0018](./0018-first-stage-is-one-lnrent-box-on-dedicated.md)'s Alpine and NixOS) makes
-that rule nearly free, since a system whose state is described rather than accumulated is one
-a returning session can converge on rather than reconstruct.
+makes that rule nearly free, since a system whose state is described rather than accumulated is
+one a returning session can converge on rather than reconstruct — but only **NixOS** of the two
+distributions `ARC-24` names is declarative. On Alpine convergence is an ordinary authoring
+discipline with no help from the system.
 
 For a *long-running* remote command — a build, a disk write — convergence is not enough on its
 own, because the returning session cannot cheaply tell "still running" from "died halfway."

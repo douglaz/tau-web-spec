@@ -137,7 +137,7 @@ outgrown, because adding a credential means adding a row.
 | 4 | **Relay pass** | Bought (`CHN-15`); pasted out of band in the first stage | Encrypted at rest | Until it expires or is re-issued | Reaching the destinations recorded against it, on the SSH port | Expires; revoked and re-issued on Replace; lost passes are re-bought, not recovered |
 | 5 | Host-key pins | Vendor API, rescue, or attest | Encrypted at rest; exported in the sheet | Machine lifetime | Nothing — integrity reference | Machine destroyed |
 | 6 | Exposure ledger | Harness-derived | Encrypted at rest; exported in the sheet | Machine lifetime | Nothing — record | Machine destroyed |
-| 7 | Attest voucher (MAC secret) | Harness-generated | Boot user-data, once | Until first valid stamp, or expiry | **One** host-key introduction | Scrubbed at first boot (`CHN-6`); secret discarded by the browser |
+| 7 | Attest voucher (MAC secret) | Harness-generated | Boot user-data, once | Until first valid stamp, or expiry | **One** host-key introduction | **Expires, or is consumed at the first valid stamp (`CHN-7`)** — that is the bound; scrubbed from disk as defence in depth (`CHN-6`) |
 | 8 | Drop-box collection token | Relay-issued | Boot user-data and the relay | Until collected, or TTL | Collect one buffered post | Collected or expired |
 | 9 | Rescue root password | Vendor-generated, in an API response | Never stored | Never used | Root login the harness declines to use | **Redacted before the response is recorded or reaches a model** |
 | 10 | Recovery sheet passphrase | Operator-chosen | Never stored anywhere | Operator's memory | Unwraps the sheet | Not applicable |
