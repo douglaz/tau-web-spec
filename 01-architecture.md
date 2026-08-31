@@ -137,6 +137,30 @@ following disabled**, and a redirect response simply ends the call. The browser 
 blocked redirect opaque, destination hidden, so nothing can be auto-surfaced for approval:
 reaching wherever the service moved starts from what the service documents, as a new scope.
 
+**ARC-42** A vendor's CORS configuration constrains what the browser may send and read, and
+those constraints are facts to be probed rather than assumed. Measured against the cloud vendor
+the proof of concept tested, and recorded because the specification lost them once already:
+
+- **Only headers the destination allow-lists survive the preflight.** That vendor permits
+  exactly `X-Requested-With`, `Authorization` and `Content-Type`. A typed adapter therefore
+  cannot rely on adding a header of its own; anything else fails the preflight and the request
+  is never sent.
+- **Only exposed headers are readable.** That vendor exposes `Link` and `X-Correlation-ID` and
+  nothing more, so rate-limit headers and `Retry-After` are invisible to the harness even when
+  sent. **Backoff must be driven by the status code alone.**
+- **The origin is echoed unconditionally and no `Allow-Credentials` is returned.** Any origin
+  may call the API, so **the token is the entire security boundary** — which is why the account
+  behind it should be dedicated and disposable, and why nothing may ever be sent with
+  `credentials: include`.
+
+**One consequence reaches `SEC-12`.** Its mechanism for ensuring no simple request is ever
+transmitted — every untyped call carrying a custom header, so a preflight always happens —
+works only where the destination allow-lists that header. Against a service with a fixed
+allow-list it fails the preflight instead, which is the *safe* failure: nothing is sent, and
+`ARC-33`'s harmless probe routes that origin to the tunnel. The design is sound, but **more
+destinations will route to the tunnel than the corpus assumed**, which raises what `CHN-12` and
+`OPN-20` are worth.
+
 ## Box-plane execution is command-granular
 
 **ARC-7** Remote box-plane execution MUST be command-at-a-time: the harness sends one
@@ -428,8 +452,9 @@ the world's, and the scanner's no-access argument (`ARC-26`) depends on it being
 ## The operating system, and where it comes from
 
 **ARC-24** The chosen distributions are **Alpine and NixOS**. Neither is offered by the
-dedicated vendor's automatic installer, so **custom image installation is mandatory on that
-path**, not the optimisation ADR-0011 calls it. That is one of the two reasons the install
+dedicated vendor's automatic installer — verified against the live API on 2026-08-31, whose
+catalogue is AlmaLinux, Arch, CentOS Stream, Debian, openSUSE, Rocky and Ubuntu — so **custom
+image installation is mandatory on that path**, not the optimisation ADR-0011 calls it. That is one of the two reasons the install
 runs from inside a rescue session; the other is that rescue is what publishes the host key
 (`CHN-R1`).
 

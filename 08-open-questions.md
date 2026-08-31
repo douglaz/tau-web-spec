@@ -71,12 +71,17 @@ structural rather than a second tenant, and what makes `OVR-5` hard.
 *Closes when:* an operator can obtain machines at two distinct vendors without opening two
 billing relationships.
 
-**OPN-6 — What Robot's rescue `host_key` field actually returns** — full public keys,
-fingerprints, which algorithms. Undocumented, and **first-stage-blocking**: `CHN-R1` is the
-first stage's identity chain, which is why this sits among the gates despite being one
-authenticated call from closing. The same call should re-check that Robot is still reachable
-from a browser at all, since that result rests on a single recorded probe, and should read what
-the automatic Linux install operation returns while it is there (`STG-2`).
+**OPN-6 — What Robot's rescue `host_key` field actually returns.** *Partly answered
+2026-08-31, read-only, against a real account.* The field **exists and is an array**, empty
+while rescue is inactive. What it holds once rescue is activated — full public keys,
+fingerprints, which algorithms — still needs one `POST`, which reboots the machine, so it was
+not run.
+
+The same session settled two other things. **Robot is not browser-reachable** (`CHN-R1`): a
+previously recorded probe said otherwise and was wrong. And the installer catalogue was read
+directly — AlmaLinux, Arch, CentOS Stream, Debian, openSUSE, Rocky, Ubuntu, with **no Alpine and
+no NixOS** — so `ARC-24` and `STG-3`'s claim that custom installation is mandatory is verified
+rather than inferred.
 
 *Closes when:* `CNF-48` is recorded. This is the cheapest item on the list and the one the most
 rests on, which is why `STG-2` gates construction on it.

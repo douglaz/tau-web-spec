@@ -46,13 +46,29 @@ flowchart TD
 ```
 
 **CHN-R1 — retrieve, dedicated servers.** Hetzner's Robot webservice exposes `host_key` on
-`GET` and `POST /boot/{server-number}/rescue`. The harness activates rescue over HTTPS,
-reads the authoritative host key, derives the fingerprint locally, and never performs
-trust-on-first-use. Robot's browser reachability has been probed and is not an obstacle,
-though that result rests on a single recorded probe and has not been re-verified. Two
-caveats: Robot is a different product from Hetzner Cloud with a different auth scheme, so it
-is a second integration rather than a free extension; and the contents of `host_key` are
-undocumented (`OPN-6`).
+`GET` and `POST /boot/{server-number}/rescue`. The harness activates rescue over HTTPS, reads
+the authoritative host key, derives the fingerprint locally, and never performs
+trust-on-first-use.
+
+**Robot is NOT reachable by a browser `fetch`, verified 2026-08-31.** An earlier probe recorded
+the opposite and was wrong — almost certainly run with a tool that does not enforce CORS. Live
+results against the API, on a real account: an unauthenticated preflight returns 401, and an
+**authenticated** `OPTIONS` and an **authenticated** `GET` both return **200 with no
+`Access-Control-*` header of any kind**. So this is not an auth-before-CORS ordering bug that
+the vendor might fix; the API has no CORS support, and no browser origin can read its responses
+regardless of credentials. Since Robot uses HTTP Basic, every request carries an `Authorization`
+header, which forces a preflight the API will never satisfy.
+
+**This does not kill the route — it moves it off `fetch`.** CORS is a restriction on the
+browser's own HTTP stack, not on bytes. A TLS session terminated *inside* the browser and
+carried over the relay is not a `fetch`, has no origin, and is subject to no CORS check — which
+is exactly why the SSH channel works. Reaching Robot therefore needs the same machinery
+`CHN-12` describes, which changes that capability from an optional convenience into
+infrastructure. `OPN-20` prices it and is now gating rather than deferred.
+
+Two further caveats stand: Robot is a different product from Hetzner Cloud with a different auth
+scheme, so it is a second integration rather than a free extension; and the contents of
+`host_key` remain undocumented (`OPN-6`).
 
 Rescue boots its own sshd with its own host keys, and the installed system's are different.
 That is not a gap — the installed system is put there *from inside the trusted rescue
