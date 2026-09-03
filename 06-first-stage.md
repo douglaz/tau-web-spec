@@ -55,6 +55,8 @@ sequenceDiagram
 
     OP->>B: bind this session to this machine
     Note over B: generates a keypair for<br/>THIS machine only — SEC-1
+    Note over B,RL: Robot serves no CORS headers, so these<br/>ride a browser-terminated TLS session<br/>pinned to Robot's issuer — CHN-12a, STG-3a
+    B->>RL: open tunnel to Robot
     B->>RB: register client public key (typed op 1)
     B->>RB: activate rescue with that fingerprint (typed op 2)
     RB-->>B: host_key + generated root password
@@ -76,6 +78,14 @@ sequenceDiagram
 ```
 
 ## Acceptance
+
+**STG-3a The three Robot operations ride the tunnel, not `fetch`.** Robot serves no CORS
+headers at all, so no browser origin can read its responses (`CHN-R1`, verified 2026-08-31).
+The typed adapter therefore opens a TLS session inside the browser, pinned to Robot's issuing
+authority, and carries it over the relay as ciphertext (`CHN-12a`). The relay learns a
+destination and nothing else, and no trusted party is added.
+
+This is a prerequisite the stage did not previously have, and it is why `OPN-21` gates.
 
 **STG-4** The session registers its SSH client public key with Robot as a **typed
 operation** — Robot's `authorized_key` field takes fingerprints of keys already registered
@@ -162,6 +172,9 @@ display and the operable panel arrive with the tenant that needs them.
 - **Relay enrolment.** The token is issued out of band and pasted once. There is no issuer,
   no identity model and no reacquisition story; that is `OPN-2`.
 - **Inference funding.** Assumed already funded.
+- **The general tunnel.** The stage builds only the **pinned** kind (`CHN-12a`), for one known
+  vendor. Reaching an arbitrary CORS-refusing service needs `CHN-12b`'s certificate-authority
+  store, which `OPN-20` still prices and this stage does not touch.
 - **A phone-only non-technical operator getting started at all.** A developer can pass every
   predicate above while the target operator still cannot begin. That gap is the product
   thesis, and nothing in this stage measures it.

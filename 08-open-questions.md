@@ -86,6 +86,22 @@ rather than inferred.
 *Closes when:* `CNF-48` is recorded. This is the cheapest item on the list and the one the most
 rests on, which is why `STG-2` gates construction on it.
 
+**OPN-21 — A pinned TLS client inside WebAssembly.** The first stage cannot reach its vendor
+API without one (`CHN-R1`, `CHN-12a`, `STG-3a`), so this gates alongside the SSH client.
+
+*Believed cheap, and unverified.* `rustls` is pure Rust and exposes certificate verification as
+a replaceable interface, so pinning is a supported use rather than a hack; and it needs a crypto
+provider, where `ring` with `wasm32_unknown_unknown_js` is **already required by the SSH client**
+(`ADR-0024`). If that holds, this is a pinned verifier over a stack already being built rather
+than new cryptography.
+
+**None of that has been checked at source**, and it is the same shape of claim as "Robot CORS:
+tested, non-issue" — plausible, load-bearing, and believed for a year without a probe. It should
+get the treatment `ADR-0024`'s configuration got before anything is built on it.
+
+*Closes when:* a pinned TLS session from a mobile browser, through the relay, reads a real
+response from the vendor API — **and refuses a certificate that does not match the pin.**
+
 ## One probe or one boot from closing
 
 Each is an afternoon of work that nobody has spent.

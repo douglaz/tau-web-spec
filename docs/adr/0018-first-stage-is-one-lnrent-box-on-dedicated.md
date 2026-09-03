@@ -58,6 +58,35 @@ capacity being sold, which
 merely hosting a control plane gains nothing from being good value per unit of capacity.) One stage, one tenant, correct hardware, a real user
 at the end: an operator with a rentable box.
 
+## Amended: the vendor API is not browser-reachable, and the stage survives anyway
+
+A premise this record inherited was false. The design session recorded "Robot CORS: TESTED,
+non-issue — confirmed browser-reachable." It was never tested: the proof of concept's CORS study
+covers the *cloud* API and OpenRouter, and the word Robot appears nowhere in that repository. A
+live probe on 2026-08-31 settled it — authenticated and unauthenticated requests both return
+success with **no `Access-Control-*` header of any kind**, so no browser origin can read a Robot
+response whatever credential it holds.
+
+**The decision stands, and the repair is small.** CORS restricts the browser's HTTP stack, not
+bytes. A TLS session terminated inside the browser and carried over the relay is not a `fetch`,
+has no origin, and faces no CORS check — which is why SSH already works. Robot is one
+destination named at build time, so it is reached through a tunnel **pinned to its issuing
+authority** (`CHN-12a`): no certificate-authority store, no new trusted party. `STG-3a` states
+it and `OPN-21` gates it.
+
+**Cloud-first was weighed and rejected.** Its API is genuinely browser-reachable, which is the
+best-evidenced fact in the corpus, and it would need no tunnel at all. It loses on two counts.
+The identity chain does not close there — route 2 is dead, route 3 abandoned, and attest has
+never run — so the stage would rest on the one route with no evidence behind it. And it breaks
+the tenant fit: [ADR-0023](./0023-a-tenants-runtime-obligations-belong-to-its-machines.md) makes
+the machine the capacity being sold, and a small cloud instance renting slices of itself is
+reselling someone else's compute, which is the shape that record rejected.
+
+**What this cost the plan** is an item nobody had counted: a pinned TLS client inside
+WebAssembly, believed cheap because it is a pinned verifier over a crypto backend the SSH client
+already requires — and *believed* is the operative word, since that has not been checked at
+source. It is the same shape of claim as the one this amendment exists to correct.
+
 ## Considered options
 
 **Keep the two-cloud-machine stage.** Something visible in weeks and the provenance panel

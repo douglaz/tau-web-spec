@@ -113,6 +113,16 @@ yet.
       trusted rather than verified, in those words.
 - [ ] **CNF-24 · BLOCKING** The install artifact is verified against a browser-supplied content
       hash, and a mismatch halts the install (`ARC-25`, `STG-6`).
+- [ ] **CNF-62 · BLOCKING** A typed vendor call over the tunnel **refuses a certificate that
+      does not match the pin** (`CHN-12a`). Verified by presenting a valid certificate from a
+      different issuer and confirming the session halts. Without this the tunnel is an
+      unauthenticated pipe to a credential-bearing endpoint, which is the escaped-secret family.
+- [ ] **CNF-63 · PRE-SCALE** The relay carries the vendor tunnel as ciphertext and can read
+      nothing of it. Verified by inspecting what the relay observes for a tunnelled call.
+- [ ] **CNF-64 · PRE-SCALE** A pin that no longer matches produces a clear, actionable failure
+      naming rotation as the likely cause — not an opaque network error (`CHN-12a`'s rotation
+      cost).
+
 - [ ] **CNF-25 · PRE-SCALE** The vendor firewall does not privilege the relay's source
       addresses (`ARC-41`), so the scanner's view equals the world's.
 

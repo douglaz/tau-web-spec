@@ -152,8 +152,13 @@ the browser,
 the relay carrying ciphertext to a destination its policy allows — so a CORS-refusing
 service is a routing fact, not a dead end
 ([ADR-0019](./0019-the-publisher-operates-the-default-relay.md)'s amendment: the relay is
-never in a path the browser can take alone). The tunnel is untyped-only: typed vendor
-adapters stay direct fetch, which is why the per-vendor CORS probes stay real questions.
+never in a path the browser can take alone). **The tunnel was untyped-only, and is not any more.** That rule assumed every vendor API
+permits a browser origin. Hetzner's dedicated-server API does not — verified 2026-08-31,
+authenticated and unauthenticated, no `Access-Control-*` header of any kind — so a typed adapter
+there has no direct-fetch path at all. Typed vendor calls therefore ride the tunnel wherever the
+vendor refuses CORS, pinned to that vendor's issuing authority (`CHN-12a`), which adds no
+trusted party. The per-vendor CORS probes stay real questions; what changes is that a failed
+probe is now a routing fact rather than a dead end.
 And the route is decided **before anything side-effecting is sent**, by a dedicated
 harmless probe: the browser cannot tell a refused preflight from a blocked response —
 both surface as the same opaque network error — so route selection never reads the
