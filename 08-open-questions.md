@@ -147,13 +147,21 @@ its own. None is chosen. Whoever builds it settles this first.
 whole life in an encrypted store on a phone, and nothing states when they compact or expire.
 *Closes when:* a retention and compaction policy exists in `03-state-and-recovery.md`.
 
-**OPN-20 — The cost of a WebAssembly TLS client's trust store.** `CHN-12`'s tunneled fallback
-needs a TLS client inside WebAssembly, which browsers do not supply and which must therefore
-bundle its own certificate-authority set and own the revocation problem. That is a
-trusted-party growth `SEC-10` guards, sitting in a credential path. Until it is priced, a
-service refusing browser CORS is out of reach for untyped calls. *Closes when:* someone states
-what the bundle would contain, how it is updated, and what revocation story it has — or the
-capability is abandoned.
+**OPN-20 — The cost of a WebAssembly TLS client's trust store.** *Narrowed: this is now only
+about arbitrary destinations.*
+
+`CHN-12a` settled the known-destination case — a vendor API is pinned to its issuing authority,
+shipped in the bundle, adding no trusted party. What remains is `CHN-12b`: reaching a service
+that refuses browser CORS and cannot be named in advance, which needs a general
+certificate-authority set, currency as authorities are distrusted, and a revocation story. That
+is the growth `SEC-10` guards.
+
+*Closes when:* someone states what the set would contain, how it is updated, and what
+revocation story it has — or the capability is abandoned and untyped calls to CORS-refusing
+services are declared out of reach.
+
+*Separately, and smaller:* `CHN-12a`'s pinning needs a stated rotation procedure, since a vendor
+changing issuing authority makes its API unreachable until a release ships.
 
 ## Closed
 

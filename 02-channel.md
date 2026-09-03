@@ -62,9 +62,13 @@ header, which forces a preflight the API will never satisfy.
 **This does not kill the route — it moves it off `fetch`.** CORS is a restriction on the
 browser's own HTTP stack, not on bytes. A TLS session terminated *inside* the browser and
 carried over the relay is not a `fetch`, has no origin, and is subject to no CORS check — which
-is exactly why the SSH channel works. Reaching Robot therefore needs the same machinery
-`CHN-12` describes, which changes that capability from an optional convenience into
-infrastructure. `OPN-20` prices it and is now gating rather than deferred.
+is exactly why the SSH channel works.
+
+Reaching Robot therefore needs a WebAssembly TLS client — but the **pinned** kind (`CHN-12a`),
+not the general kind. Robot is one destination, named at build time, so it is pinned to its
+issuing authority and **no certificate-authority store and no new trusted party are involved**.
+That is a genuine cost, since nobody has written a WebAssembly TLS client here yet, and it is a
+far smaller one than `CHN-12b`.
 
 Two further caveats stand: Robot is a different product from Hetzner Cloud with a different auth
 scheme, so it is a second integration rather than a free extension; and the contents of
@@ -248,16 +252,31 @@ port, only to destinations recorded against that pass, capped in number, rate li
 revocable the moment abuse is seen. Payment raises the cost of abuse and makes revocation
 meaningful; the destination record does the narrowing.
 
-**CHN-12** The **tunneled fallback for untyped calls is designed and unpriced, and MUST NOT
-be presented as settled routing.** TLS terminating in the browser requires a TLS client
-inside WebAssembly, and browsers do not expose their root certificate store to it. Such a
-client therefore carries **its own bundled certificate-authority set**, which it must keep
-current as authorities are distrusted, and owns the revocation problem outright. That is a
-trust decision about roughly 150 parties sitting directly in a credential path — a different
-and harder problem than pinning one known host key, not "the same character as the SSH
-spike." Those authorities are a trusted-party growth that `SEC-10` guards, and until someone
-prices them, a service refusing browser CORS is out of reach for untyped calls. No
-first-stage work touches this.
+**CHN-12** A tunnel terminates TLS **inside the browser** and carries ciphertext over the
+relay, so the relay stays a carrier and learns nothing of the contents. Browsers do not expose
+their root certificate store to WebAssembly, so such a client must decide for itself what to
+believe — and **that decision costs radically different amounts depending on where it is
+going.** An earlier version of this requirement priced both cases as one and got the expensive
+answer for both.
+
+**CHN-12a — a known destination is pinned, and needs no certificate-authority store.** A vendor
+API is named at build time and there are a handful of them. The browser validates against a
+**pinned issuing authority shipped in the bundle**, exactly as it pins a host key (`SEC-11`), an
+artifact hash (`ARC-25`) and the relay's own identity. **No trusted party is added**, because a
+pin is a fact about one endpoint rather than a delegation to a category.
+
+Its honest cost is **rotation**. A vendor changing its issuing authority makes its API
+unreachable until a release ships the new pin, and briefs already ship on release cadence
+(`ADR-0005`). Pinning the issuing authority rather than the leaf makes this rare rather than
+routine; it does not make it impossible, and the failure mode — loss of reachability, not loss
+of confidentiality — must be stated wherever a pin is relied on.
+
+**CHN-12b — an arbitrary destination needs a general trust store, and remains unpriced and
+unbuilt.** A service that refuses browser CORS cannot be known in advance, so reaching it means
+carrying a certificate-authority set, keeping it current as authorities are distrusted, and
+owning revocation. That is a trust decision about roughly 150 parties sitting in a credential
+path, it is a growth `SEC-10` guards, and `OPN-20` still prices it. Until it is priced, **an
+arbitrary service refusing browser CORS is out of reach for untyped calls.**
 
 ## What the relay learns
 
