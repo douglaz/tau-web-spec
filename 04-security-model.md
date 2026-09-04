@@ -53,7 +53,7 @@ boundary.
 
 **The coordinator holds no grant of this kind at all** (`ARC-19a`). It runs after every machine
 is sealed, and a sealed machine has no SSH to authenticate to. Its credential is
-peer-equivalent — the vault protocol port, which `ARC-40` already assumes a hostile party may
+peer-equivalent — the vault protocol port, which `ARC-23` already assumes a hostile party may
 reach. So this requirement has **no exception window**: there is no moment in a machine's life
 when some party holds every machine's client key, and `CNF-8` tests that absolutely rather than
 after a deadline.
@@ -142,7 +142,7 @@ outgrown, because adding a credential means adding a row.
 | 1 | Vendor API credential | Operator | Browser memory only | One session | Full account authority at that vendor | Session ends |
 | 2 | Inference key | Operator (BYO) or publisher (procured) | Browser memory only | One session | Inference spend | Session ends |
 | 3 | **SSH client private key, one per machine** | Harness-generated | Encrypted at rest; exported in the sheet | Machine lifetime | Login to **that one machine** | Removed from the machine on Replace (`STA-17`) |
-| 4 | **Relay pass** | Bought (`CHN-15`); pasted out of band in the first stage | Encrypted at rest | Until it expires or is re-issued | Reaching the destinations recorded against it, on the SSH port | Expires; revoked and re-issued on Replace; lost passes are re-bought, not recovered |
+| 4 | **Relay pass** | Bought (`CHN-15`); pasted out of band in the first stage | Encrypted at rest | Until it expires or is re-issued | Reaching the destinations recorded against it, on any port (`CHN-16`) | Expires; revoked and re-issued on Replace; lost passes are re-bought, not recovered |
 | 5 | Host-key pins | Vendor API, rescue, or attest | Encrypted at rest; exported in the sheet | Machine lifetime | Nothing — integrity reference | Machine destroyed |
 | 6 | Exposure ledger | Harness-derived | Encrypted at rest; exported in the sheet | Machine lifetime | Nothing — record | Machine destroyed |
 | 7 | Attest voucher (MAC secret) | Harness-generated | Boot user-data, once | Until first valid stamp, or expiry | **One** host-key introduction | **Expires, or is consumed at the first valid stamp (`CHN-7`)** — that is the bound; scrubbed from disk as defence in depth (`CHN-6`) |
@@ -303,7 +303,8 @@ where a second model inspects a finished machine **from inside** hands that mode
 foothold — the scanner never does; it reads only the public surface. A deterministic verifier
 reads whatever the machine chooses to tell it and cannot beat a hostile AI; it survives only
 for drift detection and honest mistakes inside a single member, run by that member's own
-session, or by the coordinator during setup, its one window.
+session — or by the harness's own AI-free code over that same session's channel during setup,
+which is a different runner rather than a different reach (`ARC-19a`).
 
 **Honest mistakes ship silently.** On a first-time setup a misconfiguration is the likely
 failure, not a hostile model, and no mechanism here catches one made the same way by

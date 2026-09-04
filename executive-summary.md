@@ -176,8 +176,8 @@ service picks for you, silently and unlisted.**
 guards. The app bundle and its publisher, which is not diversified and carries the briefs, making
 it the largest concentrated risk. The relay, publisher-operated by default, which cannot read a
 session pinned out of band but does learn the member topology — a bootstrap seat, direct-first,
-until a relay on a machine of the operator's own takes over. The coordinator, narrowly and during
-setup.
+until a relay on a machine of the operator's own takes over. That is the whole tier — the
+coordinator was once listed here and is not a party this product adds (`TRU-A3`).
 
 What the product removes is the party that would otherwise choose every entry in the middle tier
 and hold the credentials too: the service operator. That is the whole claim, and it is smaller

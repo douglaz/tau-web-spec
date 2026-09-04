@@ -102,7 +102,7 @@ maintained machine.
 
 **Recovery after a lost phone revokes; restore after a dead one may not.** A stolen phone's
 encrypted store may eventually be unlocked, so **Replace** (new keypairs, old public keys removed
-during re-entry, relay token re-issued with the old revoked) and **Restore** (the sheet's same
+during re-entry, relay pass re-issued with the old revoked) and **Restore** (the sheet's same
 keys, explicitly non-revoking) are named and distinct, and the screen says which is happening.
 
 **The exposure ledger is recoverable state, or its absence is declared.** It counts every

@@ -45,7 +45,7 @@ already uses for the scanner, and for the same reason: absence of a credential i
 observable by attempting to use one.
 
 **What it does hold is peer-equivalent.** It can do to a member what another member can do,
-and no more. `ARC-40` already states that the vault protocol must be safe against actively
+and no more. `ARC-23` already states that the vault protocol must be safe against actively
 hostile peers — confirmed as btc-policy's own premise rather than a requirement invented here —
 so this grant adds nothing to the vault's threat model. That is the difference between a party
 whose misbehaviour the protocol was designed for and one whose misbehaviour it was not.

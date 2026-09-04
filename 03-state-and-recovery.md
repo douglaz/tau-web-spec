@@ -156,7 +156,7 @@ stolen phone's encrypted store may eventually be unlocked, so the flows are name
 distinct, and the screen says which one is happening:
 
 - **Replace** (the default, for a phone that is lost): new client keypairs, the old public
-  keys removed from every maintained machine during re-entry, and the relay token re-issued
+  keys removed from every maintained machine during re-entry, and the relay pass re-issued
   with the old one revoked.
 - **Restore** (for a phone that died in hand): the sheet's same keys, explicitly presented as
   non-revoking.

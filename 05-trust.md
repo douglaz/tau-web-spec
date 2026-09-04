@@ -27,7 +27,6 @@ flowchart LR
     subgraph A["Added by this product — the only tier the design controls"]
         A1[Bundle + publisher]
         A2[Relay]
-        A3[Coordinator]
     end
     A -->|"guarded by SEC-10"| GUARD([Grows only when someone decides it should])
     E -->|grows when the world does| WORLD([Not guarded])

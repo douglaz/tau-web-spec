@@ -407,7 +407,7 @@ On a sealed member there is no channel to hold: SSH is uninstalled at sealing
 it holds is a **peer-equivalent credential** for each member's vault protocol port
 ([ADR-0010](./docs/adr/0010-members-reach-each-other-on-one-authenticated-port.md)), reached
 over the relay like any other TCP (`CHN-10`). It can do what a member can do to another
-member, and no more — which `ARC-40` already assumes may be done by an actively hostile party,
+member, and no more — which `ARC-23` already assumes may be done by an actively hostile party,
 so the grant adds nothing to the vault's own threat model. `SEC-1` has **no exception window**
 ([ADR-0026](./docs/adr/0026-the-coordinator-is-the-tenants-and-runs-after-sealing.md)).
 

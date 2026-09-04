@@ -83,7 +83,7 @@ off-machine calls and the operator's exposure; the other is about durability and
 must not drift, which is why each now points at the other rather than restating it.
 
 **Encrypted at rest is a property of this store, not an exception to a rule.** The client
-keys, the relay token, the host-key pins and the exposure ledger persist here because ongoing
+keys, the relay pass, the host-key pins and the exposure ledger persist here because ongoing
 operation cannot survive a restart without them. The credential inventory names them with
 their lifetimes; this record says where they physically live.
 

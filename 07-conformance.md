@@ -101,7 +101,7 @@ yet.
       what it can do in the wrong hands, and a maintained cloud machine's setup does not
       complete without it (`STA-15`).
 - [ ] **CNF-20 · PRE-SCALE** Replace revokes: new keypairs issued, old public keys removed from
-      every maintained machine during re-entry, relay token re-issued with the old one revoked
+      every maintained machine during re-entry, relay pass re-issued with the old one revoked
       (`STA-17`).
 
 ## The channel — `SEC-11`, `CHN-*`

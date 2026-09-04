@@ -32,7 +32,8 @@ comparable effects from arbitrary shell is the undecidable problem from
 **A deterministic verifier** that reads a machine and reports its state. Rejected as a defence
 against a hostile AI for a separate reason: it reads what the machine chooses to tell it. It
 remains useful for drift detection and honest mistakes inside a single member, run by that
-member's own session or by the coordinator during setup.
+member's own session — or by the harness's own AI-free code over that same session's channel
+during setup, which changes the runner rather than the reach (`ARC-19a`).
 
 ## Consequences
 
