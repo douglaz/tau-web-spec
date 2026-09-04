@@ -59,9 +59,24 @@ mirror is struggling — and the mispredicted one is precisely the command that 
 session. Removing the prediction removes the failure. `ARC-7` already pays a round trip per
 command, so the marginal cost is small against latency already being spent.
 
+**STA-20a Output MUST be captured by redirection to a file, never by reading a pipe the job
+holds open.** A command that starts a background process leaves that process holding the pipe's
+write end, so a reader blocks until *the background process* exits rather than until the command
+does. Measured on both declared distributions: a command that prints and exits immediately
+returns after twenty seconds when captured through a pipe and immediately when redirected to a
+file. This is not a liveness subtlety — it is `STA-20`'s "its output" field hanging, and it
+inverts the failure mode in the damaging direction, since the record then reads *still running*
+indefinitely and `CNF-40` requires the returning session to wait on exactly that.
+
+**No orphan test may rest on a reparented process's new parent.** Verified: an orphan reparents
+to PID 1 on one declared distribution and to a user-level subreaper on the other, so `PPID == 1`
+is precisely the kind of check that is false on the other distribution.
+
 The mechanism is POSIX and holds no init-system opinion, because `ARC-24` declares two
 distributions with different init systems and anything specific to one would be false on the
-other. **Jobs may be hosted inside a terminal multiplexer** so a human can attach and watch a
+other. **Those two are not the same constraint, and `OPN-22` is open on which one binds** —
+POSIX offers no way to observe a process that has left its session, so the wider reading of
+"still alive" is unreachable under it. **Jobs may be hosted inside a terminal multiplexer** so a human can attach and watch a
 long install — useful during `STG-2`'s by-hand rehearsal — but that is an observation
 convenience and never the record. The multiplexer dies with the machine; the files do not, and
 after a reboot their absence correctly reads as "died".

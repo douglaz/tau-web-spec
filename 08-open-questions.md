@@ -102,6 +102,37 @@ get the treatment `ADR-0024`'s configuration got before anything is built on it.
 *Closes when:* a pinned TLS session from a mobile browser, through the relay, reads a real
 response from the vendor API — **and refuses a certificate that does not match the pin.**
 
+**OPN-22 — What "still alive" means in `STA-20`, and whether POSIX can deliver it.** The
+requirement says the record holds *"enough to tell whether it is still alive"* and never says
+whether *it* is the command or everything the command left running. The two readings need
+different mechanisms and only one of them is reachable.
+
+*The narrow reading is satisfiable and the wide one is not, under POSIX.* A process that
+daemonises calls `setsid()`, which by POSIX creates a new session **and** a new process group —
+so it leaves both of the only groupings POSIX can enumerate. Verified on both declared
+distributions: a plain background child stays in the wrapper's process group and is observable;
+a detached one is in neither its session nor its group. `wait()` cannot see it either, by
+definition, because daemonising orphans it deliberately. **POSIX has no descendant-tracking
+primitive at all**, so this is a property of the standard rather than a gap in the search.
+
+*One mechanism does work, at a stated price.* cgroup v2 membership is inherited across `fork()`
+and unaffected by `setsid()`; a detached child was verified still listed in `cgroup.procs` after
+its wrapper exited. It is a kernel interface rather than a POSIX one, but it holds **no
+init-system opinion**, which is the constraint `STA-20` actually cares about. Its cost is an
+unverified prerequisite: whether cgroup2 is mounted at boot on a real Alpine install, which the
+distribution's own documentation says must be enabled explicitly.
+
+*Also checked and rejected:* an `flock` on an inherited descriptor survives both the wrapper's
+exit and `setsid()`, and correctly reports a detached child alive — but the canonical
+daemonising recipe closes inherited descriptors, so it reports **dead while the process runs**.
+It catches the sloppy daemon and misses the well-behaved one. Advisory at best, and `STA-21`
+already spends the corpus's tolerance for advisory.
+
+*Closes when:* `STA-20` says which reading binds. Under the narrow one it closes immediately and
+daemon health belongs to `ARC-39`'s delivery declaration, which already covers service
+lifecycle. Under the wide one it additionally needs cgroup2-at-boot confirmed on a real Alpine
+install, and `STA-20`'s "POSIX" must become "Linux, init-agnostic".
+
 ## One probe or one boot from closing
 
 Each is an afternoon of work that nobody has spent.
