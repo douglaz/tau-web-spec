@@ -21,6 +21,40 @@ It also costs less to build than it looks. `ARC-30` already specifies an invoice
 for inference credits, and `SEC-13` already forbids the app from holding funds, so the
 interface and the constraint both exist.
 
+## Amended: the port restriction was wrong, and pacing replaces it
+
+This record was written without checking it against
+[ADR-0021](./0021-the-surface-pentest-is-outside-in.md), and the two contradicted each other
+outright. The pass was restricted to the SSH port; the scanner ADR-0021 specifies probes **which
+ports answer**, through this same relay. Every probe the scanner exists to send was a probe the
+restriction refused.
+
+The subtler half is worse than the contradiction. Run the scan anyway and the relay forwards
+port 22 and nothing else, so the scan observes exactly one open port on every machine — always,
+whatever that machine's firewall is doing. It would confirm `ARC-39`'s declaration by
+construction and show the operator a manufactured observation of their own vault. A check that
+cannot fail is worse than no check, because no check is visibly absent.
+
+It also broke `ARC-41` from the side ARC-41 did not guard. That requirement forbids the firewall
+*privileging* relay sources, so the relay-side surface is never **larger** than the world's —
+which is the whole no-access argument. The port restriction made it **smaller**. The argument
+needs equality, and only one side of it was written down.
+
+**A recorded destination is therefore reachable on any port, and pacing carries the weight the
+port restriction used to.** Per-run and per-target limits already exist in ADR-0021's tool
+contract; they stop being politeness and become the anti-abuse control. The narrowing that keeps
+`CHN-8` true is now: recorded destinations only, capped in number, paced per destination, billed,
+revocable.
+
+**What this gives up, stated plainly.** The relay cannot verify that a recorded destination
+belongs to the operator, so every scan target being a harness-provisioned machine is an
+assumption rather than an enforcement — weaker than the rule it replaces. The residual is
+bounded by the relay being a *worse* scanner than the alternative: a pass buys a capped, paced,
+revocable, billed view of a handful of addresses, and the same money rents a machine with none
+of those limits. A tool strictly worse than what an attacker already has does not attract them.
+That is an economic argument, not a cryptographic one, and it is priced here so nobody later
+mistakes it for the latter.
+
 ## Considered options
 
 ### L402, the designed standard for this exact problem
@@ -117,8 +151,9 @@ case.
 **Payment does not by itself stop abuse; it raises its price and enables response.** A pass
 buyer can declare destinations, and a relay that forwards wherever it is told is a paid proxy
 rather than an open one. What narrows it to something defensible is the combination `CHN-8`
-already requires: forward only to the SSH port, only to destinations recorded against that
-pass, capped in number, rate limited, and revocable the moment abuse is observed. The
+already requires: only to destinations recorded against that pass, capped in number, paced per
+destination, and revocable the moment abuse is observed (see the amendment above for why the
+port is not part of that list). The
 destination record is the same row as the authorization, which is why keeping them together
 matters.
 

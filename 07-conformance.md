@@ -149,8 +149,16 @@ yet.
 - [ ] **CNF-57 · BLOCKING** An unpaid caller is refused. The relay is not usable without a
       valid, unexpired pass. Verified by connecting with none, with an expired one, and with a
       revoked one.
-- [ ] **CNF-58 · BLOCKING** A pass reaches only the destinations recorded against it, and only
-      on the SSH port. Verified by attempting an undeclared destination and a different port.
+- [ ] **CNF-58 · BLOCKING** A pass reaches only the destinations recorded against it — on **any**
+      port, since `ARC-41` requires the relay-side view to equal the world's. Verified by
+      attempting an undeclared destination on the SSH port and on another, and a recorded
+      destination on a non-SSH port, which must succeed.
+- [ ] **CNF-65 · BLOCKING** Probing a recorded destination is **paced**, and the per-run and
+      per-target limits hold. Verified by driving the probe toolset flat out at one destination
+      and measuring the rate the relay actually allows. BLOCKING because pacing is the whole of
+      what stops a wide port range being the open proxy `CHN-8` forbids — boundary-crossed, the
+      same family as `CNF-57` and `CNF-58`, and the port restriction that used to carry this
+      is gone.
 - [ ] **CNF-59 · PRE-SCALE** Obtaining a pass requires no account, no email address and no
       identifier the operator supplies. Verified by buying one end to end without contacting
       the publisher.
@@ -235,9 +243,9 @@ Not pass/fail. Required to be recorded.
 Every BLOCKING item sits in one of the irreversible families named above. **They are not all
 exercisable by the first stage**, and an earlier version of this paragraph wrongly claimed only
 `CNF-8` was not. At least four are out of reach: `CNF-8` needs a coordinator; `CNF-18` needs the
-attest machinery `STG-19` says the first stage demonstrates none of; `CNF-57` and `CNF-58` need
-the purchase-and-pass system `STG-18` says the stage does not have, since it runs on a pasted
-token. `CNF-6` and `CNF-26` need a second session, and the stage has one.
+attest machinery `STG-19` says the first stage demonstrates none of; `CNF-57`, `CNF-58` and
+`CNF-65` need the purchase-and-pass system `STG-18` says the stage does not have, since it runs
+on a pasted token. `CNF-6` and `CNF-26` need a second session, and the stage has one.
 
 **The tiers therefore need per-stage scoping**, which this file does not yet have. Until it
 does, the header's "before it touches a real vendor account" cannot be met literally — several
@@ -251,6 +259,6 @@ What matters is the rule, not the total: **an addition to this tier must name th
 family behind it.** `CNF-52` is escaped-secret — a multi-tenant machine holding spendable key
 material is one container escape from the operator's money. `CNF-40` is destroyed-data —
 re-running a command that is still running is the corruption case `STA-20` exists to prevent.
-`CNF-57` and `CNF-58` are boundary-crossed: an unpaid caller or an undeclared destination turns
-the relay into the open proxy `CHN-8` forbids. If an item cannot name its family, it is
+`CNF-57`, `CNF-58` and `CNF-65` are boundary-crossed: an unpaid caller, an undeclared
+destination, or an unpaced one turns the relay into the open proxy `CHN-8` forbids. If an item cannot name its family, it is
 PRE-SCALE and the tier still means something.

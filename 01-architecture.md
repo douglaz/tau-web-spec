@@ -445,9 +445,13 @@ ones. This is confirmed to be btc-policy's own premise rather than a new require
 Because firewall rules are cloud-plane, the deny-by-default posture is visible to the
 operator, and a brief cannot quietly widen it.
 
-**ARC-41** The firewall MUST NOT privilege the relay's source addresses — no allowlist, no
-relay-only port — because a privileged source would make the relay-side surface larger than
-the world's, and the scanner's no-access argument (`ARC-26`) depends on it being equal.
+**ARC-41** The relay-side view of a machine MUST **equal** the world's, and equality has two
+sides. The firewall MUST NOT privilege the relay's source addresses — no allowlist, no
+relay-only port — because a privileged source makes that view larger than the world's. And the
+relay MUST NOT narrow it either: a pass reaches a recorded destination on any port (`CHN-16`),
+because a relay forwarding only port 22 makes the view smaller than the world's and turns the
+scan into a check that cannot fail. The scanner's no-access argument (`ARC-26`) rests on
+equality; only one side of it used to be written down.
 
 ## The operating system, and where it comes from
 
@@ -486,9 +490,17 @@ re-check has an inside and an outside, with different owners
   operator's choosing, run after first-online and periodically, holding member addresses and
   no credential, no channel, no binding. **The model never composes probe traffic**: the
   probes are a deterministic allowlisted toolset, and the model picks targets and reads
-  observations, so even a malicious specialist cannot attack through the probe. The tool
-  contract bounds invocation too — per-run and per-target call limits, pacing, cancellation,
-  bounded output.
+  observations, so even a malicious specialist cannot attack through the probe. **The relay
+  pass stays in the browser too** (`CHN-15`): the harness opens the connection and runs the
+  probe toolset, and the model receives observations. A pass is a bearer credential, and a
+  scanner holding one would break the addresses-and-nothing-else rule. The tool contract bounds
+  invocation too — per-run and per-target call limits, pacing, cancellation, bounded output.
+  Pacing is load-bearing beyond politeness: it is what `CHN-16` relies on to keep a wide port
+  range from being a scanning service.
+
+  **Every scan target is a machine the harness provisioned.** The scan is not a general
+  capability pointed anywhere; it reaches the destinations recorded against the operator's own
+  pass and nothing else.
 
 What the scanner costs is **topology**: its full inference path sees the member set, model,
 proxy and provider alike, a named row in the trust display (`TRU-E5`). What it produces is

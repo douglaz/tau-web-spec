@@ -211,13 +211,14 @@ with no authentication will be abused within days of being reachable. The archiv
 specification's §21 requirements are the resolution: authenticate the user, enforce
 destination and operation policy, prevent generic open-proxy behaviour.
 
-**CHN-9** The relay has three duties: the SSH bridge, the attest drop-box, and — **designed
+**CHN-9** The relay has three duties: the TCP bridge — the SSH channel and `ARC-26`'s surface
+probes — the attest drop-box, and — **designed
 but not built** — a tunneled fallback for untyped calls (`CHN-12`).
 
 **CHN-10** The relay MUST be **direct-first**. It is never in a path the browser can take
 alone. An off-machine call goes straight from the browser to the service wherever the
-service permits it; the relay carries only raw TCP (SSH), the machine-originated attest
-post, and — if `CHN-12` is ever built — untyped calls whose destination refuses browser
+service permits it; the relay carries only raw TCP — the SSH channel and `ARC-26`'s surface
+probes — the machine-originated attest post, and — if `CHN-12` is ever built — untyped calls whose destination refuses browser
 CORS. Minimum usage is a design property, not an accident.
 
 **CHN-11** The relay's operator is the **publisher** by default, with bring-your-own as the
@@ -246,11 +247,26 @@ migration. Losing a pass is not a recovery problem — the operator buys another
 is bought before the machines exist, so its destination list grows as the operator creates them
 — which is the moment the relay learns topology, already priced at `CHN-13`.
 
+**A recorded destination is reachable on any port, not on the SSH port alone.** `ARC-26`'s
+surface scan probes which ports answer; a relay forwarding only port 22 would report exactly one
+open port on every machine whatever that machine's firewall was doing — a check that cannot fail,
+which is worse than no check, because it is displayed to the operator as an observation.
+`ARC-41` requires the relay-side view of a machine to *equal* the world's: forbidding privilege
+keeps that view from being larger, and this keeps it from being smaller.
+
 Payment alone does not satisfy `CHN-8`: a relay forwarding wherever it is told is a paid proxy
-rather than an open one. What makes it defensible is the combination — forward only to the SSH
-port, only to destinations recorded against that pass, capped in number, rate limited, and
-revocable the moment abuse is seen. Payment raises the cost of abuse and makes revocation
-meaningful; the destination record does the narrowing.
+rather than an open one. What makes it defensible is the combination — only destinations
+recorded against that pass, capped in number, **paced per destination**, and revocable the moment
+abuse is seen. Payment raises the cost of abuse and makes revocation meaningful; the destination
+record does the narrowing; **pacing is what makes a wide port range useless as a scanning
+service**, and it is the same per-target limit `ARC-26`'s tool contract already imposes.
+
+**The relay cannot verify that a recorded destination belongs to the operator**, and is not
+asked to. Every scan target is assumed to be a machine the harness provisioned — a design
+assumption, not an enforced one, and weaker than the port restriction it replaces. What bounds
+the residual is that the relay is a *worse* scanner than what an attacker already has: a pass
+buys a capped, paced, revocable, billed view of a handful of addresses, where the same money
+rents a machine with none of those limits.
 
 **CHN-12** A tunnel terminates TLS **inside the browser** and carries ciphertext over the
 relay, so the relay stays a carrier and learns nothing of the contents. Browsers do not expose
