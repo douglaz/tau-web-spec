@@ -67,7 +67,7 @@ sequenceDiagram
     B->>M: SSH, verified against the pinned key — SEC-11
     Note over B,M: no trust-on-first-use at this hop
     B->>M: write the system, per command, recorded first — ARC-8
-    M->>M: pull artifact, verify content hash — ARC-25
+    M->>M: pull artifact, verify against the bundle's pin — ARC-25
     Note over M: installed system's host keys<br/>generated HERE, per machine
     B->>M: read the installed host keys, before reboot
     Note over B: pins them — no TOFU at this hop either
@@ -101,8 +101,15 @@ is never used, and it is **redacted before the response is recorded or reaches a
 pinned channel, **command by command**, each recorded before transmission (`ARC-8`), and the
 transcript matches what was sent.
 
-**STG-6** The artifact the install pulls is **verified against a content hash supplied by the
-browser** (`ARC-25`), and a mismatch halts the install.
+**STG-6** The artifact the install pulls is **verified against a value supplied by the browser
+from the signed bundle** (`ARC-25`), and a mismatch halts the install. The URL pinned is the
+immutable versioned one, never a moving alias.
+
+**The stage MUST record which distribution it ran**, because the two do not have the same trust
+root (`ARC-25a`): on one the pin is a content hash over the artifact, on the other it covers the
+installer image while the installed system is admitted on a cache signature — a different party
+(`TRU-E8a`) and a different claim. A stage that leaves this unrecorded cannot say afterwards
+which of the two it demonstrated.
 
 **STG-7** The machine ends **locked down and demonstrated**: the deliverable of `ARC-17`,
 with the tenant's daemon running.

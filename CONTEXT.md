@@ -180,10 +180,12 @@ The one-time MAC secret itself. A short-lived introduction **credential**, becau
 of it and the drop-box lets an actor stamp an arbitrary fingerprint the browser will trust.
 _Avoid_: token, nonce (both understate what it authorizes)
 
-**Artifact source** · `ARC-25`, `TRU-E8`
+**Artifact source** · `ARC-25`, `ARC-25a`, `TRU-E8`, `TRU-E8a`
 Wherever the installed system's bits come from: an image, a mirror, a channel. An untrusted
-dependency pinned by content hash supplied from the browser.
-_Avoid_: image host (too narrow), mirror (too narrow)
+dependency, pinned as tightly as the distribution allows — by content hash on one, by a signing
+key and a pinned revision on the other, which is a second party rather than the same one.
+_Avoid_: image host (too narrow), mirror (too narrow), **the pin** as a synonym for a content
+hash (it is one of two mechanisms)
 
 ### State and recovery
 

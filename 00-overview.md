@@ -243,3 +243,4 @@ an ADR is where *why* lives.
 | [0024](./docs/adr/0024-the-ssh-client-is-rust-following-a-known-good-configuration.md) | The SSH client is Rust, following a known-good configuration |
 | [0025](./docs/adr/0025-relay-access-is-bought-not-granted.md) | Relay access is bought, not granted |
 | [0026](./docs/adr/0026-the-coordinator-is-the-tenants-and-runs-after-sealing.md) | The coordinator is the tenant's, and runs after sealing |
+| [0027](./docs/adr/0027-the-artifact-pin-is-per-distribution.md) | The artifact pin is per distribution, and one of them adds a party |

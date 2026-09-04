@@ -475,16 +475,70 @@ runs from inside a rescue session; the other is that rescue is what publishes th
 
 A declarative distribution also repays `ARC-10`: a system whose state is described rather
 than accumulated is one a reconnecting session can converge on rather than reconstruct. And
-two machines running the same image hash is a stronger statement than two machines that ran
-the same brief.
+two machines built from the same pinned revision is a stronger statement than two machines
+that ran the same brief — though it is a statement about the **build**, not a hash of the
+installed system, for the reason `ARC-25a` gives.
 
 **ARC-25** The **artifact source** — an image, a mirror, a channel — MUST be treated as an
-untrusted dependency **pinned by content hash supplied from the browser**. The rescue
-session pulls from a URL; the browser supplies the expected hash; a mismatch halts the
-install. This is the same shape as the relay pinned by host key and the bundle pinned by
-published hash, and it is the third instance of a pattern already in use. The source is a
-named party in `TRU-E8`, because whoever decides what every machine runs has the same blast
-radius as the bundle.
+untrusted dependency, **pinned as tightly as the distribution allows and never trusted on
+retrieval**. The rescue session pulls from a URL; the browser supplies the expected value; a
+mismatch halts the install. This is the same shape as the relay pinned by host key and the
+bundle pinned by published hash, and it is the third instance of a pattern already in use.
+The source is a named party in `TRU-E8`, because whoever decides what every machine runs has
+the same blast radius as the bundle.
+
+**The expected value ships in the signed bundle**, alongside the briefs
+([ADR-0005](./docs/adr/0005-briefs-ship-in-the-signed-bundle.md)). No party is added: the pin
+is worth exactly what the bundle is worth, which is the concentration `TRU-A1` already names.
+Fetching the expected value at provisioning time instead would not be a pin but a lookup, and
+it would hand `TRU-E7` the blast radius `TRU-E8` exists to name — a second party with
+bundle-scale reach, of which only one would be written down.
+
+**The pinned URL MUST be an immutable versioned path, never a moving alias.** Alpine serves
+both: `.../v3.24/releases/x86_64/alpine-virt-3.24.1-x86_64.iso` accumulates beside its
+predecessors, while `latest-stable/` and `latest-releases.yaml` are rewritten in place. Against
+a moving alias the mismatch is continuous rather than occasional, and a halt that fires on every
+install is a halt the operator learns to route around.
+
+**Shipping the pin in the bundle couples provisioning to release cadence, and the halt is the
+design working.** The hash moves at upstream's tempo and the bundle at the publisher's, so
+between an upstream release and the release that follows it the harness **cannot provision at
+all** — an outage, not a degradation. Its length is the *publisher's* latency, not upstream's.
+Measured: Alpine's v3.23 branch took six point releases in about six and a half months,
+irregular and security-driven, so the window recurs on that order. **The publisher therefore
+carries a standing obligation to track upstream releases and re-pin.** The only alternative to
+halting is accepting whatever the source serves today, which is the posture this requirement
+exists to refuse.
+
+**ARC-25a The mechanism is not the same on both declared distributions, and only one of them is
+a content hash**
+([ADR-0027](./docs/adr/0027-the-artifact-pin-is-per-distribution.md)). Verified against upstream
+source, 2026-09-04.
+
+- **Alpine matches the requirement as stated.** Every release artifact is served with sibling
+  `.sha256`, `.sha512` and `.asc` files at the same path. Nothing upstream *promises* that a
+  released file is never rewritten — the pin is the enforcement rather than a publisher
+  guarantee, which is the right way round.
+- **NixOS does not, and cannot.** The install fetches from a binary cache and admits store paths
+  on **signature**, against a key baked into the installer's configuration with signature
+  checking on by default. No point in that path accepts an expected hash from an outside party.
+  A browser-supplied hash can cover the **ISO and nothing more** — and the ISO carries the
+  *installer's* closure, not the target's, so its overlap with the installed system is
+  incidental and has no stated fraction.
+- **Pinning the NixOS ISO is still load-bearing, for a different reason than this requirement
+  assigns it.** The installer passes its own store as trusted, so paths already present in the
+  ISO are copied **without a signature check**. The ISO hash is the unsigned-admission surface,
+  not the artifact pin.
+- **A pinned revision is the tightest NixOS-shaped pin, and it pins sources rather than
+  binaries.** A flake lock records each input's revision and tree hash, which fixes the
+  derivation graph; ordinary derivation outputs remain input-addressed, and content-addressed
+  derivations are still experimental. So a pinned revision buys a reproducible build *in
+  principle* and does not convert cache trust into hash trust. A **channel name is not a pin at
+  all** — it is a redirect whose target advances.
+
+**What follows from that is a party, not a caveat.** Whoever holds the binary cache's signing
+key decides what every NixOS machine runs, and no value the browser can supply removes them.
+`TRU-E8a` names them.
 
 ## Ongoing operation
 

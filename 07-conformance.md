@@ -113,8 +113,19 @@ yet.
       session before reboot. **No trust-on-first-use at either hop** (`STG-4`).
 - [ ] **CNF-23 · BLOCKING** Under `CHN-R4` only, first contact is presented to the operator as
       trusted rather than verified, in those words.
-- [ ] **CNF-24 · BLOCKING** The install artifact is verified against a browser-supplied content
-      hash, and a mismatch halts the install (`ARC-25`, `STG-6`).
+- [ ] **CNF-24 · BLOCKING** The install artifact is verified against a value the browser supplies
+      from the signed bundle, and a mismatch halts the install (`ARC-25`, `STG-6`). Verified by
+      serving an artifact that does not match and confirming the install stops rather than
+      warning.
+- [ ] **CNF-66 · BLOCKING** The pinned URL is an **immutable versioned path**, not a moving
+      alias (`ARC-25`). Verified by inspecting the pinned URL: a `latest`-shaped path or a
+      rewritten-in-place metadata file fails this item even when the hash currently matches,
+      because it will mismatch on the next upstream release and every install after it.
+- [ ] **CNF-67 · PRE-SCALE** On the distribution that admits artifacts by signature rather than
+      hash, signature checking is **on**, the substituter key is the pinned one, and the install
+      is driven from a pinned revision rather than a channel name (`ARC-25a`). The
+      browser-supplied hash covering the installer image does not satisfy this item and is not
+      reported as if it did.
 - [ ] **CNF-62 · BLOCKING** A typed vendor call over the tunnel **refuses a certificate that
       does not match the pin** (`CHN-12a`). Verified by presenting a valid certificate from a
       different issuer and confirming the session halts. Without this the tunnel is an
@@ -262,5 +273,8 @@ family behind it.** `CNF-52` is escaped-secret — a multi-tenant machine holdin
 material is one container escape from the operator's money. `CNF-40` is destroyed-data —
 re-running a command that is still running is the corruption case `STA-20` exists to prevent.
 `CNF-57`, `CNF-58` and `CNF-65` are boundary-crossed: an unpaid caller, an undeclared
-destination, or an unpaced one turns the relay into the open proxy `CHN-8` forbids. If an item cannot name its family, it is
-PRE-SCALE and the tier still means something.
+destination, or an unpaced one turns the relay into the open proxy `CHN-8` forbids. `CNF-66` is
+boundary-crossed too, and it is the one that looks like hygiene: a pin against a moving alias
+passes today and admits rewritten bits on the next upstream release, which is the bundle-scale
+substitution `TRU-E8` names arriving through the control that was supposed to detect it. If an
+item cannot name its family, it is PRE-SCALE and the tier still means something.

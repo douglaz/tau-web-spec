@@ -22,6 +22,7 @@ flowchart LR
         E6[Untyped-scope services]
         E7[Software signer]
         E8[Artifact source]
+        E8a["Binary cache signing key<br/>one distribution only"]
         E9[Delegated receiving service]
     end
     subgraph A["Added by this product — the only tier the design controls"]
@@ -89,10 +90,23 @@ specifies it yet.
 **TRU-E8 — The artifact source.** The chosen distributions (`ARC-24`) are not offered by the
 dedicated vendor's automatic installer, so the system is written from inside rescue and the
 bits come from somewhere: an image, a mirror, a channel. **Whoever controls that source decides
-what every machine runs**, which is the same blast radius as the bundle. It is pinned by content
-hash supplied from the browser (`ARC-25`), which makes it detectable rather than trusted
-blindly, in the same discipline as the relay pinned by host key. Until the pin exists in an
-implementation, this party is trusted outright.
+what every machine runs**, which is the same blast radius as the bundle. It is pinned from the
+browser against a value that ships in the signed bundle (`ARC-25`), which makes it detectable
+rather than trusted blindly, in the same discipline as the relay pinned by host key. Until the
+pin exists in an implementation, this party is trusted outright.
+
+**TRU-E8a — The binary cache's signing key holder, on the distribution that has one.** `ARC-25a`
+records that only one of the two declared distributions admits artifacts by content hash. The
+other admits them by **signature**, against a key baked into its installer, and the browser has
+no way to supply an expected hash for what actually gets installed. That key's holder decides
+what every machine on that path runs — `TRU-E8`'s blast radius exactly — and **no pin removes
+them**, which is what separates this row from the one above it. It is elective in the only sense
+that matters: it follows from choosing that distribution, and choosing the other one avoids it
+entirely.
+
+The party is real whether or not it is written down, and it was not. That is the whole reason
+for the row: `SEC-10` prices an unlisted party as a schema migration, and an unlisted party
+already relied on is worse than a listed one.
 
 **TRU-E9 — A delegated receiving service, where a tenant uses one.** Under `ARC-38` a runtime
 obligation may be met at a third party that notifies the machine, and for Lightning that is the
