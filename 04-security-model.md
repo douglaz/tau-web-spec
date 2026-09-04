@@ -51,10 +51,18 @@ rather than from the harness declining to call its own transport. A single share
 would leave this invariant enforced only by routing code, which is bookkeeping rather than a
 boundary.
 
-**The coordinator holds a distinct grant, not a borrowed one.** It is bound to no machine
-and must reach inside every member (`ARC-19`), so it holds every machine's keypair, for the
-**setup window only**, and that grant ends when setup does. Naming it as a second grant type
-is what keeps `CNF-8`'s refusal test meaningful.
+**The coordinator holds no grant of this kind at all** (`ARC-19a`). It runs after every machine
+is sealed, and a sealed machine has no SSH to authenticate to. Its credential is
+peer-equivalent — the vault protocol port, which `ARC-40` already assumes a hostile party may
+reach. So this requirement has **no exception window**: there is no moment in a machine's life
+when some party holds every machine's client key, and `CNF-8` tests that absolutely rather than
+after a deadline.
+
+*What this requirement used to say* was that the coordinator held a distinct grant covering
+every machine's keypair for the setup window. That described a shape the ordering makes
+impossible, and it quietly reintroduced the shared-key condition the paragraph above rejects —
+enforcement by routing code rather than by SSH. It is recorded because a reader who assumes the
+coordinator must reach inside every member will re-derive it.
 
 Access is what composes, not intent: a model with a foothold on two members halves the
 number of malicious domains needed to reach k-of-n

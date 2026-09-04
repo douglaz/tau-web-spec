@@ -249,15 +249,15 @@ flowchart LR
         S1["Session 1<br/>weights A"]
         S2["Session 2<br/>weights B"]
         S3["Session 3<br/>weights C"]
-        CO["Coordinator<br/>AI-free, setup window only"]
+        CO["Coordinator<br/>AI-free, no channel ever"]
     end
     S1 -->|"keypair 1 only"| M1["Machine 1"]
     S2 -->|"keypair 2 only"| M2["Machine 2"]
     S3 -->|"keypair 3 only"| M3["Machine 3"]
     S1 -.->|"cannot authenticate"| M2
-    CO -->|"holds all keypairs<br/>during setup"| M1
-    CO --> M2
-    CO --> M3
+    CO -.->|"peer-equivalent, after<br/>sealing, vault port only"| M1
+    CO -.-> M2
+    CO -.-> M3
     SC["Scanner<br/>no credential, no channel"] -.->|"public surface only,<br/>through the relay"| M1
     SC -.-> M2
     SC -.-> M3
@@ -392,13 +392,24 @@ not against it.
 
 **ARC-19** The **coordinator** is AI-free deterministic code running from the signed bundle
 on the operator's device. It takes member endpoints plus operator-supplied recovery
-descriptors and forms the federation by calling member APIs. It is the only party that
-reaches **inside** every member, which is permitted precisely because it is not a model —
-the scanner, which is one, touches only the public surfaces the whole internet already sees
-([ADR-0021](./docs/adr/0021-the-surface-pentest-is-outside-in.md)).
+descriptors and forms the federation by calling member APIs.
 
-Its channel access is a **distinct grant** with its own lifetime, not a borrowed session
-binding: see `SEC-1`.
+**It is the tenant's machinery, and it runs only after the harness is finished.** Federation
+formation belongs to the vault the way the threshold does (ADR-0016) and the delivery
+declaration does (`ARC-39`): the harness does not know what a federation is. The coordinator
+begins when every machine is provisioned, locked down, delivered and **sealed** — which is
+already the order [ADR-0012](./docs/adr/0012-a-federation-is-created-only-when-every-member-works.md)
+requires, and it is what makes the rest of this requirement possible to state.
+
+**ARC-19a** The coordinator therefore **never holds a channel to any machine, at any point**.
+On a sealed member there is no channel to hold: SSH is uninstalled at sealing
+([ADR-0013](./docs/adr/0013-ongoing-operation-periodic-pentest-and-advisory-watch.md)). What
+it holds is a **peer-equivalent credential** for each member's vault protocol port
+([ADR-0010](./docs/adr/0010-members-reach-each-other-on-one-authenticated-port.md)), reached
+over the relay like any other TCP (`CHN-10`). It can do what a member can do to another
+member, and no more — which `ARC-40` already assumes may be done by an actively hostile party,
+so the grant adds nothing to the vault's own threat model. `SEC-1` has **no exception window**
+([ADR-0026](./docs/adr/0026-the-coordinator-is-the-tenants-and-runs-after-sealing.md)).
 
 **ARC-20** Federation creation MUST be all-or-nothing
 ([ADR-0012](./docs/adr/0012-a-federation-is-created-only-when-every-member-works.md)). A

@@ -11,6 +11,15 @@ was shown and approved, and none of those differences are visible from a progres
 
 ## Consequences
 
+**Formation runs after sealing, so a formation failure is a rebuild rather than a repair.**
+`ARC-19` puts the coordinator after every machine is provisioned, locked down, delivered and
+sealed — the order this record already required. On a sealed member SSH is uninstalled, so if
+member 3's API refuses to form, nobody can go back inside and adjust it. The ladder below
+still applies, but only its last rung: destroy and rebuild that member. That is the price of
+sealing before forming, and it is paid deliberately — the alternative is a live administrative
+path into a machine holding the vault, kept open for the length of a step that either works or
+does not.
+
 **"Four up, one stuck" is not a state, it is an unfinished setup.** The recovery ladder
 in [ADR-0004](./0004-one-model-one-machine.md) applies to the stuck member: retry;
 escalate to a stronger model behind the same proxy — conditional, per that record's

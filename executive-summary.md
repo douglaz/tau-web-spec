@@ -95,9 +95,11 @@ begins.
 against a malicious model. What it catches is honest-but-sloppy, the likely failure on a
 first-time setup.
 
-**The coordinator is AI-free.** Deterministic code from the signed bundle forms the federation by
-calling member APIs, holding every machine's keypair for the setup window and no longer. It is
-the only party reaching inside all members, permitted precisely because it is not a model.
+**The coordinator is AI-free, and holds no channel to any machine at any point.** Deterministic
+code from the signed bundle forms the federation by calling member APIs. It is the tenant's
+machinery, not the harness's, and it runs only once every machine is sealed — at which point
+there is no SSH left to hold. What it carries is peer-equivalent to what one member may do to
+another, which the vault protocol already assumes may be done by a hostile party.
 Federation creation is all-or-nothing, so abandonment has to be a first-class action — and an
 unfinished, still-billing setup owns the app's opening screen.
 

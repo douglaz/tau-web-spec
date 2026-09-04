@@ -56,9 +56,11 @@ yet.
 - [ ] **CNF-7 · BLOCKING** Binding is created by an operator act before any connection
       attempt. A connection attempt against an unbound machine does not create a binding, and
       is recorded as refused.
-- [ ] **CNF-8 · BLOCKING** The coordinator's grant is distinct from any session binding, is
-      scoped to the setup window, and is unusable after setup completes. Verified by
-      attempting a coordinator channel access after setup and observing refusal.
+- [ ] **CNF-8 · BLOCKING** The coordinator holds **no channel to any machine, at any point**
+      (`ARC-19a`), and its credential is peer-equivalent. Verified by inspecting what the
+      coordinator is given — as `CNF-9` does for the scanner — rather than by attempting an
+      access and observing refusal: what is under test is the absence of a credential, and a
+      refusal test cannot distinguish that from a credential the harness declined to use.
 - [ ] **CNF-9 · PRE-SCALE** A scanner run holds no machine credential and no channel. Verified
       by inspecting what the scanner process is given, not by what it does.
 - [ ] **CNF-10 · PRE-SCALE** The exposure ledger records every configured model that touches a

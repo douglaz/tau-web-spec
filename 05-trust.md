@@ -138,11 +138,20 @@ by design, and the product moves the operator to a relay on a maintained machine
 once one exists. That machine's own bound model then becomes a potential metadata observer,
 priced rather than hidden (`CHN-14`).
 
-**TRU-A3 — The coordinator**, narrowly and during setup only, as the only party that reaches
-inside every member. It is deterministic code running from the signed bundle on the operator's
-own device, so it is the application rather than a separate party — but it is listed because
-its reach is broader than anything else the application does, and because it holds every
-machine's client keypair for that window (`SEC-1`).
+**TRU-A3 — Retired. The coordinator is not a party this product adds.** It was listed because
+its reach was believed broader than anything else the application does — every machine's client
+keypair, held at once. `ARC-19a` establishes that it holds no channel at any point: it runs
+after sealing, when no member has SSH to reach, and its credential is peer-equivalent to a
+member's. Its reach is therefore narrower than the application's own, since the application
+holds every session. It is deterministic code from the signed bundle, so whatever trust it
+needs is already `TRU-A1`'s, and the federation it forms is the tenant's object rather than the
+harness's.
+
+The row is kept as a retirement rather than deleted because "the coordinator reaches inside
+every member" is the intuitive reading of what a coordinator is, and a reader who re-derives it
+should find the answer here.
+[ADR-0026](./docs/adr/0026-the-coordinator-is-the-tenants-and-runs-after-sealing.md) carries the
+reasoning.
 
 ## What this product actually removes
 

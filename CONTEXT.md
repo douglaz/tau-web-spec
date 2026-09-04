@@ -56,10 +56,11 @@ funding a vault, under lnrent a seller renting capacity out. Both of those proje
 their **own** narrower `Operator` for their own domain.
 _Avoid_: user, admin, owner, customer
 
-**Coordinator** · `ARC-19`
-AI-free deterministic code, running from the signed bundle on the operator's device, that
-forms a federation by calling member APIs. The only party that reaches inside every member,
-which is permitted precisely because it is not a model.
+**Coordinator** · `ARC-19`, `ARC-19a`
+AI-free deterministic code, running from the signed bundle on the operator's device, that forms
+a federation by calling member APIs. It is the **tenant's** machinery and runs only after every
+machine is sealed, so it holds no channel to any machine at any point; its credential is
+peer-equivalent.
 
 **btc-policy uses this word for a different component** — its operational relay, trusted until
 the wrench attack and untrusted after. Different phase, opposite trust posture. Check the

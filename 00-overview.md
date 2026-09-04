@@ -242,3 +242,4 @@ an ADR is where *why* lives.
 | [0023](./docs/adr/0023-a-tenants-runtime-obligations-belong-to-its-machines.md) | A tenant's runtime obligations belong to its machines |
 | [0024](./docs/adr/0024-the-ssh-client-is-rust-following-a-known-good-configuration.md) | The SSH client is Rust, following a known-good configuration |
 | [0025](./docs/adr/0025-relay-access-is-bought-not-granted.md) | Relay access is bought, not granted |
+| [0026](./docs/adr/0026-the-coordinator-is-the-tenants-and-runs-after-sealing.md) | The coordinator is the tenant's, and runs after sealing |
