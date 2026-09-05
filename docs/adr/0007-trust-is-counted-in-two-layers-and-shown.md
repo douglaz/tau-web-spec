@@ -55,9 +55,12 @@ models. That is acceptable only because the publisher is already trusted for the
 bring-your-own inference exists as the escape hatch. If that escape hatch is ever
 dropped, this ADR stops being defensible.
 
-**PayPerQ's browser reachability is unverified.** OpenRouter's CORS behaviour was
-established empirically; an OpenAI-compatible API does not imply an origin may call it.
-This needs the same curl probe before the panel can offer it as a one-tap action.
+**PayPerQ's browser reachability is verified, 2026-09-05.** It was recorded here as unverified,
+correctly — an OpenAI-compatible API does not imply an origin may call it. The probe has now been
+run and it passes comfortably: `Access-Control-Allow-Origin: *` on the preflight, on the model
+list, and on the 401, with `Authorization` permitted and the requested header list echoed rather
+than whitelisted. The panel can offer it as a one-tap action. `OPN-7` still stands, because it
+asks about a **second** proxy and this settles the first.
 
 ## Amended: a third count, observed rather than configured
 
@@ -72,3 +75,32 @@ collisions are shown, never blocked, and never restated as forward distinctness:
 of observed sharing is not evidence of separation. The never-blend rule is unchanged —
 three numbers, three labels, no score — and the display cost is nothing new, since the
 header is already recorded for provenance.
+
+## Amended again: the third count has no source, because the header was the other aggregator's
+
+The paragraph above is right about *why* the layer matters and wrong about the one fact it
+rests on. **`X-Provider-Name` is OpenRouter's header.** It was recorded here while OpenRouter
+was the live candidate and PayPerQ was the one whose reachability this record flags as
+unverified. The choice then went the other way, and the header did not travel with it: checked
+against PayPerQ's own docs and live API on 2026-09-05, **no response field or header names the
+provider that served a request**, and page script could not read one if it did — `/chat/completions`
+exposes only a request id to a cross-origin caller.
+
+"The display cost is nothing new, since the header is already recorded for provenance" is the
+sentence that made this invisible. It was true of the aggregator being measured at the time and
+became false without anyone touching it.
+
+**The layer is kept and the count is emptied.** The reasoning for counting the provider
+separately is untouched — it is still a party neither configured layer covers, still chosen per
+request, still able to rewrite everything it carries. What is gone is the evidence. A count
+derived from the model name would name whoever *made* the weights, presented under a label that
+says *observed*, which is precisely the overstatement `SEC-2` forbids elsewhere. So the number is
+shown as absent until a source exists. `OPN-23` holds the options: ask PayPerQ to expose it and
+add it to the exposed-headers list, weigh an aggregator that already does, or retire the layer
+and say so.
+
+There is circumstantial evidence that PayPerQ resells OpenRouter for much of its catalogue — a
+legacy `openrouter:` type still accepted, OpenRouter's exact routing-preference conventions, and
+OpenRouter-specific community model slugs. **Inference, not verification.** If it holds, the
+provider name exists upstream and is being dropped in the middle, which would make the first
+option cheap. It is not a basis for claiming anything today.

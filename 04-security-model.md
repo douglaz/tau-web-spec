@@ -140,7 +140,7 @@ outgrown, because adding a credential means adding a row.
 | # | Credential | Origin | Where it lives | Lifetime | What it authorizes | How it dies |
 |---|---|---|---|---|---|---|
 | 1 | Vendor API credential | Operator | Browser memory only | One session | Full account authority at that vendor | Session ends |
-| 2 | Inference key | Operator (BYO) or publisher (procured) | Browser memory only | One session | Inference spend | Session ends |
+| 2 | Inference **session** key | Minted from row 14 (procured); supplied by the operator (BYO) | Browser memory only | One session | Inference spend, **up to its own cap** | Revoked at session end (procured); session ends (BYO) |
 | 3 | **SSH client private key, one per machine** | Harness-generated | Encrypted at rest; exported in the sheet | Machine lifetime | Login to **that one machine** | Removed from the machine on Replace (`STA-17`) |
 | 4 | **Relay pass** | Bought (`CHN-15`); pasted out of band in the first stage | Encrypted at rest | Until it expires or is re-issued | Reaching the destinations recorded against it, on any port (`CHN-16`) | Expires; revoked and re-issued on Replace; lost passes are re-bought, not recovered |
 | 5 | Host-key pins | Vendor API, rescue, or attest | Encrypted at rest; exported in the sheet | Machine lifetime | Nothing — integrity reference | Machine destroyed |
@@ -152,6 +152,7 @@ outgrown, because adding a credential means adding a row.
 | 11 | Untyped-scope credential | Operator | Browser memory only | Until the operator revokes or rotates it | **Unbounded at that origin** | Operator revokes at the service |
 | 12 | **Tenant secret placed on a machine** | Operator | Browser memory, then the machine | Machine lifetime | Whatever the tenant's software uses it for | Machine destroyed, or operator rotates |
 | 13 | ~~Injected SSH host private key~~ | — | — | — | — | **Row retired. `CHN-R3` is abandoned**: user-data stays readable from the vendor's metadata endpoint for the instance's life, so the key would be permanently re-fetchable by anything on the machine. No exception wording fixes that. |
+| 14 | **Inference account credential** (procured only) | Operator, on funding an account-free balance | Encrypted at rest; **exported in the sheet** | Until the balance is spent | The remaining balance; minting and revoking row 2; attaching a funding source (`ARC-31a`) | Spent down or abandoned — **it is bearer and cannot be revoked** |
 
 **Row 12 carries a caveat that MUST be stated wherever it is offered.** Delivery redaction
 keeps the secret out of the transcript and out of model context *on the way in*. It does not
@@ -161,7 +162,17 @@ is counted under `SEC-6`. Anything else would be the overstatement this design r
 everywhere else.
 
 **Rows 1, 2 and 11 never reach storage.** They are re-supplied by the operator each session,
-deliberately, which is why they appear in `STA-14`'s "dies with the phone" column.
+deliberately, which is why they appear in `STA-14`'s "dies with the phone" column. Row 2 is the
+one that changed shape: on the procured path it is no longer something the operator retypes but
+something the harness **mints, caps, and revokes**, which is why its lifetime is now enforced
+rather than asserted.
+
+**Row 14 is the only credential in this table that cannot be revoked, and it holds money.** It
+is a bearer value: whoever has it can spend the balance and mint keys against it. That is why
+row 2 exists at all — a session gets a capped, expiring derivative rather than the thing itself
+— and why `STA-17`'s Replace flow cannot treat it like row 4. A relay pass is re-issued and the
+old one killed; a stolen account credential can only be raced to the bottom of its balance.
+The bound is what the operator chose to fund.
 
 A secret a service returns inside an untyped response is outside the harness's sight and
 outside this table's reach; the moment such a secret is supplied *to* the harness as a
@@ -196,6 +207,11 @@ authorize an action on its own, declare capabilities, or override policy.
 **Trust counts MUST be shown per layer and MUST NOT be blended into a single score** — and
 the observed provider count MUST be labeled as historical observation, never presented as
 forward-looking distinctness.
+
+**Where that count has no source, it MUST be absent rather than approximated.** The chosen
+aggregator does not report which provider served a request (`ARC-14`, `OPN-23`), and deriving
+the number from the model name would produce a figure labelled *observed* that was read off the
+request. Showing nothing is the honest state; the label is not what makes a count truthful.
 
 ### SEC-10 — the trusted list does not grow silently
 
@@ -313,5 +329,6 @@ everybody. The threshold protects funds; it does not protect against uniform slo
 An **action transcript** is a browser-side record of what one session actually did, captured
 before transmission. It is **not** evidence about a machine, because no second model may
 inspect it against that machine. A **provenance record** — the claim that a machine was
-provisioned by a specific vendor and configured model, plus the *set* of inference providers
-observed serving it — is durable, and in the first version a local claim rather than evidence.
+provisioned by a specific vendor and configured model — it once also claimed the *set* of
+inference providers observed serving it, which has no source on the chosen aggregator
+(`OPN-23`) — is durable, and in the first version a local claim rather than evidence.

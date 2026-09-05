@@ -125,13 +125,14 @@ processes, and it is the one party that always knows which machines exist.
 | Dies with the phone | Survives |
 |---|---|
 | Host-key pins | The vendor login |
-| The SSH client private keys | The inference account |
-| The machine inventory | The app URL |
-| The relay pass | A relay pass, **re-bought** rather than recovered (`CHN-15`) |
-| Action transcripts | The recovery sheet, **if exported** |
+| The SSH client private keys | The app URL |
+| The machine inventory | A relay pass, **re-bought** rather than recovered (`CHN-15`) |
+| The relay pass | The recovery sheet, **if exported** |
+| Action transcripts | The inference balance — **only** through the sheet (`SEC-5` row 14) |
 | Provenance records | |
 | The exposure ledger | |
-| The vendor API credential and the inference key — re-supplied per session by the operator, deliberately not persisted | |
+| **The inference account credential**, unless exported: it is bearer, there is no account behind it, and nothing re-derives it | |
+| The vendor API credential and the session inference key — re-supplied or re-minted per session, deliberately not persisted | |
 
 **Transcripts and provenance are gone and stated as gone.** They were records, not secrets;
 nothing re-derives the past.
@@ -161,10 +162,19 @@ stays optional. A sealed tenant's machines need none: their pins die at sealing,
 lost mid-setup is answered by the tenant's own all-or-nothing rule — abandon and recreate.
 This asymmetry is stated, not smoothed over.
 
-**STA-16** The recovery sheet holds host-key fingerprints, the exposure ledger, and the SSH
-client keys wrapped under a passphrase the operator chooses. The export screen MUST say what
-the sheet can do in the wrong hands with the passphrase: reach every maintained machine. This
-is the same posture the target audience already holds toward seed backups.
+**STA-16** The recovery sheet holds host-key fingerprints, the exposure ledger, the SSH client
+keys, and — on the procured path — the **inference account credential**, all wrapped under a
+passphrase the operator chooses. The export screen MUST say what the sheet can do in the wrong
+hands with the passphrase: **reach every maintained machine, and spend the remaining inference
+balance**. This is the same posture the target audience already holds toward seed backups.
+
+**The balance is in the sheet because the alternative is worse, not because it is comfortable.**
+The account credential is bearer and unrevocable (`SEC-5` row 14), so exporting it raises the
+value of a stolen sheet. Leaving it out means a lost phone burns whatever the operator funded,
+with no recovery path at all — and the sheet already carries the keys to every maintained
+machine, so this changes the size of a loss rather than its kind. What the screen must not do
+is bury the change: a sheet that now holds money is a different object from one that held only
+references.
 
 **STA-17** Recovery after a *lost* phone revokes; restore after a *dead* one may not. A
 stolen phone's encrypted store may eventually be unlocked, so the flows are named and
@@ -175,6 +185,13 @@ distinct, and the screen says which one is happening:
   with the old one revoked.
 - **Restore** (for a phone that died in hand): the sheet's same keys, explicitly presented as
   non-revoking.
+
+**Replace cannot cover the inference account credential, and MUST say so.** Every other item in
+the flow has an issuer that can kill the old value; this one has no account behind it, so there
+is nothing to revoke against (`SEC-5` row 14). What Replace *can* do is revoke every session key
+minted from it and mint no more — which stops the harness's own use and does nothing about a
+thief's. The only real remedy is to spend the balance down or move it, and the screen should
+offer that rather than implying the Replace flow handled it.
 
 **STA-18** Inventory recovery makes the vendor list authoritative. Listing the account is how
 a new phone learns what exists. That listing is performed by the deterministic recovery flow

@@ -102,7 +102,23 @@ yet.
       complete without it (`STA-15`).
 - [ ] **CNF-20 · PRE-SCALE** Replace revokes: new keypairs issued, old public keys removed from
       every maintained machine during re-entry, relay pass re-issued with the old one revoked
-      (`STA-17`).
+      (`STA-17`). The screen states that the inference account credential is **not** among them
+      and cannot be revoked (`SEC-5` row 14).
+- [ ] **CNF-68 · BLOCKING** No session ever holds the inference **account** credential
+      (`ARC-31a`, `SEC-5` row 14). Verified by inspecting what a session is given, as `CNF-9`
+      does for the scanner — a refusal test cannot distinguish an absent credential from one the
+      harness declined to use. Escaped-secret: this credential is bearer, unrevocable, and holds
+      spendable balance.
+- [ ] **CNF-69 · BLOCKING** The session inference key is minted with a **spend cap and an
+      expiry** and is **revoked when the session ends** (`ARC-31a`). Verified by using the key
+      after the session closes and confirming refusal. Without this, `SEC-5` row 2's "one
+      session" lifetime is an assertion rather than a bound.
+- [ ] **CNF-70 · BLOCKING** Automatic top-up is **not enabled** on the inference account
+      (`ARC-31a`). Verified by reading the account's configuration. It converts the prepaid cap
+      — the only thing bounding a leaked key — into an open draw on a connected wallet.
+- [ ] **CNF-71 · PRE-SCALE** The retention tier is requested **explicitly on every inference
+      call** (`ARC-31a`), because the aggregator's API default is the weaker tier. Verified by
+      inspecting an outgoing request, not by trusting the aggregator's web-app default.
 
 ## The channel — `SEC-11`, `CHN-*`
 
@@ -232,7 +248,9 @@ yet.
 ## Trust display — `SEC-9`, `SEC-10`
 
 - [ ] **CNF-41 · PRE-SCALE** Counts are shown per layer and never blended. The observed provider
-      count is labelled as historical.
+      count is labelled as historical **where it exists at all** — and where the aggregator
+      reports no provider, the count is **absent**, not derived from the requested model name
+      (`SEC-9`, `OPN-23`).
 - [ ] **CNF-42 · PRE-SCALE** Every approved scope and every placed tenant secret appears in the
       trust display until revoked or rotated, not merely while the approval stands.
 - [ ] **CNF-43 · PRE-SCALE** The relay's row names its operator and states that it learns the
@@ -276,5 +294,8 @@ re-running a command that is still running is the corruption case `STA-20` exist
 destination, or an unpaced one turns the relay into the open proxy `CHN-8` forbids. `CNF-66` is
 boundary-crossed too, and it is the one that looks like hygiene: a pin against a moving alias
 passes today and admits rewritten bits on the next upstream release, which is the bundle-scale
-substitution `TRU-E8` names arriving through the control that was supposed to detect it. If an
+substitution `TRU-E8` names arriving through the control that was supposed to detect it.
+`CNF-68` and `CNF-70` are escaped-secret and money-out respectively — an unrevocable bearer
+credential in a session's hands, and a prepaid ceiling silently converted into a wallet draw —
+and `CNF-69` is what turns row 2's stated lifetime into an enforced one. If an
 item cannot name its family, it is PRE-SCALE and the tier still means something.

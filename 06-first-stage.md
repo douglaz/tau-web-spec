@@ -160,12 +160,13 @@ produces.
 
 ## Provenance in the first stage
 
-**STG-17** Provenance is still recorded — vendor, inference provider, model, surviving reload
-and restart — and the per-layer counts are still shown per `SEC-9`. The configured counts read
-one: one set of weights, one proxy on the procured path, no proxy entry at all under local
-inference. The observed provider count reports whatever the traffic shows, which even for one
-machine can exceed one, since the proxy picks the provider per request. The smaller claim,
-stated as numbers.
+**STG-17** Provenance is still recorded — vendor, model, surviving reload and restart — and the
+per-layer counts are still shown per `SEC-9`. The configured counts read one: one set of
+weights, one proxy on the procured path, no proxy entry at all under local inference. **The
+observed provider count is absent**, because the chosen aggregator reports no provider and
+`SEC-9` forbids deriving one from the model name (`OPN-23`). The smaller claim, stated as
+numbers — and one of them stated as missing, which is the more useful thing for a first stage
+to demonstrate than a number nothing produced.
 
 What waits is comparison: with one machine there is no collision to display, so the collision
 display and the operable panel arrive with the tenant that needs them.

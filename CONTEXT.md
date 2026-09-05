@@ -213,9 +213,9 @@ A browser-side record of what one session actually did, captured before transmis
 _Avoid_: audit trail, proof
 
 **Provenance record**
-The claim that a machine was provisioned by a specific cloud vendor and configured model, plus
-the *set* of inference providers observed serving it. In the first version a local claim rather
-than evidence.
+The claim that a machine was provisioned by a specific cloud vendor and configured model. It
+once also claimed the *set* of inference providers observed serving it; on the chosen aggregator
+that set has no source (`OPN-23`). In the first version a local claim rather than evidence.
 _Avoid_: attestation, certificate, lineage
 
 ### Trust and diversity
@@ -228,11 +228,14 @@ _Avoid_: trust score, threat level
 
 **Trust domain** · `ARC-14`
 An independent way for an AI to be compromised. Counted at two configured layers — **weights**
-and **proxy** — plus one **observed**, the inference provider.
+and **proxy** — plus one **observed**, the inference provider, which currently has no source on
+the default path (`OPN-23`).
 
 **Inference provider**
-The party that actually serves the weights for a request, named at runtime by
-`X-Provider-Name`. **Distinct from the proxy the session connects to.**
+The party that actually serves the weights for a request. **Distinct from the proxy the session
+connects to**, and distinct from the party that *made* the weights. Not named at runtime by the
+chosen aggregator; `X-Provider-Name` is a different aggregator's header and was recorded while
+that one was still the candidate.
 _Avoid_: AI provider, model provider, LLM vendor, serving provider
 
 **Model**
@@ -240,13 +243,19 @@ The weights behind an inference provider. Two providers may serve the same model
 diversity does not imply model diversity. This distinction is the whole security argument.
 
 **Collision** · `OVR-6`
-Two machines sharing a trust domain at any counted layer, the observed provider layer included.
-Shown, not blocked.
+Two machines sharing a trust domain at any counted layer. Shown, not blocked. The observed
+provider layer is included in principle and produces nothing today (`OPN-23`).
 
-**Procured inference** / **bring-your-own inference** · `ARC-31`
-The default path, where the operator pays one fee and the publisher selects the models through
-its one aggregator; and the advanced path, where the operator supplies their own tokens or runs
-inference locally.
+**Procured inference** / **bring-your-own inference** · `ARC-31`, `ARC-31a`
+The default path, where the operator funds an account-free balance at one aggregator and the
+publisher selects the models — the publisher handling neither the money nor the credential; and
+the advanced path, where the operator supplies their own tokens or runs inference locally.
+
+**Inference account credential** vs **session inference key** · `ARC-31a`, `SEC-5` rows 14 and 2
+The account credential is the procured path's upper tier: bearer, unrevocable, spendable, and
+able to mint keys. A session key is minted from it with a cap and an expiry and revoked when the
+session ends. A session holds only the second.
+_Avoid_: "the inference key" for either one on its own; API key (says nothing about which tier)
 
 ### Money
 

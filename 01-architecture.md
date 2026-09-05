@@ -290,10 +290,16 @@ as one blended number
   weights being backdoored, even through a shared proxy.
 - **Proxy** — the aggregator routing the request. A compromised proxy can alter every
   prompt and response it carries, whatever weights sit behind it.
-- **Provider, observed** — the party that actually served each response, read from
-  `X-Provider-Name`. Chosen per request by the proxy, not configured by anyone, so this
-  count is historical: it says how many distinct providers the witnessed traffic landed at,
-  and it never promises the next request lands the same way.
+- **Provider, observed — and on the default path there is currently nothing to observe.**
+  The party that actually served each response is chosen per request by the proxy and
+  configured by nobody, so any count of it could only ever be historical. This layer was
+  specified around `X-Provider-Name`, which is a **different aggregator's** header, recorded
+  while that one was still the candidate. The aggregator now chosen exposes no equivalent, and
+  a browser could not read one if it did: the only response header exposed to page script is a
+  request id (`TRU-E3`, verified 2026-09-05). **Until `OPN-23` is answered this layer has no
+  source and MUST NOT be displayed as a count.** What remains readable is the weights vendor,
+  which is the layer above, and it is not a substitute — it names who made the model, not who
+  ran it.
 
 A 3-of-5 federation on five sets of weights behind one proxy is 3-of-5 against backdoored
 weights and 1-of-1 against a backdoored proxy. Both numbers are true; one number would be a
@@ -602,18 +608,54 @@ intermediary would be the one place in the design where the operator is asked to
 
 **ARC-31** Payment evidence MUST NOT be overstated. A **settled invoice** proves the
 operator funded credits at a provider and bounds which proxies are available; it does not
-prove which member used which proxy, because one top-up buys many queries. Per-member
-routing evidence is separate and comes from response metadata.
+prove which member used which proxy, because one top-up buys many queries. Per-member routing
+evidence would have to come from response metadata, and on the chosen aggregator **there is
+none** (`ARC-14`, `OPN-23`).
 
-**Inference has two paths.** *Procured* is the default: the operator pays one fee and the
-publisher selects the models, reaching them through one aggregator, so every member is
-routed through a single proxy. *Bring-your-own* is the advanced path: the operator supplies
-provider tokens or runs inference locally, removing the publisher from model selection and,
-locally, the proxy layer entirely.
+**Inference has two paths.** *Procured* is the default: the operator funds an account-free
+balance at one aggregator, and the publisher selects the models, so every member is routed
+through a single proxy. **The publisher handles neither the money nor the credential** — it
+supplies model choices in the briefs and nothing else
+([ADR-0028](./docs/adr/0028-procured-inference-is-the-operators-balance.md)). *Bring-your-own*
+is the advanced path: the operator supplies provider tokens or runs inference locally, removing
+the publisher from model selection and, locally, the proxy layer entirely.
 
-**This is where lnrent becomes structural.** Paying for inference is *nearly* solved — an
-aggregator that takes Lightning with no registration would make funding several providers a
-few invoices, subject to the browser reachability `OPN-7` records as unprobed. Cloud vendors
+**ARC-31a The procured credential is two-tier, and a session holds only the lower tier.**
+
+- The **account credential** funds and governs. It mints and revokes session keys, and it is the
+  only thing that can attach a funding source. It is the operator's, held encrypted at rest and
+  exported in the recovery sheet (`STA-16`), because it is spendable balance and nothing
+  re-derives it.
+- A **session inference key** is minted per session with a spend cap and an expiry, and revoked
+  when the session ends. It MUST NOT be able to raise its own cap, mint another, or attach
+  funding. Verified 2026-09-05 to be a property of the chosen aggregator rather than a
+  convention: its key-management endpoints reject the session key and require the account
+  credential.
+- **A session MUST NOT receive the account credential, and no model sees either tier.** The key
+  is used by harness code, exactly as `CHN-15` keeps the relay pass out of the scanner's hands.
+- **Automatic top-up MUST NOT be enabled.** It converts a prepaid bound into an open draw on a
+  connected wallet. It is off by default and only the account credential can turn it on, which
+  is one more reason a session never holds one.
+- **The retention tier MUST be requested explicitly on every call.** The aggregator's API
+  defaults to the weaker tier even where its own web app defaults to the stronger, so a harness
+  that omits the flag gets prompt retention at the upstream and is not told. It is also
+  documented to drop silently on at least one model-plus-web-search combination.
+
+The exposure from a leaked session key is the lesser of the remaining balance and that key's
+cap. That bound is the whole reason the tiering is worth building, and it holds only while
+top-up stays off.
+
+**One limit is stated rather than solved.** A session key can read the *account's* usage
+history — timestamps, model names and costs across every key, with no prompt content. So a
+session observes that its siblings ran and what they cost. `SEC-1` binds what a session can
+reach on machines and says nothing about what it can learn about other sessions; this is
+weaker than access and is not nothing. There is no remedy available at the aggregator, and the
+information carries no address, no content and no credential.
+
+**This is where lnrent becomes structural.** Paying for inference is **solved**, and verified
+rather than assumed (2026-09-05): the default aggregator issues a working credential from a
+single unauthenticated call with no email address, funds over Lightning from ten cents, and
+answers a browser origin directly. Cloud vendors
 are not: they want an account, a card, and a recurring billing relationship, and a 3-of-5
 federation across distinct vendors means several of those. Without something like lnrent,
 `OVR-5` collides with the operator's willingness to open billing relationships, and vendor

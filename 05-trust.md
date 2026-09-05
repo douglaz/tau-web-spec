@@ -63,11 +63,32 @@ can alter every prompt and response it carries, which makes it the thinnest laye
 default product even when the weights count looks healthy. Adding a second is a supported move,
 not a redesign.
 
+**What is known about the default one, verified 2026-09-05 against its own pages and its live
+API.** It states that it stores no prompts, keeping only token counts against a random
+identifier, and it offers three retention tiers of which the weakest is the API's default
+(`ARC-31a`). It holds the operator's funds prepaid and non-withdrawable. Against that: **it
+names no legal entity, no jurisdiction and no governing law**, its own About and Contact pages
+are linked and return 404, its arbitration clause specifies no forum or seat, and its terms bind
+the user to a usage policy and a sharing policy **that do not exist yet** and take effect on
+posting. There is no status page and no published reliability record. It is a real, actively
+shipping, two-named-person operation with essentially no corporate transparency, and the
+exposure is bounded by the balance the operator chose to fund — which is the only reason that
+combination is acceptable at all.
+
 **TRU-E3 — The inference provider behind the proxy.** The aggregator does not run the weights;
 it routes to whoever does, and that party sees and can rewrite every prompt and response sent
-to it. Two machines served by the same one share a party the **observed** third count reports —
-historically, per response, never as a forward promise. It stays named here because observation
-is not separation.
+to it. It stays named here because observation is not separation.
+
+**The observation this row used to promise does not exist.** It said the provider was reported
+by an *observed* count, historically and per response, and `ARC-31` said that evidence came from
+response metadata. Checked against the default aggregator: **no response field or header names
+the provider that served a request**, and the browser could not read one if it did — the only
+header exposed to page script is a request id. What can be shown honestly is the *weights*
+vendor, derived from the model catalogue, and the per-model retention tier. Which party ran the
+inference is not available, so a provider count sourced from the model name would be a number
+that looks observed and is derived from the request. `OPN-23` carries what to do about it. Until
+it is answered, **nothing may display a provider count**, by the same rule that forbids calling
+a scan verified (`SEC-2`).
 
 **TRU-E4 — A majority of the models**, being both honest *and* competent.
 
@@ -130,7 +151,11 @@ plus watchdogs (`OPN-15`) are the mitigation that would matter and does not exis
 
 On the default path the publisher also selects the models, which is acceptable only because it
 is already trusted for the bundle and because bring-your-own inference exists as the escape
-hatch. If that hatch is ever dropped, the arrangement stops being defensible.
+hatch. If that hatch is ever dropped, the arrangement stops being defensible. **That is now the
+whole of its procured-path role**: the operator funds the balance and holds the credential, so
+the publisher handles no money and issues no credential (`ARC-31a`,
+[ADR-0028](./docs/adr/0028-procured-inference-is-the-operators-balance.md)). Model selection
+already ships in the briefs, so this adds nothing the bundle did not already carry.
 
 **This entry covers governance as well as compromise.** Because briefs ship in the bundle, the
 publisher decides which tenants can exist and when a tenant's change reaches operators

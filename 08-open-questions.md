@@ -55,14 +55,23 @@ Until those run, the channel's loss story is a design, not a property.
 
 *Closes when:* `CNF-18`, `CNF-19` and `CNF-20` pass on real hardware.
 
-**OPN-4 — Weights-level diversity may not be enforceable.** The available runtime signal names
-the *inference provider*, not the weights behind it — and the provider is a layer nobody
-configures, so there is nothing there to enforce either. The honest position is the one
+**OPN-4 — Weights-level diversity may not be enforceable.** The runtime signal named the
+*inference provider*, not the weights behind it — and the provider is a layer nobody
+configures, so there was nothing there to enforce either. The honest position is the one
 `ARC-14` records: report what was observed, promise nothing forward. `SEC-CLAIM` stays
 conditional on weights-level distinctness.
 
-*Closes when:* a signal reaching the weights themselves exists, or the claim is permanently
-restated as conditional. There is no current candidate for the former.
+*The signal situation changed, and not only for the worse.* On the chosen aggregator there is
+no provider signal at all (`OPN-23`), so the sentence above describes a signal that is gone. But
+the **weights are configured, not observed**: the harness picks the model per member, and the
+catalogue names which vendor made it, so distinctness across members is enforceable **by
+construction** rather than by inspection. What remains unverifiable is whether the proxy served
+the model it was asked for — which is a smaller and better-shaped gap than "no signal reaches
+the weights", and it is the same gap `TRU-E2` already names when it says the proxy can alter
+everything it carries.
+
+*Closes when:* the claim is restated around what is configured rather than what is observed, or
+a signal confirming the served model appears. The second has no current candidate.
 
 **OPN-5 — The cloud-account floor.** Cloud vendors want an account, a card, and a recurring
 relationship, several times over, and invoice relay cannot fix it. This is what makes lnrent
@@ -133,12 +142,38 @@ daemon health belongs to `ARC-39`'s delivery declaration, which already covers s
 lifecycle. Under the wide one it additionally needs cgroup2-at-boot confirmed on a real Alpine
 install, and `STA-20`'s "POSIX" must become "Linux, init-agnostic".
 
+**OPN-23 — The observed provider layer has no source, and the header it was specified around
+belonged to a different aggregator.** `ARC-14` counts the inference provider as a third,
+*observed* layer, built from `X-Provider-Name`. That is **OpenRouter's** header, written down
+while OpenRouter was the live candidate. The aggregator actually chosen exposes no equivalent —
+verified 2026-09-05 against its docs and its live API — and page script could not read one if it
+did, because the completions endpoint exposes only a request id to a cross-origin caller.
+
+*The reasoning for the layer survives; only the evidence is gone.* The provider is still a party
+neither configured layer covers, still picked per request, still able to rewrite everything it
+carries. What cannot be done is count it. Deriving the number from the requested model name would
+report whoever **made** the weights under a label reading *observed*, which is the overstatement
+`SEC-2` forbids everywhere else, so `SEC-9` now requires the count to be **absent** rather than
+approximated.
+
+*Three ways out, none free.* Ask the aggregator to return the provider and add it to its
+exposed-headers list — cheap if the circumstantial evidence that it resells another aggregator
+and strips the field holds, and that is **inference, not verification**. Weigh an aggregator that
+already reports it, against the accountless Lightning funding and open CORS that made this one
+the choice. Or retire the layer and state that the provider is trusted and uncounted, which is
+honest and loses the one thing `TRU-E3` exists to make visible.
+
+*Closes when:* a source exists, or `ARC-14` drops to two layers in writing. Until then nothing
+displays a provider count.
+
 ## One probe or one boot from closing
 
 Each is an afternoon of work that nobody has spent.
 
 **OPN-7 — Whether the second inference proxy is reachable from a browser at all.** An
-OpenAI-compatible API does not imply an origin may call it. *Closes when:* the same probe the
+OpenAI-compatible API does not imply an origin may call it. **The first proxy is now probed and
+passes** (2026-09-05, recorded in ADR-0007), so this is exactly what remains: the *second* one,
+which `ARC-14`'s proxy layer needs before it can move off one. *Closes when:* the same probe the
 first proxy got is run against it.
 
 **OPN-8 — Whether a second cloud vendor's API permits a browser origin.** Roughly eighty lines

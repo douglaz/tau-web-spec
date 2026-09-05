@@ -201,7 +201,8 @@ under [`01-architecture.md`](./01-architecture.md#money) — a reason it is expe
 reason it is optional.
 
 **OVR-6** Independence between members MUST be counted per layer and shown, not enforced.
-Weights and proxy are counted separately, the provider is counted as observed, and a
+Weights and proxy are counted separately, the provider is counted as observed **where the
+aggregator reports one, which the chosen one does not** (`OPN-23`), and a
 collision at any counted layer is displayed rather than blocked
 ([ADR-0007](./docs/adr/0007-trust-is-counted-in-two-layers-and-shown.md)). Blocking would
 make the default configuration impossible, because procured inference routes every member
@@ -244,3 +245,4 @@ an ADR is where *why* lives.
 | [0025](./docs/adr/0025-relay-access-is-bought-not-granted.md) | Relay access is bought, not granted |
 | [0026](./docs/adr/0026-the-coordinator-is-the-tenants-and-runs-after-sealing.md) | The coordinator is the tenant's, and runs after sealing |
 | [0027](./docs/adr/0027-the-artifact-pin-is-per-distribution.md) | The artifact pin is per distribution, and one of them adds a party |
+| [0028](./docs/adr/0028-procured-inference-is-the-operators-balance.md) | Procured inference is the operator's balance, not the publisher's account |

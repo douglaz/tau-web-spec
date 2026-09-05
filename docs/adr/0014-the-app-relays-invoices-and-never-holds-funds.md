@@ -25,8 +25,11 @@ overstate them.
 - **A settled invoice proves the operator has funded credits at that provider.** It
   bounds which proxies are available and funded. It does not prove which member used
   which proxy, because one top-up buys many queries.
-- **Per-member routing evidence is separate**, and comes from response metadata —
-  `X-Provider-Name`, already exposed per `ai-vps-harness` `cors-findings.md`.
+- **Per-member routing evidence is separate**, and would come from response metadata —
+  `X-Provider-Name`. **That header is OpenRouter's**, and the aggregator since chosen exposes
+  no equivalent (verified 2026-09-05, [ADR-0028](./0028-procured-inference-is-the-operators-balance.md)).
+  So today there is no per-member routing evidence at all, and the second of these two
+  evidences is simply absent rather than weaker. `OPN-23` holds what to do about it.
 
 Two evidences, two strengths. The panel in
 [ADR-0007](./0007-trust-is-counted-in-two-layers-and-shown.md) should cite the right one
@@ -35,10 +38,14 @@ for the right claim rather than blending them into one confidence.
 ## Consequences
 
 **The vendor-account friction is now the real onboarding problem.** Paying for inference
-is nearly solved: PayPerQ takes Lightning with no registration, so funding several
-providers is a few invoices — subject to the browser reachability that
-[ADR-0007](./0007-trust-is-counted-in-two-layers-and-shown.md) records as still
-unverified. Cloud vendors are not: they want an account, a card, and a recurring billing
+is **solved**, and verified rather than assumed (2026-09-05,
+[ADR-0028](./0028-procured-inference-is-the-operators-balance.md)): PayPerQ issues a working
+credential from one unauthenticated call with no email, takes Lightning from ten cents, and
+answers a browser origin directly — which closes the reachability
+[ADR-0007](./0007-trust-is-counted-in-two-layers-and-shown.md) recorded as unverified. It is
+also **one** aggregator reaching many models, so this is a single invoice rather than the
+"several providers, a few invoices" this line originally imagined.
+Cloud vendors are not: they want an account, a card, and a recurring billing
 relationship, and a 3-of-5 federation across distinct vendors means several of those.
 App-relayed invoices cannot fix this, because vendors do not sell that way.
 

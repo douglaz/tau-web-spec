@@ -157,6 +157,10 @@ score**. Members on several sets of weights behind one proxy survive a backdoore
 survive a backdoored proxy. One number would be a lie about whichever layer is thin, and the thin
 layer is the one that gets exploited.
 
+The observed layer is currently **empty**, and that is stated rather than filled in: the chosen
+aggregator does not report which provider served a request, so the number has no source and is
+shown as absent rather than derived from the model that was asked for.
+
 ## What must still be trusted
 
 There is no zero. Everything runs on silicon, an operating system, a browser, a model, a vendor.
