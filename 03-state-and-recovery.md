@@ -126,10 +126,10 @@ processes, and it is the one party that always knows which machines exist.
 |---|---|
 | Host-key pins | The vendor login |
 | The machine inventory | **The seed** — in the operator's head or seed backup, never on the phone alone (`STA-22`) |
-| The relay pass | **The SSH client keys, re-derived from the seed** — they used to be in the left column, and moving them is the whole reason the seed exists |
-| Action transcripts | The app URL |
-| Provenance records | A relay pass, **re-bought** rather than recovered (`CHN-15`) |
-| The exposure ledger | The recovery sheet, **if exported** |
+| Action transcripts | **The SSH client keys, re-derived from the seed** — they used to be in the left column, and moving them is the whole reason the seed exists |
+| Provenance records | **The relay pass**, because its key re-derives (`CHN-15`) — it used to be re-bought |
+| The exposure ledger | The app URL |
+| | The recovery sheet, **if exported** |
 | **The inference account credential**, unless exported: it is bearer, there is no account behind it, and nothing re-derives it | The inference balance — **only** through the sheet (`SEC-5` row 14) |
 | The vendor API credential and the session inference key — re-supplied or re-minted per session, deliberately not persisted | |
 
@@ -140,7 +140,8 @@ nothing re-derives the past.
 from it.** A BIP-39 mnemonic, held encrypted at rest and backed up by the operator the way
 this audience already backs up seeds. For machine *m*, the browser derives at index *m*: the
 SSH client keypair (`SEC-5` row 3), the attest sender key (row 7) and the attest recipient key
-(row 16). Derivation is BIP-32 by account index — NIP-06's path for the Nostr keys, which
+(row 16); and for relay pass *n*, on its own branch, the relay key (row 4). Derivation is
+BIP-32 by account index — NIP-06's path for the Nostr keys, which
 upstream now labels *unrecommended* in favour of a single key; that is a wallet-interoperability
 warning, and nothing outside the harness ever needs to reproduce these keys, so it does not
 apply. Cite it with the label rather than without
@@ -212,11 +213,19 @@ distinct, and the screen says which one is happening:
 
 - **Replace** (the default, for a phone that is lost): a **new seed** (`STA-22`), from which
   new client keypairs derive; the old public keys removed from every maintained machine during
-  re-entry; and the relay pass re-issued with the old one revoked. The old seed is not
-  revocable — a thief who unlocks the store has it — which is why the keys it derives are
-  removed from the machines rather than merely stopped being used.
+  re-entry; the old relay pass revoked by its own key's signature and a new pass bought against
+  a key from the new seed. The old seed is not revocable — a thief who unlocks the store has it
+  — which is why the keys it derives are removed from the machines rather than merely stopped
+  being used.
 - **Restore** (for a phone that died in hand): the same seed re-derives the same keys,
   explicitly presented as non-revoking.
+
+**Replace needs both seeds, and MUST say so before it starts.** Re-entering a machine to remove
+the old key uses the old key; revoking the old pass is signed by the old key. Both derive from
+the seed being retired, so the operator needs its backup *during* Replace and abandons it after.
+An operator who has lost the old seed's backup as well as the phone cannot re-enter, and the
+maintained machines are stranded behind a key nobody holds — the honest outcome is recreate,
+and the screen names it rather than starting a Replace that cannot finish.
 
 **Replace cannot cover the inference account credential, and MUST say so.** Every other item in
 the flow has an issuer that can kill the old value; this one has no account behind it, so there

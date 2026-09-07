@@ -181,11 +181,17 @@ _Avoid_: master key, root key (both suggest something a session holds), "the use
 (a derived key is one of many, and none is the operator's social identity)
 
 **Relay pass** · `CHN-15`, `CHN-16`
-What buys access to the relay. Obtained by paying an invoice, not by holding an account: an
-opaque random string against which the relay records the destinations it may reach and when it
-expires. There is no identity behind it and no recovery flow — a lost pass is re-bought.
-_Avoid_: token (the first stage's hand-issued one was a token; this is bought), subscription,
-API key (both imply an account behind them)
+What is bought: the relay's record of which destinations a relay key may reach, until when, and
+how fast. Paid for by invoice, bound to a key, never held as a value. There is no identity
+behind it and nothing to lose — the key it is bound to re-derives.
+_Avoid_: token, subscription, API key (all imply an account or a bearer string); "present the
+pass" (one presents the key; the relay finds the pass)
+
+**Relay key** · `CHN-15`, `SEC-5` row 4
+The keypair the browser derives from the seed for one relay pass. Its public half is what the
+relay binds a purchase to and what the first stage hands the publisher; its private half signs
+the connection challenge, destination records, and revocation. Never stored, never bearer.
+_Avoid_: relay credential (too vague), "the npub" (which of several)
 
 **Drop-box** — retired. A one-time buffer the browser used to open at the relay before creating
 a machine. Replaced by an inbox any Nostr relay provides (`CHN-4`). The name survives only in

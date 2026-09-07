@@ -125,7 +125,7 @@ positional, so nothing renumbers.
 session re-enters over the same pinned channel and re-runs the check.
 
 **STG-10** No credential — the Robot credential, the rescue root password, the inference key,
-the SSH client private key, or the relay token — appears in a request to the app origin, in
+the SSH client private key, or the relay key — appears in a request to the app origin, in
 any model request body, or in any log; and none appears in origin-private storage, local
 storage, or service-worker caches outside the encrypted-at-rest store `SEC-5` names.
 Cleartext nowhere.
@@ -177,8 +177,10 @@ display and the operable panel arrive with the tenant that needs them.
 
 - **Acquisition.** The stage assumes an existing vendor account, an already-rented dedicated
   server, and a Robot webservice user. It tests none of them.
-- **Relay enrolment.** The token is issued out of band and pasted once. There is no issuer,
-  no identity model and no reacquisition story; that is `OPN-2`.
+- **Relay enrolment.** The operator's relay **public** key, derived from the seed (`CHN-15`),
+  is handed to the publisher out of band and recorded by hand. Nothing secret crosses and
+  nothing is pasted into the app. There is still no purchase flow and no reacquisition story;
+  that is `OPN-2`.
 - **Inference funding.** Assumed already funded.
 - **The general tunnel.** The stage builds only the **pinned** kind (`CHN-12a`), for one known
   vendor. Reaching an arbitrary CORS-refusing service needs `CHN-12b`'s certificate-authority

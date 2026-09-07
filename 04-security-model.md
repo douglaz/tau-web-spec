@@ -147,7 +147,7 @@ outgrown, because adding a credential means adding a row.
 | 1 | Vendor API credential | Operator | Browser memory only | One session | Full account authority at that vendor | Session ends |
 | 2 | Inference **session** key | Minted from row 14 (procured); supplied by the operator (BYO) | Browser memory only | One session | Inference spend, **up to its own cap** | Revoked at session end (procured); session ends (BYO) |
 | 3 | **SSH client private key, one per machine** | **Derived** from row 15 at that machine's index (`STA-22`) | Re-derived on demand; nothing to export | Machine lifetime | Login to **that one machine** | Removed from the machine on Replace (`STA-17`), which is a new seed |
-| 4 | **Relay pass** | Bought (`CHN-15`); pasted out of band in the first stage | Encrypted at rest | Until it expires or is re-issued | Reaching the destinations recorded against it, on any port (`CHN-16`) | Expires; revoked and re-issued on Replace; lost passes are re-bought, not recovered |
+| 4 | **Relay key**, one per pass | Derived from row 15 (`STA-22`); its public half is what the relay binds a bought pass to (`CHN-15`), and what the first stage hands the publisher out of band | Re-derived on demand; nothing to store | Until the pass expires or is revoked | Reaching the destinations recorded against its pass, on any port; recording destinations; revoking (`CHN-16`) | Pass expires; revoked by its own signature on Replace, and a new key bound to a new purchase |
 | 5 | Host-key pins | Vendor API, rescue, or attest | Encrypted at rest; exported in the sheet | Machine lifetime | Nothing — integrity reference | Machine destroyed |
 | 6 | Exposure ledger | Harness-derived | Encrypted at rest; exported in the sheet | Machine lifetime | Nothing — record | Machine destroyed |
 | 7 | **Attest sender key**, one per machine | Derived from row 15 (`STA-22`) | Boot user-data; **never stored in the browser**, re-derived to check the seal | Until the browser accepts one introduction, or its window closes | **One** host-key introduction (`CHN-7`) | **The browser stops listening (`CHN-5`)** — that is the bound; scrubbed from disk as defence in depth (`CHN-6`); the metadata copy is permanent and worthless |
@@ -158,7 +158,7 @@ outgrown, because adding a credential means adding a row.
 | 12 | **Tenant secret placed on a machine** | Operator | Browser memory, then the machine | Machine lifetime | Whatever the tenant's software uses it for | Machine destroyed, or operator rotates |
 | 13 | ~~Injected SSH host private key~~ | — | — | — | — | **Row retired. `CHN-R3` is abandoned**: user-data stays readable from the vendor's metadata endpoint for the instance's life, so the key would be permanently re-fetchable by anything on the machine. No exception wording fixes that. |
 | 14 | **Inference account credential** (procured only) | Operator, on funding an account-free balance | Encrypted at rest; **exported in the sheet** | Until the balance is spent | The remaining balance; minting and revoking row 2; attaching a funding source (`ARC-31a`) | Spent down or abandoned — **it is bearer and cannot be revoked** |
-| 15 | **Operator seed** | Operator, at first use; backed up by the operator | Encrypted at rest; **in the operator's head or seed backup**, never in the sheet | Until replaced | Deriving rows 3, 7 and 16 for every machine — **every maintained machine, and every future introduction** (`STA-22`) | Replaced by a new seed on Replace (`STA-17`); the old one is not revocable, only abandoned |
+| 15 | **Operator seed** | Operator, at first use; backed up by the operator | Encrypted at rest; **in the operator's head or seed backup**, never in the sheet | Until replaced | Deriving rows 3, 4, 7 and 16 — **every maintained machine, every relay pass, and every future introduction** (`STA-22`) | Replaced by a new seed on Replace (`STA-17`); the old one is not revocable, only abandoned — and it is still needed *during* Replace |
 | 16 | **Attest recipient key**, one per machine | Derived from row 15 (`STA-22`) | Re-derived on demand; public half in boot user-data | Until the introduction is accepted or the window closes | Decrypting **one** machine's introduction | The browser stops listening; the key is never used again |
 
 **Row 12 carries a caveat that MUST be stated wherever it is offered.** Delivery redaction
@@ -177,8 +177,9 @@ rather than asserted.
 **Row 14 is the only credential in this table that cannot be revoked, and it holds money.** It
 is a bearer value: whoever has it can spend the balance and mint keys against it. That is why
 row 2 exists at all — a session gets a capped, expiring derivative rather than the thing itself
-— and why `STA-17`'s Replace flow cannot treat it like row 4. A relay pass is re-issued and the
-old one killed; a stolen account credential can only be raced to the bottom of its balance.
+— and why `STA-17`'s Replace flow cannot treat it like row 4. A relay pass is revoked by its
+key's own signature and a new one bought; a stolen account credential can only be raced to the
+bottom of its balance.
 The bound is what the operator chose to fund.
 
 A secret a service returns inside an untyped response is outside the harness's sight and

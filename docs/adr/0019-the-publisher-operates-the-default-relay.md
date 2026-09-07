@@ -70,6 +70,12 @@ no issuer, no reacquisition story — those are second-stage work, and doing the
 carelessly is how an identity party gets added to the trusted list. What the first stage
 proves is the channel; what it deliberately does not prove is enrollment.
 
+*Amended:* the token is gone. Per
+[ADR-0025](./0025-relay-access-is-bought-not-granted.md)'s amendment the relay binds a pass to a
+**public key** the browser derives from the operator's seed, and the first stage hands the
+publisher that public key out of band. Nothing secret is issued, pasted or held. The rest of
+this paragraph stands: it is still enrolment by hand, and still not the purchase flow.
+
 **Relay redundancy stays cheap — under the same operator.** Under out-of-band pinning a
 hostile relay is a denial
 of service and nothing worse, so a second relay under the operator already trusted is an

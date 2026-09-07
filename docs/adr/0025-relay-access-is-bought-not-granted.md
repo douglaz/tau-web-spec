@@ -55,6 +55,41 @@ of those limits. A tool strictly worse than what an attacker already has does no
 That is an economic argument, not a cryptographic one, and it is priced here so nobody later
 mistakes it for the latter.
 
+## Amended: the pass is bound to a derived key, and nothing bearer remains
+
+The opaque random string is gone. What the relay binds a purchase to is the **public half of a
+relay key** the browser derives from the operator's seed
+([ADR-0029](./0029-the-machine-speaks-nostr-and-keys-derive-from-a-seed.md), `STA-22`), one
+per purchase; on connect the relay issues a challenge and the browser signs it, in the shape
+NIP-42 defines and the browser already implements for the Nostr relay. Recording a destination
+and revoking are messages signed by the same key. **The pass is what the relay remembers; the
+key is what the browser proves.**
+
+**What forced it.** `STA-17` promised the pass would be revoked after a lost phone, and this
+record's own design made that impossible: the string was on the lost phone, and with no account
+the relay had no way to recognise whoever asked. Once a seed existed, a derived key answered it
+in one move — and answered a second thing nobody had asked, which is that a bearer string let
+anyone holding it widen the destination list, and a signature does not.
+
+**What it gives up.** Nothing this record valued. Purchases are still unlinkable by credential,
+because each pass derives its own key. There is still no account, no email, nothing the
+operator supplies. What changes is that a lost phone no longer loses the pass — the key
+re-derives — so "re-bought rather than recovered" was true of the string and is not true of
+the key.
+
+**Revocation is re-priced.** Under `ARC-41` the relay's view equals the world's, so a pass in the
+wrong hands reaches nothing the public internet does not. It spends the operator's paid quota
+and gets their pass blamed for the traffic. Revocation protects money and attribution, not
+machines, and `CHN-16` now says so.
+
+**The L402 objections below, re-read against this.** The first — the browser cannot run a
+`402` challenge on a WebSocket upgrade — does not apply to a challenge that runs *inside* the
+socket after it opens, which is what NIP-42 does and why it was borrowed. The second — no
+preimage — is moot, because the relay observes its own invoice settle and needs nothing from
+the wallet. The third — a stable identifier by design — is the one this amendment had to
+answer, and per-purchase derivation is the answer. The fourth stands: the relay is stateful
+regardless. What is kept from L402 is still the shape.
+
 ## Considered options
 
 ### L402, the designed standard for this exact problem

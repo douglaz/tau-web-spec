@@ -117,7 +117,10 @@ stated design change. Candidates exist and none has been added.
 **`SEC-5` gains a seed row and loses a token row.** The seed is the browser's root and is never
 seen by a session or a machine; the derived keys are what sessions and machines see. Row 3's
 origin becomes *derived*, row 7 becomes the sender key, row 8 retires, row 16 is the recipient
-key.
+key — and row 4, the relay pass, becomes a **relay key** derived per purchase, which
+[ADR-0025](./0025-relay-access-is-bought-not-granted.md)'s amendment records. Once one derived
+credential existed, the bearer string the relay used was the odd one out, and replacing it
+answered a revocation promise `STA-17` could not otherwise keep.
 
 **ADR-0020's title is half right, and it says so.** The vendor account still roots inventory.
 Credentials root in the seed. Both are stated, and neither does the other's job.

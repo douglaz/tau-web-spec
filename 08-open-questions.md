@@ -259,9 +259,10 @@ know it was closed deliberately, and because the reasoning is worth more than th
 
 **OPN-2 — The relay's access system.** *Closed by design; open only as implementation.* There is
 no identity model, because there is no identity: access is **bought** (`CHN-15`,
-[ADR-0025](./docs/adr/0025-relay-access-is-bought-not-granted.md)). Issuance is a payment,
-scoping and lifetime are the destination record `CHN-16` describes, and reacquisition is another
-purchase rather than a recovery flow.
+[ADR-0025](./docs/adr/0025-relay-access-is-bought-not-granted.md)). Issuance is a payment
+bound to a key the browser derives from the seed, scoping and lifetime are the destination
+record `CHN-16` describes, and reacquisition is not needed — the key re-derives, and only a
+compromised seed calls for a new purchase (`STA-17`).
 
 That satisfies the closure criterion this question was written with: a new operator obtains
 access without the publisher hand-issuing anything, and the trusted-party list is unchanged,

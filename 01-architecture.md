@@ -634,7 +634,7 @@ the publisher from model selection and, locally, the proxy layer entirely.
   convention: its key-management endpoints reject the session key and require the account
   credential.
 - **A session MUST NOT receive the account credential, and no model sees either tier.** The key
-  is used by harness code, exactly as `CHN-15` keeps the relay pass out of the scanner's hands.
+  is used by harness code, exactly as `CHN-15` keeps the relay key out of the scanner's hands.
 - **Automatic top-up MUST NOT be enabled.** It converts a prepaid bound into an open draw on a
   connected wallet. It is off by default and only the account credential can turn it on, which
   is one more reason a session never holds one.

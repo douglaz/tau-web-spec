@@ -299,20 +299,40 @@ the operator's own maintained machine once one exists.
 hostile relay can present its own, have it pinned, and read the session from then on.
 
 **CHN-15** Relay access is **bought, not granted**
-([ADR-0025](./docs/adr/0025-relay-access-is-bought-not-granted.md)). The relay answers an
-unauthenticated request with `402` and an invoice over ordinary HTTPS; the operator's own wallet
-pays it (`ARC-30`, `SEC-13`); the relay observes its own invoice settle and issues an **opaque
-random pass**. Against that pass it records the destinations it may reach and when it expires.
-The pass is presented when the WebSocket opens.
+([ADR-0025](./docs/adr/0025-relay-access-is-bought-not-granted.md)), and what is bought is
+recorded against a **relay key** the browser derives from the seed (`STA-22`), one per
+purchase. The browser asks for access naming that key's public half; the relay answers `402`
+with an invoice over ordinary HTTPS; the operator's own wallet pays it (`ARC-30`, `SEC-13`); the
+relay observes its own invoice settle and binds a **pass** — destinations, expiry, pacing — to
+the key. When the WebSocket opens the relay issues a challenge and the browser signs it with the
+key, in the shape NIP-42 already defines and the browser already implements for the Nostr relay.
+**Nothing bearer exists.** There is no string to store, leak, paste, or lose: the key
+re-derives from twelve words, and the pass is what the relay remembers about it.
+
+*What this replaced.* The pass used to be an opaque random string presented on connect. It was
+held encrypted at rest, exported nowhere, and "re-bought rather than recovered" after a lost
+phone. It also could not be revoked after that loss, because the relay had no way to recognise
+whoever was asking — which is what the seed's derived key gives it: a revocation is a message
+signed by the key the pass is bound to.
 
 **No account, and therefore no identity party.** That is the point: an account system is a party
 that knows every operator and can deny them service, which `SEC-10` prices as a schema
-migration. Losing a pass is not a recovery problem — the operator buys another, which is why
-`STA-14` can list it among what dies with the phone without needing a restoration path.
+migration. A relay key is not an identity: it is one random-looking public key, derived per
+purchase, and the relay cannot link two purchases by their keys. What it can link is the
+destination set, which `CHN-13` already prices.
 
 **CHN-16** A pass's **destination record is the authorization**, not a separate system. A pass
 is bought before the machines exist, so its destination list grows as the operator creates them
-— which is the moment the relay learns topology, already priced at `CHN-13`.
+— which is the moment the relay learns topology, already priced at `CHN-13`. **Recording a
+destination requires the relay key's signature**, so nobody but the key holder can widen a pass —
+which a bearer string could not promise, since anyone holding it could.
+
+**A revoked pass closes its live connections and refuses new ones**, and revocation is a
+message signed by the pass's key. That is the teardown rule `CNF-60` was waiting for. What
+revocation protects is stated at its real size: under `ARC-41` the relay's view equals the
+world's, so a pass in the wrong hands reaches nothing the public internet does not; it spends
+the operator's paid quota and gets the operator's pass blamed for the traffic. Revocation
+protects money and attribution, not machines.
 
 **A recorded destination is reachable on any port, not on the SSH port alone.** `ARC-26`'s
 surface scan probes which ports answer; a relay forwarding only port 22 would report exactly one

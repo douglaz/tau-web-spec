@@ -193,8 +193,10 @@ yet.
 ## Relay access — `CHN-15`, `CHN-16`
 
 - [ ] **CNF-57 · BLOCKING** An unpaid caller is refused. The relay is not usable without a
-      valid, unexpired pass. Verified by connecting with none, with an expired one, and with a
-      revoked one.
+      valid, unexpired pass bound to the key that signs the challenge. Verified by connecting
+      with a key that has no pass, with one whose pass has expired, with one whose pass is
+      revoked, and with a correct key but a **replayed** challenge signature, which must also be
+      refused.
 - [ ] **CNF-58 · BLOCKING** A pass reaches only the destinations recorded against it — on **any**
       port, since `ARC-41` requires the relay-side view to equal the world's. Verified by
       attempting an undeclared destination on the SSH port and on another, and a recorded
@@ -206,12 +208,16 @@ yet.
       same family as `CNF-57` and `CNF-58`, and the port restriction that used to carry this
       is gone.
 - [ ] **CNF-59 · PRE-SCALE** Obtaining a pass requires no account, no email address and no
-      identifier the operator supplies. Verified by buying one end to end without contacting
-      the publisher.
+      identifier the operator supplies beyond a derived public key. Verified by buying one end
+      to end without contacting the publisher, and by buying two and confirming the relay holds
+      nothing that links their keys.
 - [ ] **CNF-60 · PRE-SCALE** A revoked pass stops working immediately, including on a
-      connection already open. **The normative rule for terminating a live connection does not
-      yet exist**: `STA-17` says only that the pass is revoked and re-issued, and `CHN-15`
-      describes issuance rather than teardown. Until one is written this item cannot pass.
+      connection already open (`CHN-16`). Verified by revoking — a message signed by the pass's
+      key — while a session is live and confirming the socket closes and a reconnect is refused.
+- [ ] **CNF-76 · BLOCKING** Recording a destination against a pass requires that pass's key's
+      signature (`CHN-16`). Verified by submitting a destination without one and with another
+      key's, both refused. Boundary-crossed: without it, anyone who learns a pass's public key
+      can widen it.
 
 ## Approval and recording — `SEC-4`, `SEC-12`
 
@@ -293,7 +299,7 @@ exercisable by the first stage**, and an earlier version of this paragraph wrong
 `CNF-8` was not. At least four are out of reach: `CNF-8` needs a coordinator; `CNF-18` needs the
 attest machinery `STG-19` says the first stage demonstrates none of; `CNF-57`, `CNF-58` and
 `CNF-65` need the purchase-and-pass system `STG-18` says the stage does not have, since it runs
-on a pasted token. `CNF-6` and `CNF-26` need a second session, and the stage has one.
+on a relay key the publisher recorded by hand. `CNF-6` and `CNF-26` need a second session, and the stage has one.
 
 **The tiers therefore need per-stage scoping**, which this file does not yet have. Until it
 does, the header's "before it touches a real vendor account" cannot be met literally — several
@@ -316,5 +322,6 @@ substitution `TRU-E8` names arriving through the control that was supposed to de
 credential in a session's hands, and a prepaid ceiling silently converted into a wallet draw —
 and `CNF-69` is what turns row 2's stated lifetime into an enforced one. `CNF-72` is
 boundary-crossed and `CNF-73` is escaped-secret: a reused derivation index puts one client key on
-two machines, and the seed in a session's hands is every machine at once. If an
+two machines, and the seed in a session's hands is every machine at once. `CNF-76` is
+boundary-crossed: an unsigned destination record lets a stranger widen a pass they do not hold. If an
 item cannot name its family, it is PRE-SCALE and the tier still means something.
