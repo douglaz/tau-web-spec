@@ -204,8 +204,8 @@ under [`01-architecture.md`](./01-architecture.md#money) — a reason it is expe
 reason it is optional.
 
 **OVR-6** Independence between members MUST be counted per layer and shown, not enforced.
-Weights and proxy are counted separately, the provider is counted as observed **where the
-aggregator reports one, which the chosen one does not** (`OPN-23`), and a
+Weights, proxy and requested provider are counted separately — the third labelled
+*requested*, since the aggregator reports nothing back and may override — and a
 collision at any counted layer is displayed rather than blocked
 ([ADR-0007](./docs/adr/0007-trust-is-counted-in-two-layers-and-shown.md)). Blocking would
 make the default configuration impossible, because procured inference routes every member

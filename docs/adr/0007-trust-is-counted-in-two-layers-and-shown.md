@@ -95,12 +95,35 @@ separately is untouched — it is still a party neither configured layer covers,
 request, still able to rewrite everything it carries. What is gone is the evidence. A count
 derived from the model name would name whoever *made* the weights, presented under a label that
 says *observed*, which is precisely the overstatement `SEC-2` forbids elsewhere. So the number is
-shown as absent until a source exists. `OPN-23` holds the options: ask PayPerQ to expose it and
-add it to the exposed-headers list, weigh an aggregator that already does, or retire the layer
-and say so.
+shown as absent until a source exists.
 
 There is circumstantial evidence that PayPerQ resells OpenRouter for much of its catalogue — a
 legacy `openrouter:` type still accepted, OpenRouter's exact routing-preference conventions, and
 OpenRouter-specific community model slugs. **Inference, not verification.** If it holds, the
-provider name exists upstream and is being dropped in the middle, which would make the first
-option cheap. It is not a basis for claiming anything today.
+provider name exists upstream and is being dropped in the middle. It is not a basis for claiming
+anything today.
+
+## Amended a third time: the layer is requested, and all three are configured
+
+The empty count did not stay empty. The same routing conventions that made the resale inference
+plausible are what answered it: PayPerQ accepts a `provider` object in the request — `order`,
+`only`, `ignore` — so the harness **asks** for a provider per member exactly as it asks for a
+model, and the display shows what was asked under the label *requested*. The third layer joins
+the first two as **configured**, which is where `OPN-4` had already landed for weights: what the
+harness sends is known by construction, and what the proxy does with it is the proxy's trust.
+
+**The override is documented and is not a new party.** PayPerQ's own text says provider fields
+the caller supplies "may be overridden." That is exactly the capability the proxy row already
+names — it can alter anything it carries — so the label *requested* points at `TRU-E2`, not at a
+fresh row. `CNF-78` measures the one observable thing about it: whether an unsatisfiable pin
+fails the call or silently succeeds.
+
+**What was rejected.** Switching to an aggregator that reports the served provider would restore
+the observed count at the cost of the accountless Lightning funding and open CORS that won
+PayPerQ the slot — the product's premise traded for a display. Retiring the layer would discard
+reasoning that is still right. Asking PayPerQ to expose the served provider costs nothing and is
+recorded in `OPN-23`'s closure as a standing ask; if it lands, an *observed* column sits beside
+the requested one and override becomes visible per response.
+
+The title of this record is now wrong twice over — it is three layers, not two, and none of
+them is observed — and it is kept, because the reasoning it names is the reasoning that survived.

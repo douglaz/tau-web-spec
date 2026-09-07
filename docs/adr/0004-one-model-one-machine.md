@@ -48,8 +48,9 @@ three, and the honest-majority assumption is vacuous.
 pair of provider and weights is too strict for the default product: procured inference routes
 every member through one proxy by design, so read literally that pairing collapses every
 default configuration to a single domain and forbids the arrangement this record assumes.
-Weights and proxy are counted separately, with the provider counted as observed
-([ADR-0007](./0007-trust-is-counted-in-two-layers-and-shown.md)).
+Weights, proxy and requested provider are counted separately
+([ADR-0007](./0007-trust-is-counted-in-two-layers-and-shown.md); the provider was once
+*observed*, and is now requested per member, per that record's third amendment).
 
 **The rule that survives the split is about access, not about domains.** A session is bound to
 exactly one machine. The weights-level form — no set of weights on more than one machine — is

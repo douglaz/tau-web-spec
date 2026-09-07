@@ -28,8 +28,9 @@ overstate them.
 - **Per-member routing evidence is separate**, and would come from response metadata —
   `X-Provider-Name`. **That header is OpenRouter's**, and the aggregator since chosen exposes
   no equivalent (verified 2026-09-05, [ADR-0028](./0028-procured-inference-is-the-operators-balance.md)).
-  So today there is no per-member routing evidence at all, and the second of these two
-  evidences is simply absent rather than weaker. `OPN-23` holds what to do about it.
+  So there is no per-member routing *evidence* from a response; routing is instead
+  **requested** per member in the call (`ARC-14`), and the second of these two is a record of
+  what was sent rather than what was served.
 
 Two evidences, two strengths. The panel in
 [ADR-0007](./0007-trust-is-counted-in-two-layers-and-shown.md) should cite the right one

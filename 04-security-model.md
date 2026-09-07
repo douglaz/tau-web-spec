@@ -214,13 +214,15 @@ authorize an action on its own, declare capabilities, or override policy.
 ### SEC-9 — counts are shown per layer
 
 **Trust counts MUST be shown per layer and MUST NOT be blended into a single score** — and
-the observed provider count MUST be labeled as historical observation, never presented as
-forward-looking distinctness.
+the provider layer MUST be labelled **requested**, never *observed* or *verified*: it is what
+the harness asked the aggregator for, and the aggregator documents that it may override.
 
-**Where that count has no source, it MUST be absent rather than approximated.** The chosen
-aggregator does not report which provider served a request (`ARC-14`, `OPN-23`), and deriving
-the number from the model name would produce a figure labelled *observed* that was read off the
-request. Showing nothing is the honest state; the label is not what makes a count truthful.
+**A count MUST NOT be derived from something it does not measure.** The provider layer used to
+be *observed* and had no source on the chosen aggregator; deriving it from the model name would
+have produced a figure labelled *observed* that was read off the request. It is now *requested*,
+which is a count of what was sent — and that label is the whole of its honesty. Should a
+response ever carry the served provider, an *observed* count may sit beside the requested one;
+until then there is one column, and it says what it is.
 
 ### SEC-10 — the trusted list does not grow silently
 
@@ -338,6 +340,5 @@ everybody. The threshold protects funds; it does not protect against uniform slo
 An **action transcript** is a browser-side record of what one session actually did, captured
 before transmission. It is **not** evidence about a machine, because no second model may
 inspect it against that machine. A **provenance record** — the claim that a machine was
-provisioned by a specific vendor and configured model — it once also claimed the *set* of
-inference providers observed serving it, which has no source on the chosen aggregator
-(`OPN-23`) — is durable, and in the first version a local claim rather than evidence.
+provisioned by a specific vendor, configured model and **requested** provider — it once claimed
+the *set* of providers *observed* serving it, which has no source on the chosen aggregator — is durable, and in the first version a local claim rather than evidence.

@@ -243,9 +243,9 @@ A browser-side record of what one session actually did, captured before transmis
 _Avoid_: audit trail, proof
 
 **Provenance record**
-The claim that a machine was provisioned by a specific cloud vendor and configured model. It
-once also claimed the *set* of inference providers observed serving it; on the chosen aggregator
-that set has no source (`OPN-23`). In the first version a local claim rather than evidence.
+The claim that a machine was provisioned by a specific cloud vendor, configured model and
+requested provider. It once claimed the *set* of providers *observed* serving it; the chosen
+aggregator reports none. In the first version a local claim rather than evidence.
 _Avoid_: attestation, certificate, lineage
 
 ### Trust and diversity
@@ -257,24 +257,25 @@ controls and the only one an invariant guards.
 _Avoid_: trust score, threat level
 
 **Trust domain** · `ARC-14`
-An independent way for an AI to be compromised. Counted at two configured layers — **weights**
-and **proxy** — plus one **observed**, the inference provider, which currently has no source on
-the default path (`OPN-23`).
+An independent way for an AI to be compromised. Counted at three configured layers — **weights**,
+**proxy**, and the **provider** the harness requests per member.
 
 **Inference provider**
 The party that actually serves the weights for a request. **Distinct from the proxy the session
-connects to**, and distinct from the party that *made* the weights. Not named at runtime by the
-chosen aggregator; `X-Provider-Name` is a different aggregator's header and was recorded while
-that one was still the candidate.
-_Avoid_: AI provider, model provider, LLM vendor, serving provider
+connects to**, and distinct from the party that *made* the weights. **Requested** by the harness
+in each call and shown under that label; not reported back by the chosen aggregator, which
+documents that it may override the request. (`X-Provider-Name` is a different aggregator's
+header and was recorded while that one was still the candidate.)
+_Avoid_: AI provider, model provider, LLM vendor, serving provider; "observed provider" (there
+is no observation today)
 
 **Model**
 The weights behind an inference provider. Two providers may serve the same model, so provider
 diversity does not imply model diversity. This distinction is the whole security argument.
 
 **Collision** · `OVR-6`
-Two machines sharing a trust domain at any counted layer. Shown, not blocked. The observed
-provider layer is included in principle and produces nothing today (`OPN-23`).
+Two machines sharing a trust domain at any counted layer, the requested provider included.
+Shown, not blocked.
 
 **Procured inference** / **bring-your-own inference** · `ARC-31`, `ARC-31a`
 The default path, where the operator funds an account-free balance at one aggregator and the

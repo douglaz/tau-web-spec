@@ -275,10 +275,15 @@ yet.
 
 ## Trust display — `SEC-9`, `SEC-10`
 
-- [ ] **CNF-41 · PRE-SCALE** Counts are shown per layer and never blended. The observed provider
-      count is labelled as historical **where it exists at all** — and where the aggregator
-      reports no provider, the count is **absent**, not derived from the requested model name
-      (`SEC-9`, `OPN-23`).
+- [ ] **CNF-41 · PRE-SCALE** Counts are shown per layer and never blended. The provider layer
+      is labelled **requested**, never *observed* or *verified*, and is never derived from the
+      model name (`SEC-9`).
+- [ ] **CNF-78 · PRE-SCALE** Every inference call carries the member's requested provider in the
+      aggregator's routing object (`ARC-14`), verified by inspecting an outgoing request. And
+      the one observable fact about override is measured: a pin naming a provider that cannot
+      serve the requested model either **fails the call** or **silently succeeds**, and which
+      one is recorded, because it decides whether the label *requested* means "honoured or
+      refused" or merely "sent".
 - [ ] **CNF-42 · PRE-SCALE** Every approved scope and every placed tenant secret appears in the
       trust display until revoked or rotated, not merely while the approval stands.
 - [ ] **CNF-43 · PRE-SCALE** The relay's row names its operator and states that it learns the

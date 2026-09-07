@@ -80,16 +80,16 @@ combination is acceptable at all.
 it routes to whoever does, and that party sees and can rewrite every prompt and response sent
 to it. It stays named here because observation is not separation.
 
-**The observation this row used to promise does not exist.** It said the provider was reported
-by an *observed* count, historically and per response, and `ARC-31` said that evidence came from
-response metadata. Checked against the default aggregator: **no response field or header names
-the provider that served a request**, and the browser could not read one if it did — the only
-header exposed to page script is a request id. What can be shown honestly is the *weights*
-vendor, derived from the model catalogue, and the per-model retention tier. Which party ran the
-inference is not available, so a provider count sourced from the model name would be a number
-that looks observed and is derived from the request. `OPN-23` carries what to do about it. Until
-it is answered, **nothing may display a provider count**, by the same rule that forbids calling
-a scan verified (`SEC-2`).
+**This party is now requested per member, not observed after the fact.** The row used to promise
+an *observed* count read from a response header; checked against the default aggregator, **no
+response field or header names the provider that served a request**, and the browser could not
+read one if it did. So the harness **asks** for a provider in each call, using the routing object
+the aggregator documents, and the display shows what was asked (`ARC-14`). The aggregator states
+that it may override the request — that is this row's trust exactly, not a new one, since the
+proxy above it can already alter everything it carries (`TRU-E2`). What cannot be shown is
+whether the request was honoured, and the label *requested* is what keeps that honest (`SEC-9`).
+A standing ask to the aggregator to expose the served provider would add an *observed* column
+beside it; `OPN-23`'s closure records it.
 
 **TRU-E4 — A majority of the models**, being both honest *and* competent.
 

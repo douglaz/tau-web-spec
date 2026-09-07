@@ -54,9 +54,9 @@ as it already is in the `ai-vps-harness` README's "What you still have to trust.
 predates [ADR-0007](./0007-trust-is-counted-in-two-layers-and-shown.md)'s layer split and
 conflates the provider with the weights. On the default path the aggregator picks the
 inference provider per request and the product does not configure it per member; it is
-now counted as the observed third layer
-([ADR-0007](./0007-trust-is-counted-in-two-layers-and-shown.md)'s amendment) —
-historically, per response, never as a promise of separation. The **vendor** half of the
+now counted as the third layer
+([ADR-0007](./0007-trust-is-counted-in-two-layers-and-shown.md)'s amendments) — first as
+observed per response, and since as *requested* per member, never as a promise of separation. The **vendor** half of the
 sentence stands, and the
 specification's vendor-diversity invariant rests on it; the provider half is the stale
 part. The contrast the paragraph draws — everything else diversified, the bundle not —

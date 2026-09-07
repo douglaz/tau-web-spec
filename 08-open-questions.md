@@ -69,13 +69,14 @@ configures, so there was nothing there to enforce either. The honest position is
 conditional on weights-level distinctness.
 
 *The signal situation changed, and not only for the worse.* On the chosen aggregator there is
-no provider signal at all (`OPN-23`), so the sentence above describes a signal that is gone. But
+no provider signal at all, so the sentence above describes a signal that is gone. But
 the **weights are configured, not observed**: the harness picks the model per member, and the
 catalogue names which vendor made it, so distinctness across members is enforceable **by
 construction** rather than by inspection. What remains unverifiable is whether the proxy served
 the model it was asked for — which is a smaller and better-shaped gap than "no signal reaches
 the weights", and it is the same gap `TRU-E2` already names when it says the proxy can alter
-everything it carries.
+everything it carries. **The provider layer now takes the same shape** (`OPN-23`, closed): it is
+requested per member rather than observed, and the same override caveat applies to both.
 
 *Closes when:* the claim is restated around what is configured rather than what is observed, or
 a signal confirming the served model appears. The second has no current candidate.
@@ -117,30 +118,6 @@ get the treatment `ADR-0024`'s configuration got before anything is built on it.
 
 *Closes when:* a pinned TLS session from a mobile browser, through the relay, reads a real
 response from the vendor API — **and refuses a certificate that does not match the pin.**
-
-**OPN-23 — The observed provider layer has no source, and the header it was specified around
-belonged to a different aggregator.** `ARC-14` counts the inference provider as a third,
-*observed* layer, built from `X-Provider-Name`. That is **OpenRouter's** header, written down
-while OpenRouter was the live candidate. The aggregator actually chosen exposes no equivalent —
-verified 2026-09-05 against its docs and its live API — and page script could not read one if it
-did, because the completions endpoint exposes only a request id to a cross-origin caller.
-
-*The reasoning for the layer survives; only the evidence is gone.* The provider is still a party
-neither configured layer covers, still picked per request, still able to rewrite everything it
-carries. What cannot be done is count it. Deriving the number from the requested model name would
-report whoever **made** the weights under a label reading *observed*, which is the overstatement
-`SEC-2` forbids everywhere else, so `SEC-9` now requires the count to be **absent** rather than
-approximated.
-
-*Three ways out, none free.* Ask the aggregator to return the provider and add it to its
-exposed-headers list — cheap if the circumstantial evidence that it resells another aggregator
-and strips the field holds, and that is **inference, not verification**. Weigh an aggregator that
-already reports it, against the accountless Lightning funding and open CORS that made this one
-the choice. Or retire the layer and state that the provider is trusted and uncounted, which is
-honest and loses the one thing `TRU-E3` exists to make visible.
-
-*Closes when:* a source exists, or `ARC-14` drops to two layers in writing. Until then nothing
-displays a provider count.
 
 ## One probe or one boot from closing
 
@@ -297,6 +274,32 @@ become "Linux, init-agnostic".
 Two real defects surfaced on the way and were kept, because they were the useful part of the
 finding: output must be captured by file redirection, not a held pipe (`STA-20a`), and no orphan
 test may rest on a reparented process's new parent, which differs across the two distributions.
+
+**OPN-23 — The observed provider layer had no source.** **Closed: the layer is requested, not
+observed.** `ARC-14` used to count the inference provider as a third, *observed* layer built
+from `X-Provider-Name` — **OpenRouter's** header, written down while OpenRouter was the live
+candidate. The aggregator actually chosen exposes no equivalent (verified 2026-09-05), and page
+script could not read one if it did, because the completions endpoint exposes only a request id
+to a cross-origin caller. A count derived from the model name would have reported whoever
+**made** the weights under a label reading *observed*, so `SEC-9` forbade it.
+
+*The answer is to stop observing and start asking.* The aggregator accepts a routing object in
+the request — the same conventions as the aggregator whose header this layer was built on — so
+the harness **requests** a provider per member exactly as it requests a model, and the display
+shows what was asked, labelled *requested*. All three layers are then configured, which is the
+shape `OPN-4` had already reached for weights. The aggregator's own documentation says supplied
+provider fields "may be overridden"; that is `TRU-E2`'s existing trust, and the label carries it.
+`CNF-78` checks the request carries the pin, and whether an unsatisfiable pin fails the call or
+silently reroutes — the one thing about the override that *is* observable.
+
+*Rejected:* switching to an aggregator that reports the served provider, which trades the
+accountless Lightning funding and open CORS that won this one the slot for a number; and
+retiring the layer, which throws away reasoning that is still right.
+
+*A standing ask, not a dependency.* If the aggregator exposes the served provider and adds it to
+the headers a browser may read, an *observed* column sits beside the requested one and override
+becomes visible per response. Cheap for them if the circumstantial evidence that they resell
+another aggregator holds — **inference, not verification** — and nothing here waits on it.
 
 ## Status and the next move
 

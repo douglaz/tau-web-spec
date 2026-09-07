@@ -154,14 +154,15 @@ There is no verification layer and nothing may imply one. Any scheme where a sec
 a finished machine from inside hands that model a second foothold. "Verified" and "no anomalies
 found" are claims this design cannot make.
 
-Independence is counted at **two configured layers plus one observed, never blended into one
-score**. Members on several sets of weights behind one proxy survive a backdoored model and do not
-survive a backdoored proxy. One number would be a lie about whichever layer is thin, and the thin
-layer is the one that gets exploited.
+Independence is counted at **three configured layers — weights, proxy, and the provider the
+harness requests per member — never blended into one score**. Members on several sets of weights
+behind one proxy survive a backdoored model and do not survive a backdoored proxy. One number
+would be a lie about whichever layer is thin, and the thin layer is the one that gets exploited.
 
-The observed layer is currently **empty**, and that is stated rather than filled in: the chosen
-aggregator does not report which provider served a request, so the number has no source and is
-shown as absent rather than derived from the model that was asked for.
+The provider layer is labelled **requested**, and that word is doing real work: the chosen
+aggregator does not report which provider served a request and documents that it may override
+the one asked for. What is shown is what was sent, not what happened, and the display says so
+rather than deriving a number from the model name and calling it observed.
 
 ## What must still be trusted
 
