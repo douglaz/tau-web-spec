@@ -32,8 +32,8 @@ This is a constraint on what can be a tenant, and it is worth checking before bu
 than after. A project whose value depends on answering the outside world while the operator is
 away must put that answer on the machine — with no **harness** credential, since `SEC-3`
 forbids that and `SEC-6` notes a model with root would read it anyway — or accept that it is
-not a fit. A tenant's *own* credential on its own machine is permitted (`SEC-3`'s scope note,
-`SEC-5` row 12) and is what `ARC-38`'s delegated receiving needs in order to authenticate to
+not a fit. A tenant's *own* credential on its own machine is permitted (`SEC-3`'s note on what
+it binds, `SEC-5` row 12) and is what `ARC-38`'s delegated receiving needs in order to authenticate to
 the service it delegates to. For lnrent that resolves to the machine being the capacity it sells.
 
 **ARC-36** A machine that serves parties the operator has never met is **multi-tenant**. This

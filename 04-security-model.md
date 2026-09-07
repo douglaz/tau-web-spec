@@ -105,8 +105,8 @@ implementation can be required to prevent.
 vendor API token *belonging to the harness*, and work needing a cloud-plane action returns to
 the browser, even mid-way through box-plane work.
 
-**Scope, stated because it was previously absolute and unenforceable:** this binds what the
-harness places and does. A tenant's own credential, on the tenant's own machine, for the
+**What this binds, stated because it was previously absolute and unenforceable:** the
+harness's own placements and actions. A tenant's own credential, on the tenant's own machine, for the
 tenant's own account, is a different thing — it is permitted, delivered under `SEC-5`, and
 counted under `SEC-6`. What it is not is a way for the harness's vendor authority to reach a
 machine.

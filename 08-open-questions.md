@@ -204,7 +204,7 @@ during `STG-2` are generalized into a schema.
 
 **OPN-11 — What executes brief commands locally in the browser.** Either a WASI host with
 uutils guests, as the archived specification assumes, or a small set of purpose-built commands.
-Deliberately not decided in advance: the scope is to be derived from real briefs rather than
+Deliberately not decided in advance: the extent is to be derived from real briefs rather than
 guessed. *Closes when:* `STG-2`'s briefs show which commands genuinely need the browser rather
 than the machine.
 

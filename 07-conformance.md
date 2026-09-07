@@ -301,7 +301,8 @@ attest machinery `STG-19` says the first stage demonstrates none of; `CNF-57`, `
 `CNF-65` need the purchase-and-pass system `STG-18` says the stage does not have, since it runs
 on a relay key the publisher recorded by hand. `CNF-6` and `CNF-26` need a second session, and the stage has one.
 
-**The tiers therefore need per-stage scoping**, which this file does not yet have. Until it
+**The tiers therefore need to say which stage each item gates**, which this file does not yet
+do. Until it
 does, the header's "before it touches a real vendor account" cannot be met literally — several
 items require touching one.
 

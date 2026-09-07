@@ -26,7 +26,9 @@ _Avoid_: data plane, runtime layer, remote shell
 **Scope** · `ARC-5`
 A permission to act in a class, granted in advance. It names *where a credential goes*, not
 what it can do.
-_Avoid_: permission, grant, allowance
+_Avoid_: permission, grant, allowance — and **"scope" in its ordinary sense**: what a rule
+binds is "what it binds" or "its reach", the extent of a task is its "extent", and a tier that
+applies to a stage "says which stage it gates". The word is reserved for the object above.
 
 ### Briefs
 

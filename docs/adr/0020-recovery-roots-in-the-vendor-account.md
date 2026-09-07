@@ -135,7 +135,7 @@ unknown past exposure, displayed as such.
 **Those ledger rules bind a tenant that is both maintained and threshold-bearing, and none
 exists yet.** Where exposure matters, btc-policy seals, so its ledger is complete at setup and
 never drifts. Where the ledger drifts, there is no threshold, so nothing depends on the count.
-The rules are kept for the combination that will eventually appear, and scoped so nobody builds
+The rules are kept for the combination that will eventually appear, and bounded so nobody builds
 them for a tenant they do not govern.
 
 **Attest needs one empirical probe before it is real.** The first-boot hook must fire reliably
