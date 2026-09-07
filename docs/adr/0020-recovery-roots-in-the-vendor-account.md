@@ -67,6 +67,28 @@ is exactly when routing and DNS are least settled, and a single-shot post follow
 irreversible scrub would convert a two-second blip into a destroyed machine — on the one route
 that has no alternative, since route 2 is dead and route 3 is abandoned.
 
+## Amended: the mechanism above is superseded, and the root is split
+
+Everything in the attestation section describes a design that
+[ADR-0029](./0029-the-machine-speaks-nostr-and-keys-derive-from-a-seed.md) replaced. The
+reasoning survives — the introduction is a credential, single-use is the browser's check, the
+scrub is not the bound, the post retries — and the mechanism changed under it: the one-time
+secret became a per-machine **sender key** derived from an operator seed, the drop-box became a
+gift-wrapped event to an inbox any Nostr relay provides, and the collection token is gone.
+
+**What forced it was this record's own credential rule meeting its own crash rule.** The secret
+had to be redacted from anything recorded, and the record is what survives a phone lock — so
+the secret had nowhere to live through the minutes between creating a machine and receiving
+its post. A derived key has no such problem: nothing is stored, and it re-derives.
+
+**The root is now two roots, and this title is half right.** The vendor account still roots
+**inventory** — it is the one party that always knows which machines exist, and that argument is
+untouched. Credentials root in the **seed**: every per-machine key re-derives from it, so the
+sheet no longer carries keys and "sheet-only recovery" below is rejected for reasons that
+partly no longer apply. The sheet still exists, for what nothing derives — pins, the ledger,
+the inference balance. A reader who arrives here for "why isn't there a seed" should know there
+is one now, and that this record argued against the shape it replaced rather than against seeds.
+
 ## Considered options
 
 **Store pins at the publisher or relay, synced.** Zero-effort recovery. Rejected because it

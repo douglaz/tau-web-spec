@@ -33,7 +33,7 @@ flowchart TD
     PROD -->|Dedicated / Robot| R1["CHN-R1 — retrieve<br/>rescue API publishes host_key<br/>✅ in use, first stage"]
     PROD -->|Cloud VPS| R2{"CHN-R2 — retrieve"}
     R2 --> R2D["☠️ DEAD, verified<br/>rescue returns an action and a<br/>root password. No host key"]
-    R2D --> R5["CHN-R5 — attest<br/>one-time MAC secret in user-data;<br/>machine stamps and introduces<br/>its own key via a drop-box<br/>🔶 designed, unproven — OPN-3"]
+    R2D --> R5["CHN-R5 — attest<br/>per-machine derived sender key in user-data;<br/>machine gift-wraps its fingerprints to a<br/>per-machine derived recipient over Nostr<br/>🔶 designed, unproven — OPN-3"]
     R5 -->|"if the post never arrives"| FB["Recorded fallback:<br/>recreate, or keyed rescue<br/>with the leap of faith displayed"]
     R5 -.->|"was the only hope before attest"| R3["CHN-R3 — inject<br/>private host key rides in user-data,<br/>re-fetchable from metadata forever<br/>🚫 ABANDONED"]
     FB --> R4["CHN-R4 — trust on first use<br/>+ continuity. The floor.<br/>⚠️ violates OVR-4 at first contact"]
@@ -116,22 +116,39 @@ guest querying the metadata endpoint obtains a permanent impersonation credentia
 is a guest on.
 
 **The contrast with `CHN-R5` is the whole reason one survives and the other does not.** Attest
-puts a *short-lived* credential in a permanently-readable place; injection puts a *permanent*
-one there. A voucher that expires and is single-use is worthless to a later reader. A host
-private key never expires.
+puts a *single-use* credential in a permanently-readable place; injection puts a *permanent*
+one there. An introduction key the browser has already accepted once, and will never accept
+again, is worthless to a later reader. A host private key never expires.
 
 Attest covers the same vendors — anywhere with boot-time user-data — so nothing is lost but the
 route.
 
-**CHN-R5 — attest.** At creation, the browser generates a one-time MAC secret and places it
-in user-data beside the client public key. A first-boot hook computes an HMAC of the
-machine's freshly generated host-key fingerprints under that secret and posts
-fingerprints-plus-stamp out through the relay. The browser verifies the stamp against the
-secret only it held: a relay cannot substitute a key it cannot stamp, so there is no
-trust-on-first-use. The vendor sees the secret and could forge a stamp — but the vendor owns
-the machine's disk and memory and could replace the host keys wholesale regardless, so
-attest hands it nothing it lacks. Unlike `CHN-R3`, **no private key leaves the browser and
-none rides in user-data.**
+**CHN-R5 — attest.** The machine introduces its own host key to the browser over Nostr, under
+keys the browser **derives** rather than stores
+([ADR-0029](./docs/adr/0029-the-machine-speaks-nostr-and-keys-derive-from-a-seed.md)).
+
+At creation the browser derives two keypairs for this machine from the operator seed
+(`STA-22`): a **sender key**, whose private half goes into user-data beside the SSH client
+public key, and a **recipient key**, whose public half goes there too. A first-boot hook reads
+the machine's freshly generated host-key fingerprints, seals them under the sender key, gift-wraps
+the seal to the recipient key, and publishes the wrap to the relay set (`CHN-18`). The browser,
+subscribed for that recipient since creation, unwraps with the recipient private key it
+re-derives at will, and accepts the fingerprints **only if the seal's author is the sender key
+it planted**. A relay cannot forge that seal, so there is no trust-on-first-use. The vendor
+holds the sender key and could forge one — but it owns the machine's disk and memory and could
+replace the host keys wholesale regardless, so attest hands it nothing it lacks.
+
+**A private key does ride in user-data now, and the reason `CHN-R3` died still does not apply.**
+What killed injection was what its key *authorized*: a host private key impersonates the
+machine for life, and the metadata endpoint serves user-data for life. The sender key
+authorizes **one introduction**, and the browser stops listening for it the moment one is
+accepted (`CHN-5`). A later reader of the metadata endpoint finds a key nothing will ever
+believe again. The bound is the same one the one-time secret had; only the envelope changed.
+
+**Nothing about this needs the browser to remember anything.** Both keys re-derive from the
+seed and the machine's index, so a phone that locks between creating the machine and receiving
+its post loses nothing — which is the case the previous design could not survive, since a
+random secret redacted from the record had nowhere to live.
 
 **CHN-R4 — trust on first use, plus continuity.** Accept the key on first connect, pin it,
 alarm on any later change. This is what ordinary SSH clients do. It needs no endpoint and
@@ -144,65 +161,108 @@ Continuity also assumes the pin survives, which is what `03-state-and-recovery.m
 
 ## The attest sequence
 
-**CHN-4** The attest post MUST be delivered to a **drop-box**. The relay is
-browser-initiated, so a first-boot machine cannot post through it without a rendezvous.
+**CHN-4** The attest post is a **gift-wrapped Nostr event** — a NIP-59 wrap around a NIP-44
+seal — published to the relay set of `CHN-18`, and the browser receives it by subscription.
+*What this replaced:* a drop-box the browser had to open at the relay before creating the
+machine, with a collection token to fetch it afterwards. Both are gone. The relay is
+browser-initiated and a first-boot machine still needs a rendezvous; the rendezvous is now a
+standard inbox that any Nostr relay provides, rather than a custom buffer only ours did.
 
 ```mermaid
 sequenceDiagram
     participant B as Browser
-    participant RL as Relay
+    participant NR as Relay set (ours + operator's)
     participant V as Vendor API
     participant M as Machine
 
-    B->>RL: open one-time drop-box
-    RL-->>B: collection token (NOT the MAC secret)
-    Note over B: generates one-time MAC secret.<br/>It never touches the relay.
-    B->>V: create machine — user-data carries<br/>client pubkey + MAC secret + drop-box URL
+    Note over B: derives for THIS machine, from the seed:<br/>sender key S · recipient key R — STA-22
+    B->>NR: subscribe: wraps addressed to R
+    B->>V: create machine — user-data carries<br/>client pubkey + S private + R public + relay list
     V->>M: boot
     Note over M: cloud-init generates host keys
-    M->>M: HMAC(fingerprints, secret)
-    loop backoff until acknowledged or deadline
-        M->>RL: POST fingerprints + stamp → drop-box
-        RL-->>M: acknowledge
+    M->>M: seal(fingerprints) under S · wrap to R<br/>timestamps randomised into the past — NIP-59
+    loop backoff until one relay says OK, or deadline
+        M->>NR: publish wrap
+        NR-->>M: OK
     end
-    Note over M: scrub secret + drop-box URL from<br/>cloud-init artifacts — on acknowledgement<br/>or at the deadline, whichever first
-    B->>RL: collect drop-box
-    RL-->>B: buffered post (relay cannot verify it)
-    Note over B: verifies stamp, accepts the FIRST<br/>valid one, discards the secret.<br/>This is what makes it single-use.
+    Note over M: scrub S from cloud-init artifacts —<br/>on OK or at the deadline, whichever first
+    NR-->>B: wrap
+    Note over B: unwrap with R · accept ONLY if the<br/>seal's author is S · first one wins ·<br/>stop listening for R. This is single-use.
     B->>B: pin fingerprints
 ```
 
-**CHN-5** Single-use MUST be enforced by the browser, not the drop-box. The relay never
-holds the MAC secret, and a stamp it cannot forge it also cannot verify, so the drop-box
-cannot tell a valid post from junk. What it does is buffer what arrives; the **browser**
-verifies, accepts the first valid stamp, and discards the secret. Anyone holding the
-drop-box URL — the vendor does — can shadow the box with garbage or a race: garbage fails
-verification, and a *validly stamped* race requires the MAC secret, which only the vendor
-also holds. A shadowed or empty box is a denial of service that forces the recorded
-fallback, nothing more.
+**CHN-5** Single-use MUST be enforced by the browser, not by any relay. A relay cannot
+distinguish a genuine seal from junk — it never holds the sender key — so a relay enforcing
+"one post" would enforce it on the first post of *any* kind, a denial of service dressed as a
+property. The **browser** unwraps, checks the seal's author against the sender key it planted,
+accepts the first match, pins, and **stops listening for that recipient**. Anyone able to write
+to the inbox — everyone, on a public relay — can flood it with garbage or race it: garbage fails
+the author check, and a *validly sealed* race requires the sender key, which only the vendor also
+holds. A flooded or empty inbox is a denial of service that forces the recorded fallback, nothing
+more.
 
-**CHN-6** The first-boot hook MUST retry with backoff until the relay acknowledges or a
-deadline passes, and MUST scrub the voucher on whichever comes first, with the deadline
-inside the voucher's expiry. Networking at first boot is exactly when routing and DNS are
-least settled; a single-shot post followed by an irreversible scrub converts a transient
-blip into a destroyed machine, on the one route that has no alternative.
+**CHN-6** The first-boot hook MUST retry with backoff until at least one relay in the set
+answers OK or a deadline passes, and MUST scrub the sender key from cloud-init artifacts on
+whichever comes first. Networking at first boot is exactly when routing and DNS are least
+settled; a single-shot post followed by an irreversible scrub converts a transient blip into a
+destroyed machine, on the one route that has no alternative.
+
+**The only clock that matters is the browser's.** The old design had the machine's deadline
+"inside the voucher's expiry", a relationship between two numbers neither of which existed.
+Nothing on the machine can expire anything: the metadata endpoint serves user-data for life,
+and a gift wrap's timestamps are deliberately randomised up to two days into the past, so they
+say nothing about when it was sent. The window is **the browser's own clock, from machine
+creation**, after which it stops listening for that recipient and presents the recorded fallback.
+The machine's deadline is housekeeping — when to give up retrying and scrub — and the browser's
+window MUST be set from a **measured** slowest first boot rather than a guess, and stated as an
+outcome with a named fallback rather than something the operator discovers.
 
 **The scrub is defence in depth, and MUST NOT be described as the bound.** It removes
 cloud-init's cached copy from disk; the vendor's metadata endpoint goes on serving the original
-user-data for the life of the instance, so the voucher and the drop-box URL stay re-fetchable by
-anything on the machine. **What actually bounds the exposure is `CHN-7`: the voucher expires and
-is single-use**, so a later reader finds it consumed. The realistic window is the minutes before
-any tenant software exists. A machine that blocks its own metadata endpoint after first boot
-closes the rest, and that is a hardening step to declare (`ARC-39`) rather than assume.
+user-data for the life of the instance, so the sender key stays re-fetchable by anything on the
+machine. **What bounds the exposure is `CHN-5`**: the browser accepts one introduction and never
+another from that key, so a later reader holds a key nothing will believe. The realistic window
+is the minutes before any tenant software exists. A machine that blocks its own metadata
+endpoint after first boot closes the rest, and that is a hardening step to declare (`ARC-39`)
+rather than assume.
 
-**CHN-7** The attest voucher is a **short-lived introduction credential**, not a
-non-credential. Possession of the voucher and the drop-box lets an actor stamp an
-*arbitrary* fingerprint the browser will then trust — it authorizes the introduction, which
-is the whole game. It carries a credential's lifecycle in `SEC-5`: it expires, it is
-single-use per `CHN-5`, it is scrubbed from the machine's cloud-init artifacts, and it is
-redacted from anything recorded or shown to a model. The collection token rides the
-drop-box URL in the same user-data: the vendor sees both, which collapses to the same
-accepted fact, and anyone else who obtains them post-boot finds them expired and consumed.
+**CHN-7** The attest **sender key** is an **introduction credential**, not a non-credential.
+Possession of it lets an actor seal an *arbitrary* fingerprint the browser will then trust — it
+authorizes the introduction, which is the whole game. It carries a credential's lifecycle in
+`SEC-5` row 7: single-use per `CHN-5`, scrubbed from the machine's cloud-init artifacts, redacted
+from anything recorded or shown to a model, and **never stored in the browser**, because it is
+re-derived on demand (`STA-22`). The **recipient key** is a credential too — it decrypts the
+introduction — and is row 16 on the same terms. Both are per machine: user-data for machine 1
+says nothing about machine 2, and an inbox on a public relay, which anyone can list, maps to one
+machine and not to an operator.
+
+**CHN-17 The notify channel.** Attest is the first use of a general rule, stated once so nobody
+re-derives it when a second use arrives: **a machine may send the harness an event, and an event
+is an observation.** It is typed untrusted, exactly as every box-plane output already is
+(`ARC-28`); it never gates a step, never triggers an action, never enters model context as
+anything but content. `ARC-1` stands because of that typing — a machine that can *tell* the
+browser something is not a machine that can *make* it do something. **The list of uses is one
+entry long**, and each addition is a stated design change rather than a use of an open door.
+Candidates exist — a job record's completion (`STA-20`), a delivery check's result (`ARC-39`) —
+and none has been added.
+
+**CHN-18 The relay set.** The publisher's Nostr relay, on the same host as the TCP bridge
+(`CHN-11`), is **mandatory**, and the operator MAY add public relays for resilience. First boot
+is the one message with no other route, so it must not depend on a relay nobody runs on the
+operator's behalf. Ours serves a recipient's wraps only to a subscriber who has authenticated as
+that recipient (NIP-42), which is what the standard asks of relays and what three of four public
+relays tested did not do: on those, anyone can list every wrap addressed to a key. Per-machine
+recipients bound what that reveals, and the publisher's relay is the one place the inbox is not
+public. A public relay in the set is a party the operator chose, named in `TRU-E10`.
+
+**The first-boot tool is an artifact.** A machine needs a Nostr client before anything else is
+installed. On NixOS it is a distribution package, admitted as everything there is (`ARC-25a`).
+On Alpine there is no package, and the upstream release binary is glibc-linked and fails on
+musl; the publisher therefore ships a static build, which is an artifact pinned under `ARC-25`
+and signed under `TRU-E7`, about thirty megabytes at first boot. Two traps verified on a real
+run: standard input must be redirected from the null device explicitly, since a *closed*
+descriptor crashes the tool, and gift-wrapping must be told to use the identity keys directly,
+or it spends seconds looking up optional keys on the network before an inbox exists.
 
 ## The relay
 
@@ -211,15 +271,22 @@ with no authentication will be abused within days of being reachable. The archiv
 specification's §21 requirements are the resolution: authenticate the user, enforce
 destination and operation policy, prevent generic open-proxy behaviour.
 
-**CHN-9** The relay has three duties: the TCP bridge — the SSH channel and `ARC-26`'s surface
-probes — the attest drop-box, and — **designed
-but not built** — a tunneled fallback for untyped calls (`CHN-12`).
+**CHN-9** The relay has two duties: the TCP bridge — the SSH channel and `ARC-26`'s surface
+probes — and, **designed but not built**, a tunneled fallback for untyped calls (`CHN-12`).
+Beside it, on the same host and under the same operator, runs a **Nostr relay** for the notify
+channel (`CHN-18`). It is a separate, standard service rather than a third duty of the bridge,
+and the attest drop-box it replaces is gone.
+
+**"The relay" means the TCP bridge.** A Nostr relay is always called that, in full. The two
+share a host and an operator and nothing else, and a sentence that says "the relay" about the
+inbox is wrong.
 
 **CHN-10** The relay MUST be **direct-first**. It is never in a path the browser can take
 alone. An off-machine call goes straight from the browser to the service wherever the
 service permits it; the relay carries only raw TCP — the SSH channel and `ARC-26`'s surface
-probes — the machine-originated attest post, and — if `CHN-12` is ever built — untyped calls whose destination refuses browser
-CORS. Minimum usage is a design property, not an accident.
+probes — and, if `CHN-12` is ever built, untyped calls whose destination refuses browser CORS.
+The machine-originated attest post no longer crosses it at all. Minimum usage is a design
+property, not an accident.
 
 **CHN-11** The relay's operator is the **publisher** by default, with bring-your-own as the
 escape hatch ([ADR-0019](./docs/adr/0019-the-publisher-operates-the-default-relay.md)). The
@@ -304,6 +371,15 @@ and calling it merely "connection metadata" understates it.
 It cannot read or alter a session pinned out of band, so the addition is visibility, not
 authority over content. But a party that serves the bundle *and* sees every connection is a
 bigger observer than one that serves the bundle alone.
+
+**The Nostr relay on the same host learns the same thing by a different route**, and the product
+MUST say so too. It sees a cloud address publish a wrap to recipient R, and it sees the
+operator's address authenticate as R to read it — one machine, one inbox. Per-machine recipients
+mean it learns N unrelated inboxes rather than one operator's N machines; the operator's
+subscriptions arriving from one address correlate them anyway. That is `CHN-13`'s knowledge,
+held by `TRU-A2`, and nothing new. A **public** relay in the set learns the publish half without
+the authentication — and, on the relays tested, serves the inbox to anyone who asks — which is
+why the operator's choice to add one is a named party (`TRU-E10`) and not a free resilience knob.
 
 **This is why Certificate Transparency was rejected, and the comparison reads stronger
 stated honestly:** one party the operator chose learns the topology, against *everyone*

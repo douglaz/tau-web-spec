@@ -125,17 +125,47 @@ processes, and it is the one party that always knows which machines exist.
 | Dies with the phone | Survives |
 |---|---|
 | Host-key pins | The vendor login |
-| The SSH client private keys | The app URL |
-| The machine inventory | A relay pass, **re-bought** rather than recovered (`CHN-15`) |
-| The relay pass | The recovery sheet, **if exported** |
-| Action transcripts | The inference balance — **only** through the sheet (`SEC-5` row 14) |
-| Provenance records | |
-| The exposure ledger | |
-| **The inference account credential**, unless exported: it is bearer, there is no account behind it, and nothing re-derives it | |
+| The machine inventory | **The seed** — in the operator's head or seed backup, never on the phone alone (`STA-22`) |
+| The relay pass | **The SSH client keys, re-derived from the seed** — they used to be in the left column, and moving them is the whole reason the seed exists |
+| Action transcripts | The app URL |
+| Provenance records | A relay pass, **re-bought** rather than recovered (`CHN-15`) |
+| The exposure ledger | The recovery sheet, **if exported** |
+| **The inference account credential**, unless exported: it is bearer, there is no account behind it, and nothing re-derives it | The inference balance — **only** through the sheet (`SEC-5` row 14) |
 | The vendor API credential and the session inference key — re-supplied or re-minted per session, deliberately not persisted | |
 
 **Transcripts and provenance are gone and stated as gone.** They were records, not secrets;
 nothing re-derives the past.
+
+**STA-22 The operator holds a seed, and every per-machine credential the browser needs derives
+from it.** A BIP-39 mnemonic, held encrypted at rest and backed up by the operator the way
+this audience already backs up seeds. For machine *m*, the browser derives at index *m*: the
+SSH client keypair (`SEC-5` row 3), the attest sender key (row 7) and the attest recipient key
+(row 16). Derivation is BIP-32 by account index — NIP-06's path for the Nostr keys, which
+upstream now labels *unrecommended* in favour of a single key; that is a wallet-interoperability
+warning, and nothing outside the harness ever needs to reproduce these keys, so it does not
+apply. Cite it with the label rather than without
+([ADR-0029](./docs/adr/0029-the-machine-speaks-nostr-and-keys-derive-from-a-seed.md)).
+
+- **No session and no machine ever sees the seed.** What machine *m* receives is its client
+  public key, its sender private key and its recipient public key — three values nothing
+  derives *from*. `SEC-1`'s cryptographic enforcement is untouched: machine 3 still holds
+  machine 3's public key alone.
+- **A machine's index is journaled before the create call and never reused.** The same index
+  on two machines is the same client key on two machines, which is `SEC-1` broken by
+  bookkeeping. `STA-3` already requires the record before the effect; the index is part of
+  that record, and indices are monotonic.
+- **The sheet no longer carries keys.** It holds pins, the ledger and the inference account
+  credential (`STA-16`). A lost phone re-derives every client key from twelve words; what it
+  cannot re-derive — pins, the ledger, the balance — is what the sheet is for.
+- **A stolen seed is not revocable.** Replace (`STA-17`) is therefore a **new seed**, from which
+  new client keys derive, with the old public keys removed from every maintained machine during
+  re-entry — the same flow as before, with a different origin for the new keys and one more
+  thing to back up again.
+
+*What this reverses.* ADR-0020 rooted recovery in the vendor account and rejected a seed-shaped
+root by omission; the sheet existed because nothing re-derived the client keys. The vendor
+account still roots **inventory** — it is the one party that always knows which machines exist.
+The seed roots **credentials**. Both are stated, and neither does the other's job.
 
 ## Recovery, by access model and vendor
 
@@ -146,7 +176,7 @@ flowchart TD
     AM -->|Maintained| VEND{Which vendor product?}
     VEND -->|Dedicated / Robot| CER["Rescue ceremony<br/>register the new phone's client key ·<br/>activate rescue · pin the rescue host key<br/>from the API, no TOFU · install the new<br/>client pubkey from inside rescue ·<br/>re-read the installed host keys<br/><br/>Cost: two reboots. Always works,<br/>so the sheet is optional here"]
     VEND -->|Cloud| SHEET{Was a sheet exported?}
-    SHEET -->|Yes| ZERO["Sheet restores pins and client keys.<br/>Zero downtime"]
+    SHEET -->|Yes| ZERO["Seed re-derives client keys ·<br/>sheet restores pins. Zero downtime"]
     SHEET -->|"No — MUST NOT happen:<br/>the sheet is mandatory<br/>on maintained cloud"| TWO["Two honest options"]
     TWO --> DR["Destroy and recreate<br/>re-runs attest. Loses machine state"]
     TWO --> KR["Keyed rescue, leap of faith displayed<br/>the login is keyed, but the rescue<br/>host key is unverifiable (CHN-R2 is dead).<br/>The screen says trusted, not verified"]
@@ -162,29 +192,31 @@ stays optional. A sealed tenant's machines need none: their pins die at sealing,
 lost mid-setup is answered by the tenant's own all-or-nothing rule — abandon and recreate.
 This asymmetry is stated, not smoothed over.
 
-**STA-16** The recovery sheet holds host-key fingerprints, the exposure ledger, the SSH client
-keys, and — on the procured path — the **inference account credential**, all wrapped under a
-passphrase the operator chooses. The export screen MUST say what the sheet can do in the wrong
-hands with the passphrase: **reach every maintained machine, and spend the remaining inference
-balance**. This is the same posture the target audience already holds toward seed backups.
+**STA-16** The recovery sheet holds host-key fingerprints, the exposure ledger, and — on the
+procured path — the **inference account credential**, wrapped under a passphrase the operator
+chooses. **It no longer carries the SSH client keys**, which re-derive from the seed
+(`STA-22`). The export screen MUST say what the sheet can do in the wrong hands with the
+passphrase: **spend the remaining inference balance**. Reaching a machine needs the seed, and
+the seed is never in the sheet.
 
 **The balance is in the sheet because the alternative is worse, not because it is comfortable.**
 The account credential is bearer and unrevocable (`SEC-5` row 14), so exporting it raises the
 value of a stolen sheet. Leaving it out means a lost phone burns whatever the operator funded,
-with no recovery path at all — and the sheet already carries the keys to every maintained
-machine, so this changes the size of a loss rather than its kind. What the screen must not do
-is bury the change: a sheet that now holds money is a different object from one that held only
-references.
+with no recovery path at all. Now that the keys have moved to the seed, the balance is the
+**most** valuable thing in the sheet rather than an addition to something worse, and the screen
+must say so plainly rather than inheriting the old warning.
 
 **STA-17** Recovery after a *lost* phone revokes; restore after a *dead* one may not. A
 stolen phone's encrypted store may eventually be unlocked, so the flows are named and
 distinct, and the screen says which one is happening:
 
-- **Replace** (the default, for a phone that is lost): new client keypairs, the old public
-  keys removed from every maintained machine during re-entry, and the relay pass re-issued
-  with the old one revoked.
-- **Restore** (for a phone that died in hand): the sheet's same keys, explicitly presented as
-  non-revoking.
+- **Replace** (the default, for a phone that is lost): a **new seed** (`STA-22`), from which
+  new client keypairs derive; the old public keys removed from every maintained machine during
+  re-entry; and the relay pass re-issued with the old one revoked. The old seed is not
+  revocable — a thief who unlocks the store has it — which is why the keys it derives are
+  removed from the machines rather than merely stopped being used.
+- **Restore** (for a phone that died in hand): the same seed re-derives the same keys,
+  explicitly presented as non-revoking.
 
 **Replace cannot cover the inference account credential, and MUST say so.** Every other item in
 the flow has an issuer that can kill the old value; this one has no account behind it, so there

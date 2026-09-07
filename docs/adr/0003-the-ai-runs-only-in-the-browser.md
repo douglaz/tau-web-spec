@@ -3,10 +3,11 @@
 The AI lives in the operator's browser. It issues box-plane commands over SSH
 ([ADR-0015](./0015-the-browser-reaches-a-machine-over-pinned-ssh.md)) and cloud-plane
 operations through typed operations. A provisioned machine never holds an inference key
-or a vendor API token and never initiates work. (The one machine-originated message to the harness added
-later — the attest introduction of ADR-0020 — acts on nothing on the machine's behalf;
-its only authority is the one-time introduction, handled as the short-lived credential
-ADR-0020 classifies. The rule stands.)
+or a vendor API token and never initiates work. (A machine may *tell* the harness something
+over the notify channel of `CHN-17`, added later, and what it tells is typed untrusted, never
+gating and never acting — the attest introduction of ADR-0020, now carried per ADR-0029, is its
+one use. A machine that can send an event the browser treats as content is not a machine that
+can act. The rule stands, and the typing is what keeps it standing.)
 
 We chose this because an inference key on a machine is a credential living outside
 browser memory, which violates the constraint the whole product rests on: credentials

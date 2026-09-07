@@ -135,16 +135,17 @@ flowchart TD
     BR -->|"direct HTTPS, where CORS permits"| INF["Inference proxy<br/>→ inference provider"]
     BR -->|"direct HTTPS, typed operations"| VND["Cloud vendor API"]
     BR -->|"direct HTTPS, untyped calls under an approved scope"| SVC["Third-party service"]
-    BR -->|"WebSocket, only what cannot go direct"| RLY["Relay<br/>bridge · drop-box"]
+    BR -->|"WebSocket, only what cannot go direct"| RLY["Relay<br/>TCP bridge"]
+    BR -->|"subscribes, per-machine inbox"| NR["Nostr relay set<br/>publisher's + operator's"]
     RLY -->|"TCP :22, ciphertext"| M1["Machine 1"]
     RLY -.->|"TCP :22, ciphertext"| M2["Machine n"]
-    M1 -->|"one-time attest introduction"| RLY
+    M1 -->|"one-time attest introduction,<br/>gift-wrapped"| NR
     M1 <-->|"vault protocol port only,<br/>mutually authenticated"| M2
-    ART["Artifact source<br/>pinned by content hash"] -->|"pulled during install"| M1
+    ART["Artifact source<br/>pinned per distribution"] -->|"pulled during install"| M1
     classDef trusted fill:#e8f0ff,stroke:#4a6fa5
     classDef untrusted fill:#fff4e8,stroke:#a5794a
     class BR trusted
-    class RLY,ART untrusted
+    class RLY,NR,ART untrusted
 ```
 
 The relay is **direct-first**: it carries only what the browser cannot do alone. See
@@ -187,8 +188,10 @@ a separate integration, **`CHN-R2` does not exist**, and `CHN-R3` is **abandoned
 user-data stays readable from the vendor's metadata endpoint for the instance's life, so an
 injected host key would be permanently re-fetchable by anything on the machine. That is why the first stage runs on dedicated hardware
 ([ADR-0018](./docs/adr/0018-first-stage-is-one-lnrent-box-on-dedicated.md)). For the cloud
-path, **`CHN-R5` — attest** — is designed to close exactly this gap; it has not yet run,
-and `OPN-3` tracks the probe. Passing the SSH spike is necessary and does not by itself
+path, **`CHN-R5` — attest** — is designed to close exactly this gap: the machine introduces
+its own key over Nostr under keys the browser derives from the operator's seed
+([ADR-0029](./docs/adr/0029-the-machine-speaks-nostr-and-keys-derive-from-a-seed.md)). The
+pipeline has run; a real first boot has not, and `OPN-3` tracks it. Passing the SSH spike is necessary and does not by itself
 satisfy this; the routes are what make it sufficient.
 
 **OVR-5** Members MUST NOT share a cloud vendor. The vendor owns its machine's memory and
@@ -246,3 +249,4 @@ an ADR is where *why* lives.
 | [0026](./docs/adr/0026-the-coordinator-is-the-tenants-and-runs-after-sealing.md) | The coordinator is the tenant's, and runs after sealing |
 | [0027](./docs/adr/0027-the-artifact-pin-is-per-distribution.md) | The artifact pin is per distribution, and one of them adds a party |
 | [0028](./docs/adr/0028-procured-inference-is-the-operators-balance.md) | Procured inference is the operator's balance, not the publisher's account |
+| [0029](./docs/adr/0029-the-machine-speaks-nostr-and-keys-derive-from-a-seed.md) | The machine speaks Nostr, and per-machine keys derive from an operator seed |

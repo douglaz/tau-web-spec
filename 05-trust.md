@@ -24,6 +24,7 @@ flowchart LR
         E8[Artifact source]
         E8a["Binary cache signing key<br/>one distribution only"]
         E9[Delegated receiving service]
+        E10["Public Nostr relay,<br/>if the operator adds one"]
     end
     subgraph A["Added by this product — the only tier the design controls"]
         A1[Bundle + publisher]
@@ -129,6 +130,15 @@ The party is real whether or not it is written down, and it was not. That is the
 for the row: `SEC-10` prices an unlisted party as a schema migration, and an unlisted party
 already relied on is worse than a listed one.
 
+**TRU-E10 — A public Nostr relay the operator adds to the relay set** (`CHN-18`). Elective in
+the plainest sense: the publisher's relay is mandatory and sufficient, and this is a resilience
+choice. What it costs is stated because it is not obvious: it sees a cloud address publish a
+wrap to an inbox, and — on three of the four public relays tested — it serves that inbox to
+**anyone who asks**, not only to the authenticated recipient. It cannot read the introduction
+or forge one. Per-machine recipients mean one listable inbox maps to one machine and not to an
+operator; the operator's own subscriptions from one address are what correlate them, and that
+correlation is available to the relay and to nobody else.
+
 **TRU-E9 — A delegated receiving service, where a tenant uses one.** Under `ARC-38` a runtime
 obligation may be met at a third party that notifies the machine, and for Lightning that is the
 only way to keep spending authority off a multi-tenant box. That party sees the payment flow and
@@ -167,7 +177,10 @@ bootstrap seat with a stated trajectory, not a resting state.
 pinned out of band, but **it learns the member topology** — which operator, which destination,
 when, accumulated, is the member set (`CHN-13`) — and one that authenticates callers and
 constrains destinations decides who may connect where. Under trust-on-first-use it is trusted
-outright at first contact.
+outright at first contact. **The Nostr relay beside it** (`CHN-18`) is the same party learning
+the same thing by another route — a cloud address publishes to an inbox, the operator's address
+reads it — and it cannot forge an introduction, since it never holds a sender key. It is not a
+new row.
 
 On the default path its operator is **the publisher**, so the entry is less a new party than
 the publisher's second capability — bundle plus topology — and the trust display names the

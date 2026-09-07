@@ -51,6 +51,11 @@ rather than from the harness declining to call its own transport. A single share
 would leave this invariant enforced only by routing code, which is bookkeeping rather than a
 boundary.
 
+**That the keypairs derive from one seed does not weaken this.** Derivation is how the browser
+*obtains* machine 3's key; what reaches machine 3 is still machine 3's public key alone, and
+session 2 is still refused by SSH. The seed is a root the *browser* holds — one thing to back
+up instead of a sheet of keys — not a credential any session or machine ever sees (`STA-22`).
+
 **The coordinator holds no grant of this kind at all** (`ARC-19a`). It runs after every machine
 is sealed, and a sealed machine has no SSH to authenticate to. Its credential is
 peer-equivalent — the vault protocol port, which `ARC-23` already assumes a hostile party may
@@ -141,18 +146,20 @@ outgrown, because adding a credential means adding a row.
 |---|---|---|---|---|---|---|
 | 1 | Vendor API credential | Operator | Browser memory only | One session | Full account authority at that vendor | Session ends |
 | 2 | Inference **session** key | Minted from row 14 (procured); supplied by the operator (BYO) | Browser memory only | One session | Inference spend, **up to its own cap** | Revoked at session end (procured); session ends (BYO) |
-| 3 | **SSH client private key, one per machine** | Harness-generated | Encrypted at rest; exported in the sheet | Machine lifetime | Login to **that one machine** | Removed from the machine on Replace (`STA-17`) |
+| 3 | **SSH client private key, one per machine** | **Derived** from row 15 at that machine's index (`STA-22`) | Re-derived on demand; nothing to export | Machine lifetime | Login to **that one machine** | Removed from the machine on Replace (`STA-17`), which is a new seed |
 | 4 | **Relay pass** | Bought (`CHN-15`); pasted out of band in the first stage | Encrypted at rest | Until it expires or is re-issued | Reaching the destinations recorded against it, on any port (`CHN-16`) | Expires; revoked and re-issued on Replace; lost passes are re-bought, not recovered |
 | 5 | Host-key pins | Vendor API, rescue, or attest | Encrypted at rest; exported in the sheet | Machine lifetime | Nothing — integrity reference | Machine destroyed |
 | 6 | Exposure ledger | Harness-derived | Encrypted at rest; exported in the sheet | Machine lifetime | Nothing — record | Machine destroyed |
-| 7 | Attest voucher (MAC secret) | Harness-generated | Boot user-data, once | Until first valid stamp, or expiry | **One** host-key introduction | **Expires, or is consumed at the first valid stamp (`CHN-7`)** — that is the bound; scrubbed from disk as defence in depth (`CHN-6`) |
-| 8 | Drop-box collection token | Relay-issued | Boot user-data and the relay | Until collected, or TTL | Collect one buffered post | Collected or expired |
+| 7 | **Attest sender key**, one per machine | Derived from row 15 (`STA-22`) | Boot user-data; **never stored in the browser**, re-derived to check the seal | Until the browser accepts one introduction, or its window closes | **One** host-key introduction (`CHN-7`) | **The browser stops listening (`CHN-5`)** — that is the bound; scrubbed from disk as defence in depth (`CHN-6`); the metadata copy is permanent and worthless |
+| 8 | ~~Drop-box collection token~~ | — | — | — | — | **Row retired.** The drop-box is gone (`CHN-4`); the attest post is a gift-wrapped event to an inbox any Nostr relay provides. |
 | 9 | Rescue root password | Vendor-generated, in an API response | Never stored | Never used | Root login the harness declines to use | **Redacted before the response is recorded or reaches a model** |
 | 10 | Recovery sheet passphrase | Operator-chosen | Never stored anywhere | Operator's memory | Unwraps the sheet | Not applicable |
 | 11 | Untyped-scope credential | Operator | Browser memory only | Until the operator revokes or rotates it | **Unbounded at that origin** | Operator revokes at the service |
 | 12 | **Tenant secret placed on a machine** | Operator | Browser memory, then the machine | Machine lifetime | Whatever the tenant's software uses it for | Machine destroyed, or operator rotates |
 | 13 | ~~Injected SSH host private key~~ | — | — | — | — | **Row retired. `CHN-R3` is abandoned**: user-data stays readable from the vendor's metadata endpoint for the instance's life, so the key would be permanently re-fetchable by anything on the machine. No exception wording fixes that. |
 | 14 | **Inference account credential** (procured only) | Operator, on funding an account-free balance | Encrypted at rest; **exported in the sheet** | Until the balance is spent | The remaining balance; minting and revoking row 2; attaching a funding source (`ARC-31a`) | Spent down or abandoned — **it is bearer and cannot be revoked** |
+| 15 | **Operator seed** | Operator, at first use; backed up by the operator | Encrypted at rest; **in the operator's head or seed backup**, never in the sheet | Until replaced | Deriving rows 3, 7 and 16 for every machine — **every maintained machine, and every future introduction** (`STA-22`) | Replaced by a new seed on Replace (`STA-17`); the old one is not revocable, only abandoned |
+| 16 | **Attest recipient key**, one per machine | Derived from row 15 (`STA-22`) | Re-derived on demand; public half in boot user-data | Until the introduction is accepted or the window closes | Decrypting **one** machine's introduction | The browser stops listening; the key is never used again |
 
 **Row 12 carries a caveat that MUST be stated wherever it is offered.** Delivery redaction
 keeps the secret out of the transcript and out of model context *on the way in*. It does not

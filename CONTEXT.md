@@ -158,11 +158,27 @@ _Avoid_: trustless, verified, provably secure
 ### The channel
 
 **Attest** · `CHN-R5`
-The cloud path's introduction route: the browser plants a one-time MAC secret in boot
-configuration, and the machine's first boot posts its host-key fingerprints stamped under that
-secret, through a relay drop-box, back to the browser.
+The cloud path's introduction route: the browser plants a per-machine sender key in boot
+configuration, and the machine's first boot seals its host-key fingerprints under that key and
+gift-wraps them to a per-machine recipient key over Nostr. Both keys derive from the seed.
 _Avoid_: remote attestation, TPM attestation (the hardware senses; "attestation" for route 5
-itself is fine)
+itself is fine); "the secret" (there are two keys, and neither is stored)
+
+**Notify channel** · `CHN-17`
+The one way a machine speaks to the harness: an event, typed untrusted, that never gates and
+never acts. Attest is its only use today.
+_Avoid_: callback, webhook, command channel (all imply the machine can make something happen)
+
+**Relay set** · `CHN-18`
+The publisher's Nostr relay, which is mandatory, plus any public Nostr relays the operator adds.
+_Avoid_: "the relay" — that is the TCP bridge, and a sentence that says it about an inbox is
+wrong. A Nostr relay is always called that in full.
+
+**Seed** · `STA-22`
+The operator's BIP-39 mnemonic, from which every per-machine credential the browser needs is
+derived at that machine's index. Never seen by a session or a machine; never in the sheet.
+_Avoid_: master key, root key (both suggest something a session holds), "the user's nsec"
+(a derived key is one of many, and none is the operator's social identity)
 
 **Relay pass** · `CHN-15`, `CHN-16`
 What buys access to the relay. Obtained by paying an invoice, not by holding an account: an
@@ -171,14 +187,17 @@ expires. There is no identity behind it and no recovery flow — a lost pass is 
 _Avoid_: token (the first stage's hand-issued one was a token; this is bought), subscription,
 API key (both imply an account behind them)
 
-**Drop-box** · `CHN-4`
-A one-time buffer the browser opens at the relay before creating a machine, so a first-boot
-machine has somewhere to post. The relay buffers; it cannot verify what it holds.
+**Drop-box** — retired. A one-time buffer the browser used to open at the relay before creating
+a machine. Replaced by an inbox any Nostr relay provides (`CHN-4`). The name survives only in
+the records that rejected relay-side single-use, which still applies to the inbox.
 
-**Voucher** · `CHN-7`
-The one-time MAC secret itself. A short-lived introduction **credential**, because possession
-of it and the drop-box lets an actor stamp an arbitrary fingerprint the browser will trust.
-_Avoid_: token, nonce (both understate what it authorizes)
+**Attest sender key** / **attest recipient key** · `CHN-7`, `SEC-5` rows 7 and 16
+The per-machine pair attest runs on. The sender key's private half rides in boot configuration
+and authorizes one introduction — an introduction **credential**, because possession of it lets
+an actor seal an arbitrary fingerprint the browser will trust. The recipient key decrypts that
+introduction. Both derive from the seed and neither is stored.
+_Avoid_: voucher, token, nonce (all understate what the sender key authorizes); MAC secret (the
+old mechanism)
 
 **Artifact source** · `ARC-25`, `ARC-25a`, `TRU-E8`, `TRU-E8a`
 Wherever the installed system's bits come from: an image, a mirror, a channel. An untrusted
@@ -194,14 +213,15 @@ The per-machine history of every configured model that has ever touched it.
 _Avoid_: audit log, history (unqualified)
 
 **Recovery sheet** · `STA-16`
-An exported record of host-key fingerprints, the exposure ledger, and the SSH client keys
-wrapped under a passphrase. Sensitive in the same way a seed backup is.
-_Avoid_: backup (unqualified), export file
+An exported record of host-key fingerprints, the exposure ledger and the inference account
+credential, wrapped under a passphrase. It no longer carries keys; those re-derive from the seed.
+_Avoid_: backup (unqualified), export file, "the keys" (they are not in it)
 
 **Replace / Restore** · `STA-17`
-The two recovery flows, deliberately distinct. **Replace** issues new keys and revokes the old
-— the default, for a phone that is lost. **Restore** reinstates the sheet's same keys and does
-not revoke — for a phone that died in hand.
+The two recovery flows, deliberately distinct. **Replace** is a new seed, from which new keys
+derive, with the old keys removed from every machine — the default, for a phone that is lost.
+**Restore** re-derives the same keys from the same seed and does not revoke — for a phone that
+died in hand.
 
 **Recovery ladder** · `ARC-16`
 What happens when a model cannot finish its machine: retry, escalate behind the same proxy,

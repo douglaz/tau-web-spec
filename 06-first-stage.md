@@ -54,7 +54,7 @@ sequenceDiagram
     participant M as Machine
 
     OP->>B: bind this session to this machine
-    Note over B: generates a keypair for<br/>THIS machine only — SEC-1
+    Note over B: derives a keypair for<br/>THIS machine only — SEC-1, STA-22
     Note over B,RL: Robot serves no CORS headers, so these<br/>ride a browser-terminated TLS session<br/>pinned to Robot's issuer — CHN-12a, STG-3a
     B->>RL: open tunnel to Robot
     B->>RB: register client public key (typed op 1)

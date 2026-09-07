@@ -49,11 +49,18 @@ one to three engineer-weeks to an authenticated interactive shell.
 
 **OPN-3 — The recovery machinery is designed and unproven.** The design is recorded across
 `03-state-and-recovery.md` and `CHN-R5`. What stays open is empirical: the attest hook has to
-fire reliably on a real first boot and post through the relay; the rescue ceremony has to be
+fire reliably on a real first boot and reach the relay set; the rescue ceremony has to be
 rehearsed once end to end; and the sheet needs a format an operator can actually re-import.
 Until those run, the channel's loss story is a design, not a property.
 
-*Closes when:* `CNF-18`, `CNF-19` and `CNF-20` pass on real hardware.
+*Narrowed 2026-09-06.* The attest pipeline itself has now run — gift-wrap from a no-TTY script,
+publish to three public relays, unwrap on the other side — so what is unproven is no longer the
+mechanism but its behaviour **on a real first boot**: cloud-init timing, the static binary on
+Alpine, and the browser's window against a measured slowest boot (`CHN-6`). The seed also adds
+one item: the derivation must be shown deterministic across a reinstall of the app, or
+"re-derive from twelve words" is a claim rather than a property.
+
+*Closes when:* `CNF-18`, `CNF-19`, `CNF-20` and `CNF-72` pass on real hardware.
 
 **OPN-4 — Weights-level diversity may not be enforceable.** The runtime signal named the
 *inference provider*, not the weights behind it — and the provider is a layer nobody

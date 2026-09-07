@@ -94,6 +94,14 @@ vendor with boot-time user-data, which is exactly the set where routes 1 and 2 d
 Designed, not yet run: the specification's question 3 tracks the probe
 ([ADR-0020](./0020-recovery-roots-in-the-vendor-account.md)).
 
+*Superseded in mechanism, not in reasoning* by
+[ADR-0029](./0029-the-machine-speaks-nostr-and-keys-derive-from-a-seed.md): the secret is now
+a per-machine sender key derived from a seed, and it **is** a private key in user-data. The
+sentence above that says no private key rides there is what changed, and the distinction that
+lets attest survive the fact that killed route 3 is the one this record already states — what
+the key *authorizes*. A host key impersonates for life; a sender key introduces once, and the
+browser never listens for it again.
+
 **Route 4 — trust on first use, plus continuity.** Accept the key on first connect, pin
 it, alarm on any later change. This is what ordinary SSH clients do. It needs no endpoint
 and puts no key in user-data, and it still detects a **network or relay** attacker that

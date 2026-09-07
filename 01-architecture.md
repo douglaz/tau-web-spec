@@ -7,12 +7,14 @@ never an actor: it MUST NOT hold an inference key or a vendor API token belongin
 harness, and it MUST NOT initiate work
 ([ADR-0003](./docs/adr/0003-the-ai-runs-only-in-the-browser.md)).
 
-The one machine-originated message *to the harness* is the attest introduction (`CHN-R5`),
-which acts on nothing on the machine's behalf; its only authority is the one-time
-introduction, handled as the short-lived credential `SEC-5` classifies. An inference key on
-a machine is a credential living outside browser memory, and a machine that can call a
-model unprompted is a machine that can act unprompted — which is the thing this project
-exists to avoid.
+A machine may *tell* the harness something over the notify channel (`CHN-17`), and what it
+tells is an **observation**: typed untrusted, never gating, never acting. The channel's one
+use today is the attest introduction (`CHN-R5`), which acts on nothing on the machine's behalf;
+its only authority is the one-time introduction, handled as the credential `SEC-5` classifies.
+An inference key on a machine is a credential living outside browser memory, and a machine that
+can call a model unprompted is a machine that can act unprompted — which is the thing this
+project exists to avoid. A machine that can send an event the browser treats as content is not
+that, and the typing is what makes the difference.
 
 **ARC-2** Nothing runs while the app is closed. This is accepted rather than worked around.
 Every step MUST be resumable across a locked phone, and progress MUST survive the harness

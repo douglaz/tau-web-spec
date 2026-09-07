@@ -110,10 +110,12 @@ assumption a threshold cannot survive losing.
 
 **The browser reaches a machine over SSH**, verifying the host key against a fingerprint obtained
 by other means, through a relay that carries ciphertext. On dedicated hardware the vendor API
-hands over the key; on the cloud path, where retrieval is dead, a designed but unproven route —
-*attest*, the machine introducing its own key under a one-time secret planted at creation —
-closes the gap without trusting first contact. A pin no longer dies with the phone: recovery
-roots in the vendor account, with a recovery sheet mandatory on maintained cloud machines.
+hands over the key; on the cloud path, where retrieval is dead, a designed and not yet booted
+route — *attest*, the machine introducing its own key over Nostr under a per-machine key
+planted at creation — closes the gap without trusting first contact. **Every per-machine key the
+browser needs derives from a seed the operator holds**, so a lost phone re-derives them from
+twelve words; what the seed cannot re-derive — pins, the ledger, the inference balance — is what
+the recovery sheet is for, and the vendor account is what says which machines exist.
 
 **The system is written from inside a rescue environment**, for two reasons: rescue is what
 publishes the host key, and the chosen distributions are not on the vendor's installer menu. That

@@ -90,13 +90,30 @@ yet.
       screen that offers it states plainly that a model with root can read it afterwards.
 - [ ] **CNF-17 · BLOCKING** An untyped response containing a harness-held credential is
       redacted before it reaches the model or the record. Exact-value scan.
-- [ ] **CNF-18 · BLOCKING** The attest voucher **expires and is single-use**, which is what
-      bounds it (`CHN-7`). Verified by replaying a stamp after collection and after expiry, and
-      confirming both are refused.
-- [ ] **CNF-61 · PRE-SCALE** The voucher is scrubbed from the machine's cloud-init artifacts on
-      acknowledgement or at the deadline (`CHN-6`), verified by reading the machine's disk. This
-      is defence in depth: the vendor's metadata endpoint still serves the original user-data, so
-      a disk scrub is **not** the bound and must not be recorded as one.
+- [ ] **CNF-18 · BLOCKING** The attest introduction is **single-use**, and single-use is the
+      browser's (`CHN-5`, `CHN-7`). Verified three ways: a second validly sealed wrap from the
+      same sender key after one is accepted is ignored; a wrap whose seal author is not the
+      planted sender key is refused even when it decrypts; and a wrap arriving after the
+      browser's window has closed is refused. No relay-side behaviour may be relied on for any
+      of the three.
+- [ ] **CNF-61 · PRE-SCALE** The sender key is scrubbed from the machine's cloud-init artifacts
+      on the first relay OK or at the deadline (`CHN-6`), verified by reading the machine's disk.
+      This is defence in depth: the vendor's metadata endpoint still serves the original
+      user-data, so a disk scrub is **not** the bound and must not be recorded as one.
+- [ ] **CNF-72 · BLOCKING** Every per-machine credential derives from the seed at a journaled,
+      never-reused index (`STA-22`). Verified by deriving twice from the same seed and index and
+      getting identical keys, and by confirming the journal refuses to create a machine at an
+      index already recorded. Boundary-crossed: a reused index is one client key on two
+      machines.
+- [ ] **CNF-73 · BLOCKING** No session and no machine is ever given the seed (`STA-22`).
+      Verified by inspecting what each is given, as `CNF-9` does for the scanner. Escaped-secret:
+      the seed reaches every maintained machine and every future introduction.
+- [ ] **CNF-74 · PRE-SCALE** An event received on the notify channel (`CHN-17`) is typed
+      untrusted and gates nothing. Verified by delivering a well-formed event claiming a step is
+      complete and confirming no step advances.
+- [ ] **CNF-75 · PRE-SCALE** The publisher's Nostr relay serves a recipient's wraps only to a
+      subscriber authenticated as that recipient (`CHN-18`). Verified by requesting an inbox
+      without authenticating and receiving nothing.
 - [ ] **CNF-19 · PRE-SCALE** The recovery sheet is passphrase-wrapped, its export screen states
       what it can do in the wrong hands, and a maintained cloud machine's setup does not
       complete without it (`STA-15`).
@@ -297,5 +314,7 @@ passes today and admits rewritten bits on the next upstream release, which is th
 substitution `TRU-E8` names arriving through the control that was supposed to detect it.
 `CNF-68` and `CNF-70` are escaped-secret and money-out respectively — an unrevocable bearer
 credential in a session's hands, and a prepaid ceiling silently converted into a wallet draw —
-and `CNF-69` is what turns row 2's stated lifetime into an enforced one. If an
+and `CNF-69` is what turns row 2's stated lifetime into an enforced one. `CNF-72` is
+boundary-crossed and `CNF-73` is escaped-secret: a reused derivation index puts one client key on
+two machines, and the seed in a session's hands is every machine at once. If an
 item cannot name its family, it is PRE-SCALE and the tier still means something.

@@ -84,9 +84,10 @@ in a path the browser can take alone. An off-machine call goes straight from the
 to the service whenever the service permits it; the relay carries only what cannot go
 direct — raw TCP always (SSH); as a fallback, untyped calls whose destination refuses
 browser CORS, tunneled under TLS that terminates in the browser so the relay stays a
-carrier of ciphertext; and the one machine-originated message in the design, the attest
-post, delivered to a drop-box the browser opened in advance
-([ADR-0020](./0020-recovery-roots-in-the-vendor-account.md)'s amendment). Minimum usage
+carrier of ciphertext. (The attest post used to be a third item here, delivered to a
+drop-box the browser opened in advance; it now travels as a gift-wrapped event to a Nostr
+relay the publisher runs beside the bridge, and never crosses the bridge at all —
+[ADR-0029](./0029-the-machine-speaks-nostr-and-keys-derive-from-a-seed.md).) Minimum usage
 is a design property, not an accident.
 
 **Second, the publisher's seat is transitional.** The trajectory is a relay on the
