@@ -1,0 +1,61 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>tau-web wasm spikes</title>
+<style>
+  body { font: 15px system-ui, sans-serif; margin: 1rem; max-width: 40rem; }
+  label { display: block; margin: .4rem 0; }
+  input { width: 100%; font: inherit; padding: .3rem; box-sizing: border-box; }
+  button { font: inherit; padding: .5rem 1rem; margin: .3rem .3rem .3rem 0; }
+  pre { background: #eee; padding: .6rem; white-space: pre-wrap; word-break: break-all; min-height: 3em; }
+  .ok { border-left: 5px solid #2a2; } .bad { border-left: 5px solid #c22; }
+</style>
+
+<h2>OPN-1 · SSH over WebSocket, host key pinned</h2>
+<label>bridge <input id="ssh_ws" value=""></label>
+<label>user <input id="ssh_user" value=""></label>
+<label>seed (32 bytes hex) <input id="ssh_seed" value=""></label>
+<label>pinned host key (SHA256:…) <input id="ssh_pin" value=""></label>
+<label>command <input id="ssh_cmd" value="uname -a; id -un"></label>
+<pre id="ssh_pub"></pre>
+<button id="ssh_go">connect</button>
+<button id="ssh_wrong">connect with a wrong pin</button>
+<pre id="ssh_out"></pre>
+
+<h2>OPN-21 · pinned TLS through the bridge</h2>
+<label>bridge to Robot <input id="tls_ws" value=""></label>
+<label>bridge to a different-issuer host <input id="tls_ws_other" value=""></label>
+<label>path <input id="tls_path" value="/server"></label>
+<label>Basic auth (base64 user:pass, optional) <input id="tls_auth" value="" autocomplete="off"></label>
+<button id="tls_go">GET robot-ws.your-server.de</button>
+<button id="tls_other">GET api.hetzner.cloud with the same pin</button>
+<pre id="tls_out"></pre>
+<details><summary>pinned issuer (shipped in the bundle)</summary><pre id="tls_pin"></pre></details>
+
+<script type="module">
+  import init, { ssh_pubkey, ssh_run, tls_get, robot_issuer_pem } from './pkg/wasm_spikes.js';
+  const wasm = await init();
+  const $ = id => document.getElementById(id);
+  const h = location.hostname || '127.0.0.1';
+  $('ssh_ws').value = `ws://${h}:8084`; $('tls_ws').value = `ws://${h}:8082`; $('tls_ws_other').value = `ws://${h}:8083`;
+  $('ssh_user').value = new URLSearchParams(location.search).get('user') || '';
+  $('ssh_seed').value = Array.from(crypto.getRandomValues(new Uint8Array(32)), b => b.toString(16).padStart(2, '0')).join('');
+  $('tls_pin').textContent = robot_issuer_pem();
+  const showPub = () => { try { $('ssh_pub').textContent = 'register this key on the machine:\n' + ssh_pubkey($('ssh_seed').value); } catch (e) { $('ssh_pub').textContent = String(e); } };
+  showPub(); $('ssh_seed').oninput = showPub;
+
+  const run = async (out, f) => {
+    out.textContent = '…'; out.className = '';
+    const t0 = performance.now();
+    try { out.textContent = await f(); out.className = 'ok'; }
+    catch (e) { out.textContent = String(e); out.className = 'bad'; }
+    out.textContent += `\n[${Math.round(performance.now() - t0)} ms]`;
+    out.textContent += ` [wasm memory ${(wasm.memory.buffer.byteLength / 1048576).toFixed(1)} MiB]`;
+  };
+  const ssh = pin => run($('ssh_out'), () => ssh_run($('ssh_ws').value, $('ssh_user').value, $('ssh_seed').value, pin, $('ssh_cmd').value));
+  $('ssh_go').onclick = () => ssh($('ssh_pin').value);
+  $('ssh_wrong').onclick = () => ssh('SHA256:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
+  $('tls_go').onclick = () => run($('tls_out'), () => tls_get($('tls_ws').value, 'robot-ws.your-server.de', $('tls_path').value, $('tls_auth').value));
+  $('tls_other').onclick = () => run($('tls_out'), () => tls_get($('tls_ws_other').value, 'api.hetzner.cloud', '/v1/servers', ''));
+  window.spike = { ssh, run, tls_get, wasmMemory: () => wasm.memory.buffer.byteLength }; // for the CDP driver
+</script>

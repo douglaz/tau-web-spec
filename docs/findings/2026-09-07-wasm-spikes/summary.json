@@ -1,0 +1,22 @@
+{
+  "ssh_match": {
+    "cls": "ok",
+    "text": "host key matched pin SHA256:bF9u6U7HNhwxIFuqA6cVLU57CpfTXLmY1ScH5WaQdCo\nauthenticated as master with in-page ed25519 key\n$ uname -a; id -un\nLinux nixos 7.2.3 #1-NixOS SMP PREEMPT_DYNAMIC Wed Sep  2 12:33:21 UTC 2026 x86_64 GNU/Linux\nmaster\n[exit None]\n[190 ms] [wasm memory 1.5 MiB]"
+  },
+  "ssh_mismatch": {
+    "cls": "bad",
+    "text": "REFUSED by SSH layer (Unknown server key): host key changed\n  pinned:    SHA256:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n  presented: SHA256:bF9u6U7HNhwxIFuqA6cVLU57CpfTXLmY1ScH5WaQdCo\n[51 ms] [wasm memory 1.5 MiB]"
+  },
+  "tls_robot": {
+    "cls": "ok",
+    "text": "pinned issuer accepted; TLSv1_3 TLS13_AES_256_GCM_SHA384\n\nHTTP/1.1 401 Unauthorized\r\nDate: Mon, 07 Sep 2026 23:55:21 GMT\r\nServer: Apache\r\nWww-Authenticate: Basic realm=\"robot-ws\"\r\nUpgrade: h2\r\nConnection: Upgrade, close\r\nContent-Length: 71\r\nContent-Type: application/json; charset=utf-8\r\n\r\n{\"error\":{\"status\":401,\"code\":\"UNAUTHORIZED\",\"message\":\"Unauthorized\"}}\n[1088 ms] [wasm memory 1.5 MiB]"
+  },
+  "tls_other_issuer": {
+    "cls": "bad",
+    "text": "REFUSED by TLS layer before any bytes were sent: certificate is not issued by the pinned authority (rotation, or the wrong host) — invalid peer certificate: UnknownIssuer\n[533 ms] [wasm memory 1.5 MiB]"
+  },
+  "memory": {
+    "wasmLinearMemoryMiB": 1.5,
+    "jsHeapMB": 1.3
+  }
+}
