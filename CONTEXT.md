@@ -177,8 +177,10 @@ _Avoid_: "the relay" — that is the TCP bridge, and a sentence that says it abo
 wrong. A Nostr relay is always called that in full.
 
 **Seed** · `STA-22`
-The operator's BIP-39 mnemonic, from which every per-machine credential the browser needs is
-derived at that machine's index. Never seen by a session or a machine; never in the sheet.
+The operator's BIP-39 mnemonic, from which every credential the browser derives comes: per
+machine, the SSH client key and the two attest keys; per relay pass, the relay key; per
+federation, the coordinator peer credential. Never seen by a session or a machine; never in the
+sheet.
 _Avoid_: master key, root key (both suggest something a session holds), "the user's nsec"
 (a derived key is one of many, and none is the operator's social identity)
 

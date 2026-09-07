@@ -419,6 +419,19 @@ member, and no more — which `ARC-23` already assumes may be done by an activel
 so the grant adds nothing to the vault's own threat model. `SEC-1` has **no exception window**
 ([ADR-0026](./docs/adr/0026-the-coordinator-is-the-tenants-and-runs-after-sealing.md)).
 
+**Where that credential comes from, stated because the obvious source is closed.** A member's
+own vault keys are generated on the machine and never exported
+([ADR-0011](./docs/adr/0011-the-ai-delivers-a-locked-down-machine.md)), so the coordinator's
+credential cannot be a member's key handed over. It is a **distinct keypair the browser derives
+from the seed** (`STA-22`, `SEC-5` row 17); its public half is installed into each member's peer
+set **during setup, before sealing**, over the bound session's own channel — the one window a
+member can still be told anything — and its private half stays in the browser and re-derives. It
+is a credential the harness places, so it is a row in `SEC-5` rather than an unlisted grant, and
+being seed-derived it survives a lost phone the way every other per-machine key now does: a
+formation can be finished or rebuilt without it having been stored. That the browser holds a
+peer's worth of reach to every member is not a new exposure — `ARC-23` already designs for a
+hostile peer, which is the whole reason this grant "adds nothing to the vault's threat model".
+
 **ARC-20** Federation creation MUST be all-or-nothing
 ([ADR-0012](./docs/adr/0012-a-federation-is-created-only-when-every-member-works.md)). A
 partially-formed federation has no honest description: a 3-of-5 vault with four working

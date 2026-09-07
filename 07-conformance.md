@@ -108,6 +108,11 @@ yet.
 - [ ] **CNF-73 · BLOCKING** No session and no machine is ever given the seed (`STA-22`).
       Verified by inspecting what each is given, as `CNF-9` does for the scanner. Escaped-secret:
       the seed reaches every maintained machine and every future introduction.
+- [ ] **CNF-77 · PRE-SCALE** The coordinator's peer credential is a `SEC-5` row, derived from
+      the seed, with its public half installed into each member's peer set during setup and its
+      private half never stored (`ARC-19a`, `SEC-5` row 17). Verified by inspecting the member
+      peer sets after setup and confirming the coordinator holds no channel and no member's own
+      key. Federation tenants only.
 - [ ] **CNF-74 · PRE-SCALE** An event received on the notify channel (`CHN-17`) is typed
       untrusted and gates nothing. Verified by delivering a well-formed event claiming a step is
       complete and confirming no step advances.

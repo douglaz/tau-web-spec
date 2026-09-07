@@ -140,7 +140,8 @@ nothing re-derives the past.
 from it.** A BIP-39 mnemonic, held encrypted at rest and backed up by the operator the way
 this audience already backs up seeds. For machine *m*, the browser derives at index *m*: the
 SSH client keypair (`SEC-5` row 3), the attest sender key (row 7) and the attest recipient key
-(row 16); and for relay pass *n*, on its own branch, the relay key (row 4). Derivation is
+(row 16); and for relay pass *n*, on its own branch, the relay key (row 4). A federation tenant
+also derives one **coordinator peer credential** (row 17) on its own branch. Derivation is
 BIP-32 by account index — NIP-06's path for the Nostr keys, which
 upstream now labels *unrecommended* in favour of a single key; that is a wallet-interoperability
 warning, and nothing outside the harness ever needs to reproduce these keys, so it does not
@@ -148,8 +149,8 @@ apply. Cite it with the label rather than without
 ([ADR-0029](./docs/adr/0029-the-machine-speaks-nostr-and-keys-derive-from-a-seed.md)).
 
 - **No session and no machine ever sees the seed.** What machine *m* receives is its client
-  public key, its sender private key and its recipient public key — three values nothing
-  derives *from*. `SEC-1`'s cryptographic enforcement is untouched: machine 3 still holds
+  public key, its sender private key, its recipient public key, and — on a federation member —
+  the coordinator's peer *public* key for its peer set: values nothing derives *from*. `SEC-1`'s cryptographic enforcement is untouched: machine 3 still holds
   machine 3's public key alone.
 - **A machine's index is journaled before the create call and never reused.** The same index
   on two machines is the same client key on two machines, which is `SEC-1` broken by

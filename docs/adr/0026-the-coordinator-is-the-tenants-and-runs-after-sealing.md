@@ -89,3 +89,14 @@ firewall; this record relies on that rather than weakening it.
 **ADR-0021's third owner is renamed.** No check is the coordinator's. The deterministic
 checklist verifier is the harness's, run over each bound session's own channel during setup,
 holding no grant of its own.
+
+**The peer-equivalent credential has a stated origin, added after
+[ADR-0029](./0029-the-machine-speaks-nostr-and-keys-derive-from-a-seed.md).** This record left
+open where the credential comes from, and the obvious source is closed: ADR-0011 generates a
+member's own keys on the machine and never exports them, so the coordinator cannot be handed
+one. It is instead a keypair the browser **derives from the operator seed**, whose public half
+the bound session installs into each member's peer set during setup — before sealing, the one
+window a member can still be configured — and whose private half re-derives rather than being
+stored. It is `SEC-5` row 17, a credential the harness places rather than an unlisted grant,
+which is what `CNF-13`'s completeness rule requires. The reach it confers was always understood:
+a hostile peer's worth, which `ARC-23` designs for.
