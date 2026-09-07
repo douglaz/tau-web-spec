@@ -118,37 +118,6 @@ get the treatment `ADR-0024`'s configuration got before anything is built on it.
 *Closes when:* a pinned TLS session from a mobile browser, through the relay, reads a real
 response from the vendor API — **and refuses a certificate that does not match the pin.**
 
-**OPN-22 — What "still alive" means in `STA-20`, and whether POSIX can deliver it.** The
-requirement says the record holds *"enough to tell whether it is still alive"* and never says
-whether *it* is the command or everything the command left running. The two readings need
-different mechanisms and only one of them is reachable.
-
-*The narrow reading is satisfiable and the wide one is not, under POSIX.* A process that
-daemonises calls `setsid()`, which by POSIX creates a new session **and** a new process group —
-so it leaves both of the only groupings POSIX can enumerate. Verified on both declared
-distributions: a plain background child stays in the wrapper's process group and is observable;
-a detached one is in neither its session nor its group. `wait()` cannot see it either, by
-definition, because daemonising orphans it deliberately. **POSIX has no descendant-tracking
-primitive at all**, so this is a property of the standard rather than a gap in the search.
-
-*One mechanism does work, at a stated price.* cgroup v2 membership is inherited across `fork()`
-and unaffected by `setsid()`; a detached child was verified still listed in `cgroup.procs` after
-its wrapper exited. It is a kernel interface rather than a POSIX one, but it holds **no
-init-system opinion**, which is the constraint `STA-20` actually cares about. Its cost is an
-unverified prerequisite: whether cgroup2 is mounted at boot on a real Alpine install, which the
-distribution's own documentation says must be enabled explicitly.
-
-*Also checked and rejected:* an `flock` on an inherited descriptor survives both the wrapper's
-exit and `setsid()`, and correctly reports a detached child alive — but the canonical
-daemonising recipe closes inherited descriptors, so it reports **dead while the process runs**.
-It catches the sloppy daemon and misses the well-behaved one. Advisory at best, and `STA-21`
-already spends the corpus's tolerance for advisory.
-
-*Closes when:* `STA-20` says which reading binds. Under the narrow one it closes immediately and
-daemon health belongs to `ARC-39`'s delivery declaration, which already covers service
-lifecycle. Under the wide one it additionally needs cgroup2-at-boot confirmed on a real Alpine
-install, and `STA-20`'s "POSIX" must become "Linux, init-agnostic".
-
 **OPN-23 — The observed provider layer has no source, and the header it was specified around
 belonged to a different aggregator.** `ARC-14` counts the inference provider as a third,
 *observed* layer, built from `X-Provider-Name`. That is **OpenRouter's** header, written down
@@ -305,6 +274,30 @@ is machine-reported and advisory, and comparing it against the browser journal c
 mistakes rather than a hostile machine.
 [ADR-0022](./docs/adr/0022-durable-state-is-an-append-only-journal.md)'s amendment carries the
 reasoning and the three rejected alternatives. *Closes when:* `CNF-40` passes.
+
+**OPN-22 — What "still alive" means in `STA-20`.** **Closed: the narrow reading binds.** `STA-20`
+tracks whether **the command** is alive, not everything the command spawned. Daemon and service
+health is `ARC-39`'s delivery declaration, which already distinguishes a node that must survive
+reboot from one that dies on it by design, so the wide reading would only duplicate `ARC-39` at
+the cost of the corpus's one non-POSIX dependency.
+
+The finding that forced the question stands as the reason the answer is cheap. A daemonising
+process calls `setsid()`, which by POSIX creates a new session **and** a new process group, so
+it leaves both of the only groupings POSIX can enumerate; `wait()` cannot see it either, since
+daemonising orphans it deliberately. **POSIX has no descendant-tracking primitive at all.** The
+one mechanism that does follow a detached child — cgroup v2, membership inherited across `fork()`
+and unaffected by `setsid()` — is a kernel interface, not POSIX, and carries an unverified
+prerequisite (cgroup2 mounted at boot on Alpine, which its own docs say must be enabled). An
+`flock` on an inherited descriptor was also checked and rejected: it reports a well-behaved
+daemon **dead while it runs**, because the canonical recipe closes inherited descriptors. The
+narrow reading needs none of that — a command's own process stays in the wrapper's process group
+and is observable on both distributions — which is why `STA-20` keeps its "POSIX" and does not
+become "Linux, init-agnostic".
+
+Two real defects surfaced on the way and were kept, because they were the useful part of the
+finding: output must be captured by file redirection, not a held pipe (`STA-20a`), and no orphan
+test may rest on a reparented process's new parent, which differs across the two distributions.
+
 ## Status and the next move
 
 Nothing here has touched a real server. The proof of concept can call a cloud vendor's API

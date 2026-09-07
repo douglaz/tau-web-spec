@@ -49,9 +49,18 @@ third.
 
 **STA-20 Every box-plane command runs as a durable job**, and the machine keeps a record of it
 on persistent disk holding: the **command as received**, its output, its exit code once it has
-one, and enough to tell whether it is still alive. On reconnect the session reads that record
-rather than guessing — exit code present means finished, process alive means wait, neither
-means it died and `ARC-10`'s convergence applies.
+one, and enough to tell whether **the command itself** is still alive. On reconnect the session
+reads that record rather than guessing — exit code present means finished, the command's own
+process alive means wait, neither means it died and `ARC-10`'s convergence applies.
+
+***"It" is the command, not everything the command started.*** A command that launches a daemon
+finishes when the command finishes; whether the daemon it started is still up is a **service**
+question, and services are `ARC-39`'s delivery declaration, which already distinguishes a tenant
+needing a daemon *"enabled and surviving every reboot"* from one whose node *"dies on the first
+reboot by design"*. Reading `STA-20`'s liveness to cover the spawned tree would duplicate that
+requirement and cost the corpus its only non-POSIX dependency — because POSIX has no way to
+observe a process that has left its session (`OPN-22`, closed on this reading). The job record
+tracks the command; service lifecycle is declared, checked and owned elsewhere.
 
 *Uniformly, rather than only for commands somebody marked long.* Nobody can reliably predict
 which command is slow — a package install is ten seconds most days and ten minutes when a
@@ -74,9 +83,11 @@ is precisely the kind of check that is false on the other distribution.
 
 The mechanism is POSIX and holds no init-system opinion, because `ARC-24` declares two
 distributions with different init systems and anything specific to one would be false on the
-other. **Those two are not the same constraint, and `OPN-22` is open on which one binds** —
-POSIX offers no way to observe a process that has left its session, so the wider reading of
-"still alive" is unreachable under it. **Jobs may be hosted inside a terminal multiplexer** so a human can attach and watch a
+other. That is a real constraint and a satisfiable one **precisely because `STA-20` tracks the
+command**: a command's own process stays in the wrapper's process group and is observable by
+ordinary POSIX means on both distributions. The wider reading — following a daemon that has
+called `setsid()` out of its session — is what POSIX cannot do, and it is the service question
+`ARC-39` owns rather than a gap here (`OPN-22`). **Jobs may be hosted inside a terminal multiplexer** so a human can attach and watch a
 long install — useful during `STG-2`'s by-hand rehearsal — but that is an observation
 convenience and never the record. The multiplexer dies with the machine; the files do not, and
 after a reboot their absence correctly reads as "died".
