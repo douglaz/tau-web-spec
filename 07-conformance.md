@@ -176,6 +176,9 @@ yet.
 
 - [ ] **CNF-25 · PRE-SCALE** The vendor firewall does not privilege the relay's source
       addresses (`ARC-41`), so the scanner's view equals the world's.
+- [ ] **CNF-79 · PRE-SCALE** The channel's pinning cases (`CNF-21`, `CNF-62`) pass on a
+      physical Android Chrome **and** a physical iOS Safari (`STG-14`, `OVR-1`). Android:
+      recorded 2026-09-08 on the spike (`docs/findings/2026-09-07-wasm-spikes.md`). iOS: open.
 
 ## The deliverable — `ARC-17`, `ARC-39`
 

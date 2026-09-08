@@ -489,6 +489,22 @@ because a relay forwarding only port 22 makes the view smaller than the world's 
 scan into a check that cannot fail. The scanner's no-access argument (`ARC-26`) rests on
 equality; only one side of it used to be written down.
 
+**One accepted narrowing, with numbers.** OpenSSH since 9.8 penalises a source address that
+misbehaves: 1 s for a connection closed before authentication, 5 s for a refused key,
+enforced once 15 s have accrued, growing to a 10-minute refusal. A pin halt (`SEC-11`) is a
+preauth close and a refused key is exactly `STG-13`'s test, so a harness can trip this against
+its own machine, and it does so from the relay's address. The penalty is kept **per machine**,
+and only one operator's session and the scanner ever reach a given machine through the relay
+(`SEC-1`, `ARC-12`), so the cost is a **self-lockout** of up to ten minutes, during which a
+scan of that machine reports port 22 refused while the world sees it open. This is accepted
+as-is: exempting the relay's addresses would be the privilege the sentence above forbids, and
+disabling the penalty would remove a default from a machine `ADR-0011` says is locked down.
+Two consequences follow. A refused authentication or a halted key check **ends the attempt**;
+the harness does not reconnect on its own, and the reconnect-after-network-loss path (`STA-20`)
+is not reused after a refusal. And a scan finding of "22 refused" on a machine whose channel
+was refused in the last ten minutes is the penalty, not the world's view. Observed 2026-09-08
+on the channel spike (`docs/findings/2026-09-07-wasm-spikes.md`).
+
 ## The operating system, and where it comes from
 
 **ARC-24** The chosen distributions are **Alpine and NixOS**. Neither is offered by the

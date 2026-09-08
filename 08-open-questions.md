@@ -9,55 +9,8 @@ probe with a multi-week spike as though they were the same size.
 
 ## Gating
 
-Five, and every one is empirical or currently unanswerable. Nothing here waits on a
+Three, and every one is empirical or currently unanswerable. Nothing here waits on a
 decision.
-
-**OPN-1 — The SSH client.** An SSH implementation compiled to `wasm32-unknown-unknown` with
-its transport swapped for a WebSocket. It gates, because nothing works without one.
-
-*Recalibrated twice, and the second time changed the answer.* This was called the item most
-likely to sink the plan. It is not, and two earlier characterisations of it were wrong:
-
-- **"The architecture is unproven" — false.** Browser-resident SSH over a WebSocket-to-TCP
-  bridge ships in production in several independent implementations.
-- **"Every implementation is Go, so Rust means pioneering" — also false.**
-  [`Ar4l/sshmux`](https://github.com/Ar4l/sshmux) is a Rust one, on `wasm32-unknown-unknown`,
-  with Leptos CSR and a Trunk build and no npm — the stack the archived specification
-  recommends, arrived at independently. **An existence proof, not a production deployment**:
-  one author, no stars, July 2026. It settles reachability, not maturity.
-- **The blocker cited was the wrong blocker.** russh issue #224 concerns WASI under
-  wasmtime/wasmer, a different target with different problems, and it was never about the
-  browser.
-
-The known-good configuration is published: `russh` with `default-features = false` and the
-`ring` backend, `ring` with `wasm32_unknown_unknown_js`, `ws_stream_wasm` for the socket, and
-`getrandom_backend="wasm_js"` in rustflags (that last item has since become unnecessary — see
-below). The one genuine blocker is that russh's current
-default crypto backend does not support this target, which a feature flag settles
-([ADR-0024](./docs/adr/0024-the-ssh-client-is-rust-following-a-known-good-configuration.md)).
-
-**Size is settled too, and it favours Rust.** The reference deployment is ~1.5 MB raw and
-**~574 KB gzipped for the whole application** — terminal and UI included — against ~4.94 MB for
-the Go equivalent.
-
-*Run 2026-09-07, and the mechanism holds.* A spike (`prototypes/wasm-spikes/`, findings in
-[`docs/findings/2026-09-07-wasm-spikes.md`](./docs/findings/2026-09-07-wasm-spikes.md))
-carried the configuration to russh 0.63.2, reached a real `sshd` through a WebSocket bridge,
-authenticated with an ed25519 key derived in the page from 32 bytes — the shape `STA-22` will
-hand it — and **refused a mismatched host key from the SSH layer, before authentication**,
-reporting the pinned and the presented fingerprints. That is the `Changed{old, new}` status
-`SEC-11` and `CHN-R4` want, and it cost two lines; the references' omission was a choice, not a
-difficulty. The getrandom rustflag in ADR-0024 is no longer needed and nothing else in the
-configuration changed. The SSH client alone is 308 KB gzipped.
-
-*What actually remains:* half of one act. The cases ran in headless Chrome under mobile
-emulation, and on 2026-09-08 **on a physical Android Chrome** (Pixel 10 Pro XL, over a
-tailnet): `sshd` accepted the seed-derived key and closed the wrong-pin connection in preauth.
-No iOS device has touched them.
-
-*Closes when:* the spike's cases pass on one physical iOS Safari (`OVR-1`, `STG-14`) and the
-findings file records it. The channel itself is now days from the spike, not weeks; the
-terminal and UI layer is separate work.
 
 **OPN-3 — The recovery machinery is designed and unproven.** The design is recorded across
 `03-state-and-recovery.md` and `CHN-R5`. What stays open is empirical: the attest hook has to
@@ -114,27 +67,6 @@ rather than inferred.
 
 *Closes when:* `CNF-48` is recorded. This is the cheapest item on the list and the one the most
 rests on, which is why `STG-2` gates construction on it.
-
-**OPN-21 — A pinned TLS client inside WebAssembly.** The first stage cannot reach its vendor
-API without one (`CHN-R1`, `CHN-12a`, `STG-3a`), so this gates alongside the SSH client.
-
-*Run 2026-09-07; the belief was right in substance and wrong in one detail.* The same spike
-terminated TLS 1.3 inside the module against `robot-ws.your-server.de` — the host Hetzner's
-own documentation names — read Robot's real JSON response through the bridge, and **refused a
-valid Let's Encrypt certificate presented by `api.hetzner.cloud` before any application byte
-was sent**, which is `CNF-62`'s test as written. `rustls`'s verifier interface is replaceable,
-checked at source, but the pin needed no custom verifier: a trust store holding exactly the
-pinned issuing authority and nothing else *is* the pin, and the stock verifier then checks
-chain, name and validity against it (`CHN-12a`). `ring` serves both clients, as `ADR-0024`
-assumed. The detail nobody had written down: `rustls` does not compile for this target without
-`rustls-pki-types`'s `web` feature, which supplies the clock. TLS costs 187 KB gzipped over the
-SSH client alone.
-
-*Closes when:* the same two cases pass on one physical iOS Safari and the findings file
-records it — they passed on a physical Android Chrome on 2026-09-08, by the operator's report
-(the bridges forward bytes and log nothing, so that pair has no server-side trace). One fact is
-already dated: the pinned authority
-expires **2027-11-02**, which is the first rotation `CHN-12a`'s cost clause will be paid on.
 
 ## One probe or one boot from closing
 
@@ -318,9 +250,72 @@ the headers a browser may read, an *observed* column sits beside the requested o
 becomes visible per response. Cheap for them if the circumstantial evidence that they resell
 another aggregator holds — **inference, not verification** — and nothing here waits on it.
 
+**OPN-1 — The SSH client.** *Closed 2026-09-08: the mechanism ran, and it ran on a phone.* An SSH implementation compiled to `wasm32-unknown-unknown` with
+its transport swapped for a WebSocket. It gates, because nothing works without one.
+
+*Recalibrated twice, and the second time changed the answer.* This was called the item most
+likely to sink the plan. It is not, and two earlier characterisations of it were wrong:
+
+- **"The architecture is unproven" — false.** Browser-resident SSH over a WebSocket-to-TCP
+  bridge ships in production in several independent implementations.
+- **"Every implementation is Go, so Rust means pioneering" — also false.**
+  [`Ar4l/sshmux`](https://github.com/Ar4l/sshmux) is a Rust one, on `wasm32-unknown-unknown`,
+  with Leptos CSR and a Trunk build and no npm — the stack the archived specification
+  recommends, arrived at independently. **An existence proof, not a production deployment**:
+  one author, no stars, July 2026. It settles reachability, not maturity.
+- **The blocker cited was the wrong blocker.** russh issue #224 concerns WASI under
+  wasmtime/wasmer, a different target with different problems, and it was never about the
+  browser.
+
+The known-good configuration is published: `russh` with `default-features = false` and the
+`ring` backend, `ring` with `wasm32_unknown_unknown_js`, `ws_stream_wasm` for the socket, and
+`getrandom_backend="wasm_js"` in rustflags (that last item has since become unnecessary — see
+below). The one genuine blocker is that russh's current
+default crypto backend does not support this target, which a feature flag settles
+([ADR-0024](./docs/adr/0024-the-ssh-client-is-rust-following-a-known-good-configuration.md)).
+
+**Size is settled too, and it favours Rust.** The reference deployment is ~1.5 MB raw and
+**~574 KB gzipped for the whole application** — terminal and UI included — against ~4.94 MB for
+the Go equivalent.
+
+*Run 2026-09-07, and the mechanism holds.* A spike (`prototypes/wasm-spikes/`, findings in
+[`docs/findings/2026-09-07-wasm-spikes.md`](./docs/findings/2026-09-07-wasm-spikes.md))
+carried the configuration to russh 0.63.2, reached a real `sshd` through a WebSocket bridge,
+authenticated with an ed25519 key derived in the page from 32 bytes — the shape `STA-22` will
+hand it — and **refused a mismatched host key from the SSH layer, before authentication**,
+reporting the pinned and the presented fingerprints. That is the `Changed{old, new}` status
+`SEC-11` and `CHN-R4` want, and it cost two lines; the references' omission was a choice, not a
+difficulty. The getrandom rustflag in ADR-0024 is no longer needed and nothing else in the
+configuration changed. The SSH client alone is 308 KB gzipped.
+
+*What closed it:* the spike's cases passed on a physical Android Chrome; the iOS Safari half
+is carried by `CNF-79` rather than by this list, since a gating list should not wait on
+hardware nobody holds. The channel itself is now days from the spike, not weeks; the terminal
+and UI layer is separate work.
+
+**OPN-21 — A pinned TLS client inside WebAssembly.** *Closed 2026-09-08, alongside `OPN-1`.* The first stage cannot reach its vendor
+API without one (`CHN-R1`, `CHN-12a`, `STG-3a`), so this gates alongside the SSH client.
+
+*Run 2026-09-07; the belief was right in substance and wrong in one detail.* The same spike
+terminated TLS 1.3 inside the module against `robot-ws.your-server.de` — the host Hetzner's
+own documentation names — read Robot's real JSON response through the bridge, and **refused a
+valid Let's Encrypt certificate presented by `api.hetzner.cloud` before any application byte
+was sent**, which is `CNF-62`'s test as written. `rustls`'s verifier interface is replaceable,
+checked at source, but the pin needed no custom verifier: a trust store holding exactly the
+pinned issuing authority and nothing else *is* the pin, and the stock verifier then checks
+chain, name and validity against it (`CHN-12a`). `ring` serves both clients, as `ADR-0024`
+assumed. The detail nobody had written down: `rustls` does not compile for this target without
+`rustls-pki-types`'s `web` feature, which supplies the clock. TLS costs 187 KB gzipped over the
+SSH client alone.
+
+*What closed it:* the same two cases passed on a physical Android Chrome; iOS Safari is
+`CNF-79`'s. One fact is already dated: the pinned authority expires **2027-11-02**, which is
+the first rotation `CHN-12a`'s cost clause will be paid on.
+
 ## Status and the next move
 
-Nothing here has touched a real server. The proof of concept can call a cloud vendor's API
+Nothing here has touched a real server, though the channel's two clients have now run
+(`OPN-1`, `OPN-21`) against a real `sshd` and against Robot itself. The proof of concept can call a cloud vendor's API
 directly from a browser and has established there is no CORS obstacle — the one external fact
 everything depends on. It cannot yet create a machine, and the provisioning state machine is
 unbuilt.

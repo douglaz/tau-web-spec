@@ -147,12 +147,14 @@ served over HTTPS and will not see this.
 
 **A side finding from the same log.** The wrong-pin halt registered with OpenSSH 10.5 as a
 "connection without attempting authentication", and `sshd` applied a per-source penalty
-(`PerSourcePenalties`, default-on since OpenSSH 9.8). In this design **every session reaches a
-machine from the relay's address**, so a run of pin refusals — or of any preauth aborts — from
-several operators would throttle new connections for all of them at that machine. This is the
-same shape as `ARC-41`'s point that the vendor firewall must not privilege the relay's
-addresses, seen from the other side: the relay's addresses must not be *penalised* as one
-source either. Worth a requirement or a brief line; not something the client can fix.
+(`PerSourcePenalties`, default-on since OpenSSH 9.8: 1 s per preauth close, 5 s per refused
+key, enforced once 15 s accrue, capped at 10 min). Every session reaches a machine from the
+relay's address, but the penalty is per machine and only one operator's session and the
+scanner ever reach a given machine through the relay, so the blast radius is a **self-lockout**
+of up to ten minutes plus a scanner blind spot on port 22 for that window. Folded into `ARC-41`
+on 2026-09-08 as an accepted narrowing: exempting the relay would be the privilege `ARC-41`
+forbids, disabling the penalty would weaken a locked-down default, and the one rule that
+follows — a refusal ends the attempt, no automatic reconnect — is stated there.
 
 ## What stays open
 
