@@ -10,6 +10,9 @@ set -eux
 
 : "${DISK:?set DISK — prefer a stable /dev/disk/by-id/ path; /dev/sdX names swap between boots}"
 DISK=$(readlink -f "$DISK")
+# by-id names differ between udev (rescue: full model string) and mdev (Alpine: truncated), so
+# a name copied from one system may not exist on the other. Fail before touching any disk.
+[ -b "$DISK" ] || { echo "DISK $DISK is not a block device here; disks are:"; lsblk -dno NAME,SIZE,MODEL,SERIAL,WWN; exit 2; }
 : "${AUTHORIZED_KEY:?the operator public key line}"
 
 # ARC-25: a versioned release path (never latest-stable/), and the sibling .sha256 at the same path.
