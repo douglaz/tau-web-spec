@@ -50,12 +50,14 @@ reporting the pinned and the presented fingerprints. That is the `Changed{old, n
 difficulty. The getrandom rustflag in ADR-0024 is no longer needed and nothing else in the
 configuration changed. The SSH client alone is 308 KB gzipped.
 
-*What actually remains:* one act. The cases ran in headless Chrome under mobile emulation on
-a workstation. No phone has touched them.
+*What actually remains:* half of one act. The cases ran in headless Chrome under mobile
+emulation, and on 2026-09-08 **on a physical Android Chrome** (Pixel 10 Pro XL, over a
+tailnet): `sshd` accepted the seed-derived key and closed the wrong-pin connection in preauth.
+No iOS device has touched them.
 
-*Closes when:* the spike's cases pass on one physical Android Chrome and one physical iOS
-Safari (`OVR-1`, `STG-14`) and the findings file records it. The channel itself is now days
-from the spike, not weeks; the terminal and UI layer is separate work.
+*Closes when:* the spike's cases pass on one physical iOS Safari (`OVR-1`, `STG-14`) and the
+findings file records it. The channel itself is now days from the spike, not weeks; the
+terminal and UI layer is separate work.
 
 **OPN-3 — The recovery machinery is designed and unproven.** The design is recorded across
 `03-state-and-recovery.md` and `CHN-R5`. What stays open is empirical: the attest hook has to
@@ -128,8 +130,10 @@ assumed. The detail nobody had written down: `rustls` does not compile for this 
 `rustls-pki-types`'s `web` feature, which supplies the clock. TLS costs 187 KB gzipped over the
 SSH client alone.
 
-*Closes when:* the same two cases pass on one physical Android Chrome and one physical iOS
-Safari and the findings file records it. One fact is already dated: the pinned authority
+*Closes when:* the same two cases pass on one physical iOS Safari and the findings file
+records it — they passed on a physical Android Chrome on 2026-09-08, by the operator's report
+(the bridges forward bytes and log nothing, so that pair has no server-side trace). One fact is
+already dated: the pinned authority
 expires **2027-11-02**, which is the first rotation `CHN-12a`'s cost clause will be paid on.
 
 ## One probe or one boot from closing

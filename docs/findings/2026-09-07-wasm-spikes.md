@@ -133,12 +133,32 @@ GET to Robot: ~1.1 s (network). TLS refusal of the other issuer: ~0.5 s.
   door. `CNF-63` (relay sees only ciphertext) is true by construction here — the bridge
   forwards opaque bytes — but was not inspected from the relay side.
 
+## Physical device run — Android Chrome, 2026-09-08
+
+Pixel 10 Pro XL, Chrome, over the tailnet to this box (`BIND=0.0.0.0 scripts/serve.sh`; the
+page took `user`, `seed` and `pin` from the URL so nothing was typed on the phone). The operator
+reported all four cases behaving as on the desktop. Server-side evidence for the SSH pair:
+`sshd` accepted a publickey session for the seed's key (`SHA256:4oCeGtE/PGrsGrDQ8zJfBGvmYHTTYDAM1XBeJvLZvgk`,
+derived on the phone from the seed in the URL and registered here beforehand), and closed the
+next connection `[preauth]` — the wrong-pin halt. The TLS bridges are byte-forwarders and log
+nothing, so the two TLS cases on the phone rest on the operator's report. The page first tried
+HTTPS against port 8000 (Chrome's HTTPS-first upgrade) before falling back; the real app is
+served over HTTPS and will not see this.
+
+**A side finding from the same log.** The wrong-pin halt registered with OpenSSH 10.5 as a
+"connection without attempting authentication", and `sshd` applied a per-source penalty
+(`PerSourcePenalties`, default-on since OpenSSH 9.8). In this design **every session reaches a
+machine from the relay's address**, so a run of pin refusals — or of any preauth aborts — from
+several operators would throttle new connections for all of them at that machine. This is the
+same shape as `ARC-41`'s point that the vendor firewall must not privilege the relay's
+addresses, seen from the other side: the relay's addresses must not be *penalised* as one
+source either. Worth a requirement or a brief line; not something the client can fix.
+
 ## What stays open
 
-- `OPN-1` and `OPN-21` close **on the mechanism**; each closure criterion also says "from a
-  mobile browser". `BIND=0.0.0.0 scripts/serve.sh` puts the same page on the LAN; opening it
-  from an Android phone and an iPhone and pressing the four buttons is the remaining act, and
-  the corpus should record it when done rather than infer it from emulation.
+- `OPN-1` and `OPN-21` are now proven on the mechanism **and on one physical Android
+  Chrome**. Each closure criterion also names iOS Safari, which has not been run. Same URL,
+  same tailnet; a screenshot of the two red results is the record.
 - `CNF-21` and `CNF-62` are demonstrable now, on the prototype. They are checklist items for
   the real build and should not be ticked from this.
 - Peak memory during a full install (`STG-15`) is untouched.
