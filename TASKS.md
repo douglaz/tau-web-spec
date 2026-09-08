@@ -20,6 +20,9 @@ documentation.
       one authenticated call and the whole identity chain rests on it.
       *Verify:* `CNF-48` recorded. `OPN-6` closes, or `CHN-R1` is refuted and the first stage
       is reconsidered.
+      *Where:* `prototypes/first-stage-rehearsal/rehearse.sh` — preflight, rescue, install,
+      reboot, with redacted captures and a wall-clock timeline (`STG-16`). Needs a rented
+      disposable server and a Robot webservice user, both the operator's to create.
 
 ## Applied
 

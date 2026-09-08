@@ -71,8 +71,8 @@ response whatever credential it holds.
 bytes. A TLS session terminated inside the browser and carried over the relay is not a `fetch`,
 has no origin, and faces no CORS check — which is why SSH already works. Robot is one
 destination named at build time, so it is reached through a tunnel **pinned to its issuing
-authority** (`CHN-12a`): no certificate-authority store, no new trusted party. `STG-3a` states
-it and `OPN-21` gates it.
+authority** (`CHN-12a`): no certificate-authority set beyond that one authority, no new
+trusted party. `STG-3a` states it and `OPN-21` gates it — and the tunnel ran on 2026-09-07.
 
 **Cloud-first was weighed and rejected.** Its API is genuinely browser-reachable, which is the
 best-evidenced fact in the corpus, and it would need no tunnel at all. It loses on two counts.

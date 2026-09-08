@@ -48,7 +48,11 @@ flowchart TD
 **CHN-R1 — retrieve, dedicated servers.** Hetzner's Robot webservice exposes `host_key` on
 `GET` and `POST /boot/{server-number}/rescue`. The harness activates rescue over HTTPS, reads
 the authoritative host key, derives the fingerprint locally, and never performs
-trust-on-first-use.
+trust-on-first-use. Whether the field carries full public keys or only fingerprints — and
+under which hash — is what `CNF-48` records (`OPN-6`); the input side takes MD5 colon
+fingerprints. A fingerprint-only answer still pins without trust-on-first-use, since the
+browser compares the presented key's fingerprint to it; it only changes which hash the
+comparison runs under, and an MD5-only answer would be recorded as a weakness, not a blocker.
 
 **Robot is NOT reachable by a browser `fetch`, verified 2026-08-31.** An earlier probe recorded
 the opposite and was wrong — almost certainly run with a tool that does not enforce CORS. Live
@@ -66,9 +70,10 @@ is exactly why the SSH channel works.
 
 Reaching Robot therefore needs a WebAssembly TLS client — but the **pinned** kind (`CHN-12a`),
 not the general kind. Robot is one destination, named at build time, so it is pinned to its
-issuing authority and **no certificate-authority store and no new trusted party are involved**.
-That is a genuine cost, since nobody has written a WebAssembly TLS client here yet, and it is a
-far smaller one than `CHN-12b`.
+issuing authority and **no certificate-authority set beyond that one authority, and no new
+trusted party, are involved**. That cost has now been paid once: a pinned client in WebAssembly
+read Robot through a bridge on 2026-09-07 (`OPN-21`), and it is a far smaller cost than
+`CHN-12b`.
 
 Two further caveats stand: Robot is a different product from Hetzner Cloud with a different auth
 scheme, so it is a second integration rather than a free extension; and the contents of
@@ -362,11 +367,17 @@ believe — and **that decision costs radically different amounts depending on w
 going.** An earlier version of this requirement priced both cases as one and got the expensive
 answer for both.
 
-**CHN-12a — a known destination is pinned, and needs no certificate-authority store.** A vendor
-API is named at build time and there are a handful of them. The browser validates against a
-**pinned issuing authority shipped in the bundle**, exactly as it pins a host key (`SEC-11`), an
-artifact hash (`ARC-25`) and the relay's own identity. **No trusted party is added**, because a
-pin is a fact about one endpoint rather than a delegation to a category.
+**CHN-12a — a known destination is pinned, and needs no certificate-authority set beyond the
+one pinned authority.** A vendor API is named at build time and there are a handful of them.
+The browser validates against a **pinned issuing authority shipped in the bundle**, exactly as
+it pins a host key (`SEC-11`), an artifact hash (`ARC-25`) and the relay's own identity. **No
+trusted party is added**, because a pin is a fact about one endpoint rather than a delegation
+to a category. Mechanically the pin *is* a trust store holding exactly that one certificate
+and nothing else, against which the TLS library's ordinary verifier checks chain, name and
+validity — a store of one is a pin, a store of many is `CHN-12b`'s object. Run 2026-09-07
+(`OPN-21`): Robot's response read, a valid certificate from another issuer refused before any
+byte was sent. The validity check uses the browser's clock, so a phone with a badly wrong
+clock refuses a good pin; that failure names rotation (`CNF-64`) and is wrong about the cause.
 
 Its honest cost is **rotation**. A vendor changing its issuing authority makes its API
 unreachable until a release ships the new pin, and briefs already ship on release cadence

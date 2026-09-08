@@ -39,13 +39,22 @@ default crypto backend does not support this target, which a feature flag settle
 **~574 KB gzipped for the whole application** — terminal and UI included — against ~4.94 MB for
 the Go equivalent.
 
-*What actually remains:* carrying the configuration to russh's current release, and proving
-**host-key pinning**, which is the one thing the references skip — most accept any key, and the
-best of them offers a `Changed{old, new}` status that `SEC-11` and `CHN-R4` want. Estimated at
-one to three engineer-weeks to an authenticated interactive shell.
+*Run 2026-09-07, and the mechanism holds.* A spike (`prototypes/wasm-spikes/`, findings in
+[`docs/findings/2026-09-07-wasm-spikes.md`](./docs/findings/2026-09-07-wasm-spikes.md))
+carried the configuration to russh 0.63.2, reached a real `sshd` through a WebSocket bridge,
+authenticated with an ed25519 key derived in the page from 32 bytes — the shape `STA-22` will
+hand it — and **refused a mismatched host key from the SSH layer, before authentication**,
+reporting the pinned and the presented fingerprints. That is the `Changed{old, new}` status
+`SEC-11` and `CHN-R4` want, and it cost two lines; the references' omission was a choice, not a
+difficulty. The getrandom rustflag in ADR-0024 is no longer needed and nothing else in the
+configuration changed. The SSH client alone is 308 KB gzipped.
 
-*Closes when:* an SSH session reaches a real machine from a mobile browser through a relay,
-**and refuses a mismatched host key** (`CNF-21`).
+*What actually remains:* one act. The cases ran in headless Chrome under mobile emulation on
+a workstation. No phone has touched them.
+
+*Closes when:* the spike's cases pass on one physical Android Chrome and one physical iOS
+Safari (`OVR-1`, `STG-14`) and the findings file records it. The channel itself is now days
+from the spike, not weeks; the terminal and UI layer is separate work.
 
 **OPN-3 — The recovery machinery is designed and unproven.** The design is recorded across
 `03-state-and-recovery.md` and `CHN-R5`. What stays open is empirical: the attest hook has to
@@ -106,18 +115,21 @@ rests on, which is why `STG-2` gates construction on it.
 **OPN-21 — A pinned TLS client inside WebAssembly.** The first stage cannot reach its vendor
 API without one (`CHN-R1`, `CHN-12a`, `STG-3a`), so this gates alongside the SSH client.
 
-*Believed cheap, and unverified.* `rustls` is pure Rust and exposes certificate verification as
-a replaceable interface, so pinning is a supported use rather than a hack; and it needs a crypto
-provider, where `ring` with `wasm32_unknown_unknown_js` is **already required by the SSH client**
-(`ADR-0024`). If that holds, this is a pinned verifier over a stack already being built rather
-than new cryptography.
+*Run 2026-09-07; the belief was right in substance and wrong in one detail.* The same spike
+terminated TLS 1.3 inside the module against `robot-ws.your-server.de` — the host Hetzner's
+own documentation names — read Robot's real JSON response through the bridge, and **refused a
+valid Let's Encrypt certificate presented by `api.hetzner.cloud` before any application byte
+was sent**, which is `CNF-62`'s test as written. `rustls`'s verifier interface is replaceable,
+checked at source, but the pin needed no custom verifier: a trust store holding exactly the
+pinned issuing authority and nothing else *is* the pin, and the stock verifier then checks
+chain, name and validity against it (`CHN-12a`). `ring` serves both clients, as `ADR-0024`
+assumed. The detail nobody had written down: `rustls` does not compile for this target without
+`rustls-pki-types`'s `web` feature, which supplies the clock. TLS costs 187 KB gzipped over the
+SSH client alone.
 
-**None of that has been checked at source**, and it is the same shape of claim as "Robot CORS:
-tested, non-issue" — plausible, load-bearing, and believed for a year without a probe. It should
-get the treatment `ADR-0024`'s configuration got before anything is built on it.
-
-*Closes when:* a pinned TLS session from a mobile browser, through the relay, reads a real
-response from the vendor API — **and refuses a certificate that does not match the pin.**
+*Closes when:* the same two cases pass on one physical Android Chrome and one physical iOS
+Safari and the findings file records it. One fact is already dated: the pinned authority
+expires **2027-11-02**, which is the first rotation `CHN-12a`'s cost clause will be paid on.
 
 ## One probe or one boot from closing
 

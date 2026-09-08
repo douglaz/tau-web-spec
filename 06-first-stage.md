@@ -16,8 +16,10 @@ both hard problems.
 
 **STG-2 Construction gates on running the stage by hand, once, first.** Activate rescue on a
 disposable dedicated server; read what `host_key` actually returns; read what the automatic
-Linux install operation returns in the same sitting; rehearse the ceremony end to end; write
-the three briefs from the real install as you go.
+Linux install operation returns in the same sitting; rehearse the ceremony end to end; then
+write the three briefs from the captured install transcript. "By hand" means no harness code:
+`curl` against Robot and `ssh` from a workstation, scripted only so that every value is
+captured once and no credential is typed twice (`prototypes/first-stage-rehearsal/`).
 
 The reason is that the two risks are wildly mismatched, and research has widened the gap
 rather than narrowed it. The SSH client is no longer a bet: a deployed Rust implementation

@@ -11,8 +11,9 @@ through anything the harness controls. The vault claim — *no single model prov
 members to reach the threshold* — belongs to btc-policy, the tenant that stacks it on top.
 "Verified" is not a claim this design can make.
 
-No code yet. This repository holds the specification, the domain language, the decisions taken
-so far, and the reasoning that produced them.
+No harness code yet. This repository holds the specification, the domain language, the
+decisions taken so far, and the reasoning that produced them. `prototypes/` holds throwaway
+spikes that answer open questions by running, and `docs/findings/` holds what they found.
 
 `tau-web` is a working name.
 

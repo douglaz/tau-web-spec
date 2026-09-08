@@ -50,25 +50,36 @@ wasmtime/wasmer. Different target, different obstacles, never about the browser.
 blocker on this target is narrower: russh's current *default* crypto backend does not support
 `wasm32-unknown-unknown`, which a feature flag settles.
 
-The working configuration is published and was independently derived twice:
+The working configuration is published, was independently derived twice, and **was run here
+on 2026-09-07** (`prototypes/wasm-spikes/`, findings in `docs/findings/`). As it compiled:
 
 ```toml
-russh = { version = "…", default-features = false, features = ["flate2", "ring"] }
+russh = { version = "0.63", default-features = false, features = ["ring"] }   # no flate2, no rsa
 ring  = { version = "0.17", features = ["wasm32_unknown_unknown_js"] }
-ws_stream_wasm = "0.7"          # under cfg(target_arch = "wasm32")
-# rustflags: --cfg getrandom_backend="wasm_js"     # getrandom 0.3 only; 0.4 dropped this
+ws_stream_wasm = { version = "0.7", features = ["tokio_io"] }   # tokio AsyncRead/Write directly
+getrandom = { version = "0.4", features = ["wasm_js"] }         # russh 0.63 needs it; no rustflag
+tokio = { version = "1", default-features = false, features = ["sync", "io-util"] }
+# the pinned TLS client (CHN-12a) on the same provider:
+rustls = { version = "0.23", default-features = false, features = ["ring", "std", "logging"] }
+tokio-rustls = { version = "0.26", default-features = false, features = ["ring"] }
+rustls-pki-types = { version = "1", features = ["web"] }   # REQUIRED: rustls's std build does not compile for wasm32 without it
 ```
 
 Connect with `russh::client::connect_stream`, not `connect`: it accepts any
 `AsyncRead + AsyncWrite`, which is what makes a WebSocket a valid transport and what removes
 `std::net` from the picture entirely. Tokio on this target supports only `sync`, `macros`,
 `io-util`, `rt` and `time`; a dependency that enables `net` or `rt-multi-thread` breaks the
-build, which is the failure mode to watch for.
+build, which is the failure mode to watch for. **There is no tokio runtime in the browser at
+all**: russh spawns onto `wasm_bindgen_futures`, and that is enough — but `client::Config`'s
+`keepalive_interval` and `inactivity_timeout` call `tokio::time::sleep` and panic without a
+timer driver, so they stay `None` and any keepalive is a browser timer.
 
 **Size settles in Rust's favour rather than against it.** The reference build's WebAssembly
 module is ~1.5 MB raw and **~574 KB gzipped**; the whole application is ~584 KB gzipped, UI and
 in-wasm terminal included — against ~4.94 MB for the Go equivalent. (An earlier version of this
-record attributed the 574 KB figure to the whole application; it is the module.)
+record attributed the 574 KB figure to the whole application; it is the module.) Measured here
+with no UI framework: **308 KB gzipped for the SSH client, 495 KB for SSH and the pinned TLS
+client together**, `ring` being the overlap.
 
 ## Considered options
 

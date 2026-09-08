@@ -209,12 +209,21 @@ introduction. Both derive from the seed and neither is stored.
 _Avoid_: voucher, token, nonce (all understate what the sender key authorizes); MAC secret (the
 old mechanism)
 
+**Pin** · `SEC-11`, `ARC-25`, `CHN-12a`
+A fact about one endpoint, shipped or recorded in advance, that a presented thing is checked
+against. Three exist: a **host-key pin** (a fingerprint), an **artifact pin** (a content hash
+or a signing key plus revision), and an **issuer pin** (one issuing authority's certificate).
+A pin delegates to nothing — a store holding exactly the pinned authority is a pin; a store
+holding many authorities is a **trust store**, which is the unpriced object of `CHN-12b`.
+_Avoid_: "the pin" unqualified where two kinds are in play; allowlist; whitelist; "root
+store" for a store of one (it carries the general-trust sense)
+
 **Artifact source** · `ARC-25`, `ARC-25a`, `TRU-E8`, `TRU-E8a`
 Wherever the installed system's bits come from: an image, a mirror, a channel. An untrusted
 dependency, pinned as tightly as the distribution allows — by content hash on one, by a signing
 key and a pinned revision on the other, which is a second party rather than the same one.
 _Avoid_: image host (too narrow), mirror (too narrow), **the pin** as a synonym for a content
-hash (it is one of two mechanisms)
+hash (an artifact pin is one of two mechanisms — see **Pin**)
 
 ### State and recovery
 
