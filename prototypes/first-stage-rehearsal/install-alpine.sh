@@ -50,7 +50,19 @@ ROOT_UUID=$(blkid -s UUID -o value "$ROOT")
 chroot /mnt /usr/bin/env DISK="$DISK" ROOT_UUID="$ROOT_UUID" IP_CIDR="$IP_CIDR" GATEWAY="$GATEWAY" FIRMWARE="$FIRMWARE" /bin/sh -eux <<'EOF'
 apk update
 apk add alpine-base linux-lts openssh grub grub-bios grub-efi e2fsprogs dosfstools
-rc-update add sshd default; rc-update add networking boot; rc-update add hostname boot
+# A minirootfs is not a bootable system: without mdev + hwdrivers in sysinit nothing loads
+# drivers by modalias, so eth0 never exists and sshd listens on a machine nobody can reach
+# (found 2026-09-08 through vKVM: "ip: ioctl 0x8913 failed: No such device"). This is the
+# service set Alpine's own setup-disk enables.
+for s in devfs dmesg mdev hwdrivers; do rc-update add $s sysinit; done
+for s in hwclock modules sysctl hostname bootmisc syslog networking; do rc-update add $s boot; done
+rc-update add sshd default
+for s in mount-ro killprocs savecache; do rc-update add $s shutdown; done
+# rc_logger + syslog: a boot that reaches userland leaves /var/log/rc.log and messages behind.
+sed -i 's/^#\?rc_logger=.*/rc_logger="YES"/' /etc/rc.conf
+# GRUB: short timeout, Alpine's own kernel arguments, and a serial console so vKVM or a KVM
+# console shows the boot (the VGA console stays black after GRUB under OVMF).
+printf 'GRUB_TIMEOUT=3\nGRUB_TIMEOUT_STYLE=menu\nGRUB_CMDLINE_LINUX_DEFAULT="modules=sd-mod,usb-storage,ext4 rootfstype=ext4 console=tty0 console=ttyS0,115200"\nGRUB_DISABLE_OS_PROBER=true\n' > /etc/default/grub
 echo tau-rehearsal > /etc/hostname
 printf 'auto lo\niface lo inet loopback\n\nauto eth0\niface eth0 inet static\n    address %s\n    gateway %s\n' "$IP_CIDR" "$GATEWAY" > /etc/network/interfaces
 mkdir -p /root/.ssh; chmod 700 /root/.ssh
