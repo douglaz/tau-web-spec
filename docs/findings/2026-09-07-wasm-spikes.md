@@ -158,9 +158,9 @@ follows — a refusal ends the attempt, no automatic reconnect — is stated the
 
 ## What stays open
 
-- `OPN-1` and `OPN-21` are now proven on the mechanism **and on one physical Android
-  Chrome**. Each closure criterion also names iOS Safari, which has not been run. Same URL,
-  same tailnet; a screenshot of the two red results is the record.
+- `OPN-1` and `OPN-21` are closed: proven on the mechanism **and on one physical Android
+  Chrome**. iOS Safari was never run and, as of 2026-09-08, is not a test target (`OVR-1`):
+  no Apple device is held. If one ever is, the same URL over the tailnet is the whole test.
 - `CNF-21` and `CNF-62` are demonstrable now, on the prototype. They are checklist items for
   the real build and should not be ticked from this.
 - Peak memory during a full install (`STG-15`) is untouched.

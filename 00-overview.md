@@ -158,7 +158,10 @@ be pinned out of band — the first stage's dedicated path, not yet the cloud pa
 `OVR-6` is counted and displayed rather than enforced.
 
 **OVR-1** The mobile browser MUST be the runtime. No install, no extension, no native
-package, no desktop, no terminal. A normal HTTPS URL on Android Chrome and iOS Safari.
+package, no desktop, no terminal. A normal HTTPS URL on **Android Chrome, which is the only
+platform anything is tested on**. iOS Safari is intended and untested: nothing in the design
+is Android-specific, but no Apple device is held, so iOS is a hope rather than a predicate,
+and no requirement in this corpus is satisfied or failed by it.
 
 **OVR-2** The AI MUST be free to act. Future adversity on a machine is not enumerable in
 advance. Restricting the AI's authority to keep it safe breaks the only reason it is there.

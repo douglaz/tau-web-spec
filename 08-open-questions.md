@@ -288,10 +288,10 @@ reporting the pinned and the presented fingerprints. That is the `Changed{old, n
 difficulty. The getrandom rustflag in ADR-0024 is no longer needed and nothing else in the
 configuration changed. The SSH client alone is 308 KB gzipped.
 
-*What closed it:* the spike's cases passed on a physical Android Chrome; the iOS Safari half
-is carried by `CNF-79` rather than by this list, since a gating list should not wait on
-hardware nobody holds. The channel itself is now days from the spike, not weeks; the terminal
-and UI layer is separate work.
+*What closed it:* the spike's cases passed on a physical Android Chrome, which `OVR-1` now
+names as the only tested platform; `CNF-79` carries the same cases for the real build. The
+channel itself is now days from the spike, not weeks; the terminal and UI layer is separate
+work.
 
 **OPN-21 — A pinned TLS client inside WebAssembly.** *Closed 2026-09-08, alongside `OPN-1`.* The first stage cannot reach its vendor
 API without one (`CHN-R1`, `CHN-12a`, `STG-3a`), so this gates alongside the SSH client.
@@ -308,8 +308,8 @@ assumed. The detail nobody had written down: `rustls` does not compile for this 
 `rustls-pki-types`'s `web` feature, which supplies the clock. TLS costs 187 KB gzipped over the
 SSH client alone.
 
-*What closed it:* the same two cases passed on a physical Android Chrome; iOS Safari is
-`CNF-79`'s. One fact is already dated: the pinned authority expires **2027-11-02**, which is
+*What closed it:* the same two cases passed on a physical Android Chrome (`CNF-79` carries
+them for the real build). One fact is already dated: the pinned authority expires **2027-11-02**, which is
 the first rotation `CHN-12a`'s cost clause will be paid on.
 
 ## Status and the next move

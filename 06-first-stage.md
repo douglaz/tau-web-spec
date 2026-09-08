@@ -137,7 +137,8 @@ then resumed, results in exactly one rescue session and one install.
 
 **STG-12** A brief interrupted mid-run — by a phone lock, a killed worker, a dropped session
 — and re-run from the top **converges** rather than duplicating (`ARC-10`). This is the
-predicate most likely to fail on iOS, and the one the by-hand rehearsal should be designed to
+predicate most likely to fail under tab suspension — Android's, which is tested, and iOS's,
+which would be harsher if it were — and the one the by-hand rehearsal should be designed to
 stress.
 
 **STG-13** A channel access that does not present the bound session's own keypair — however
@@ -146,12 +147,12 @@ access rule by accident: this predicate shows the refusal is enforced by mechani
 than satisfied by scarcity, and it is distinguishable from `STG-9`'s re-entry precisely
 because binding is the operator's act, not the connection's.
 
-**STG-14** All of the above pass on Android Chrome and iOS Safari, through a normal HTTPS
-URL, with no install.
+**STG-14** All of the above pass on a physical Android Chrome, through a normal HTTPS URL,
+with no install. iOS Safari is not a test target (`OVR-1`).
 
 ## Measurements, required but not pass/fail
 
-**STG-15** Peak memory of one session during a full install, on both mobile browsers, with
+**STG-15** Peak memory of one session during a full install, on Android Chrome, with
 the five-session projection stated against each platform's tab budget. The concurrency
 decision (`ARC-13`) rests on five sessions sharing a phone, chosen against an acknowledged
 high memory risk, and no number has ever been taken. One session is what this stage runs,
