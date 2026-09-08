@@ -209,6 +209,21 @@ introduction. Both derive from the seed and neither is stored.
 _Avoid_: voucher, token, nonce (all understate what the sender key authorizes); MAC secret (the
 old mechanism)
 
+**Rescue system** · `CHN-R1`, `STG-4`
+The vendor's ephemeral boot environment on a dedicated server, used for installation. It
+boots with **fresh host keys every time**, the vendor publishes their fingerprints only after
+it has booted, and one activation is consumed by one boot. Never the installed system, and
+never the harness's own recovery.
+_Avoid_: recovery mode (recovery is the harness's ladder, `ARC-16`), live system, "rescue"
+unqualified where the ceremony is meant
+
+**Rescue ceremony** · `STG-4`, `STG-20`
+The harness's typed sequence around a rescue system: register the machine's client key with
+the vendor, activate rescue, reset, pin the rescue host key from the vendor, install, read
+the installed host keys before the reboot, reset again. Deterministic, owned by the harness,
+and no part of it belongs in a brief.
+_Avoid_: rescue flow, install flow (the install is the brief's part, inside the ceremony)
+
 **Pin** · `SEC-11`, `ARC-25`, `CHN-12a`
 A fact about one endpoint, shipped or recorded in advance, that a presented thing is checked
 against. Three exist: a **host-key pin** (a fingerprint), an **artifact pin** (a content hash
