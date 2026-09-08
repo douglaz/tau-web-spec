@@ -39,8 +39,8 @@
   const h = location.hostname || '127.0.0.1';
   $('ssh_ws').value = `ws://${h}:8084`; $('tls_ws').value = `ws://${h}:8082`; $('tls_ws_other').value = `ws://${h}:8083`;
   $('ssh_user').value = new URLSearchParams(location.search).get('user') || '';
-  $('ssh_seed').value = Array.from(crypto.getRandomValues(new Uint8Array(32)), b => b.toString(16).padStart(2, '0')).join('');
-  $('tls_pin').textContent = robot_issuer_pem();
+  $('ssh_seed').value = new URLSearchParams(location.search).get('seed') || Array.from(crypto.getRandomValues(new Uint8Array(32)), b => b.toString(16).padStart(2, '0')).join('');
+  $('tls_pin').textContent = robot_issuer_pem(); $('ssh_pin').value = new URLSearchParams(location.search).get('pin') || '';
   const showPub = () => { try { $('ssh_pub').textContent = 'register this key on the machine:\n' + ssh_pubkey($('ssh_seed').value); } catch (e) { $('ssh_pub').textContent = String(e); } };
   showPub(); $('ssh_seed').oninput = showPub;
 
