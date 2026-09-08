@@ -137,6 +137,10 @@ reboot_installed() {
   confirm "hardware reset into the installed system"
   stamp "T5 reset into installed system"
   robot reset-installed POST "/reset/$SERVER_NUMBER" -d type=hw >/dev/null
+  installed_login
+}
+
+installed_login() {  # resume: the machine was already reset into the installed system
   wait_ssh installed
   cp "$KH.installed" "$KH"
   note "Second hop, pinned from the pre-reboot read (no TOFU):"
@@ -152,6 +156,7 @@ case "${1:-}" in
   rescue-login) rescue_login;;   # resume: the machine is already in rescue, pin and log in
   install) install;;
   reboot) reboot_installed;;
+  installed-login) installed_login;;
   all) preflight; rescue; install; reboot_installed;;
   *) echo "usage: $0 preflight|rescue|install|reboot|all"; exit 2;;
 esac

@@ -58,8 +58,13 @@ mkdir -p /root/.ssh; chmod 700 /root/.ssh
 ssh-keygen -A
 sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin prohibit-password/' /etc/ssh/sshd_config
 printf 'UUID=%s / ext4 defaults 0 1\n' "$ROOT_UUID" > /etc/fstab
+# BOTH bootloaders, always. Found 2026-09-08: the rescue system is PXE-booted in legacy mode,
+# so /sys/firmware/efi says nothing about the target's own firmware — which was UEFI, found no
+# EFI bootloader, and fell through to PXE three times. --removable puts GRUB at
+# EFI/BOOT/BOOTX64.EFI, the path firmware tries without an NVRAM entry (none can be written
+# from a rescue); --no-nvram because efibootmgr has nothing to write to here.
 grub-install --target=i386-pc "$DISK"
-if [ "$FIRMWARE" = uefi ]; then grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=alpine --removable; fi
+grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=alpine --removable --no-nvram
 grub-mkconfig -o /boot/grub/grub.cfg
 EOF
 
