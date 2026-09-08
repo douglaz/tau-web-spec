@@ -9,7 +9,7 @@ probe with a multi-week spike as though they were the same size.
 
 ## Gating
 
-Three, and every one is empirical or currently unanswerable. Nothing here waits on a
+Four, and every one is empirical or currently unanswerable. Nothing here waits on a
 decision.
 
 **OPN-3 — The recovery machinery is designed and unproven.** The design is recorded across
