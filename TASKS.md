@@ -16,7 +16,9 @@ Nothing. The gating list is `08-open-questions.md`.
 
 - [x] **T1 — Run the first stage by hand, before any code.** *(`STG-2`)* **Run 2026-09-08**;
       `docs/findings/2026-09-08-first-stage-rehearsal.md`. `CNF-48` recorded, `OPN-6` closed,
-      `CHN-R1` rewritten to the route as it actually works.
+      `CHN-R1` rewritten to the route as it actually works. Brief 1 written
+      (`docs/briefs/01-install.md`); briefs 2 and 3 wait on `OPN-14` and a delivery
+      declaration, so that part of `STG-2` is open by dependency, not by neglect.
       Activate rescue on a disposable dedicated server; read what the rescue endpoint's
       `host_key` field actually returns; read what the automatic Linux install operation
       returns in the same sitting; rehearse the ceremony end to end; write the three briefs

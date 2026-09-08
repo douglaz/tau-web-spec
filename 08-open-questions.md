@@ -84,14 +84,17 @@ Genuinely undecided, and not blocking the first stage.
 
 **OPN-10 — The brief format schema.** Frontmatter fields, the local/remote block marker, how a
 block returns structured data to the next one, versioning, signing. Designing a second consumer
-for an undefined format is premature until this exists. *Closes when:* the three briefs written
-during `STG-2` are generalized into a schema.
+for an undefined format is premature until this exists. *First input 2026-09-08:*
+`docs/briefs/01-install.md`, plain prose with example commands and deliberately no format.
+*Closes when:* the three briefs named in `STG-2` are generalized into a schema.
 
 **OPN-11 — What executes brief commands locally in the browser.** Either a WASI host with
 uutils guests, as the archived specification assumes, or a small set of purpose-built commands.
 Deliberately not decided in advance: the extent is to be derived from real briefs rather than
-guessed. *Closes when:* `STG-2`'s briefs show which commands genuinely need the browser rather
-than the machine.
+guessed. *First evidence 2026-09-08:* in brief 1 exactly two things are browser-side — the
+artifact hash comparison against the bundle's value and the host-key fingerprint derivation
+— and both are comparisons of values the machine reports, not commands. *Closes when:*
+`STG-2`'s briefs show which commands genuinely need the browser rather than the machine.
 
 **OPN-14 — What "locked down" means, per vendor.** A pentest can only assert what it checks, so
 the checklist is part of the signed brief set — and it does not exist yet for any vendor. Until

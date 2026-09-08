@@ -13,7 +13,8 @@ members to reach the threshold* — belongs to btc-policy, the tenant that stack
 
 No harness code yet. This repository holds the specification, the domain language, the
 decisions taken so far, and the reasoning that produced them. `prototypes/` holds throwaway
-spikes that answer open questions by running, and `docs/findings/` holds what they found.
+spikes that answer open questions by running, `docs/findings/` holds what they found, and
+`docs/briefs/` holds draft briefs written from those runs, not yet in any bundle.
 
 `tau-web` is a working name.
 

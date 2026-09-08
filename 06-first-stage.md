@@ -17,9 +17,21 @@ both hard problems.
 **STG-2 Construction gates on running the stage by hand, once, first.** Activate rescue on a
 disposable dedicated server; read what `host_key` actually returns; read what the automatic
 Linux install operation returns in the same sitting; rehearse the ceremony end to end; then
-write the three briefs from the captured install transcript. "By hand" means no harness code:
+write the briefs from the captured install transcript. "By hand" means no harness code:
 `curl` against Robot and `ssh` from a workstation, scripted only so that every value is
 captured once and no credential is typed twice (`prototypes/first-stage-rehearsal/`).
+
+**Run 2026-09-08** (`docs/findings/2026-09-08-first-stage-rehearsal.md`). The three briefs
+this stage needs are: **(1) install** — from a pinned rescue session to an installed,
+reachable system whose host keys the harness already holds; **(2) lock-down** — harden and
+demonstrate against the tenant's delivery declaration (`ARC-39`, `ARC-17`); **(3) the
+tenant's daemon** — installed and started to the tenant's declared lifecycle, authored from
+the tenant's declaration rather than by this project (`ARC-40`). Rescue activation and the
+host-key pin are **not** brief content: they are the harness's typed ceremony (`CHN-R1`,
+`STG-4`), deterministic by design, and no improvising model owns the identity chain. Only
+brief 1 has evidence today and is written
+([`docs/briefs/01-install.md`](./docs/briefs/01-install.md)); briefs 2 and 3 wait on a
+lock-down checklist (`OPN-14`) and a delivery declaration that do not yet exist.
 
 The reason is that the two risks are wildly mismatched, and research has widened the gap
 rather than narrowed it. The SSH client is no longer a bet: a deployed Rust implementation
