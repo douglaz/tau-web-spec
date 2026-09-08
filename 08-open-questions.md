@@ -9,7 +9,7 @@ probe with a multi-week spike as though they were the same size.
 
 ## Gating
 
-Four, and every one is empirical or currently unanswerable. Nothing here waits on a
+Three, and every one is empirical or currently unanswerable. Nothing here waits on a
 decision.
 
 **OPN-3 — The recovery machinery is designed and unproven.** The design is recorded across
@@ -24,6 +24,11 @@ mechanism but its behaviour **on a real first boot**: cloud-init timing, the sta
 Alpine, and the browser's window against a measured slowest boot (`CHN-6`). The seed also adds
 one item: the derivation must be shown deterministic across a reinstall of the app, or
 "re-derive from twelve words" is a claim rather than a property.
+
+*Narrowed again 2026-09-08.* The **rescue ceremony has now been rehearsed end to end** on the
+dedicated path — register the client key, activate rescue, pin from the API, install, re-read
+the installed host keys, reconnect — so that item leaves this entry. What remains is the cloud
+route's attest on a real first boot, and the sheet's re-import.
 
 *Closes when:* `CNF-18`, `CNF-19`, `CNF-20` and `CNF-72` pass on real hardware.
 
@@ -52,21 +57,6 @@ structural rather than a second tenant, and what makes `OVR-5` hard.
 
 *Closes when:* an operator can obtain machines at two distinct vendors without opening two
 billing relationships.
-
-**OPN-6 — What Robot's rescue `host_key` field actually returns.** *Partly answered
-2026-08-31, read-only, against a real account.* The field **exists and is an array**, empty
-while rescue is inactive. What it holds once rescue is activated — full public keys,
-fingerprints, which algorithms — still needs one `POST`, which reboots the machine, so it was
-not run.
-
-The same session settled two other things. **Robot is not browser-reachable** (`CHN-R1`): a
-previously recorded probe said otherwise and was wrong. And the installer catalogue was read
-directly — AlmaLinux, Arch, CentOS Stream, Debian, openSUSE, Rocky, Ubuntu, with **no Alpine and
-no NixOS** — so `ARC-24` and `STG-3`'s claim that custom installation is mandatory is verified
-rather than inferred.
-
-*Closes when:* `CNF-48` is recorded. This is the cheapest item on the list and the one the most
-rests on, which is why `STG-2` gates construction on it.
 
 ## One probe or one boot from closing
 
@@ -311,6 +301,27 @@ SSH client alone.
 *What closed it:* the same two cases passed on a physical Android Chrome (`CNF-79` carries
 them for the real build). One fact is already dated: the pinned authority expires **2027-11-02**, which is
 the first rotation `CHN-12a`'s cost clause will be paid on.
+
+**OPN-6 — What Robot's rescue `host_key` field actually returns.** *Closed 2026-09-08: the
+first stage ran by hand and `CNF-48` is recorded.* *Partly answered 2026-08-31, read-only,
+against a real account.* The field **exists and is an array**, empty
+while rescue is inactive. What it holds once rescue is activated — full public keys,
+fingerprints, which algorithms — still needs one `POST`, which reboots the machine, so it was
+not run.
+
+The same session settled two other things. **Robot is not browser-reachable** (`CHN-R1`): a
+previously recorded probe said otherwise and was wrong. And the installer catalogue was read
+directly — AlmaLinux, Arch, CentOS Stream, Debian, openSUSE, Rocky, Ubuntu, with **no Alpine and
+no NixOS** — so `ARC-24` and `STG-3`'s claim that custom installation is mandatory is verified
+rather than inferred.
+
+*What closed it:* one `POST`, one reset, and a disposable auction server. The activation
+`POST` publishes **nothing**; `GET /boot/{n}/rescue/last` publishes SHA-256 fingerprints per
+algorithm, no public keys, about 80 s after the reset and some 10 s before sshd answers, fresh
+on every rescue boot. Both hops of the identity chain then closed with no trust-on-first-use
+(`CHN-R1` rewritten, `STG-4` amended; `docs/findings/2026-09-08-first-stage-rehearsal.md`).
+The same run found that the first stage's real cost is a machine that does not come back —
+see `STG-20`.
 
 ## Status and the next move
 

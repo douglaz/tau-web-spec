@@ -21,8 +21,9 @@ by sshd itself (`STG-13`).
 
 **A clean run is 4 min 34 s** from rescue activation to a pinned login on the installed
 Alpine, unattended. **This rehearsal took 2 h 27 min**, because the install recipe was wrong
-in four ways that no API can see, and a dedicated server that does not boot is invisible
-over the network. That gap is the most important number here.
+in five ways that no API can see — four of them boot failures, the fifth caught before any
+disk was touched — and a dedicated server that does not boot is invisible over the network.
+That gap is the most important number here.
 
 ## OPN-6 — what Robot's rescue `host_key` actually returns (CNF-48)
 
@@ -81,10 +82,15 @@ looking at a screen.
    next. GRUB had been installed on one disk; the firmware booted the other, which had an
    all-zero boot sector. Fix: a BIOS-boot partition and GRUB on **every** disk, as Hetzner's
    `installimage` does, and disks addressed by id.
-2. **The protective MBR needs the boot flag.** `sgdisk` does not set it; this board's legacy
-   boot path would not boot the GPT disk without it (`parted disk_set pmbr_boot on`). The
-   logs show the system reached userland for the first time on the reset after the flag was
-   set.
+2. **Alpine's initramfs needs the kernel arguments `setup-disk` writes.** The recipe had
+   none; the reset after `modules=sd-mod,usb-storage,ext4 rootfstype=ext4` was added is the
+   first the logs show reaching userland. Two changes were made together on that attempt —
+   the kernel arguments and a protective-MBR boot flag (`parted disk_set pmbr_boot on`) —
+   and this record first credited the flag. The **clean pass disproved that**: its recipe
+   writes the kernel arguments but never sets the flag (`sgdisk --zap-all` leaves the
+   protective MBR without it), and it booted. The flag is unnecessary on this board; the
+   kernel arguments are what mattered. (Caught in review by a second model reading the
+   recipe against the findings.)
 3. **The rescue's firmware mode says nothing about the target's.** The rescue is PXE-booted
    in legacy mode, so `/sys/firmware/efi` was absent and the recipe skipped the EFI
    bootloader. The vKVM console (below) boots the disk under OVMF and showed the firmware

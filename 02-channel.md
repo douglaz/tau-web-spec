@@ -46,13 +46,18 @@ flowchart TD
 ```
 
 **CHN-R1 — retrieve, dedicated servers.** Hetzner's Robot webservice exposes `host_key` on
-`GET` and `POST /boot/{server-number}/rescue`. The harness activates rescue over HTTPS, reads
-the authoritative host key, derives the fingerprint locally, and never performs
-trust-on-first-use. Whether the field carries full public keys or only fingerprints — and
-under which hash — is what `CNF-48` records (`OPN-6`); the input side takes MD5 colon
-fingerprints. A fingerprint-only answer still pins without trust-on-first-use, since the
-browser compares the presented key's fingerprint to it; it only changes which hash the
-comparison runs under, and an MD5-only answer would be recorded as a weakness, not a blocker.
+`GET /boot/{server-number}/rescue/last`. **Run 2026-09-08** (`CNF-48`,
+[findings](./docs/findings/2026-09-08-first-stage-rehearsal.md)): the harness activates rescue
+over HTTPS (`POST /boot/{n}/rescue`, which publishes **nothing** — its `host_key` is empty),
+triggers the hardware reset, then polls `GET /boot/{n}/rescue/last` until `host_key` fills,
+which happens about **80 s after the reset and some 10 s before the rescue's sshd answers**,
+together with a `boot_time`. The field holds **SHA-256 fingerprints, one per host-key
+algorithm, and no public key material**; the browser derives the presented key's fingerprint
+at first contact and compares. **Every rescue boot has fresh host keys**, so the pin is per
+boot, not per machine, and the plain rescue endpoint reports inactive and empty once the boot
+has consumed the activation — only `/rescue/last` knows. Never trust-on-first-use: a client
+that connects before `/rescue/last` fills has nothing to check against and MUST wait. The
+input side, `authorized_key[]`, takes MD5 colon fingerprints of keys registered at Robot.
 
 **Robot is NOT reachable by a browser `fetch`, verified 2026-08-31.** An earlier probe recorded
 the opposite and was wrong — almost certainly run with a tool that does not enforce CORS. Live

@@ -301,9 +301,16 @@ Not pass/fail. Required to be recorded.
 - [ ] **CNF-45** Peak memory of one session during a full install, per mobile browser, with the
       five-session projection against each platform's tab budget (`STG-15`, `ARC-13`).
 - [ ] **CNF-46** Wall-clock duration of a full install over the channel.
+- [ ] **CNF-80 · PRE-SCALE** An installed system that does not answer on the channel within
+      ten minutes of its boot reset is declared failed, the operator is told, and the session
+      returns to rescue and reinstalls from the brief (`STG-20`). Verified by installing with a
+      brief that omits the bootloader on one disk.
 - [ ] **CNF-47** Transcript size produced by one install.
-- [ ] **CNF-48** What Robot's rescue `host_key` field actually returns, and what the automatic
-      Linux install operation returns (`OPN-6`, `STG-2`).
+- [x] **CNF-48** What Robot's rescue `host_key` field actually returns, and what the automatic
+      Linux install operation returns (`OPN-6`, `STG-2`). **Recorded 2026-09-08**: SHA-256
+      fingerprints per algorithm on `/boot/{n}/rescue/last` ~80 s after the reset, empty on
+      the activation `POST`, fresh per boot; the installer catalogue still has no Alpine or
+      NixOS (`docs/findings/2026-09-08-first-stage-rehearsal.md`).
 
 ## The blocking tier
 

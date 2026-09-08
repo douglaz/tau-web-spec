@@ -34,9 +34,10 @@ construction before making that call is the wrong order.
 
 **STG-3** Two reasons, both load-bearing, and neither was previously recorded:
 
-1. **The rescue endpoint is what publishes the host key.** That is `CHN-R1`, and it is the
-   only route on any product today that pins out of band without putting a private key in
-   user-data.
+1. **The rescue endpoint is what publishes the host key** — precisely, `/boot/{n}/rescue/last`
+   publishes the booted rescue system's fingerprints about 80 s after the reset (`CHN-R1`,
+   run 2026-09-08). It is the only route on any product today that pins out of band without
+   putting a private key in user-data.
 2. **The chosen distributions are not on offer.** Robot's automatic Linux installation takes a
    fixed catalog, and neither Alpine nor NixOS is in it (`ARC-24`). Custom image installation
    is therefore mandatory on this path rather than the optimisation ADR-0011 calls it.
@@ -93,11 +94,14 @@ This is a prerequisite the stage did not previously have, and it is why `OPN-21`
 operation** — Robot's `authorized_key` field takes fingerprints of keys already registered
 there, not raw keys — then activates rescue the same way, passing that fingerprint, and
 triggers the reboot the same way, since activation only configures the next boot and the
-reset call is its own typed operation. It retrieves the rescue host key from the API response
-and connects with **no trust-on-first-use at either hop**: the rescue key is pinned from the
+reset call is its own typed operation. It then polls `/boot/{n}/rescue/last` until the booted
+rescue's host-key fingerprints appear — the activation response itself publishes none — and
+connects with **no trust-on-first-use at either hop**: the rescue key is pinned from the
 API, and the installed system's host keys are generated inside the rescue session, per
-machine, and read before reboot. The response also carries a generated **root password**; it
-is never used, and it is **redacted before the response is recorded or reaches a model**.
+machine, and read before reboot. **Run 2026-09-08, both hops, on a disposable auction
+server** (`docs/findings/2026-09-08-first-stage-rehearsal.md`). The activation response also
+carries a generated **root password**; it is never used on this route, and it is **redacted
+before the response is recorded or reaches a model**.
 
 **STG-5** The system is installed and hardened entirely through box-plane work over the
 pinned channel, **command by command**, each recorded before transmission (`ARC-8`), and the
@@ -159,7 +163,11 @@ high memory risk, and no number has ever been taken. One session is what this st
 which makes it the only cheap opportunity to learn whether five is possible.
 
 **STG-16** Wall-clock duration of a full install over the channel, and the transcript size it
-produces.
+produces. *Measured by hand 2026-09-08, not yet over the channel:* rescue activation to a
+pinned login on the installed Alpine in **4 min 34 s** when nothing goes wrong (reset →
+rescue pin 82 s; install 60 s; reset → installed sshd 69 s), transcript 16.9 KB. The
+rehearsal itself took 2 h 27 min, because a machine that does not boot is invisible over the
+network and the recipe was wrong four times; see `STG-20`.
 
 ## Provenance in the first stage
 
@@ -198,6 +206,29 @@ handling, second-vendor reachability, concurrent sessions, federation formation,
 isolation. Those are orthogonal systems that arrive with the second stage, not subsets of this
 one. The honest claim is that this stage de-risks the channel, which is the item everything
 else waits on.
+
+**STG-20 A machine that does not come back is reinstalled, not diagnosed.** A dedicated server
+that fails to boot after the install is **invisible over the network**: the vendor API reports
+`running`, nothing answers, and no log can be read. The rehearsal of 2026-09-08 hit this five
+resets in a row, for four different reasons, and none was findable from the browser. So the
+harness's response is `ARC-16`'s bottom rung applied to this path: if the installed system
+does not answer on the channel within **ten minutes** of the reset that should have booted
+it, the session declares the install failed, tells the operator, and **returns to rescue and
+reinstalls from the brief** — the same ceremony, and cheap (about five minutes when it works).
+It does not guess, and it does not reach for the vendor's console.
+
+That console exists — Hetzner's vKVM rescue boots the installed disk inside a virtual machine
+with a screen — and it is **the operator's own tool, by hand, outside the harness**, for a
+brief that is wrong in a way reinstalling will not fix. It is password-only (the rescue
+activation's `password`, `SEC-5` row 9, which the harness therefore still never uses), it
+sits behind a self-signed certificate that no pin can vouch for, and its virtual machine
+boots UEFI regardless of what the board does. A brief for this path encodes what the
+rehearsal learned instead: a bootloader on every disk, the distribution's own kernel
+arguments for its initramfs, both BIOS and EFI loaders, the distribution's full boot-time
+service set, and disk identifiers taken from the environment the command runs in. Each of
+those was a silent failure once. And a brief distinguishes **resuming** an interrupted
+install (`ARC-10`, `STG-12`: inspect what is there and continue) from this rung's
+**reinstall**, which wipes: the rehearsal's recipe only knew how to wipe.
 
 ## The second stage
 

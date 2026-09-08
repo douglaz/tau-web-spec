@@ -4,13 +4,19 @@ Work arising from the [engineering review of 2026-08-19](docs/review/2026-08-19-
 which reviewed the corpus at `726ad44`. Each task names the finding it came from, so nobody
 has to reopen the review to know why it exists.
 
-**Everything except T1 has been applied**, plus further decisions from the grilling sessions
-that followed. T1 needs real hardware and is the operator's to run; it gates construction, not
-documentation.
+**Everything has been applied**, plus further decisions from the grilling sessions that
+followed. T1 ran on 2026-09-08 on a disposable auction server; construction is no longer
+gated on it.
 
 ## Open
 
-- [ ] **T1 — Run the first stage by hand, before any code.** *(`STG-2`)*
+Nothing. The gating list is `08-open-questions.md`.
+
+## Applied
+
+- [x] **T1 — Run the first stage by hand, before any code.** *(`STG-2`)* **Run 2026-09-08**;
+      `docs/findings/2026-09-08-first-stage-rehearsal.md`. `CNF-48` recorded, `OPN-6` closed,
+      `CHN-R1` rewritten to the route as it actually works.
       Activate rescue on a disposable dedicated server; read what the rescue endpoint's
       `host_key` field actually returns; read what the automatic Linux install operation
       returns in the same sitting; rehearse the ceremony end to end; write the three briefs
@@ -23,8 +29,6 @@ documentation.
       *Where:* `prototypes/first-stage-rehearsal/rehearse.sh` — preflight, rescue, install,
       reboot, with redacted captures and a wall-clock timeline (`STG-16`). Needs a rented
       disposable server and a Robot webservice user, both the operator's to create.
-
-## Applied
 
 - [x] **T2 — ADR-0022, the state model.** Written: single writer, append-only journal in
       origin-private storage, append-before-apply, intent-before-effect, per-tool retry safety,
