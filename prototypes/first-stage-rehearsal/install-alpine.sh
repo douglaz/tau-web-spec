@@ -8,7 +8,8 @@
 # a finding, not a failure of the rehearsal.
 set -eux
 
-: "${DISK:?set DISK, e.g. /dev/nvme0n1 or /dev/sda}"
+: "${DISK:?set DISK — prefer a stable /dev/disk/by-id/ path; /dev/sdX names swap between boots}"
+DISK=$(readlink -f "$DISK")
 : "${AUTHORIZED_KEY:?the operator public key line}"
 
 # ARC-25: a versioned release path (never latest-stable/), and the sibling .sha256 at the same path.
@@ -61,6 +62,15 @@ grub-install --target=i386-pc "$DISK"
 if [ "$FIRMWARE" = uefi ]; then grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=alpine --removable; fi
 grub-mkconfig -o /boot/grub/grub.cfg
 EOF
+
+# Found 2026-09-08: /dev/sdX names are NOT stable across boots on this hardware, and the BIOS
+# boots whichever disk it enumerates first. The first run put GRUB on one disk only and the
+# machine never booted. So: a BIOS-boot partition and GRUB on EVERY other disk too, as
+# Hetzner's own installer does, all pointing at the same /boot.
+for other in $(lsblk -dnpo NAME,TYPE | awk '$2=="disk"{print $1}' | grep -vx "$DISK"); do
+  sgdisk --zap-all "$other"; sgdisk -n1:0:+1M -t1:ef02 "$other"; partprobe "$other"; sleep 1
+  chroot /mnt grub-install --target=i386-pc "$other"
+done
 echo "$AUTHORIZED_KEY" > /mnt/root/.ssh/authorized_keys; chmod 600 /mnt/root/.ssh/authorized_keys
 
 echo "=== INSTALLED HOST KEYS (read inside rescue, before reboot) ==="
