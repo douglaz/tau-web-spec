@@ -31,7 +31,8 @@ likely to sink the plan. It is not, and two earlier characterisations of it were
 
 The known-good configuration is published: `russh` with `default-features = false` and the
 `ring` backend, `ring` with `wasm32_unknown_unknown_js`, `ws_stream_wasm` for the socket, and
-`getrandom_backend="wasm_js"` in rustflags. The one genuine blocker is that russh's current
+`getrandom_backend="wasm_js"` in rustflags (that last item has since become unnecessary — see
+below). The one genuine blocker is that russh's current
 default crypto backend does not support this target, which a feature flag settles
 ([ADR-0024](./docs/adr/0024-the-ssh-client-is-rust-following-a-known-good-configuration.md)).
 
