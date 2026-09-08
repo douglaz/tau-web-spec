@@ -146,8 +146,9 @@ installed_login() {  # resume: the machine was already reset into the installed 
   note "Second hop, pinned from the pre-reboot read (no TOFU):"
   ssh_pinned 'echo PINNED-INSTALLED-LOGIN-OK; cat /etc/alpine-release; uname -a' | tee -a "$NOTES" && stamp "T6 installed login over pre-read host key"
   note "## STG-16 timeline"; note '```'; cat "$TL" | tee -a "$NOTES"; note '```'
-  note "Rescue is still the active boot config until it is used once; check \`GET /boot/$SERVER_NUMBER/rescue\` and note \`active\`:"
-  robot rescue-final GET "/boot/$SERVER_NUMBER/rescue" | jq -c '.rescue | {active, host_key}' | tee -a "$NOTES"
+  # Rescue is one-shot: the boot into it consumes the activation, so this should read inactive.
+  robot rescue-final GET "/boot/$SERVER_NUMBER/rescue" >/dev/null
+  note "Rescue endpoint after the installed system booted: $(jq -c '.rescue | {active, host_key}' "$F/captures/rescue-final.json")"
 }
 
 case "${1:-}" in

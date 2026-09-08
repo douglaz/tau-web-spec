@@ -68,7 +68,7 @@ printf 'auto lo\niface lo inet loopback\n\nauto eth0\niface eth0 inet static\n  
 mkdir -p /root/.ssh; chmod 700 /root/.ssh
 # ssh-keygen -A makes the host keys NOW, inside rescue, so they can be read before reboot (STG-4).
 ssh-keygen -A
-sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin prohibit-password/' /etc/ssh/sshd_config
+sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin prohibit-password/; s/^#\?PasswordAuthentication.*/PasswordAuthentication no/; s/^#\?KbdInteractiveAuthentication.*/KbdInteractiveAuthentication no/' /etc/ssh/sshd_config
 printf 'UUID=%s / ext4 defaults 0 1\n' "$ROOT_UUID" > /etc/fstab
 # BOTH bootloaders, always. Found 2026-09-08: the rescue system is PXE-booted in legacy mode,
 # so /sys/firmware/efi says nothing about the target's own firmware — which was UEFI, found no
