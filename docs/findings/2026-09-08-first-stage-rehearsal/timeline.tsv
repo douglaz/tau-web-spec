@@ -1,0 +1,118 @@
+2026-09-08T14:37:36Z	GET /server/2755348 -> 200 (captures/server.json)
+2026-09-08T14:37:38Z	GET /boot/2755348/rescue -> 200 (captures/rescue-before.json)
+2026-09-08T14:37:39Z	GET /boot/2755348/linux -> 200 (captures/linux-catalogue.json)
+2026-09-08T14:37:40Z	GET /key -> 200 (captures/keys-before.json)
+2026-09-08T14:52:37Z	GET /server/3064816 -> 200 (captures/server.json)
+2026-09-08T14:52:39Z	GET /boot/3064816/rescue -> 200 (captures/rescue-before.json)
+2026-09-08T14:52:40Z	GET /boot/3064816/linux -> 200 (captures/linux-catalogue.json)
+2026-09-08T14:52:41Z	GET /key -> 200 (captures/keys-before.json)
+2026-09-08T14:53:20Z	T0 rescue activation
+2026-09-08T14:53:22Z	POST /boot/3064816/rescue -> 200 (captures/rescue-activate.json)
+2026-09-08T14:53:24Z	GET /boot/3064816/rescue -> 200 (captures/rescue-after.json)
+2026-09-08T14:53:24Z	T1 hardware reset
+2026-09-08T14:53:27Z	POST /reset/3064816 -> 200 (captures/reset.json)
+2026-09-08T14:53:27Z	waiting for ssh on 88.99.2.106 (rescue)
+2026-09-08T14:54:56Z	ssh answering on 88.99.2.106 (rescue)
+2026-09-08T14:55:56Z	polling /boot/3064816/rescue/last for host_key
+2026-09-08T14:55:58Z	GET /boot/3064816/rescue/last -> 200 (captures/rescue-last.json)
+2026-09-08T14:55:58Z	host_key published on /rescue/last
+2026-09-08T14:55:58Z	waiting for ssh on 88.99.2.106 (rescue)
+2026-09-08T14:56:01Z	ssh answering on 88.99.2.106 (rescue)
+2026-09-08T14:56:04Z	T2 rescue login over API-pinned host key
+2026-09-08T14:57:34Z	T3 install start
+2026-09-08T14:58:28Z	T4 install end (transcript 14877 bytes — CNF-47)
+2026-09-08T14:58:48Z	T5 reset into installed system
+2026-09-08T14:58:52Z	POST /reset/3064816 -> 200 (captures/reset-installed.json)
+2026-09-08T14:58:52Z	waiting for ssh on 88.99.2.106 (installed)
+2026-09-08T15:32:24Z	T0 rescue activation
+2026-09-08T15:32:25Z	POST /boot/3064816/rescue -> 200 (captures/rescue-activate.json)
+2026-09-08T15:32:27Z	GET /boot/3064816/rescue -> 200 (captures/rescue-after.json)
+2026-09-08T15:32:27Z	T1 hardware reset
+2026-09-08T15:32:31Z	POST /reset/3064816 -> 200 (captures/reset.json)
+2026-09-08T15:32:31Z	polling /boot/3064816/rescue/last for host_key
+2026-09-08T15:32:32Z	GET /boot/3064816/rescue/last -> 200 (captures/rescue-last.json)
+2026-09-08T15:32:40Z	GET /boot/3064816/rescue/last -> 200 (captures/rescue-last.json)
+2026-09-08T15:32:46Z	GET /boot/3064816/rescue/last -> 200 (captures/rescue-last.json)
+2026-09-08T15:32:53Z	GET /boot/3064816/rescue/last -> 200 (captures/rescue-last.json)
+2026-09-08T15:33:00Z	GET /boot/3064816/rescue/last -> 200 (captures/rescue-last.json)
+2026-09-08T15:33:07Z	GET /boot/3064816/rescue/last -> 200 (captures/rescue-last.json)
+2026-09-08T15:33:14Z	GET /boot/3064816/rescue/last -> 200 (captures/rescue-last.json)
+2026-09-08T15:33:21Z	GET /boot/3064816/rescue/last -> 200 (captures/rescue-last.json)
+2026-09-08T15:33:28Z	GET /boot/3064816/rescue/last -> 200 (captures/rescue-last.json)
+2026-09-08T15:33:35Z	GET /boot/3064816/rescue/last -> 200 (captures/rescue-last.json)
+2026-09-08T15:33:42Z	GET /boot/3064816/rescue/last -> 200 (captures/rescue-last.json)
+2026-09-08T15:33:49Z	GET /boot/3064816/rescue/last -> 200 (captures/rescue-last.json)
+2026-09-08T15:33:49Z	host_key published on /rescue/last
+2026-09-08T15:33:49Z	waiting for ssh on 88.99.2.106 (rescue)
+2026-09-08T15:33:57Z	ssh answering on 88.99.2.106 (rescue)
+2026-09-08T15:34:01Z	T2 rescue login over API-pinned host key
+2026-09-08T15:35:13Z	T5 reset into installed system
+2026-09-08T15:35:17Z	POST /reset/3064816 -> 200 (captures/reset-installed.json)
+2026-09-08T15:35:17Z	waiting for ssh on 88.99.2.106 (installed)
+2026-09-08T16:32:20Z	T0 rescue activation
+2026-09-08T16:32:22Z	POST /boot/3064816/rescue -> 200 (captures/rescue-activate.json)
+2026-09-08T16:32:24Z	GET /boot/3064816/rescue -> 200 (captures/rescue-after.json)
+2026-09-08T16:32:24Z	T1 hardware reset
+2026-09-08T16:32:27Z	POST /reset/3064816 -> 200 (captures/reset.json)
+2026-09-08T16:32:27Z	polling /boot/3064816/rescue/last for host_key
+2026-09-08T16:32:29Z	GET /boot/3064816/rescue/last -> 200 (captures/rescue-last.json)
+2026-09-08T16:32:36Z	GET /boot/3064816/rescue/last -> 200 (captures/rescue-last.json)
+2026-09-08T16:32:43Z	GET /boot/3064816/rescue/last -> 200 (captures/rescue-last.json)
+2026-09-08T16:32:50Z	GET /boot/3064816/rescue/last -> 200 (captures/rescue-last.json)
+2026-09-08T16:32:57Z	GET /boot/3064816/rescue/last -> 200 (captures/rescue-last.json)
+2026-09-08T16:33:04Z	GET /boot/3064816/rescue/last -> 200 (captures/rescue-last.json)
+2026-09-08T16:33:10Z	GET /boot/3064816/rescue/last -> 200 (captures/rescue-last.json)
+2026-09-08T16:33:17Z	GET /boot/3064816/rescue/last -> 200 (captures/rescue-last.json)
+2026-09-08T16:33:24Z	GET /boot/3064816/rescue/last -> 200 (captures/rescue-last.json)
+2026-09-08T16:33:32Z	GET /boot/3064816/rescue/last -> 200 (captures/rescue-last.json)
+2026-09-08T16:33:38Z	GET /boot/3064816/rescue/last -> 200 (captures/rescue-last.json)
+2026-09-08T16:33:45Z	GET /boot/3064816/rescue/last -> 200 (captures/rescue-last.json)
+2026-09-08T16:33:45Z	host_key published on /rescue/last
+2026-09-08T16:33:45Z	waiting for ssh on 88.99.2.106 (rescue)
+2026-09-08T16:33:59Z	ssh answering on 88.99.2.106 (rescue)
+2026-09-08T16:34:02Z	T2 rescue login over API-pinned host key
+2026-09-08T16:35:24Z	T5 reset into installed system
+2026-09-08T16:35:27Z	POST /reset/3064816 -> 200 (captures/reset-installed.json)
+2026-09-08T16:35:27Z	waiting for ssh on 88.99.2.106 (installed)
+2026-09-08T16:46:21Z	T-vkvm activation (os=vkvm)
+2026-09-08T16:46:24Z	T-vkvm hardware reset
+2026-09-08T16:46:44Z	T-vkvm activation + hardware reset (retry without authorized_key)
+2026-09-08T16:50:09Z	T-efi hardware reset after installing the EFI bootloader from vKVM rescue
+2026-09-08T17:01:18Z	T-vkvm2 activation + hardware reset (to watch the fixed disk boot)
+2026-09-08T17:04:51Z	T-hw reset after enabling mdev/hwdrivers sysinit services (NIC driver autoload)
+2026-09-08T17:06:14Z	waiting for ssh on 88.99.2.106 (installed)
+2026-09-08T17:06:16Z	ssh answering on 88.99.2.106 (installed)
+2026-09-08T17:06:19Z	T6 installed login over pre-read host key
+2026-09-08T17:06:22Z	GET /boot/3064816/rescue -> 200 (captures/rescue-final.json)
+2026-09-08T17:07:54Z	T0 rescue activation
+2026-09-08T17:07:55Z	POST /boot/3064816/rescue -> 200 (captures/rescue-activate.json)
+2026-09-08T17:07:57Z	GET /boot/3064816/rescue -> 200 (captures/rescue-after.json)
+2026-09-08T17:07:57Z	T1 hardware reset
+2026-09-08T17:08:00Z	POST /reset/3064816 -> 200 (captures/reset.json)
+2026-09-08T17:08:00Z	polling /boot/3064816/rescue/last for host_key
+2026-09-08T17:08:03Z	GET /boot/3064816/rescue/last -> 200 (captures/rescue-last.json)
+2026-09-08T17:08:10Z	GET /boot/3064816/rescue/last -> 200 (captures/rescue-last.json)
+2026-09-08T17:08:16Z	GET /boot/3064816/rescue/last -> 200 (captures/rescue-last.json)
+2026-09-08T17:08:23Z	GET /boot/3064816/rescue/last -> 200 (captures/rescue-last.json)
+2026-09-08T17:08:30Z	GET /boot/3064816/rescue/last -> 200 (captures/rescue-last.json)
+2026-09-08T17:08:37Z	GET /boot/3064816/rescue/last -> 200 (captures/rescue-last.json)
+2026-09-08T17:08:44Z	GET /boot/3064816/rescue/last -> 200 (captures/rescue-last.json)
+2026-09-08T17:08:51Z	GET /boot/3064816/rescue/last -> 200 (captures/rescue-last.json)
+2026-09-08T17:08:58Z	GET /boot/3064816/rescue/last -> 200 (captures/rescue-last.json)
+2026-09-08T17:09:05Z	GET /boot/3064816/rescue/last -> 200 (captures/rescue-last.json)
+2026-09-08T17:09:12Z	GET /boot/3064816/rescue/last -> 200 (captures/rescue-last.json)
+2026-09-08T17:09:19Z	GET /boot/3064816/rescue/last -> 200 (captures/rescue-last.json)
+2026-09-08T17:09:19Z	host_key published on /rescue/last
+2026-09-08T17:09:19Z	waiting for ssh on 88.99.2.106 (rescue)
+2026-09-08T17:09:27Z	ssh answering on 88.99.2.106 (rescue)
+2026-09-08T17:09:31Z	T2 rescue login over API-pinned host key
+2026-09-08T17:09:31Z	T3 install start
+2026-09-08T17:10:16Z	T3 install start
+2026-09-08T17:11:16Z	T4 install end (transcript 16914 bytes — CNF-47)
+2026-09-08T17:11:16Z	T5 reset into installed system
+2026-09-08T17:11:19Z	POST /reset/3064816 -> 200 (captures/reset-installed.json)
+2026-09-08T17:11:19Z	waiting for ssh on 88.99.2.106 (installed)
+2026-09-08T17:12:25Z	ssh answering on 88.99.2.106 (installed)
+2026-09-08T17:12:28Z	T6 installed login over pre-read host key
+2026-09-08T17:12:31Z	GET /boot/3064816/rescue -> 200 (captures/rescue-final.json)
+2026-09-08T17:13:28Z	server 3064816 cancelled (cancellation_date=now) -> HTTP 200

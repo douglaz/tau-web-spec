@@ -1,0 +1,14 @@
+{
+  "rescue": {
+    "server_ip": "88.99.2.106",
+    "server_ipv6_net": "2a01:4f8:173:2941::",
+    "server_number": 3064816,
+    "os": "vkvm",
+    "arch": 64,
+    "active": true,
+    "password": "<redacted>",
+    "authorized_key": [],
+    "host_key": [],
+    "boot_time": null
+  }
+}

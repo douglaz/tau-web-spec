@@ -1,0 +1,46 @@
+{
+  "rescue": {
+    "server_ip": "88.99.2.106",
+    "server_ipv6_net": "2a01:4f8:173:2941::",
+    "server_number": 3064816,
+    "os": "linux",
+    "arch": 64,
+    "active": false,
+    "password": null,
+    "authorized_key": [
+      {
+        "key": {
+          "name": "tau-rehearsal-2026-09-08",
+          "fingerprint": "2e:3a:a9:88:8e:d8:71:f5:49:6c:0e:f1:e9:cf:8f:07",
+          "type": "ED25519",
+          "size": 256,
+          "created_at": "2026-09-08 16:48:17"
+        }
+      }
+    ],
+    "host_key": [
+      {
+        "key": {
+          "fingerprint": "8ijQygHkVNoJZ1X6W6FZkwMBm+8PI9YyXp869pqgaCw",
+          "type": "ECDSA",
+          "size": 256
+        }
+      },
+      {
+        "key": {
+          "fingerprint": "qOAc/pn+7Qj7QKCIxwoMdK1W5qPfChYX0F0NO4WI3NY",
+          "type": "ED25519",
+          "size": 256
+        }
+      },
+      {
+        "key": {
+          "fingerprint": "K2MDCUI5mQxxpNCSsUPbjm1lm7Sq2BYUOsysIthpSa8",
+          "type": "RSA",
+          "size": 3072
+        }
+      }
+    ],
+    "boot_time": "2026-09-08 19:09:11"
+  }
+}

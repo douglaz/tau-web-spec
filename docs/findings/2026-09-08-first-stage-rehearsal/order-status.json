@@ -1,0 +1,69 @@
+{
+  "transaction": {
+    "id": "B20260908-3503094-3075697",
+    "date": "2026-09-08T16:48:31+02:00",
+    "status": "ready",
+    "server_number": 3064816,
+    "server_ip": "88.99.2.106",
+    "authorized_key": [
+      {
+        "key": {
+          "name": "tau-rehearsal-2026-09-08",
+          "fingerprint": "2e:3a:a9:88:8e:d8:71:f5:49:6c:0e:f1:e9:cf:8f:07",
+          "type": "ED25519",
+          "size": 256,
+          "created_at": "2026-09-08 16:48:17"
+        }
+      }
+    ],
+    "host_key": [
+      {
+        "key": {
+          "fingerprint": "JfJ1CvjeUFU0XCoBw3Ivjp62oufRuIZytcQj0S1TuPI",
+          "type": "ECDSA",
+          "size": 256
+        }
+      },
+      {
+        "key": {
+          "fingerprint": "SxH4zp1YepOrT7CbPUWbQgiVnE+AXX+oz4bz/LGCtVI",
+          "type": "ED25519",
+          "size": 256
+        }
+      },
+      {
+        "key": {
+          "fingerprint": "0aqWZN83EAFx2DY4i/lxWrqlJMFGKQzck7r5223PB08",
+          "type": "RSA",
+          "size": 3072
+        }
+      }
+    ],
+    "comment": null,
+    "product": {
+      "id": 3064816,
+      "name": "Server Auction",
+      "description": [
+        "Intel Core i7-6700",
+        "4x RAM 8192 MB DDR4",
+        "2x SSD SATA 512 GB",
+        "NIC 1 Gbit - Intel I219-LM"
+      ],
+      "traffic": "unlimited",
+      "dist": "Rescue system",
+      "arch": 64,
+      "lang": "en",
+      "cpu": "Intel Core i7-6700",
+      "cpu_benchmark": 8048,
+      "memory_size": 32,
+      "hdd_size": 512,
+      "hdd_text": "SSD INIC",
+      "hdd_count": 2,
+      "datacenter": "FSN1-DC8",
+      "network_speed": "1 Gbit/s"
+    },
+    "addons": [
+      "primary_ipv4"
+    ]
+  }
+}

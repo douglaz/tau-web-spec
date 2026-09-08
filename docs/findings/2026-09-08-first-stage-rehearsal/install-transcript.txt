@@ -1,0 +1,323 @@
++ : /dev/disk/by-id/wwn-0x500a07511610dce0
++ readlink -f /dev/disk/by-id/wwn-0x500a07511610dce0
++ DISK=/dev/sda
++ [ -b /dev/sda ]
++ : ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEPtIiDQVsp3rIY7/fkCOviHnx9AsKivS2BaIXeu+luQ tau-rehearsal
++ ALPINE_BRANCH=v3.24
++ ALPINE_VER=3.24.1
++ ARTIFACT=alpine-minirootfs-3.24.1-x86_64.tar.gz
++ URL=https://dl-cdn.alpinelinux.org/alpine/v3.24/releases/x86_64/alpine-minirootfs-3.24.1-x86_64.tar.gz
++ PINNED_SHA256=41f73e3cf5fa919b8aa5ca6b30dc48f0da2720776d7423e2a7748211456fe081
++ ip -4 -o addr show dev eth0 scope global
++ awk {print $4}
+addressing: 88.99.2.106/26 via 88.99.2.65; firmware: bios
++ head -1
++ IP_CIDR=88.99.2.106/26
++ ip -4 route show default
++ awk {print $3}
++ head -1
++ GATEWAY=88.99.2.65
++ [ -d /sys/firmware/efi ]
++ echo bios
++ FIRMWARE=bios
++ echo addressing: 88.99.2.106/26 via 88.99.2.65; firmware: bios
++ cd /tmp
++ curl -fsSLO https://dl-cdn.alpinelinux.org/alpine/v3.24/releases/x86_64/alpine-minirootfs-3.24.1-x86_64.tar.gz
++ curl -fsSLO https://dl-cdn.alpinelinux.org/alpine/v3.24/releases/x86_64/alpine-minirootfs-3.24.1-x86_64.tar.gz.sha256
++ echo 41f73e3cf5fa919b8aa5ca6b30dc48f0da2720776d7423e2a7748211456fe081  alpine-minirootfs-3.24.1-x86_64.tar.gz
++ sha256sum -c -
+alpine-minirootfs-3.24.1-x86_64.tar.gz: OK
++ sha256sum -c alpine-minirootfs-3.24.1-x86_64.tar.gz.sha256
+alpine-minirootfs-3.24.1-x86_64.tar.gz: OK
++ sgdisk --zap-all /dev/sda
+GPT data structures destroyed! You may now partition the disk using fdisk or
+other utilities.
++ sgdisk -n1:0:+1M -t1:ef02 -n2:0:+512M -t2:ef00 -n3:0:0 -t3:8300 /dev/sda
+Creating new GPT entries in memory.
+The operation has completed successfully.
++ partprobe /dev/sda
++ sleep 2
++ lsblk -nrpo NAME /dev/sda
++ sed -n 3p
++ ESP=/dev/sda2
++ lsblk -nrpo NAME /dev/sda
++ sed -n 4p
++ ROOT=/dev/sda3
++ mkfs.vfat -F32 /dev/sda2
+mkfs.fat 4.2 (2021-01-31)
+Discarding device blocks:         0/124895313+ mkfs.ext4 -F /dev/sda3
+mke2fs 1.47.0 (5-Feb-2023)
+  6291456/124895313 20971520/124895313 35651584/124895313 49807360/124895313 64487424/124895313 78643200/124895313 93323264/124895313108003328/124895313122159104/124895313                   done                            
+Creating filesystem with 124895313 4k blocks and 31227904 inodes
+Filesystem UUID: 56411ebb-8390-4d83-abba-cbc1a5aa8e20
+Superblock backups stored on blocks: 
+	32768, 98304, 163840, 229376, 294912, 819200, 884736, 1605632, 2654208, 
+	4096000, 7962624, 11239424, 20480000, 23887872, 71663616, 78675968, 
+	102400000
+
+Allocating group tables:    0/3812         done                            
+Writing inode tables:    0/3812         done                            
+Creating journal (262144 blocks): done
+Writing superblocks and filesystem accounting information:    0/3812         done
+
++ mount /dev/sda3 /mnt
++ mkdir -p /mnt/boot/efi
++ mount /dev/sda2 /mnt/boot/efi
++ tar -xzf alpine-minirootfs-3.24.1-x86_64.tar.gz -C /mnt
++ cp /etc/resolv.conf /mnt/etc/
++ printf https://dl-cdn.alpinelinux.org/alpine/%s/main\nhttps://dl-cdn.alpinelinux.org/alpine/%s/community\n v3.24 v3.24
++ mount --rbind /dev /mnt/dev
++ mount --rbind /proc /mnt/proc
++ mount --rbind /sys /mnt/sys
++ blkid -s UUID -o value /dev/sda3
++ ROOT_UUID=56411ebb-8390-4d83-abba-cbc1a5aa8e20
++ chroot /mnt /usr/bin/env DISK=/dev/sda ROOT_UUID=56411ebb-8390-4d83-abba-cbc1a5aa8e20 IP_CIDR=88.99.2.106/26 GATEWAY=88.99.2.65 FIRMWARE=bios /bin/sh -eux
++ apk update
+v3.24.1-530-gfb317804d78 [https://dl-cdn.alpinelinux.org/alpine/v3.24/main]
+v3.24.1-530-gfb317804d78 [https://dl-cdn.alpinelinux.org/alpine/v3.24/community]
+OK: 28645 distinct packages available
++ apk add alpine-base linux-lts openssh grub grub-bios grub-efi e2fsprogs dosfstools
+(  1/154) Installing bridge (1.5-r5)
+(  2/154) Installing ifupdown-ng (0.13.0-r0)
+(  3/154) Installing openrc-user (0.63.2-r0)
+(  4/154) Installing libcap2 (2.78-r0)
+(  5/154) Installing openrc (0.63.2-r0)
+  Executing openrc-0.63.2-r0.post-install
+(  6/154) Installing mdev-conf (4.10-r0)
+(  7/154) Installing busybox-mdev-openrc (1.37.0-r31)
+(  8/154) Installing alpine-conf (3.22.0-r0)
+(  9/154) Installing busybox-openrc (1.37.0-r31)
+( 10/154) Installing busybox-suid (1.37.0-r31)
+( 11/154) Installing alpine-base (3.24.1-r0)
+( 12/154) Installing dosfstools (4.2-r2)
+( 13/154) Installing libeconf (0.8.3-r0)
+( 14/154) Installing libblkid (2.42.3-r1)
+( 15/154) Installing libcom_err (1.47.4-r0)
+( 16/154) Installing e2fsprogs-libs (1.47.4-r0)
+( 17/154) Installing libuuid (2.42.3-r1)
+( 18/154) Installing e2fsprogs (1.47.4-r0)
+( 19/154) Installing xz-libs (5.8.3-r0)
+( 20/154) Installing zstd-libs (1.5.7-r2)
+( 21/154) Installing kmod (34.2-r1)
+( 22/154) Installing lddtree (1.27-r0)
+( 23/154) Installing device-mapper-libs (2.03.35-r3)
+( 24/154) Installing json-c (0.18-r1)
+( 25/154) Installing cryptsetup-libs (2.8.6-r0)
+( 26/154) Installing kmod-libs (34.2-r1)
+( 27/154) Installing mkinitfs (3.14.0-r0)
+  Executing mkinitfs-3.14.0-r0.post-install
+( 28/154) Installing grub (2.14-r0)
+( 29/154) Installing grub-bios (2.14-r0)
+( 30/154) Installing grub-efi (2.14-r0)
+( 31/154) Installing linux-firmware-s5p-mfc (20260519-r0)
+( 32/154) Installing linux-firmware-yamaha (20260519-r0)
+( 33/154) Installing linux-firmware-yam (20260519-r0)
+( 34/154) Installing linux-firmware-xe (20260519-r0)
+( 35/154) Installing linux-firmware-wfx (20260519-r0)
+( 36/154) Installing linux-firmware-vxge (20260519-r0)
+( 37/154) Installing linux-firmware-vicam (20260519-r0)
+( 38/154) Installing linux-firmware-ueagle-atm (20260519-r0)
+( 39/154) Installing linux-firmware-ttusb-budget (20260519-r0)
+( 40/154) Installing linux-firmware-tigon (20260519-r0)
+( 41/154) Installing linux-firmware-ti-keystone (20260519-r0)
+( 42/154) Installing linux-firmware-ti-connectivity (20260519-r0)
+( 43/154) Installing linux-firmware-lontium (20260519-r0)
+( 44/154) Installing linux-firmware-ti (20260519-r0)
+( 45/154) Installing linux-firmware-tehuti (20260519-r0)
+( 46/154) Installing linux-firmware-synaptics (20260519-r0)
+( 47/154) Installing linux-firmware-sxg (20260519-r0)
+( 48/154) Installing linux-firmware-sun (20260519-r0)
+( 49/154) Installing linux-firmware-slicoss (20260519-r0)
+( 50/154) Installing linux-firmware-sdca (20260519-r0)
+( 51/154) Installing linux-firmware-sb16 (20260519-r0)
+( 52/154) Installing linux-firmware-rtw89 (20260519-r0)
+( 53/154) Installing linux-firmware-rtw88 (20260519-r0)
+( 54/154) Installing linux-firmware-rtlwifi (20260519-r0)
+( 55/154) Installing linux-firmware-rtl_nic (20260519-r0)
+( 56/154) Installing linux-firmware-rtl_bt (20260519-r0)
+( 57/154) Installing linux-firmware-rsi (20260519-r0)
+( 58/154) Installing linux-firmware-rockchip (20260519-r0)
+( 59/154) Installing linux-firmware-realtek (20260519-r0)
+( 60/154) Installing linux-firmware-amdgpu (20260519-r0)
+( 61/154) Installing linux-firmware-radeon (20260519-r0)
+( 62/154) Installing linux-firmware-r128 (20260519-r0)
+( 63/154) Installing linux-firmware-qlogic (20260519-r0)
+( 64/154) Installing linux-firmware-qed (20260519-r0)
+( 65/154) Installing linux-firmware-ath10k (20260519-r0)
+( 66/154) Installing linux-firmware-ath11k (20260519-r0)
+( 67/154) Installing linux-firmware-qcom (20260519-r0)
+( 68/154) Installing linux-firmware-qca (20260519-r0)
+( 69/154) Installing linux-firmware-powervr (20260519-r0)
+( 70/154) Installing linux-firmware-ositech (20260519-r0)
+( 71/154) Installing linux-firmware-nxp (20260519-r0)
+( 72/154) Installing linux-firmware-nvidia (20260519-r0)
+( 73/154) Installing linux-firmware-netronome (20260519-r0)
+( 74/154) Installing linux-firmware-myricom (20260519-r0)
+( 75/154) Installing linux-firmware-mwlwifi (20260519-r0)
+( 76/154) Installing linux-firmware-mwl8k (20260519-r0)
+( 77/154) Installing linux-firmware-libertas (20260519-r0)
+( 78/154) Installing linux-firmware-mrvl (20260519-r0)
+( 79/154) Installing linux-firmware-moxa (20260519-r0)
+( 80/154) Installing linux-firmware-microchip (20260519-r0)
+( 81/154) Installing linux-firmware-meson (20260519-r0)
+( 82/154) Installing linux-firmware-mellanox (20260519-r0)
+( 83/154) Installing linux-firmware-mediatek (20260519-r0)
+( 84/154) Installing linux-firmware-matrox (20260519-r0)
+( 85/154) Installing linux-firmware-liquidio (20260519-r0)
+( 86/154) Installing linux-firmware-lenovo (20260519-r0)
+( 87/154) Installing linux-firmware-korg (20260519-r0)
+( 88/154) Installing linux-firmware-keyspan_pda (20260519-r0)
+( 89/154) Installing linux-firmware-keyspan (20260519-r0)
+( 90/154) Installing linux-firmware-kaweth (20260519-r0)
+( 91/154) Installing linux-firmware-ixp4xx (20260519-r0)
+( 92/154) Installing linux-firmware-isci (20260519-r0)
+( 93/154) Installing linux-firmware-dell (20260519-r0)
+( 94/154) Installing linux-firmware-hp (20260519-r0)
+( 95/154) Installing linux-firmware-intel (20260519-r0)
+( 96/154) Installing linux-firmware-inside-secure (20260519-r0)
+( 97/154) Installing linux-firmware-imx (20260519-r0)
+( 98/154) Installing linux-firmware-i915 (20260519-r0)
+( 99/154) Installing linux-firmware-go7007 (20260519-r0)
+(100/154) Installing linux-firmware-ess (20260519-r0)
+(101/154) Installing linux-firmware-ene-ub6250 (20260519-r0)
+(102/154) Installing linux-firmware-emi62 (20260519-r0)
+(103/154) Installing linux-firmware-emi26 (20260519-r0)
+(104/154) Installing linux-firmware-edgeport (20260519-r0)
+(105/154) Installing linux-firmware-e100 (20260519-r0)
+(106/154) Installing linux-firmware-dsp56k (20260519-r0)
+(107/154) Installing linux-firmware-dpaa2 (20260519-r0)
+(108/154) Installing linux-firmware-dabusb (20260519-r0)
+(109/154) Installing linux-firmware-cypress (20260519-r0)
+(110/154) Installing linux-firmware-cxgb4 (20260519-r0)
+(111/154) Installing linux-firmware-cxgb3 (20260519-r0)
+(112/154) Installing linux-firmware-cpia2 (20260519-r0)
+(113/154) Installing linux-firmware-cnm (20260519-r0)
+(114/154) Installing linux-firmware-cis (20260519-r0)
+(115/154) Installing linux-firmware-cirrus (20260519-r0)
+(116/154) Installing linux-firmware-cavium (20260519-r0)
+(117/154) Installing linux-firmware-cadence (20260519-r0)
+(118/154) Installing linux-firmware-brcm (20260519-r0)
+(119/154) Installing linux-firmware-bnx2x (20260519-r0)
+(120/154) Installing linux-firmware-bnx2 (20260519-r0)
+(121/154) Installing linux-firmware-av7110 (20260519-r0)
+(122/154) Installing linux-firmware-atusb (20260519-r0)
+(123/154) Installing linux-firmware-atmel (20260519-r0)
+(124/154) Installing linux-firmware-ath9k_htc (20260519-r0)
+(125/154) Installing linux-firmware-ath6k (20260519-r0)
+(126/154) Installing linux-firmware-ath12k (20260519-r0)
+(127/154) Installing linux-firmware-arm (20260519-r0)
+(128/154) Installing linux-firmware-ar3k (20260519-r0)
+(129/154) Installing linux-firmware-amphion (20260519-r0)
+(130/154) Installing linux-firmware-amlogic (20260519-r0)
+(131/154) Installing linux-firmware-amdtee (20260519-r0)
+(132/154) Installing linux-firmware-amdnpu (20260519-r0)
+(133/154) Installing linux-firmware-amd-ucode (20260519-r0)
+(134/154) Installing linux-firmware-amd (20260519-r0)
+(135/154) Installing linux-firmware-airoha (20260519-r0)
+(136/154) Installing linux-firmware-aeonsemi (20260519-r0)
+(137/154) Installing linux-firmware-advansys (20260519-r0)
+(138/154) Installing linux-firmware-adaptec (20260519-r0)
+(139/154) Installing linux-firmware-acenic (20260519-r0)
+(140/154) Installing linux-firmware-3com (20260519-r0)
+(141/154) Installing linux-firmware-other (20260519-r0)
+(142/154) Installing linux-firmware (20260519-r0)
+(143/154) Installing linux-lts (6.18.50-r0)
+(144/154) Installing openssh-keygen (10.3_p1-r1)
+(145/154) Installing ncurses-terminfo-base (6.6_p20260516-r0)
+(146/154) Installing libncursesw (6.6_p20260516-r0)
+(147/154) Installing libedit (20260508.3.1-r1)
+(148/154) Installing openssh-client-common (10.3_p1-r1)
+(149/154) Installing openssh-client-default (10.3_p1-r1)
+(150/154) Installing openssh-sftp-server (10.3_p1-r1)
+(151/154) Installing openssh-server-common (10.3_p1-r1)
+(152/154) Installing openssh-server-common-openrc (10.3_p1-r1)
+(153/154) Installing openssh-server (10.3_p1-r1)
+(154/154) Installing openssh (10.3_p1-r1)
+Executing busybox-1.37.0-r31.trigger
+Executing kmod-34.2-r1.trigger
+Executing mkinitfs-3.14.0-r0.trigger
+* creating /boot/initramfs-lts for 6.18.50-0-lts
+Executing grub-2.14-r0.trigger
+* Generating grub configuration file ...
+* Found linux image: /boot/vmlinuz-lts
+* Found initrd image: /boot/initramfs-lts
+* Adding boot menu entry for UEFI Firmware Settings ...
+* done
+OK: 950.4 MiB in 170 packages
++ rc-update add devfs sysinit
+ * service devfs added to runlevel sysinit
++ rc-update add dmesg sysinit
+ * service dmesg added to runlevel sysinit
++ rc-update add mdev sysinit
+ * service mdev added to runlevel sysinit
+ * service hwdrivers added to runlevel sysinit
+ * service hwclock added to runlevel boot
+ * service modules added to runlevel boot
+ * service sysctl added to runlevel boot
+ * service hostname added to runlevel boot
+ * service bootmisc added to runlevel boot
+ * service syslog added to runlevel boot
+ * service networking added to runlevel boot
+ * service sshd added to runlevel default
+ * service mount-ro added to runlevel shutdown
+ * service killprocs added to runlevel shutdown
+ * service savecache added to runlevel shutdown
++ rc-update add hwdrivers sysinit
++ rc-update add hwclock boot
++ rc-update add modules boot
++ rc-update add sysctl boot
++ rc-update add hostname boot
++ rc-update add bootmisc boot
++ rc-update add syslog boot
++ rc-update add networking boot
++ rc-update add sshd default
++ rc-update add mount-ro shutdown
++ rc-update add killprocs shutdown
++ rc-update add savecache shutdown
++ sed -i 's/^#\?rc_logger=.*/rc_logger="YES"/' /etc/rc.conf
++ printf 'GRUB_TIMEOUT=3\nGRUB_TIMEOUT_STYLE=menu\nGRUB_CMDLINE_LINUX_DEFAULT="modules=sd-mod,usb-storage,ext4 rootfstype=ext4 console=tty0 console=ttyS0,115200"\nGRUB_DISABLE_OS_PROBER=true\n'
++ echo tau-rehearsal
++ printf 'auto lo\niface lo inet loopback\n\nauto eth0\niface eth0 inet static\n    address %s\n    gateway %s\n' 88.99.2.106/26 88.99.2.65
++ mkdir -p /root/.ssh
++ chmod 700 /root/.ssh
++ ssh-keygen -A
+ssh-keygen: generating new host keys: RSA ECDSA ED25519 
++ sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin prohibit-password/; s/^#\?PasswordAuthentication.*/PasswordAuthentication no/; s/^#\?KbdInteractiveAuthentication.*/KbdInteractiveAuthentication no/' /etc/ssh/sshd_config
++ printf 'UUID=%s / ext4 defaults 0 1\n' 56411ebb-8390-4d83-abba-cbc1a5aa8e20
++ grub-install '--target=i386-pc' /dev/sda
+Installing for i386-pc platform.
+Installation finished. No error reported.
++ grub-install '--target=x86_64-efi' '--efi-directory=/boot/efi' '--bootloader-id=alpine' --removable --no-nvram
+Installing for x86_64-efi platform.
+Installation finished. No error reported.
++ grub-mkconfig -o /boot/grub/grub.cfg
+Generating grub configuration file ...
+Found linux image: /boot/vmlinuz-lts
+Found initrd image: /boot/initramfs-lts
+Adding boot menu entry for UEFI Firmware Settings ...
+done
++ lsblk -dnpo NAME,TYPE
++ awk $2=="disk"{print $1}
++ grep -vx /dev/sda
++ sgdisk --zap-all /dev/sdb
+GPT data structures destroyed! You may now partition the disk using fdisk or
+other utilities.
++ sgdisk -n1:0:+1M -t1:ef02 /dev/sdb
+Creating new GPT entries in memory.
+The operation has completed successfully.
++ partprobe /dev/sdb
++ sleep 1
++ chroot /mnt grub-install --target=i386-pc /dev/sdb
+Installing for i386-pc platform.
+Installation finished. No error reported.
++ echo ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEPtIiDQVsp3rIY7/fkCOviHnx9AsKivS2BaIXeu+luQ tau-rehearsal
++ chmod 600 /mnt/root/.ssh/authorized_keys
+=== INSTALLED HOST KEYS (read inside rescue, before reboot) ===
++ echo === INSTALLED HOST KEYS (read inside rescue, before reboot) ===
++ cat /mnt/etc/ssh/ssh_host_ecdsa_key.pub /mnt/etc/ssh/ssh_host_ed25519_key.pub /mnt/etc/ssh/ssh_host_rsa_key.pub
+ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBB0eD73OWycEeBY7aoDoZWe0lWLyWWQzVfTOKYE54M+VkHmIJJC0EKKhB85iofrnEO6Xx8WPRKgZ/rX/CThNfcQ= root@rescue
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIWUnjcgaszaXblctaaGRkXuKGASf5Zghx9xpD86TTXb root@rescue
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCbPknjTaMfs2tZCSov4igGBpAcpkebZfkK48AV0m9gRGwJ8ou8Oxp9O19QR+pPW0kkVMq/U7jEgGTrraS//n0rHE3v1Wsp7m7l52J+Ra53muzWnSu9Wn2zaPFrJbyWz4niFd9bbLkMab0FOwlaSvTADP8a2XMinBXmoWspLxWvjtefTzKbX7m/BAe/bsDD73tN/Um2FVsG5zpn63z4+ql67rnYWaQ8lph7U3+K7+jn6K00daHlaaNJMU2JubhNHr1VcV97D4oa+KTRad1KTjbausVhq5BQFd612ZOja9D7kWrn2sf5NuFSOcF3KUN8h7Dwxa9R/F+zlH38DaVrVgBVfhCz4j4ByBTkYreyGxSzPTjfeDAS6vpCJeWICE8RrOHCmypYD6LR4mrJ1aP2a07NjOEjz3E+yVZHi6mP/de/1YtTomCLUxJeGKWL18SEOXDLnQg4DvNXwanM9793kpn/cgP9k/Z6lZBuSa/FI9yYoNk9soxSN1/fOPQsCwzddrc= root@rescue
+=== END HOST KEYS ===
++ echo === END HOST KEYS ===
++ sync

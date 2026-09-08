@@ -1,0 +1,35 @@
+{
+  "linux": {
+    "server_ip": "88.99.2.106",
+    "server_ipv6_net": "2a01:4f8:173:2941::",
+    "server_number": 3064816,
+    "dist": [
+      "AlmaLinux 8 base",
+      "AlmaLinux 9 base",
+      "AlmaLinux 10 base",
+      "Arch Linux latest minimal",
+      "CentOS Stream 9 base",
+      "CentOS Stream 10 base",
+      "Debian 12 base",
+      "Debian 13 base",
+      "openSUSE 16.0 base",
+      "Rocky Linux 8 base",
+      "Rocky Linux 9 base",
+      "Rocky Linux 10 base",
+      "Ubuntu 22.04.2 LTS base",
+      "Ubuntu 22.04.2 LTS Nextcloud",
+      "Ubuntu 24.04 LTS base",
+      "Ubuntu 26.04 LTS base"
+    ],
+    "arch": [
+      64
+    ],
+    "lang": [
+      "en"
+    ],
+    "active": false,
+    "password": null,
+    "authorized_key": [],
+    "host_key": []
+  }
+}
