@@ -78,24 +78,45 @@ rescue() {
   robot rescue-after GET "/boot/$SERVER_NUMBER/rescue" >/dev/null
   note "GET after activation, \`host_key\` identical to POST's: $(cmp -s <(jq -S '.rescue.host_key' "$F/captures/rescue-activate.json") <(jq -S '.rescue.host_key' "$F/captures/rescue-after.json") && echo yes || echo NO)"
 
-  # CHN-R1: pin from the API before first contact. Accept either full keys or fingerprints —
-  # which one Robot returns is the finding. Full keys become a known_hosts file; fingerprints are
-  # compared against the keyscan below.
-  : > "$KH"
-  jq -r '.rescue.host_key[]' "$F/captures/rescue-activate.json" | while read -r hk; do
-    case "$hk" in ssh-*|ecdsa-*|sk-*) echo "$(server_ip) $hk" >> "$KH";; esac
-  done
   stamp "T1 hardware reset"
   robot reset POST "/reset/$SERVER_NUMBER" -d type=hw >/dev/null
+  rescue_login
+}
+
+# Found 2026-09-08: POST /boot/{n}/rescue publishes NO host key. The rescue boot generates fresh
+# keys, and once it has booted, GET /boot/{n}/rescue reports `active: false, host_key: []` while
+# GET /boot/{n}/rescue/last carries the fingerprints. So the pin is read from /rescue/last after
+# the reset, polled until it fills, and only then is the first connection made.
+rescue_login() {
+  stamp "polling /boot/$SERVER_NUMBER/rescue/last for host_key"
+  until robot rescue-last GET "/boot/$SERVER_NUMBER/rescue/last" >/dev/null && [ "$(jq '.rescue.host_key | length' "$F/captures/rescue-last.json")" -gt 0 ]; do sleep 5; done
+  stamp "host_key published on /rescue/last"
+  note "## OPN-6 — \`host_key\` as published after the rescue boot, on \`/boot/{n}/rescue/last\` (CNF-48)"
+  note '```json'; jq '.rescue.host_key' "$F/captures/rescue-last.json" | tee -a "$NOTES"; note '```'
   wait_ssh rescue
-  note "Wire fingerprints (rescue): "; ssh-keygen -lf "$F/captures/keyscan-rescue.txt" | sed 's/^/    /' | tee -a "$NOTES"
-  if [ -s "$KH" ]; then
-    note "API published full keys → known_hosts built from the API alone. Pinned login:"
-    ssh_pinned 'echo PINNED-RESCUE-LOGIN-OK; uname -a; lsblk -dno NAME,SIZE,MODEL' | tee -a "$NOTES" && stamp "T2 rescue login over API-pinned host key"
-  else
-    note "API published no full keys (fingerprints or empty) — compare the lines above by hand; recording as a finding for CHN-R1."
-    cp "$F/captures/keyscan-rescue.txt" "$KH"; stamp "T2 rescue reachable; pin was NOT from the API"
-  fi
+  pin_from_api "$F/captures/rescue-last.json" '.rescue.host_key' rescue
+  ssh_pinned 'echo PINNED-RESCUE-LOGIN-OK; uname -a; lsblk -dno NAME,SIZE,MODEL,TRAN' | tee -a "$NOTES" && stamp "T2 rescue login over API-pinned host key"
+}
+
+# CHN-R1: pin from the API before first contact. Robot's host_key holds SHA-256 fingerprints
+# ({key:{fingerprint,type,size}}, base64, no "SHA256:" prefix) — seen 2026-09-08 on the order
+# transaction. A full-key shape is accepted too. The known_hosts file gets ONLY the presented
+# keys whose fingerprint the API published; a presented key the API did not publish is refused.
+pin_from_api() {  # pin_from_api <capture.json> <jq path to host_key array> <keyscan label>
+  local cap=$1 path=$2 label=$3 api line fp matched=0 unmatched=0
+  api=$(jq -r "${path}[] | if type==\"object\" then .key.fingerprint else . end" "$cap")
+  : > "$KH"
+  while read -r line; do
+    case "$line" in ''|'#'*) continue;; esac
+    fp=$(printf '%s\n' "$line" | ssh-keygen -lf /dev/stdin | awk '{print $2}' | sed 's/^SHA256://')
+    if grep -qxF -- "$fp" <<<"$api" || grep -qF -- "${line#* }" <<<"$api"; then
+      echo "$line" >> "$KH"; matched=$((matched+1))
+    else
+      unmatched=$((unmatched+1)); note "  presented key NOT in API host_key: ${line#* } (SHA256:$fp)"
+    fi
+  done < "$F/captures/keyscan-$label.txt"
+  note "Pin check ($label): $matched presented keys matched the API's host_key, $unmatched did not. API published: $(printf '%s' "$api" | tr '\n' ' ')"
+  [ "$matched" -gt 0 ] || { note "**No presented key matched the API — refusing to connect (CHN-R1).**"; exit 1; }
 }
 
 install() {
@@ -128,6 +149,7 @@ reboot_installed() {
 case "${1:-}" in
   preflight) preflight;;
   rescue) rescue;;
+  rescue-login) rescue_login;;   # resume: the machine is already in rescue, pin and log in
   install) install;;
   reboot) reboot_installed;;
   all) preflight; rescue; install; reboot_installed;;
