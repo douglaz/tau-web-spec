@@ -2,10 +2,13 @@
 # The first stage by hand, once (STG-2, TASKS.md T1). See README.md.
 set -euo pipefail
 cd "$(dirname "$0")"
-[ -f rehearse.env ] || { echo "copy rehearse.env.example to rehearse.env and fill it in"; exit 2; }
+# Credentials come from rehearse.env, or from the shell (HETZNER_ROBOT_USER/PASS) so nothing
+# secret need touch disk. SERVER_NUMBER and SSH_KEY may come from either too.
 # shellcheck disable=SC1091
-. ./rehearse.env
-: "${ROBOT_USER:?}" "${ROBOT_PASS:?}" "${SERVER_NUMBER:?}" "${SSH_KEY:?}"
+[ -f rehearse.env ] && . ./rehearse.env
+ROBOT_USER=${ROBOT_USER:-${HETZNER_ROBOT_USER:-}}; ROBOT_PASS=${ROBOT_PASS:-${HETZNER_ROBOT_PASS:-}}
+SSH_KEY=${SSH_KEY:-$HOME/.ssh/tau-rehearsal}
+: "${ROBOT_USER:?}" "${ROBOT_PASS:?}" "${SERVER_NUMBER:?set SERVER_NUMBER (Robot server number)}" "${SSH_KEY:?}"
 [ -f "$SSH_KEY" ] || { echo "SSH_KEY $SSH_KEY missing: ssh-keygen -t ed25519 -f $SSH_KEY -N ''"; exit 2; }
 
 API=https://robot-ws.your-server.de
