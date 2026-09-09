@@ -115,7 +115,8 @@ so what is actually missing is the **declaration format** plus the items no decl
 default credentials, sshd posture, and whatever a given vendor makes possible.
 
 That also makes the question per-**tenant** as much as per-vendor, which the title understates.
-*Closes when:* the lnrent owner supplies its concrete delivery declaration (listeners,
+*Closes when:* the lnrent owner supplies its concrete delivery declaration
+([douglaz/lnrent#87](https://github.com/douglaz/lnrent/issues/87)) (listeners,
 service lifecycle, permitted key material and drift checks), a declaration format and Robot
 lockdown checklist exist, and briefs 2–3 are authored from them and exercised. `CNF-49`–`CNF-53`
 then need integrated evidence. This is a required tenant input, not permission to invent its

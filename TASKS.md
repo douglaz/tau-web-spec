@@ -10,7 +10,8 @@ gated on it.
 
 ## Open
 
-- [ ] **T21 — First-stage tenant delivery inputs** (`OPN-14`). Obtain the lnrent-owned
+- [ ] **T21 — First-stage tenant delivery inputs** (`OPN-14`; tracked in lnrent as
+      [douglaz/lnrent#87](https://github.com/douglaz/lnrent/issues/87)). Obtain the lnrent-owned
       declaration, finish the Robot lockdown checklist and briefs 2–3, then exercise
       `CNF-49`–`CNF-53`. This blocks stage completion, not harness construction.
 - [ ] **T22 — Implement the clarified credential and recovery contracts** (`OPN-3`).
