@@ -246,7 +246,7 @@ brief that is wrong in a way reinstalling will not fix. It is password-only (the
 activation's `password`, `SEC-5` row 9, which the harness therefore still never uses), it
 sits behind a self-signed certificate that no pin can vouch for, and its virtual machine
 boots UEFI regardless of what the board does. A brief for this path encodes what the
-rehearsal learned instead: a bootloader on every disk, the distribution's own kernel
+rehearsal learned instead: a bootloader on every selected installation disk, the distribution's own kernel
 arguments for its initramfs, both BIOS and EFI loaders, the distribution's full boot-time
 service set, and disk identifiers taken from the environment the command runs in. Each of
 those was a silent failure once. And a brief distinguishes **resuming** an interrupted

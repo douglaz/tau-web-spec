@@ -23,10 +23,16 @@ that every value is captured and nothing is typed twice.
 ```sh
 ./rehearse.sh preflight     # read-only: server, current rescue state, installer catalogue, keys
 ./rehearse.sh rescue        # REBOOTS THE MACHINE: registers the key, activates rescue, resets, waits for ssh
-./rehearse.sh install       # runs install-alpine.sh inside rescue, reads the new host keys before reboot
+./rehearse.sh install       # WIPES DISK and every OTHER_DISKS entry: runs install-alpine.sh inside rescue, reads the new host keys before reboot
 ./rehearse.sh reboot        # resets into the installed system, connects with the pre-read host key
-./rehearse.sh all           # the four in order, with a confirmation before anything that reboots
+./rehearse.sh all           # the four in order, with a confirmation before anything that reboots or wipes
+./rehearse.sh rescue-login      # resume: the machine is already in rescue; pin and log in without another reset
+./rehearse.sh installed-login   # resume: the machine was already reset into the installed system
 ```
+
+`DISK` and `OTHER_DISKS` take `/dev/disk/by-id/` paths only; `/dev/sdX` swaps between boots on
+this hardware. Only the disks you list get a bootloader, so on a two-disk box list the second
+one or the BIOS may boot the empty disk.
 
 Everything it learns goes into `findings/<date>/`: redacted JSON captures (`password` fields
 are replaced before touching disk), a `timeline.tsv` of wall-clock stamps, and `notes.md`.

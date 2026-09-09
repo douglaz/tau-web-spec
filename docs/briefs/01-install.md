@@ -191,6 +191,7 @@ grub-mkconfig -o /boot/grub/grub.cfg
     printf '%s\n' "$other"
   done > "$selected"
   sort -u "$selected" -o "$selected"
+  sed 's/^/erasing additional disk: /' "$selected"
   while IFS= read -r other; do
     sgdisk --zap-all "$other"
     sgdisk -n1:0:+1M -t1:ef02 "$other"

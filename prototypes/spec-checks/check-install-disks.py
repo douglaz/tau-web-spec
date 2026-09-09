@@ -20,11 +20,15 @@ else:
     raise SystemExit("usage: check-install-disks.py [--baseline]")
 blocks = re.findall(r"```sh\n(.*?)\n```", source, re.S)
 block, = [part for part in blocks if 'sgdisk --zap-all "$other"' in part]
+if not sys.argv[1:]:
+    # The rehearsal script carries the same block verbatim, so these cases cover it too.
+    script = (ROOT / "prototypes/first-stage-rehearsal/install-alpine.sh").read_text()
+    assert block in script, "install-alpine.sh's additional-disk block differs from the brief's"
 
 with tempfile.TemporaryDirectory(prefix="tau-disk-check-") as directory:
-    base = Path(directory)
-    root, extra, untouched = [base / name for name in ("root", "extra", "untouched")]
-    for disk in (root, extra, untouched):
+    base = Path(directory).resolve()  # the block compares readlink -e output
+    root, extra, untouched, part = [base / name for name in ("root", "extra", "untouched", "extra1")]
+    for disk in (root, extra, untouched, part):
         disk.touch()
     alias = base / "root-wwn"
     alias.symlink_to(root)
@@ -32,17 +36,20 @@ with tempfile.TemporaryDirectory(prefix="tau-disk-check-") as directory:
     extra_alias.symlink_to(extra)
     log = base / "writes"
     # '[' is overridden only for the fake -b predicate. All other checks use bash's builtin.
-    # lsblk supports both the old enumeration and the corrected per-device type query.
+    # lsblk supports both the old enumeration and the corrected per-device type query; the
+    # fake partition is a block device whose TYPE is part, not disk.
     stubs = r'''
 function [() {
   if builtin [ "$#" -eq 3 ] && builtin [ "$1" = -b ]; then
-    case "$2" in "$FAKE_ROOT"|"$FAKE_EXTRA"|"$FAKE_UNTOUCHED") return 0;; *) return 1;; esac
+    case "$2" in "$FAKE_ROOT"|"$FAKE_EXTRA"|"$FAKE_UNTOUCHED"|"$FAKE_PART") return 0;; *) return 1;; esac
   fi
   builtin [ "$@"
 }
 lsblk() {
   if [ "$1" = -dnpo ]; then
     printf '%s disk\n' "$FAKE_ROOT" "$FAKE_EXTRA" "$FAKE_UNTOUCHED"
+  elif [ "$3" = "$FAKE_PART" ]; then
+    printf 'part\n'
   else
     printf 'disk\n'
   fi
@@ -53,7 +60,7 @@ sleep() { :; }
 chroot() { :; }
 '''
     env = dict(os.environ, DISK=str(alias), FAKE_ROOT=str(root), FAKE_EXTRA=str(extra),
-               FAKE_UNTOUCHED=str(untouched), WRITE_LOG=str(log))
+               FAKE_UNTOUCHED=str(untouched), FAKE_PART=str(part), WRITE_LOG=str(log))
     cases = [
         ("root alias plus extra", [alias, extra_alias], True, [extra]),
         ("canonical root plus extra", [root, extra_alias], True, [extra]),
@@ -61,6 +68,7 @@ chroot() { :; }
         ("empty additional set", [], True, []),
         ("missing entry after valid disk", [extra, base / "missing"], False, []),
         ("non-block entry after valid disk", [extra, base], False, []),
+        ("partition entry after valid disk", [extra, part], False, []),
     ]
     for name, selected, success, expected in cases:
         log.write_text("")

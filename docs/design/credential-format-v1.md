@@ -62,15 +62,18 @@ the wrapping key with a fresh random 12-byte nonce and a 128-bit tag. Persist a 
 with fields `version: 1`, `purpose: "local"`, `id`, `kdf: "PBKDF2-SHA256"`,
 `iterations: 600000`, `salt`, `nonce`, `wrapped_key` (ciphertext followed by tag). Binary
 fields use unpadded base64url. The authenticated additional data is exactly UTF-8
-`tau-web/local/v1/` followed by the encoded ID. Reject wrong lengths, duplicate/unknown
-fields, unknown algorithms or versions and wrong parameters before invoking the KDF.
+`tau-web/local/v1/` followed by the encoded ID. Reject wrong lengths, unknown fields,
+unknown algorithms or versions and wrong parameters before invoking the KDF. Duplicate keys
+need not be detected (the platform parser cannot); the envelope is written only by this
+implementation, and any altered field fails the tag.
 
 Encrypt each journal record and snapshot separately under the data key, using AES-256-GCM
 with a fresh CSPRNG 12-byte nonce and a 128-bit tag. Bind store ID, record type, monotonically
-allocated record number and predecessor ciphertext hash in authenticated additional data:
-UTF-8 `tau-web/local/v1/<id>/<type>/<number>/<previous>`; `type` is `event` or `snapshot`,
-`number` is unsigned decimal without leading zeros and `previous` is lowercase SHA-256 hex
-(64 zeroes for the first record). Record numbers share one allocator across both types.
+allocated record number and the predecessor's content address in authenticated additional
+data: UTF-8 `tau-web/local/v1/<id>/<type>/<number>/<previous>`; `type` is `event` or
+`snapshot`, `number` is unsigned decimal without leading zeros and `previous` is the
+predecessor's content address as defined below, lowercase SHA-256 hex (64 zeroes for the
+first record). Record numbers share one allocator across both types.
 The journal envelope carries these fields plus nonce and ciphertext/tag. Snapshots include
 their replay position inside the ciphertext. Hash the complete serialized record for content
 addressing; store that exact serialization instead of reconstructing it on read.

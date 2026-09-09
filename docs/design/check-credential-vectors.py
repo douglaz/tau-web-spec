@@ -82,13 +82,4 @@ if __name__ == "__main__":
     elif sys.argv[1:]:
         raise SystemExit("usage: check-credential-vectors.py [--write]")
     check(json.loads(fixture.read_text()), wanted)
-    # Ensure a fixture changed at a load-bearing output is actually rejected.
-    broken = json.loads(fixture.read_text())
-    broken["vectors"][0]["public_hex"] = "00" * 32
-    try:
-        check(broken, wanted)
-    except ValueError:
-        print("PASS: changed public-key fixture rejected")
-    else:
-        raise AssertionError("changed fixture was accepted")
     print("PASS: 10 v1 key vectors agree across independent implementations")

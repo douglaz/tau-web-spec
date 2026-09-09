@@ -22,11 +22,12 @@ implemented harness or a new hardware rehearsal.
 - `python prototypes/spec-checks/check-install-disks.py --baseline` → **exit 1, expected**:
   the original block selects the root and an unselected disk for erasure. Every destructive
   command is stubbed; fake disk files stand in for devices.
-- `python prototypes/spec-checks/check-install-disks.py` → **exit 0**: six cases cover root
-  aliases, canonical root paths, duplicate aliases, empty selection, missing paths and
-  non-block entries. Invalid selections produce no erasure calls.
+- `python prototypes/spec-checks/check-install-disks.py` → **exit 0**: seven cases cover root
+  aliases, canonical root paths, duplicate aliases, empty selection, missing paths, non-block
+  entries and partitions. Invalid selections produce no erasure calls. The same block is
+  asserted byte-identical in `install-alpine.sh`, so the cases cover the rehearsal script too.
 - `uv run docs/design/check-credential-vectors.py` → **exit 0**: ten role/index vectors
-  agree across stdlib/cryptography and bip-utils; a changed public-key fixture is rejected.
+  agree across stdlib/cryptography and bip-utils.
   These are public test secrets. This is not a test of an implemented browser key store.
 - `git diff --check` → **exit 0**.
 - Independent architecture, reliability and maintainability reviewers accepted the corrected

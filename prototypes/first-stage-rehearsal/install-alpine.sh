@@ -8,11 +8,23 @@
 # a finding, not a failure of the rehearsal.
 set -eux
 
-: "${DISK:?set DISK — prefer a stable /dev/disk/by-id/ path; /dev/sdX names swap between boots}"
-DISK=$(readlink -f "$DISK")
+: "${DISK:?set DISK to a stable /dev/disk/by-id/ path; /dev/sdX names swap between boots}"
 # by-id names differ between udev (rescue: full model string) and mdev (Alpine: truncated), so
 # a name copied from one system may not exist on the other. Fail before touching any disk.
-[ -b "$DISK" ] || { echo "DISK $DISK is not a block device here; disks are:"; lsblk -dno NAME,SIZE,MODEL,SERIAL,WWN; exit 2; }
+# The same goes for every OTHER_DISKS entry: checked here, before the root disk is wiped, and
+# again by canonical identity right before it is erased. Nothing is auto-selected (CNF-85).
+whole_disk() {
+  case "$1" in /dev/disk/by-id/*) ;; *) echo "$1 is not a /dev/disk/by-id/ path"; return 1;; esac
+  r=$(readlink -e -- "$1") && [ -b "$r" ] && [ "$(lsblk -dnro TYPE "$r")" = disk ] || { echo "$1 is not a whole disk here"; return 1; }
+}
+whole_disk "$DISK" || { echo "disks are:"; lsblk -dno NAME,SIZE,MODEL,SERIAL,WWN; exit 2; }
+printf '%s\n' "${OTHER_DISKS:-}" | while IFS= read -r d; do
+  [ -n "$d" ] || continue
+  whole_disk "$d" || { echo "bad OTHER_DISKS entry; disks are:"; lsblk -dno NAME,SIZE,MODEL,SERIAL,WWN; exit 2; }
+done
+DISK=$(readlink -e -- "$DISK")
+echo "=== DISKS: root=$DISK additional=${OTHER_DISKS:-NONE}; any other whole disk below gets NO bootloader ==="
+lsblk -dno NAME,SIZE,MODEL,SERIAL,WWN
 : "${AUTHORIZED_KEY:?the operator public key line}"
 
 # ARC-25: a versioned release path (never latest-stable/), and the sibling .sha256 at the same path.
@@ -85,12 +97,35 @@ EOF
 
 # Found 2026-09-08: /dev/sdX names are NOT stable across boots on this hardware, and the BIOS
 # boots whichever disk it enumerates first. The first run put GRUB on one disk only and the
-# machine never booted. So: a BIOS-boot partition and GRUB on EVERY other disk too, as
-# Hetzner's own installer does, all pointing at the same /boot.
-for other in $(lsblk -dnpo NAME,TYPE | awk '$2=="disk"{print $1}' | grep -vx "$DISK"); do
-  sgdisk --zap-all "$other"; sgdisk -n1:0:+1M -t1:ef02 "$other"; partprobe "$other"; sleep 1
-  chroot /mnt grub-install --target=i386-pc "$other"
-done
+# machine never booted. So: a BIOS-boot partition and GRUB on each ADDITIONAL SELECTED disk
+# too, all pointing at the same /boot. $OTHER_DISKS is an explicit newline-separated list
+# (never "every disk found": docs/briefs/01-install.md, CNF-85); the whole list is validated
+# before the first destructive command, and the root disk is excluded by canonical identity.
+(
+  set -eu
+  root_disk=$(readlink -e -- "$DISK")
+  [ -b "$root_disk" ]
+  [ "$(lsblk -dnro TYPE "$root_disk")" = disk ]
+  selected=$(mktemp)
+  trap 'rm -f "$selected"' EXIT
+  printf '%s\n' "${OTHER_DISKS:-}" | while IFS= read -r candidate; do
+    [ -n "$candidate" ] || continue
+    other=$(readlink -e -- "$candidate") || exit 1
+    [ -b "$other" ] || exit 1
+    [ "$(lsblk -dnro TYPE "$other")" = disk ] || exit 1
+    [ "$other" != "$root_disk" ] || continue
+    printf '%s\n' "$other"
+  done > "$selected"
+  sort -u "$selected" -o "$selected"
+  sed 's/^/erasing additional disk: /' "$selected"
+  while IFS= read -r other; do
+    sgdisk --zap-all "$other"
+    sgdisk -n1:0:+1M -t1:ef02 "$other"
+    partprobe "$other"
+    sleep 1
+    chroot /mnt grub-install --target=i386-pc "$other"
+  done < "$selected"
+)
 echo "$AUTHORIZED_KEY" > /mnt/root/.ssh/authorized_keys; chmod 600 /mnt/root/.ssh/authorized_keys
 
 echo "=== INSTALLED HOST KEYS (read inside rescue, before reboot) ==="

@@ -95,7 +95,7 @@ rescue_login() {
   note '```json'; jq '.rescue.host_key' "$F/captures/rescue-last.json" | tee -a "$NOTES"; note '```'
   wait_ssh rescue
   pin_from_api "$F/captures/rescue-last.json" '.rescue.host_key' rescue
-  ssh_pinned 'echo PINNED-RESCUE-LOGIN-OK; uname -a; lsblk -dno NAME,SIZE,MODEL,TRAN' | tee -a "$NOTES" && stamp "T2 rescue login over API-pinned host key"
+  ssh_pinned 'echo PINNED-RESCUE-LOGIN-OK; uname -a; lsblk -dno NAME,SIZE,MODEL,TRAN,WWN' | tee -a "$NOTES" && stamp "T2 rescue login over API-pinned host key"
 }
 
 # CHN-R1: pin from the API before first contact. Robot's host_key holds SHA-256 fingerprints
@@ -121,10 +121,11 @@ pin_from_api() {  # pin_from_api <capture.json> <jq path to host_key array> <key
 
 install() {
   [ -s "$KH" ] || { echo "no known_hosts from the rescue step"; exit 1; }
-  if [ -z "${DISK:-}" ]; then ssh_pinned 'lsblk -dno NAME,SIZE,MODEL,TRAN'; echo "set DISK in rehearse.env and rerun install"; exit 1; fi
-  confirm "install Alpine onto $DISK inside rescue (wipes the disk)"
+  ssh_pinned 'lsblk -dno NAME,SIZE,MODEL,TRAN,WWN'
+  if [ -z "${DISK:-}" ]; then echo "set DISK in rehearse.env (a /dev/disk/by-id/ path) and rerun install"; exit 1; fi
+  confirm "install Alpine onto $DISK inside rescue (wipes it; OTHER_DISKS are wiped and get GRUB too: ${OTHER_DISKS:-NONE, so no other disk gets a bootloader})"
   stamp "T3 install start"
-  ssh_pinned "DISK=$DISK AUTHORIZED_KEY='$(cat "$SSH_KEY.pub")' sh -s" < install-alpine.sh 2>&1 | tee "$F/captures/install-transcript.txt"
+  ssh_pinned "DISK=$DISK OTHER_DISKS='${OTHER_DISKS:-}' AUTHORIZED_KEY='$(cat "$SSH_KEY.pub")' sh -s" < install-alpine.sh 2>&1 | tee "$F/captures/install-transcript.txt"
   stamp "T4 install end (transcript $(wc -c < "$F/captures/install-transcript.txt") bytes — CNF-47)"
   # STG-4 / CNF-22: the installed system's host keys, read inside rescue, become the pin for hop two.
   sed -n '/=== INSTALLED HOST KEYS/,/=== END HOST KEYS/p' "$F/captures/install-transcript.txt" | grep -E '^(ssh-|ecdsa-)' | sed "s/^/$(server_ip) /" > "$KH.installed"
@@ -159,6 +160,6 @@ case "${1:-}" in
   reboot) reboot_installed;;
   installed-login) installed_login;;
   all) preflight; rescue; install; reboot_installed;;
-  *) echo "usage: $0 preflight|rescue|install|reboot|all"; exit 2;;
+  *) echo "usage: $0 preflight|rescue|rescue-login|install|reboot|installed-login|all"; exit 2;;
 esac
 echo "findings in $F"
