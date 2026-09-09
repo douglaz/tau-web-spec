@@ -94,7 +94,8 @@ The consequence above left one thing open — the returning session cannot tell 
 command from a dead one — and named a durable remote job record as the answer without designing
 it. `STA-20` and `STA-21` now do.
 
-**Every box-plane command is a job, uniformly.** The machine writes, to persistent disk, the
+**Every box-plane command is a job, uniformly.** On an installed system the machine writes to
+persistent disk the
 command **as received**, its output, its exit code once it has one, and enough to tell whether
 the process is alive. On reconnect the session reads that instead of guessing.
 
@@ -137,3 +138,18 @@ distribution makes re-running cheap and its build lock makes a concurrent second
 cleanly rather than corrupt. Rejected because the other declared distribution has no equivalent
 lock, so this too would generalise from one shape — and a still-running command re-run
 concurrently is the corruption case the whole question exists for.
+
+## Rescue and unlock contracts, September 9 correction
+
+`STA-20b` narrows the persistence claim during installation. The rescue environment records
+jobs in `/run` outside installation disks; these survive disconnects within one boot, not a
+reboot. The harness collects terminal records and installed host pins into its own durable
+journal before permitting a planned reset. Unexpected reboot or missing records leaves effects
+unresolved until inspection or explicit operator disposition. No storage directory on a disk
+being repartitioned can satisfy the old unconditional persistence requirement.
+
+`STA-23` fixes the local-store unlock boundary: a passphrase wraps an independent random data
+key, only the harness worker unwraps it, and lock/restart clears runtime authority. The v1
+credential-format companion owns the KDF and envelope. A compromised device can still roll
+back a whole encrypted store; importing a backup therefore invokes `STA-22b`'s restriction
+against new allocations under the recovered seed. Encryption does not prove backup freshness.

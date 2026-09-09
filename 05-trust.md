@@ -22,7 +22,7 @@ flowchart LR
         E6[Untyped-scope services]
         E7[Software signer]
         E8[Artifact source]
-        E8a["Binary cache signing key<br/>one distribution only"]
+        E8a["Package/cache signing keys<br/>both distributions"]
         E9[Delegated receiving service]
         E10["Public Nostr relay,<br/>if the operator adds one"]
     end
@@ -117,18 +117,14 @@ browser against a value that ships in the signed bundle (`ARC-25`), which makes 
 rather than trusted blindly, in the same discipline as the relay pinned by host key. Until the
 pin exists in an implementation, this party is trusted outright.
 
-**TRU-E8a — The binary cache's signing key holder, on the distribution that has one.** `ARC-25a`
-records that only one of the two declared distributions admits artifacts by content hash. The
-other admits them by **signature**, against a key baked into its installer, and the browser has
-no way to supply an expected hash for what actually gets installed. That key's holder decides
-what every machine on that path runs — `TRU-E8`'s blast radius exactly — and **no pin removes
-them**, which is what separates this row from the one above it. It is elective in the only sense
-that matters: it follows from choosing that distribution, and choosing the other one avoids it
-entirely.
-
-The party is real whether or not it is written down, and it was not. That is the whole reason
-for the row: `SEC-10` prices an unlisted party as a schema migration, and an unlisted party
-already relied on is worse than a listed one.
+**TRU-E8a — The package or binary-cache signing key holders.** Both declared distributions
+rely on them (`ARC-25a`). Alpine's minirootfs hash does not cover the kernel, SSH server and
+other packages fetched afterwards; those are admitted through its signed repositories.
+NixOS admits additional store paths through its binary-cache signatures. The bundle fixes
+which signing keys are accepted, but a holder of an accepted key can supply changed binaries.
+This authority is elective through the package/cache policy, and choosing Alpine does not
+remove it. The trust display names the actual accepted signers and never presents a bootstrap
+image hash as a hash of the complete installed system.
 
 **TRU-E10 — A public Nostr relay the operator adds to the relay set** (`CHN-18`). Elective in
 the plainest sense: the publisher's relay is mandatory and sufficient, and this is a resilience
@@ -187,7 +183,9 @@ the publisher's second capability — bundle plus topology — and the trust dis
 operator. The publisher's seat is a **bootstrap**: the relay is direct-first and minimum-usage
 by design, and the product moves the operator to a relay on a maintained machine of their own
 once one exists. That machine's own bound model then becomes a potential metadata observer,
-priced rather than hidden (`CHN-14`).
+priced rather than hidden (`CHN-14`). An external relay still carries management and scans
+of the relay-host machine itself (`CHN-11`); self-hosting does not eliminate that route's
+availability or topology exposure.
 
 **TRU-A3 — Retired. The coordinator is not a party this product adds.** It was listed because
 its reach was believed broader than anything else the application does — every machine's client

@@ -1,21 +1,24 @@
 # 08 — Open questions
 
-This is the only list. Anything else that reads like an open question elsewhere in this
-repository is history.
+This owns open decisions and empirical gaps. `TASKS.md` links execution work back here;
+`07-conformance.md` owns the acceptance evidence and stage applicability.
 
 Each entry says **what would close it**, because a question without a closure criterion is a
 worry rather than a work item, and because the gating set otherwise mixes a twenty-minute
 probe with a multi-week spike as though they were the same size.
 
-## Gating
+## Gates by milestone
 
-Three, and every one is empirical or currently unanswerable. Nothing here waits on a
-decision.
+Construction admission (`STG-2`) closed with the September 8 installation rehearsal.
+Completing the first stage still gates on `OPN-14`, integrated resume (`OPN-18`), and the
+first-stage acceptance subset in `07-conformance.md`, including `STA-23` unlock and v1
+derivation evidence. `OPN-3` gates recovery/cloud enablement; `OPN-4` gates the vault claim;
+`OPN-5` gates the eventual phone-only acquisition experience, not first-stage construction.
 
 **OPN-3 — The recovery machinery is designed and unproven.** The design is recorded across
 `03-state-and-recovery.md` and `CHN-R5`. What stays open is empirical: the attest hook has to
 fire reliably on a real first boot and reach the relay set; the rescue ceremony has to be
-rehearsed once end to end; and the sheet needs a format an operator can actually re-import.
+rehearsed once end to end; and the sheet format needs a demonstrated import on the target device.
 Until those run, the channel's loss story is a design, not a property.
 
 *Narrowed 2026-09-06.* The attest pipeline itself has now run — gift-wrap from a no-TTY script,
@@ -30,7 +33,12 @@ dedicated path — register the client key, activate rescue, pin from the API, i
 the installed host keys, reconnect — so that item leaves this entry. What remains is the cloud
 route's attest on a real first boot, and the sheet's re-import.
 
-*Closes when:* `CNF-18`, `CNF-19`, `CNF-20` and `CNF-72` pass on real hardware.
+*Format fixed 2026-09-09:* `STA-22a`/`STA-22b` define derivation and recoverable allocation
+metadata; the credential-format companion specifies the encrypted sheet. Missing/stale metadata
+is handled explicitly, including restored seeds being unavailable for new allocations.
+
+*Closes when:* `CNF-18`, `CNF-19`, `CNF-20`, `CNF-72`, `CNF-83` and `CNF-84` pass on the
+app and hardware to which each applies. The format alone does not close the recovery gate.
 
 **OPN-4 — Weights-level diversity may not be enforceable.** The runtime signal named the
 *inference provider*, not the weights behind it — and the provider is a layer nobody
@@ -80,7 +88,8 @@ nobody has booted the file. *Closes when:* the file is booted once.
 
 ## Design-level, still open
 
-Genuinely undecided, and not blocking the first stage.
+These do not block starting construction. `OPN-14` **does block completing the first stage**;
+the remaining entries gate the feature each names.
 
 **OPN-10 — The brief format schema.** Frontmatter fields, the local/remote block marker, how a
 block returns structured data to the next one, versioning, signing. Designing a second consumer
@@ -106,7 +115,11 @@ so what is actually missing is the **declaration format** plus the items no decl
 default credentials, sshd posture, and whatever a given vendor makes possible.
 
 That also makes the question per-**tenant** as much as per-vendor, which the title understates.
-*Closes when:* a declaration format exists and a checklist exists for the first stage's vendor.
+*Closes when:* the lnrent owner supplies its concrete delivery declaration (listeners,
+service lifecycle, permitted key material and drift checks), a declaration format and Robot
+lockdown checklist exist, and briefs 2–3 are authored from them and exercised. `CNF-49`–`CNF-53`
+then need integrated evidence. This is a required tenant input, not permission to invent its
+operational contract inside the harness.
 
 **OPN-15 — Reproducible builds and the watchdogs that would make them mean something.** Neither
 exists. Until they do, the bundle's integrity rests on trusting the host outright, and `TRU-A1`
@@ -149,8 +162,9 @@ know it was closed deliberately, and because the reasoning is worth more than th
 no identity model, because there is no identity: access is **bought** (`CHN-15`,
 [ADR-0025](./docs/adr/0025-relay-access-is-bought-not-granted.md)). Issuance is a payment
 bound to a key the browser derives from the seed, scoping and lifetime are the destination
-record `CHN-16` describes, and reacquisition is not needed — the key re-derives, and only a
-compromised seed calls for a new purchase (`STA-17`).
+record `CHN-16` describes. Existing access is recoverable when the seed and pass metadata
+survive. A compromised seed or missing pass metadata requires a new key and purchase;
+unknown old passes expire rather than being reported revoked (`STA-17`, `STA-22b`).
 
 That satisfies the closure criterion this question was written with: a new operator obtains
 access without the publisher hand-issuing anything, and the trusted-party list is unchanged,
@@ -188,7 +202,8 @@ is empirical — runtime admission of the policy is unverified.
 
 **OPN-18 — A durable remote job record.** *Closed by design; open only as implementation.*
 `STA-20` makes every box-plane command a job whose record holds the command as received, its
-output, its exit code and its liveness, on persistent disk. `STA-21` states the limit: the record
+output, its exit code and its liveness, on installed-system persistent disk. Rescue uses
+`STA-20b`'s same-boot records and browser-journal handoff; missing records never establish success. `STA-21` states the limit: the record
 is machine-reported and advisory, and comparing it against the browser journal catches honest
 mistakes rather than a hostile machine.
 [ADR-0022](./docs/adr/0022-durable-state-is-an-append-only-journal.md)'s amendment carries the
@@ -328,11 +343,13 @@ see `STG-20`.
 
 ## Status and the next move
 
-Nothing here has touched a real server, though the channel's two clients have now run
-(`OPN-1`, `OPN-21`) against a real `sshd` and against Robot itself. The proof of concept can call a cloud vendor's API
-directly from a browser and has established there is no CORS obstacle — the one external fact
-everything depends on. It cannot yet create a machine, and the provisioning state machine is
-unbuilt.
+The installation and identity-chain rehearsal ran on a disposable dedicated server on
+2026-09-08 (`docs/findings/2026-09-08-first-stage-rehearsal.md`). Both pinned SSH hops closed;
+`OPN-6` is closed. The Rust/WASM SSH and pinned-TLS spikes also ran, including physical
+Android evidence. Robot's browser route is the pinned TLS tunnel, not direct CORS fetch.
 
-The cheapest way to find out which of these decisions is wrong is still not to write code. It
-is to **run the first stage by hand once**, which `STG-2` now requires rather than recommends.
+Construct the integrated harness from those results and the v1 credential/storage contracts.
+In parallel, obtain the lnrent declaration and finish the lockdown checklist and briefs 2–3
+(`OPN-14`). The live rehearsal has not demonstrated the harness, tenant delivery, local unlock,
+or interrupted-install convergence. Complete the first-stage conformance subset before
+claiming delivery; do not repeat the already-closed identity-chain probe as a construction gate.

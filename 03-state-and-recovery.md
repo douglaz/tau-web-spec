@@ -47,11 +47,14 @@ journal alone: never arrived, started and died with the session, **still running
 with the output lost. Re-running is safe for three of them and is the corruption case for the
 third.
 
-**STA-20 Every box-plane command runs as a durable job**, and the machine keeps a record of it
-on persistent disk holding: the **command as received**, its output, its exit code once it has
+**STA-20 Every box-plane command runs as a tracked job**, and on an installed system the
+machine keeps a record on persistent disk (`/var/lib/tau-web/jobs`, root-only) holding:
+the **command as received**, its output, its exit code once it has
 one, and enough to tell whether **the command itself** is still alive. On reconnect the session
 reads that record rather than guessing — exit code present means finished, the command's own
-process alive means wait, neither means it died and `ARC-10`'s convergence applies.
+process alive means wait. A record with no exit code and a proven-ended command means it
+died and `ARC-10`'s convergence applies. A missing record is unresolved, never proof of death.
+Record the boot identity with the job; a PID from another boot cannot establish liveness.
 
 ***"It" is the command, not everything the command started.*** A command that launches a daemon
 finishes when the command finishes; whether the daemon it started is still up is a **service**
@@ -89,8 +92,28 @@ ordinary POSIX means on both distributions. The wider reading — following a da
 called `setsid()` out of its session — is what POSIX cannot do, and it is the service question
 `ARC-39` owns rather than a gap here (`OPN-22`). **Jobs may be hosted inside a terminal multiplexer** so a human can attach and watch a
 long install — useful during `STG-2`'s by-hand rehearsal — but that is an observation
-convenience and never the record. The multiplexer dies with the machine; the files do not, and
-after a reboot their absence correctly reads as "died".
+convenience and never the record. On the installed system the files survive a reboot; the
+recorded boot identity establishes that the old command ended, but not whether it succeeded.
+
+**STA-20b Rescue installation has a bounded exception to disk persistence.** Its tracked
+jobs live in root-only `/run/tau-web/jobs` in the rescue system, outside every installation
+disk. They survive an SSH disconnect, not a reboot. Each record carries the rescue boot ID
+(`/proc/sys/kernel/random/boot_id`), the browser's command ID and the command fields of
+`STA-20`. The wrapper runs detached from the SSH connection, captures output to files and
+refuses to launch an existing command ID again within that boot. A reconnect checks this
+record before issuing more work; a still-running job is waited on, including during partitioning.
+
+Before a planned reset, the harness stops dispatch, waits for all tracked commands to end,
+copies their records into the encrypted browser journal as **advisory observations**, and
+durably records installed host-key pins and the reset intent. If collection or the durable
+append fails, it does not reset. On installed-system entry it creates the persistent job
+directory before ordinary work. Rescue records are not claimed to survive this transition.
+
+After an unexpected rescue reboot, a changed boot ID proves the old command cannot still be
+running; it does **not** prove its effects or exit status. Missing output, a missing job record,
+or a record from the old boot leaves the operation unresolved under `STA-8` until inspection
+supports convergence or the operator explicitly chooses a new destructive reinstall. The
+browser's record of what was sent remains authoritative throughout (`STA-21`).
 
 **STA-21 The job record is machine-reported and advisory.** The browser journal is authoritative
 for what was **sent** (`STA-3`, `ARC-8`); the machine's record says what it **received** and what
@@ -137,8 +160,8 @@ processes, and it is the one party that always knows which machines exist.
 |---|---|
 | Host-key pins | The vendor login |
 | The machine inventory | **The seed** — in the operator's head or seed backup, never on the phone alone (`STA-22`) |
-| Action transcripts | **The SSH client keys, re-derived from the seed** — they used to be in the left column, and moving them is the whole reason the seed exists |
-| Provenance records | **The relay pass**, because its key re-derives (`CHN-15`) — it used to be re-bought |
+| Action transcripts | **The SSH client keys, re-derived from the seed plus allocation metadata** (`STA-22b`) |
+| Provenance records | **The relay pass**, if its relay address and derivation index were exported (`STA-22b`) |
 | The exposure ledger | The app URL |
 | | The recovery sheet, **if exported** |
 | **The inference account credential**, unless exported: it is bearer, there is no account behind it, and nothing re-derives it | The inference balance — **only** through the sheet (`SEC-5` row 14) |
@@ -153,11 +176,8 @@ this audience already backs up seeds. For machine *m*, the browser derives at in
 SSH client keypair (`SEC-5` row 3), the attest sender key (row 7) and the attest recipient key
 (row 16); and for relay pass *n*, on its own branch, the relay key (row 4). A federation tenant
 also derives one **coordinator peer credential** (row 17) on its own branch. Derivation is
-BIP-32 by account index — NIP-06's path for the Nostr keys, which
-upstream now labels *unrecommended* in favour of a single key; that is a wallet-interoperability
-warning, and nothing outside the harness ever needs to reproduce these keys, so it does not
-apply. Cite it with the label rather than without
-([ADR-0029](./docs/adr/0029-the-machine-speaks-nostr-and-keys-derive-from-a-seed.md)).
+the versioned, role-separated contract in `STA-22a`; an implementation must not choose paths
+independently.
 
 - **No session and no machine ever sees the seed.** What machine *m* receives is its client
   public key, its sender private key, its recipient public key, and — on a federation member —
@@ -167,9 +187,9 @@ apply. Cite it with the label rather than without
   on two machines is the same client key on two machines, which is `SEC-1` broken by
   bookkeeping. `STA-3` already requires the record before the effect; the index is part of
   that record, and indices are monotonic.
-- **The sheet no longer carries keys.** It holds pins, the ledger and the inference account
-  credential (`STA-16`). A lost phone re-derives every client key from twelve words; what it
-  cannot re-derive — pins, the ledger, the balance — is what the sheet is for.
+- **The sheet no longer carries keys.** It holds allocation metadata, pins, the ledger and
+  the inference account credential (`STA-16`). The seed reconstructs a key only when its role
+  and index are known. Seed-only recovery does not discover indices or relay purchases.
 - **A stolen seed is not revocable.** Replace (`STA-17`) is therefore a **new seed**, from which
   new client keys derive, with the old public keys removed from every maintained machine during
   re-entry — the same flow as before, with a different origin for the new keys and one more
@@ -179,6 +199,56 @@ apply. Cite it with the label rather than without
 root by omission; the sheet existed because nothing re-derived the client keys. The vendor
 account still roots **inventory** — it is the one party that always knows which machines exist.
 The seed roots **credentials**. Both are stated, and neither does the other's job.
+
+**STA-22a Credential format v1 is normative.**
+[`docs/design/credential-format-v1.md`](./docs/design/credential-format-v1.md) fixes mnemonic
+handling, hardened derivation paths, role numbers, key encodings and known-answer vectors.
+Every allocation and recovery export records that version. Unknown versions are refused;
+an upgrade never silently reinterprets an existing identity. The seed is a dedicated harness
+seed, never an existing wallet or social-identity seed.
+
+**STA-22b Allocation metadata is recoverable state.** The journal owns a seed identifier,
+derivation version, next unused index for each role family (machines, passes, federations),
+and allocated entries, including tombstones for failed or destroyed allocations. A machine
+entry maps vendor/account reference and immutable vendor machine ID to its index and expected
+SSH public key; a pass entry maps relay URL and public key to its index; a federation entry
+maps tenant/federation ID to its index. Machine roles share one machine index. Reserve it
+durably before any external effect, including registering a key for an already-rented server.
+All this metadata is included in `STA-16` exports, with an export time and journal sequence.
+
+Import checks the seed identifier, derives each listed public key and compares it, validates
+unique indices within each family and next-unused counters above all listed indices, and
+cross-checks vendor inventory before binding machines. A stale sheet cannot prove the latest
+counter. Therefore **a seed imported after loss of the canonical journal may restore listed
+identities but MUST NOT allocate new ones**, even when the sheet claims to be current. To
+allocate again, use Replace with a freshly generated seed; old records are retained until
+migration is complete. This restriction also applies to an imported local-store backup.
+Existing identities remain usable during non-revoking Restore.
+
+With no sheet, or for machines missing from a stale sheet, Robot recovery installs keys from
+a fresh seed through vendor-authenticated rescue and re-reads host pins; it does not guess old
+indices. Cloud uses `STA-15`'s explicit fallback. A pass whose metadata is missing cannot be
+discovered or revoked from the seed alone: it must expire, its remaining quota may be lost,
+and a new pass uses the fresh seed. Neither vendor inventory nor the publisher is an index
+backup service. Export is recommended after each allocation, including on dedicated.
+
+**STA-23 The local store has an explicit unlock boundary.** The operator chooses a local
+passphrase, separate from the seed backup and the recovery-sheet passphrase. A random data
+key encrypts the journal, snapshots, seed, pins, ledger and inference account credential;
+only a passphrase-wrapped data key persists. The v1 envelope, KDF and authentication rules
+are defined in the credential format. There is no plaintext or device-synced fallback.
+
+The harness worker alone unwraps and holds the data key and seed. The UI passes the
+passphrase once and clears its input; it never receives the unwrapped data key. The mnemonic
+may be displayed only in the dedicated seed-backup ceremony, outside session/model context.
+Key derivation gives a session only its permitted child credentials. Explicit lock, page
+hide/backgrounding, or worker shutdown stops dispatch, ends session workers and closes
+channels; the worker clears its keys and credential buffers and returns locked. No unload
+callback is relied on for journaling. A killed worker restarts locked; after unlock it follows
+`STA-7`, requiring memory-only credentials to be supplied or minted again. Clearing buffers
+is best effort in a browser, not a claim of physical memory erasure. Wrong passphrases,
+tampered envelopes or unsupported versions fail closed without creating a replacement store.
+Lost local passphrases require seed/sheet/vendor recovery; the publisher cannot reset them.
 
 ## Recovery, by access model and vendor
 
@@ -205,7 +275,8 @@ stays optional. A sealed tenant's machines need none: their pins die at sealing,
 lost mid-setup is answered by the tenant's own all-or-nothing rule — abandon and recreate.
 This asymmetry is stated, not smoothed over.
 
-**STA-16** The recovery sheet holds host-key fingerprints, the exposure ledger, and — on the
+**STA-16** The recovery sheet holds the allocation metadata of `STA-22b`, host-key
+fingerprints, the exposure ledger, and — on the
 procured path — the **inference account credential**, wrapped under a passphrase the operator
 chooses. **It no longer carries the SSH client keys**, which re-derive from the seed
 (`STA-22`). The export screen MUST say what the sheet can do in the wrong hands with the
@@ -232,12 +303,14 @@ distinct, and the screen says which one is happening:
 - **Restore** (for a phone that died in hand): the same seed re-derives the same keys,
   explicitly presented as non-revoking.
 
-**Replace needs both seeds, and MUST say so before it starts.** Re-entering a machine to remove
+**Direct Replace needs both seeds and the old allocation metadata, and MUST say so before
+it starts.** Re-entering a machine to remove
 the old key uses the old key; revoking the old pass is signed by the old key. Both derive from
 the seed being retired, so the operator needs its backup *during* Replace and abandons it after.
-An operator who has lost the old seed's backup as well as the phone cannot re-enter, and the
-maintained machines are stranded behind a key nobody holds — the honest outcome is recreate,
-and the screen names it rather than starting a Replace that cannot finish.
+If the old seed or an index is missing, direct re-entry and pass revocation cannot finish.
+Robot machines can still be rekeyed through vendor-authenticated rescue (`STA-15`); cloud
+machines require that section's explicit fallback. The screen names unrecovered machines
+and unrevocable passes, and never reports a complete Replace while either remains outstanding.
 
 **Replace cannot cover the inference account credential, and MUST say so.** Every other item in
 the flow has an issuer that can kill the old value; this one has no account behind it, so there

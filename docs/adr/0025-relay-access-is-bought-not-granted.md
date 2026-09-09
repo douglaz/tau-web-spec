@@ -206,3 +206,11 @@ untested, and this record is what that gap now points at.
 with the same lifecycle: held encrypted at rest, revoked and re-issued by the Replace flow. What
 changes is where it comes from — bought rather than handed over — and that losing it needs no
 recovery path.
+
+## Recovery and destination limits, September 9 correction
+
+The derived key is recoverable only with its pass index and relay URL (`STA-22b`), now included
+in the sheet. Missing metadata can lose remaining quota; seed-only purchase discovery is not
+promised. `CHN-16a` also constrains every destination at dial time to public unicast addresses,
+excluding the relay itself. A signed destination record does not authorize loopback, private
+network or metadata access, even in the first stage's manually enrolled configuration.

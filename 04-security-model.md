@@ -161,6 +161,15 @@ outgrown, because adding a credential means adding a row.
 | 15 | **Operator seed** | Operator, at first use; backed up by the operator | Encrypted at rest; **in the operator's head or seed backup**, never in the sheet | Until replaced | Deriving rows 3, 4, 7 and 16 — **every maintained machine, every relay pass, and every future introduction** (`STA-22`) | Replaced by a new seed on Replace (`STA-17`); the old one is not revocable, only abandoned — and it is still needed *during* Replace |
 | 16 | **Attest recipient key**, one per machine | Derived from row 15 (`STA-22`) | Re-derived on demand; public half in boot user-data | Until the introduction is accepted or the window closes | Decrypting **one** machine's introduction | The browser stops listening; the key is never used again |
 | 17 | **Coordinator peer credential** (federation tenants only) | Derived from row 15 (`STA-22`); public half installed into each member's peer set during setup, before sealing (`ARC-19a`) | Re-derived on demand; nothing stored | Federation lifetime | Peer-equivalent reach to each member's vault port — what one member can do to another, no more | The federation is dissolved, or the member is rebuilt |
+| 18 | Local unlock passphrase | Operator-chosen (`STA-23`) | Input UI briefly, then harness-worker memory; never persisted or sent | Unlock or passphrase-change operation | Derives row 19 to unwrap the local data key | Input and buffers cleared after use |
+| 19 | Wrapping key (local store or sheet) | PBKDF2 from row 18 or row 10, with independent salts and purposes | Harness-worker memory only | Wrap/unwrap operation | Unwraps one row-20 key | Cleared after wrap/unwrap |
+| 20 | Data-encryption key (local store or sheet) | Browser CSPRNG, independent per store/export | Harness-worker memory; only an authenticated wrapped copy persists | Local store unlocked; sheet import/export operation | Decrypts the named local store or sheet, never another purpose | Cleared on lock/end; replaced on re-encryption |
+
+Rows 18–20 use the versioned envelope in `STA-23`. Row 15 derives row 17 as well as the
+machine and relay credentials. Derivation indices, resource mappings and allocator counters
+are encrypted recoverable metadata (`STA-22b`); a seed alone cannot discover them. A restored
+seed is barred from new allocations until Replace. Losing an old seed or metadata prevents
+direct Replace but does not remove Robot's vendor-authenticated rescue route (`STA-17`).
 
 **Row 12 carries a caveat that MUST be stated wherever it is offered.** Delivery redaction
 keeps the secret out of the transcript and out of model context *on the way in*. It does not
@@ -175,7 +184,7 @@ one that changed shape: on the procured path it is no longer something the opera
 something the harness **mints, caps, and revokes**, which is why its lifetime is now enforced
 rather than asserted.
 
-**Row 14 is the only credential in this table that cannot be revoked, and it holds money.** It
+**Row 14 is an unrevocable service credential, and it holds money.** It
 is a bearer value: whoever has it can spend the balance and mint keys against it. That is why
 row 2 exists at all — a session gets a capped, expiring derivative rather than the thing itself
 — and why `STA-17`'s Replace flow cannot treat it like row 4. A relay pass is revoked by its

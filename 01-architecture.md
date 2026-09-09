@@ -541,45 +541,36 @@ predecessors, while `latest-stable/` and `latest-releases.yaml` are rewritten in
 a moving alias the mismatch is continuous rather than occasional, and a halt that fires on every
 install is a halt the operator learns to route around.
 
-**Shipping the pin in the bundle couples provisioning to release cadence, and the halt is the
-design working.** The hash moves at upstream's tempo and the bundle at the publisher's, so
-between an upstream release and the release that follows it the harness **cannot provision at
-all** — an outage, not a degradation. Its length is the *publisher's* latency, not upstream's.
-Measured: Alpine's v3.23 branch took six point releases in about six and a half months,
-irregular and security-driven, so the window recurs on that order. **The publisher therefore
-carries a standing obligation to track upstream releases and re-pin.** The only alternative to
-halting is accepting whatever the source serves today, which is the posture this requirement
-exists to refuse.
+**A mismatch is an outage, not a warning to bypass.** An upstream release does not invalidate
+an older immutable URL by itself. Provisioning with the older artifact remains possible while
+that exact artifact is available and allowed by the bundle's release policy. If it disappears,
+changes, or is withdrawn from the allowed policy, provisioning halts until a new signed bundle
+carries an acceptable pin. The publisher must track releases and refresh this policy.
 
-**ARC-25a The mechanism is not the same on both declared distributions, and only one of them is
-a content hash**
-([ADR-0027](./docs/adr/0027-the-artifact-pin-is-per-distribution.md)). Verified against upstream
-source, 2026-09-04.
+**ARC-25a Both installation paths combine a pinned bootstrap with signature-admitted packages**
+([ADR-0027](./docs/adr/0027-the-artifact-pin-is-per-distribution.md)). The first-stage Alpine
+brief made the previously claimed hash-only distinction false.
 
-- **Alpine matches the requirement as stated.** Every release artifact is served with sibling
-  `.sha256`, `.sha512` and `.asc` files at the same path. Nothing upstream *promises* that a
-  released file is never rewritten — the pin is the enforcement rather than a publisher
-  guarantee, which is the right way round.
-- **NixOS does not, and cannot.** The install fetches from a binary cache and admits store paths
-  on **signature**, against a key baked into the installer's configuration with signature
-  checking on by default. No point in that path accepts an expected hash from an outside party.
-  A browser-supplied hash can cover the **ISO and nothing more** — and the ISO carries the
-  *installer's* closure, not the target's, so its overlap with the installed system is
-  incidental and has no stated fraction.
-- **Pinning the NixOS ISO is still load-bearing, for a different reason than this requirement
-  assigns it.** The installer passes its own store as trusted, so paths already present in the
-  ISO are copied **without a signature check**. The ISO hash is the unsigned-admission surface,
-  not the artifact pin.
-- **A pinned revision is the tightest NixOS-shaped pin, and it pins sources rather than
-  binaries.** A flake lock records each input's revision and tree hash, which fixes the
-  derivation graph; ordinary derivation outputs remain input-addressed, and content-addressed
-  derivations are still experimental. So a pinned revision buys a reproducible build *in
-  principle* and does not convert cache trust into hash trust. A **channel name is not a pin at
-  all** — it is a redirect whose target advances.
+- **Alpine:** the signed bundle pins the immutable minirootfs URL and its hash. The installed
+  kernel, SSH server, bootloaders and dependencies then come from `apk` repositories. The
+  bundle declares their release branch, repository URLs and accepted signing keys. Check
+  `/etc/apk/keys` against that set before fetching packages, require signature checking, and
+  never enable `--allow-untrusted`. Branch indexes may advance within the declared branch;
+  the minirootfs hash does not pin their contents. Record index digests, accepted signer
+  fingerprints and installed package versions in the transcript. These are observations,
+  not a preapproved content hash of the resulting system.
+- **NixOS:** pin the installer image hash, source/flake revision and binary-cache signing
+  keys. Require signature checking for substituted paths. Paths already carried by the
+  pinned installer are covered by its image hash; additional outputs are admitted by the
+  cache signature. A source revision fixes the requested build graph, not the received
+  binaries. A moving channel name does not satisfy the source-revision requirement.
 
-**What follows from that is a party, not a caveat.** Whoever holds the binary cache's signing
-key decides what every NixOS machine runs, and no value the browser can supply removes them.
-`TRU-E8a` names them.
+**Both paths trust package signers (`TRU-E8a`).** A signed bundle bounds which keys are
+accepted; it does not remove those key holders' authority over later packages. Choosing
+Alpine does not avoid this party. Pinning the entire installed package closure would be a
+separate design, and the current first-stage brief does not implement it. The trust display
+names the distribution, bootstrap hash, package policy and accepted signers rather than
+calling the resulting installation hash-pinned.
 
 ## Ongoing operation
 

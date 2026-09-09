@@ -1,7 +1,8 @@
 # 07 — Conformance checklist
 
-What an implementation must demonstrate before it touches a real vendor account. Each item
-names the requirement it proves and is written so it can become a test.
+What an implementation must demonstrate for each stage. Each item names the requirement
+it exercises and is written so it can become a test. The applicability table below defines
+first-stage admission and completion; tier labels describe severity within that stage.
 
 Treat any unchecked box below as a green check next to an empty test suite.
 
@@ -51,8 +52,8 @@ yet.
 - [ ] **CNF-5 · BLOCKING** Each session holds its **own** SSH client keypair, and only that
       session's public key appears in its machine's `authorized_keys`. Verified by reading
       the machine, not by reading the harness.
-- [ ] **CNF-6 · BLOCKING** A session presenting another session's keypair to a machine it is
-      not bound to is **refused by SSH**. The harness is not consulted. *(`STG-13`)*
+- [ ] **CNF-6 · BLOCKING** An SSH client presenting a different machine's keypair (or a synthetic
+      uninstalled key) to the target machine is **refused by SSH**. The harness is not consulted. *(`STG-13`)*
 - [ ] **CNF-7 · BLOCKING** Binding is created by an operator act before any connection
       attempt. A connection attempt against an unbound machine does not create a binding, and
       is recorded as refused.
@@ -146,8 +147,8 @@ yet.
 
 - [ ] **CNF-21 · BLOCKING** A host key that does not match the stored fingerprint halts the
       session. Verified by presenting a different key.
-- [ ] **CNF-22 · BLOCKING** The rescue host key is pinned from the API response before the
-      first connection, and the installed system's host keys are read from inside the rescue
+- [ ] **CNF-22 · BLOCKING** The rescue host key is pinned from `/rescue/last` after the reset and
+      before the first connection; the activation response is never used as a host-key source, and the installed system's host keys are read from inside the rescue
       session before reboot. **No trust-on-first-use at either hop** (`STG-4`).
 - [ ] **CNF-23 · BLOCKING** Under `CHN-R4` only, first contact is presented to the operator as
       trusted rather than verified, in those words.
@@ -159,11 +160,12 @@ yet.
       alias (`ARC-25`). Verified by inspecting the pinned URL: a `latest`-shaped path or a
       rewritten-in-place metadata file fails this item even when the hash currently matches,
       because it will mismatch on the next upstream release and every install after it.
-- [ ] **CNF-67 · PRE-SCALE** On the distribution that admits artifacts by signature rather than
-      hash, signature checking is **on**, the substituter key is the pinned one, and the install
-      is driven from a pinned revision rather than a channel name (`ARC-25a`). The
-      browser-supplied hash covering the installer image does not satisfy this item and is not
-      reported as if it did.
+- [ ] **CNF-67 · BLOCKING** Both distributions enforce the package/cache signature policy of
+      `ARC-25a`. An unsigned package or one signed by an unaccepted key is refused. Alpine
+      checks the bundle's repository branch and accepted key set, and records index digests
+      and installed versions; NixOS checks the pinned revision and cache keys. The display
+      distinguishes bootstrap hash from package signatures. Boundary-crossed: otherwise
+      a repository can substitute the kernel or SSH server outside the stated admission policy.
 - [ ] **CNF-62 · BLOCKING** A typed vendor call over the tunnel **refuses a certificate that
       does not match the pin** (`CHN-12a`). Verified by presenting a valid certificate from a
       different issuer and confirming the session halts. Without this the tunnel is an
@@ -270,8 +272,9 @@ yet.
       one (`STA-20`). This is the corruption case, which is why it blocks.
 - [ ] **CNF-54 · PRE-SCALE** A completed command's exit code and output are read from the job
       record after a session drop, not inferred from machine state.
-- [ ] **CNF-55 · PRE-SCALE** A job record survives a reboot, and its absence of a live process
-      is read as "died" rather than as ambiguous.
+- [ ] **CNF-55 · PRE-SCALE** An installed-system job record survives a reboot. Its boot identity
+      establishes that an unfinished old command ended; success still needs a terminal record.
+      A missing record remains unresolved. Rescue follows `CNF-86`, not a persistence claim.
 - [ ] **CNF-56 · PRE-SCALE** The command recorded by the machine matches the command the
       browser journal recorded before sending. A mismatch is surfaced as a finding, and is
       never described as verification (`STA-21`).
@@ -302,9 +305,9 @@ Not pass/fail. Required to be recorded.
       five-session projection against each platform's tab budget (`STG-15`, `ARC-13`).
 - [ ] **CNF-46** Wall-clock duration of a full install over the channel.
 - [ ] **CNF-80 · PRE-SCALE** An installed system that does not answer on the channel within
-      ten minutes of its boot reset is declared failed, the operator is told, and the session
-      returns to rescue and reinstalls from the brief (`STG-20`). Verified by installing with a
-      brief that omits the bootloader on one disk.
+      ten minutes of its boot reset is declared failed, the operator is told, and a separately approved destructive reinstall
+      returns to rescue from the brief (`STG-20`). Test a missing bootloader and a relay outage: neither a timeout nor
+      unreachability clears unresolved operations or triggers a wipe without that decision.
 - [ ] **CNF-47** Transcript size produced by one install.
 - [x] **CNF-48** What Robot's rescue `host_key` field actually returns, and what the automatic
       Linux install operation returns (`OPN-6`, `STG-2`). **Recorded 2026-09-08**: SHA-256
@@ -312,37 +315,89 @@ Not pass/fail. Required to be recorded.
       the activation `POST`, fresh per boot; the installer catalogue still has no Alpine or
       NixOS (`docs/findings/2026-09-08-first-stage-rehearsal.md`).
 
-## The blocking tier
+## Additional contracts from the September 9 review
 
-Every BLOCKING item sits in one of the irreversible families named above. **They are not all
-exercisable by the first stage**, and an earlier version of this paragraph wrongly claimed only
-`CNF-8` was not. At least four are out of reach: `CNF-8` needs a coordinator; `CNF-18` needs the
-attest machinery `STG-19` says the first stage demonstrates none of; `CNF-57`, `CNF-58` and
-`CNF-65` need the purchase-and-pass system `STG-18` says the stage does not have, since it runs
-on a relay key the publisher recorded by hand. `CNF-6` and `CNF-26` need a second session, and the stage has one.
+- [ ] **CNF-81 · BLOCKING** A recorded destination still cannot reach relay-private services
+      (`CHN-16a`). Loopback, private/link-local IPv4 and IPv6, metadata, mapped IPv6, numeric
+      aliases and the relay's own addresses are refused. Test a public DNS name changing to a
+      private address, mixed public/private answers and retries; the dialer uses only the
+      validated numeric address. A valid external public SSH/TLS destination remains reachable.
+      Before enabling self-host migration, demonstrate SSH re-entry and scanning of the relay
+      host through a retained external relay; migration without that route is refused (`CHN-11`).
+      Boundary-crossed: a pass must not grant the relay's private network position.
+- [ ] **CNF-82 · BLOCKING** Local storage follows `STA-23`: wrong passphrases, modified
+      envelopes/records, cross-store substitution and unknown formats fail closed; no new
+      empty store replaces failed decryption. Reload and background/explicit lock require
+      unlock again, session workers lose access, and replay preserves unresolved actions.
+      Inspect persisted bytes and worker inputs for forbidden plaintext keys. Escaped-secret.
+- [ ] **CNF-83 · BLOCKING** Derivation matches every v1 known-answer vector, upstream primitive
+      vectors, and a second implementation (`STA-22a`). Different roles/indices yield distinct
+      keys; out-of-range indices, unknown versions and invalid children cannot alias a valid
+      allocation. The mnemonic passphrase is empty regardless of local unlock passphrase.
+      Boundary-crossed: an ambiguous mapping can reuse keys across roles or machines.
+- [ ] **CNF-84 · BLOCKING** A seed plus sheet restores machine and relay identities from their
+      exported indices; a mismatched seed, duplicate mappings or invalid counters are refused.
+      A stale sheet or imported store cannot allocate under the restored seed. Exercise missing
+      metadata: Robot rekeys through rescue with a fresh seed, cloud exposes its fallback, and
+      missing relay indices are reported unrecoverable. Partial Replace never reports complete
+      revocation (`STA-22b`, `STA-17`). Boundary-crossed and destroyed-data.
+- [ ] **CNF-85 · BLOCKING** Disk selection in the install brief is checked without writes first:
+      the root disk's stable path and canonical alias are both excluded from additional-disk
+      erasure; duplicates run once; an empty additional set erases none; an invalid or
+      non-block-device entry aborts before any disk is erased. Only the explicitly selected
+      whole disks may be written, and identities are re-read after each rescue boot.
+      Destroyed-data. Hardware rehearsal remains separate from this non-destructive gate.
+- [ ] **CNF-86 · BLOCKING** Drop SSH during partitioning/install: the returning session reads
+      the same rescue boot's job and does not duplicate it. Before planned reboot, block the
+      journal append and confirm no reset occurs; then allow it and recover collected records
+      and installed pins. Force an unexpected rescue reboot: changed boot ID or missing records
+      remain unresolved until inspection/explicit disposition, never automatic re-execution
+      (`STA-20b`). Destroyed-data.
+- [ ] **CNF-87 · BLOCKING** The first-stage relay's hand-configured access record authenticates
+      a fresh connection challenge under the enrolled public key, refuses unknown keys and
+      replayed signatures, restricts targets to its configured public destination set and
+      applies configured connection/probe limits. It is not an unauthenticated development
+      proxy (`STG-18`); purchase and quota accounting are outside this check. Boundary-crossed.
 
-**The tiers therefore need to say which stage each item gates**, which this file does not yet
-do. Until it
-does, the header's "before it touches a real vendor account" cannot be met literally — several
-items require touching one.
+## Stage applicability and admission
 
-**No count is written here on purpose.** It went stale three times in a week, which is exactly
-the drift the identifier scheme exists to prevent — a number restated in prose is a fact with
-no owner. `grep -c '· BLOCKING'` is authoritative.
+This table is exhaustive; every new CNF item must acquire a row before it can gate a stage.
+**Required** means the first-stage completion report must include passing evidence, even
+for PRE-SCALE items promoted by `STG-*`. Measurements must have recorded values. Later
+features remain unavailable until their BLOCKING checks pass; deferral never enables an
+untested capability. A broader deployment still applies the PRE-SCALE promotion rule above.
 
-What matters is the rule, not the total: **an addition to this tier must name the irreversible
-family behind it.** `CNF-52` is escaped-secret — a multi-tenant machine holding spendable key
-material is one container escape from the operator's money. `CNF-40` is destroyed-data —
-re-running a command that is still running is the corruption case `STA-20` exists to prevent.
-`CNF-57`, `CNF-58` and `CNF-65` are boundary-crossed: an unpaid caller, an undeclared
-destination, or an unpaced one turns the relay into the open proxy `CHN-8` forbids. `CNF-66` is
-boundary-crossed too, and it is the one that looks like hygiene: a pin against a moving alias
-passes today and admits rewritten bits on the next upstream release, which is the bundle-scale
-substitution `TRU-E8` names arriving through the control that was supposed to detect it.
-`CNF-68` and `CNF-70` are escaped-secret and money-out respectively — an unrevocable bearer
-credential in a session's hands, and a prepaid ceiling silently converted into a wallet draw —
-and `CNF-69` is what turns row 2's stated lifetime into an enforced one. `CNF-72` is
-boundary-crossed and `CNF-73` is escaped-secret: a reused derivation index puts one client key on
-two machines, and the seed in a session's hands is every machine at once. `CNF-76` is
-boundary-crossed: an unsigned destination record lets a stranger widen a pass they do not hold. If an
-item cannot name its family, it is PRE-SCALE and the tier still means something.
+| Applies when | CNF items | First-stage interpretation |
+|---|---|---|
+| First stage: required | 1–7, 10–15, 17, 21–22, 24–26, 28–30, 32, 34–35, 37–40, 41, 43–44, 49–56, 62–64, 66–73, 78–83, 85–87 | One live dedicated machine; synthetic unbound identities exercise 6 and 26. Item 50 covers the delivery check; its scanner half waits for scanner enablement. Item 10 covers local ledger persistence; its sheet-export half waits for recovery. Item 72 covers local allocation; imported-state cases are 84. Item 67 uses Alpine; NixOS evidence is required before enabling NixOS. Item 81's migration case waits for self-host migration, which the first stage does not offer. |
+| First stage: record measurements | 45–48 | 48 has by-hand evidence; 45–47 require the integrated browser channel, not the rehearsal's timings. |
+| Federation | 8, 77 | Before coordinator/federation enablement; first stage has none. |
+| Scanner and advisory monitoring | 9, 36 | Also complete item 50's scanner case before exposing scanner results. |
+| Tenant-secret injection | 16 | Before enabling injection; unavailable in the first stage. |
+| Cloud attest and Nostr inbox | 18, 61, 74–75 | Before cloud route 5 is enabled. |
+| Recovery export/import and Replace | 19–20, 84 | Before offering recovery UI or maintained cloud delivery; complete item 10's export case too. Local unlock/restart is first-stage work. |
+| Operator-supplied existing host | 23 | Before enabling route 4. |
+| Untyped scopes | 27, 31, 33, 42 | Before enabling untyped scopes; first stage offers typed Robot calls only. |
+| Paid/public relay access | 57–60, 65, 76 | Before enrolment opens beyond the publisher's fixed first-stage record. First stage still requires 81 and 87. |
+
+**CNF-17's first-stage evidence uses an injected response fixture** through the common
+credential-redaction boundary. This does not enable untyped calls. Repeat it against real
+untyped responses before enabling scopes.
+
+**Before the first live harness rehearsal:** pass the build gates (1–4), derivation/envelope
+and disk-selection gates (82–83, 85), and fixture-based refusal/recording cases for every
+first-stage BLOCKING boundary above. The test record must identify what used fixtures.
+Then an operator may authorize a bounded live run against an already-rented disposable
+server and funded, capped inference account. Live-only checks are completed during that run,
+not asserted before it. No production data or tenant delivery is admitted by a fixture pass.
+
+**Before declaring the first stage complete:** all required rows above pass on the integrated
+harness, `STG-14` supplies physical Android evidence, and measurements are recorded. The
+lnrent-owned delivery declaration, vendor lockdown checklist and briefs 2–3 must exist in the
+signed bundle (`OPN-14`, `CNF-49`); unavailable tenant artifacts fail completion rather than
+being replaced by an essay. Rehearsal/prototype results do not automatically check harness
+items. This is the distinction between being ready to construct and ready to deliver.
+
+Every BLOCKING addition must name an irreversible family: escaped secret, crossed boundary,
+destroyed data or money out. Tier labels and applicability are separate: a federation blocker
+can remain deferred while a first-stage PRE-SCALE behavior is required by that stage.

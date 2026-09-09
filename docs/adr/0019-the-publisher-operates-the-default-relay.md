@@ -101,10 +101,12 @@ operator's **own machine** — the first lnrent box can host it, and a relay is 
 cheap to run — with the product actively offering the move once such a machine exists,
 not merely tolerating it. The publisher relay exists to solve the bootstrap: before the
 operator has any machine, someone must carry the bytes that provision the first one.
-After that, every session the publisher's relay still carries is a choice the operator
-can end. The metadata visibility this record prices in is therefore transitional by
-design, and the trust display should show which relay is in use and that moving off the
-default is one action away. Self-hosting has its own honest price, named rather than
+After that, ordinary traffic can move, but the relay-host machine still needs an external
+relay for management, recovery and outside-in scans: `CHN-16a` correctly forbids dialing
+the relay's own addresses. Migration must retain and demonstrate that external route before
+switching defaults. The external relay can be the publisher's or another operator-chosen one;
+its availability and metadata exposure remain visible. A single self-hosted relay therefore
+does not end the dependency. Self-hosting has its own honest price, named rather than
 hidden: the hosting machine's **bound model** has box-plane reach over whatever the relay
 retains, so the relay-install brief configures no connection logging, and the trust
 display prices the host machine's model as a potential metadata observer regardless —

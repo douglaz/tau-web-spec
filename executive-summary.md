@@ -114,14 +114,16 @@ hands over the key; on the cloud path, where retrieval is dead, a designed and n
 route — *attest*, the machine introducing its own key over Nostr under a per-machine key
 planted at creation — closes the gap without trusting first contact. **Every per-machine key the
 browser needs derives from a seed the operator holds**, so a lost phone re-derives them from
-twelve words; what the seed cannot re-derive — pins, the ledger, the inference balance — is what
+twelve words plus exported derivation indices; what the seed cannot re-derive — allocation
+metadata, pins, the ledger, the inference balance — is what
 the recovery sheet is for, and the vendor account is what says which machines exist.
 
 **The system is written from inside a rescue environment**, for two reasons: rescue is what
 publishes the host key, and the chosen distributions are not on the vendor's installer menu. That
 makes the **artifact source** — wherever the bits come from — a party that decides what every
-machine runs, so it is pinned by a content hash the browser supplies, in the same discipline as
-the relay pinned by host key.
+machine runs. The browser supplies the bootstrap hash and accepted package/cache signing keys
+from the signed bundle. Both Alpine and NixOS still trust those package signers; a bootstrap
+hash does not cover the entire installed system.
 
 **A machine is not finished when it is delivered.** Each is periodically re-checked — inside by
 its own session where the tenant allows re-entry, outside by a **scanner**: a specialist model of
@@ -183,7 +185,8 @@ service picks for you, silently and unlisted.**
 guards. The app bundle and its publisher, which is not diversified and carries the briefs, making
 it the largest concentrated risk. The relay, publisher-operated by default, which cannot read a
 session pinned out of band but does learn the member topology — a bootstrap seat, direct-first,
-until a relay on a machine of the operator's own takes over. That is the whole tier — the
+until a relay on a machine of the operator's own takes over ordinary traffic. An external
+relay still manages and scans that relay-host machine. That is the whole tier — the
 coordinator was once listed here and is not a party this product adds (`TRU-A3`).
 
 What the product removes is the party that would otherwise choose every entry in the middle tier

@@ -304,6 +304,14 @@ publisher's seat is a **bootstrap**: before the operator has any machine, someon
 the bytes that provision the first one. The product actively offers the move to a relay on
 the operator's own maintained machine once one exists.
 
+That move retains an **external relay route for the relay-host machine itself**, for SSH,
+recovery and outside-in scans. `CHN-16a` forbids a relay from dialing its own addresses.
+Before switching the default, configure and demonstrate that external route and preserve its
+access metadata. It may remain the publisher's relay or another operator-chosen relay; its
+availability and metadata visibility remain in the trust display. Do not claim that one
+self-hosted relay eliminates this dependency. If no external route is available, migration
+does not complete; never relax the self-address prohibition to make it appear successful.
+
 **Under out-of-band pinning a hostile relay is a denial of service and nothing worse. Under
 `CHN-R4` it is not**: at first contact there is nothing to check the key against, so a
 hostile relay can present its own, have it pinned, and read the session from then on.
@@ -316,8 +324,9 @@ with an invoice over ordinary HTTPS; the operator's own wallet pays it (`ARC-30`
 relay observes its own invoice settle and binds a **pass** — destinations, expiry, pacing — to
 the key. When the WebSocket opens the relay issues a challenge and the browser signs it with the
 key, in the shape NIP-42 already defines and the browser already implements for the Nostr relay.
-**Nothing bearer exists.** There is no string to store, leak, paste, or lose: the key
-re-derives from twelve words, and the pass is what the relay remembers about it.
+**Nothing bearer exists.** There is no bearer string to store: the key
+re-derives from the seed plus its exported pass index (`STA-22b`), and the relay remembers
+the pass. Missing allocation metadata can lose access to paid quota.
 
 *What this replaced.* The pass used to be an opaque random string presented on connect. It was
 held encrypted at rest, exported nowhere, and "re-bought rather than recovered" after a lost
@@ -336,6 +345,22 @@ is bought before the machines exist, so its destination list grows as the operat
 — which is the moment the relay learns topology, already priced at `CHN-13`. **Recording a
 destination requires the relay key's signature**, so nobody but the key holder can widen a pass —
 which a bearer string could not promise, since anyone holding it could.
+
+**CHN-16a Destination authorization never grants access to the relay's private network.**
+At registration and again on **every outbound connection**, the relay accepts only public
+unicast destinations. It refuses loopback, private, link-local, unspecified, multicast,
+broadcast, documentation, reserved and other non-global addresses in IPv4 and IPv6, including
+metadata endpoints, IPv4-mapped IPv6 and alternate numeric spellings after normalization.
+It also refuses every address belonging to the relay host itself, including its public IPs.
+The implementation pins the IANA special-purpose address tables used for classification and
+treats their updates as reviewed policy updates. Unknown address forms fail closed.
+
+For a DNS destination, resolve through the relay's resolver, reject the request if **any**
+answer is forbidden, and connect to the checked numeric address without a second resolution
+inside the dialer. Apply the check to retries, refreshed DNS results and every port; redirects
+or alternate targets are new destinations requiring the same authorization and validation.
+Use an egress firewall to deny local/private/metadata routes as defense in depth. Private
+proxying is not a first-stage exception: the hand-recorded relay key obeys the same rule.
 
 **A revoked pass closes its live connections and refuses new ones**, and revocation is a
 message signed by the pass's key. That is the teardown rule `CNF-60` was waiting for. What

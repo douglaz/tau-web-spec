@@ -1,10 +1,11 @@
 # Brief 1 — install
 
 A brief is instructions, not a script (`ARC-9`, ADR-0001): read it, look at the machine, and
-decide what to run. The commands here are examples that worked once, on 2026-09-08, on a
+decide what to run. The commands here are examples based on the run of 2026-09-08 on a
 Hetzner server-auction machine with two SATA SSDs and legacy boot. Where they will differ on
 another machine is said. This is a draft written from that one run; it is not yet in the
-signed bundle (ADR-0005), and its resume section has never been exercised.
+signed bundle (ADR-0005), and its resume section has never been exercised. The disk-selection
+and resume corrections of 2026-09-09 have not been rehearsed on hardware.
 
 ## Where you start, and where you stop
 
@@ -17,8 +18,11 @@ reconnect through the harness; do not try to re-pin anything.
 You stop when the installed system is on the disk, its host public keys have been read out
 and reported to the harness, and you have said the machine is ready to reset. **You do not
 reboot.** The reset is the harness's typed operation, and the harness will check the
-installed system's keys against what you reported. If it does not answer within ten minutes
-the harness returns to rescue and runs this brief again from the top (`STG-20`).
+installed system's keys against what you reported. If it does not answer within ten minutes,
+the harness reports unreachability and offers a reinstall (`STG-20`). It first reconciles
+unresolved jobs and requires an explicit operator decision to discard the install and erase
+the selected disks. A relay outage can look like a boot failure; the timeout never authorizes
+running this brief again automatically.
 
 ## What the browser supplies and checks (not the machine)
 
@@ -31,7 +35,14 @@ Two values come from the signed bundle through the harness, and two checks happe
 - the **host-key fingerprints** of the installed system: you report the public keys; the
   harness derives fingerprints and pins them before the reset (`STG-4`, `CNF-22`).
 
-Everything else in this brief runs on the machine.
+The bundle also supplies the Alpine repository branch and accepted package-signing keys
+(`ARC-25a`). The minirootfs hash does not cover packages fetched later. Check the installed
+`/etc/apk/keys` against that set before `apk update`; never use `--allow-untrusted`. Record
+the repository URLs, index digests, accepted key fingerprints and installed package versions.
+
+Everything else in this brief runs on the machine. The harness owns job tracking, including
+the rescue-system exception and reboot handoff in `STA-20b`; never infer that an interrupted
+command finished just because its output or job record is missing.
 
 ## Step 1 — look before touching anything
 
@@ -52,6 +63,11 @@ ip -4 -o addr show scope global; ip -4 route show default
 - **Addressing is static.** Take the address, prefix and gateway from what the rescue kernel
   is using; there is no DHCP for the installed system to rely on.
 - If the disk already holds a partial install, read the **Resume** section before wiping.
+- Select the complete installation disk set by WWN before any write, recording it in the
+  transcript. Set `$DISK` to its root disk. `$OTHER_DISKS` is a newline-separated list of
+  explicitly selected additional WWN paths, or empty; never populate it with every disk found.
+  Every listed disk will be erased. Resolve and re-check identities in the rescue system
+  immediately before destructive work; do not carry `/dev/sdX` names across reboots.
 
 ## Step 2 — fetch and check the artifact
 
@@ -92,8 +108,9 @@ for d in dev proc sys; do mount --rbind /$d /mnt/$d; done
 chroot /mnt /bin/sh
 ```
 
-Pin the repository branch to the same version as the artifact. `apk` will fetch ~150
-packages; that took about a minute.
+Select the repository branch matching the artifact. The branch's signed indexes can change;
+this is package-signer trust, not a pin of the complete installed system (`ARC-25a`). `apk`
+will fetch ~150 packages; that took about a minute.
 
 ## Step 5 — make it a bootable system, not just a root filesystem
 
@@ -151,14 +168,37 @@ grub-mkconfig -o /boot/grub/grub.cfg
   entry; no NVRAM entry can be written from a rescue, hence `--no-nvram`.
 - The serial console line is for the vendor's virtual console, whose screen is otherwise
   black after GRUB; it costs nothing.
-- **Every other disk gets a BIOS-boot partition and a GRUB core image too**, pointing at the
-  same `/boot`, because the firmware may enumerate any of them first:
+- **Each additional selected installation disk gets a BIOS-boot partition and a GRUB core
+  image too**, pointing at the same `/boot`, because firmware may enumerate any of them first.
+  Exit the chroot before this block; run it in rescue, with `/mnt` still mounted. The root
+  disk is excluded by canonical identity even if the same disk appears under another alias.
+  Validate the entire list before the first destructive command:
 
 ```sh
-for other in $(lsblk -dnpo NAME,TYPE | awk '$2=="disk"{print $1}' | grep -vx "$DISK"); do
-  sgdisk --zap-all "$other"; sgdisk -n1:0:+1M -t1:ef02 "$other"; partprobe "$other"; sleep 1
-  chroot /mnt grub-install --target=i386-pc "$other"
-done
+(
+  set -eu
+  root_disk=$(readlink -e -- "$DISK")
+  [ -b "$root_disk" ]
+  [ "$(lsblk -dnro TYPE "$root_disk")" = disk ]
+  selected=$(mktemp)
+  trap 'rm -f "$selected"' EXIT
+  printf '%s\n' "${OTHER_DISKS:-}" | while IFS= read -r candidate; do
+    [ -n "$candidate" ] || continue
+    other=$(readlink -e -- "$candidate") || exit 1
+    [ -b "$other" ] || exit 1
+    [ "$(lsblk -dnro TYPE "$other")" = disk ] || exit 1
+    [ "$other" != "$root_disk" ] || continue
+    printf '%s\n' "$other"
+  done > "$selected"
+  sort -u "$selected" -o "$selected"
+  while IFS= read -r other; do
+    sgdisk --zap-all "$other"
+    sgdisk -n1:0:+1M -t1:ef02 "$other"
+    partprobe "$other"
+    sleep 1
+    chroot /mnt grub-install --target=i386-pc "$other"
+  done < "$selected"
+)
 ```
 
 The protective-MBR boot flag (`parted disk_set pmbr_boot on`) was set once on this run and
@@ -181,13 +221,15 @@ On this run the keys on the wire after the reboot were byte-identical to what wa
 `ARC-10` and `STG-12` want an interrupted install inspected and continued, not repeated. The
 rehearsal never resumed; it only ever wiped. What a resume should look like, untested:
 
-- If `$ROOT` exists with an Alpine root on it and `/mnt/etc/ssh/ssh_host_*_key.pub` are
-  present, the install got at least to step 6; re-run steps 5 to 7 (they are idempotent),
-  re-read the keys, and hand back.
-- If the partition table is present but the filesystem is empty or absent, wipe and start at
-  step 3.
-- If in doubt, wipe. A wipe costs five minutes; an installed system with a half-configured
-  boot costs a rescue cycle nobody can see into (`STG-20`).
+- First reconcile the interrupted job through the harness (`STA-20b`). A live job means
+  wait; a missing record means unresolved, not permission to retry or wipe.
+- Re-identify disks by WWN and inspect partitions and mount state before changing them.
+  If a partial Alpine root exists, inspect the package, network and boot state and perform
+  only missing work. Steps 5–7 as a whole are **not** declared idempotent: step 7 can erase
+  additional disks. Preserve existing host keys and read them back before the handoff.
+- If evidence cannot establish a safe continuation, stop and surface the unresolved action.
+  A reinstall under `STG-20` is a separately recorded operator decision to discard this
+  disposable install, with its disk set shown again. A timer or missing file never authorizes it.
 
 ## What you will not be able to see
 

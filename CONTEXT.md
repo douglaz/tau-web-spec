@@ -187,7 +187,8 @@ _Avoid_: master key, root key (both suggest something a session holds), "the use
 **Relay pass** · `CHN-15`, `CHN-16`
 What is bought: the relay's record of which destinations a relay key may reach, until when, and
 how fast. Paid for by invoice, bound to a key, never held as a value. There is no identity
-behind it and nothing to lose — the key it is bound to re-derives.
+behind it. Its key re-derives from the seed and exported pass index; losing the index can
+lose the remaining quota.
 _Avoid_: token, subscription, API key (all imply an account or a bearer string); "present the
 pass" (one presents the key; the relay finds the pass)
 
@@ -235,8 +236,9 @@ store" for a store of one (it carries the general-trust sense)
 
 **Artifact source** · `ARC-25`, `ARC-25a`, `TRU-E8`, `TRU-E8a`
 Wherever the installed system's bits come from: an image, a mirror, a channel. An untrusted
-dependency, pinned as tightly as the distribution allows — by content hash on one, by a signing
-key and a pinned revision on the other, which is a second party rather than the same one.
+dependency. Both distributions pin the bootstrap by hash and admit additional packages under
+explicit signing keys. Alpine selects a repository branch; NixOS also pins its source revision.
+The bootstrap hash is not a hash of the installed system.
 _Avoid_: image host (too narrow), mirror (too narrow), **the pin** as a synonym for a content
 hash (an artifact pin is one of two mechanisms — see **Pin**)
 
@@ -247,15 +249,17 @@ The per-machine history of every configured model that has ever touched it.
 _Avoid_: audit log, history (unqualified)
 
 **Recovery sheet** · `STA-16`
-An exported record of host-key fingerprints, the exposure ledger and the inference account
-credential, wrapped under a passphrase. It no longer carries keys; those re-derive from the seed.
+An exported record of derivation indices/resource mappings, host-key fingerprints, the
+exposure ledger and the inference account credential, wrapped under a passphrase. It carries
+no derived private keys; those re-derive from the seed plus the exported metadata.
 _Avoid_: backup (unqualified), export file, "the keys" (they are not in it)
 
 **Replace / Restore** · `STA-17`
 The two recovery flows, deliberately distinct. **Replace** is a new seed, from which new keys
 derive, with the old keys removed from every machine — the default, for a phone that is lost.
 **Restore** re-derives the same keys from the same seed and does not revoke — for a phone that
-died in hand.
+died in hand. A restored seed may use recovered identities but cannot allocate new ones until
+Replace, because an old export cannot prove the latest allocation counter (`STA-22b`).
 
 **Recovery ladder** · `ARC-16`
 What happens when a model cannot finish its machine: retry, escalate behind the same proxy,

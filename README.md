@@ -53,5 +53,7 @@ work.
   project's current provisioning path**, which holds a cloud vendor token on the machine — the
   arrangement `SEC-3` exists to forbid.
 
-Nothing here has touched a real server. The next move is to run the first stage by hand, once,
-against a disposable dedicated server.
+The installation rehearsal ran on a disposable dedicated server on September 8, 2026; both
+pinned SSH hops closed. Harness construction can start. The integrated harness, interrupted
+resume, lockdown and tenant delivery remain unproven. The next work is construction plus the
+lnrent declaration/checklist and briefs 2–3; `07-conformance.md` defines first-stage completion.

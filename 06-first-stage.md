@@ -14,7 +14,7 @@ It replaces the two-cloud-machine diversity demo the design session chose: that 
 vault argument the platform no longer leads with, proved the easy machinery, and deferred
 both hard problems.
 
-**STG-2 Construction gates on running the stage by hand, once, first.** Activate rescue on a
+**STG-2 Construction gates on the installation and identity-chain rehearsal, once, first.** Activate rescue on a
 disposable dedicated server; read what `host_key` actually returns; read what the automatic
 Linux install operation returns in the same sitting; rehearse the ceremony end to end; then
 write the briefs from the captured install transcript. "By hand" means no harness code:
@@ -38,9 +38,11 @@ rather than narrowed it. The SSH client is no longer a bet: a deployed Rust impl
 exists on the same target, with the same UI and build stack this design specifies, and its
 configuration is published
 ([ADR-0024](./docs/adr/0024-the-ssh-client-is-rust-following-a-known-good-configuration.md)).
-What is genuinely unanswered is what Robot's rescue endpoint returns (`OPN-6`), and that costs
-one authenticated call while the whole identity chain rests on it. Spending weeks of
-construction before making that call is the wrong order.
+The unknown was Robot's rescue response (`OPN-6`); the September 8 rehearsal closed it.
+Harness construction can now start. Completing the stage still requires the tenant-owned
+lockdown declaration/checklist and briefs 2–3 (`OPN-14`), plus the integrated acceptance
+checks listed in `07-conformance.md`. A successful installation rehearsal is not completion
+of the first stage.
 
 ## Why the install runs from inside rescue
 
@@ -74,9 +76,12 @@ sequenceDiagram
     B->>RL: open tunnel to Robot
     B->>RB: register client public key (typed op 1)
     B->>RB: activate rescue with that fingerprint (typed op 2)
-    RB-->>B: host_key + generated root password
-    Note over B: pins the fingerprint · redacts the<br/>root password before recording — SEC-5 row 9
+    RB-->>B: generated root password, no host-key fingerprint
+    Note over B: redacts root password before recording — SEC-5 row 9
     B->>RB: reset, to boot into rescue (typed op 3)
+    B->>RB: poll /boot/{n}/rescue/last after boot
+    RB-->>B: booted rescue host-key fingerprints
+    Note over B: pin the rescue fingerprint before SSH
     B->>RL: open WebSocket
     RL->>M: TCP :22
     B->>M: SSH, verified against the pinned key — SEC-11
@@ -123,11 +128,11 @@ transcript matches what was sent.
 from the signed bundle** (`ARC-25`), and a mismatch halts the install. The URL pinned is the
 immutable versioned one, never a moving alias.
 
-**The stage MUST record which distribution it ran**, because the two do not have the same trust
-root (`ARC-25a`): on one the pin is a content hash over the artifact, on the other it covers the
-installer image while the installed system is admitted on a cache signature — a different party
-(`TRU-E8a`) and a different claim. A stage that leaves this unrecorded cannot say afterwards
-which of the two it demonstrated.
+**The stage MUST record the distribution and both layers of artifact admission** (`ARC-25a`):
+the bootstrap URL/hash and the package/cache signing keys and repository policy. On Alpine,
+record the repository branch, index digests and installed versions; on NixOS, record the
+source revision and cache keys. Neither path may report the bootstrap hash as covering the
+complete installed system. Reject untrusted package signatures before delivery (`CNF-67`).
 
 **STG-7** The machine ends **locked down and demonstrated**: the deliverable of `ARC-17`,
 with the tenant's daemon running.
@@ -146,7 +151,8 @@ session re-enters over the same pinned channel and re-runs the check.
 the SSH client private key, or the relay key — appears in a request to the app origin, in
 any model request body, or in any log; and none appears in origin-private storage, local
 storage, or service-worker caches outside the encrypted-at-rest store `SEC-5` names.
-Cleartext nowhere.
+Cleartext nowhere. The local store unlocks and locks under `STA-23`; killing the worker
+requires a new unlock and replay, never a plaintext fallback.
 
 **STG-11** A rescue activation or its reset, interrupted between intent and confirmation,
 then resumed, results in exactly one rescue session and one install.
@@ -201,7 +207,9 @@ display and the operable panel arrive with the tenant that needs them.
   server, and a Robot webservice user. It tests none of them.
 - **Relay enrolment.** The operator's relay **public** key, derived from the seed (`CHN-15`),
   is handed to the publisher out of band and recorded by hand. Nothing secret crosses and
-  nothing is pasted into the app. There is still no purchase flow and no reacquisition story;
+  nothing is pasted into the app. The publisher configures the allowed public destinations
+  and connection/probe limits; fresh challenge authentication, destination restriction and
+  private-address refusal still apply (`CNF-81`, `CNF-87`). There is no purchase flow or tested reacquisition story;
   that is `OPN-2`.
 - **Inference funding.** Assumed already funded.
 - **The general tunnel.** The stage builds only the **pinned** kind (`CHN-12a`), for one known
@@ -225,9 +233,12 @@ that fails to boot after the install is **invisible over the network**: the vend
 resets in a row, for four different reasons, and none was findable from the browser. So the
 harness's response is `ARC-16`'s bottom rung applied to this path: if the installed system
 does not answer on the channel within **ten minutes** of the reset that should have booted
-it, the session declares the install failed, tells the operator, and **returns to rescue and
-reinstalls from the brief** — the same ceremony, and cheap (about five minutes when it works).
-It does not guess, and it does not reach for the vendor's console.
+it, the session declares the install failed, tells the operator, and **offers a return to rescue and
+reinstallation from the brief** — the same ceremony, and cheap (about five minutes when it works).
+Unreachability is not proof of boot failure: a relay or network outage can look the same.
+The timeout does not clear an unresolved action or authorize a wipe. The operator must choose
+the destructive reinstall, with the selected disks shown; normal typed approvals and journal
+ordering apply. Resume first follows `STA-20b`. The harness does not reach for the vendor's console.
 
 That console exists — Hetzner's vKVM rescue boots the installed disk inside a virtual machine
 with a screen — and it is **the operator's own tool, by hand, outside the harness**, for a

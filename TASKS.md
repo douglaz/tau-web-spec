@@ -4,13 +4,26 @@ Work arising from the [engineering review of 2026-08-19](docs/review/2026-08-19-
 which reviewed the corpus at `726ad44`. Each task names the finding it came from, so nobody
 has to reopen the review to know why it exists.
 
-**Everything has been applied**, plus further decisions from the grilling sessions that
+**The August review corrections have been applied**, plus further decisions from the grilling sessions that
 followed. T1 ran on 2026-09-08 on a disposable auction server; construction is no longer
 gated on it.
 
 ## Open
 
-Nothing. The gating list is `08-open-questions.md`.
+- [ ] **T21 — First-stage tenant delivery inputs** (`OPN-14`). Obtain the lnrent-owned
+      declaration, finish the Robot lockdown checklist and briefs 2–3, then exercise
+      `CNF-49`–`CNF-53`. This blocks stage completion, not harness construction.
+- [ ] **T22 — Implement the clarified credential and recovery contracts** (`OPN-3`).
+      Local unlock and v1 derivation gate the first stage (`CNF-82`–`CNF-83`); recovery
+      export/import and partial Replace gate recovery enablement (`CNF-84`).
+- [ ] **T23 — Demonstrate interrupted rescue installation** (`OPN-18`). Implement the
+      `STA-20b` handoff and run `CNF-40`, `CNF-55`, `CNF-85` and `CNF-86` on the integrated
+      harness. Non-destructive example checks are not a completed hardware rehearsal.
+
+The September 9 review's specification corrections are applied: canonical disk selection,
+rescue job lifetime, local unlock, derivation/allocation metadata, relay destination limits,
+Alpine signer trust, rescue sequence and stage applicability. The open tasks above are
+implementation/tenant evidence, not claims that the harness already exists.
 
 ## Applied
 
@@ -86,7 +99,8 @@ Nothing. The gating list is `08-open-questions.md`.
       rather than tau-web. `ARC-39`'s delivery declaration carries the harness's half.)*
 - [x] **T19 — The durable remote job record.** Designed. `STA-20` makes every box-plane
       command a job recording the command as received, its output, its exit code and its
-      liveness, on persistent disk, POSIX-only so both declared distributions behave the same.
+      liveness, on installed-system persistent disk. Rescue has `STA-20b`'s explicit lifetime
+      exception. The wrapper is POSIX; boot identity uses the declared Linux platforms.
       `STA-21` states that it is machine-reported and advisory, and that comparing it against
       the browser journal catches honest mistakes rather than a hostile machine.
       [ADR-0022](docs/adr/0022-durable-state-is-an-append-only-journal.md)'s amendment carries

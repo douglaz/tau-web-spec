@@ -49,10 +49,10 @@ to a key. Content stays encrypted. Existence does not.
 **Timestamps are meaningless for expiry.** The outer layers are deliberately randomised up to
 two days into the past. Any window must run off the browser's own clock from machine creation.
 
-**The derivation path carries an upstream warning.** NIP-06 — BIP-32 by account index from a
-BIP-39 mnemonic — is now labelled *unrecommended* in favour of a single key. That is a warning
-about wallet interoperability. Nothing outside the harness ever needs to reproduce these keys,
-so it does not apply, and it is cited with the label rather than without.
+**The initial NIP-06 shorthand did not specify durable identities.** It left role separation
+and SSH encoding undefined. `STA-22a` now fixes a versioned, all-hardened BIP-32 path per
+role/index, including exact Ed25519 mappings and vectors. This is an application-specific
+derivation contract, not NIP-06 wallet interoperability. No existing deployed keys are migrated.
 
 **The browser side compiles.** The Rust Nostr crates build for wasm32 with derivation,
 encryption and unwrap, and speak WebSocket through the browser. Their README calls them alpha.
@@ -70,9 +70,11 @@ one introduction from it and never listens for it again. This is a **private key
 which is the sentence that killed route 3, and the distinction that lets it live is what the key
 *authorizes*. A host key impersonates a machine for life. A sender key introduces it once.
 
-**It removes everything the browser had to remember.** Sender key, recipient key and SSH client
+**It removes stored child private keys, not allocation metadata.** Sender key, recipient key and SSH client
 key all re-derive from the seed and the machine's index. The recovery sheet stops carrying keys
-and carries only what nothing derives — pins, the ledger, the inference balance.
+and carries what nothing derives — indices/resource mappings, pins, the ledger and the
+inference balance. `STA-22b` requires these mappings and forbids new allocations under an
+imported seed until Replace; a stale sheet cannot prove a current counter.
 
 ## Considered options
 
@@ -151,5 +153,5 @@ deadline is when to stop retrying and scrub.
 **Two parties are named that were not.** The publisher's Nostr relay is `TRU-A2` learning what
 it already learns by another route. A public relay the operator adds is `TRU-E10`.
 
-**The first-boot tool is an artifact on one distribution and a package on the other.** Which is
-one more instance of the split ADR-0027 already records.
+**The first-boot tool is a separately pinned artifact on Alpine and a package on NixOS.**
+Both base-system installs nevertheless depend on package signatures (`ARC-25a`, ADR-0027).
