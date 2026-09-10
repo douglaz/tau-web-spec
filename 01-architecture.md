@@ -314,7 +314,7 @@ lie about whichever layer is thin, and the thin layer is the one that gets explo
 blocked*, because procured inference shares a proxy by design.
 
 **ARC-15** Every machine creation is known before anything starts, so approvals MUST batch:
-one screen showing the whole federation and its true recurring cost. An untyped call's scope
+one screen showing the whole setup and its true recurring cost. An untyped call's scope
 rides the same rules — approved with the up-front batch when the brief names the service,
 joining the mid-flight queue when one is discovered later. **No untyped call runs before its
 scope is approved.** Five concurrent workers producing interleaved popups on a phone is
@@ -416,15 +416,17 @@ requirement possible to state.
 **ARC-19a** Post-harness machinery therefore **never holds a channel to any machine, at any
 point**. Where the profile seals there is no channel to hold: SSH is uninstalled at sealing
 ([ADR-0013](./docs/adr/0013-ongoing-operation-periodic-pentest-and-advisory-watch.md)). Where it
-does not seal, the channel exists and the machinery is simply never given one. What it holds is
-**at most the credential the profile's handoff slot declares**, used over the relay like any
-other TCP (`CHN-10`). `SEC-1` has **no exception window**
+does not seal, the channel exists and the machinery is simply never given one, which `CNF-8`
+verifies by inspection rather than by SSH's refusal. What it holds is **at most the credential
+the profile's handoff slot declares**, used over the relay like any other TCP (`CHN-10`), and
+that credential MUST be one the tenant's own protocol already assumes a hostile holder of: a
+peer's worth of reach, never administrative reach the tenant does not design against. `SEC-1`
+has **no exception window**
 ([ADR-0026](./docs/adr/0026-the-coordinator-is-the-tenants-and-runs-after-sealing.md)).
 
-**Where that credential comes from, stated because the obvious source is closed.** The harness
-never holds a *private* key a machine generated for itself — `SEC-5` enumerates everything it
-holds or places, and no row is one — so the machinery's credential cannot be such a key
-handed over, and the rule above bars a machine's channel key. It is a **distinct keypair the
+**Where that credential comes from, stated because the obvious source is closed.** The
+machinery's credential is never a private key a machine generated for itself handed over —
+no `SEC-5` row is one, and the rule above bars a machine's channel key. It is a **distinct keypair the
 browser derives from the seed** (`STA-22`, `SEC-5` row 17); its public half is installed **during
 setup, before the handoff point**, over the bound session's own channel, with its private half
 staying in the browser to re-derive. It is a credential the harness places, so it is a row in

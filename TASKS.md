@@ -59,6 +59,16 @@ gated on it.
       `executive-summary.md`. `06-first-stage.md`'s second-stage list keeps "the coordinator"
       as a description of what the vault stage brings. The general files still use *member*
       as vocabulary in the sessions and scanner sections; retiring the word is its own pass.
+      Two independent readers reviewed the branch (both MERGE, no P0/P1). Their convergent
+      P2, that `ARC-19a` had lost the peer-equivalence bound on the declared credential, and
+      Codex's P2, that the provenance sentence overclaimed what the harness never holds, were
+      fixed before merge; `ARC-15` now says "the whole setup". Recorded P3 follow-ups:
+      `00-overview.md`'s diagram edge "vault protocol port only"; `executive-summary.md`'s
+      "Members reach each other only on the vault protocol port" stated without attribution;
+      the second Member definition near the end of `CONTEXT.md`; "handoff ID" in `STA-22b` is
+      undefined and btc-policy's profile does not say it is the federation ID; the "Member
+      networking" heading over `ARC-23`'s pointer; ADR-0021 still cites `ARC-19a` for sealed,
+      peer-equivalent coordinator behaviour.
 
 The September 9 review's specification corrections are applied: canonical disk selection,
 rescue job lifetime, local unlock, derivation/allocation metadata, relay destination limits,
