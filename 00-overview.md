@@ -130,7 +130,7 @@ facts.**
 flowchart TD
     OP([Operator]) -->|approves, binds sessions| BR
     subgraph PHONE["The operator's phone — everything that decides lives here"]
-        BR["Browser bundle<br/>sessions · coordinator · journal · credentials"]
+        BR["Browser bundle<br/>sessions · post-harness machinery · journal · credentials"]
     end
     BR -->|"direct HTTPS, where CORS permits"| INF["Inference proxy<br/>→ inference provider"]
     BR -->|"direct HTTPS, typed operations"| VND["Cloud vendor API"]
@@ -197,21 +197,21 @@ its own key over Nostr under keys the browser derives from the operator's seed
 pipeline has run; a real first boot has not, and `OPN-3` tracks it. Passing the SSH spike is necessary and does not by itself
 satisfy this; the routes are what make it sufficient.
 
-**OVR-5** Members MUST NOT share a cloud vendor. The vendor owns its machine's memory and
-disk and is trusted under every design considered, so two members at one vendor is one
-party able to act on both — the correlated fault a threshold cannot absorb. Nothing in the
-design forces vendor sharing, so unlike the proxy layer this one is enforced: at the
-shipped default of one vendor per machine, relaxable by the tenant toward its own
-quorum-relative bound and never past it (`SEC-T3`). What makes it hard is the account floor
+**OVR-5** The machines of one setup MUST NOT share a cloud vendor. The vendor owns its
+machine's memory and disk and is trusted under every design considered, so two machines at one
+vendor is one party able to act on both — the correlated fault a threshold cannot absorb.
+Nothing in the design forces vendor sharing, so unlike the proxy layer this one is enforced: at
+the shipped default of one vendor per machine, relaxable by the tenant toward its profile's
+independence bound and never past it (ADR-0030). What makes it hard is the account floor
 under [`01-architecture.md`](./01-architecture.md#money) — a reason it is expensive, not a
 reason it is optional.
 
-**OVR-6** Independence between members MUST be counted per layer and shown, not enforced.
-Weights, proxy and requested provider are counted separately — the third labelled
-*requested*, since the aggregator reports nothing back and may override — and a
+**OVR-6** Independence between the machines of one setup MUST be counted per layer and shown,
+not enforced. Weights, proxy and requested provider are counted separately — the third
+labelled *requested*, since the aggregator reports nothing back and may override — and a
 collision at any counted layer is displayed rather than blocked
 ([ADR-0007](./docs/adr/0007-trust-is-counted-in-two-layers-and-shown.md)). Blocking would
-make the default configuration impossible, because procured inference routes every member
+make the default configuration impossible, because procured inference routes every machine
 through one proxy by design — so at the proxy layer the default product *does* share a
 domain, deliberately and visibly. Independence is the security parameter; it is not a
 precondition this product can enforce.

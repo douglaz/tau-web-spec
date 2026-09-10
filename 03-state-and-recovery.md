@@ -174,14 +174,15 @@ nothing re-derives the past.
 from it.** A BIP-39 mnemonic, held encrypted at rest and backed up by the operator the way
 this audience already backs up seeds. For machine *m*, the browser derives at index *m*: the
 SSH client keypair (`SEC-5` row 3), the attest sender key (row 7) and the attest recipient key
-(row 16); and for relay pass *n*, on its own branch, the relay key (row 4). A federation tenant
-also derives one **coordinator peer credential** (row 17) on its own branch. Derivation is
-the versioned, role-separated contract in `STA-22a`; an implementation must not choose paths
-independently.
+(row 16); and for relay pass *n*, on its own branch, the relay key (row 4). A tenant whose
+handoff slot declares a credential also derives one **post-harness credential** (row 17)
+on its own branch. Derivation is the versioned, role-separated contract in `STA-22a`; an
+implementation must not choose paths independently.
 
 - **No session and no machine ever sees the seed.** What machine *m* receives is its client
-  public key, its sender private key, its recipient public key, and — on a federation member —
-  the coordinator's peer *public* key for its peer set: values nothing derives *from*. `SEC-1`'s cryptographic enforcement is untouched: machine 3 still holds
+  public key, its sender private key, its recipient public key, and — where the handoff slot
+  declares that machine a target — the post-harness credential's *public* key: values nothing
+  derives *from*. `SEC-1`'s cryptographic enforcement is untouched: machine 3 still holds
   machine 3's public key alone.
 - **A machine's index is journaled before the create call and never reused.** The same index
   on two machines is the same client key on two machines, which is `SEC-1` broken by
@@ -208,11 +209,11 @@ an upgrade never silently reinterprets an existing identity. The seed is a dedic
 seed, never an existing wallet or social-identity seed.
 
 **STA-22b Allocation metadata is recoverable state.** The journal owns a seed identifier,
-derivation version, next unused index for each role family (machines, passes, federations),
+derivation version, next unused index for each role family (machines, passes, handoffs),
 and allocated entries, including tombstones for failed or destroyed allocations. A machine
 entry maps vendor/account reference and immutable vendor machine ID to its index and expected
-SSH public key; a pass entry maps relay URL and public key to its index; a federation entry
-maps tenant/federation ID to its index. Machine roles share one machine index. Reserve it
+SSH public key; a pass entry maps relay URL and public key to its index; a handoff entry
+maps tenant and handoff ID to its index. Machine roles share one machine index. Reserve it
 durably before any external effect, including registering a key for an already-rented server.
 All this metadata is included in `STA-16` exports, with an export time and journal sequence.
 

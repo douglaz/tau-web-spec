@@ -30,13 +30,14 @@ silently skipping to another path; a failed reserved allocation remains consumed
 | 1 | Same machine index | Attest sender | secp256k1 secret; Nostr BIP-340 x-only public key |
 | 2 | Same machine index | Attest recipient | secp256k1 secret; Nostr BIP-340 x-only public key |
 | 3 | Pass | Relay | secp256k1 secret; Nostr BIP-340 x-only public key |
-| 4 | Federation | Coordinator peer | 32-byte big-endian child scalar used as an RFC 8032 Ed25519 seed |
+| 4 | Handoff | Post-harness credential | 32-byte big-endian child scalar used as an RFC 8032 Ed25519 seed |
 
 The Ed25519 mapping uses the child bytes as the **seed**, never as an already-expanded
 Ed25519 scalar. Nostr signing follows BIP-340's parity normalization. Only raw child secrets
 are passed to their authorized holders; no chain code or extended key leaves the harness.
-The federation tenant must accept the role-4 Ed25519 identity at its peer API before that
-feature can ship; a different algorithm requires a new role/version, never reinterpretation.
+A tenant whose handoff slot declares a credential must accept the role-4 Ed25519 identity
+at its peer API before that feature can ship; a different algorithm requires a new
+role/version, never reinterpretation.
 
 The seed identifier is lowercase hex SHA-256 of the UTF-8 bytes `tau-web seed id v1`, one
 zero byte, and the 64-byte BIP-39 seed. It is an integrity association inside the encrypted
@@ -101,7 +102,7 @@ key or envelope as a sheet. Local and sheet purposes cannot be interchanged.
 
 The authenticated UTF-8 JSON payload contains `version: 1`, `derivation_version: 1`,
 `seed_id`, `exported_at` (UTC RFC 3339), `journal_sequence`, `next_indices` (machine/pass/
-federation), `allocations` (including consumed tombstones), `host_pins`, `exposure_ledger`,
+handoff), `allocations` (including consumed tombstones), `host_pins`, `exposure_ledger`,
 and optional `inference_account_credential`. Each allocation has its family, index, stable
 resource identity and expected public key as required by `STA-22b`; a failed allocation may
 have no vendor resource ID, but retains its index. No seed or derived private key is included.

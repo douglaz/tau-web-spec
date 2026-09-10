@@ -31,12 +31,34 @@ gated on it.
       listed here in error and **stay** in `01-architecture.md`: they hold for every profile,
       so they are the harness's (ADR-0030's own guard says so). lnrent's profile references
       them and carries only its values.
-- [ ] **T25 — Generalize the harness rules that still name a tenant mechanism.** After T24:
+- [x] **T25 — Generalize the harness rules that still name a tenant mechanism.** After T24:
       `ARC-19a` (post-harness machinery never holds a channel), `ARC-37`'s Lightning sentence,
       `SEC-T3`'s harness default, `SEC-5` row 17, the coordinator paragraphs in `SEC-1` and
       `ARC-12`, the federation applicability row in `07-conformance.md`, and derivation role 4
       relabelled "post-harness credential" with path and vectors unchanged. Every edit changes
       a MUST; review with two independent readers, as `ADR-0030` was.
+      Done 2026-09-10: `ARC-19`/`ARC-19a` are now a rule about **post-harness machinery** keyed
+      on the profile's handoff slot; the coordinator, member endpoints, recovery descriptors,
+      federation formation, the vault protocol port, peer-equivalence and the hostile-peer
+      argument (`ARC-23`, ADR-0010, ADR-0012) moved verbatim into btc-policy's "Post-harness
+      handoff" slot. `ARC-12`'s diagram node and dotted edges, the `SEC-1` coordinator
+      paragraph (its history note keeps the word), `SEC-5` row 17, `CNF-8`, `CNF-77` and the
+      applicability row followed. `ARC-37`'s two bullets are now watch-only vs. delegated with
+      no payment mechanism named; lnrent's profile already carries the Lightning and
+      extended-public-key sentences. `OVR-5`/`OVR-6` say "the machines of one setup" and point
+      at the profile's independence bound (ADR-0030) instead of `SEC-T3`. Role family 4 is
+      **Handoff / post-harness credential** in `STA-22`, `STA-22b` and
+      `docs/design/credential-format-v1.md`; path, role number, encoding and every vector are
+      byte-identical and `check-credential-vectors.py` passes untouched. `CONTEXT.md` gains
+      **Post-harness machinery**; Coordinator and Member are marked btc-policy vocabulary.
+      Conformance checks compare installed API authority and target machines with the handoff
+      declaration; row 17's lifetime is profile-declared, with btc-policy's lifetime preserved.
+      The three leaks the panel found outside its file lock were fixed by hand before merge:
+      `TRU-A3`'s summary of `ARC-19a` in `05-trust.md`, the coordinator node in
+      `00-overview.md`'s system-context diagram, and the coordinator paragraph in
+      `executive-summary.md`. `06-first-stage.md`'s second-stage list keeps "the coordinator"
+      as a description of what the vault stage brings. The general files still use *member*
+      as vocabulary in the sessions and scanner sections; retiring the word is its own pass.
 
 The September 9 review's specification corrections are applied: canonical disk selection,
 rescue job lifetime, local unlock, derivation/allocation metadata, relay destination limits,

@@ -56,12 +56,12 @@ boundary.
 session 2 is still refused by SSH. The seed is a root the *browser* holds — one thing to back
 up instead of a sheet of keys — not a credential any session or machine ever sees (`STA-22`).
 
-**The coordinator holds no grant of this kind at all** (`ARC-19a`). It runs after every machine
-is sealed, and a sealed machine has no SSH to authenticate to. Its credential is
-peer-equivalent — the vault protocol port, which `ARC-23` already assumes a hostile party may
-reach. So this requirement has **no exception window**: there is no moment in a machine's life
-when some party holds every machine's client key, and `CNF-8` tests that absolutely rather than
-after a deadline.
+**Post-harness machinery holds no grant of this kind at all** (`ARC-19a`). It runs after every
+machine of the setup is delivered, and where the profile seals, a sealed machine has no SSH to
+authenticate to. It holds at most the credential the profile's handoff slot declares, which is
+never a machine's own key. So this requirement has **no exception window**: there is no moment
+in a machine's life when some party holds every machine's client key, and `CNF-8` tests that
+absolutely rather than after a deadline.
 
 *What this requirement used to say* was that the coordinator held a distinct grant covering
 every machine's keypair for the setup window. That described a shape the ordering makes
@@ -160,7 +160,7 @@ outgrown, because adding a credential means adding a row.
 | 14 | **Inference account credential** (procured only) | Operator, on funding an account-free balance | Encrypted at rest; **exported in the sheet** | Until the balance is spent | The remaining balance; minting and revoking row 2; attaching a funding source (`ARC-31a`) | Spent down or abandoned — **it is bearer and cannot be revoked** |
 | 15 | **Operator seed** | Operator, at first use; backed up by the operator | Encrypted at rest; **in the operator's head or seed backup**, never in the sheet | Until replaced | Deriving rows 3, 4, 7 and 16 — **every maintained machine, every relay pass, and every future introduction** (`STA-22`) | Replaced by a new seed on Replace (`STA-17`); the old one is not revocable, only abandoned — and it is still needed *during* Replace |
 | 16 | **Attest recipient key**, one per machine | Derived from row 15 (`STA-22`) | Re-derived on demand; public half in boot user-data | Until the introduction is accepted or the window closes | Decrypting **one** machine's introduction | The browser stops listening; the key is never used again |
-| 17 | **Coordinator peer credential** (federation tenants only) | Derived from row 15 (`STA-22`); public half installed into each member's peer set during setup, before sealing (`ARC-19a`) | Re-derived on demand; nothing stored | Federation lifetime | Peer-equivalent reach to each member's vault port — what one member can do to another, no more | The federation is dissolved, or the member is rebuilt |
+| 17 | **Post-harness credential** (profiles declaring a handoff credential) | Derived from row 15 (`STA-22`); public half installed only on the machines the profile's handoff slot declares, during setup, before the handoff point (`ARC-19a`) | Re-derived on demand; nothing stored | As declared by the profile's handoff slot | Exactly the reach the profile's handoff slot declares, and no more — btc-policy's instance is the coordinator peer credential | As declared by the profile's handoff slot |
 | 18 | Local unlock passphrase | Operator-chosen (`STA-23`) | Input UI briefly, then harness-worker memory; never persisted or sent | Unlock or passphrase-change operation | Derives row 19 to unwrap the local data key | Input and buffers cleared after use |
 | 19 | Wrapping key (local store or sheet) | PBKDF2 from row 18 or row 10, with independent salts and purposes | Harness-worker memory only | Wrap/unwrap operation | Unwraps one row-20 key | Cleared after wrap/unwrap |
 | 20 | Data-encryption key (local store or sheet) | Browser CSPRNG, independent per store/export | Harness-worker memory; only an authenticated wrapped copy persists | Local store unlocked; sheet import/export operation | Decrypts the named local store or sheet, never another purpose | Cleared on lock/end; replaced on re-encryption |

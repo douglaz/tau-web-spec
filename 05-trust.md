@@ -189,8 +189,9 @@ availability or topology exposure.
 
 **TRU-A3 — Retired. The coordinator is not a party this product adds.** It was listed because
 its reach was believed broader than anything else the application does — every machine's client
-keypair, held at once. `ARC-19a` establishes that it holds no channel at any point: it runs
-after sealing, when no member has SSH to reach, and its credential is peer-equivalent to a
+keypair, held at once. `ARC-19a` establishes that post-harness machinery holds no channel at
+any point and at most the credential its profile declares; btc-policy's coordinator runs after
+sealing, when no member has SSH to reach, and its credential is peer-equivalent to a
 member's. Its reach is therefore narrower than the application's own, since the application
 holds every session. It is deterministic code from the signed bundle, so whatever trust it
 needs is already `TRU-A1`'s, and the federation it forms is the tenant's object rather than the

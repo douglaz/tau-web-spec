@@ -57,11 +57,11 @@ yet.
 - [ ] **CNF-7 · BLOCKING** Binding is created by an operator act before any connection
       attempt. A connection attempt against an unbound machine does not create a binding, and
       is recorded as refused.
-- [ ] **CNF-8 · BLOCKING** The coordinator holds **no channel to any machine, at any point**
-      (`ARC-19a`), and its credential is peer-equivalent. Verified by inspecting what the
-      coordinator is given — as `CNF-9` does for the scanner — rather than by attempting an
-      access and observing refusal: what is under test is the absence of a credential, and a
-      refusal test cannot distinguish that from a credential the harness declined to use.
+- [ ] **CNF-8 · BLOCKING** The profile-declared post-harness machinery holds **no channel to any
+      machine, at any point** (`ARC-19a`), and holds no reach beyond what the profile's handoff
+      slot declares. Verified by inspecting what that machinery is given — as `CNF-9` does for
+      the scanner — rather than by attempting an access and observing refusal: a refusal test
+      cannot distinguish absence from a credential the harness declined to use.
 - [ ] **CNF-9 · PRE-SCALE** A scanner run holds no machine credential and no channel. Verified
       by inspecting what the scanner process is given, not by what it does.
 - [ ] **CNF-10 · PRE-SCALE** The exposure ledger records every configured model that touches a
@@ -109,11 +109,12 @@ yet.
 - [ ] **CNF-73 · BLOCKING** No session and no machine is ever given the seed (`STA-22`).
       Verified by inspecting what each is given, as `CNF-9` does for the scanner. Escaped-secret:
       the seed reaches every maintained machine and every future introduction.
-- [ ] **CNF-77 · PRE-SCALE** The coordinator's peer credential is a `SEC-5` row, derived from
-      the seed, with its public half installed into each member's peer set during setup and its
-      private half never stored (`ARC-19a`, `SEC-5` row 17). Verified by inspecting the member
-      peer sets after setup and confirming the coordinator holds no channel and no member's own
-      key. Federation tenants only.
+- [ ] **CNF-77 · PRE-SCALE** The post-harness credential is a `SEC-5` row, derived from
+      the seed, with its public half installed only on the machines the profile's handoff slot
+      declares, during setup, and its private half never stored (`ARC-19a`, `SEC-5` row 17).
+      Verified by inspecting each machine's installed authorization after setup against that
+      declaration and confirming the machinery holds no channel and no machine's own key.
+      Profiles declaring a handoff credential only.
 - [ ] **CNF-74 · PRE-SCALE** An event received on the notify channel (`CHN-17`) is typed
       untrusted and gates nothing. Verified by delivering a well-formed event claiming a step is
       complete and confirming no step advances.
@@ -371,7 +372,7 @@ untested capability. A broader deployment still applies the PRE-SCALE promotion 
 |---|---|---|
 | First stage: required | 1–7, 10–15, 17, 21–22, 24–26, 28–30, 32, 34–35, 37–40, 41, 43–44, 49–56, 62–64, 66–73, 78–83, 85–87 | One live dedicated machine; synthetic unbound identities exercise 6 and 26. Item 50 covers the delivery check; its scanner half waits for scanner enablement. Item 10 covers local ledger persistence; its sheet-export half waits for recovery. Item 72 covers local allocation; imported-state cases are 84. Item 67 uses Alpine; NixOS evidence is required before enabling NixOS. Item 81's migration case waits for self-host migration, which the first stage does not offer. |
 | First stage: record measurements | 45–48 | 48 has by-hand evidence; 45–47 require the integrated browser channel, not the rehearsal's timings. |
-| Federation | 8, 77 | Before coordinator/federation enablement; first stage has none. |
+| Post-harness handoff | 8, 77 | Before enabling any profile that declares one; the first stage has none. |
 | Scanner and advisory monitoring | 9, 36 | Also complete item 50's scanner case before exposing scanner results. |
 | Tenant-secret injection | 16 | Before enabling injection; unavailable in the first stage. |
 | Cloud attest and Nostr inbox | 18, 61, 74–75 | Before cloud route 5 is enabled. |

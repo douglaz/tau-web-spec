@@ -109,9 +109,37 @@ credential (`ARC-35`).
 
 ## Post-harness handoff
 
-The coordinator: this tenant's machinery, running only after every member is provisioned,
-locked down, delivered and sealed (`ARC-19`, `ARC-19a`,
-[ADR-0026](../../adr/0026-the-coordinator-is-the-tenants-and-runs-after-sealing.md)). Its input
-is member endpoints plus operator-supplied recovery descriptors, and it holds one
-browser-derived peer credential per federation, installed into each member's peer set before
-sealing.
+The **coordinator**: this tenant's instance of the harness's post-harness machinery (`ARC-19`,
+`ARC-19a`, [ADR-0026](../../adr/0026-the-coordinator-is-the-tenants-and-runs-after-sealing.md)).
+It takes member endpoints plus operator-supplied recovery descriptors and forms the federation
+by calling member APIs.
+
+**Federation formation belongs to the vault** the way the threshold does (ADR-0016) and the
+delivery declaration does (`ARC-39`): the harness does not know what a federation is. The
+coordinator begins when every member is provisioned, locked down, delivered and **sealed** —
+which is already the order
+[ADR-0012](../../adr/0012-a-federation-is-created-only-when-every-member-works.md) requires.
+On a sealed member there is no channel to hold: SSH is uninstalled at sealing
+([ADR-0013](../../adr/0013-ongoing-operation-periodic-pentest-and-advisory-watch.md)).
+
+**The credential this slot declares** is a **peer-equivalent credential** for each member's
+vault protocol port
+([ADR-0010](../../adr/0010-members-reach-each-other-on-one-authenticated-port.md)), one per
+federation. It can do what a member can do to another member, and no more — which `ARC-23`
+already assumes may be done by an actively hostile party, so the grant adds nothing to the
+vault's own threat model. It lasts for the federation lifetime, ending when the federation is
+dissolved or the member is rebuilt.
+
+A member's own vault keys are generated on the machine and never exported
+([ADR-0011](../../adr/0011-the-ai-delivers-a-locked-down-machine.md)), so the coordinator's
+credential cannot be a member's key handed over. Its public half is installed into each
+member's peer set during setup, before sealing, over the bound session's own channel — the
+one window a member can still be told anything. That the browser holds a peer's worth of reach
+to every member is not a new exposure — `ARC-23` already designs for a hostile peer, which is
+the whole reason this grant "adds nothing to the vault's threat model". The tenant must accept
+the role-4 Ed25519 identity at its peer API before this feature can ship
+([credential format](../../design/credential-format-v1.md)).
+
+**A formation failure is a rebuild, not a repair.** If a sealed member's API refuses to form,
+nobody can go back inside. Only the ladder's last rung applies: destroy and rebuild that
+member ([ADR-0026](../../adr/0026-the-coordinator-is-the-tenants-and-runs-after-sealing.md)).

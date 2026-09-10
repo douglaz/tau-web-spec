@@ -50,12 +50,12 @@ guest boundary looks like in order to check that the declared one holds.
 **ARC-37** A multi-tenant machine MUST NOT hold **spendable** key material. Receiving is
 watch-only or delegated:
 
-- **On-chain**, the machine holds an extended *public* key and nothing else. It derives a
-  fresh receive address per order and observes settlement. It cannot spend, so an escaped
-  guest finds nothing to take.
-- **Lightning cannot be watch-only** — receiving requires an online node holding channel state
-  and signing — so it is **delegated** to a receiving service the operator chose, which takes
-  the payment and notifies the machine (`ARC-38`).
+- **Watch-only receiving** holds public material and nothing else: enough to derive receive
+  addresses and observe settlement, never enough to spend, so an escaped guest finds nothing
+  to take.
+- **Receiving that cannot be watch-only** is **delegated** to a receiving service the
+  operator chose, which takes the payment and notifies the machine (`ARC-38`). The profile
+  names the mechanism either way.
 
 The rule is stated as removal rather than as isolation on purpose. A boundary between a
 stranger and a hot wallet is a boundary that has to hold every time; a machine with no
@@ -251,15 +251,15 @@ flowchart LR
         S1["Session 1<br/>weights A"]
         S2["Session 2<br/>weights B"]
         S3["Session 3<br/>weights C"]
-        CO["Coordinator<br/>AI-free, no channel ever"]
+        CO["Post-harness machinery<br/>profile-declared, no channel ever"]
     end
     S1 -->|"keypair 1 only"| M1["Machine 1"]
     S2 -->|"keypair 2 only"| M2["Machine 2"]
     S3 -->|"keypair 3 only"| M3["Machine 3"]
     S1 -.->|"cannot authenticate"| M2
-    CO -.->|"peer-equivalent, after<br/>sealing, vault port only"| M1
-    CO -.-> M2
-    CO -.-> M3
+    CO -.->|"profile-declared<br/>credential, after delivery"| M1
+    CO -.->|"profile-declared<br/>credential, after delivery"| M2
+    CO -.->|"profile-declared<br/>credential, after delivery"| M3
     SC["Scanner<br/>no credential, no channel"] -.->|"public surface only,<br/>through the relay"| M1
     SC -.-> M2
     SC -.-> M3
@@ -400,41 +400,37 @@ upload API at all and requires a rescue-and-write approach, while others offer i
 that differ from each other and from that. That heterogeneity is an argument *for* the AI,
 not against it.
 
-## The coordinator and federation creation
+## Post-harness machinery, and finishing a setup
 
-**ARC-19** The **coordinator** is AI-free deterministic code running from the signed bundle
-on the operator's device. It takes member endpoints plus operator-supplied recovery
-descriptors and forms the federation by calling member APIs.
+**ARC-19** **Post-harness machinery** — whatever a profile declares in its post-harness
+handoff slot — is AI-free deterministic code running from the signed bundle on the operator's
+device.
 
-**It is the tenant's machinery, and it runs only after the harness is finished.** Federation
-formation belongs to the vault the way the threshold does (ADR-0016) and the delivery
-declaration does (`ARC-39`): the harness does not know what a federation is. The coordinator
-begins when every machine is provisioned, locked down, delivered and **sealed** — which is
-already the order [ADR-0012](./docs/adr/0012-a-federation-is-created-only-when-every-member-works.md)
-requires, and it is what makes the rest of this requirement possible to state.
+**It is the tenant's machinery, and it runs only after the harness is finished.** What it does
+belongs to the tenant the way the threshold does (ADR-0016) and the delivery declaration does
+(`ARC-39`): the harness does not know what the machinery is forming. It begins when every
+machine of the setup is provisioned, locked down, delivered and — where the profile's access
+model seals (`ARC-27`) — **sealed**, and that ordering is what makes the rest of this
+requirement possible to state.
 
-**ARC-19a** The coordinator therefore **never holds a channel to any machine, at any point**.
-On a sealed member there is no channel to hold: SSH is uninstalled at sealing
-([ADR-0013](./docs/adr/0013-ongoing-operation-periodic-pentest-and-advisory-watch.md)). What
-it holds is a **peer-equivalent credential** for each member's vault protocol port
-([ADR-0010](./docs/adr/0010-members-reach-each-other-on-one-authenticated-port.md)), reached
-over the relay like any other TCP (`CHN-10`). It can do what a member can do to another
-member, and no more — which `ARC-23` already assumes may be done by an actively hostile party,
-so the grant adds nothing to the vault's own threat model. `SEC-1` has **no exception window**
+**ARC-19a** Post-harness machinery therefore **never holds a channel to any machine, at any
+point**. Where the profile seals there is no channel to hold: SSH is uninstalled at sealing
+([ADR-0013](./docs/adr/0013-ongoing-operation-periodic-pentest-and-advisory-watch.md)). Where it
+does not seal, the channel exists and the machinery is simply never given one. What it holds is
+**at most the credential the profile's handoff slot declares**, used over the relay like any
+other TCP (`CHN-10`). `SEC-1` has **no exception window**
 ([ADR-0026](./docs/adr/0026-the-coordinator-is-the-tenants-and-runs-after-sealing.md)).
 
-**Where that credential comes from, stated because the obvious source is closed.** A member's
-own vault keys are generated on the machine and never exported
-([ADR-0011](./docs/adr/0011-the-ai-delivers-a-locked-down-machine.md)), so the coordinator's
-credential cannot be a member's key handed over. It is a **distinct keypair the browser derives
-from the seed** (`STA-22`, `SEC-5` row 17); its public half is installed into each member's peer
-set **during setup, before sealing**, over the bound session's own channel — the one window a
-member can still be told anything — and its private half stays in the browser and re-derives. It
-is a credential the harness places, so it is a row in `SEC-5` rather than an unlisted grant, and
-being seed-derived it survives a lost phone the way every other per-machine key now does: a
-formation can be finished or rebuilt without it having been stored. That the browser holds a
-peer's worth of reach to every member is not a new exposure — `ARC-23` already designs for a
-hostile peer, which is the whole reason this grant "adds nothing to the vault's threat model".
+**Where that credential comes from, stated because the obvious source is closed.** The harness
+never holds a *private* key a machine generated for itself — `SEC-5` enumerates everything it
+holds or places, and no row is one — so the machinery's credential cannot be such a key
+handed over, and the rule above bars a machine's channel key. It is a **distinct keypair the
+browser derives from the seed** (`STA-22`, `SEC-5` row 17); its public half is installed **during
+setup, before the handoff point**, over the bound session's own channel, with its private half
+staying in the browser to re-derive. It is a credential the harness places, so it is a row in
+`SEC-5` rather than an unlisted grant, and being seed-derived it survives a lost phone the way
+every other per-machine key now does: the handoff can be finished or rebuilt without it having
+been stored.
 
 **ARC-20** Federation creation MUST be all-or-nothing
 ([ADR-0012](./docs/adr/0012-a-federation-is-created-only-when-every-member-works.md)). A

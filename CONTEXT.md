@@ -61,19 +61,25 @@ funding a vault, under lnrent a seller renting capacity out. Both of those proje
 their **own** narrower `Operator` for their own domain.
 _Avoid_: user, admin, owner, customer
 
-**Coordinator** · `ARC-19`, `ARC-19a`
-AI-free deterministic code, running from the signed bundle on the operator's device, that forms
-a federation by calling member APIs. It is the **tenant's** machinery and runs only after every
-machine is sealed, so it holds no channel to any machine at any point; its credential is
-peer-equivalent.
+**Post-harness machinery** · `ARC-19`, `ARC-19a`
+What a profile may declare, in its post-harness handoff slot, to run after the harness has
+finished with the setup. AI-free deterministic code from the signed bundle, on the operator's
+device, starting only once every machine of the setup is delivered. It holds no channel to any
+machine at any point, and receives at most the credential that slot declares.
+_Avoid_: post-setup agent, orchestrator (both suggest something that keeps running)
 
-**btc-policy uses this word for a different component** — its operational relay, trusted until
-the wrench attack and untrusted after. Different phase, opposite trust posture. Check the
-register in the meta project before carrying the term across a repository boundary.
+**Coordinator** · `docs/tenants/btc-policy/profile.md`
+btc-policy's *Post-harness machinery*, defined in its profile.
 
-**Member**
+**The btc-policy repository uses this word for a different component** — its operational
+relay, trusted until the wrench attack and untrusted after. Different phase, opposite trust
+posture. Check the register in the meta project before carrying the term across a repository
+boundary.
+
+**Member** · btc-policy vocabulary
 A machine running the vault software as part of a federation. Generates its own key material
-locally and never exports it.
+locally and never exports it. The harness's own word for the same thing is *machine*; the
+general files still use *member* in places, which ADR-0030's migration list retires.
 
 **Lightweight pentest** · `ARC-17`
 A session probing its own machine at delivery. A **competence** check, not an integrity check.
@@ -191,8 +197,8 @@ wrong. A Nostr relay is always called that in full.
 **Seed** · `STA-22`
 The operator's BIP-39 mnemonic, from which every credential the browser derives comes: per
 machine, the SSH client key and the two attest keys; per relay pass, the relay key; per
-federation, the coordinator peer credential. Never seen by a session or a machine; never in the
-sheet. **This is the harness's seed.** A tenant may have a seed of its own (btc-policy's wallet
+declared handoff, the post-harness credential. Never seen by a session or a machine; never in
+the sheet. **This is the harness's seed.** A tenant may have a seed of its own (btc-policy's wallet
 seed) which the harness never touches (`SEC-T4`); when both are in play, say *operator seed*
 and *wallet seed*.
 _Avoid_: master key, root key (both suggest something a session holds), "the user's nsec",
