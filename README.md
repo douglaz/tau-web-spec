@@ -37,6 +37,8 @@ The specification is split by topic, and every requirement carries a stable iden
 | [`07-conformance.md`](./07-conformance.md) | What an implementation must demonstrate |
 | [`08-open-questions.md`](./08-open-questions.md) | Everything still unknown, and what would close it |
 
+[`docs/tenants/`](./docs/tenants/) holds one profile per tenant (`ADR-0030`).
+
 [`executive-summary.md`](./executive-summary.md) is a shorter read for the shape without the
 detail. [`CONTEXT.md`](./CONTEXT.md) is the glossary. [`TASKS.md`](./TASKS.md) is the open
 work.

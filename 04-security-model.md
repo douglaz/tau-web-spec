@@ -278,23 +278,10 @@ These bind wherever a tenant requires them and mean nothing otherwise, so under
 belong to that tenant and move with it. They are listed here, unchanged, until pointers into
 btc-policy's own records replace them.
 
-**SEC-T1** Members MUST NOT be reachable from each other except on the vault protocol port,
-mutually authenticated, with everything else denied at the vendor firewall.
-
-**SEC-T2** A federation MUST NOT be formed until every member is provisioned, hardened, and
-reachable.
-
-**SEC-T3** No cloud vendor's machines may reach a federation's quorum — the tenant's rule,
-which binds. The harness ships a stricter default: one vendor, one machine. The two are one
-rule at two strengths: btc-policy's quorum-relative form is the bound an implementation MUST
-enforce, and the flat form is the default the harness applies — relaxable by the tenant
-toward its own bound, never past it, and never by the harness on its own.
-
-**SEC-T4** The AI MUST NOT touch key material. Recovery descriptors come from the operator;
-member keys are generated on the machine and never exported. **This is achievable because
-btc-policy designs the whole procedure for it** — the model is gone, by sealing, before
-anything valuable exists. A maintained tenant cannot have this, because the model keeps
-coming back, and for those the harness offers `SEC-6` instead.
+**SEC-T1**, **SEC-T2**, **SEC-T3** and **SEC-T4** Moved to the btc-policy tenant profile,
+[`docs/tenants/btc-policy/profile.md`](./docs/tenants/btc-policy/profile.md), slots
+"Delivery declaration", "Machine set", "Independence bound" and "Secrets and parties"
+(ADR-0030). The identifiers are kept so existing references resolve.
 
 ## SEC-CLAIM — the security claim, stated exactly
 

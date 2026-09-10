@@ -60,8 +60,12 @@ integration path and puts a hole in `CNF-49`, "no declaration, no delivery".
 
 ## Consequences
 
-The general files lose their federation and lnrent material to two profiles plus the built-in
-one; the identifiers that move keep their numbers under the profile that owns them. The
+The general files lose their federation material to the btc-policy profile; the identifiers
+that move keep their numbers under the profile that owns them. lnrent's material turned out
+to be harness rules with lnrent as their first instance: `ARC-36` defines the class every
+profile selects from, `ARC-37` is the gate the first guard protects, and `ARC-38` is a
+permission any tenant may use. They stay in `01-architecture.md`, and lnrent's profile
+carries only its values. T25 still lifts the Lightning mechanism sentence out of `ARC-37`. The
 leaks that remain after the move are a migration list, not a redesign: derivation role 4 and
 the "federations" allocation family in `STA-22a`/`STA-22b`, `SEC-5` row 17, `SEC-T3`'s
 stricter default, the coordinator paragraphs in `SEC-1` and `ARC-12`, the federation

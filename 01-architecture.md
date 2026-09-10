@@ -441,7 +441,8 @@ hostile peer, which is the whole reason this grant "adds nothing to the vault's 
 partially-formed federation has no honest description: a 3-of-5 vault with four working
 members is not "80% set up" — its real threshold, failure modes, and security claim are all
 different from the thing the operator approved, and none of those differences are visible
-from a progress bar.
+from a progress bar. This is btc-policy's rule; the tenant's copy in
+`docs/tenants/btc-policy/profile.md` is authoritative (ADR-0030).
 
 **ARC-21** Abandonment MUST be a first-class action — a cloud-plane operation with the same
 approval treatment as creation — because all machines exist and bill from the moment they
@@ -464,22 +465,9 @@ against.
 
 ## Member networking
 
-**ARC-23** Members MUST open connections to each other only on the vault protocol port,
-mutually authenticated. No SSH between members, no arbitrary traffic, everything else
-denied at the vendor firewall
-([ADR-0010](./docs/adr/0010-members-reach-each-other-on-one-authenticated-port.md)).
-
-**Network reachability is a foothold on the same terms as a credential.** If the machines
-can reach each other, a model controlling machine 1 can attack machines 2 through 5
-directly, and `SEC-1` is broken by the network rather than by any grant. A k-of-n threshold
-assumes faults are **independent**, and one model able to attack four other machines
-produces *correlated* faults — the one assumption a Byzantine threshold cannot survive
-losing.
-
-The vault protocol must therefore be safe against actively hostile peers, not merely faulty
-ones. This is confirmed to be btc-policy's own premise rather than a new requirement.
-Because firewall rules are cloud-plane, the deny-by-default posture is visible to the
-operator, and a brief cannot quietly widen it.
+**ARC-23** Moved to the btc-policy tenant profile,
+[`docs/tenants/btc-policy/profile.md`](./docs/tenants/btc-policy/profile.md), slot
+"Delivery declaration" (ADR-0030). The identifier is kept so existing references resolve.
 
 **ARC-41** The relay-side view of a machine MUST **equal** the world's, and equality has two
 sides. The firewall MUST NOT privilege the relay's source addresses — no allowlist, no
