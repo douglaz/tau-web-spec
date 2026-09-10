@@ -21,6 +21,18 @@ gated on it.
       `STA-20b` handoff and run `CNF-40`, `CNF-55`, `CNF-85` and `CNF-86` on the integrated
       harness. Non-destructive example checks are not a completed hardware rehearsal.
 
+- [ ] **T24 — Relocate tenant content into profiles** (`ADR-0030`). Create
+      `docs/tenants/{btc-policy,lnrent,ad-hoc}/profile.md` on the nine-slot schema; move
+      `SEC-T1`–`SEC-T4`, `ARC-20`'s atomicity, `ARC-23`, `ARC-36`–`ARC-38` and the
+      delivery brief verbatim, keeping identifiers, leaving one-line pointers behind.
+      Meaning-preserving by construction; review by diff.
+- [ ] **T25 — Generalize the harness rules that still name a tenant mechanism.** After T24:
+      `ARC-19a` (post-harness machinery never holds a channel), `ARC-37`'s Lightning sentence,
+      `SEC-T3`'s harness default, `SEC-5` row 17, the coordinator paragraphs in `SEC-1` and
+      `ARC-12`, the federation applicability row in `07-conformance.md`, and derivation role 4
+      relabelled "post-harness credential" with path and vectors unchanged. Every edit changes
+      a MUST; review with two independent readers, as `ADR-0030` was.
+
 The September 9 review's specification corrections are applied: canonical disk selection,
 rescue job lifetime, local unlock, derivation/allocation metadata, relay destination limits,
 Alpine signer trust, rescue sequence and stage applicability. The open tasks above are

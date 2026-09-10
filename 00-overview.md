@@ -253,3 +253,4 @@ an ADR is where *why* lives.
 | [0027](./docs/adr/0027-the-artifact-pin-is-per-distribution.md) | The artifact pin is per distribution, and one of them adds a party |
 | [0028](./docs/adr/0028-procured-inference-is-the-operators-balance.md) | Procured inference is the operator's balance, not the publisher's account |
 | [0029](./docs/adr/0029-the-machine-speaks-nostr-and-keys-derive-from-a-seed.md) | The machine speaks Nostr, and per-machine keys derive from an operator seed |
+| [0030](./docs/adr/0030-tenant-specific-rules-live-in-a-tenant-profile.md) | Tenant-specific rules live in a tenant profile with a fixed schema |

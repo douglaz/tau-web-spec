@@ -35,8 +35,11 @@ applies to a stage "says which stage it gates". The word is reserved for the obj
 **Brief** · `ARC-9`
 A document of instructions the AI reads and improvises from — prose plus example commands, in
 the shape of an agent skill. Not executed verbatim, so what runs is not known before the AI
-runs it.
-_Avoid_: script, playbook, runbook, template
+runs it. Owned by whichever party its content keys on: a brief keyed on a vendor product or a
+distribution (install, vendor lockdown) is the harness's; a brief keyed on a tenant's software
+(delivery) is the tenant's and lives with its profile (`ADR-0030`).
+_Avoid_: script, playbook, runbook, template, "brief 2" (lockdown has two owners and is not
+one document)
 
 **Brief library**
 The collection of briefs available to a session, shipped inside the signed bundle.
@@ -96,6 +99,15 @@ counts. **Independent in every respect but one**: briefs ship in the publisher's
 so today the publisher decides which tenants exist and when their changes reach operators. A
 bootstrap seat with a stated trajectory, not a property of the design.
 _Avoid_: app, plugin, integration, use case
+
+**Tenant profile** · `ADR-0030`
+The one document in which a tenant tells the harness everything the harness needs to know
+about it, in a fixed set of slots. Rules that only make sense inside a profile are the
+tenant's; rules that hold for every profile are the harness's. A new project integrates by
+writing a profile. The general specification refers to "the profile" and never names a tenant
+in a normative sentence.
+_Avoid_: tenant config, manifest (lnrent's recipes have manifests; not the same thing),
+"the btc-policy section"
 
 **Runtime obligation** · `ARC-35`
 Something a tenant must do while the operator's browser is closed — answer a buyer, serve a
@@ -180,8 +192,11 @@ wrong. A Nostr relay is always called that in full.
 The operator's BIP-39 mnemonic, from which every credential the browser derives comes: per
 machine, the SSH client key and the two attest keys; per relay pass, the relay key; per
 federation, the coordinator peer credential. Never seen by a session or a machine; never in the
-sheet.
-_Avoid_: master key, root key (both suggest something a session holds), "the user's nsec"
+sheet. **This is the harness's seed.** A tenant may have a seed of its own (btc-policy's wallet
+seed) which the harness never touches (`SEC-T4`); when both are in play, say *operator seed*
+and *wallet seed*.
+_Avoid_: master key, root key (both suggest something a session holds), "the user's nsec",
+unqualified "seed" in any sentence that also mentions a vault
 (a derived key is one of many, and none is the operator's social identity)
 
 **Relay pass** · `CHN-15`, `CHN-16`
