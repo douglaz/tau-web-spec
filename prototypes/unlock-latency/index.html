@@ -1,0 +1,120 @@
+<title>tau-web unlock latency</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root { --bg:#fafaf7; --fg:#1b1b1b; --mute:#666; --line:#ddd; --ok:#2e7d32; --bad:#b3261e; --pill:#eee; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#141414; --fg:#eee; --mute:#9a9a9a; --line:#333; --ok:#7bd88f; --bad:#ff8a80; --pill:#222; } }
+  :root[data-theme="dark"] { --bg:#141414; --fg:#eee; --mute:#9a9a9a; --line:#333; --ok:#7bd88f; --bad:#ff8a80; --pill:#222; }
+  body { background:var(--bg); color:var(--fg); font:15px/1.45 system-ui, sans-serif; max-width:42rem; margin:0 auto; padding:1rem; }
+  h1 { font-size:1.2rem; margin:.2rem 0 .1rem; }
+  p, li { color:var(--mute); }
+  label { display:block; margin:.6rem 0 .2rem; }
+  input { font:inherit; width:100%; box-sizing:border-box; padding:.5rem; border:1px solid var(--line); border-radius:6px; background:transparent; color:var(--fg); }
+  .row { display:flex; gap:.5rem; flex-wrap:wrap; margin:.8rem 0; }
+  button { font:inherit; padding:.6rem 1rem; border:1px solid var(--line); border-radius:6px; background:var(--pill); color:var(--fg); cursor:pointer; }
+  button[disabled] { opacity:.5; cursor:wait; }
+  table { border-collapse:collapse; width:100%; margin:.5rem 0; }
+  td, th { text-align:left; padding:.3rem .4rem; border-bottom:1px solid var(--line); font-variant-numeric:tabular-nums; }
+  th { color:var(--mute); font-weight:500; }
+  pre { background:var(--pill); padding:.6rem; border-radius:6px; overflow-x:auto; font-size:12px; }
+  .ok { color:var(--ok); } .bad { color:var(--bad); }
+  #verdict { font-size:1.4rem; font-weight:600; margin:.6rem 0; }
+  small { color:var(--mute); }
+</style>
+
+<h1>tau-web unlock latency (STA-23 prototype)</h1>
+<p>Builds the real credential-format v1 local envelope (PBKDF2-HMAC-SHA-256, 600,000 iterations,
+AES-256-GCM key wrap, AAD <code>tau-web/local/v1/&lt;id&gt;</code>) and times one unlock on <em>this</em>
+device. Open it on the first-stage phone and read the median. Nothing is stored or sent.</p>
+
+<label>Passphrase (≥ 16 code points, UTF-8, no normalization)</label>
+<input id="pass" value="correct horse battery staple 2026">
+<label>Iterations</label>
+<input id="iters" type="number" value="600000">
+<label>Unlock runs per measurement</label>
+<input id="runs" type="number" value="3">
+
+<div class="row">
+  <button id="measure">Measure unlock (600k)</button>
+  <button id="sweep">Sweep 100k → 1M</button>
+  <button id="wrong">Wrong passphrase</button>
+  <button id="copy">Copy report</button>
+</div>
+
+<div id="verdict"></div>
+<table id="results"><thead><tr><th>iterations</th><th>KDF ms</th><th>unwrap ms</th><th>total ms</th><th>result</th></tr></thead><tbody></tbody></table>
+<details><summary>Envelope, device, raw runs</summary><pre id="state"></pre></details>
+
+<script>
+const $ = id => document.getElementById(id);
+const enc = new TextEncoder();
+const b64u = b => btoa(String.fromCharCode(...new Uint8Array(b))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+const rnd = n => crypto.getRandomValues(new Uint8Array(n));
+const state = { device: { ua: navigator.userAgent, cores: navigator.hardwareConcurrency, memoryGB: navigator.deviceMemory ?? null, secure: isSecureContext }, envelope: null, runs: [] };
+
+async function wrapKey(pass, iters) {
+  const salt = rnd(16), nonce = rnd(12), id = rnd(16), dataKey = rnd(32);
+  const wk = await deriveWrapping(pass, salt, iters);
+  const aad = enc.encode('tau-web/local/v1/' + b64u(id));
+  const wrapped = await crypto.subtle.encrypt({ name:'AES-GCM', iv: nonce, additionalData: aad, tagLength:128 }, wk, dataKey);
+  return { version:1, purpose:'local', id:b64u(id), kdf:'PBKDF2-SHA256', iterations:iters, salt:b64u(salt), nonce:b64u(nonce), wrapped_key:b64u(wrapped), _raw:{salt,nonce,wrapped,aad} };
+}
+async function deriveWrapping(pass, salt, iters) {
+  const base = await crypto.subtle.importKey('raw', enc.encode(pass), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey({ name:'PBKDF2', hash:'SHA-256', salt, iterations: iters }, base, { name:'AES-GCM', length:256 }, false, ['encrypt','decrypt']);
+}
+// One unlock = KDF + unwrap, timed separately. Fails closed on a wrong passphrase (OperationError).
+async function unlock(env, pass) {
+  const t0 = performance.now();
+  const wk = await deriveWrapping(pass, env._raw.salt, env.iterations);
+  const t1 = performance.now();
+  let ok = true;
+  try { await crypto.subtle.decrypt({ name:'AES-GCM', iv: env._raw.nonce, additionalData: env._raw.aad, tagLength:128 }, wk, env._raw.wrapped); }
+  catch (e) { ok = false; }
+  const t2 = performance.now();
+  return { iterations: env.iterations, kdf: t1-t0, unwrap: t2-t1, total: t2-t0, ok };
+}
+const median = a => { const s=[...a].sort((x,y)=>x-y); return s[s.length>>1]; };
+
+async function measure(iters, pass, runs) {
+  const env = await wrapKey($('pass').value, iters);
+  state.envelope = Object.fromEntries(Object.entries(env).filter(([k]) => k !== '_raw'));
+  const rs = [];
+  for (let i = 0; i < runs; i++) rs.push(await unlock(env, pass));
+  state.runs.push(...rs);
+  const row = { iterations: iters, kdf: median(rs.map(r=>r.kdf)), unwrap: median(rs.map(r=>r.unwrap)), total: median(rs.map(r=>r.total)), ok: rs.every(r=>r.ok) };
+  addRow(row);
+  render();
+  return row;
+}
+function addRow(r) {
+  const tr = document.createElement('tr');
+  tr.innerHTML = `<td>${r.iterations.toLocaleString()}</td><td>${r.kdf.toFixed(0)}</td><td>${r.unwrap.toFixed(1)}</td><td><b>${r.total.toFixed(0)}</b></td><td class="${r.ok?'ok':'bad'}">${r.ok?'unlocked':'failed closed'}</td>`;
+  $('results').tBodies[0].appendChild(tr);
+}
+function render() { $('state').textContent = JSON.stringify(state, null, 2); }
+async function busy(fn) {
+  document.querySelectorAll('button').forEach(b => b.disabled = true);
+  try { await fn(); } catch (e) { $('verdict').innerHTML = `<span class="bad">${e}</span>`; }
+  document.querySelectorAll('button').forEach(b => b.disabled = false);
+}
+
+$('measure').onclick = () => busy(async () => {
+  const r = await measure(+$('iters').value, $('pass').value, +$('runs').value);
+  $('verdict').innerHTML = `Median unlock at ${r.iterations.toLocaleString()} iterations: <span class="ok">${r.total.toFixed(0)} ms</span>`;
+});
+$('sweep').onclick = () => busy(async () => {
+  for (const it of [100000, 210000, 600000, 1000000]) await measure(it, $('pass').value, +$('runs').value);
+  $('verdict').textContent = 'Sweep done — cost is linear in iterations; read the 600,000 row.';
+});
+$('wrong').onclick = () => busy(async () => {
+  const r = await measure(+$('iters').value, $('pass').value + 'x', 1);
+  $('verdict').innerHTML = r.ok ? '<span class="bad">BUG: wrong passphrase unlocked</span>' : '<span class="ok">Wrong passphrase failed closed (GCM tag), same latency as success</span>';
+});
+$('copy').onclick = async () => {
+  render();
+  const rows = [...$('results').tBodies[0].rows].map(r => [...r.cells].map(c => c.textContent).join('\t')).join('\n');
+  const txt = `tau-web unlock latency\n${new Date().toISOString()}\n${state.device.ua}\ncores=${state.device.cores} memoryGB=${state.device.memoryGB}\n\niterations\tkdf_ms\tunwrap_ms\ttotal_ms\tresult\n${rows}\n`;
+  try { await navigator.clipboard.writeText(txt); $('verdict').textContent = 'Report copied.'; } catch { $('state').textContent = txt; $('verdict').textContent = 'Clipboard blocked — report is in the details box.'; }
+};
+render();
+</script>

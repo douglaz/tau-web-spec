@@ -55,8 +55,9 @@ password manager. Encode it as UTF-8 **without normalization or trimming**. Deri
 wrapping key with PBKDF2-HMAC-SHA-256, 600,000 iterations and a fresh CSPRNG 16-byte salt.
 This uses WebCrypto's native KDF; the work factor follows the
 [OWASP PBKDF2 guidance](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html#pbkdf2).
-Measure unlock latency on the first-stage phone; changing the KDF requires a versioned
-migration, not a silent downgrade. A weak passphrase remains vulnerable to offline guessing.
+Unlock latency was measured at 58 ms on the first-stage phone
+([findings, 2026-09-11](../findings/2026-09-11-unlock-latency.md)); changing the KDF requires
+a versioned migration, not a silent downgrade. A weak passphrase remains vulnerable to offline guessing.
 
 Generate a fresh 32-byte data key and 16-byte store ID. AES-256-GCM wraps the data key under
 the wrapping key with a fresh random 12-byte nonce and a 128-bit tag. Persist a JSON envelope

@@ -20,6 +20,10 @@ gated on it.
 - [ ] **T23 — Demonstrate interrupted rescue installation** (`OPN-18`). Implement the
       `STA-20b` handoff and run `CNF-40`, `CNF-55`, `CNF-85` and `CNF-86` on the integrated
       harness. Non-destructive example checks are not a completed hardware rehearsal.
+- [x] **T26 — Measure `STA-23` unlock latency on the first-stage phone.**
+      `prototypes/unlock-latency/index.html` builds the v1 envelope and times one unlock.
+      Done 2026-09-11: 58 ms at 600,000 iterations on the phone, 57 ms on the desktop
+      baseline; v1 keeps 600,000. `docs/findings/2026-09-11-unlock-latency.md`.
 
 - [x] **T24 — Relocate tenant content into profiles** (`ADR-0030`). Create
       `docs/tenants/{btc-policy,lnrent,ad-hoc}/profile.md` on the nine-slot schema; move
@@ -68,7 +72,9 @@ gated on it.
       the second Member definition near the end of `CONTEXT.md`; "handoff ID" in `STA-22b` is
       undefined and btc-policy's profile does not say it is the federation ID; the "Member
       networking" heading over `ARC-23`'s pointer; ADR-0021 still cites `ARC-19a` for sealed,
-      peer-equivalent coordinator behaviour.
+      peer-equivalent coordinator behaviour. All six fixed 2026-09-11, and *member* retired
+      from the general files wherever the harness's own machines were meant; it remains where
+      btc-policy's federation is (its claim, `ARC-20`, `SEC-T4`, TRU-A3's retirement note).
 
 The September 9 review's specification corrections are applied: canonical disk selection,
 rescue job lifetime, local unlock, derivation/allocation metadata, relay destination limits,
