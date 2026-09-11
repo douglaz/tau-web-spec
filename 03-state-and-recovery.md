@@ -213,7 +213,10 @@ derivation version, next unused index for each role family (machines, passes, ha
 and allocated entries, including tombstones for failed or destroyed allocations. A machine
 entry maps vendor/account reference and immutable vendor machine ID to its index and expected
 SSH public key; a pass entry maps relay URL and public key to its index; a handoff entry
-maps tenant and handoff ID to its index. Machine roles share one machine index. Reserve it
+maps tenant and **handoff ID** to its index. The handoff ID is the identifier the profile's
+handoff slot names for the thing its credential is issued to — stable for that credential's
+declared lifetime, so a resumed or restored setup re-derives the same key (btc-policy's is
+the federation ID). Machine roles share one machine index. Reserve it
 durably before any external effect, including registering a key for an already-rented server.
 All this metadata is included in `STA-16` exports, with an export time and journal sequence.
 

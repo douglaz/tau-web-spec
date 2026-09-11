@@ -285,7 +285,7 @@ yet.
 - [ ] **CNF-41 · PRE-SCALE** Counts are shown per layer and never blended. The provider layer
       is labelled **requested**, never *observed* or *verified*, and is never derived from the
       model name (`SEC-9`).
-- [ ] **CNF-78 · PRE-SCALE** Every inference call carries the member's requested provider in the
+- [ ] **CNF-78 · PRE-SCALE** Every inference call carries the machine's requested provider in the
       aggregator's routing object (`ARC-14`), verified by inspecting an outgoing request. And
       the one observable fact about override is measured: a pin naming a provider that cannot
       serve the requested model either **fails the call** or **silently succeeds**, and which
@@ -294,7 +294,7 @@ yet.
 - [ ] **CNF-42 · PRE-SCALE** Every approved scope and every placed tenant secret appears in the
       trust display until revoked or rotated, not merely while the approval stands.
 - [ ] **CNF-43 · PRE-SCALE** The relay's row names its operator and states that it learns the
-      member topology (`CHN-13`).
+      machine topology (`CHN-13`).
 - [ ] **CNF-44 · DEFERRED** Nothing in the interface uses the words "verified" or "no anomalies
       found" (`SEC-2`).
 

@@ -79,7 +79,7 @@ boundary.
 **Member** · btc-policy vocabulary
 A machine running the vault software as part of a federation. Generates its own key material
 locally and never exports it. The harness's own word for the same thing is *machine*; the
-general files still use *member* in places, which ADR-0030's migration list retires.
+general files say *member* only where btc-policy's federation is meant.
 
 **Lightweight pentest** · `ARC-17`
 A session probing its own machine at delivery. A **competence** check, not an integrity check.
@@ -93,7 +93,7 @@ _Avoid_: auditor, verifier (that word means the deterministic checklist), watchd
 
 **Verifier**
 A deterministic program that reads a machine and reports its security-relevant state. Useful
-for drift and honest mistakes within one member. Explicitly **not** a defence against a hostile
+for drift and honest mistakes within one machine. Explicitly **not** a defence against a hostile
 AI, because it reads what the machine chooses to tell it.
 
 ### Tenancy
@@ -307,7 +307,7 @@ _Avoid_: trust score, threat level
 
 **Trust domain** · `ARC-14`
 An independent way for an AI to be compromised. Counted at three configured layers — **weights**,
-**proxy**, and the **provider** the harness requests per member.
+**proxy**, and the **provider** the harness requests per machine.
 
 **Inference provider**
 The party that actually serves the weights for a request. **Distinct from the proxy the session
@@ -347,7 +347,7 @@ it and cannot stop it.
 Inference credits. The app retrieves an invoice; the operator's wallet pays it.
 
 **Settled invoice**
-Evidence that the operator has funded credits at a provider. It does **not** prove which member
+Evidence that the operator has funded credits at a provider. It does **not** prove which machine
 used which proxy, because one top-up buys many queries.
 
 ## Flagged ambiguities
@@ -357,9 +357,6 @@ used which proxy, because one top-up buys many queries.
   this over "AI instance".
 - Never use bare "instance" for a virtual machine. Say **machine**.
 - "Device" is not a unit of isolation here. Several sessions on one phone is the normal case.
-
-**"Member"** means a machine that will become a federation member. In the first version nothing
-has joined a federation, so a machine is not yet a member.
 
 **"Approve"** means two different things and both are in play — an *operation* (structured
 facts about one action) or a *scope* (a class of activity, in advance). `ARC-4`.

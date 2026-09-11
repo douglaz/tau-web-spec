@@ -140,7 +140,7 @@ flowchart TD
     RLY -->|"TCP :22, ciphertext"| M1["Machine 1"]
     RLY -.->|"TCP :22, ciphertext"| M2["Machine n"]
     M1 -->|"one-time attest introduction,<br/>gift-wrapped"| NR
-    M1 <-->|"vault protocol port only,<br/>mutually authenticated"| M2
+    M1 <-->|"only what the tenant profile's<br/>delivery declaration opens (ARC-39)"| M2
     ART["Artifact source<br/>pinned per distribution"] -->|"pulled during install"| M1
     classDef trusted fill:#e8f0ff,stroke:#4a6fa5
     classDef untrusted fill:#fff4e8,stroke:#a5794a

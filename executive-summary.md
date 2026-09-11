@@ -79,7 +79,7 @@ imply a limit.
 
 **Briefs are instructions, not scripts.** The AI reads prose plus example commands and decides
 what to run. A script stops dead at the first surprise, and the AI exists precisely for the
-surprises. Briefs ship inside the signed bundle, because a brief steers every member at once and
+surprises. Briefs ship inside the signed bundle, because a brief steers every machine at once and
 diversity buys nothing against it.
 
 **One session, one machine, and the lock is real.** Each session is bound to exactly one machine
@@ -104,8 +104,9 @@ which the vault protocol already assumes may be done by a hostile party.
 Federation creation is all-or-nothing, so abandonment has to be a first-class action — and an
 unfinished, still-billing setup owns the app's opening screen.
 
-**Members reach each other only on the vault protocol port**, mutually authenticated, everything
-else denied at the vendor firewall — because reachability is a foothold on the same terms as a
+**Under btc-policy, members reach each other only on the vault protocol port**, mutually
+authenticated, everything else denied at the vendor firewall (its profile's delivery
+declaration, `ARC-23`) — because reachability is a foothold on the same terms as a
 credential, and a model able to attack four other machines produces *correlated* faults, the one
 assumption a threshold cannot survive losing.
 
@@ -158,7 +159,7 @@ a finished machine from inside hands that model a second foothold. "Verified" an
 found" are claims this design cannot make.
 
 Independence is counted at **three configured layers — weights, proxy, and the provider the
-harness requests per member — never blended into one score**. Members on several sets of weights
+harness requests per machine — never blended into one score**. Machines on several sets of weights
 behind one proxy survive a backdoored model and do not survive a backdoored proxy. One number
 would be a lie about whichever layer is thin, and the thin layer is the one that gets exploited.
 
@@ -185,7 +186,7 @@ service picks for you, silently and unlisted.**
 **Added by this product** — the only tier the design controls, and the only one an invariant
 guards. The app bundle and its publisher, which is not diversified and carries the briefs, making
 it the largest concentrated risk. The relay, publisher-operated by default, which cannot read a
-session pinned out of band but does learn the member topology — a bootstrap seat, direct-first,
+session pinned out of band but does learn the machine topology — a bootstrap seat, direct-first,
 until a relay on a machine of the operator's own takes over ordinary traffic. An external
 relay still manages and scans that relay-host machine. That is the whole tier — the
 coordinator was once listed here and is not a party this product adds (`TRU-A3`).

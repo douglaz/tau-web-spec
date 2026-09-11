@@ -90,9 +90,9 @@ session*, so its host keys are **generated there, per machine, and read before r
 trust-on-first-use at either hop.
 
 **Host keys MUST NEVER be baked into a reusable image.** An image is built once and booted
-on every member, so a host key inside it is the same private key on all five machines:
-anyone holding the image, or compromising any one member, can then impersonate every other
-member *and pass the fingerprint check*, because the fingerprint is genuinely the one that
+on every machine, so a host key inside it is the same private key on all five machines:
+anyone holding the image, or compromising any one machine, can then impersonate every other
+machine *and pass the fingerprint check*, because the fingerprint is genuinely the one that
 was pinned. Reusing an image for the operating system is fine and is the point; reusing it
 for identity is not.
 
@@ -424,8 +424,8 @@ arbitrary service refusing browser CORS is out of reach for untyped calls.**
 
 ## What the relay learns
 
-**CHN-13** The relay learns the **member topology**, and the product MUST say so. Which
-operator, which destination, when, accumulated over time, *is* the member set for a
+**CHN-13** The relay learns the **machine topology**, and the product MUST say so. Which
+operator, which destination, when, accumulated over time, *is* the machine set for a
 federation. That is the same knowledge `TRU-E5` prices as a named trust row for the scanner,
 and calling it merely "connection metadata" understates it.
 

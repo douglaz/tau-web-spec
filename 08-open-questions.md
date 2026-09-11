@@ -48,13 +48,13 @@ conditional on weights-level distinctness.
 
 *The signal situation changed, and not only for the worse.* On the chosen aggregator there is
 no provider signal at all, so the sentence above describes a signal that is gone. But
-the **weights are configured, not observed**: the harness picks the model per member, and the
-catalogue names which vendor made it, so distinctness across members is enforceable **by
+the **weights are configured, not observed**: the harness picks the model per machine, and the
+catalogue names which vendor made it, so distinctness across machines is enforceable **by
 construction** rather than by inspection. What remains unverifiable is whether the proxy served
 the model it was asked for — which is a smaller and better-shaped gap than "no signal reaches
 the weights", and it is the same gap `TRU-E2` already names when it says the proxy can alter
 everything it carries. **The provider layer now takes the same shape** (`OPN-23`, closed): it is
-requested per member rather than observed, and the same override caveat applies to both.
+requested per machine rather than observed, and the same override caveat applies to both.
 
 *Closes when:* the claim is restated around what is configured rather than what is observed, or
 a signal confirming the served model appears. The second has no current candidate.
@@ -243,7 +243,7 @@ to a cross-origin caller. A count derived from the model name would have reporte
 
 *The answer is to stop observing and start asking.* The aggregator accepts a routing object in
 the request — the same conventions as the aggregator whose header this layer was built on — so
-the harness **requests** a provider per member exactly as it requests a model, and the display
+the harness **requests** a provider per machine exactly as it requests a model, and the display
 shows what was asked, labelled *requested*. All three layers are then configured, which is the
 shape `OPN-4` had already reached for weights. The aggregator's own documentation says supplied
 provider fields "may be overridden"; that is `TRU-E2`'s existing trust, and the label carries it.

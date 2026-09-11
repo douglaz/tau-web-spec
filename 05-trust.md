@@ -41,7 +41,7 @@ True of any software anyone runs, and not improved by this design.
 
 **TRU-U1 — The operator's device**, its silicon, its operating system, its browser. It holds
 the credentials, runs the bundle, and carries all concurrent sessions, so it is common-mode
-across every member. A deliberate trade: requiring five devices would defend against a
+across every machine. A deliberate trade: requiring five devices would defend against a
 compromised phone while guaranteeing that an operator who owns one phone never finishes setup.
 
 **TRU-U2 — The stack underneath everything**: the operating systems on the machines, their
@@ -55,7 +55,7 @@ exactly the set a hosted service picks on your behalf, silently and unlisted.
 
 **TRU-E1 — The cloud vendor**, under every design considered. It owns the machine's memory and
 disk. Host-key pinning buys transport safety, not vendor independence; vendor independence is
-what multi-vendor membership buys.
+what placing machines at several vendors buys.
 
 **TRU-E2 — The inference proxy, and on the default path there is only one of it.** Procured
 inference means the publisher picks the models, and it has one aggregator that reaches them
@@ -80,7 +80,7 @@ combination is acceptable at all.
 it routes to whoever does, and that party sees and can rewrite every prompt and response sent
 to it. It stays named here because observation is not separation.
 
-**This party is now requested per member, not observed after the fact.** The row used to promise
+**This party is now requested per machine, not observed after the fact.** The row used to promise
 an *observed* count read from a response header; checked against the default aggregator, **no
 response field or header names the provider that served a request**, and the browser could not
 read one if it did. So the harness **asks** for a provider in each call, using the routing object
@@ -93,7 +93,7 @@ beside it; `OPN-23`'s closure records it.
 
 **TRU-E4 — A majority of the models**, being both honest *and* competent.
 
-**TRU-E5 — The scanner's model, when the operator engages one** — trusted to see the member
+**TRU-E5 — The scanner's model, when the operator engages one** — trusted to see the machine
 topology and to report honestly, never with access. A lying scanner cannot touch a machine;
 what it can do is steer the operator, which is why its findings are reports and never triggers.
 
@@ -105,7 +105,7 @@ credential is revoked or rotated, not merely while the approval stands.
 
 **TRU-E7 — Whoever signs the software the machines run.** For a single machine the signer is
 trusted for that machine, the same shape as any installed software. For a federation it is
-sharper: briefs install the same release on every member, so the signer is common-mode across
+sharper: briefs install the same release on every machine, so the signer is common-mode across
 the federation in the same shape as the bundle. Artifact pinning would bound this; nothing here
 specifies it yet.
 
@@ -149,8 +149,8 @@ guards this tier.** The other two grow when the world does; this one grows only 
 decides it should.
 
 **TRU-A1 — The app bundle, and the publisher who serves it.** This is the application itself
-rather than a third party, but it is not diversified across members and it carries the briefs,
-so a compromised host can serve one build that misbehaves on every member — and can serve a
+rather than a third party, but it is not diversified across machines and it carries the briefs,
+so a compromised host can serve one build that misbehaves on every machine — and can serve a
 good bundle to anyone who looks like a checker. **The largest concentrated risk in the design.**
 `ARC-33`'s strict `script-src` is the one cheap control that binds it, and reproducible builds
 plus watchdogs (`OPN-15`) are the mitigation that would matter and does not exist yet.
@@ -170,8 +170,8 @@ listed here because an unnamed power is exactly what this section exists to prev
 bootstrap seat with a stated trajectory, not a resting state.
 
 **TRU-A2 — The relay**, once it exists. It cannot read or alter a session whose host key was
-pinned out of band, but **it learns the member topology** — which operator, which destination,
-when, accumulated, is the member set (`CHN-13`) — and one that authenticates callers and
+pinned out of band, but **it learns the machine topology** — which operator, which destination,
+when, accumulated, is the machine set (`CHN-13`) — and one that authenticates callers and
 constrains destinations decides who may connect where. Under trust-on-first-use it is trusted
 outright at first contact. **The Nostr relay beside it** (`CHN-18`) is the same party learning
 the same thing by another route — a cloud address publishes to an inbox, the operator's address

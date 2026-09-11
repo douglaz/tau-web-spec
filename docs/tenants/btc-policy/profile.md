@@ -128,7 +128,7 @@ vault protocol port
 federation. It can do what a member can do to another member, and no more — which `ARC-23`
 already assumes may be done by an actively hostile party, so the grant adds nothing to the
 vault's own threat model. It lasts for the federation lifetime, ending when the federation is
-dissolved or the member is rebuilt.
+dissolved or the member is rebuilt. Its handoff ID (`STA-22b`) is the federation ID.
 
 A member's own vault keys are generated on the machine and never exported
 ([ADR-0011](../../adr/0011-the-ai-delivers-a-locked-down-machine.md)), so the coordinator's

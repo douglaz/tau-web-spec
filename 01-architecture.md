@@ -202,8 +202,8 @@ makes it close to free.
 **ARC-11** Briefs MUST ship inside the signed application bundle
 ([ADR-0005](./docs/adr/0005-briefs-ship-in-the-signed-bundle.md)). Nothing fetches a brief
 at runtime and operators cannot supply their own. A brief is prose that steers a model,
-which is prompt injection by design, and every member reads the same brief — so whoever can
-change one reaches every member at once. That defeats the honest-majority assumption rather
+which is prompt injection by design, and every machine reads the same brief — so whoever can
+change one reaches every machine at once. That defeats the honest-majority assumption rather
 than being absorbed by it: n honest, competent models faithfully following poisoned
 instructions all produce the wrong machine, and agree with each other perfectly while doing
 it. The brief is the one component where diversity buys nothing, so it is locked instead.
@@ -272,7 +272,7 @@ compromised phone while guaranteeing that an operator who owns one phone never f
 setup.
 
 **Why concurrent.** Nothing runs while the app is closed, so sequential provisioning would
-multiply the time the operator must hold a phone awake by the member count. A twenty-minute
+multiply the time the operator must hold a phone awake by the machine count. A twenty-minute
 install becomes a hundred-minute one. Concurrency costs nothing in security, since `SEC-1`
 binds each session to exactly one machine, and simultaneity does not change which session
 touches which machine.
@@ -287,12 +287,12 @@ session, which makes it the only cheap opportunity to learn whether five is poss
 **ARC-14** A trust domain MUST be counted at **three configured layers**, never as one blended
 number ([ADR-0007](./docs/adr/0007-trust-is-counted-in-two-layers-and-shown.md)):
 
-- **Weights** — the model itself. Two members on different weights survive one set of
+- **Weights** — the model itself. Two machines on different weights survive one set of
   weights being backdoored, even through a shared proxy.
 - **Proxy** — the aggregator routing the request. A compromised proxy can alter every
   prompt and response it carries, whatever weights sit behind it.
 - **Provider, requested** — the party that actually runs the inference behind the aggregator.
-  The harness **requests** a provider per member in the call itself, the same way it requests a
+  The harness **requests** a provider per machine in the call itself, the same way it requests a
   model, using the routing object the chosen aggregator documents. The display shows what was
   requested. **The aggregator may override it, and says so** in its own documentation — which is
   no new trust, since `TRU-E2` already names the proxy as able to alter everything it carries.
@@ -318,7 +318,7 @@ one screen showing the whole setup and its true recurring cost. An untyped call'
 rides the same rules — approved with the up-front batch when the brief names the service,
 joining the mid-flight queue when one is discovered later. **No untyped call runs before its
 scope is approved.** Five concurrent workers producing interleaved popups on a phone is
-modal fatigue in its purest form, and the operator cannot tell which member is asking.
+modal fatigue in its purest form, and the operator cannot tell which machine is asking.
 
 **ARC-16** Recovery is a ladder. Retry; then escalate to a stronger model behind the same
 proxy; then destroy the machine and restart under a different domain, which costs a server.
@@ -337,7 +337,7 @@ stateDiagram-v2
         on this machine, so it is permitted
         only while those weights are not —
         and never will be — assigned to
-        another member. SEC-1.
+        another machine. SEC-1.
     end note
     Escalate --> Destroy: still stuck
     Destroy --> []: machine destroyed,<br/>exposure ends with it
@@ -393,7 +393,7 @@ machine proves nothing against a malicious model. Where the tenant has a thresho
 not need to — malice is what the threshold absorbs. On a single-machine tenant nothing
 absorbs malice and the pentest does not pretend to: that risk is accepted, as `SEC-CLAIM`
 states plainly. Either way, honest-but-sloppy is the likely failure on a first-time setup,
-and it is the one this catches. It never runs from another member.
+and it is the one this catches. It never runs from another machine.
 
 **ARC-18** The job MUST NOT assume uniformity across vendors. Hetzner Cloud has no image
 upload API at all and requires a rescue-and-write approach, while others offer import paths
@@ -444,7 +444,7 @@ from a progress bar. This is btc-policy's rule; the tenant's copy in
 
 **ARC-21** Abandonment MUST be a first-class action — a cloud-plane operation with the same
 approval treatment as creation — because all machines exist and bill from the moment they
-are created, while one member is retried or replaced.
+are created, while one machine is retried or replaced.
 
 **ARC-22** An unfinished setup MUST own the first screen. Nothing runs while the app is
 closed and no push channel exists, so the moment the app opens is the only moment the
@@ -461,7 +461,7 @@ and needs no new mechanism. A second device shows a clean app while the first de
 machines keep billing, which the abandonment screen's cost figures are the only defence
 against.
 
-## Member networking
+## Machine networking
 
 **ARC-23** Moved to the btc-policy tenant profile,
 [`docs/tenants/btc-policy/profile.md`](./docs/tenants/btc-policy/profile.md), slot
@@ -570,7 +570,7 @@ re-check has an inside and an outside, with different owners
   nobody else, because access composes.
 - **Outside** — the public surface through the relay: which ports answer, and whether that
   matches `ARC-39`'s declaration — is the **scanner's**: a specialist model of the
-  operator's choosing, run after first-online and periodically, holding member addresses and
+  operator's choosing, run after first-online and periodically, holding machine addresses and
   no credential, no channel, no binding. **The model never composes probe traffic**: the
   probes are a deterministic allowlisted toolset, and the model picks targets and reads
   observations, so even a malicious specialist cannot attack through the probe. **The relay
@@ -585,7 +585,7 @@ re-check has an inside and an outside, with different owners
   capability pointed anywhere; it reaches the destinations recorded against the operator's own
   pass and nothing else.
 
-What the scanner costs is **topology**: its full inference path sees the member set, model,
+What the scanner costs is **topology**: its full inference path sees the machine set, model,
 proxy and provider alike, a named row in the trust display (`TRU-E5`). What it produces is
 reports: observations that never gate, never act, and are never called verified.
 
@@ -620,12 +620,12 @@ intermediary would be the one place in the design where the operator is asked to
 
 **ARC-31** Payment evidence MUST NOT be overstated. A **settled invoice** proves the
 operator funded credits at a provider and bounds which proxies are available; it does not
-prove which member used which proxy, because one top-up buys many queries. Per-member routing
+prove which machine used which proxy, because one top-up buys many queries. Per-machine routing
 is **requested** in each call, not read back from a response: the chosen aggregator returns no
 routing metadata, so what the display shows is what was asked for (`ARC-14`).
 
 **Inference has two paths.** *Procured* is the default: the operator funds an account-free
-balance at one aggregator, and the publisher selects the models, so every member is routed
+balance at one aggregator, and the publisher selects the models, so every machine is routed
 through a single proxy. **The publisher handles neither the money nor the credential** — it
 supplies model choices in the briefs and nothing else
 ([ADR-0028](./docs/adr/0028-procured-inference-is-the-operators-balance.md)). *Bring-your-own*
@@ -681,7 +681,7 @@ reproducible and their hashes published, so a third party can verify that the se
 matches the published source
 ([ADR-0006](./docs/adr/0006-single-origin-with-reproducible-builds.md)).
 
-Origin diversity — a different mirror per member — was considered and **rejected on user
+Origin diversity — a different mirror per machine — was considered and **rejected on user
 safety, not security.** Instructing someone to open a second URL on a second device is
 behaviourally identical to phishing, and the target operator is precisely the person least
 equipped to tell the difference.

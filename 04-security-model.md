@@ -69,7 +69,7 @@ impossible, and it quietly reintroduced the shared-key condition the paragraph a
 enforcement by routing code rather than by SSH. It is recorded because a reader who assumes the
 coordinator must reach inside every member will re-derive it.
 
-Access is what composes, not intent: a model with a foothold on two members halves the
+Access is what composes, not intent: a model with a foothold on two machines halves the
 number of malicious domains needed to reach k-of-n
 ([ADR-0004](./docs/adr/0004-one-model-one-machine.md)). No exception for debugging, for
 auditing, or for any scheme in which one model inspects another's machine **from inside** —
@@ -79,7 +79,7 @@ the scanner's access-free surface probe is outside this subject, not an exceptio
 counts as touching it until that machine is destroyed, because ending a session does not
 remove whatever the model may already have left behind. Tracking is `STA-10`. So the
 recovery ladder's middle rung stays inside this rule only while the stronger configured
-model is not assigned — and will never be assigned — to any other member; past that rung the
+model is not assigned — and will never be assigned — to any other machine; past that rung the
 machine is destroyed rather than handed on. **Re-entry stays inside this rule the same way.**
 
 **What this invariant reaches, and what it does not.** It binds the harness's own channels —
@@ -90,7 +90,7 @@ invariant's subject because it is bound to no machine — and for exactly that r
 NOT hold any machine credential or channel: addresses in, observations out, nothing else.
 
 It does not decide whether two sessions configured with different models are served the
-*same weights* — nothing observable tells it (`OPN-4`). Identical weights behind two members
+*same weights* — nothing observable tells it (`OPN-4`). Identical weights behind two machines
 is therefore a **collision, displayed under `OVR-6`** — not a violation, and not something an
 implementation can be required to prevent.
 
@@ -325,7 +325,7 @@ this is a design goal rather than a demonstrated property.
 where a second model inspects a finished machine **from inside** hands that model a second
 foothold — the scanner never does; it reads only the public surface. A deterministic verifier
 reads whatever the machine chooses to tell it and cannot beat a hostile AI; it survives only
-for drift detection and honest mistakes inside a single member, run by that member's own
+for drift detection and honest mistakes inside a single machine, run by that machine's own
 session — or by the harness's own AI-free code over that same session's channel during setup,
 which is a different runner rather than a different reach (`ARC-19a`).
 
