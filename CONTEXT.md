@@ -118,8 +118,9 @@ _Avoid_: tenant config, manifest (lnrent's recipes have manifests; not the same 
 **Runtime obligation** · `ARC-35`
 Something a tenant must do while the operator's browser is closed — answer a buyer, serve a
 peer, meet a deadline. The harness cannot meet one, so a tenant's runtime obligations are its
-**machines'**, discharged by its own software with no off-machine credential. A project with an
-obligation it cannot move onto a machine is not a fit for this harness.
+**machines'**, discharged by its own software with no *harness* credential — a tenant's own
+credential on its own machine is permitted (`SEC-5` row 12). A project with an obligation it
+cannot move onto a machine is not a fit for this harness.
 _Avoid_: background job, daemon work (both describe the mechanism rather than the duty)
 
 **Watch-only** · `ARC-37`

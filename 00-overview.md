@@ -10,7 +10,8 @@ That is the goal, not an achieved property. Several parties remain trusted, and
 [`05-trust.md`](./05-trust.md) names every one of them by hand rather than claiming the
 list is empty.
 
-There is no code in this repository. `tau-web` is a working name.
+There is no harness code in this repository; `prototypes/` holds throwaway spikes. `tau-web`
+is a working name.
 
 ## How to read this
 
@@ -28,7 +29,10 @@ There is no code in this repository. `tau-web` is a working name.
 | [`CONTEXT.md`](./CONTEXT.md) | The domain glossary. Definitions only |
 | [`docs/adr/`](./docs/adr/) | The decisions, and for most of them the alternatives rejected and why |
 | [`docs/review/`](./docs/review/) | Review records, kept as history |
-| [`docs/design/`](./docs/design/) | The design session of 2026-08-07, kept as history |
+| [`docs/tenants/`](./docs/tenants/) | One profile per tenant, on ADR-0030's schema |
+| [`docs/design/`](./docs/design/) | The design session of 2026-08-07, kept as history — and `credential-format-v1.md`, which is normative (`STA-22a`) |
+| [`docs/briefs/`](./docs/briefs/) | Draft briefs written from real runs, not yet in any bundle |
+| [`docs/findings/`](./docs/findings/) | What the prototypes found when they ran |
 | [`docs/archive/`](./docs/archive/) | The original Rust/WASM PWA specification. Superseded as a plan, retained as prior art |
 
 [`executive-summary.md`](./executive-summary.md) is a shorter read for someone who wants
@@ -187,7 +191,7 @@ removes that role.
 **Satisfied under any route that pins the host key out of band; violated under
 trust-on-first-use**, where the relay is trusted at first contact and can have its own key
 pinned. No out-of-band route exists on the cloud path today: `CHN-R1` is dedicated-only and
-a separate integration, **`CHN-R2` does not exist**, and `CHN-R3` is **abandoned** —
+a separate integration, **`CHN-R2` is dead**, and `CHN-R3` is **abandoned** —
 user-data stays readable from the vendor's metadata endpoint for the instance's life, so an
 injected host key would be permanently re-fetchable by anything on the machine. That is why the first stage runs on dedicated hardware
 ([ADR-0018](./docs/adr/0018-first-stage-is-one-lnrent-box-on-dedicated.md)). For the cloud
@@ -243,14 +247,14 @@ an ADR is where *why* lives.
 | [0017](./docs/adr/0017-off-machine-calls-and-scope-approval.md) | Off-machine calls generalize the cloud plane; untyped ones are approved by scope |
 | [0018](./docs/adr/0018-first-stage-is-one-lnrent-box-on-dedicated.md) | The first stage is one lnrent box on a dedicated server, over the full channel |
 | [0019](./docs/adr/0019-the-publisher-operates-the-default-relay.md) | The publisher operates the default relay; bring-your-own is the escape hatch |
-| [0020](./docs/adr/0020-recovery-roots-in-the-vendor-account.md) | Recovery roots in the vendor account; the cloud pin is introduced by attestation |
+| [0020](./docs/adr/0020-recovery-roots-in-the-vendor-account.md) | Vendor inventory and seed credentials are separate recovery roots |
 | [0021](./docs/adr/0021-the-surface-pentest-is-outside-in.md) | The surface pentest is outside-in, and may use a specialist model |
 | [0022](./docs/adr/0022-durable-state-is-an-append-only-journal.md) | Durable state is an append-only journal in origin-private storage |
 | [0023](./docs/adr/0023-a-tenants-runtime-obligations-belong-to-its-machines.md) | A tenant's runtime obligations belong to its machines |
 | [0024](./docs/adr/0024-the-ssh-client-is-rust-following-a-known-good-configuration.md) | The SSH client is Rust, following a known-good configuration |
 | [0025](./docs/adr/0025-relay-access-is-bought-not-granted.md) | Relay access is bought, not granted |
 | [0026](./docs/adr/0026-the-coordinator-is-the-tenants-and-runs-after-sealing.md) | The coordinator is the tenant's, and runs after sealing |
-| [0027](./docs/adr/0027-the-artifact-pin-is-per-distribution.md) | The artifact pin is per distribution, and one of them adds a party |
+| [0027](./docs/adr/0027-the-artifact-pin-is-per-distribution.md) | Bootstrap hashes and package signatures are separate admission steps, on both distributions |
 | [0028](./docs/adr/0028-procured-inference-is-the-operators-balance.md) | Procured inference is the operator's balance, not the publisher's account |
 | [0029](./docs/adr/0029-the-machine-speaks-nostr-and-keys-derive-from-a-seed.md) | The machine speaks Nostr, and per-machine keys derive from an operator seed |
 | [0030](./docs/adr/0030-tenant-specific-rules-live-in-a-tenant-profile.md) | Tenant-specific rules live in a tenant profile with a fixed schema |

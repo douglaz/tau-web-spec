@@ -200,12 +200,16 @@ the relay learns topology, which `CHN-13` already prices.
 
 **The first stage is unaffected.** It runs on a pasted token by ADR-0019, which remains right
 for a single operator who is also the publisher. `STG-18` continues to record that enrolment is
-untested, and this record is what that gap now points at.
+untested, and this record is what that gap now points at. *(Superseded by the amendment above:
+nothing is pasted. The first stage hands the publisher the relay key's **public** half out of
+band, and the relay authenticates a challenge against it — `STG-18`, `CNF-87`.)*
 
 **`SEC-5` gains no new credential class.** The relay pass replaces the relay token in row 4,
 with the same lifecycle: held encrypted at rest, revoked and re-issued by the Replace flow. What
 changes is where it comes from — bought rather than handed over — and that losing it needs no
-recovery path.
+recovery path. *(Superseded by the amendment above: row 4 is now the derived relay key,
+re-derived on demand and never stored; the pass is what the relay remembers, and Replace
+revokes it by the old key's signature.)*
 
 ## Recovery and destination limits, September 9 correction
 

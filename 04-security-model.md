@@ -144,11 +144,11 @@ outgrown, because adding a credential means adding a row.
 
 | # | Credential | Origin | Where it lives | Lifetime | What it authorizes | How it dies |
 |---|---|---|---|---|---|---|
-| 1 | Vendor API credential | Operator | Browser memory only | One session | Full account authority at that vendor | Session ends |
+| 1 | Vendor API credential | Operator | Browser memory only | One session, or one deterministic recovery flow (`STA-18`) | Full account authority at that vendor | Session or flow ends |
 | 2 | Inference **session** key | Minted from row 14 (procured); supplied by the operator (BYO) | Browser memory only | One session | Inference spend, **up to its own cap** | Revoked at session end (procured); session ends (BYO) |
 | 3 | **SSH client private key, one per machine** | **Derived** from row 15 at that machine's index (`STA-22`) | Re-derived on demand; nothing to export | Machine lifetime | Login to **that one machine** | Removed from the machine on Replace (`STA-17`), which is a new seed |
 | 4 | **Relay key**, one per pass | Derived from row 15 (`STA-22`); its public half is what the relay binds a bought pass to (`CHN-15`), and what the first stage hands the publisher out of band | Re-derived on demand; nothing to store | Until the pass expires or is revoked | Reaching the destinations recorded against its pass, on any port; recording destinations; revoking (`CHN-16`) | Pass expires; revoked by its own signature on Replace, and a new key bound to a new purchase |
-| 5 | Host-key pins | Vendor API, rescue, or attest | Encrypted at rest; exported in the sheet | Machine lifetime | Nothing — integrity reference | Machine destroyed |
+| 5 | Host-key pins | Vendor API, rescue, or attest | Encrypted at rest; exported in the sheet | Installed system: machine lifetime. Rescue: one boot (`CHN-R1`) | Nothing — integrity reference | Machine destroyed; rescue pin discarded at the reset |
 | 6 | Exposure ledger | Harness-derived | Encrypted at rest; exported in the sheet | Machine lifetime | Nothing — record | Machine destroyed |
 | 7 | **Attest sender key**, one per machine | Derived from row 15 (`STA-22`) | Boot user-data; **never stored in the browser**, re-derived to check the seal | Until the browser accepts one introduction, or its window closes | **One** host-key introduction (`CHN-7`) | **The browser stops listening (`CHN-5`)** — that is the bound; scrubbed from disk as defence in depth (`CHN-6`); the metadata copy is permanent and worthless |
 | 8 | ~~Drop-box collection token~~ | — | — | — | — | **Row retired.** The drop-box is gone (`CHN-4`); the attest post is a gift-wrapped event to an inbox any Nostr relay provides. |
@@ -158,8 +158,8 @@ outgrown, because adding a credential means adding a row.
 | 12 | **Tenant secret placed on a machine** | Operator | Browser memory, then the machine | Machine lifetime | Whatever the tenant's software uses it for | Machine destroyed, or operator rotates |
 | 13 | ~~Injected SSH host private key~~ | — | — | — | — | **Row retired. `CHN-R3` is abandoned**: user-data stays readable from the vendor's metadata endpoint for the instance's life, so the key would be permanently re-fetchable by anything on the machine. No exception wording fixes that. |
 | 14 | **Inference account credential** (procured only) | Operator, on funding an account-free balance | Encrypted at rest; **exported in the sheet** | Until the balance is spent | The remaining balance; minting and revoking row 2; attaching a funding source (`ARC-31a`) | Spent down or abandoned — **it is bearer and cannot be revoked** |
-| 15 | **Operator seed** | Operator, at first use; backed up by the operator | Encrypted at rest; **in the operator's head or seed backup**, never in the sheet | Until replaced | Deriving rows 3, 4, 7 and 16 — **every maintained machine, every relay pass, and every future introduction** (`STA-22`) | Replaced by a new seed on Replace (`STA-17`); the old one is not revocable, only abandoned — and it is still needed *during* Replace |
-| 16 | **Attest recipient key**, one per machine | Derived from row 15 (`STA-22`) | Re-derived on demand; public half in boot user-data | Until the introduction is accepted or the window closes | Decrypting **one** machine's introduction | The browser stops listening; the key is never used again |
+| 15 | **Operator seed** | Operator, at first use; backed up by the operator | Encrypted at rest; **in the operator's head or seed backup**, never in the sheet | Until replaced | Deriving rows 3, 4, 7, 16 and 17 — **every maintained machine, every relay pass, every future introduction, and every declared handoff** (`STA-22`) | Replaced by a new seed on Replace (`STA-17`); the old one is not revocable, only abandoned — and it is still needed *during* Replace |
+| 16 | **Attest recipient key**, one per machine | Derived from row 15 (`STA-22`) | Re-derived on demand; public half in boot user-data | Until the introduction is accepted or the window closes | Decrypting **one** machine's introduction, and authenticating the inbox subscription that receives it (NIP-42, `CHN-18`) | The browser stops listening; the key is never used again |
 | 17 | **Post-harness credential** (profiles declaring a handoff credential) | Derived from row 15 (`STA-22`); public half installed only on the machines the profile's handoff slot declares, during setup, before the handoff point (`ARC-19a`) | Re-derived on demand; nothing stored | As declared by the profile's handoff slot | Exactly the reach the profile's handoff slot declares, and no more — btc-policy's instance is the coordinator peer credential | As declared by the profile's handoff slot |
 | 18 | Local unlock passphrase | Operator-chosen (`STA-23`) | Input UI briefly, then harness-worker memory; never persisted or sent | Unlock or passphrase-change operation | Derives row 19 to unwrap the local data key | Input and buffers cleared after use |
 | 19 | Wrapping key (local store or sheet) | PBKDF2 from row 18 or row 10, with independent salts and purposes | Harness-worker memory only | Wrap/unwrap operation | Unwraps one row-20 key | Cleared after wrap/unwrap |
@@ -275,8 +275,7 @@ recorded rather than resolved (`OPN-17`).
 
 These bind wherever a tenant requires them and mean nothing otherwise, so under
 [ADR-0016](./docs/adr/0016-the-harness-isolates-and-counts-tenants-set-thresholds.md) they
-belong to that tenant and move with it. They are listed here, unchanged, until pointers into
-btc-policy's own records replace them.
+belong to that tenant and live with it.
 
 **SEC-T1**, **SEC-T2**, **SEC-T3** and **SEC-T4** Moved to the btc-policy tenant profile,
 [`docs/tenants/btc-policy/profile.md`](./docs/tenants/btc-policy/profile.md), slots
@@ -318,8 +317,10 @@ larger one.
 
 That claim needs a vault. It is conditional on the trust domains being genuinely distinct: if
 several endpoints serve the same weights the operator has one model rather than five and it is
-vacuous. At that layer distinctness may not be enforceable at all (`OPN-4`), and until it is,
-this is a design goal rather than a demonstrated property.
+vacuous. Distinct weights are **configured** per machine, so distinctness is enforced by
+construction; whether the proxy served the weights it was asked for is not observable, and that
+residue is `TRU-E2`'s trust rather than a property this claim can check (`OPN-4`). Until a
+served-model signal exists, this is a design goal rather than a demonstrated property.
 
 **There is no verification layer and nothing in the product may imply one.** Every scheme
 where a second model inspects a finished machine **from inside** hands that model a second
@@ -327,7 +328,9 @@ foothold — the scanner never does; it reads only the public surface. A determi
 reads whatever the machine chooses to tell it and cannot beat a hostile AI; it survives only
 for drift detection and honest mistakes inside a single machine, run by that machine's own
 session — or by the harness's own AI-free code over that same session's channel during setup,
-which is a different runner rather than a different reach (`ARC-19a`).
+which is a different runner rather than a different reach (`ARC-26`: anything needing the
+channel belongs to the machine's own session; it is not post-harness machinery, which holds no
+channel at all under `ARC-19a`).
 
 **Honest mistakes ship silently.** On a first-time setup a misconfiguration is the likely
 failure, not a hostile model, and no mechanism here catches one made the same way by

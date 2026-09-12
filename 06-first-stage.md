@@ -26,7 +26,8 @@ this stage needs are: **(1) install** — from a pinned rescue session to an ins
 reachable system whose host keys the harness already holds; **(2) lock-down** — harden and
 demonstrate against the tenant's delivery declaration (`ARC-39`, `ARC-17`); **(3) the
 tenant's daemon** — installed and started to the tenant's declared lifecycle, authored from
-the tenant's declaration rather than by this project (`ARC-40`). Rescue activation and the
+the tenant's declaration rather than by this project (a brief keyed on the tenant's software
+is the tenant's, ADR-0030; the publisher still signs it, `ARC-40`). Rescue activation and the
 host-key pin are **not** brief content: they are the harness's typed ceremony (`CHN-R1`,
 `STG-4`), deterministic by design, and no improvising model owns the identity chain. Only
 brief 1 has evidence today and is written
@@ -99,13 +100,14 @@ sequenceDiagram
 
 ## Acceptance
 
-**STG-3a The three Robot operations ride the tunnel, not `fetch`.** Robot serves no CORS
+**STG-3a Every Robot call rides the tunnel, not `fetch`.** Robot serves no CORS
 headers at all, so no browser origin can read its responses (`CHN-R1`, verified 2026-08-31).
 The typed adapter therefore opens a TLS session inside the browser, pinned to Robot's issuing
 authority, and carries it over the relay as ciphertext (`CHN-12a`). The relay learns a
 destination and nothing else, and no trusted party is added.
 
-This is a prerequisite the stage did not previously have, and it is why `OPN-21` gates.
+This is a prerequisite the stage did not previously have; it gated as `OPN-21` until the spike
+of 2026-09-07 closed it, and `CNF-62` carries it for the real build.
 
 **STG-4** The session registers its SSH client public key with Robot as a **typed
 operation** — Robot's `authorized_key` field takes fingerprints of keys already registered
@@ -147,7 +149,7 @@ positional, so nothing renumbers.
 **STG-9** The machine is **maintained**, and the story is exercised: at least one later
 session re-enters over the same pinned channel and re-runs the check.
 
-**STG-10** No credential — the Robot credential, the rescue root password, the inference key,
+**STG-10** No credential — the Robot credential, the rescue root password, the session inference key,
 the SSH client private key, or the relay key — appears in a request to the app origin, in
 any model request body, or in any log; and none appears in origin-private storage, local
 storage, or service-worker caches outside the encrypted-at-rest store `SEC-5` names.
@@ -175,7 +177,7 @@ with no install. iOS Safari is not a test target (`OVR-1`).
 ## Measurements, required but not pass/fail
 
 **STG-15** Peak memory of one session during a full install, on Android Chrome, with
-the five-session projection stated against each platform's tab budget. The concurrency
+the five-session projection stated against that platform's tab budget. The concurrency
 decision (`ARC-13`) rests on five sessions sharing a phone, chosen against an acknowledged
 high memory risk, and no number has ever been taken. One session is what this stage runs,
 which makes it the only cheap opportunity to learn whether five is possible.
@@ -212,6 +214,10 @@ display and the operable panel arrive with the tenant that needs them.
   private-address refusal still apply (`CNF-81`, `CNF-87`). There is no purchase flow or tested reacquisition story;
   that is `OPN-2`.
 - **Inference funding.** Assumed already funded.
+- **Tenant-secret delivery.** `CNF-16` is not first-stage work, so no tenant secret is placed
+  on the machine. If lnrent's declaration puts the receiving-service credential on the box
+  (its profile, `SEC-5` row 12), first-stage delivery stops short of Lightning receiving until
+  injection is enabled.
 - **The general tunnel.** The stage builds only the **pinned** kind (`CHN-12a`), for one known
   vendor. Reaching an arbitrary CORS-refusing service needs `CHN-12b`'s certificate-authority
   store, which `OPN-20` still prices and this stage does not touch.

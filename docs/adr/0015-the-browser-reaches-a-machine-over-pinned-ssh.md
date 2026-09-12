@@ -11,9 +11,12 @@ correct.
 
 This decision was made in the design session and depended on without ever being
 recorded: [ADR-0003](./0003-the-ai-runs-only-in-the-browser.md) states that box-plane
-commands ride SSH, and [ADR-0011](./0011-the-ai-delivers-a-locked-down-machine.md) has
+commands ride SSH, and [ADR-0011](./0011-the-ai-delivers-a-locked-down-machine.md) had
 the coordinator's calls to five member APIs riding the same channel because a fresh
-machine has no valid certificate. It is recorded here.
+machine has no valid certificate (since superseded: under `ARC-19a` and
+[ADR-0026](./0026-the-coordinator-is-the-tenants-and-runs-after-sealing.md) the coordinator
+holds no SSH channel and reaches the vault port over the relay as plain TCP). It is recorded
+here.
 
 We chose SSH because the check that matters happens *inside the SSH protocol*, at the
 application layer. Once the right host key is pinned, the transport underneath is
@@ -39,6 +42,13 @@ obstacle. Two caveats: Robot is a different product from Hetzner Cloud with a di
 auth scheme, so it is a second integration rather than a free extension; and the
 contents of `host_key` are undocumented. The reachability result rests on a single recorded
 probe and has not been re-verified since.
+
+*Superseded on both counts by `CHN-R1` as rewritten from the run of 2026-09-08.* The
+activation `POST` publishes nothing; the fingerprints appear on `GET /boot/{n}/rescue/last`
+about 80 s after the reset, as SHA-256 fingerprints per algorithm and fresh per boot
+(`CNF-48`). And Robot is **not** browser-reachable — verified 2026-08-31, no CORS headers at
+all — so the harness reaches it over a browser-terminated TLS session pinned to Robot's
+issuing authority and carried over the relay (`CHN-12a`, `STG-3a`).
 
 Rescue boots its own sshd with its own host keys, and the installed system's are
 different. That is not a gap — the installed system is put there *from inside the trusted
@@ -171,8 +181,9 @@ user-data. This *was* the first stage until
 [ADR-0018](./0018-first-stage-is-one-lnrent-box-on-dedicated.md) replaced it: Robot has no
 user-data, so the current first stage runs the full channel and this escape hatch is gone
 for it. The question stays real for the second stage on Cloud, where user-data could still
-shrink the channel's role in provisioning — though never to zero, because the coordinator
-still has to reach five member APIs on machines with no valid certificate. (The periodic
+shrink the channel's role in provisioning — though never to zero, because the install itself
+and the delivery check run over it. (The coordinator is no longer a reason either: it reaches
+the vault port over the relay after sealing, holding no SSH channel — `ARC-19a`. The periodic
 re-check is no longer a reason: vault nodes are sealed after setup, so their re-check is
 an external probe through the relay, not a session inside —
 [ADR-0013](./0013-ongoing-operation-periodic-pentest-and-advisory-watch.md)'s amendment.)

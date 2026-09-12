@@ -18,8 +18,9 @@ WebSocket-to-TCP bridge ships in production in several Go implementations, and e
 single-author proof in Rust on `wasm32-unknown-unknown` using the same UI and build stack this
 design specifies
 ([ADR-0024](./docs/adr/0024-the-ssh-client-is-rust-following-a-known-good-configuration.md)).
-What remains is integration and one property the references skip: **host-key pinning**
-(`SEC-11`, `OPN-1`).
+What remains is integration; the one property the references skip, **host-key pinning**
+(`SEC-11`), was demonstrated on the spike of 2026-09-07 (`OPN-1`, closed) and `CNF-21` and
+`CNF-79` carry it for the real build.
 
 ## The five routes to a fingerprint
 
@@ -82,7 +83,8 @@ read Robot through a bridge on 2026-09-07 (`OPN-21`), and it is a far smaller co
 
 Two further caveats stand: Robot is a different product from Hetzner Cloud with a different auth
 scheme, so it is a second integration rather than a free extension; and the contents of
-`host_key` remain undocumented (`OPN-6`).
+`host_key` are undocumented by the vendor — what the field holds is known from the run, not
+from documentation (`CNF-48`), so a format change would arrive unannounced.
 
 Rescue boots its own sshd with its own host keys, and the installed system's are different.
 That is not a gap — the installed system is put there *from inside the trusted rescue
@@ -281,8 +283,10 @@ with no authentication will be abused within days of being reachable. The archiv
 specification's §21 requirements are the resolution: authenticate the user, enforce
 destination and operation policy, prevent generic open-proxy behaviour.
 
-**CHN-9** The relay has two duties: the TCP bridge — the SSH channel and `ARC-26`'s surface
-probes — and, **designed but not built**, a tunneled fallback for untyped calls (`CHN-12`).
+**CHN-9** The relay has two duties: the TCP bridge — the SSH channel, `ARC-26`'s surface
+probes, the pinned vendor tunnel (`CHN-12a`) and a profile-declared post-harness credential's
+traffic (`ARC-19a`) — and, **designed but not built**, a tunneled fallback for untyped calls
+(`CHN-12b`).
 Beside it, on the same host and under the same operator, runs a **Nostr relay** for the notify
 channel (`CHN-18`). It is a separate, standard service rather than a third duty of the bridge,
 and the attest drop-box it replaces is gone.
@@ -293,8 +297,10 @@ inbox is wrong.
 
 **CHN-10** The relay MUST be **direct-first**. It is never in a path the browser can take
 alone. An off-machine call goes straight from the browser to the service wherever the
-service permits it; the relay carries only raw TCP — the SSH channel and `ARC-26`'s surface
-probes — and, if `CHN-12` is ever built, untyped calls whose destination refuses browser CORS.
+service permits it; the relay carries only raw TCP — the SSH channel, `ARC-26`'s surface
+probes, the pinned vendor tunnel where a vendor refuses CORS (`CHN-12a`), and whatever a
+profile's post-harness credential speaks to its machines after delivery (`ARC-19a`) — and, if
+`CHN-12b` is ever built, untyped calls whose destination refuses browser CORS.
 The machine-originated attest post no longer crosses it at all. Minimum usage is a design
 property, not an accident.
 
@@ -400,7 +406,7 @@ answer for both.
 **CHN-12a — a known destination is pinned, and needs no certificate-authority set beyond the
 one pinned authority.** A vendor API is named at build time and there are a handful of them.
 The browser validates against a **pinned issuing authority shipped in the bundle**, exactly as
-it pins a host key (`SEC-11`), an artifact hash (`ARC-25`) and the relay's own identity. **No
+it pins a host key (`SEC-11`) and an artifact hash (`ARC-25`). **No
 trusted party is added**, because a pin is a fact about one endpoint rather than a delegation
 to a category. Mechanically the pin *is* a trust store holding exactly that one certificate
 and nothing else, against which the TLS library's ordinary verifier checks chain, name and

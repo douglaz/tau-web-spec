@@ -159,7 +159,7 @@ the proof of concept tested, and recorded because the specification lost them on
 transmitted — every untyped call carrying a custom header, so a preflight always happens —
 works only where the destination allow-lists that header. Against a service with a fixed
 allow-list it fails the preflight instead, which is the *safe* failure: nothing is sent, and
-`ARC-33`'s harmless probe routes that origin to the tunnel. The design is sound, but **more
+`SEC-12`'s harmless probe routes that origin to the tunnel. The design is sound, but **more
 destinations will route to the tunnel than the corpus assumed**, which raises what `CHN-12` and
 `OPN-20` are worth.
 
@@ -325,7 +325,7 @@ proxy; then destroy the machine and restart under a different domain, which cost
 
 ```mermaid
 stateDiagram-v2
-    [] --> Working
+    [*] --> Working
     Working --> Stuck: model cannot finish
     Stuck --> Retry: rung 1
     Retry --> Working: succeeds
@@ -340,7 +340,7 @@ stateDiagram-v2
         another machine. SEC-1.
     end note
     Escalate --> Destroy: still stuck
-    Destroy --> []: machine destroyed,<br/>exposure ends with it
+    Destroy --> [*]: machine destroyed,<br/>exposure ends with it
     note right of Destroy
         Never handed to another session.
         Costs a server.
@@ -509,7 +509,7 @@ installed system, for the reason `ARC-25a` gives.
 **ARC-25** The **artifact source** — an image, a mirror, a channel — MUST be treated as an
 untrusted dependency, **pinned as tightly as the distribution allows and never trusted on
 retrieval**. The rescue session pulls from a URL; the browser supplies the expected value; a
-mismatch halts the install. This is the same shape as the relay pinned by host key and the
+mismatch halts the install. This is the same shape as the machine pinned by host key and the
 bundle pinned by published hash, and it is the third instance of a pattern already in use.
 The source is a named party in `TRU-E8`, because whoever decides what every machine runs has
 the same blast radius as the bundle.
@@ -575,8 +575,8 @@ re-check has an inside and an outside, with different owners
   probes are a deterministic allowlisted toolset, and the model picks targets and reads
   observations, so even a malicious specialist cannot attack through the probe. **The relay
   pass stays in the browser too** (`CHN-15`): the harness opens the connection and runs the
-  probe toolset, and the model receives observations. A pass is a bearer credential, and a
-  scanner holding one would break the addresses-and-nothing-else rule. The tool contract bounds
+  probe toolset, and the model receives observations. The relay key that opens a pass is a
+  credential, and a scanner holding it would break the addresses-and-nothing-else rule. The tool contract bounds
   invocation too — per-run and per-target call limits, pacing, cancellation, bounded output.
   Pacing is load-bearing beyond politeness: it is what `CHN-16` relies on to keep a wide port
   range from being a scanning service.

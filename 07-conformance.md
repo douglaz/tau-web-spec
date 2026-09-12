@@ -133,15 +133,17 @@ yet.
       does for the scanner — a refusal test cannot distinguish an absent credential from one the
       harness declined to use. Escaped-secret: this credential is bearer, unrevocable, and holds
       spendable balance.
-- [ ] **CNF-69 · BLOCKING** The session inference key is minted with a **spend cap and an
-      expiry** and is **revoked when the session ends** (`ARC-31a`). Verified by using the key
+- [ ] **CNF-69 · BLOCKING** On the procured path, the session inference key is minted with a
+      **spend cap and an expiry** and is **revoked when the session ends** (`ARC-31a`); a
+      bring-your-own key has no minting to test. Verified by using the key
       after the session closes and confirming refusal. Without this, `SEC-5` row 2's "one
       session" lifetime is an assertion rather than a bound.
 - [ ] **CNF-70 · BLOCKING** Automatic top-up is **not enabled** on the inference account
       (`ARC-31a`). Verified by reading the account's configuration. It converts the prepaid cap
       — the only thing bounding a leaked key — into an open draw on a connected wallet.
-- [ ] **CNF-71 · PRE-SCALE** The retention tier is requested **explicitly on every inference
-      call** (`ARC-31a`), because the aggregator's API default is the weaker tier. Verified by
+- [ ] **CNF-71 · PRE-SCALE** On the procured path, the retention tier is requested **explicitly
+      on every inference call** (`ARC-31a`), because the aggregator's API default is the weaker
+      tier. Verified by
       inspecting an outgoing request, not by trusting the aggregator's web-app default.
 
 ## The channel — `SEC-11`, `CHN-*`
@@ -279,14 +281,19 @@ yet.
 - [ ] **CNF-56 · PRE-SCALE** The command recorded by the machine matches the command the
       browser journal recorded before sending. A mismatch is surfaced as a finding, and is
       never described as verification (`STA-21`).
+- [ ] **CNF-80 · PRE-SCALE** An installed system that does not answer on the channel within
+      ten minutes of its boot reset is declared failed, the operator is told, and a separately approved destructive reinstall
+      returns to rescue from the brief (`STG-20`). Test a missing bootloader and a relay outage: neither a timeout nor
+      unreachability clears unresolved operations or triggers a wipe without that decision.
 
 ## Trust display — `SEC-9`, `SEC-10`
 
 - [ ] **CNF-41 · PRE-SCALE** Counts are shown per layer and never blended. The provider layer
       is labelled **requested**, never *observed* or *verified*, and is never derived from the
       model name (`SEC-9`).
-- [ ] **CNF-78 · PRE-SCALE** Every inference call carries the machine's requested provider in the
-      aggregator's routing object (`ARC-14`), verified by inspecting an outgoing request. And
+- [ ] **CNF-78 · PRE-SCALE** On the procured path, every inference call carries the machine's
+      requested provider in the aggregator's routing object (`ARC-14`), verified by inspecting an
+      outgoing request; local inference has no proxy and no provider layer (`STG-17`). And
       the one observable fact about override is measured: a pin naming a provider that cannot
       serve the requested model either **fails the call** or **silently succeeds**, and which
       one is recorded, because it decides whether the label *requested* means "honoured or
@@ -302,13 +309,9 @@ yet.
 
 Not pass/fail. Required to be recorded.
 
-- [ ] **CNF-45** Peak memory of one session during a full install, per mobile browser, with the
-      five-session projection against each platform's tab budget (`STG-15`, `ARC-13`).
+- [ ] **CNF-45** Peak memory of one session during a full install, on Android Chrome, with the
+      five-session projection against that platform's tab budget (`STG-15`, `ARC-13`).
 - [ ] **CNF-46** Wall-clock duration of a full install over the channel.
-- [ ] **CNF-80 · PRE-SCALE** An installed system that does not answer on the channel within
-      ten minutes of its boot reset is declared failed, the operator is told, and a separately approved destructive reinstall
-      returns to rescue from the brief (`STG-20`). Test a missing bootloader and a relay outage: neither a timeout nor
-      unreachability clears unresolved operations or triggers a wipe without that decision.
 - [ ] **CNF-47** Transcript size produced by one install.
 - [x] **CNF-48** What Robot's rescue `host_key` field actually returns, and what the automatic
       Linux install operation returns (`OPN-6`, `STG-2`). **Recorded 2026-09-08**: SHA-256
@@ -370,7 +373,7 @@ untested capability. A broader deployment still applies the PRE-SCALE promotion 
 
 | Applies when | CNF items | First-stage interpretation |
 |---|---|---|
-| First stage: required | 1–7, 10–15, 17, 21–22, 24–26, 28–30, 32, 34–35, 37–40, 41, 43–44, 49–56, 62–64, 66–73, 78–83, 85–87 | One live dedicated machine; synthetic unbound identities exercise 6 and 26. Item 50 covers the delivery check; its scanner half waits for scanner enablement. Item 10 covers local ledger persistence; its sheet-export half waits for recovery. Item 72 covers local allocation; imported-state cases are 84. Item 67 uses Alpine; NixOS evidence is required before enabling NixOS. Item 81's migration case waits for self-host migration, which the first stage does not offer. |
+| First stage: required | 1–7, 10–15, 17, 21–22, 24–26, 28–30, 32, 34–35, 37–40, 41, 43–44, 49–56, 62–64, 66–73, 78–83, 85–87 | One live dedicated machine; synthetic unbound identities exercise 6 and 26. Item 50 covers the delivery check; its scanner half waits for scanner enablement. Item 10 covers local ledger persistence; its sheet-export half waits for recovery. Item 72 covers local allocation; imported-state cases are 84. Item 67 uses Alpine; NixOS evidence is required before enabling NixOS. Item 81's migration case waits for self-host migration, which the first stage does not offer. Item 32 covers the typed Robot origin's route selection. Items 68–71 and 78 apply to the procured inference path; bring-your-own and local inference have no aggregator to test. |
 | First stage: record measurements | 45–48 | 48 has by-hand evidence; 45–47 require the integrated browser channel, not the rehearsal's timings. |
 | Post-harness handoff | 8, 77 | Before enabling any profile that declares one; the first stage has none. |
 | Scanner and advisory monitoring | 9, 36 | Also complete item 50's scanner case before exposing scanner results. |

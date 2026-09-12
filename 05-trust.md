@@ -106,15 +106,17 @@ credential is revoked or rotated, not merely while the approval stands.
 **TRU-E7 — Whoever signs the software the machines run.** For a single machine the signer is
 trusted for that machine, the same shape as any installed software. For a federation it is
 sharper: briefs install the same release on every machine, so the signer is common-mode across
-the federation in the same shape as the bundle. Artifact pinning would bound this; nothing here
-specifies it yet.
+the federation in the same shape as the bundle. `ARC-25` pins the bootstrap and `ARC-25a` fixes
+which package signers are accepted; neither removes a signer's authority over the packages it
+signs later, which is `TRU-E8a`. Software the tenant itself ships is bounded only by its own
+release signing.
 
 **TRU-E8 — The artifact source.** The chosen distributions (`ARC-24`) are not offered by the
 dedicated vendor's automatic installer, so the system is written from inside rescue and the
 bits come from somewhere: an image, a mirror, a channel. **Whoever controls that source decides
 what every machine runs**, which is the same blast radius as the bundle. It is pinned from the
 browser against a value that ships in the signed bundle (`ARC-25`), which makes it detectable
-rather than trusted blindly, in the same discipline as the relay pinned by host key. Until the
+rather than trusted blindly, in the same discipline as the machine pinned by host key. Until the
 pin exists in an implementation, this party is trusted outright.
 
 **TRU-E8a — The package or binary-cache signing key holders.** Both declared distributions

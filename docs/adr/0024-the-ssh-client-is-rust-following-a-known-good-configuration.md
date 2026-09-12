@@ -117,7 +117,9 @@ deserves its own look.
 **Host-key pinning is the part nobody has done.** The references skip it — most accept any host
 key, and the best of them reaches a `Changed{old, new}` status rather than a boolean. That is
 the one property `SEC-11` and `CHN-R4` depend on, so it is the real remaining work and it is
-what `OPN-1` now closes on rather than "an SSH session connected."
+what `OPN-1` now closes on rather than "an SSH session connected." *Done on the spike of
+2026-09-07: a mismatched host key is refused from the SSH layer, before authentication, with
+both fingerprints reported (`OPN-1` closed); `CNF-21` and `CNF-79` carry it for the real build.*
 
 **The reference is unlicensed.** `Ar4l/sshmux` carries no license file, so it is a
 configuration to read and learn from, not code to copy. The dependency versions and feature

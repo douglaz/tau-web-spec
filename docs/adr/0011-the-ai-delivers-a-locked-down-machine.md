@@ -64,6 +64,14 @@ browser almost certainly rides the pinned SSH channel
 ([ADR-0015](./0015-the-browser-reaches-a-machine-over-pinned-ssh.md)) rather than direct
 HTTPS.
 
+*Both paragraphs above are superseded by
+[ADR-0026](./0026-the-coordinator-is-the-tenants-and-runs-after-sealing.md) and `ARC-19a`.*
+The coordinator reaches inside nothing and holds no SSH channel at any point: it runs after
+every member is sealed, when no member has SSH, and speaks to each member's vault protocol
+port over the relay as plain TCP (`CHN-10`) with a peer-equivalent credential the profile
+declares. They are kept because "the coordinator reaches inside every member" is what a fresh
+reader assumes.
+
 **"Locked down" needs a definition, per vendor.** The pentest can only assert what it
 checks, so the checklist is part of the brief set and therefore ships signed
 ([ADR-0005](./0005-briefs-ship-in-the-signed-bundle.md)).

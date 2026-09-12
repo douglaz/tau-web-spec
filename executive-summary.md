@@ -17,12 +17,13 @@ That is the goal, not an achieved property. Several parties remain trusted, and
 [`05-trust.md`](./05-trust.md) names each of them by hand rather than claiming the list is
 empty.
 
-There is no code in this repository. What exists is the specification, a domain language, a set
-of decision records with the alternatives they rejected, a conformance checklist, a design
-record carrying three rounds of adversarial review, an engineering review, and an archived
-specification of the execution layer. A proof of concept in a separate repository has
-established the one external fact everything depends on: a browser can call a cloud vendor's
-API directly.
+There is no harness code in this repository. What exists is the specification, a domain
+language, a set of decision records with the alternatives they rejected, a conformance
+checklist, tenant profiles, a design record carrying three rounds of adversarial review, two
+review records, throwaway prototypes with their findings, and an archived specification of the
+execution layer. A proof of concept in a separate repository established that a browser can
+call a cloud vendor's API directly; the prototypes since established that a browser can reach
+a machine over pinned SSH and a vendor over pinned TLS, on a phone.
 
 ## The problem
 
@@ -198,22 +199,20 @@ than "trustless" — but it survives the regress.
 ## What is not settled
 
 The maintained list is [`08-open-questions.md`](./08-open-questions.md), and each entry says what
-would close it. The ones that gate the work are the SSH client compiled to WebAssembly; the
-the recovery machinery, designed but unproven until it runs once;
-whether weights-level diversity is enforceable at all, which the security claim is conditional
-on; the cloud-account floor that makes rental structural; and what the dedicated vendor's rescue
-endpoint actually returns — one authenticated call that the first stage's whole identity chain
-rests on.
+would close it. What gates completing the first stage is the tenant's delivery declaration and
+lockdown checklist, from which the remaining briefs are written; and the integrated harness
+demonstrating interrupted-install resume. The recovery machinery, designed and unproven on a
+real cloud first boot, gates recovery and the cloud path. The cloud-account floor that makes
+rental structural gates the phone-only acquisition experience.
 
 ## Status
 
-Nothing here has touched a real server. The proof of concept can talk to a vendor API from a
-browser; it cannot yet create a machine.
-
 The first stage is **one rental box on a dedicated server, over the full channel** — the hardest
-machinery on purpose. Construction gates on running that stage **by hand, once**, against a
-disposable server: it settles in an afternoon what the corpus otherwise discovers over weeks, and
-it produces the first briefs the product needs as a by-product.
+machinery on purpose. It was rehearsed **by hand, once**, on a disposable server on
+September 8, 2026: both pinned SSH hops closed, and the install brief was written from the
+transcript. Separately, the browser SSH client and the pinned TLS client ran on a physical
+Android phone. Harness construction can start; the integrated harness, interrupted resume,
+lockdown and tenant delivery remain unproven.
 
 The vault, with its concurrent sessions, trust panel and federation, is the second stage and
 reuses the channel the first one proves.

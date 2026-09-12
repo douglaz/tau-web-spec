@@ -36,10 +36,12 @@ stays the tenant's prose.
 
 ## Two guards, which are harness rules and live outside every profile
 
-- **A declaration narrows what the harness gates; it never widens it.** `ARC-37` remains a
-  harness rule keyed on the machine-class value and `CNF-52` stays BLOCKING, so a profile
-  cannot switch a gate off with prose. The same holds for `CNF-50` against a wide listener
-  range.
+- **A delivery declaration narrows what the harness gates; it never widens it.** `ARC-37`
+  remains a harness rule keyed on the machine-class value and `CNF-52` stays BLOCKING, so a
+  profile cannot switch a gate off with prose. The same holds for `CNF-50` against a wide
+  listener range. The one slot that may relax a shipped default is the independence bound,
+  which moves the one-vendor-per-machine default toward the tenant's own quorum-relative
+  bound and never past it (`OVR-5`, `SEC-T3`).
 - **The run records its contract.** The journal holds the profile identity, revision and the
   resolved declaration for each machine; resume and scans use that record, so a revised
   profile cannot silently redefine "delivered".

@@ -124,8 +124,8 @@ key — and row 4, the relay pass, becomes a **relay key** derived per purchase,
 credential existed, the bearer string the relay used was the odd one out, and replacing it
 answered a revocation promise `STA-17` could not otherwise keep.
 
-**ADR-0020's title is half right, and it says so.** The vendor account still roots inventory.
-Credentials root in the seed. Both are stated, and neither does the other's job.
+**ADR-0020 now names two roots.** The vendor account still roots inventory. Credentials root in
+the seed. Both are stated, and neither does the other's job.
 
 **Replace is a new seed.** A stolen seed is not revocable — a thief who unlocks the store has it
 — so the flow that answers a lost phone generates a new one and removes the old keys from every

@@ -110,9 +110,9 @@ implementation/tenant evidence, not claims that the harness already exists.
 - [x] **T4 — The AI is a trusted party.** `04-security-model.md` opens with the posture. The
       key-material rule moved to the tenant group as `SEC-T4`; `SEC-3` scopes to the harness's
       own cloud plane; `SEC-6` states minimize-and-count for everything else.
-- [x] **T5 — Credential inventory.** `SEC-5` is a thirteen-row table replacing the
-      prohibition-with-exceptions, including the tenant-secret row and its root-shell caveat.
-      Enforced by `CNF-13`.
+- [x] **T5 — Credential inventory.** `SEC-5` is an enumerated table replacing the
+      prohibition-with-exceptions (thirteen rows then; twenty now, two retired), including the
+      tenant-secret row and its root-shell caveat. Enforced by `CNF-13`.
 - [x] **T6 — Topic files with stable identifiers.** `00`–`08`, prefixes `OVR`/`ARC`/`CHN`/
       `STA`/`SEC`/`TRU`/`STG`/`CNF`/`OPN`. `spec.md` is retired; every cross-reference goes by
       identifier. The glossary is definitions only; the summary carries no counts.
@@ -130,25 +130,28 @@ implementation/tenant evidence, not claims that the harness already exists.
       drop-box-enforces-single-use design; the middle-rung-is-free reading). Stale narration
       removed from ADR-0015.
 - [x] **T11 — Diagrams, GitHub-renderable.** Nine mermaid figures: system context, the two
-      planes, session binding and coordinator reach, the recovery ladder, the five fingerprint
+      planes, session binding and post-harness reach, the recovery ladder, the five fingerprint
       routes, the attest sequence, the recovery matrix, the trust tiers, the first-stage
       sequence.
 - [x] **T12 — Ledger scoped; setup device-bound.** `STA-11` states that the staleness rules
       bind only a maintained-plus-threshold tenant and why none exists; `ARC-22` states that an
       unfinished setup is resumed where it started or abandoned.
-- [x] **T13 — Relay topology priced.** `CHN-13` and `TRU-A2` say the relay learns the member
+- [x] **T13 — Relay topology priced.** `CHN-13` and `TRU-A2` say the relay learns the machine
       topology; the Certificate Transparency comparison is restated as one chosen party against
       everyone, permanently.
 - [x] **T14 — Tunnel priced and marked unbuilt.** `CHN-12` states the bundled certificate-
       authority cost and marks the capability designed-but-unpriced; `OPN-20` tracks it.
 - [x] **T15 — Attest ordering and retry.** `CHN-6`: backoff until acknowledged or a deadline,
-      scrub on whichever comes first, deadline inside the voucher's expiry. `CNF-18` tests the
-      voucher's expiry and single-use; the retry, backoff and deadline ordering are **not yet
+      scrub on whichever comes first. *(The "deadline inside the voucher's expiry" this task
+      first wrote was superseded by ADR-0029: the only window is the browser's clock from
+      machine creation, and the machine's deadline is housekeeping.)* `CNF-18` tests the
+      browser's window and single-use; the retry, backoff and deadline ordering are **not yet
       tested**.
 - [x] **T16 — Command-granular execution and recording.** `ARC-7` and `ARC-8`, with the cost
       stated: anything interactive is the brief's problem, not a live terminal's.
 - [x] **T17 — Memory measurement.** `STG-15` and `CNF-45` require peak memory of one session
-      during a full install on both browsers, with the five-session projection.
+      during a full install on Android Chrome (iOS was dropped as a test target since), with
+      the five-session projection.
 - [x] **T18 — First-stage record corrected.** `STG-3` states why rescue is required; `STG-19`
       narrows the subsetting claim to what dedicated rescue actually covers. *(`STG-8` raised
       the tenant predicate above running-and-reachable, then was retired: it tested lnrent

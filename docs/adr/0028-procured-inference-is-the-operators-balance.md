@@ -75,16 +75,18 @@ holds something bounded.
 selection *because* bring-your-own existed as an escape hatch. It now also handles no money and
 issues no credential, so its procured-path role is narrower than the record assumed.
 
-**`SEC-5` gains the only unrevocable row in the table.** Row 14 holds spendable balance with no
-issuer to revoke against. Every other credential in the design can be killed; this one can only
-be spent down or abandoned. That asymmetry is why row 2 exists at all.
+**`SEC-5` gains the only unrevocable row that holds value.** Row 14 holds spendable balance with
+no issuer to revoke against. Every other credential in the design can be killed — the seed (row
+15) is likewise abandoned rather than revoked, but the keys it derives are removed from every
+machine on Replace — while this one can only be spent down or abandoned. That asymmetry is why
+row 2 exists at all.
 
 **The recovery sheet now carries money.** `STA-16` exports the account credential, because the
 alternative is that a lost phone burns whatever the operator funded, with no path back — the
-aggregator's own words are that if you lose it, it is gone. The sheet already holds the keys to
-every maintained machine, so this changes the size of a loss rather than its kind. What it must
-not do is arrive unannounced: a sheet holding balance is a different object from one holding
-references, and the export screen says so.
+aggregator's own words are that if you lose it, it is gone. The sheet no longer holds any
+machine key — those re-derive from the seed (`STA-22`, ADR-0029) — so the balance is now the
+most valuable thing in it. What it must not do is arrive unannounced: a sheet holding balance is
+a different object from one holding references, and the export screen says so.
 
 **Replace cannot cover it, and `STA-17` says so.** The flow can revoke every session key minted
 from the credential and mint no more, which stops the harness and not a thief. The only real

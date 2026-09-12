@@ -33,7 +33,8 @@ comparable effects from arbitrary shell is the undecidable problem from
 against a hostile AI for a separate reason: it reads what the machine chooses to tell it. It
 remains useful for drift detection and honest mistakes inside a single member, run by that
 member's own session — or by the harness's own AI-free code over that same session's channel
-during setup, which changes the runner rather than the reach (`ARC-19a`).
+during setup, which changes the runner rather than the reach (`ARC-26`: anything needing the
+channel belongs to the machine's own session).
 
 ## Consequences
 

@@ -47,6 +47,9 @@ accepts rather than a benefit it seeks.
 > concluded here, and was wrong. What was genuinely unknown, and still is, is what Robot's
 > rescue endpoint returns — one authenticated call, which `STG-2` now gates construction on.
 
+*That call was made on 2026-09-08: `OPN-6` is closed, `CNF-48` is recorded, and construction
+is no longer gated on it.*
+
 **The platform frame removed the old stage's reason to exist.** The two-machine demo
 staged the vault thesis — visibly different provenance, the trust panel. Under
 [ADR-0016](./0016-the-harness-isolates-and-counts-tenants-set-thresholds.md) the harness's

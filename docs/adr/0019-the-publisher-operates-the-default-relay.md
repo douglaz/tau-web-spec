@@ -41,7 +41,7 @@ point.)
 
 **An independent third party.** Splits metadata visibility from the bundle holder, which
 is genuinely better on paper. Rejected for now because it adds a real new trusted party —
-the exact move invariant 10 prices as a schema migration — and because no such party
+the exact move `SEC-10` prices as a schema migration — and because no such party
 exists to do the work; naming a vacancy is not a decision. Bring-your-own leaves the door
 open for one to emerge.
 

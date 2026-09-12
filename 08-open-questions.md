@@ -12,8 +12,10 @@ probe with a multi-week spike as though they were the same size.
 Construction admission (`STG-2`) closed with the September 8 installation rehearsal.
 Completing the first stage still gates on `OPN-14`, integrated resume (`OPN-18`), and the
 first-stage acceptance subset in `07-conformance.md`, including `STA-23` unlock and v1
-derivation evidence. `OPN-3` gates recovery/cloud enablement; `OPN-4` gates the vault claim;
-`OPN-5` gates the eventual phone-only acquisition experience, not first-stage construction.
+derivation evidence (`OPN-18` is closed by design and open as that implementation). `OPN-3`
+gates recovery/cloud enablement; `OPN-5` gates the eventual phone-only acquisition experience,
+not first-stage construction. `OPN-4` closed by restating `SEC-CLAIM` around configured weights;
+the vault claim stays conditional on `TRU-E2`.
 
 **OPN-3 — The recovery machinery is designed and unproven.** The design is recorded across
 `03-state-and-recovery.md` and `CHN-R5`. What stays open is empirical: the attest hook has to
@@ -40,25 +42,6 @@ is handled explicitly, including restored seeds being unavailable for new alloca
 *Closes when:* `CNF-18`, `CNF-19`, `CNF-20`, `CNF-72`, `CNF-83` and `CNF-84` pass on the
 app and hardware to which each applies. The format alone does not close the recovery gate.
 
-**OPN-4 — Weights-level diversity may not be enforceable.** The runtime signal named the
-*inference provider*, not the weights behind it — and the provider is a layer nobody
-configures, so there was nothing there to enforce either. The honest position is the one
-`ARC-14` records: report what was observed, promise nothing forward. `SEC-CLAIM` stays
-conditional on weights-level distinctness.
-
-*The signal situation changed, and not only for the worse.* On the chosen aggregator there is
-no provider signal at all, so the sentence above describes a signal that is gone. But
-the **weights are configured, not observed**: the harness picks the model per machine, and the
-catalogue names which vendor made it, so distinctness across machines is enforceable **by
-construction** rather than by inspection. What remains unverifiable is whether the proxy served
-the model it was asked for — which is a smaller and better-shaped gap than "no signal reaches
-the weights", and it is the same gap `TRU-E2` already names when it says the proxy can alter
-everything it carries. **The provider layer now takes the same shape** (`OPN-23`, closed): it is
-requested per machine rather than observed, and the same override caveat applies to both.
-
-*Closes when:* the claim is restated around what is configured rather than what is observed, or
-a signal confirming the served model appears. The second has no current candidate.
-
 **OPN-5 — The cloud-account floor.** Cloud vendors want an account, a card, and a recurring
 relationship, several times over, and invoice relay cannot fix it. This is what makes lnrent
 structural rather than a second tenant, and what makes `OVR-5` hard.
@@ -78,7 +61,8 @@ first proxy got is run against it.
 
 **OPN-8 — Whether a second cloud vendor's API permits a browser origin.** Roughly eighty lines
 of curl; the existing probe is a template, not a drop-in, since it hardcodes the first vendor's
-base URLs, paths and assertions. `OVR-5` depends on the answer. *Closes when:* the forked probe
+base URLs, paths and assertions. The answer decides direct `fetch` versus the pinned tunnel
+(`CHN-12a`), not whether the vendor is usable (ADR-0017). *Closes when:* the forked probe
 passes or fails against a named second vendor.
 
 **OPN-9 — Whether the proof of concept's cloud-init boots an unreachable machine.** A code-read
@@ -95,6 +79,8 @@ the remaining entries gate the feature each names.
 block returns structured data to the next one, versioning, signing. Designing a second consumer
 for an undefined format is premature until this exists. *First input 2026-09-08:*
 `docs/briefs/01-install.md`, plain prose with example commands and deliberately no format.
+A fourth brief, the relay-install brief that `CHN-14` and ADR-0019 rely on, is the harness's
+and second-stage work; nothing has been written for it.
 *Closes when:* the three briefs named in `STG-2` are generalized into a schema.
 
 **OPN-11 — What executes brief commands locally in the browser.** Either a WASI host with
@@ -208,7 +194,8 @@ output, its exit code and its liveness, on installed-system persistent disk. Res
 is machine-reported and advisory, and comparing it against the browser journal catches honest
 mistakes rather than a hostile machine.
 [ADR-0022](./docs/adr/0022-durable-state-is-an-append-only-journal.md)'s amendment carries the
-reasoning and the three rejected alternatives. *Closes when:* `CNF-40` passes.
+reasoning and the three rejected alternatives. *Closes when:* `CNF-40`, `CNF-55` and `CNF-86`
+pass on the integrated harness (T23).
 
 **OPN-22 — What "still alive" means in `STA-20`.** **Closed: the narrow reading binds.** `STA-20`
 tracks whether **the command** is alive, not everything the command spawned. Daemon and service
@@ -259,6 +246,26 @@ the headers a browser may read, an *observed* column sits beside the requested o
 becomes visible per response. Cheap for them if the circumstantial evidence that they resell
 another aggregator holds — **inference, not verification** — and nothing here waits on it.
 
+**OPN-4 — Weights-level diversity may not be enforceable.** *Closed 2026-09-12 by restatement.*
+The runtime signal named the *inference provider*, not the weights behind it — and the
+provider is a layer nobody configures, so there was nothing there to enforce either. The
+honest position was the one `ARC-14` recorded at the time: report what was observed, promise
+nothing forward.
+
+*The signal situation changed, and not only for the worse.* On the chosen aggregator there is
+no provider signal at all, so the sentence above describes a signal that is gone. But
+the **weights are configured, not observed**: the harness picks the model per machine, and the
+catalogue names which vendor made it, so distinctness across machines is enforceable **by
+construction** rather than by inspection. What remains unverifiable is whether the proxy served
+the model it was asked for — which is a smaller and better-shaped gap than "no signal reaches
+the weights", and it is the same gap `TRU-E2` already names when it says the proxy can alter
+everything it carries. **The provider layer now takes the same shape** (`OPN-23`, closed): it is
+requested per machine rather than observed, and the same override caveat applies to both.
+
+*What closed it:* `SEC-CLAIM` now states the condition that way — configured weights, distinct
+by construction, with service-as-requested left to `TRU-E2`. A signal confirming the served
+model would add an *observed* column; none has a candidate, and nothing waits on it.
+
 **OPN-1 — The SSH client.** *Closed 2026-09-08: the mechanism ran, and it ran on a phone.* An SSH implementation compiled to `wasm32-unknown-unknown` with
 its transport swapped for a WebSocket. It gates, because nothing works without one.
 
@@ -283,9 +290,9 @@ below). The one genuine blocker is that russh's current
 default crypto backend does not support this target, which a feature flag settles
 ([ADR-0024](./docs/adr/0024-the-ssh-client-is-rust-following-a-known-good-configuration.md)).
 
-**Size is settled too, and it favours Rust.** The reference deployment is ~1.5 MB raw and
-**~574 KB gzipped for the whole application** — terminal and UI included — against ~4.94 MB for
-the Go equivalent.
+**Size is settled too, and it favours Rust.** The reference deployment's WebAssembly module is
+~1.5 MB raw and **~574 KB gzipped**, the whole application ~584 KB gzipped — terminal and UI
+included — against ~4.94 MB for the Go equivalent (ADR-0024).
 
 *Run 2026-09-07, and the mechanism holds.* A spike (`prototypes/wasm-spikes/`, findings in
 [`docs/findings/2026-09-07-wasm-spikes.md`](./docs/findings/2026-09-07-wasm-spikes.md))
