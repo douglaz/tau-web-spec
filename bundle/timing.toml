@@ -3,7 +3,8 @@
 # replaced by the first integrated run's measurement, in one commit.
 
 [rescue]
-poll_interval = "10s"      # GET /boot/{n}/rescue/last over the tunnel, until host_key fills (CHN-R1: ~80 s)
+poll_interval = "10s"      # GET /boot/{n}/rescue/last over the tunnel, until host_key is non-empty AND differs
+                           # from the set snapshotted before the reset (STG-4; CHN-R1: ~80 s)
 poll_max = "5m"            # then the activation is unresolved (STA-8), never retried on a timer
 
 [installed]

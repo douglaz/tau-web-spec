@@ -26,7 +26,7 @@ JSON object, `version: 1`. Field names are fixed; values are as described.
 | `listeners.outbound` | list of `{proto, host_or_any, port}` restrictions, or `[]` for none | `[]` means no outbound restriction is declared, explicitly |
 | `services` | list of `{name, lifecycle: "running-at-delivery"\|"enabled-survives-reboot"}` | Demonstrated exactly as declared; nothing beyond it is asserted (`CNF-53`) |
 | `key_material.spendable` | `false` on a multi-tenant machine (`ARC-37`, harness rule; a profile cannot set `true` there) | Searched for after install (`CNF-52`) |
-| `key_material.permitted` | list of `{kind, where}` describing public or watch-only material expected on disk, or `[]` | Present material outside the list is a finding |
+| `key_material.permitted` | list of `{kind, where}` describing the **tenant's** public or watch-only material expected on disk, or `[]` for none | Tenant material outside the list is a finding. What the harness itself places — the machine's SSH host keys and the bound session's client public key (`SEC-1`, `CHN-R1`) — is always expected and is never listed |
 | `drift_checks` | list of `{name, command, expect}` the maintained re-check runs, or `[]` | Run by the machine's own session on re-entry (`ARC-26`) |
 | `required` | list of `{name, check: command, expect}` — software and checks that must hold at delivery, or `[]` | Run at delivery |
 | `default_credentials` | `"none"` or a list of what must have been changed | Checked at delivery (`ARC-17`) |

@@ -22,7 +22,9 @@ blocks = re.findall(r"```sh\n(.*?)\n```", source, re.S)
 block, = [part for part in blocks if 'sgdisk --zap-all "$other"' in part]
 # The brief may set $DISK and $OTHER_DISKS above the subshell (stateless jobs, ARC-7); the
 # block under test, and the one the rehearsal script must carry verbatim, starts at "(".
-prelude, block = block[: block.index("(\n")], block[block.index("(\n") :]
+# The baseline block has no prelude and no subshell; leave it whole.
+if "(\n" in block:
+    block = block[block.index("(\n") :]
 if not sys.argv[1:]:
     # The rehearsal script carries the same block verbatim, so these cases cover it too.
     script = (ROOT / "prototypes/first-stage-rehearsal/install-alpine.sh").read_text()

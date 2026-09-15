@@ -105,6 +105,10 @@ modes:
   machine-readable statement of what a key authorizes, and a bound stated on a guess is
   worse than none.
 
+One off-machine call is neither: an **inference request** is composed by the harness's own
+adapter, never chosen by the model, and is approved once at session creation rather than per
+call or by scope. `ARC-31a` states how it is recorded.
+
 **Box plane** covers shell execution on a machine the operator already owns. It is
 free-form, never pre-approved, always recorded.
 
@@ -173,9 +177,10 @@ session.
 state — working directory, variables, an entered chroot — survives from one job to the next.
 A brief is therefore authored so that each example block is self-contained: a block that needs
 the installed root wraps its own `chroot /mnt sh -c '…'`, and a value one step needs from
-another has a named source rather than a variable — the bundle (`bundle/`), a decision the
-model made and composed into the command it issues (which `ARC-8` journals as sent), or a
-machine-derived value recomputed inside the consuming command. Nothing is carried.
+another has a named source rather than a variable — the bundle (`bundle/`), a per-session value
+the harness shows the model (the bound session's client public key), a decision the model made
+and composed into the command it issues (which `ARC-8` journals as sent), or a machine-derived
+value recomputed inside the consuming command. Nothing is carried.
 
 **ARC-8** Recording commits **per command**, before transmission. "Every byte recorded
 before transmission" would otherwise imply a granularity nobody chose, resting on an
@@ -233,6 +238,8 @@ instructions all produce the wrong machine, and agree with each other perfectly 
 it. The brief is the one component where diversity buys nothing, so it is locked instead.
 
 **ARC-40 The publisher writes and signs every brief today, and that is a power worth naming.**
+("Signs" is the glossary's *Signed bundle*: compiled into the served build until `OPN-15`
+closes.)
 Because briefs ship in the bundle (`ARC-11`), the publisher decides **which tenants can exist**
 and **when a tenant's change reaches operators**. A tenant is otherwise independent — it supplies
 its own software and its own security requirements
@@ -394,6 +401,12 @@ sealing is what makes its duress protection real. Both are correct, and any gene
 harness invented would contradict one of them. This is the same move the design already makes for
 the threshold (ADR-0016), the access model (`ARC-27`), and now everything else it needs to
 demonstrate.
+
+**Its structured form is
+[`docs/design/delivery-declaration-v1.md`](./docs/design/delivery-declaration-v1.md)**, which is
+normative: every field is present, as a concrete value, an explicit empty set, or the marker
+`unspecified`. An absent field is a schema error; `unspecified` blocks delivery (ADR-0030). The
+harness invents no default for any field.
 
 A declaration covers at least:
 

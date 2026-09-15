@@ -16,8 +16,12 @@ entered. So every example block below is self-contained. Where a block needs the
 root it wraps its own `chroot /mnt sh -c '…'`. Where a block needs a value, that value has a
 named source:
 
-- **the harness**, from the bundle — the artifact URL and hash, the repository branch and the
-  accepted signing keys (`bundle/artifact-alpine.toml`); you never type these;
+- **the harness**, from the bundle — the artifact URL and hash you never see or type
+  (`fetch_artifact` uses them); the repository branch, repository URLs and accepted key
+  fingerprints (`bundle/artifact-alpine.toml`) the harness shows you and you copy into the
+  commands that need them;
+- **the harness, per session** — the bound session's SSH client public key, shown to you for
+  the one command that installs it (step 6);
 - **you**, from what you read in step 1 — the root disk, the additional disk set, the address,
   gateway and hostname; you compose them into the command you issue, and the harness journals
   that command as sent (`ARC-8`);
@@ -144,14 +148,18 @@ chroot /mnt sh -c 'mkdir -p /root/.ssh && chmod 700 /root/.ssh && ssh-keygen -A 
 ```
 
 `ssh-keygen -A` generates the host keys **here, before any reboot**; `ready_to_reset` reads
-them. The session's client public key goes into `/mnt/root/.ssh/authorized_keys` (mode 600);
-the harness supplies it as a parameter of the command you issue, and it is the only key:
-`STG-13` is tested by sshd refusing every other one.
+them. Then the session's client public key, which the harness shows you, goes into
+`authorized_keys` — written literally, and it is the only key: `STG-13` is tested by sshd
+refusing every other one.
+
+```sh
+mkdir -p /mnt/root/.ssh && printf '%s\n' '<session-client-public-key>' > /mnt/root/.ssh/authorized_keys && chmod 700 /mnt/root/.ssh && chmod 600 /mnt/root/.ssh/authorized_keys
+```
 
 ## Step 7 — bootloaders, on every disk, for both firmware modes
 
 ```sh
-chroot /mnt sh -c 'ROOT=$(findmnt -no SOURCE /) && printf "UUID=%s / ext4 defaults 0 1\n" "$(blkid -s UUID -o value "$ROOT")" > /etc/fstab && printf "GRUB_TIMEOUT=3\nGRUB_TIMEOUT_STYLE=menu\nGRUB_CMDLINE_LINUX_DEFAULT=\"modules=sd-mod,usb-storage,ext4 rootfstype=ext4 console=tty0 console=ttyS0,115200\"\nGRUB_DISABLE_OS_PROBER=true\n" > /etc/default/grub && grub-install --target=i386-pc <root-wwn> && grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=alpine --removable --no-nvram && grub-mkconfig -o /boot/grub/grub.cfg'
+U=$(blkid -s UUID -o value "$(findmnt -no SOURCE /mnt)") && [ -n "$U" ] && chroot /mnt sh -c "printf 'UUID=%s / ext4 defaults 0 1\n' '$U' > /etc/fstab && printf 'GRUB_TIMEOUT=3\nGRUB_TIMEOUT_STYLE=menu\nGRUB_CMDLINE_LINUX_DEFAULT=\"modules=sd-mod,usb-storage,ext4 rootfstype=ext4 console=tty0 console=ttyS0,115200\"\nGRUB_DISABLE_OS_PROBER=true\n' > /etc/default/grub && grub-install --target=i386-pc <root-wwn> && grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=alpine --removable --no-nvram && grub-mkconfig -o /boot/grub/grub.cfg"
 ```
 
 - The `modules=` kernel arguments are the ones `setup-disk` writes. Without them the
@@ -160,7 +168,9 @@ chroot /mnt sh -c 'ROOT=$(findmnt -no SOURCE /) && printf "UUID=%s / ext4 defaul
   entry; no NVRAM entry can be written from a rescue, hence `--no-nvram`.
 - The serial console line is for the vendor's virtual console, whose screen is otherwise
   black after GRUB; it costs nothing.
-- The root UUID is recomputed inside the block from the mounted root, never carried.
+- The root UUID is recomputed in the rescue half of the same job (`findmnt` and `blkid` are
+  the rescue's; the minirootfs has neither) and passed into the chroot, never carried from an
+  earlier block.
 - **Each additional selected installation disk gets a BIOS-boot partition and a GRUB core
   image too**, pointing at the same `/boot`, because firmware may enumerate any of them first.
   Run this in rescue, not in the chroot, with `/mnt` still mounted. The root disk is excluded

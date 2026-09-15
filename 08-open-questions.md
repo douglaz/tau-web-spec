@@ -99,9 +99,10 @@ the checklist is part of the signed brief set — and it does not exist yet for 
 it does, `ARC-17`'s deliverable has no definition to be measured against.
 
 Two parts are no longer open. Who may run which check was settled by `ARC-26`. And the *shape* is
-settled by `ARC-39`: the tenant supplies a delivery declaration and the check measures against it,
-so what is actually missing is the **declaration format** plus the items no declaration covers —
-default credentials, sshd posture, and whatever a given vendor makes possible.
+settled by `ARC-39`: the tenant supplies a delivery declaration and the check measures against it.
+The declaration format was the missing piece and now exists (below; default credentials are a
+field of it). What remains outside any declaration is the **vendor lockdown checklist** —
+sshd posture and whatever a given vendor makes possible.
 
 That also makes the question per-**tenant** as much as per-vendor, which the title understates.
 *The declaration format exists as of 2026-09-15:*

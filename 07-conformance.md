@@ -384,8 +384,9 @@ Not pass/fail. Required to be recorded.
       applies configured connection/probe limits (`bundle/timing.toml`). It is not an unauthenticated development
       proxy (`STG-18`); purchase and quota accounting are outside this check. The protocol is
       `docs/design/relay-protocol-v1.md`: the order challenge, AUTH, OK holds; a binary frame
-      before OK or a text frame after it closes the socket; and **no dial happens before OK**,
-      verified by watching the relay's outbound connections during a refused AUTH. Boundary-crossed.
+      before OK or a text frame after it closes the socket; and **no dial happens before the
+      AUTH is accepted**, verified by watching the relay's outbound connections during a
+      refused AUTH. Boundary-crossed.
 
 ## Stage applicability and admission
 

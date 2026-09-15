@@ -50,8 +50,10 @@ flowchart TD
 `GET /boot/{server-number}/rescue/last`. **Run 2026-09-08** (`CNF-48`,
 [findings](./docs/findings/2026-09-08-first-stage-rehearsal.md)): the harness activates rescue
 over HTTPS (`POST /boot/{n}/rescue`, which publishes **nothing** — its `host_key` is empty),
-triggers the hardware reset, then polls `GET /boot/{n}/rescue/last` until `host_key` fills,
-which happens about **80 s after the reset and some 10 s before the rescue's sshd answers**,
+triggers the hardware reset, then polls `GET /boot/{n}/rescue/last` until `host_key` fills
+**with a set different from the one snapshotted before the reset** (`STG-4`: the previous
+boot's keys are still there until the new boot publishes), which happens about **80 s after
+the reset and some 10 s before the rescue's sshd answers**,
 together with a `boot_time`. The field holds **SHA-256 fingerprints, one per host-key
 algorithm, and no public key material**; the browser derives the presented key's fingerprint
 at first contact and compares. **Every rescue boot has fresh host keys**, so the pin is per

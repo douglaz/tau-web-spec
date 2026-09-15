@@ -31,9 +31,11 @@ differently. After parsing, `CHN-16a`'s normalization and refusal rules run on t
    pass that is unexpired and not revoked; the destination is in that pass's recorded set
    (`CHN-16`: the record *is* the authorization); `CHN-16a` admits the address; the pass's
    pacing and window cap allow a dial now (`bundle/timing.toml`). All pass: the relay dials,
-   then sends one text frame `{"ok": true}`. Any failure: one text frame
-   `{"ok": false, "reason": "<auth|pass|destination|address|pace|dial>"}` and close 1008.
-   **Nothing is dialed before every check passes.**
+   and once the TCP connection is up sends one text frame `{"ok": true}`. Any failed check:
+   one text frame `{"ok": false, "reason": "<auth|pass|destination|address|pace>"}` and
+   close 1008, **before any dial**. A dial that fails after the checks passed: `{"ok": false,
+   "reason": "dial"}` and close 1011. So OK means "authorized and connected"; the invariant
+   `CNF-87` tests is that **nothing is dialed before the AUTH is accepted**.
 4. **Bytes.** After OK, every frame in both directions is a binary frame carrying raw TCP.
    A text frame after OK, or a binary frame before it, closes the connection with 1002.
    Either side closing the socket closes the TCP connection.

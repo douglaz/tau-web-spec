@@ -44,8 +44,8 @@ Not yet stated by the tenant. See https://github.com/douglaz/lnrent/issues/87.
 
 ### Service lifecycle
 
-The daemon must be enabled and survive every reboot, because it has to answer while the
-operator sleeps (`ARC-39`).
+The daemon, `lnrentd`, must be enabled and survive every reboot, because it has to answer
+while the operator sleeps (`ARC-39`).
 
 ### Permitted key material
 

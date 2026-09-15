@@ -44,6 +44,10 @@ one document)
 **Brief library**
 The collection of briefs available to a session, shipped inside the signed bundle.
 
+The format is **not** shared with lnrent. That project's *recipes* are executables its daemon
+runs with high privilege; briefs are prose that must never be run as written. What is real is
+a **layering**: a brief can tell the AI to invoke an lnrent hook as a deterministic tool.
+
 **Signed bundle** · `SEC-7`, `ARC-32`, `ADR-0031`
 The build the origin serves, together with everything compiled into it: briefs, tenant
 profiles, the artifact pin and accepted signers, the inference target, the timings. **Until
@@ -53,10 +57,6 @@ against the published hash once reproducible builds exist. Every use of the phra
 this definition, and the trust display does not say "signed" before then.
 _Avoid_: "signed" as a claim the interface makes today; package, release (both suggest an
 artifact separate from the served app)
-
-The format is **not** shared with lnrent. That project's *recipes* are executables its daemon
-runs with high privilege; briefs are prose that must never be run as written. What is real is
-a **layering**: a brief can tell the AI to invoke an lnrent hook as a deterministic tool.
 
 ### Roles
 
