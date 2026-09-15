@@ -11,7 +11,7 @@ operative text is in the rules each row names.
 |---|---|---|---|
 | D1 | The publisher builds the first-stage relay on a three-message protocol | `docs/design/relay-protocol-v1.md`, `CHN-15`, `CNF-87`, T27 | Destination checked against the recorded set, one destination grammar, no dial before OK, ordering asserted |
 | D2 | Every model-issued exec is one stateless job; brief blocks are self-contained examples | `ARC-7`, brief 1, `OPN-10` | Reframed as an authoring rule (`ARC-9`); each value's source named; machine-derived values recomputed |
-| D3 | The harness reads the artifact hash and host keys from jobs it composes; the model requests them | `ARC-43`, `STG-4`, `STG-6`, `CNF-22`, `CNF-24`, brief 1 | Two requestable harness jobs with a trigger each; `ready_to_reset` reads keys before unmounting |
+| D3 | The harness reads the artifact hash and host keys from jobs it composes; the model requests them | `ARC-43`, `STG-4`, `STG-6`, `CNF-22`, `CNF-24`, brief 1 | Two requestable harness jobs with a trigger each; `ready_to_reset` reads keys before unmounting. Edit review: the jobs are box-plane work, requested by a fourth tool, never approved on facts |
 | D4 | Inference is the adapter's own call, recorded as intent then metadata | `ARC-31a`, `SEC-12`, `CNF-28` | Not an untyped scope; no `TRU-E6` entry; pre-send intent with a local id |
 | D5 | One bundle entry names the inference target | `bundle/inference.toml`, `ARC-31`, `TRU-A1`, ADR-0028, `STG-17` | "In the briefs" corrected corpus-wide; ladder rung two absent at one slug |
 | D6 | The harness defines the declaration schema before re-asking lnrent | `docs/design/delivery-declaration-v1.md`, `ARC-39`, `OPN-14`, T28 | Explicit presence: value, `[]`, or `unspecified`; absent is an error |

@@ -259,8 +259,8 @@ that fails to boot after the install is **invisible over the network**: the vend
 `running`, nothing answers, and no log can be read. The rehearsal of 2026-09-08 hit this five
 resets in a row, for four different reasons, and none was findable from the browser. So the
 harness's response is `ARC-16`'s bottom rung applied to this path: if the installed system
-does not answer on the channel within `installed.wait_max` (`bundle/timing.toml`, ten minutes
-today) of the reset that should have booted it, the session declares the install failed, tells
+does not answer on the channel within `installed.wait_max` (`bundle/timing.toml`) of the
+reset that should have booted it, the session declares the install failed, tells
 the operator, and **offers a return to rescue and reinstallation from the brief** — the same
 ceremony, and cheap (about five minutes when it works). **Each readiness probe is the pinned
 SSH attempt itself**, every `installed.probe_interval`: a TCP refusal or timeout means sshd is

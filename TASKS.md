@@ -1,8 +1,10 @@
 # Tasks
 
 Work arising from the [engineering review of 2026-08-19](docs/review/2026-08-19-engineering-review.md),
-which reviewed the corpus at `726ad44`. Each task names the finding it came from, so nobody
-has to reopen the review to know why it exists.
+which reviewed the corpus at `726ad44`, and from the reviews and decision records since
+(T21–T23 from the September 9 review, T27–T29 from the September 15 construction decisions).
+Each task names the finding or decision it came from, so nobody has to reopen the record to
+know why it exists.
 
 **The August review corrections have been applied**, plus further decisions from the grilling sessions that
 followed. T1 ran on 2026-09-08 on a disposable auction server; construction is no longer
@@ -30,7 +32,9 @@ gated on it.
       then points at its v1 file.
 - [ ] **T29 — Create the implementation repository** (ADR-0031). Name to be decided. It pins
       this repository by commit, refuses to build if the tree differs, compiles `bundle/`,
-      `docs/tenants/` and `docs/briefs/` in, and runs `bundle/cors-probe.sh` and
+      `docs/tenants/` and the briefs promoted out of draft in — today none: brief 1 is a draft
+      (`docs/briefs/`), and which briefs are promoted is decided when it leaves draft — and
+      runs `bundle/cors-probe.sh` and
       `prototypes/spec-checks/` from the pinned tree as its CI gate (`CNF-1`–`CNF-4`).
       `bundle/inference.toml` has an empty model slug on purpose; the build fails until the
       publisher fills it.

@@ -202,10 +202,15 @@ first stage:
 - `ready_to_reset` — reads `/mnt/etc/ssh/ssh_host_*_key.pub`, journals the pins, unmounts the
   target, and only then offers the reset typed operation (`STA-20b`'s planned-reset ordering).
 
-The model's tool set in the first stage is exactly three: `exec` (a box-plane command),
-`request_typed_operation` (a cloud-plane operation or one of the jobs above, approved on facts),
-and `done`. There is no tool by which the model reports a value, so a wrong or hostile report
-cannot pass `CNF-24` or pin a key.
+These jobs are **box-plane work**: they run under the box-plane scope like any `exec`, recorded
+before transmission (`ARC-8`) and never approved per call — what distinguishes them is that the
+harness composed the command, not that the operator sees it. Only the reset that
+`ready_to_reset` goes on to offer is a cloud-plane typed operation.
+
+The model's tool set in the first stage is exactly four: `exec` (a box-plane command it
+composed), `request_harness_job` (one of the jobs above, by name), `request_typed_operation`
+(a cloud-plane operation, approved on facts), and `done`. There is no tool by which the model
+reports a value, so a wrong or hostile report cannot pass `CNF-24` or pin a key.
 
 ## Briefs
 

@@ -15,7 +15,8 @@ by a requirement, the requirement's identifier is given and the rule lives there
 Any action taken **off** the operator's machines with a credential they supplied. Carries two
 approval modes: a **typed operation**, where an adapter exists and the action is expressed as
 structured facts; and an **untyped call**, where none does and the operator approves a scope
-instead.
+instead. One call is neither: the harness's own **inference request**, approved once at
+session creation (`ARC-31a`).
 _Avoid_: control plane, provisioning layer, API layer
 
 **Box plane** · `ARC-3`

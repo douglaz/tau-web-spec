@@ -10,7 +10,10 @@ name = "PayPerQ"
 
 [session]
 model = ""                 # TODO publisher: model slug, with the reason recorded in this comment
-provider = ""              # TODO publisher: the `provider` routing value requested per machine (ARC-14); empty fails the build
+provider = ""              # TODO publisher: the provider requested per machine (ARC-14); empty fails the build.
+                           # Sent as the aggregator's routing object `provider: {"only": ["<value>"]}` (ADR-0007:
+                           # order/only/ignore). Whether an unsatisfiable value fails the call or silently
+                           # reroutes is the one observable fact CNF-78 records.
 retention = "strictest"    # requested explicitly on every call; the API default is the weaker tier (ARC-31a)
 
 # The recovery ladder's middle rung (ARC-16) needs a stronger model behind the same proxy.

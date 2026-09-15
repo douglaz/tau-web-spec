@@ -1,8 +1,9 @@
 # Delivery declaration v1
 
 Normative companion to `ARC-39` and ADR-0030's "Delivery declaration" slot. The structured form
-the delivery check (`CNF-49`–`CNF-53`) reads. A tenant's profile carries the prose; the v1
-document beside it carries the values the harness measures against.
+the delivery check (`CNF-49`–`CNF-53`) reads. A tenant's profile carries the prose; a v1
+document carries the values the harness measures against — today the examples below, and a
+file beside each profile once T28 lands.
 
 ## Presence rule
 
@@ -23,10 +24,10 @@ JSON object, `version: 1`. Field names are fixed; values are as described.
 |---|---|---|
 | `version` | `1` | Refuse any other |
 | `listeners.inbound` | list of `{proto: "tcp"\|"udp", port: n, from: "any"\|"peers"\|"none"}` | Every answering socket must match an entry; an undeclared one is the finding (`CNF-50`, `CNF-51`) |
-| `listeners.outbound` | list of `{proto, host_or_any, port}` restrictions, or `[]` for none | `[]` means no outbound restriction is declared, explicitly |
+| `listeners.outbound` | list of `{proto, host, port}` restrictions, or `[]` for none; `host` is a DNS name, a CIDR block, or `"any"` | `[]` means no outbound restriction is declared, explicitly |
 | `services` | list of `{name, lifecycle: "running-at-delivery"\|"enabled-survives-reboot"}` | Demonstrated exactly as declared; nothing beyond it is asserted (`CNF-53`) |
 | `key_material.spendable` | `false` on a multi-tenant machine (`ARC-37`, harness rule; a profile cannot set `true` there) | Searched for after install (`CNF-52`) |
-| `key_material.permitted` | list of `{kind, where}` describing the **tenant's** public or watch-only material expected on disk, or `[]` for none | Tenant material outside the list is a finding. What the harness itself places — the machine's SSH host keys and the bound session's client public key (`SEC-1`, `CHN-R1`) — is always expected and is never listed |
+| `key_material.permitted` | list of `{kind, where}` describing the **tenant's** key material expected on disk, or `[]` for none. On a multi-tenant machine only public or watch-only kinds are admissible (`ARC-37`); a single-purpose machine may list private, non-spendable material, as btc-policy's member vault keys are | Tenant material outside the list is a finding. What the harness itself places — the machine's SSH host keys and the bound session's client public key (`SEC-1`, `CHN-R1`) — is always expected and is never listed |
 | `drift_checks` | list of `{name, command, expect}` the maintained re-check runs, or `[]` | Run by the machine's own session on re-entry (`ARC-26`) |
 | `required` | list of `{name, check: command, expect}` — software and checks that must hold at delivery, or `[]` | Run at delivery |
 | `default_credentials` | `"none"` or a list of what must have been changed | Checked at delivery (`ARC-17`) |
@@ -53,7 +54,7 @@ content (ad-hoc profile).
 
 ## lnrent, v1 (template, every field unspecified)
 
-Shipped to the tenant as the answer format for
+To be sent to the tenant (T28) as the answer format for
 [douglaz/lnrent#87](https://github.com/douglaz/lnrent/issues/87). The two values the corpus
 already states are filled; everything else waits for the tenant.
 

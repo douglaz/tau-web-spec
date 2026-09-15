@@ -99,7 +99,7 @@ not exercised; a single root on one disk was.
 ## Step 4 — unpack the root filesystem
 
 ```sh
-tar -xzf /tmp/artifact -C /mnt && cp /etc/resolv.conf /mnt/etc/ && printf 'https://dl-cdn.alpinelinux.org/alpine/v3.24/main\nhttps://dl-cdn.alpinelinux.org/alpine/v3.24/community\n' > /mnt/etc/apk/repositories && for d in dev proc sys; do mount --rbind /$d /mnt/$d; done
+tar -xzf /tmp/artifact -C /mnt && cp /etc/resolv.conf /mnt/etc/ && printf 'https://dl-cdn.alpinelinux.org/alpine/v3.24/main\nhttps://dl-cdn.alpinelinux.org/alpine/v3.24/community\n' > /mnt/etc/apk/repositories && for d in dev proc sys; do mount --rbind /$d /mnt/$d || exit 1; done
 ```
 
 The repository branch matches the artifact (`bundle/artifact-alpine.toml`). The branch's
@@ -124,7 +124,7 @@ nobody can reach. That was one silent failure on this run. `apk` will fetch ~150
 that took about a minute.
 
 ```sh
-chroot /mnt sh -c 'apk update && apk add alpine-base linux-lts openssh grub grub-bios grub-efi e2fsprogs dosfstools && for s in devfs dmesg mdev hwdrivers; do rc-update add $s sysinit; done && for s in hwclock modules sysctl hostname bootmisc syslog networking; do rc-update add $s boot; done && rc-update add sshd default && for s in mount-ro killprocs savecache; do rc-update add $s shutdown; done && sed -i "s/^#\?rc_logger=.*/rc_logger=\"YES\"/" /etc/rc.conf'
+chroot /mnt sh -c 'apk update && apk add alpine-base linux-lts openssh grub grub-bios grub-efi e2fsprogs dosfstools && for s in devfs dmesg mdev hwdrivers; do rc-update add $s sysinit || exit 1; done && for s in hwclock modules sysctl hostname bootmisc syslog networking; do rc-update add $s boot || exit 1; done && rc-update add sshd default && for s in mount-ro killprocs savecache; do rc-update add $s shutdown || exit 1; done && sed -i "s/^#\?rc_logger=.*/rc_logger=\"YES\"/" /etc/rc.conf'
 ```
 
 Record the repository URLs, index digests, accepted key fingerprints and installed package

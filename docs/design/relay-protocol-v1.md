@@ -25,9 +25,11 @@ differently. After parsing, `CHN-16a`'s normalization and refusal rules run on t
 2. **AUTH.** The browser answers with one text frame: a NIP-42-shaped event signed by the relay
    key (`SEC-5` row 4, `STA-22` role 3): kind 22242, tags `["relay", "<relay URL>"]`,
    `["challenge", "<challenge>"]`, `["destination", "<host>", "<port>"]`, `created_at` within
-   ±10 minutes of the relay's clock, signature BIP-340 over the NIP-01 event id. The
-   destination tag must equal the URL path; a mismatch is refused.
-3. **OK or close.** The relay checks, in order: signature and challenge match; the key has a
+   `relay.auth_skew` (`bundle/timing.toml`) of the relay's clock, signature BIP-340 over the
+   NIP-01 event id. The destination tag must equal the URL path; a mismatch is refused.
+3. **OK or close.** The relay checks, in order: the event shape — kind 22242, the relay tag
+   naming this relay, `created_at` within skew, one destination tag equal to the path — then
+   signature and challenge match; the key has a
    pass that is unexpired and not revoked; the destination is in that pass's recorded set
    (`CHN-16`: the record *is* the authorization); `CHN-16a` admits the address; the pass's
    pacing and window cap allow a dial now (`bundle/timing.toml`). All pass: the relay dials,
@@ -46,8 +48,9 @@ inside the bytes is pinned end to end (`CHN-1`, `CHN-12a`).
 
 ## First stage
 
-There is no purchase flow (`STG-18`). The publisher records the operator's relay public key
-and its destination set by hand; steps 1–4 are unchanged, and `CNF-87` tests them: fresh
+There is no purchase flow (`STG-18`). The publisher records the operator's relay public key,
+its destination set and **an expiry** by hand — no hand-recorded pass is unbounded — and steps
+1–4 are unchanged; `CNF-87` tests them: fresh
 challenge, unknown key refused, replayed signature refused, undeclared destination refused,
 private address refused, limits applied, and no dial before OK.
 
