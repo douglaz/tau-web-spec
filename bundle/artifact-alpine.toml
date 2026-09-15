@@ -1,0 +1,32 @@
+# Alpine artifact pin and package admission policy (ARC-25, ARC-25a, ADR-0027).
+# The URL is an immutable versioned path, never an alias (CNF-66). The hash pins the
+# bootstrap only; packages fetched afterwards are admitted by the keys listed below.
+
+[bootstrap]
+url = "https://dl-cdn.alpinelinux.org/alpine/v3.24/releases/x86_64/alpine-minirootfs-3.24.1-x86_64.tar.gz"
+sha256 = "41f73e3cf5fa919b8aa5ca6b30dc48f0da2720776d7423e2a7748211456fe081"
+version = "3.24.1"
+arch = "x86_64"
+
+[packages]
+branch = "v3.24"
+repositories = [
+  "https://dl-cdn.alpinelinux.org/alpine/v3.24/main",
+  "https://dl-cdn.alpinelinux.org/alpine/v3.24/community",
+]
+
+# Accepted apk signing keys, as SHA-256 of each key file. This list is DECLARED here and
+# VERIFIED at build time: the build extracts /etc/apk/keys from the pinned bootstrap and fails
+# if the set differs (CNF-67). A new minirootfs with a changed keyring is therefore reviewed,
+# not inherited. Extracted 2026-09-15 from the pinned artifact above.
+[[packages.keys]]
+name = "alpine-devel@lists.alpinelinux.org-4a6a0840.rsa.pub"
+sha256 = "9c102bcc376af1498d549b77bdbfa815ae86faa1d2d82f040e616b18ef2df2d4"
+
+[[packages.keys]]
+name = "alpine-devel@lists.alpinelinux.org-5261cecb.rsa.pub"
+sha256 = "12f899e55a7691225603d6fb3324940fc51cd7f133e7ead788663c2b7eecb00c"
+
+[[packages.keys]]
+name = "alpine-devel@lists.alpinelinux.org-6165ee59.rsa.pub"
+sha256 = "207e4696d3c05f7cb05966aee557307151f1f00217af4143c1bcaf33b8df733f"

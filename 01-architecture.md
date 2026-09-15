@@ -169,6 +169,14 @@ destinations will route to the tunnel than the corpus assumed**, which raises wh
 command, captures its output, and returns to the model. It is not an interactive terminal
 session.
 
+**Every model-issued command is one stateless, detached job** (`STA-20`, `STA-20b`). No shell
+state — working directory, variables, an entered chroot — survives from one job to the next.
+A brief is therefore authored so that each example block is self-contained: a block that needs
+the installed root wraps its own `chroot /mnt sh -c '…'`, and a value one step needs from
+another has a named source rather than a variable — the bundle (`bundle/`), a decision the
+model made and composed into the command it issues (which `ARC-8` journals as sent), or a
+machine-derived value recomputed inside the consuming command. Nothing is carried.
+
 **ARC-8** Recording commits **per command**, before transmission. "Every byte recorded
 before transmission" would otherwise imply a granularity nobody chose, resting on an
 execution model nobody had stated, and the two plausible readings differ by orders of
@@ -177,6 +185,22 @@ can read, which is what an action transcript is for.
 
 The cost is stated: anything genuinely interactive — an installer that stops to prompt —
 MUST be handled by the brief rather than answered live.
+
+**ARC-43 Values the harness checks come from jobs the harness composed, never from model
+text.** The artifact hash (`ARC-25`, `CNF-24`) and the installed host keys (`CHN-R1`, `CNF-22`)
+are read by **harness-owned box-plane jobs the model requests** through the same path as a typed
+operation, and the values are taken from the job record's captured output. Two exist in the
+first stage:
+
+- `fetch_artifact` — downloads the pinned URL to a harness-fixed path on the machine, hashes it,
+  compares against the bundle's value and halts the install on a mismatch (`STG-6`).
+- `ready_to_reset` — reads `/mnt/etc/ssh/ssh_host_*_key.pub`, journals the pins, unmounts the
+  target, and only then offers the reset typed operation (`STA-20b`'s planned-reset ordering).
+
+The model's tool set in the first stage is exactly three: `exec` (a box-plane command),
+`request_typed_operation` (a cloud-plane operation or one of the jobs above, approved on facts),
+and `done`. There is no tool by which the model reports a value, so a wrong or hostile report
+cannot pass `CNF-24` or pin a key.
 
 ## Briefs
 
@@ -539,9 +563,13 @@ brief made the previously claimed hash-only distinction false.
 
 - **Alpine:** the signed bundle pins the immutable minirootfs URL and its hash. The installed
   kernel, SSH server, bootloaders and dependencies then come from `apk` repositories. The
-  bundle declares their release branch, repository URLs and accepted signing keys. Check
-  `/etc/apk/keys` against that set before fetching packages, require signature checking, and
-  never enable `--allow-untrusted`. Branch indexes may advance within the declared branch;
+  bundle declares their release branch, repository URLs and accepted signing keys
+  (`bundle/artifact-alpine.toml`). **The key list is declared, then verified at build time:**
+  the build extracts `/etc/apk/keys` from the pinned minirootfs and fails if the set differs
+  from the declaration, so a new bootstrap with a changed keyring is reviewed rather than
+  inherited, and the pre-install check is not a tautology. Check `/etc/apk/keys` against that
+  set before fetching packages, require signature checking, and never enable
+  `--allow-untrusted`. Branch indexes may advance within the declared branch;
   the minirootfs hash does not pin their contents. Record index digests, accepted signer
   fingerprints and installed package versions in the transcript. These are observations,
   not a preapproved content hash of the resulting system.
@@ -627,7 +655,7 @@ routing metadata, so what the display shows is what was asked for (`ARC-14`).
 **Inference has two paths.** *Procured* is the default: the operator funds an account-free
 balance at one aggregator, and the publisher selects the models, so every machine is routed
 through a single proxy. **The publisher handles neither the money nor the credential** — it
-supplies model choices in the briefs and nothing else
+supplies the model choice in the signed bundle (`bundle/inference.toml`) and nothing else
 ([ADR-0028](./docs/adr/0028-procured-inference-is-the-operators-balance.md)). *Bring-your-own*
 is the advanced path: the operator supplies provider tokens or runs inference locally, removing
 the publisher from model selection and, locally, the proxy layer entirely.
@@ -652,6 +680,14 @@ the publisher from model selection and, locally, the proxy layer entirely.
   defaults to the weaker tier even where its own web app defaults to the stronger, so a harness
   that omits the flag gets prompt retention at the upstream and is not told. It is also
   documented to drop silently on at least one model-plus-web-search combination.
+- **An inference request is the inference adapter's own off-machine call**, composed by harness
+  code and approved once at session creation. It is neither a typed operation the operator sees
+  nor an untyped scope: no scope object exists for it and the aggregator is `TRU-E2`, not a
+  `TRU-E6` entry. `SEC-12` applies in this shape: before sending, an **intent** record with a
+  local call id in unresolved state; on response, a **terminal** record with model, requested
+  provider, token counts, spend and the aggregator's request id. Prompt bodies are not
+  journaled — the action transcript already records every command the model chose. `ARC-6`'s
+  redirect rule and `CNF-32`'s route probe apply to the aggregator origin as to any other.
 
 The exposure from a leaked session key is the lesser of the remaining balance and that key's
 cap. That bound is the whole reason the tiering is worth building, and it holds only while
@@ -679,7 +715,10 @@ diversity quietly collapses to whatever account they already had.
 No app store, no package manager, no install step — that is the product. Builds MUST be
 reproducible and their hashes published, so a third party can verify that the served bundle
 matches the published source
-([ADR-0006](./docs/adr/0006-single-origin-with-reproducible-builds.md)).
+([ADR-0006](./docs/adr/0006-single-origin-with-reproducible-builds.md)). The build is made in
+the implementation repository from this one pinned at a commit; the publisher-chosen inputs it
+compiles in live here under `bundle/`
+([ADR-0031](./docs/adr/0031-the-specification-and-the-implementation-are-separate-repositories.md)).
 
 Origin diversity — a different mirror per machine — was considered and **rejected on user
 safety, not security.** Instructing someone to open a second URL on a second device is

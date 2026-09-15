@@ -23,7 +23,9 @@ idempotency identity **before execution begins**. For an off-machine call this i
 for box-plane work it is the per-command record of `ARC-8`.
 
 **STA-5** Every tool MUST declare its retry safety: pure, idempotent with a key strategy,
-reconcile-before-retry, or never-retry-automatically.
+reconcile-before-retry, or never-retry-automatically. The Robot adapter is
+**reconcile-before-retry**: its mutations return nothing that identifies the request, so each is
+confirmed by observable state, as `STG-4` states.
 
 **STA-6 Box-plane work is never-retry-automatically.** Arbitrary shell on a remote machine
 cannot declare itself idempotent, so no honest declaration other than this exists. Its

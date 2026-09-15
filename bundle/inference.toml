@@ -1,0 +1,16 @@
+# Procured inference target for the first stage (ARC-31, ARC-31a, ADR-0028).
+# The publisher chooses the model here, not in a brief. CNF-78 checks every outgoing request
+# against `provider`; CNF-71 checks `retention`. An empty `model` fails the build: the slug is
+# a publisher decision that has not been taken yet, and a build must not guess one.
+
+[aggregator]
+base_url = "https://api.ppq.ai"
+name = "PayPerQ"
+
+[session]
+model = ""                 # TODO publisher: model slug, with the reason recorded in this comment
+provider = ""              # the `provider` routing value requested per machine (ARC-14); empty = aggregator default, shown as such
+retention = "strictest"    # requested explicitly on every call; the API default is the weaker tier (ARC-31a)
+
+# The recovery ladder's middle rung (ARC-16) needs a stronger model behind the same proxy.
+# With one slug the first stage offers rungs one and three only (STG-17).

@@ -122,13 +122,32 @@ server** (`docs/findings/2026-09-08-first-stage-rehearsal.md`). The activation r
 carries a generated **root password**; it is never used on this route, and it is **redacted
 before the response is recorded or reaches a model**.
 
+**Every Robot mutation journals intent before it is sent (`STA-4`) and is confirmed by
+observable state, never by its own response and never by a clock.** `POST /reset` returns
+`running` immediately and carries no request identity, and `/rescue/last`'s `boot_time` is
+zone-less local time, so neither can be compared to the browser's intent. The predicates are:
+
+- **Activation** is confirmed when `GET /boot/{n}/rescue` reports `active: true` **and** its
+  `authorized_key` echoes exactly the session's registered fingerprint and the requested OS.
+  Active with another key is a stale activation, not this one.
+- **The reset into rescue** is confirmed when `/rescue/last` shows a host-key set **different
+  from the one journaled before the reset** — every rescue boot has fresh keys (`CHN-R1`).
+- **The reset into the installed system** is confirmed when sshd answers with the installed
+  pin.
+
+Anything not confirmed stays unresolved under `STA-8` and the operator decides; the adapter is
+reconcile-before-retry (`STA-5`). `STG-11` is the test, and `CNF-38` lists its cases. The host
+keys are read and the pins journaled by the harness's own `ready_to_reset` job before the
+reset is offered (`ARC-43`).
+
 **STG-5** The system is installed and hardened entirely through box-plane work over the
 pinned channel, **command by command**, each recorded before transmission (`ARC-8`), and the
 transcript matches what was sent.
 
 **STG-6** The artifact the install pulls is **verified against a value supplied by the browser
 from the signed bundle** (`ARC-25`), and a mismatch halts the install. The URL pinned is the
-immutable versioned one, never a moving alias.
+immutable versioned one, never a moving alias. The download and the comparison are the
+harness's `fetch_artifact` job (`ARC-43`); the model requests it and never reports a hash.
 
 **The stage MUST record the distribution and both layers of artifact admission** (`ARC-25a`):
 the bootstrap URL/hash and the package/cache signing keys and repository policy. On Alpine,
@@ -199,7 +218,9 @@ because a first stage that shows the label correctly is worth more than one that
 nothing produced. The smaller claim, stated as numbers.
 
 What waits is comparison: with one machine there is no collision to display, so the collision
-display and the operable panel arrive with the tenant that needs them.
+display and the operable panel arrive with the tenant that needs them. And with one model slug
+in `bundle/inference.toml`, `ARC-16`'s middle rung has no stronger model to escalate to: the
+first stage offers rungs one and three only, and says so.
 
 ## What the first stage does not test
 
@@ -238,9 +259,15 @@ that fails to boot after the install is **invisible over the network**: the vend
 `running`, nothing answers, and no log can be read. The rehearsal of 2026-09-08 hit this five
 resets in a row, for four different reasons, and none was findable from the browser. So the
 harness's response is `ARC-16`'s bottom rung applied to this path: if the installed system
-does not answer on the channel within **ten minutes** of the reset that should have booted
-it, the session declares the install failed, tells the operator, and **offers a return to rescue and
-reinstallation from the brief** — the same ceremony, and cheap (about five minutes when it works).
+does not answer on the channel within `installed.wait_max` (`bundle/timing.toml`, ten minutes
+today) of the reset that should have booted it, the session declares the install failed, tells
+the operator, and **offers a return to rescue and reinstallation from the brief** — the same
+ceremony, and cheap (about five minutes when it works). **Each readiness probe is the pinned
+SSH attempt itself**, every `installed.probe_interval`: a TCP refusal or timeout means sshd is
+not listening yet and the wait continues; anything sshd says — success, or a pin halt — ends
+the wait one way or the other. A bare connect-and-close probe is never used, because it
+accrues OpenSSH's per-source penalty (`ARC-41`) and the harness would read its own lockout
+as an unbootable machine.
 Unreachability is not proof of boot failure: a relay or network outage can look the same.
 The timeout does not clear an unresolved action or authorize a wipe. The operator must choose
 the destructive reinstall, with the selected disks shown; normal typed approvals and journal

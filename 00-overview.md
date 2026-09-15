@@ -10,8 +10,11 @@ That is the goal, not an achieved property. Several parties remain trusted, and
 [`05-trust.md`](./05-trust.md) names every one of them by hand rather than claiming the
 list is empty.
 
-There is no harness code in this repository; `prototypes/` holds throwaway spikes. `tau-web`
-is a working name.
+There is no harness code in this repository and there will not be: the implementation is a
+separate repository that pins this one by commit
+([ADR-0031](./docs/adr/0031-the-specification-and-the-implementation-are-separate-repositories.md)).
+`prototypes/` holds throwaway spikes and `bundle/` the publisher-chosen values the build
+compiles in. `tau-web` is a working name.
 
 ## How to read this
 
@@ -30,7 +33,8 @@ is a working name.
 | [`docs/adr/`](./docs/adr/) | The decisions, and for most of them the alternatives rejected and why |
 | [`docs/review/`](./docs/review/) | Review records, kept as history |
 | [`docs/tenants/`](./docs/tenants/) | One profile per tenant, on ADR-0030's schema |
-| [`docs/design/`](./docs/design/) | The design session of 2026-08-07, kept as history — and `credential-format-v1.md`, which is normative (`STA-22a`) |
+| [`docs/design/`](./docs/design/) | Design sessions, kept as history — and three normative companions: `credential-format-v1.md` (`STA-22a`), `relay-protocol-v1.md` (`CHN-15`), `delivery-declaration-v1.md` (`ARC-39`) |
+| [`bundle/`](./bundle/) | Publisher-chosen inputs the implementation compiles in: artifact pin and signers, inference target, timings, the CORS probe (ADR-0031) |
 | [`docs/briefs/`](./docs/briefs/) | Draft briefs written from real runs, not yet in any bundle |
 | [`docs/findings/`](./docs/findings/) | What the prototypes found when they ran |
 | [`docs/archive/`](./docs/archive/) | The original Rust/WASM PWA specification. Superseded as a plan, retained as prior art |
@@ -258,3 +262,4 @@ an ADR is where *why* lives.
 | [0028](./docs/adr/0028-procured-inference-is-the-operators-balance.md) | Procured inference is the operator's balance, not the publisher's account |
 | [0029](./docs/adr/0029-the-machine-speaks-nostr-and-keys-derive-from-a-seed.md) | The machine speaks Nostr, and per-machine keys derive from an operator seed |
 | [0030](./docs/adr/0030-tenant-specific-rules-live-in-a-tenant-profile.md) | Tenant-specific rules live in a tenant profile with a fixed schema |
+| [0031](./docs/adr/0031-the-specification-and-the-implementation-are-separate-repositories.md) | The specification and the implementation are separate repositories, pinned by commit |

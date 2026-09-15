@@ -44,6 +44,16 @@ one document)
 **Brief library**
 The collection of briefs available to a session, shipped inside the signed bundle.
 
+**Signed bundle** · `SEC-7`, `ARC-32`, `ADR-0031`
+The build the origin serves, together with everything compiled into it: briefs, tenant
+profiles, the artifact pin and accepted signers, the inference target, the timings. **Until
+`OPN-15` closes the bundle is not actually signed**: "ships in the signed bundle" means
+compiled into that build from the specification repository at a pinned commit, verifiable
+against the published hash once reproducible builds exist. Every use of the phrase inherits
+this definition, and the trust display does not say "signed" before then.
+_Avoid_: "signed" as a claim the interface makes today; package, release (both suggest an
+artifact separate from the served app)
+
 The format is **not** shared with lnrent. That project's *recipes* are executables its daemon
 runs with high privilege; briefs are prose that must never be run as written. What is real is
 a **layering**: a brief can tell the AI to invoke an lnrent hook as a deterministic tool.
@@ -147,7 +157,9 @@ service lifecycle, whatever else it needs demonstrated. The harness measures aga
 than assuming, because tenants disagree: one needs a service enabled and surviving reboot,
 another needs a node that dies on reboot by design. A difference from the declaration is the
 finding. It does not catch hostile use of declared surface, nor a declaration that is itself
-wrong, and a vague one buys a weak check.
+wrong, and a vague one buys a weak check. Its structured form is
+`docs/design/delivery-declaration-v1.md`, where every field is present as a value, an
+explicit empty set, or *unspecified* — and *unspecified* blocks delivery.
 _Avoid_: allowlist, firewall rules (both name a mechanism; this is the tenant's statement of
 intent, which a mechanism then enforces), spec (too broad)
 

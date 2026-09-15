@@ -213,7 +213,10 @@ supplies it by procedure — `SEC-T4`.
 ### SEC-7 — briefs and feeds ship signed
 
 **Briefs and advisory feed lists MUST ship in the signed bundle** and MUST NOT be fetched,
-configured, or substituted at runtime.
+configured, or substituted at runtime. What *signed bundle* means today is defined once, in the
+glossary: until `OPN-15` closes, compiled into the build the origin serves, with no signature
+checked at runtime. Every use of the phrase in this corpus inherits that definition; `ARC-40`'s
+"signs" is the same statement.
 
 ### SEC-8 — external content is untrusted
 
@@ -253,6 +256,9 @@ other path may accept an unverified key.
 **Every off-machine call made with an operator credential MUST be recorded before it is
 sent.** For a typed operation this is bookkeeping. For an untyped call it is the *only*
 safeguard standing behind it, since the harness cannot bound what the credential authorizes.
+For an inference request — the adapter's own call under the row-2 key — the record is an
+intent with a local call id, then a terminal record of metadata, never the prompt body
+(`ARC-31a`).
 
 A call interrupted between the record and a confirmed response has an **unknown outcome**,
 and for an untyped call no adapter exists to find out. So the record MUST carry that

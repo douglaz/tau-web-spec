@@ -34,7 +34,9 @@ None. lnrent has no quorum, so no independence relation binds.
 
 Pending: lnrent has not supplied one yet (https://github.com/douglaz/lnrent/issues/87). The
 sub-slots below hold what the corpus already states; the rest is unspecified, and unspecified
-blocks delivery.
+blocks delivery. The answer format is the v1 template in
+[`docs/design/delivery-declaration-v1.md`](../../design/delivery-declaration-v1.md), every
+unstated field marked `unspecified`.
 
 ### Network policy
 

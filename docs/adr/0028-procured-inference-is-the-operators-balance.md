@@ -3,7 +3,8 @@
 On the default inference path the **operator** funds an account-free balance at one aggregator
 and holds the credential for it. The harness mints a **capped, expiring session key** from that
 credential for each session and revokes it when the session ends. The publisher selects the
-models, in the briefs, and touches neither the money nor the credential.
+models, in the signed bundle (`bundle/inference.toml`, since 2026-09-15; the briefs before
+that), and touches neither the money nor the credential.
 
 `ARC-31a` states the mechanism and `SEC-5` rows 2 and 14 state the two tiers. This record holds
 the reasoning, the verified facts it rests on, and what it costs.

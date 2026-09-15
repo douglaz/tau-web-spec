@@ -20,6 +20,20 @@ gated on it.
 - [ ] **T23 — Demonstrate interrupted rescue installation** (`OPN-18`). Implement the
       `STA-20b` handoff and run `CNF-40`, `CNF-55`, `CNF-85` and `CNF-86` on the integrated
       harness. Non-destructive example checks are not a completed hardware rehearsal.
+- [ ] **T27 — Build the first-stage relay** (publisher; `docs/design/relay-protocol-v1.md`,
+      `CNF-87`). Challenge, AUTH, OK, then binary frames; destination checked against the
+      hand-recorded set; `CHN-16a` and `bundle/timing.toml` limits before any dial. Ahead of
+      harness integration: nothing over the channel can be tested without it.
+- [ ] **T28 — Restate the three tenant declarations in v1** (`docs/design/delivery-declaration-v1.md`).
+      ad-hoc is complete in the schema document; lnrent's template goes to lnrent#87 as the
+      answer format; btc-policy's waits on its drift checks and required software. Each profile
+      then points at its v1 file.
+- [ ] **T29 — Create the implementation repository** (ADR-0031). Name to be decided. It pins
+      this repository by commit, refuses to build if the tree differs, compiles `bundle/`,
+      `docs/tenants/` and `docs/briefs/` in, and runs `bundle/cors-probe.sh` and
+      `prototypes/spec-checks/` from the pinned tree as its CI gate (`CNF-1`–`CNF-4`).
+      `bundle/inference.toml` has an empty model slug on purpose; the build fails until the
+      publisher fills it.
 - [x] **T26 — Measure `STA-23` unlock latency on the first-stage phone.**
       `prototypes/unlock-latency/index.html` builds the v1 envelope and times one unlock.
       Done 2026-09-11: 58 ms at 600,000 iterations on the phone, 57 ms on the desktop

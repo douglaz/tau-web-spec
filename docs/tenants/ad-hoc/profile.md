@@ -30,7 +30,8 @@ None. Ad hoc use has no quorum, so no independence relation binds.
 
 Minimal, and it is signed content shipped in the bundle. An unspecified field blocks delivery;
 an explicit empty set does not. Listeners the operator adds during a session are per-machine
-journal input, not profile content.
+journal input, not profile content. The structured v1 form is complete in
+[`docs/design/delivery-declaration-v1.md`](../../design/delivery-declaration-v1.md).
 
 ### Network policy
 

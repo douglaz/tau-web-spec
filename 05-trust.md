@@ -163,7 +163,8 @@ hatch. If that hatch is ever dropped, the arrangement stops being defensible. **
 whole of its procured-path role**: the operator funds the balance and holds the credential, so
 the publisher handles no money and issues no credential (`ARC-31a`,
 [ADR-0028](./docs/adr/0028-procured-inference-is-the-operators-balance.md)). Model selection
-already ships in the briefs, so this adds nothing the bundle did not already carry.
+ships in the signed bundle (`bundle/inference.toml`), so this adds nothing the bundle did not
+already carry.
 
 **This entry covers governance as well as compromise.** Because briefs ship in the bundle, the
 publisher decides which tenants can exist and when a tenant's change reaches operators

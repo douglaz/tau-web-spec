@@ -330,6 +330,9 @@ with an invoice over ordinary HTTPS; the operator's own wallet pays it (`ARC-30`
 relay observes its own invoice settle and binds a **pass** — destinations, expiry, pacing — to
 the key. When the WebSocket opens the relay issues a challenge and the browser signs it with the
 key, in the shape NIP-42 already defines and the browser already implements for the Nostr relay.
+The wire protocol — destination grammar, challenge, AUTH, OK, then binary frames, and the order
+of checks before any dial — is
+[`docs/design/relay-protocol-v1.md`](./docs/design/relay-protocol-v1.md), which is normative.
 **Nothing bearer exists.** There is no bearer string to store: the key
 re-derives from the seed plus its exported pass index (`STA-22b`), and the relay remembers
 the pass. Missing allocation metadata can lose access to paid quota.

@@ -75,8 +75,10 @@ nobody has booted the file. *Closes when:* the file is booted once.
 These do not block starting construction. `OPN-14` **does block completing the first stage**;
 the remaining entries gate the feature each names.
 
-**OPN-10 — The brief format schema.** Frontmatter fields, the local/remote block marker, how a
-block returns structured data to the next one, versioning, signing. Designing a second consumer
+**OPN-10 — The brief format schema.** Frontmatter fields, the local/remote block marker,
+versioning, signing. *"How a block returns structured data to the next one" is answered: it
+does not* — every model-issued command is a stateless job and values have named sources
+(`ARC-7`). Designing a second consumer
 for an undefined format is premature until this exists. *First input 2026-09-08:*
 `docs/briefs/01-install.md`, plain prose with example commands and deliberately no format.
 A fourth brief, the relay-install brief that `CHN-14` and ADR-0019 rely on, is the harness's
@@ -88,7 +90,8 @@ uutils guests, as the archived specification assumes, or a small set of purpose-
 Deliberately not decided in advance: the extent is to be derived from real briefs rather than
 guessed. *First evidence 2026-09-08:* in brief 1 exactly two things are browser-side — the
 artifact hash comparison against the bundle's value and the host-key fingerprint derivation
-— and both are comparisons of values the machine reports, not commands. *Closes when:*
+— and both are comparisons of values the harness reads from jobs it composed itself
+(`ARC-43`), not commands the model runs and not values the model reports. *Closes when:*
 `STG-2`'s briefs show which commands genuinely need the browser rather than the machine.
 
 **OPN-14 — What "locked down" means, per vendor.** A pentest can only assert what it checks, so
@@ -101,10 +104,13 @@ so what is actually missing is the **declaration format** plus the items no decl
 default credentials, sshd posture, and whatever a given vendor makes possible.
 
 That also makes the question per-**tenant** as much as per-vendor, which the title understates.
-*Closes when:* the lnrent owner supplies its concrete delivery declaration
-([douglaz/lnrent#87](https://github.com/douglaz/lnrent/issues/87)) (listeners,
-service lifecycle, permitted key material and drift checks), a declaration format and Robot
-lockdown checklist exist, and briefs 2–3 are authored from them and exercised. `CNF-49`–`CNF-53`
+*The declaration format exists as of 2026-09-15:*
+[`docs/design/delivery-declaration-v1.md`](./docs/design/delivery-declaration-v1.md), with
+every field present as a value, an explicit empty set, or `unspecified`, and the lnrent
+template shipped with every unstated field `unspecified` so the harness invents nothing.
+*Closes when:* the lnrent owner fills that template
+([douglaz/lnrent#87](https://github.com/douglaz/lnrent/issues/87)), the Robot lockdown
+checklist exists, and briefs 2–3 are authored from them and exercised. `CNF-49`–`CNF-53`
 then need integrated evidence. This is a required tenant input, not permission to invent its
 operational contract inside the harness.
 

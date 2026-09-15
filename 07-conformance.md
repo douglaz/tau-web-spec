@@ -14,7 +14,11 @@ Treat any unchecked box below as a green check next to an empty test suite.
 - [ ] **CNF-3** The test suite fails when a test is deliberately broken — verified once, by
       hand, so that "tests passed" means something.
 - [ ] **CNF-4** The CORS probe runs on every push (`ARC-34`), and its failure fails the build.
-      Browser reachability is an external dependency that can regress silently.
+      Browser reachability is an external dependency that can regress silently. The probe is
+      `bundle/cors-probe.sh`: unauthenticated, an `Origin`-bearing `OPTIONS` and `GET` per
+      origin, asserting on the `Access-Control-*` headers themselves and never on success —
+      the corpus was fooled once by a probe that measured a 200. The build-failing gate is the
+      implementation repository's CI, running it from the pinned spec tree (ADR-0031).
 
 ## Tiering — which of these gate what
 
@@ -152,13 +156,17 @@ yet.
       session. Verified by presenting a different key.
 - [ ] **CNF-22 · BLOCKING** The rescue host key is pinned from `/rescue/last` after the reset and
       before the first connection; the activation response is never used as a host-key source, and the installed system's host keys are read from inside the rescue
-      session before reboot. **No trust-on-first-use at either hop** (`STG-4`).
+      session before reboot. **No trust-on-first-use at either hop** (`STG-4`). The installed
+      keys come from the harness's own `ready_to_reset` job output (`ARC-43`); verified by
+      having the model emit a different key in its text and confirming the pin is the job's.
 - [ ] **CNF-23 · BLOCKING** Under `CHN-R4` only, first contact is presented to the operator as
       trusted rather than verified, in those words.
 - [ ] **CNF-24 · BLOCKING** The install artifact is verified against a value the browser supplies
       from the signed bundle, and a mismatch halts the install (`ARC-25`, `STG-6`). Verified by
       serving an artifact that does not match and confirming the install stops rather than
-      warning.
+      warning — and by having the model report the correct hash in its text for that artifact
+      and confirming the halt still happens, since the value is the `fetch_artifact` job's
+      (`ARC-43`).
 - [ ] **CNF-66 · BLOCKING** The pinned URL is an **immutable versioned path**, not a moving
       alias (`ARC-25`). Verified by inspecting the pinned URL: a `latest`-shaped path or a
       rewritten-in-place metadata file fails this item even when the hash currently matches,
@@ -167,7 +175,9 @@ yet.
       `ARC-25a`. An unsigned package or one signed by an unaccepted key is refused. Alpine
       checks the bundle's repository branch and accepted key set, and records index digests
       and installed versions; NixOS checks the pinned revision and cache keys. The display
-      distinguishes bootstrap hash from package signatures. Boundary-crossed: otherwise
+      distinguishes bootstrap hash from package signatures. The build verifies that the
+      declared key list in `bundle/artifact-alpine.toml` equals the keyring extracted from the
+      pinned minirootfs, and fails otherwise. Boundary-crossed: otherwise
       a repository can substitute the kernel or SSH server outside the stated admission policy.
 - [ ] **CNF-62 · BLOCKING** A typed vendor call over the tunnel **refuses a certificate that
       does not match the pin** (`CHN-12a`). Verified by presenting a valid certificate from a
@@ -238,7 +248,9 @@ yet.
       bound to is **refused by the adapter**, before any approval screen renders.
 - [ ] **CNF-27 · BLOCKING** A scope naming a known vendor's hostname is refused.
 - [ ] **CNF-28 · BLOCKING** Every off-machine call is written durably before it is sent.
-      Verified by killing the process between record and send and finding the record.
+      Verified by killing the process between record and send and finding the record — for a
+      typed Robot operation and for an inference request alike, whose intent record carries a
+      local call id and whose terminal record carries metadata and no prompt body (`ARC-31a`).
 - [ ] **CNF-29 · BLOCKING** An interrupted call is recorded as **unresolved**, is not retried
       automatically, and is not reported as failed. No timer clears it.
 - [ ] **CNF-30 · BLOCKING** Box-plane commands are recorded per command before transmission,
@@ -265,7 +277,12 @@ yet.
 - [ ] **CNF-37 · BLOCKING** A brief interrupted mid-run and re-run from the top **converges**:
       one machine, one install, no duplicated side effects (`ARC-10`, `STG-12`).
 - [ ] **CNF-38 · BLOCKING** A rescue activation interrupted between intent and confirmation,
-      then resumed, results in exactly one rescue session and one install (`STG-11`).
+      then resumed, results in exactly one rescue session and one install (`STG-11`). Four
+      cases, each interrupted between intent and confirmation and resumed: the activation
+      (confirmed only by `active` plus the session's echoed key); the reset into rescue
+      (confirmed only by a changed host-key set on `/rescue/last`); the reset into the
+      installed system (confirmed only by sshd answering with the installed pin); and a case
+      where none of those holds, which must stay unresolved with no automatic retry (`STG-4`).
 - [ ] **CNF-39 · PRE-SCALE** After a killed worker, replay classifies incomplete calls, cancels
       those that cannot still exist, and surfaces uncertain ones without resuming them
       (`STA-7`).
@@ -282,9 +299,11 @@ yet.
       browser journal recorded before sending. A mismatch is surfaced as a finding, and is
       never described as verification (`STA-21`).
 - [ ] **CNF-80 · PRE-SCALE** An installed system that does not answer on the channel within
-      ten minutes of its boot reset is declared failed, the operator is told, and a separately approved destructive reinstall
+      `installed.wait_max` (`bundle/timing.toml`) of its boot reset is declared failed, the operator is told, and a separately approved destructive reinstall
       returns to rescue from the brief (`STG-20`). Test a missing bootloader and a relay outage: neither a timeout nor
       unreachability clears unresolved operations or triggers a wipe without that decision.
+      Each probe is a pinned SSH attempt; verified by counting sshd's preauth log lines during
+      the wait and finding none from a connect-and-close.
 
 ## Trust display — `SEC-9`, `SEC-10`
 
@@ -292,7 +311,8 @@ yet.
       is labelled **requested**, never *observed* or *verified*, and is never derived from the
       model name (`SEC-9`).
 - [ ] **CNF-78 · PRE-SCALE** On the procured path, every inference call carries the machine's
-      requested provider in the aggregator's routing object (`ARC-14`), verified by inspecting an
+      requested provider in the aggregator's routing object (`ARC-14`), as `bundle/inference.toml`
+      names it, verified by inspecting an
       outgoing request; local inference has no proxy and no provider layer (`STG-17`). And
       the one observable fact about override is measured: a pin naming a provider that cannot
       serve the requested model either **fails the call** or **silently succeeds**, and which
@@ -303,7 +323,8 @@ yet.
 - [ ] **CNF-43 · PRE-SCALE** The relay's row names its operator and states that it learns the
       machine topology (`CHN-13`).
 - [ ] **CNF-44 · DEFERRED** Nothing in the interface uses the words "verified" or "no anomalies
-      found" (`SEC-2`).
+      found" (`SEC-2`), and the trust display does not call the bundle "signed" until `OPN-15`
+      closes (glossary, *Signed bundle*).
 
 ## Measurements
 
@@ -360,8 +381,11 @@ Not pass/fail. Required to be recorded.
 - [ ] **CNF-87 · BLOCKING** The first-stage relay's hand-configured access record authenticates
       a fresh connection challenge under the enrolled public key, refuses unknown keys and
       replayed signatures, restricts targets to its configured public destination set and
-      applies configured connection/probe limits. It is not an unauthenticated development
-      proxy (`STG-18`); purchase and quota accounting are outside this check. Boundary-crossed.
+      applies configured connection/probe limits (`bundle/timing.toml`). It is not an unauthenticated development
+      proxy (`STG-18`); purchase and quota accounting are outside this check. The protocol is
+      `docs/design/relay-protocol-v1.md`: the order challenge, AUTH, OK holds; a binary frame
+      before OK or a text frame after it closes the socket; and **no dial happens before OK**,
+      verified by watching the relay's outbound connections during a refused AUTH. Boundary-crossed.
 
 ## Stage applicability and admission
 
