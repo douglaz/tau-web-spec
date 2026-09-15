@@ -30,8 +30,10 @@ gated on it.
       ad-hoc is complete in the schema document; lnrent's template goes to lnrent#87 as the
       answer format; btc-policy's waits on its drift checks and required software. Each profile
       then points at its v1 file.
-- [ ] **T29 — Create the implementation repository** (ADR-0031). Name to be decided. It pins
-      this repository by commit, refuses to build if the tree differs, compiles `bundle/`,
+- [ ] **T29 — Create the implementation repository** (ADR-0031). *Created 2026-09-16 as
+      `douglaz/tau-web-rust`, with this repository (renamed `tau-web-spec`) as the `spec/`
+      submodule pinned at `b3dec66`; the build gates below are still to be written there.*
+      It pins this repository by commit, refuses to build if the tree differs, compiles `bundle/`,
       `docs/tenants/` and the briefs promoted out of draft in — today none: brief 1 is a draft
       (`docs/briefs/`), and which briefs are promoted is decided when it leaves draft — and
       runs `bundle/cors-probe.sh` and

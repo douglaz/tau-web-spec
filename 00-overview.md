@@ -10,8 +10,8 @@ That is the goal, not an achieved property. Several parties remain trusted, and
 [`05-trust.md`](./05-trust.md) names every one of them by hand rather than claiming the
 list is empty.
 
-There is no harness code in this repository and there will not be: the implementation is a
-separate repository that pins this one by commit
+There is no harness code in this repository and there will not be: the implementation is
+`douglaz/tau-web-rust`, which pins this one by commit
 ([ADR-0031](./docs/adr/0031-the-specification-and-the-implementation-are-separate-repositories.md)).
 `prototypes/` holds throwaway spikes and, under `spec-checks/`, the durable checks the
 implementation's CI runs; `bundle/` holds the publisher-chosen values the build compiles in.

@@ -1,9 +1,10 @@
 # The specification and the implementation are separate repositories, pinned by commit
 
-This repository holds the specification and never the harness code. The implementation lives
-in a separate repository, name to be decided, which vendors this one at an exact commit and
-compiles the publisher-chosen inputs under `bundle/`, the tenant profiles and the briefs into
-the served build. Decided 2026-09-15.
+This repository, `douglaz/tau-web-spec`, holds the specification and never the harness code.
+The implementation lives in `douglaz/tau-web-rust`, which vendors this one at an exact commit
+under `spec/` and compiles the publisher-chosen inputs under `bundle/`, the tenant profiles and
+the briefs into the served build. Decided 2026-09-15; the repositories were named and created
+2026-09-16.
 
 ## Why
 
