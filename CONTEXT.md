@@ -59,11 +59,95 @@ this definition, and the trust display does not say "signed" before then.
 _Avoid_: "signed" as a claim the interface makes today; package, release (both suggest an
 artifact separate from the served app)
 
+### The specification's own artifacts
+
+The vocabulary below is provisiond-spec's (its ADR-0025), taken verbatim wherever this corpus
+has no collision, so that three specifications by one author name one thing one way. The one
+fork is forced: bare *model* is the weights here, so the artifact is a *companion* and never a
+*model* of any kind.
+
+**Formal companion** · ADR-0032
+The Lean package under `tools/formal/` that states selected clauses of requirements as
+executable definitions and transitions, and carries their properties as theorems. A formalized
+clause's home is its tagged declaration; the requirement keeps its identifier, its MUST, its
+rationale and its retained traps, and renders the clause. It is specification, not harness code
+(ADR-0031). What it distinguishes is **harness knowledge** — what was durably authorized,
+attempted and observed — from **external state** — what a vendor or machine may actually have
+done; a theorem about the first never speaks for the second.
+_Avoid_: **model** in any form (Lean model, formal model, reference model — *model* is the
+weights, and the word is not shared); executable specification (the specification is the
+documents); "verified" for anything the companion proves about a machine (it proves nothing
+about a machine; `SEC-2`)
+
+**Specification gate**
+A command in `tools/` that refuses an inconsistent or invalid specification artifact and is run
+by `tools/check-all.sh`. Bare *gate* means this in `README.md`, `AGENTS.md` and `tools/`; in a
+requirement it is qualified, because the corpus also uses *gate* for what a stage or a tier
+gates, and those are requirements, not checks.
+_Avoid_: test (that is a conformance item's word), linter
+
+**Witness**
+A concrete input or trace, checked by the formal companion, that exhibits a property or its
+failure. A negative witness, or counterexample, is a retained trap made executable — what a
+"*what this requirement used to say*" paragraph records, run. Not an observation, which is what a
+machine or the notify channel reports, and not evidence about a running implementation.
+_Avoid_: example (a witness is checked; an example is illustrated), sample, test vector (that is
+`credential-vectors-v1.json`'s word for frozen bytes)
+
+**Witness file** · ADR-0032
+The companion's serialized witnesses and bounded traces for one module, one file under
+`docs/design/`, emitted by the companion and held equal to the emission by a specification
+gate. Read by the implementation's tests from the pinned tree; never compiled into the build. It
+carries harness knowledge and expected outcomes at each step, and never a claim about external
+state, a conformance identifier, a timer, or key material.
+_Avoid_: trace vector, test vector (that is `credential-vectors-v1.json`'s word for frozen
+bytes), fixture unqualified (`07-conformance.md`'s word for any test input; a witness file is
+one kind)
+
+**Bound**
+The finite range a decided property closes within and a witness file enumerates, stated once
+in the declaration the theorem and the emitter share, and rendered into the file. Beyond the
+bound is the theorem's statement, not the file's; the file's size is never coverage.
+_Avoid_: depth, budget, sample size
+
+**Companion comparison** · ADR-0032
+The implementation's test that drives its production core with a witness file's events and
+compares each step's outcome. A conformance test of the implementation, and the only sense in
+which a witness is evidence about one. It proves no refinement, and sees nothing about external
+state, effect ordering or concurrency.
+_Avoid_: replay (that is the journal's word, `STA-2`, `STA-7`, and a witness file's traces
+contain replay events), differential proof, oracle test
+
+**Assumption**
+A named hypothesis a theorem takes as a parameter because its truth is not the theorem's to
+establish — a vendor's behaviour, a browser's storage semantics, an aggregator honouring a
+request. A theorem's signature shows what it assumes; a companion module that omits something
+says so in its docstring.
+_Avoid_: axiom (the companion declares none), precondition (that is a requirement's word for a
+caller's obligation), trust (that is `05-trust.md`'s word for a party)
+
+**Property**
+A proposition about a definition or a trace. A **theorem** is a property with a checked proof
+under its stated assumptions; a **decided** property is one closed by finite evaluation within
+stated bounds. Neither is evidence about a running implementation; that is a conformance item,
+and no `CNF` identifier appears in the companion.
+_Avoid_: guarantee, claim (that is `SEC-CLAIM`'s word), invariant (the invariants are
+`SEC-1`–`SEC-13`; a property is what a formalized clause must satisfy, never a new invariant)
+
 ### Roles
 
 **Session** · `ARC-12`, `SEC-1`
 One run of the harness under one set of model weights, responsible for exactly one machine.
 See also *Flagged ambiguities*.
+
+**Binding** · `SEC-1`
+The operator's act that assigns one machine to one session, before any channel access.
+Exclusive per machine: at most one bound session at a time, ended with the session, and taken
+up in turn by each later session that re-enters a maintained machine. What a bound session is
+given is the **machine's** client key (`SEC-5` row 3), re-derived; the key is never the
+session's. Connecting never creates a binding.
+_Avoid_: session key (that is the inference key, row 2), session grant, assignment, lease
+(all suggest the session owns something; it borrows the machine's)
 
 **Operator**
 The human at the browser — the person who holds the credentials, approves the operations, and
@@ -144,6 +228,27 @@ A runtime obligation met at a third party the operator chose, which notifies the
 than on the machine itself. The disposition that keeps a credential off a box hosting strangers,
 at the price of an elective trusted party.
 _Avoid_: outsourced, hosted (both suggest the harness arranged it; the operator did)
+
+**Unresolved** · `STA-8`, `STA-24`
+The state of a call that may have produced an external effect and has no **terminal record**
+— the journal event that ends a call with its outcome, called *terminal record* everywhere
+(`SEC-12`, `ARC-31a`; `STA-8` said *terminal event* until 2026-09-16). Left only by evidence
+or by a disposition, never by a timer.
+_Avoid_: pending, in flight (both suggest it will settle by itself), failed, timed out (both
+assert an outcome nobody has)
+
+**Resource** · `STA-24`
+What an intent record names and the unresolved barrier holds on: a machine's **approved
+entry** in the setup, to which its allocation index and vendor machine id are associated; or,
+for an untyped call, the scope. Assigned or checked by the harness, never taken from the model.
+_Avoid_: target (that is a scan's word), machine where the entry is meant, "resource" in the
+vendor's sense of one API object
+
+**Disposition** · `STA-24`
+The operator's record that permits one named continuation past an unresolved call while the
+call's outcome stays unknown. Distinct from evidence, which resolves; a disposition resolves
+nothing.
+_Avoid_: override, resolution, "mark as done" (a disposition marks nothing done)
 
 **Job record** · `STA-20`, `STA-21`
 What the machine keeps about one box-plane command: the command **as received**, its output, its

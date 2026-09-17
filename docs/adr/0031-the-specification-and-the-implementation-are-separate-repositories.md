@@ -30,6 +30,10 @@ is what its reviewers read it as.
   tree, and the build-failing form of `CNF-4` is that CI's.
 - **"Signed bundle"** means, until `OPN-15` closes, compiled into the build the origin serves
   and verifiable against `ARC-32`'s published hash (glossary).
+- **Witness files are checks, not inputs** (ADR-0032, 2026-09-16). The formal companion's
+  witness files under `docs/design/` are read by the implementation's tests from the pinned
+  tree, never compiled in, and no Lean enters the implementation's toolchain. A stale pin is a
+  release fact — "conformant to spec commit X" — not a warning the build raises.
 
 ## Considered options
 

@@ -148,7 +148,7 @@ chroot /mnt sh -c 'mkdir -p /root/.ssh && chmod 700 /root/.ssh && ssh-keygen -A 
 ```
 
 `ssh-keygen -A` generates the host keys **here, before any reboot**; `ready_to_reset` reads
-them. Then the session's client public key, which the harness shows you, goes into
+them. Then this machine's client public key, which the harness shows you, goes into
 `authorized_keys` — written literally, and it is the only key: `STG-13` is tested by sshd
 refusing every other one.
 

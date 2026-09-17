@@ -12,7 +12,12 @@ Treat any unchecked box below as a green check next to an empty test suite.
       steps.
 - [ ] **CNF-2** The declared lint and format gates pass at the declared strictness.
 - [ ] **CNF-3** The test suite fails when a test is deliberately broken — verified once, by
-      hand, so that "tests passed" means something.
+      hand, so that "tests passed" means something. For the companion comparison
+      (ADR-0032) that is three breaks, each red and naming the trace: one expected outcome
+      flipped in a scratch copy of the witness file; the file missing or empty; a trace whose
+      event kind or outcome the harness does not recognise. Skipping any of them is the
+      vacuous pass this item exists to catch. The specification repository's per-push negative
+      controls guard its own gates and do not satisfy this item for the implementation.
 - [ ] **CNF-4** The CORS probe runs on every push (`ARC-34`), and its failure fails the build.
       Browser reachability is an external dependency that can regress silently. The probe is
       `bundle/cors-probe.sh`: unauthenticated, an `Origin`-bearing `OPTIONS` and `GET` per
@@ -53,9 +58,11 @@ yet.
 
 ## The access boundary — `SEC-1`
 
-- [ ] **CNF-5 · BLOCKING** Each session holds its **own** SSH client keypair, and only that
-      session's public key appears in its machine's `authorized_keys`. Verified by reading
-      the machine, not by reading the harness.
+- [ ] **CNF-5 · BLOCKING** Each machine holds its **own** SSH client keypair, derived at its
+      index, and only that machine's public key appears in its `authorized_keys`; a session is
+      given the key of the machine it is bound to and no other (`SEC-1`). Verified by reading
+      the machine, not by reading the harness. A later session re-entering a maintained machine
+      re-derives the same key, so "one session, one keypair" is not what this item tests.
 - [ ] **CNF-6 · BLOCKING** An SSH client presenting a different machine's keypair (or a synthetic
       uninstalled key) to the target machine is **refused by SSH**. The harness is not consulted. *(`STG-13`)*
 - [ ] **CNF-7 · BLOCKING** Binding is created by an operator act before any connection
@@ -252,7 +259,20 @@ yet.
       typed Robot operation and for an inference request alike, whose intent record carries a
       local call id and whose terminal record carries metadata and no prompt body (`ARC-31a`).
 - [ ] **CNF-29 · BLOCKING** An interrupted call is recorded as **unresolved**, is not retried
-      automatically, and is not reported as failed. No timer clears it.
+      automatically, and is not reported as failed. No timer clears it. While it is
+      unresolved, a second request for the same effect on the same resource is refused —
+      **including under a new call id**, through another tool, after replay, and from a later
+      session bound to the same machine — and so is a *different* side-effecting operation
+      naming that resource, an activation after an unresolved key registration being the
+      first-stage case; a read against the resource is not (`STA-24`).
+      A second allocation index for the same approved machine entry does not evade the
+      refusal; a different approved entry remains permitted. A status read whose journal
+      append fails leaves the barrier standing; an operator disposition permits only the
+      continuation it names and keeps the outcome unknown. Verified with a lost response to a
+      Robot reset followed by the model requesting the reset again. Money out and destroyed
+      data: an autonomous caller must not turn a lost response into another wipe or another
+      purchase. First stage: the Robot, box-plane and inference cases; the create and
+      untyped-scope cases pass before those capabilities are enabled.
 - [ ] **CNF-30 · BLOCKING** Box-plane commands are recorded per command before transmission,
       and the transcript reconciles against what was sent (`ARC-8`).
 - [ ] **CNF-31 · PRE-SCALE** A scoped call is sent with redirect following disabled, and a
@@ -279,10 +299,16 @@ yet.
 - [ ] **CNF-38 · BLOCKING** A rescue activation interrupted between intent and confirmation,
       then resumed, results in exactly one rescue session and one install (`STG-11`). Four
       cases, each interrupted between intent and confirmation and resumed: the activation
-      (confirmed only by `active` plus the session's echoed key); the reset into rescue
-      (confirmed only by a changed host-key set on `/rescue/last`); the reset into the
-      installed system (confirmed only by sshd answering with the installed pin); and a case
-      where none of those holds, which must stay unresolved with no automatic retry (`STG-4`).
+      (confirmed only by `active` plus the machine's echoed key fingerprint and the requested OS); the reset into rescue
+      (confirmed only by a host-key set on `/rescue/last` different from the durably recorded
+      pre-reset set); the reset into the installed system (confirmed only by sshd answering
+      with the installed pin); and a case where none of those holds, which stays unresolved
+      with no automatic retry and need not finish (`STG-4`). In the first three, reconciliation
+      lets the ceremony finish without repeating the interrupted mutation. In every case the
+      mutation is requested again under a fresh call id before confirmation and is refused
+      while the reconciliation reads stay available; an immediate `running`, a changed
+      `boot_time`, or a job record claiming success does not substitute for the predicate
+      (`STA-24`).
 - [ ] **CNF-39 · PRE-SCALE** After a killed worker, replay classifies incomplete calls, cancels
       those that cannot still exist, and surfaces uncertain ones without resuming them
       (`STA-7`).
@@ -323,8 +349,10 @@ yet.
 - [ ] **CNF-43 · PRE-SCALE** The relay's row names its operator and states that it learns the
       machine topology (`CHN-13`).
 - [ ] **CNF-44 · DEFERRED** Nothing in the interface uses the words "verified" or "no anomalies
-      found" (`SEC-2`), and the trust display does not call the bundle "signed" until `OPN-15`
-      closes (glossary, *Signed bundle*).
+      found" (`SEC-2`), nor "proven", "formally verified" or "machine-checked": the formal
+      companion (ADR-0032) proves properties of this specification's definitions and nothing
+      about a machine, and a phone screen has no room for that distinction. The trust display
+      does not call the bundle "signed" until `OPN-15` closes (glossary, *Signed bundle*).
 
 ## Measurements
 
@@ -373,11 +401,15 @@ Not pass/fail. Required to be recorded.
       whole disks may be written, and identities are re-read after each rescue boot.
       Destroyed-data. Hardware rehearsal remains separate from this non-destructive gate.
 - [ ] **CNF-86 · BLOCKING** Drop SSH during partitioning/install: the returning session reads
-      the same rescue boot's job and does not duplicate it. Before planned reboot, block the
-      journal append and confirm no reset occurs; then allow it and recover collected records
-      and installed pins. Force an unexpected rescue reboot: changed boot ID or missing records
-      remain unresolved until inspection/explicit disposition, never automatic re-execution
-      (`STA-20b`). Destroyed-data.
+      the same rescue boot's job and does not duplicate it, including when the model requests
+      the work under a new command id. Before planned reboot, block the journal append and
+      confirm that **no reset is offered** and none is dispatched, including through a
+      separately requested typed operation; then allow it and recover collected records and
+      installed pins, and confirm box-plane dispatch resumes on the reset's confirmation and
+      not on reconnection. Force an unexpected rescue reboot: a changed boot ID establishes
+      that the old command ended while its effects and exit status remain unresolved, until
+      inspection or explicit disposition, never automatic re-execution (`STA-20b`, `STA-24`).
+      Destroyed-data.
 - [ ] **CNF-87 · BLOCKING** The first-stage relay's hand-configured access record authenticates
       a fresh connection challenge under the enrolled public key, refuses unknown keys and
       replayed signatures, restricts targets to its configured public destination set and
@@ -412,6 +444,13 @@ untested capability. A broader deployment still applies the PRE-SCALE promotion 
 **CNF-17's first-stage evidence uses an injected response fixture** through the common
 credential-redaction boundary. This does not enable untyped calls. Repeat it against real
 untyped responses before enabling scopes.
+
+**A witness file emitted by the formal companion is a fixture in this sense** (ADR-0032). A
+pass against one is evidence about harness knowledge only — never about external state, about
+the order of an effect and its append, or about concurrency, which stay with the items that
+inject those faults — and the test record names the file, its bound and the implementation
+revision. An item may cite a witness file as one input to its test and never as the only
+evidence it accepts.
 
 **Before the first live harness rehearsal:** pass the build gates (1–4), derivation/envelope
 and disk-selection gates (82–83, 85), and fixture-based refusal/recording cases for every

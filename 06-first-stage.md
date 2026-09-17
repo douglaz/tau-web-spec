@@ -128,15 +128,26 @@ observable state, never by its own response and never by a clock.** `POST /reset
 zone-less local time, so neither can be compared to the browser's intent. The predicates are:
 
 - **Activation** is confirmed when `GET /boot/{n}/rescue` reports `active: true` **and** its
-  `authorized_key` echoes exactly the session's registered fingerprint and the requested OS.
+  `authorized_key` echoes exactly the fingerprint of the machine's registered client key and the requested OS.
   Active with another key is a stale activation, not this one.
 - **The reset into rescue** is confirmed when `/rescue/last` shows a host-key set **different
   from the one journaled before the reset** — every rescue boot has fresh keys (`CHN-R1`).
 - **The reset into the installed system** is confirmed when sshd answers with the installed
   pin.
+- **Key registration** is confirmed when the account's key listing carries the machine's client
+  key under the fingerprint the intent recorded. Its resource is the machine's approved entry
+  (`STA-24`), and an unresolved registration blocks the activation that would name the
+  fingerprint.
+
+**None of these has a negative form.** A rescue sshd still answering after the reset call shows
+the reset has not landed, not that it will not; `/rescue/last` unchanged means the same. "It
+did not happen" is therefore always the operator's disposition (`STA-24`) and never evidence,
+and whether a Robot reset can be delayed or dropped is not known: the rehearsal's three cycles
+at about eighty seconds are the only data.
 
 Anything not confirmed stays unresolved under `STA-8` and the operator decides; the adapter is
-reconcile-before-retry (`STA-5`). `STG-11` is the test, and `CNF-38` lists its cases. The host
+reconcile-before-retry (`STA-5`), and a second request for the same mutation under a new call
+id is refused while the first is unresolved (`STA-24`). `STG-11` is the test, and `CNF-38` lists its cases. The host
 keys are read and the pins journaled by the harness's own `ready_to_reset` job before the
 reset is offered (`ARC-43`).
 
@@ -184,7 +195,7 @@ predicate most likely to fail under tab suspension — Android's, which is teste
 which would be harsher if it were — and the one the by-hand rehearsal should be designed to
 stress.
 
-**STG-13** A channel access that does not present the bound session's own keypair — however
+**STG-13** A channel access that does not present the bound machine's own keypair — however
 well-formed the attempt — is **refused, by SSH**. With one machine, nothing exercises the
 access rule by accident: this predicate shows the refusal is enforced by mechanism rather
 than satisfied by scarcity, and it is distinguishable from `STG-9`'s re-entry precisely

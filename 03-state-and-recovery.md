@@ -20,12 +20,18 @@ state. If the append fails, the transition does not occur.
 
 **STA-4** A side-effecting call MUST have a durable record, an approval decision, and an
 idempotency identity **before execution begins**. For an off-machine call this is `SEC-12`;
-for box-plane work it is the per-command record of `ARC-8`.
+for box-plane work it is the per-command record of `ARC-8`. The record is appended immediately
+before the bytes leave, so on replay an intent with no terminal record means the call **may have
+been sent**, never that it was not; an intent with no journaled approval decision was never
+dispatched, and that is what `STA-7` cancels. A "sent" record written *after* transmission
+would not help: its absence could mean a kill between the send and the append.
 
 **STA-5** Every tool MUST declare its retry safety: pure, idempotent with a key strategy,
 reconcile-before-retry, or never-retry-automatically. The Robot adapter is
 **reconcile-before-retry**: its mutations return nothing that identifies the request, so each is
-confirmed by observable state, as `STG-4` states.
+confirmed by observable state, as `STG-4` states. The inference adapter is
+**never-retry-automatically for its record and unbarred for its dispatch**: a lost response
+leaves its intent unresolved (`ARC-31a`) and does not stop the next request (`STA-24`).
 
 **STA-6 Box-plane work is never-retry-automatically.** Arbitrary shell on a remote machine
 cannot declare itself idempotent, so no honest declaration other than this exists. Its
@@ -36,15 +42,18 @@ subsequent events, classify incomplete calls, cancel those that cannot still exi
 reconcile or surface uncertain ones, and resume only where policy permits. **No model turn
 is silently resumed from an uncertain destructive operation.**
 
-**STA-8** A call that may have produced an external effect but has no terminal event MUST
+**STA-8** A call that may have produced an external effect but has no terminal record MUST
 enter an unresolved state requiring evidence or operator inspection to leave. It MUST NOT be
 retried automatically and no timer may clear it. Establishing *what happened* by a status
-query is permitted and required where a tool supports one; doing it *again* is not.
+query is permitted and required where a tool supports one; doing it *again* is not. What the
+unresolved state **blocks**, and for which resource, is `STA-24`; an operator disposition may
+permit the continuation it names without establishing the earlier call's outcome.
 
 **STA-9 The journal records what was sent, not what the machine did with it.** This is the
 honest limit of `STA-2` across the channel. A phone that locks mid-install kills the worker
 and the SSH session with it; on reconnect the journal knows exactly which commands were
-transmitted and nothing about which completed. Four outcomes are indistinguishable from the
+recorded before transmission — and so may have been sent (`STA-4`) — and nothing about which
+arrived or completed. Four outcomes are indistinguishable from the
 journal alone: never arrived, started and died with the session, **still running**, or finished
 with the output lost. Re-running is safe for three of them and is the corruption case for the
 third.
@@ -108,8 +117,15 @@ record before issuing more work; a still-running job is waited on, including dur
 Before a planned reset, the harness stops dispatch, waits for all tracked commands to end,
 copies their records into the encrypted browser journal as **advisory observations**, and
 durably records installed host-key pins and the reset intent. If collection or the durable
-append fails, it does not reset. On installed-system entry it creates the persistent job
-directory before ordinary work. Rescue records are not claimed to survive this transition.
+append fails, it does not reset — and it does not *offer* the reset either: the offer is
+checked against those durable prerequisites at the moment it is made, and an approval already
+rendered is checked again at dispatch. **Dispatch resumes on the reset's confirmation
+(`STG-4`), not on reconnection**: a reconnect to the rescue sshd while the reset has not yet
+landed would otherwise let a disk-writing command race the reset that interrupts it. The
+resumed probe uses the pin the reset intent named as its expected next pin, since two pins are
+journaled at that point and a halt against the old one means the reset landed. On
+installed-system entry it creates the persistent job directory before ordinary work. Rescue
+records are not claimed to survive this transition.
 
 After an unexpected rescue reboot, a changed boot ID proves the old command cannot still be
 running; it does **not** prove its effects or exit status. Missing output, a missing job record,
@@ -123,6 +139,72 @@ happened next. Comparing the two catches truncation, quoting damage and a mangle
 command — the honest-mistake class, and a real one. It catches nothing against a machine that
 lies, because such a machine writes whatever it likes. This stands exactly where the
 deterministic verifier stands and MUST NOT be reported as more (`SEC-2`).
+
+**STA-24 The unresolved barrier holds per resource, not per call.** While any call naming a
+resource is unresolved (`STA-8`), the harness worker MUST NOT dispatch a side-effecting
+operation naming that resource — whatever its call id, through whichever tool, and whichever
+session or model requests it, including a session that re-enters or succeeds the one that
+raised it. The request is refused and the unresolved call is shown in its place: to the model
+as the tool result, to the operator on the screen. An approval already rendered does not clear
+the barrier; it is checked again at dispatch.
+
+**The resource is what the intent record named, assigned or checked by the harness and never
+taken from the model.** For a machine it is the **approved machine entry** of the setup
+(`ARC-15`'s batch), to which the reserved allocation index (`STA-22b`) and, once learned, the
+immutable vendor machine id are associated — so a create and the machine it produced are one
+resource, and a second attempt at the same entry sits behind the same barrier even if it would
+reserve another index. A different approved entry is independent, and creating it while a
+sibling is unresolved is permitted under its own approval, whose card shows the unresolved
+sibling and that it may be billing. For an untyped call it is the **scope** itself, since no
+adapter can say what the call touched (`SEC-4`): no further call under that scope is dispatched
+until the operator disposes of it, and nothing under a scope counts as a read, because nothing
+types it. A scope re-approved for the same origin and credential inherits the outstanding call.
+
+**What stays permitted.** Reads naming the resource — the adapter's status queries, the pinned
+SSH attempt that is `STG-4`'s third predicate, the collection of job records — are permitted
+and are how the barrier clears. Box-plane dispatch to the machine is governed by `STA-20` and
+`STA-20b`, not by this rule, with one exception stated here: a cloud-plane operation that
+**changes what the machine is running** — a reset, a reinstall, a destroy — stops box-plane
+dispatch to that machine from its intent until its confirmation or disposition. An unresolved
+activation or key registration touches no running system and blocks nothing on the box. The
+inference request (`ARC-31a`) keeps its unresolved intent under `STA-8`, shown as unaccounted
+spend against the session key's cap, and does **not** bar the next request: its only effect is
+bounded spend, and the next request is the session's only way to continue.
+
+**What clears it.** Evidence is the observation the operation's own reconciliation contract
+admits — for Robot, `STG-4`'s predicates, read from the vendor or from a pin-checked handshake
+— durably appended before dispatch resumes (`STA-3`): a status read followed by a failed append
+leaves the barrier standing. A job record can settle the box-plane command it records, as
+`STA-20` says and with the standing `STA-21` gives it; it cannot clear a cloud-plane barrier,
+and neither can model text (`SEC-8`). Otherwise the operator **disposes**: a record of its own
+kind naming the outstanding calls, the one continuation it permits — a destructive reinstall
+(`STG-20`), abandonment (`ARC-21`), continuing as if done, continuing as if not done — and the
+uncertainty accepted. A disposition keeps the outcome *unknown*; it is never written as
+success, failure, zero spend or non-execution, it permits only the continuation it names, and a
+new unresolved call stops that continuation again. Neither a timer nor the model supplies one.
+**A disposition is a terminal record of its own kind**: it ends the call's unresolved state
+with the outcome recorded as unknown, so the barrier stays one derivation — an intent with no
+terminal record — and a disposed call is not an open one.
+
+The barrier is a fact of the journal — an intent with no terminal record — and survives
+replay (`STA-7`) and session succession without an event of its own, because an event
+recording "became unresolved" is exactly what a crash could fail to write. The worker admits
+at most one outstanding effect per resource: admission, reservation and the dispatch check are
+serialized by the single writer (`STA-1`), so two requests cannot both pass before either is
+unresolved. What this rule cannot reach is a journal that is lost with the phone: `STA-14`
+states that transcripts are gone, and a recovery sheet is not an outstanding-call record.
+
+*The trap.* `STA-8` speaks of a call, and a model does not retry a call: it requests the action
+again, and every request carries a fresh call id. `POST /reset` returns `running` with no
+request identity (`STG-4`); with the response lost the reset is unresolved, the model sees no
+confirmation and asks again, and nothing keyed on the first call id refuses the second. A
+second create is a second billed machine and a second reset lands on a disk being written —
+**money out** and **destroyed data**. A fresh allocation index would have been the same hole one
+level up, which is why the resource is the approved entry and not the index. Per session was
+rejected twice over: it stops nothing a session needs and it ends with the session, so a
+re-entering or successor session would start clean on a machine that is not. Added 2026-09-16
+from `lean-01.md` §2B, after two independent readers of one brief
+(`docs/review/2026-09-16-barrier-panel.md`).
 
 ## The exposure ledger
 

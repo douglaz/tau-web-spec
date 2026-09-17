@@ -178,7 +178,7 @@ state — working directory, variables, an entered chroot — survives from one 
 A brief is therefore authored so that each example block is self-contained: a block that needs
 the installed root wraps its own `chroot /mnt sh -c '…'`, and a value one step needs from
 another has a named source rather than a variable — the bundle (`bundle/`), a per-session value
-the harness shows the model (the bound session's client public key), a decision the model made
+the harness shows the model (the bound machine's client public key), a decision the model made
 and composed into the command it issues (which `ARC-8` journals as sent), or a machine-derived
 value recomputed inside the consuming command. Nothing is carried.
 
@@ -486,7 +486,12 @@ from a progress bar. This is btc-policy's rule; the tenant's copy in
 
 **ARC-21** Abandonment MUST be a first-class action — a cloud-plane operation with the same
 approval treatment as creation — because all machines exist and bill from the moment they
-are created, while one machine is retried or replaced.
+are created, while one machine is retried or replaced. It runs as the **deterministic operator
+flow** `STA-18` already defines, before or outside any session, never through a session: a
+session's typed operations reach its own machine and nothing else (`SEC-4`, `CNF-26`), so no
+session can destroy its siblings, and borrowing one to do so would be the exception `SEC-1` does
+not have. Against a machine with an unresolved call it is an operator disposition (`STA-24`),
+recorded as one and never as evidence of what the call did.
 
 **ARC-22** An unfinished setup MUST own the first screen. Nothing runs while the app is
 closed and no push channel exists, so the moment the app opens is the only moment the
@@ -495,7 +500,13 @@ Resume-or-abandon *is* the opening screen, not a badge: it shows roughly what ha
 billed so far and what it bills per month until finished or abandoned. After roughly a week
 without progress the emphasis flips and abandonment leads. Abandonment destroys every
 machine of the setup through typed operations, and the screen states plainly what stops
-billing — the machines — and what does not: the vendor accounts themselves.
+billing — the machines — and what does not: the vendor accounts themselves. It names every
+machine carrying an unresolved call and what that call was, and it says of an unresolved
+create that no vendor listing matches that it **cannot be destroyed from here and may still
+exist and bill**: an allocation index is not a deletion target, and destroying the known
+machines is not a complete abandonment while that one is outstanding. The inventory listing
+that looks for it is a read and is permitted (`STA-24`); on Robot the match is by the
+registered key fingerprint the entry holds.
 
 **An unfinished setup is device-bound.** It is resumed on the device that started it, or
 abandoned. That follows from all-or-nothing plus exposure ending with the machine (`SEC-1`),

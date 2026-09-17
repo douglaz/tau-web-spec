@@ -52,7 +52,11 @@ There is no purchase flow (`STG-18`). The publisher records the operator's relay
 its destination set and **an expiry** by hand — no hand-recorded pass is unbounded — and steps
 1–4 are unchanged; `CNF-87` tests them: fresh
 challenge, unknown key refused, replayed signature refused, undeclared destination refused,
-private address refused, limits applied, and no dial before OK.
+private address refused, limits applied, and the two orderings of step 3 and step 4: **no dial
+before the AUTH is accepted**, and **no application byte forwarded before OK**. They are two
+invariants, not one: OK is sent *after* the dial succeeds, so "no dial before OK" — the shorthand
+this section carried until 2026-09-16 — named an order the protocol does not have, and a relay
+and a test could each satisfy it while enforcing different things.
 
 ## Not in v1
 

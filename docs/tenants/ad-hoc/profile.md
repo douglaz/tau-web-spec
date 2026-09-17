@@ -46,7 +46,7 @@ unspecified.
 ### Permitted key material
 
 No tenant key material. What the harness itself places is expected: the machine's own SSH
-host keys, generated at install (`CHN-R1`), and the bound session's client public key in
+host keys, generated at install (`CHN-R1`), and the machine's own client public key in
 `authorized_keys` (`SEC-1`).
 
 ### Drift checks

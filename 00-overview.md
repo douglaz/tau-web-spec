@@ -39,6 +39,7 @@ implementation's CI runs; `bundle/` holds the publisher-chosen values the build 
 | [`docs/briefs/`](./docs/briefs/) | Draft briefs written from real runs, not yet in any bundle |
 | [`docs/findings/`](./docs/findings/) | What the prototypes found when they ran |
 | [`docs/archive/`](./docs/archive/) | The original Rust/WASM PWA specification. Superseded as a plan, retained as prior art |
+| [`lean-01.md`](./lean-01.md) | The review of the corpus at `9c58b44` that proposed a formal companion; ADR-0032 is its disposition, and its four specification findings were fixed on 2026-09-16 |
 
 [`executive-summary.md`](./executive-summary.md) is a shorter read for someone who wants
 the shape without the detail. [`TASKS.md`](./TASKS.md) is the open work.
@@ -264,3 +265,4 @@ an ADR is where *why* lives.
 | [0029](./docs/adr/0029-the-machine-speaks-nostr-and-keys-derive-from-a-seed.md) | The machine speaks Nostr, and per-machine keys derive from an operator seed |
 | [0030](./docs/adr/0030-tenant-specific-rules-live-in-a-tenant-profile.md) | Tenant-specific rules live in a tenant profile with a fixed schema |
 | [0031](./docs/adr/0031-the-specification-and-the-implementation-are-separate-repositories.md) | The specification and the implementation are separate repositories, pinned by commit |
+| [0032](./docs/adr/0032-the-formal-companion-follows-provisiond-spec.md) | Selected clauses are carried in Lean under `tools/formal/`, on provisiond-spec's decision, by reference |

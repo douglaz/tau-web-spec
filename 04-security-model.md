@@ -44,12 +44,25 @@ successor session under `ARC-16`'s condition.
 assigns the machine at session creation, and connecting is never what creates the binding —
 otherwise a refused session and a re-entering one would be indistinguishable.
 
-**Enforcement is cryptographic, not procedural.** Each session has **its own SSH client
-keypair**, and only that session's public key reaches that machine's `authorized_keys`. A
-session cannot authenticate to a machine it is not bound to, and the refusal comes from SSH
-rather than from the harness declining to call its own transport. A single shared client key
-would leave this invariant enforced only by routing code, which is bookkeeping rather than a
-boundary.
+**Enforcement is cryptographic, not procedural.** Each **machine** has its own SSH client
+keypair, derived at that machine's index (`STA-22`, `SEC-5` row 3), and only that machine's
+public key reaches its `authorized_keys`. A session is given exactly the key of the machine it
+is bound to and no other, so a session cannot authenticate to a machine it is not bound to, and
+the refusal comes from SSH rather than from the harness declining to call its own transport. A
+single shared client key would leave this invariant enforced only by routing code, which is
+bookkeeping rather than a boundary.
+
+**The key is the machine's, not the session's, and a binding is exclusive.** Until 2026-09-16
+this paragraph said each *session* held its own keypair. That was true of the case it was
+written for — a sealed machine is configured by one session and then loses SSH, so one session
+is the machine's whole life — and false for a maintained machine, which a later session
+re-enters with the same re-derived key (`ARC-27`). SSH cannot tell two sessions apart when they
+present one private key, so what SSH enforces is separation between **machines**. Succession on
+one machine is the harness worker's: a machine has at most one bound session at a time, and a
+new binding — by re-entry, or by the recovery ladder's re-binding to a successor — requires the
+predecessor session to have ended, its workers stopped and its channels closed, which is the act
+`STA-23` already performs on lock. Two sessions on one machine at once is what this requirement
+exists to prevent, and the ledger would only record it after the fact.
 
 **That the keypairs derive from one seed does not weaken this.** Derivation is how the browser
 *obtains* machine 3's key; what reaches machine 3 is still machine 3's public key alone, and
@@ -126,6 +139,13 @@ nothing.
 **A typed operation that names an existing machine MUST be authorized against the calling
 session's binding**, enforced by the adapter rather than left to the approval screen. A
 session's vendor operations reach its own machine and account-level creation, nothing else.
+
+**What is dispatched is the approved record.** The adapter executes the structured facts as
+they were approved and journaled — the resource (`STA-24`), the arguments, the declared cost
+bound, the bundle commit — never a request rebuilt at dispatch from session state or from
+arguments the model supplies afterwards. `STA-24` says an approval is checked again at
+dispatch; this says what is checked. "There was an approval" and "the approved thing is what
+ran" are two different properties, and only the second is worth proving.
 
 The refusal has an honest boundary: only *known vendors* can be classified by hostname. A
 third-party deployment or networking service may well administer machines, the harness cannot
@@ -264,7 +284,8 @@ A call interrupted between the record and a confirmed response has an **unknown 
 and for an untyped call no adapter exists to find out. So the record MUST carry that
 unresolved state, the harness MUST NOT retry the call on its own or report it as failed, and
 reconciliation belongs to the operator, at the service. `STA-8` is the same rule at the state
-layer.
+layer, and `STA-24` says what the unresolved state blocks: for an untyped call, every further
+call under that scope until the operator disposes.
 
 The CORS sent-but-unreadable case is engineered away: an origin's route is chosen by a
 dedicated harmless probe before any side-effecting call exists, every untyped call carries a

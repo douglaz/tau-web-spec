@@ -36,10 +36,32 @@ gated on it.
       It pins this repository by commit, refuses to build if the tree differs, compiles `bundle/`,
       `docs/tenants/` and the briefs promoted out of draft in — today none: brief 1 is a draft
       (`docs/briefs/`), and which briefs are promoted is decided when it leaves draft — and
-      runs `bundle/cors-probe.sh` and
-      `prototypes/spec-checks/` from the pinned tree as its CI gate (`CNF-1`–`CNF-4`).
+      runs `bundle/cors-probe.sh` (`CNF-4`) and
+      `prototypes/spec-checks/` (evidence for `CNF-85`, not for `CNF-1`–`CNF-4`; the
+      implementation's README carries the same mislabel and is corrected with the next pin
+      bump) from the pinned tree as its CI gate.
       `bundle/inference.toml` has an empty model slug on purpose; the build fails until the
       publisher fills it.
+- [ ] **T30 — Port the specification gates and the formal companion's scaffold** (ADR-0032).
+      From `~/projects/provisiond-spec`: `tools/check-all.sh`, the identifier, fixture,
+      obligation, coverage and citation gates with this corpus's namespace table; `tools/formal/`
+      with `Req.lean`, `Gate.lean`, `check_formal.sh`, `lakefile.toml` and `lean-toolchain` under a
+      `TauWeb` namespace; `flake.nix` pinned to the same Lean; `AGENTS.md`; `ci.yml` with one
+      negative control per gate. First run of the identifier gate writes this repository's
+      withdrawn-identifier table. The ported gates are adapted, not only renamed: provisiond's
+      fixture and coverage parsers expect its heading and item shapes, and this corpus's tiered
+      `CNF` items and `docs/design/` JSON must be shown to be what they actually read. No clause
+      is formalized by this task.
+- [ ] **T31 — Formal companion, module 1: allocation** (ADR-0032's inventory). Identities as
+      distinct structures — seed epoch, derivation version, role family, index; reserve durably
+      before any effect; a failed or destroyed allocation keeps its index as a tombstone; no
+      wraparound; a restored seed uses listed identities and allocates none until Replace — that
+      guard a parameter with the refused-and-admitted pair. Witnesses: `STA-22`'s one-index-two-
+      machines trap, the stale-sheet allocation, a successful allocate-create-destroy-allocate
+      trace. Lands with `lake exe witnesses`, its witness file
+      `docs/design/allocation-witnesses-v1.json`, and the emission gate that holds the file to
+      the emission (ADR-0032, "How the implementation is compared"). Blocked by T30. Modules
+      2–5 follow in the ADR's order; module 4's rule is `STA-24`.
 - [x] **T26 — Measure `STA-23` unlock latency on the first-stage phone.**
       `prototypes/unlock-latency/index.html` builds the v1 envelope and times one unlock.
       Done 2026-09-11: 58 ms at 600,000 iterations on the phone, 57 ms on the desktop

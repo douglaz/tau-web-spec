@@ -215,6 +215,13 @@ the author check, and a *validly sealed* race requires the sender key, which onl
 holds. A flooded or empty inbox is a denial of service that forces the recorded fallback, nothing
 more.
 
+**Single-use survives a restart.** Acceptance is journaled — the machine, the pins and the
+consumed state of its introduction — before the pins are used (`STA-3`), and a worker that
+restarts and re-derives the recipient key reads that record and does not subscribe again.
+"Stop listening now" and "never accept again" are different properties, and only the journal
+supplies the second: a re-derived key is the same key, and without the record it would reopen
+the window the acceptance closed.
+
 **CHN-6** The first-boot hook MUST retry with backoff until at least one relay in the set
 answers OK or a deadline passes, and MUST scrub the sender key from cloud-init artifacts on
 whichever comes first. Networking at first boot is exactly when routing and DNS are least

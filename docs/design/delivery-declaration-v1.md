@@ -10,11 +10,21 @@ file beside each profile once T28 lands.
 **Every field below is present, always.** Its value is one of:
 
 - a concrete value or non-empty list — checked as declared;
-- an explicit empty list `[]` — nothing to check, delivery may pass;
+- an explicit empty list `[]` — the tenant has said *none*, and **what *none* means is the
+  field's own**, stated in its row below. For a field that declares what must exist (inbound
+  listeners, permitted key material) an empty list means *nothing may*, and anything found is a
+  finding; for a field that declares a restriction or an obligation (outbound restrictions,
+  services, drift checks, required software) it means *none is declared* and there is nothing to
+  check. Until 2026-09-16 this bullet read "nothing to check, delivery may pass" for every field,
+  which for `listeners.inbound` was the opposite of its row: an implementation reading the rule
+  and not the rows would have passed a machine with any listener at all;
 - the string `"unspecified"` — the tenant has not said; **delivery is blocked** (ADR-0030).
 
 An absent field is a schema error, not `unspecified`. This is what keeps "absent means empty"
-from passing delivery silently. The harness invents no default for any field.
+from passing delivery silently. The harness invents no default for any field. Presence is one
+rule for every field; meaning is one rule per field, and an implementation carries the two
+separately — a field is *missing*, *unspecified*, or *specified with a value*, and only the third
+is evaluated, under that field's semantics.
 
 ## Shape
 
@@ -27,7 +37,7 @@ JSON object, `version: 1`. Field names are fixed; values are as described.
 | `listeners.outbound` | list of `{proto, host, port}` restrictions, or `[]` for none; `host` is a DNS name, a CIDR block, or `"any"` | `[]` means no outbound restriction is declared, explicitly |
 | `services` | list of `{name, lifecycle: "running-at-delivery"\|"enabled-survives-reboot"}` | Demonstrated exactly as declared; nothing beyond it is asserted (`CNF-53`) |
 | `key_material.spendable` | `false` on a multi-tenant machine (`ARC-37`, harness rule; a profile cannot set `true` there) | Searched for after install (`CNF-52`) |
-| `key_material.permitted` | list of `{kind, where}` describing the **tenant's** key material expected on disk, or `[]` for none. On a multi-tenant machine only public or watch-only kinds are admissible (`ARC-37`); a single-purpose machine may list private, non-spendable material, as btc-policy's member vault keys are | Tenant material outside the list is a finding. What the harness itself places — the machine's SSH host keys and the bound session's client public key (`SEC-1`, `CHN-R1`) — is always expected and is never listed |
+| `key_material.permitted` | list of `{kind, where}` describing the **tenant's** key material expected on disk, or `[]` for none. On a multi-tenant machine only public or watch-only kinds are admissible (`ARC-37`); a single-purpose machine may list private, non-spendable material, as btc-policy's member vault keys are | Tenant material outside the list is a finding. What the harness itself places — the machine's SSH host keys and the machine's own client public key (`SEC-1`, `CHN-R1`) — is always expected and is never listed |
 | `drift_checks` | list of `{name, command, expect}` the maintained re-check runs, or `[]` | Run by the machine's own session on re-entry (`ARC-26`) |
 | `required` | list of `{name, check: command, expect}` — software and checks that must hold at delivery, or `[]` | Run at delivery |
 | `default_credentials` | `"none"` or a list of what must have been changed | Checked at delivery (`ARC-17`) |

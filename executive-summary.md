@@ -84,9 +84,11 @@ surprises. Briefs ship inside the signed bundle, because a brief steers every ma
 diversity buys nothing against it.
 
 **One session, one machine, and the lock is real.** Each session is bound to exactly one machine
-by an operator act before anything connects, and **each holds its own SSH keypair**, so only that
-session's public key reaches that machine. A session cannot authenticate to a machine it is not
-bound to, and the refusal comes from SSH rather than from the harness declining to call itself.
+by an operator act before anything connects, and **each machine has its own SSH keypair**, so
+only that machine's public key reaches it and a session is given only the key of the machine it
+is bound to. A session cannot authenticate to a machine it is not bound to, and the refusal
+comes from SSH rather than from the harness declining to call itself. A machine has at most one
+bound session at a time; a later session re-enters a maintained machine with the same key.
 Access composes, not intent. Sessions run concurrently on the one device the operator owns, each
 configured with a different model, with all machine creations approved together before any work
 begins.
