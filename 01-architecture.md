@@ -476,13 +476,9 @@ staying in the browser to re-derive. It is a credential the harness places, so i
 every other per-machine key now does: the handoff can be finished or rebuilt without it having
 been stored.
 
-**ARC-20** Federation creation MUST be all-or-nothing
-([ADR-0012](./docs/adr/0012-a-federation-is-created-only-when-every-member-works.md)). A
-partially-formed federation has no honest description: a 3-of-5 vault with four working
-members is not "80% set up" — its real threshold, failure modes, and security claim are all
-different from the thing the operator approved, and none of those differences are visible
-from a progress bar. This is btc-policy's rule; the tenant's copy in
-`docs/tenants/btc-policy/profile.md` is authoritative (ADR-0030).
+**ARC-20** Moved to the btc-policy tenant profile,
+[`docs/tenants/btc-policy/profile.md`](./docs/tenants/btc-policy/profile.md), slot
+"Machine set" (ADR-0030). The identifier is kept so existing references resolve.
 
 **ARC-21** Abandonment MUST be a first-class action — a cloud-plane operation with the same
 approval treatment as creation — because all machines exist and bill from the moment they

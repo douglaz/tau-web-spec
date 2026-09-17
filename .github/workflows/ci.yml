@@ -1,0 +1,29 @@
+name: gates
+
+# CNF-3 says "The test suite fails when a test is deliberately broken -- verified
+# once, by hand, so that 'tests passed' means something". This workflow does that
+# for the gates on every run: one negative control per refusal, each against a
+# scratch copy, each requiring exactly one finding under the label it targets.
+# The list of controls lives in tools/check-controls.sh, runnable locally.
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  gates:
+    name: specification gates
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run all gates
+        run: bash tools/check-all.sh
+
+      - name: Prove each gate can fail, one control per refusal
+        run: bash tools/check-controls.sh

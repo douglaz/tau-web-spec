@@ -51,7 +51,11 @@ gated on it.
       withdrawn-identifier table. The ported gates are adapted, not only renamed: provisiond's
       fixture and coverage parsers expect its heading and item shapes, and this corpus's tiered
       `CNF` items and `docs/design/` JSON must be shown to be what they actually read. No clause
-      is formalized by this task.
+      is formalized by this task. *Tracked as epic `tw-formal-companion-nxy` in beads. Its
+      first ticket landed 2026-09-17: `check-all.sh`, the identifier gate with its negative
+      controls in `tools/check-controls.sh`, `ci.yml`, `AGENTS.md`, and `README.md`'s
+      requirement conventions with the withdrawn-identifier table; the first run found
+      `STG-8` and the `ARC-20` duplicate.*
 - [ ] **T31 — Formal companion, module 1: allocation** (ADR-0032's inventory). Identities as
       distinct structures — seed epoch, derivation version, role family, index; reserve durably
       before any effect; a failed or destroyed allocation keeps its index as a tombstone; no
@@ -73,7 +77,8 @@ gated on it.
       delivery brief verbatim, keeping identifiers, leaving one-line pointers behind.
       Meaning-preserving by construction; review by diff.
       Done 2026-09-10: `SEC-T1`–`SEC-T4` and `ARC-23` moved to btc-policy; `ARC-20` copied
-      to btc-policy and kept in place; no delivery brief exists yet. `ARC-36`–`ARC-38` were
+      to btc-policy and kept in place (until 2026-09-17, when the identifier gate refused the
+      duplicate and the root copy became a pointer); no delivery brief exists yet. `ARC-36`–`ARC-38` were
       listed here in error and **stay** in `01-architecture.md`: they hold for every profile,
       so they are the harness's (ADR-0030's own guard says so). lnrent's profile references
       them and carries only its values.

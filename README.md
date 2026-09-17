@@ -16,8 +16,10 @@ No harness code here, by decision (ADR-0031): the implementation is
 by commit as its `spec/` submodule. This repository holds the specification, the domain language,
 the decisions taken so far, and the reasoning that produced them. `bundle/` holds the
 publisher-chosen values the implementation compiles in, `prototypes/` holds throwaway spikes
-that answer open questions by running, `docs/findings/` holds what they found, and
-`docs/briefs/` holds draft briefs written from those runs, not yet in any bundle.
+that answer open questions by running, `docs/findings/` holds what they found,
+`docs/briefs/` holds draft briefs written from those runs, not yet in any bundle, and
+`tools/` holds the gates that check the specification (ADR-0032): `bash tools/check-all.sh`
+runs them all.
 
 `tau-web` is a working name.
 
@@ -62,3 +64,62 @@ The installation rehearsal ran on a disposable dedicated server on September 8, 
 pinned SSH hops closed. Harness construction can start. The integrated harness, interrupted
 resume, lockdown and tenant delivery remain unproven. The next work is construction plus the
 lnrent declaration/checklist and briefs 2–3; `07-conformance.md` defines first-stage completion.
+
+## Requirement conventions
+
+Requirements use RFC 2119 keywords: **MUST**, **MUST NOT**, **SHOULD**, **SHOULD NOT**,
+**MAY**. Each is tagged with a stable identifier so it can be cited in code review, tests and
+issue trackers. `tools/check_ids.py` reads every shape below and refuses a duplicate, a
+citation nothing defines, a gap in a sequence not listed as withdrawn, an identifier far above
+its neighbours, a reference to an ADR that does not exist, and a conformance item with no tier.
+
+| Prefix | Domain |
+|---|---|
+| `OVR-n` | Overview and scope |
+| `ARC-n` | Architecture |
+| `CHN-n` | The channel; `CHN-Rn` is one of the routes to a pinned host key |
+| `STA-n` | State and recovery |
+| `SEC-n` | Security model; `SEC-Tn` is a tenant rule now in btc-policy's profile; `SEC-CLAIM` is the claim itself |
+| `TRU-Un`, `TRU-En`, `TRU-An` | Trust: unavoidable, elective, and added by this product |
+| `STG-n` | The first stage |
+| `CNF-n` | Conformance items |
+| `OPN-n` | Open questions |
+
+A letter suffix (`STA-22a`, `TRU-E8a`) is an amendment that stands beside its parent and is
+cited on its own. A conformance item carries a tier — **BLOCKING**, **PRE-SCALE** or
+**DEFERRED**, as `07-conformance.md`'s tiering section defines them — except under "Build and
+gate", which precedes the tiering rule, and "Measurements", which are recorded rather than
+passed. Tiers describe severity; `07-conformance.md`'s applicability table says what gates a
+stage.
+
+### Identifiers are append-only. Text is not.
+
+An identifier is never reused and never renumbered. It costs nothing, and it is what makes a
+citation durable across the topic files, the decision records, the tenant profiles and the
+implementation's tests; `00-overview.md` records the two renumberings that already cost review
+rounds spent re-verifying what pointed where. Any occurrence of an identifier in a document is
+a citation, backticked or not: a Mermaid note cannot backtick, and the gate reads it too.
+
+**Deleting the text is not reusing the number.** The gap in the sequence *is* the tombstone. A
+deleted identifier goes in the table below so an old citation still resolves, and
+`tools/check_ids.py` reads that table — an identifier may be absent from the documents only if
+it is listed there, and an identifier listed there may not be defined again.
+
+**A moved requirement leaves a pointer, not a copy.** When a rule moves to a tenant profile
+(ADR-0030), its old home keeps one line — `**ARC-23** Moved to the btc-policy tenant profile,
+… slot "Delivery declaration"` — so the identifier still resolves. The pointer is not a
+definition and not a withdrawal; the gate requires it to point at a definition that exists.
+`ARC-20`, `ARC-23` and `SEC-T1`–`SEC-T4` are of this kind.
+
+### Withdrawn identifiers
+
+Deleted from the documents. Never reused. Listed so an older citation still resolves.
+
+| Identifier | Was | Why it went |
+|---|---|---|
+| `STG-8` | A first-stage criterion requiring a real tenant outcome — a published listing and a delivered order — or a written statement of why not | Both halves were wrong: the first tested lnrent rather than tau-web, the boundary ADR-0016 draws, and the second was an opt-out an essay could satisfy. `STG-7` against `ARC-17` carries what the harness owes; `CNF-49` carries that a declaration exists. `06-first-stage.md` keeps the retirement note |
+
+Two rows of `SEC-5`'s credential table are retired in place, struck through, keeping their row
+numbers because prose cites them by number: row 8, the drop-box collection token, went with the
+drop-box (`CHN-4`); row 13, the injected SSH host private key, went when `CHN-R3` was abandoned.
+They are rows, not identifiers, and the gate does not read them.
