@@ -30,6 +30,8 @@ run() {
 }
 
 run "identifiers  (duplicates, dangling, pointers, gaps, ADR refs, CNF tiers)" python3 tools/check_ids.py
+run "citations    (a quoted attribution its target does not contain; unquoted ones ratcheted)" python3 tools/check_citations.py
+run "coverage     (requirements exercised by at least one CNF item, ratcheted)" python3 tools/check_coverage.py
 
 echo
 echo "=============================================================="

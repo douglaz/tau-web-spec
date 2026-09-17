@@ -34,7 +34,8 @@ record after.
 
 **Quote the sentence.** A claim about what another requirement says carries that requirement's own
 words. `` `STA-24` says "The unresolved barrier holds per resource, not per call" `` is checkable;
-"`STA-8` already forbids that" is an assertion. `lean-01.md` §A is what an unchecked assertion
+"`STA-8` already forbids that" is an assertion. `tools/check_citations.py` checks the quote
+against the target's body, and refuses a new "`X` says …" with no quote at all. `lean-01.md` §A is what an unchecked assertion
 costs: "`SEC-1` describes each session as having its own SSH keypair. The credential inventory and
 `STA-22`, however, specify an SSH key derived per machine", and every reader had passed both.
 

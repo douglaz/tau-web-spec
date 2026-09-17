@@ -1,0 +1,30 @@
+{
+  "unquoted_attributions": {
+    "01-architecture.md:ARC-31a": 1,
+    "01-architecture.md:SEC-CLAIM": 1,
+    "03-state-and-recovery.md:STA-14": 1,
+    "03-state-and-recovery.md:STA-20": 1,
+    "03-state-and-recovery.md:STG-4": 1,
+    "04-security-model.md:STA-24": 2,
+    "08-open-questions.md:STA-21": 1,
+    "08-open-questions.md:STG-3": 1,
+    "TASKS.md:ARC-24": 1,
+    "TASKS.md:CHN-12": 1,
+    "TASKS.md:SEC-6": 1,
+    "TASKS.md:STA-11": 1,
+    "TASKS.md:STA-21": 1,
+    "TASKS.md:STG-3": 1,
+    "docs/adr/0004-one-model-one-machine.md:SEC-1": 1,
+    "docs/adr/0005-briefs-ship-in-the-signed-bundle.md:ARC-40": 1,
+    "docs/adr/0011-the-ai-delivers-a-locked-down-machine.md:SEC-CLAIM": 1,
+    "docs/adr/0016-the-harness-isolates-and-counts-tenants-set-thresholds.md:SEC-1": 1,
+    "docs/adr/0018-first-stage-is-one-lnrent-box-on-dedicated.md:STG-3a": 1,
+    "docs/adr/0025-relay-access-is-bought-not-granted.md:ARC-31": 1,
+    "docs/adr/0028-procured-inference-is-the-operators-balance.md:ARC-31a": 1,
+    "docs/adr/0028-procured-inference-is-the-operators-balance.md:STA-17": 1,
+    "docs/adr/0028-procured-inference-is-the-operators-balance.md:TRU-E2": 1
+  },
+  "recorded": "2026-09-17",
+  "reason": "first recording at the gate's landing (tw-formal-companion-nxy.2); the standing count, not a target",
+  "note": "Sentences reporting what a requirement SAYS with no quote to check, counted per file:id. Ratchet: may shrink, never grow."
+}

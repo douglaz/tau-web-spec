@@ -1,0 +1,170 @@
+#!/usr/bin/env python3
+"""Citation-attribution gate.
+
+A sentence reporting what another requirement SAYS is a checkable claim about a
+specific span of text, and `AGENTS.md` ("Quote the sentence") requires it to
+carry that text. `lean-01.md` section A is what an unchecked one costs: `SEC-1`
+was read as giving the SSH key a per-session owner when `SEC-5` and `STA-22`
+gave it a per-machine one, and every reader had passed both.
+
+`check_ids.py` cannot see this class: the citation resolves. Only the relation
+between the claim and the cited text is broken.
+
+TWO RULES, deliberately narrow, ported from provisiond-spec:
+
+  QUOTED   A quoted phrase attributed to `X` -- `` `X` says "..." `` -- must
+           appear in X's own body. Hard failure: it occurs there or it does not.
+
+  UNQUOTED "`X` says/states ..." with no quote is unverifiable by construction.
+           Ratcheted against `citation-baseline.json` rather than failed
+           outright, because such sentences exist and a gate that fails a clean
+           tree is a gate someone deletes. The baseline holds one count per
+           `file:id`, so a second unquoted sentence about the same requirement
+           in the same file is new; rewording a standing one is not. The count
+           lives in that file and nowhere else.
+
+Summary verbs are OUT OF SCOPE by design. "`STA-8` forbids automatic retry" is
+a paraphrase; demanding a quote there fires on legitimate prose. Past-tense
+attributions ("`STA-8` said *terminal event* until 2026-09-16") report a former
+text and are skipped: the current body cannot be expected to contain them.
+
+NOT CAUGHT, stated because a gate's limits are part of its contract: a wrong
+SUMMARY. "`STA-24` forbids the per-resource barrier" reverses `STA-24`, uses a
+summary verb and carries no quote. That stays a review problem.
+
+Scanned: the topic files and root documents, the decision records, the tenant
+profiles and `docs/design/`. Not scanned: `docs/review/` and `docs/findings/`,
+which are dated records of what a text said when they were written.
+
+Usage: check_citations.py [--write-baseline DATE REASON]
+Exit 0 = clean, 1 = an unverifiable quote or a rise above the baseline,
+2 = no baseline recorded.
+"""
+
+import collections
+import json
+import os
+import re
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from check_ids import DEF_RE, DEFINING, ID, POINTER_RE, ROOT, files  # noqa: E402
+
+BASELINE = os.path.join(ROOT, "tools", "citation-baseline.json")
+CITING = ["*.md", "docs/adr/*.md", "docs/tenants/*/*.md", "docs/design/*.md"]
+
+# Direct-speech attribution only, present tense. Two shapes: the verb form
+# ("`STA-24` says ...") and the possessive form ("`STA-24`'s rule that ..."),
+# which claims what a requirement contains just as directly.
+SPEECH = r"says|states|reads"
+NOUN = r"rule|claim|wording|statement|sentence|words|text"
+ATTRIB = re.compile(
+    r"`(%s)`\s+(?:own\s+)?(%s)\b|`(%s)`'s\s+(?:own\s+)?(%s)\s+that\b"
+    % (ID, SPEECH, ID, NOUN)
+)
+# "reads" is two verbs. "`STA-20` reads \"...\"" attributes text; "`STA-16`
+# reads it from the sheet" means CONSULTS, which never carries a quote. Checked
+# when a quote is present, ignored when one is not.
+CONSULTS = {"reads"}
+# A bullet whose items end in ";" is one sentence to any splitter, which lets
+# one item's attribution collect the next item's quote. Break on list markers
+# and blank lines as well as sentence enders.
+SPLIT = re.compile(r"(?<=[.!?])\s+|\n\s*[-*]\s+|\n\s*\n|\n(?=\|)")
+# Paired quotes only: an unpaired quote character makes every span between two
+# of them look like a quotation.
+QUOTE = re.compile(r'“([^”]{8,400})”|"((?:[^"\n]|\n(?!\s*\n)){8,400})"')
+
+
+def norm(s):
+    s = (s.replace("“", '"').replace("”", '"').replace("’", "'").replace("‘", "'")
+          .replace("—", "-").replace("–", "-"))
+    s = re.sub(r"[*`~\"']", "", s)
+    return re.sub(r"\s+", " ", s).lower().strip(" .,;:")
+
+
+def bodies():
+    """{id: body}: a definition line and what follows it, up to the next
+    definition or heading. A "Moved to" pointer defines nothing (ADR-0030)."""
+    out = {}
+    for f in files(DEFINING):
+        cur, buf = None, []
+        for line in open(f).read().splitlines(True):
+            m = DEF_RE.match(line)
+            if m or line.startswith("#"):
+                if cur:
+                    out.setdefault(cur, "".join(buf))
+                cur, buf = None, []
+                if m and not POINTER_RE.search(line):
+                    cur, buf = (m.group(1) or m.group(2)), [line]
+            elif cur:
+                buf.append(line)
+        if cur:
+            out.setdefault(cur, "".join(buf))
+    return out
+
+
+def find():
+    """Return (unverified_quotes, unquoted_attributions)."""
+    reqs = {k: norm(v) for k, v in bodies().items()}
+    bad, unquoted = [], []
+    for f in files(CITING):
+        for sent in SPLIT.split(open(f).read()):
+            m = ATTRIB.search(sent)
+            if not m:
+                continue
+            rid = m.group(1) or m.group(3)
+            verb = (m.group(2) or "").lower()
+            # The verb introduces the first quote after it and no other: a quote
+            # earlier in the chunk belongs to whatever introduced it, and a
+            # later one to whatever stands between (AGENTS.md shows a checkable
+            # attribution beside an assertion in one sentence).
+            quote = next((q.group(1) or q.group(2) for q in QUOTE.finditer(sent)
+                          if q.start() > m.start() and len(norm(q.group(0)).split()) >= 4), None)
+            if quote is None:
+                if verb not in CONSULTS:
+                    unquoted.append((f, rid, " ".join(sent.split())[:100]))
+                continue
+            frags = [x for x in (p.strip() for p in re.split(r"\.\.\.|…", norm(quote))) if x]
+            if not all(fr in reqs.get(rid, "") for fr in frags):
+                bad.append((f, rid, norm(quote)[:95]))
+    return bad, unquoted
+
+
+def main():
+    os.chdir(ROOT)
+    bad, unquoted = find()
+    counts = collections.Counter(f"{f}:{rid}" for f, rid, _ in unquoted)
+
+    if "--write-baseline" in sys.argv:
+        i = sys.argv.index("--write-baseline")
+        json.dump({"unquoted_attributions": dict(sorted(counts.items())),
+                   "recorded": sys.argv[i + 1], "reason": sys.argv[i + 2],
+                   "note": "Sentences reporting what a requirement SAYS with no quote to check, "
+                           "counted per file:id. Ratchet: may shrink, never grow."},
+                  open(BASELINE, "w"), indent=2)
+        open(BASELINE, "a").write("\n")
+        print(f"baseline written: {sum(counts.values())} unquoted attribution(s)")
+        return 0
+
+    if not os.path.exists(BASELINE):
+        print(f"FAIL: no baseline at {BASELINE} -- run with --write-baseline DATE REASON")
+        return 2
+    base = json.load(open(BASELINE))
+    limit = base["unquoted_attributions"]
+    new = sorted(sig for sig, n in counts.items() if n > limit.get(sig, 0))
+
+    for f, rid, q in bad:
+        print(f'  {f} attributes to {rid} a phrase {rid} does not contain: "{q}"')
+    for sig in new:
+        f, rid = sig.split(":", 1)
+        print(f"  {f} reports what {rid} says without quoting it: "
+              + next(s for g, r, s in unquoted if g == f and r == rid))
+    print(f"unquoted attributions: {sum(counts.values())} against baseline "
+          f"{sum(limit.values())} (recorded {base['recorded']}: {base['reason']})")
+    print("UNVERIFIED QUOTES:", sorted(f"{f}:{rid}" for f, rid, _ in bad) or "none")
+    print("NEW UNQUOTED ATTRIBUTIONS:", new or "none")
+    return 1 if (bad or new) else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

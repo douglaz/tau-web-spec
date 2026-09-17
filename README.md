@@ -72,6 +72,11 @@ Requirements use RFC 2119 keywords: **MUST**, **MUST NOT**, **SHOULD**, **SHOULD
 issue trackers. `tools/check_ids.py` reads every shape below and refuses a duplicate, a
 citation nothing defines, a gap in a sequence not listed as withdrawn, an identifier far above
 its neighbours, a reference to an ADR that does not exist, and a conformance item with no tier.
+`tools/check_citations.py` refuses a quoted attribution — `` `X` says "…" `` — whose target's
+body does not contain the quote, and ratchets unquoted ones against `tools/citation-baseline.json`;
+`tools/check_coverage.py` counts the requirements no conformance item cites and ratchets that
+count against `tools/coverage-baseline.json`. Each baseline records a date and a reason, and is
+rewritten with `--write-baseline DATE REASON`, deliberately.
 
 | Prefix | Domain |
 |---|---|

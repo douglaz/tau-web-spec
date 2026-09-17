@@ -95,6 +95,30 @@ control "identifiers: a conformance item with a misspelt tier" "$IDS" \
   "sed -i 's/^- \[ \] \*\*CNF-5 · BLOCKING\*\*/- [ ] **CNF-5 · BLOKING**/' 07-conformance.md && grep -q '^- \[ \] \*\*CNF-5 · BLOKING\*\*' 07-conformance.md" \
   "UNTIERED CNF ITEMS" "CNF-5"
 
+CITES=tools/check_citations.py
+
+control "citations: a quoted phrase its target never contained" "$CITES" \
+  "printf '\n\`STA-24\` says \"a phrase its target never contained anywhere\".\n' >> 00-overview.md" \
+  "UNVERIFIED QUOTES" "00-overview.md:STA-24"
+
+control "citations: a new unquoted attribution above the baseline" "$CITES" \
+  "printf '\n\`STA-24\` says something this sentence does not quote.\n' >> 00-overview.md" \
+  "NEW UNQUOTED ATTRIBUTIONS" "00-overview.md:STA-24"
+
+COV=tools/check_coverage.py
+
+# STA-25 is the family's next number; the coverage gate alone runs here, so the
+# identifier gate's gap and outlier checks are not what goes red.
+control "coverage: a requirement appended with no conformance item" "$COV" \
+  "printf '\n**STA-25** A requirement no conformance item exercises.\n' >> 03-state-and-recovery.md" \
+  "ABOVE BASELINE" "uncovered > "
+
+# CHN-13 is cited by exactly one item, on CNF-43's continuation line: the
+# parser reads a real item line, and its citation is what keeps CHN-13 covered.
+control "coverage: a citation removed from a real CNF line" "$COV" \
+  "sed -i 's/(\`CHN-13\`)\./(the relay row rule)./' 07-conformance.md && grep -q 'the relay row rule' 07-conformance.md" \
+  "ABOVE BASELINE" "uncovered > "
+
 echo
 if [ "$passed" -ne "$expected" ]; then
   echo "::error::$passed of $expected controls passed"; fail=1
