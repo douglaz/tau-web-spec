@@ -3,9 +3,8 @@
 
 A sentence reporting what another requirement SAYS is a checkable claim about a
 specific span of text, and `AGENTS.md` ("Quote the sentence") requires it to
-carry that text. `lean-01.md` section A is what an unchecked one costs: `SEC-1`
-was read as giving the SSH key a per-session owner when `SEC-5` and `STA-22`
-gave it a per-machine one, and every reader had passed both.
+carry that text; that section also records, from `lean-01.md` section A, what
+an unchecked one cost.
 
 `check_ids.py` cannot see this class: the citation resolves. Only the relation
 between the claim and the cited text is broken.
@@ -109,24 +108,26 @@ def find():
     bad, unquoted = [], []
     for f in files(CITING):
         for sent in SPLIT.split(open(f).read()):
-            m = ATTRIB.search(sent)
-            if not m:
-                continue
-            rid = m.group(1) or m.group(3)
-            verb = (m.group(2) or "").lower()
-            # The verb introduces the first quote after it and no other: a quote
-            # earlier in the chunk belongs to whatever introduced it, and a
-            # later one to whatever stands between (AGENTS.md shows a checkable
-            # attribution beside an assertion in one sentence).
-            quote = next((q.group(1) or q.group(2) for q in QUOTE.finditer(sent)
-                          if q.start() > m.start() and len(norm(q.group(0)).split()) >= 4), None)
-            if quote is None:
-                if verb not in CONSULTS:
-                    unquoted.append((f, rid, " ".join(sent.split())[:100]))
-                continue
-            frags = [x for x in (p.strip() for p in re.split(r"\.\.\.|…", norm(quote))) if x]
-            if not all(fr in reqs.get(rid, "") for fr in frags):
-                bad.append((f, rid, norm(quote)[:95]))
+            attribs = list(ATTRIB.finditer(sent))
+            for m, nxt in zip(attribs, attribs[1:] + [None]):
+                rid = m.group(1) or m.group(3)
+                verb = (m.group(2) or "").lower()
+                # The verb introduces the first quote after it and before the
+                # next attribution, and no other: a quote earlier in the chunk
+                # belongs to whatever introduced it, and a later one to whatever
+                # stands between (AGENTS.md shows a checkable attribution beside
+                # an assertion in one sentence).
+                end = nxt.start() if nxt else len(sent)
+                quote = next((q.group(1) or q.group(2) for q in QUOTE.finditer(sent)
+                              if m.start() < q.start() < end
+                              and len(norm(q.group(0)).split()) >= 4), None)
+                if quote is None:
+                    if verb not in CONSULTS:
+                        unquoted.append((f, rid, " ".join(sent.split())[:100]))
+                    continue
+                frags = [x for x in (p.strip() for p in re.split(r"\.\.\.|…", norm(quote))) if x]
+                if not all(fr in reqs.get(rid, "") for fr in frags):
+                    bad.append((f, rid, norm(quote)[:95]))
     return bad, unquoted
 
 

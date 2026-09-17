@@ -48,12 +48,13 @@ from check_ids import (CITE_RE, DEF_RE, DEFINING, ITEM_RE, NAMESPACES, NS,  # no
 
 BASELINE = os.path.join(ROOT, "tools", "coverage-baseline.json")
 CHECKLIST = "07-conformance.md"
-EXCLUDED = {"OPN-*": "an open question is not a rule an implementation demonstrates",
-            "docs/tenants/": "a rule in a tenant profile (ADR-0030) is the tenant's to demonstrate"}
+NOT_RATCHETED = {"OPN-*": "an open question is not a rule an implementation demonstrates",
+                 "docs/tenants/": "a rule in a tenant profile (ADR-0030) is the tenant's to demonstrate"}
 
 # `STA-1`–`STA-4` credits STA-2 and STA-3 as surely as the two it names.
-# Credited only within one family and only when the endpoints ascend.
-RANGE_RE = re.compile(r"`((?:%s)-[A-Z]?)(\d+)`\s*[–—-]\s*`\1(\d+)`" % NS)
+# Credited only within one family and only when the endpoints ascend; the
+# backticks are optional, as they are for CITE_RE.
+RANGE_RE = re.compile(r"`?((?:%s)-[A-Z]?)(\d+)`?\s*[–—-]\s*`?\1(\d+)`?(?![A-Za-z0-9])" % NS)
 
 
 def cited(line):
@@ -115,7 +116,7 @@ def main():
         ids = [r for r in ratcheted if r.startswith(ns + "-")]
         if ids:
             print(f"  uncovered {ns} ({len(ids)}): {' '.join(ids)}")
-    for key, why in EXCLUDED.items():
+    for key, why in NOT_RATCHETED.items():
         if excluded[key]:
             print(f"  excluded {key} ({len(excluded[key])}), {why}: {' '.join(excluded[key])}")
 
