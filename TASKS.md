@@ -55,7 +55,9 @@ gated on it.
       first ticket landed 2026-09-17: `check-all.sh`, the identifier gate with its negative
       controls in `tools/check-controls.sh`, `ci.yml`, `AGENTS.md`, and `README.md`'s
       requirement conventions with the withdrawn-identifier table; the first run found
-      `STG-8` and the `ARC-20` duplicate.*
+      `STG-8` and the `ARC-20` duplicate. The Lean package landed 2026-09-18: `flake.nix`,
+      `tools/formal/` with `Req.lean`, `Gate.lean` and `check_formal.sh`, the citations
+      gate's `TauWeb.*` resolver, and `STA-22a`'s role table as the first clause.*
 - [ ] **T31 — Formal companion, module 1: allocation** (ADR-0032's inventory). Identities as
       distinct structures — seed epoch, derivation version, role family, index; reserve durably
       before any effect; a failed or destroyed allocation keeps its index as a tombstone; no

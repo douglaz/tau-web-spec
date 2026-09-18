@@ -49,6 +49,68 @@ control() {
   fi
 }
 
+# formal_control NAME MUTATION TOKEN [ABSENT]
+#   The formal gate's shape differs: no labelled finding lines, one FAIL. The gate must go
+#   red naming TOKEN, and must not name ABSENT (the neighbour the mutation leaves within
+#   policy). Runs on the scratch copy's own .lake, so the rebuild is incremental.
+formal_control() {
+  local name="$1" mutate="$2" token="$3" absent="${4:-}"
+  expected=$((expected + 1))
+  local tmp
+  tmp="$(mktemp -d)"
+  cp -r . "$tmp/repo"
+  if ! (cd "$tmp/repo" && eval "$mutate"); then
+    echo "::error::$name: the mutation did not apply"; fail=1; rm -rf "$tmp"; return
+  fi
+  local out rc
+  out="$(cd "$tmp/repo" && bash tools/check_formal.sh 2>&1)"
+  rc=$?
+  rm -rf "$tmp"
+  if [ "$rc" -eq 0 ]; then
+    echo "::error::$name: the formal gate passed"; echo "$out"; fail=1
+  elif ! grep -qF "$token" <<<"$out"; then
+    echo "::error::$name: the red does not name $token"; echo "$out"; fail=1
+  elif [ -n "$absent" ] && grep -qF "$absent" <<<"$out"; then
+    echo "::error::$name: the red also names $absent, which is within policy"; echo "$out"; fail=1
+  else
+    echo "ok: $name -> $token"
+    passed=$((passed + 1))
+  fi
+}
+
+FORMAL=tools/check_formal.sh
+ALLOC=tools/formal/TauWeb/Allocation.lean
+
+# `lake build` accepts a sorry with a warning; only the gate's axiom walk sees sorryAx.
+formal_control "formal: a sorry the build accepts" \
+  "sed -i 's/^@\[req \"STA-22a\"\] theorem total : ∀ n, n < count → (row n).isSome := by decide$/@[req \"STA-22a\"] theorem total : ∀ n, n < count → (row n).isSome := by sorry/' $ALLOC && grep -q ':= by sorry' $ALLOC" \
+  "TauWeb.Allocation.total (STA-22a) depends on [sorryAx]"
+
+# The same proof inside and outside Explore: only the outside one is refused.
+formal_control "formal: native_decide outside Explore" \
+  "printf '\nnamespace TauWeb.Explore\ntheorem in_explore : TauWeb.Allocation.count = 5 := by native_decide\nend TauWeb.Explore\ntheorem TauWeb.Allocation.outside_explore : TauWeb.Allocation.count = 5 := by native_decide\n' >> $ALLOC" \
+  "TauWeb.Allocation.outside_explore uses native_decide outside TauWeb.Explore" \
+  "in_explore"
+
+# Reachability is read through Lean: a commented-out import does not count.
+formal_control "formal: a module file the umbrella does not import" \
+  "printf 'import TauWeb.Req\nnamespace TauWeb.Orphan\ndef unread : Nat := 1\nend TauWeb.Orphan\n' > tools/formal/TauWeb/Orphan.lean && printf '\n-- import TauWeb.Orphan\n' >> tools/formal/TauWeb.lean" \
+  "nothing imports TauWeb.Orphan"
+
+formal_control "formal: a CNF identifier in the formal tree" \
+  "printf '\n-- exercised by CNF-83\n' >> $ALLOC" \
+  "a CNF identifier in tools/formal/"
+
+# A missing toolchain is a red gate, not a skip.
+expected=$((expected + 1))
+if out="$(env PATH=/nonexistent "$(command -v bash)" "$FORMAL" 2>&1)"; then
+  echo "::error::formal: the gate passed with no toolchain on PATH"; echo "$out"; fail=1
+elif ! grep -q 'lake not on PATH' <<<"$out"; then
+  echo "::error::formal: the red is not the missing toolchain"; echo "$out"; fail=1
+else
+  echo "ok: formal: a missing toolchain -> lake not on PATH"; passed=$((passed + 1))
+fi
+
 IDS=tools/check_ids.py
 
 control "identifiers: a dangling citation" "$IDS" \
@@ -104,6 +166,11 @@ control "citations: a quoted phrase its target never contained" "$CITES" \
 control "citations: a new unquoted attribution above the baseline" "$CITES" \
   "printf '\n\`STA-24\` says something this sentence does not quote.\n' >> 00-overview.md" \
   "NEW UNQUOTED ATTRIBUTIONS" "00-overview.md:STA-24"
+
+# Resolved against the index the formal gate wrote before this script ran.
+control "citations: a TauWeb.* name the index does not carry" "$CITES" \
+  "printf '\nFormalized as \`TauWeb.Allocation.renamedAway\`.\n' >> 00-overview.md" \
+  "UNRESOLVED TAUWEB NAMES" "00-overview.md:TauWeb.Allocation.renamedAway"
 
 COV=tools/check_coverage.py
 

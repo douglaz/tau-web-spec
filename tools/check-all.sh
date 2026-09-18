@@ -29,10 +29,13 @@ run() {
   return 0
 }
 
+# The formal gate runs first: the citations gate resolves `TauWeb.*` names against the
+# index it writes, and a stale index is a gate reading last week's truth.
+run "formal       (Lean build, axiom policy, @[req] index; needs the nix develop shell)" bash tools/check_formal.sh
 run "identifiers  (duplicates, dangling, pointers, gaps, ADR refs, CNF tiers)" python3 tools/check_ids.py
 run "fixtures     (every JSON example parses; every Mermaid block is structurally whole)" python3 tools/check_fixtures.py
 run "obligations  (a duty assigned to a requirement whose own text names none of the machinery)" python3 tools/check_obligations.py
-run "citations    (a quoted attribution its target does not contain; unquoted ones ratcheted)" python3 tools/check_citations.py
+run "citations    (a quoted attribution its target does not contain; unquoted ones ratcheted; TauWeb.* names)" python3 tools/check_citations.py
 run "coverage     (requirements exercised by at least one CNF item, ratcheted)" python3 tools/check_coverage.py
 
 echo

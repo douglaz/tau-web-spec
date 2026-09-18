@@ -1,17 +1,16 @@
 # AGENTS.md
 
-Specification only. `tools/` holds the gates that check it and will hold, under `tools/formal/`,
-the formal companion (ADR-0032); `.github/workflows/` runs the same scripts. Nothing that implements
+Specification only. `tools/` holds the gates that check it and, under `tools/formal/`, the
+formal companion (ADR-0032); `.github/workflows/` runs the same scripts. Nothing that implements
 the harness belongs here — that is `douglaz/tau-web-rust`, which pins this repository as its
 `spec/` submodule (ADR-0031).
 
 ## Gates
 
-`bash tools/check-all.sh`, before you start and again before you report done. Run it unpiped — a
-pipe reports the pipeline's status, not the gate's, which is why `check-all.sh` captures each exit
-code directly. When the Lean package lands (ADR-0032; TASKS T30), the command becomes
-`nix develop --command bash tools/check-all.sh`, and a missing toolchain is a red gate, not a
-skipped one.
+`nix develop --command bash tools/check-all.sh`, before you start and again before you report
+done. Run it unpiped — a pipe reports the pipeline's status, not the gate's, which is why
+`check-all.sh` captures each exit code directly. The shell is required: the formal gate needs
+the Lean `flake.nix` pins, and a missing toolchain is a red gate, not a skipped one.
 
 A formalized clause's home is its Lean declaration in `tools/formal/`, tagged `@[req "STA-22b"]`
 (ADR-0032, "Authority is per clause"). The Markdown keeps the identifier, the MUST, the rationale

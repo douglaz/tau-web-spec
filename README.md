@@ -18,8 +18,9 @@ the decisions taken so far, and the reasoning that produced them. `bundle/` hold
 publisher-chosen values the implementation compiles in, `prototypes/` holds throwaway spikes
 that answer open questions by running, `docs/findings/` holds what they found,
 `docs/briefs/` holds draft briefs written from those runs, not yet in any bundle, and
-`tools/` holds the gates that check the specification (ADR-0032): `bash tools/check-all.sh`
-runs them all.
+`tools/` holds the gates that check the specification and, under `tools/formal/`, the formal
+companion (ADR-0032): `nix develop --command bash tools/check-all.sh` runs them all, the
+formal gate first.
 
 `tau-web` is a working name.
 
@@ -77,6 +78,15 @@ body does not contain the quote, and ratchets unquoted ones against `tools/citat
 `tools/check_coverage.py` counts the requirements no conformance item cites and ratchets that
 count against `tools/coverage-baseline.json`. Each baseline records a date and a reason, and is
 rewritten with `--write-baseline DATE REASON`, deliberately.
+
+A formalized clause's home is its Lean declaration in `tools/formal/`, tagged `@[req]` with
+the identifier it formalizes (ADR-0032). `tools/check_formal.sh` runs first: it refuses a
+`CNF` identifier anywhere in the tree and a module under `TauWeb/` the umbrella never
+imports, builds, and runs `lake exe gate`, which refuses a tagged declaration depending on
+any axiom beyond `propext`, `Classical.choice` and `Quot.sound` — so a `sorry` that
+`lake build` accepts is red — a `native_decide` outside `TauWeb.Explore`, and an empty index.
+The index it writes, one line per tagged declaration, is the list of what is carried;
+`tools/check_citations.py` refuses a backticked `TauWeb.*` name the index does not resolve.
 
 | Prefix | Domain |
 |---|---|

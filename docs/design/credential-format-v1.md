@@ -32,6 +32,11 @@ silently skipping to another path; a failed reserved allocation remains consumed
 | 3 | Pass | Relay | secp256k1 secret; Nostr BIP-340 x-only public key |
 | 4 | Handoff | Post-harness credential | 32-byte big-endian child scalar used as an RFC 8032 Ed25519 seed |
 
+The family and child-secret columns of this table are carried as `TauWeb.Allocation.row`
+(ADR-0032): its totality over the roles it defines is decided, and
+`TauWeb.Allocation.machine_index_shared` proves that roles 0, 1 and 2 share the machine index
+and roles 3 and 4 do not. The encoding column stays here.
+
 The Ed25519 mapping uses the child bytes as the **seed**, never as an already-expanded
 Ed25519 scalar. Nostr signing follows BIP-340's parity normalization. Only raw child secrets
 are passed to their authorized holders; no chain code or extended key leaves the harness.

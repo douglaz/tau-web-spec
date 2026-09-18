@@ -22,6 +22,14 @@ TWO RULES, deliberately narrow, ported from provisiond-spec:
            in the same file is new; rewording a standing one is not. The count
            lives in that file and nowhere else.
 
+  LEAN     A backticked `TauWeb.*` name is a citation of a Lean declaration
+           (ADR-0032, "The tags are the record") and must resolve against the
+           index `lake exe gate` writes: a tagged declaration, a namespace or
+           module holding one, or `TauWeb.Explore`. A renamed declaration
+           leaves a dangling citation, and this is where it goes red. A missing
+           index is exit 2, never a skip: `check-all.sh` runs the formal gate
+           first so the index is this run's.
+
 Summary verbs are OUT OF SCOPE by design. "`STA-8` forbids automatic retry" is
 a paraphrase; demanding a quote there fires on legitimate prose. Past-tense
 attributions ("`STA-8` said *terminal event* until 2026-09-16") report a former
@@ -36,8 +44,8 @@ profiles and `docs/design/`. Not scanned: `docs/review/` and `docs/findings/`,
 which are dated records of what a text said when they were written.
 
 Usage: check_citations.py [--write-baseline DATE REASON]
-Exit 0 = clean, 1 = an unverifiable quote or a rise above the baseline,
-2 = no baseline recorded.
+Exit 0 = clean, 1 = an unverifiable quote, an unresolved `TauWeb.*` name or a
+rise above the baseline, 2 = no baseline recorded or no index written.
 """
 
 import collections
@@ -72,6 +80,34 @@ SPLIT = re.compile(r"(?<=[.!?])\s+|\n\s*[-*]\s+|\n\s*\n|\n(?=\|)")
 # Paired quotes only: an unpaired quote character makes every span between two
 # of them look like a quotation.
 QUOTE = re.compile(r'“([^”]{8,400})”|"((?:[^"\n]|\n(?!\s*\n)){8,400})"')
+LEAN = re.compile(r"`(TauWeb\.[A-Za-z0-9_.]+)`(?<!\.lean`)")  # `TauWeb.lean` is a file
+INDEX = os.path.join(ROOT, "tools", "formal", ".lake", "index.jsonl")
+MODULES = os.path.join(ROOT, "tools", "formal", "TauWeb.lean")
+
+
+def lean_names():
+    """Every name a document may cite: tagged declarations, their namespaces, the
+    modules the umbrella imports, and `TauWeb.Explore`, which holds untagged scratch.
+    Not caught: a declaration renamed and a new one tagged under the old name."""
+    if not os.path.exists(INDEX):
+        print(f"FAIL: {INDEX} missing -- run tools/check_formal.sh first "
+              f"(check-all.sh orders it before this gate)")
+        sys.exit(2)
+    names = {"TauWeb.Explore"}
+    for line in open(INDEX):
+        if line.strip():
+            parts = json.loads(line)["decl"].split(".")
+            names.update(".".join(parts[:k]) for k in range(1, len(parts) + 1))
+    for line in open(MODULES):
+        if line.startswith("import "):
+            names.add(line.split()[1])
+    return names
+
+
+def unresolved():
+    names = lean_names()
+    return sorted({(f, n) for f in files(CITING)
+                   for n in LEAN.findall(open(f).read()) if n not in names})
 
 
 def norm(s):
@@ -153,9 +189,12 @@ def main():
     base = json.load(open(BASELINE))
     limit = base["unquoted_attributions"]
     new = sorted(sig for sig, n in counts.items() if n > limit.get(sig, 0))
+    dangling = unresolved()
 
     for f, rid, q in bad:
         print(f'  {f} attributes to {rid} a phrase {rid} does not contain: "{q}"')
+    for f, n in dangling:
+        print(f"  {f} cites `{n}`, which the index does not carry")
     for sig in new:
         f, rid = sig.split(":", 1)
         print(f"  {f} reports what {rid} says without quoting it: "
@@ -164,7 +203,8 @@ def main():
           f"{sum(limit.values())} (recorded {base['recorded']}: {base['reason']})")
     print("UNVERIFIED QUOTES:", sorted(f"{f}:{rid}" for f, rid, _ in bad) or "none")
     print("NEW UNQUOTED ATTRIBUTIONS:", new or "none")
-    return 1 if (bad or new) else 0
+    print("UNRESOLVED TAUWEB NAMES:", [f"{f}:{n}" for f, n in dangling] or "none")
+    return 1 if (bad or new or dangling) else 0
 
 
 if __name__ == "__main__":

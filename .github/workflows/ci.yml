@@ -5,6 +5,9 @@ name: gates
 # for the gates on every run: one negative control per refusal, each against a
 # scratch copy, each requiring exactly one finding under the label it targets.
 # The list of controls lives in tools/check-controls.sh, runnable locally.
+#
+# Every step enters the shell flake.nix pins (ADR-0032): the formal gate needs Lean,
+# and a missing toolchain is a red gate, not a skipped one.
 
 on:
   push:
@@ -18,12 +21,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
+      - uses: cachix/install-nix-action@v31
 
       - name: Run all gates
-        run: bash tools/check-all.sh
+        run: nix develop --command bash tools/check-all.sh
 
       - name: Prove each gate can fail, one control per refusal
-        run: bash tools/check-controls.sh
+        run: nix develop --command bash tools/check-controls.sh
