@@ -3,8 +3,9 @@
 # reads, build every Lean module, then run `lake exe gate`, which refuses a @[req]
 # declaration whose proof depends on an axiom outside propext / Classical.choice /
 # Quot.sound -- so `sorry` and a project `axiom` are red -- refuses `native_decide`
-# outside TauWeb.Explore, and refuses an empty index. The index it writes is what the
-# citations gate resolves `TauWeb.*` names against, so check-all.sh runs this first.
+# outside TauWeb.Explore, and refuses an empty index. Then `lake exe witnesses` writes the
+# witness files. The index and the files are what the citations and witnesses gates read,
+# so check-all.sh runs this first.
 #
 # Needs `lake` and `lean` on PATH: run under `nix develop` (flake.nix). A missing tool
 # is a failure, not a skip.
@@ -51,6 +52,12 @@ while IFS= read -r f; do
     exit 1;;
   esac
 done < <(find TauWeb -name '*.lean' | sort)
+
+# The witness files (Witnesses.lean), one per module; check_witnesses.py holds docs/design/
+# equal to them. Emptied first, so a module that stopped emitting leaves no stale file for
+# the comparison to accept.
+rm -rf .lake/witnesses && mkdir -p .lake/witnesses
+lake exe witnesses .lake/witnesses || exit 1
 
 # Written only on a green run: a red run must not leave an index the citations gate resolves
 # against as if it were this run's truth.

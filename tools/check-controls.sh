@@ -127,6 +127,12 @@ else
 fi
 rm -rf "$tmp"
 
+# A decided witness no trace in the emitter names (Witnesses.lean) is red, naming it, before
+# any file is written.
+formal_control "formal: a tagged witness the emitter does not reach" \
+  "printf '\n@[req \"STA-22b\"] theorem TauWeb.Allocation.unreached : TauWeb.Allocation.init.journal.epoch = 0 := by decide\n' >> $ALLOC" \
+  "witness TauWeb.Allocation.unreached is tagged but no trace in the emitter reaches it (module allocation)"
+
 # A missing toolchain is a red gate, not a skip.
 expected=$((expected + 1))
 if out="$(env PATH=/nonexistent "$(command -v bash)" "$FORMAL" 2>&1)"; then
@@ -136,6 +142,25 @@ elif ! grep -q 'lake not on PATH' <<<"$out"; then
 else
   echo "ok: formal: a missing toolchain -> lake not on PATH"; passed=$((passed + 1))
 fi
+
+WIT=tools/check_witnesses.py
+WITFILE=docs/design/allocation-witnesses-v1.json
+
+# Compared against the emission the formal gate wrote before this script ran: one expected
+# outcome flipped by hand in the committed file is red, naming the module.
+control "witnesses: a committed file edited by hand" "$WIT" \
+  "sed -i '0,/\"allocation\":\"admitted\"/s//\"allocation\":\"refused\"/' $WITFILE && ! cmp -s $WITFILE tools/formal/.lake/witnesses/allocation-witnesses-v1.json" \
+  "WITNESS DRIFT" "module allocation"
+
+# The emission itself: a CNF identifier in it is refused before the comparison, so the one
+# finding is that and not the drift the mutation also causes.
+control "witnesses: an emission carrying a CNF identifier" "$WIT" \
+  "sed -i 's/\"module\": \"allocation\"/\"module\": \"allocation\", \"exercised_by\": \"CNF-83\"/' tools/formal/.lake/witnesses/allocation-witnesses-v1.json && grep -q CNF-83 tools/formal/.lake/witnesses/allocation-witnesses-v1.json" \
+  "WITNESS DRIFT" "module allocation carries a CNF identifier"
+
+control "witnesses: a committed file no module emits" "$WIT" \
+  "cp $WITFILE docs/design/orphan-witnesses-v1.json" \
+  "WITNESS DRIFT" "orphan-witnesses-v1.json is committed but no module emits it"
 
 IDS=tools/check_ids.py
 

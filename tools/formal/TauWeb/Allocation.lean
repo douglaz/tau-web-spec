@@ -429,12 +429,17 @@ family's counter is not exhausted, at the index the sheet's counter names. -/
 def m0 : Identity := ⟨0, 1, .machine, 0⟩
 def m1 : Identity := ⟨0, 1, .machine, 1⟩
 
+/-! Each witness's events are one named list, so that the theorem and the emitter
+(`Witnesses.lean`) run the same trace: the file's steps come from the list the proof decided. -/
+
 /-- The stale sheet: machine 0 allocated and created, the sheet exported, machine 1 allocated and
 created, the phone's journal lost, the sheet restored — its counter says 1 — and an allocation
 attempted. -/
-def staleSheetTrace (p : Params) : World :=
-  run p init [.allocate .machine, .created m0, .exportSheet, .allocate .machine, .created m1,
-              .restore, .allocate .machine]
+def staleSheetEvents : List Event :=
+  [.allocate .machine, .created m0, .exportSheet, .allocate .machine, .created m1,
+   .restore, .allocate .machine]
+
+def staleSheetTrace (p : Params) : World := run p init staleSheetEvents
 
 /-- With the guard, the restored seed's allocation is refused: the two identities issued are the
 two the machines hold, the journal is marked restored, and it holds the listed identity the
@@ -455,33 +460,70 @@ it, so the two are one trace. -/
 /-- Replace after the restore lifts the guard: the next allocation is admitted, under the fresh
 epoch, at index 0. Stated on what Replace decides and not on what the guard did before it, so
 that the flipped guard reddens `stale_sheet_refused` alone. -/
+def replaceAgainEvents : List Event := staleSheetEvents ++ [.replace, .allocate .machine]
+
 @[req "STA-22"] theorem replace_allocates_again :
-    let w := run current (staleSheetTrace current) [.replace, .allocate .machine]
+    let w := run current init replaceAgainEvents
     w.issued.head? = some ⟨1, 1, .machine, 0⟩ ∧ w.journal.epoch = 1 ∧
     w.journal.restored = false := by
   decide +kernel
 
+def failedCreateEvents : List Event := [.allocate .machine, .failed m0, .allocate .machine]
+
 /-- A failed create keeps its index: the next allocation takes index 1, and the tombstone stays. -/
 @[req "STA-22b"] theorem failed_create_keeps_index :
-    let w := run current init [.allocate .machine, .failed m0, .allocate .machine]
+    let w := run current init failedCreateEvents
     w.journal.entries = [⟨m1, .reserved⟩, ⟨m0, .failed⟩] ∧ w.journal.next.machine = 2 := by
   decide +kernel
+
+def successfulEvents : List Event :=
+  [.allocate .machine, .created m0, .destroy m0, .allocate .machine, .created m1]
 
 /-- The allocator is not safe by refusing everything: allocate, create, destroy, allocate again,
 create again — two machines, two identities, one tombstone, the counter at 2. -/
 @[req "STA-22b"] theorem successful_trace :
-    let w := run current init [.allocate .machine, .created m0, .destroy m0, .allocate .machine,
-                               .created m1]
+    let w := run current init successfulEvents
     w.journal.entries = [⟨m1, .created⟩, ⟨m0, .destroyed⟩] ∧ w.issued = [m1, m0] ∧
     w.journal.next.machine = 2 ∧ w.journal.next.pass = 0 := by
   decide +kernel
 
+/-- The fresh seed with the machine counter one below the limit. -/
+def exhaustionStart : World :=
+  { init with journal := { init.journal with next := ⟨indexLimit - 1, 0, 0⟩ } }
+
+def exhaustionEvents : List Event := [.allocate .machine, .allocate .machine]
+
 /-- Exhaustion, at the limit: the last index 2^31−1 is issued, and the allocation after it is
 refused with the counter at the limit and not wrapped. -/
 @[req "STA-22a"] theorem exhaustion_refuses :
-    let w0 := { init with journal := { init.journal with next := ⟨indexLimit - 1, 0, 0⟩ } }
-    let w := run current w0 [.allocate .machine, .allocate .machine]
+    let w := run current exhaustionStart exhaustionEvents
     w.issued = [⟨0, 1, .machine, 2147483647⟩] ∧ w.journal.next.machine = indexLimit := by
+  decide +kernel
+
+/-! ## The bound -/
+
+/-- The bound (`CONTEXT.md`): every trace of at most this many events over `alphabet`, from
+`init`, is what `bounded_nodup` decides and what the witness file enumerates. Stated once, here,
+for both; beyond it is `issued_nodup`'s statement, not the file's. -/
+@[req "STA-22"] def bound : Nat := 3
+
+/-- The events the bounded enumeration draws from: the machine family, the first machine's
+three outcomes, and the three journal-level acts. -/
+def alphabet : List Event :=
+  [.allocate .machine, .created m0, .failed m0, .destroy m0, .exportSheet, .restore, .replace]
+
+/-- Every trace of exactly `n` events over `alphabet`. -/
+def tracesOf : Nat → List (List Event)
+  | 0 => [[]]
+  | n + 1 => (tracesOf n).flatMap fun es => alphabet.map (es ++ [·])
+
+/-- Every trace of at most `n` events over `alphabet`, shortest first. -/
+def tracesUpTo (n : Nat) : List (List Event) := (List.range (n + 1)).flatMap tracesOf
+
+/-- `issued_nodup`, decided within the bound: the enumeration the witness file carries is one
+the companion itself closed over. -/
+@[req "STA-22"] theorem bounded_nodup :
+    (tracesUpTo bound).all (fun es => decide (run current init es).issued.Nodup) = true := by
   decide +kernel
 
 end TauWeb.Allocation

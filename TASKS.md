@@ -58,7 +58,7 @@ gated on it.
       `STG-8` and the `ARC-20` duplicate. The Lean package landed 2026-09-18: `flake.nix`,
       `tools/formal/` with `Req.lean`, `Gate.lean` and `check_formal.sh`, the citations
       gate's `TauWeb.*` resolver, and `STA-22a`'s role table as the first clause.*
-- [ ] **T31 — Formal companion, module 1: allocation** (ADR-0032's inventory). Identities as
+- [x] **T31 — Formal companion, module 1: allocation** (ADR-0032's inventory). Identities as
       distinct structures — seed epoch, derivation version, role family, index; reserve durably
       before any effect; a failed or destroyed allocation keeps its index as a tombstone; no
       wraparound; a restored seed uses listed identities and allocates none until Replace — that
@@ -71,7 +71,10 @@ gated on it.
       2026-09-18 in `tools/formal/TauWeb/Allocation.lean`: the identity structure, the
       allocator as a trace, the theorems over every trace, the guard as a parameter with its
       refused-and-admitted pair, the decided witnesses, and the control that flips the guard.
-      `lake exe witnesses` and the witness file are the epic's next ticket.*
+      `lake exe witnesses`, `docs/design/allocation-witnesses-v1.json` with its schema in
+      `docs/design/witness-file-v1.md`, and the emission gate `tools/check_witnesses.py`
+      landed the same day, with the bound as `TauWeb.Allocation.bound` and its decided
+      enumeration.*
 - [x] **T26 — Measure `STA-23` unlock latency on the first-stage phone.**
       `prototypes/unlock-latency/index.html` builds the v1 envelope and times one unlock.
       Done 2026-09-11: 58 ms at 600,000 iterations on the phone, 57 ms on the desktop

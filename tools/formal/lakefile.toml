@@ -1,7 +1,7 @@
 # The formal companion (ADR-0032). No dependencies: Mathlib is added only in a commit naming
 # the theorem that cannot close without it.
 name = "tau-web-formal"
-defaultTargets = ["TauWeb", "gate"]
+defaultTargets = ["TauWeb", "gate", "witnesses"]
 
 [[lean_lib]]
 name = "TauWeb"
@@ -10,4 +10,10 @@ name = "TauWeb"
 [[lean_exe]]
 name = "gate"
 root = "Gate"
+supportInterpreter = true
+
+# `lake exe witnesses DIR`: the witness files, one per module (Witnesses.lean).
+[[lean_exe]]
+name = "witnesses"
+root = "Witnesses"
 supportInterpreter = true

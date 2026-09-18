@@ -27,7 +27,9 @@ bracket; a node whose id is a block opener (`alt`, `box`) reads as an unclosed
 block. None of the corpus's diagrams uses these; the first that does extends
 the check.
 
-Scanned for JSON: the root documents, `docs/design/` and the tenant profiles.
+Scanned for JSON: the root documents, `docs/design/` and the tenant profiles, and
+every whole `.json` file under `docs/design/` -- the credential vectors and the
+witness files (ADR-0032) -- as one document each.
 Scanned for Mermaid: those, the decision records and the review records.
 
 Exit 0 = clean, 1 = failures.
@@ -42,6 +44,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from check_ids import ROOT, files  # noqa: E402
 
 JSON_FILES = ["*.md", "docs/design/*.md", "docs/tenants/*/profile.md"]
+JSON_WHOLE_FILES = ["docs/design/*.json"]
 MERMAID_FILES = JSON_FILES + ["docs/adr/*.md", "docs/review/*.md"]
 
 JSON_RE = re.compile(r"^```json\s*\n(.*?)^```", re.M | re.S)
@@ -87,24 +90,32 @@ def walk(node, path, problems):
             problems.append(f"{path}: not an MD5 colon-hex or SHA256 base64 fingerprint")
 
 
+def check_body(body, where, bad):
+    if "..." in body:
+        bad.append(f"{where}: contains a `...` placeholder")
+        return
+    try:
+        doc = json.loads(body, object_pairs_hook=no_duplicate_keys)
+    except ValueError as e:
+        bad.append(f"{where}: {e}")
+        return
+    problems = []
+    walk(doc, "$", problems)
+    bad.extend(f"{where}: {p}" for p in problems)
+
+
 def check_json():
     bad, count = [], 0
     for f in files(JSON_FILES):
         text = open(f).read()
         for m in JSON_RE.finditer(text):
             count += 1
-            body, where = m.group(1), f"{f}:{text.count(chr(10), 0, m.start()) + 1}"
-            if "..." in body:
-                bad.append(f"{where}: contains a `...` placeholder")
-                continue
-            try:
-                doc = json.loads(body, object_pairs_hook=no_duplicate_keys)
-            except ValueError as e:
-                bad.append(f"{where}: {e}")
-                continue
-            problems = []
-            walk(doc, "$", problems)
-            bad.extend(f"{where}: {p}" for p in problems)
+            check_body(m.group(1), f"{f}:{text.count(chr(10), 0, m.start()) + 1}", bad)
+    # The whole files beside the documents -- credential vectors, witness files -- are the
+    # same kind of test input, read by the same implementations.
+    for f in files(JSON_WHOLE_FILES):
+        count += 1
+        check_body(open(f).read(), f, bad)
     return bad, count
 
 

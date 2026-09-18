@@ -31,7 +31,8 @@ run() {
 
 # The formal gate runs first: the citations gate resolves `TauWeb.*` names against the
 # index it writes, and a stale index is a gate reading last week's truth.
-run "formal       (Lean build, axiom policy, @[req] index; needs the nix develop shell)" bash tools/check_formal.sh
+run "formal       (Lean build, axiom policy, @[req] index, witness emission; needs the nix develop shell)" bash tools/check_formal.sh
+run "witnesses    (a committed witness file under docs/design/ that differs from the emission)" python3 tools/check_witnesses.py
 run "identifiers  (duplicates, dangling, pointers, gaps, ADR refs, CNF tiers)" python3 tools/check_ids.py
 run "fixtures     (every JSON example parses; every Mermaid block is structurally whole)" python3 tools/check_fixtures.py
 run "obligations  (a duty assigned to a requirement whose own text names none of the machinery)" python3 tools/check_obligations.py

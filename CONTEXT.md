@@ -96,8 +96,10 @@ _Avoid_: example (a witness is checked; an example is illustrated), sample, test
 
 **Witness file** · ADR-0032
 The companion's serialized witnesses and bounded traces for one module, one file under
-`docs/design/`, emitted by the companion and held equal to the emission by a specification
-gate. Read by the implementation's tests from the pinned tree; never compiled into the build. It
+`docs/design/` — `allocation-witnesses-v1.json` is the first, and `witness-file-v1.md` the
+schema — emitted by `lake exe witnesses` and held equal to the emission by
+`tools/check_witnesses.py`. Read by the implementation's tests from the pinned tree; never
+compiled into the build. It
 carries harness knowledge and expected outcomes at each step, and never a claim about external
 state, a conformance identifier, a timer, or key material.
 _Avoid_: trace vector, test vector (that is `credential-vectors-v1.json`'s word for frozen
@@ -108,6 +110,7 @@ one kind)
 The finite range a decided property closes within and a witness file enumerates, stated once
 in the declaration the theorem and the emitter share, and rendered into the file. Beyond the
 bound is the theorem's statement, not the file's; the file's size is never coverage.
+Allocation's is `TauWeb.Allocation.bound`: a number of events over a closed alphabet.
 _Avoid_: depth, budget, sample size
 
 **Companion comparison** · ADR-0032

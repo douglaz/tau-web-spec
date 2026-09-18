@@ -87,6 +87,9 @@ any axiom beyond `propext`, `Classical.choice` and `Quot.sound` — so a `sorry`
 `lake build` accepts is red — a `native_decide` outside `TauWeb.Explore`, and an empty index.
 The index it writes, one line per tagged declaration, is the list of what is carried;
 `tools/check_citations.py` refuses a backticked `TauWeb.*` name the index does not resolve.
+The same run emits the witness files (`docs/design/witness-file-v1.md`), and
+`tools/check_witnesses.py` refuses a committed one under `docs/design/` that differs from
+the emission.
 
 | Prefix | Domain |
 |---|---|
