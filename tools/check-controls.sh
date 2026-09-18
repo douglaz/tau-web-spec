@@ -119,6 +119,59 @@ control "coverage: a citation removed from a real CNF line" "$COV" \
   "sed -i 's/(\`CHN-13\`)\./(the relay row rule)./' 07-conformance.md && grep -q 'the relay row rule' 07-conformance.md" \
   "ABOVE BASELINE" "uncovered > "
 
+OBL=tools/check_obligations.py
+
+# STA-12 cites nothing; the sentence is appended to its body so that the duty
+# is read inside a requirement, where the gate looks, and STA-24 never mentions
+# the machinery it names.
+control "obligations: a duty naming machinery its target never mentions" "$OBL" \
+  "sed -i 's/^\*\*STA-12\*\*/**STA-12** \`STA-24\` MUST write \`orphaned_column\` before dispatch./' 03-state-and-recovery.md && grep -q 'orphaned_column' 03-state-and-recovery.md" \
+  "ORPHANED OBLIGATIONS" "STA-12->STA-24"
+
+FIX=tools/check_fixtures.py
+DECL=docs/design/delivery-declaration-v1.md
+
+control "fixtures: a JSON example with a placeholder" "$FIX" \
+  "sed -i 's/^  \"drift_checks\": \[\],/  \"drift_checks\": ...,/' $DECL && grep -q '\"drift_checks\": \.\.\.,' $DECL" \
+  "BAD JSON" "placeholder"
+
+control "fixtures: a JSON example with a repeated member" "$FIX" \
+  "sed -i 's/^  \"required\": \[\],/  \"required\": [], \"required\": [],/' $DECL && grep -q '\"required\": \[\], \"required\"' $DECL" \
+  "BAD JSON" "duplicate object member 'required'"
+
+control "fixtures: a JSON example that does not parse" "$FIX" \
+  "sed -i 's/^  \"services\": \[\],/  \"services\": [,/' $DECL && grep -q '\"services\": \[,' $DECL" \
+  "BAD JSON" "Expecting value"
+
+# Added as a member of the first example only: "version" opens both.
+control "fixtures: a JSON example with a malformed digest" "$FIX" \
+  "sed -i '0,/^  \"version\": 1,/s//  \"version\": 1, \"sha256\": \"abc\",/' $DECL && grep -q '\"sha256\": \"abc\"' $DECL" \
+  "BAD JSON" "sha256 digest is exactly 64 hex"
+
+control "fixtures: a JSON example with a malformed fingerprint" "$FIX" \
+  "sed -i '0,/^  \"version\": 1,/s//  \"version\": 1, \"host_fingerprint\": \"nope\",/' $DECL && grep -q '\"host_fingerprint\": \"nope\"' $DECL" \
+  "BAD JSON" "not an MD5 colon-hex or SHA256 base64 fingerprint"
+
+control "fixtures: a Mermaid block declaring no diagram type" "$FIX" \
+  "sed -i 's/^flowchart LR$/flowchat LR/' 05-trust.md && grep -q '^flowchat LR$' 05-trust.md" \
+  "BAD MERMAID" "no known diagram type"
+
+control "fixtures: a Mermaid block with an unbalanced bracket" "$FIX" \
+  "sed -i 's/^        U1\[The operator.s device\]$/        U1[The operator\x27s device/' 05-trust.md && grep -q '^        U1\[The operator.s device$' 05-trust.md" \
+  "BAD MERMAID" "unbalanced \[\]"
+
+control "fixtures: a Mermaid block with an unpaired quote" "$FIX" \
+  "sed -i 's/^    subgraph U\[\"Unavoidable/    subgraph U[Unavoidable/' 05-trust.md && grep -q '^    subgraph U\[Unavoidable' 05-trust.md" \
+  "BAD MERMAID" "odd number of double quotes"
+
+control "fixtures: a Mermaid block with a dangling edge" "$FIX" \
+  "sed -i 's/^    U --> WORLD$/    U -->/' 05-trust.md && grep -q '^    U -->$' 05-trust.md" \
+  "BAD MERMAID" "dangling edge"
+
+control "fixtures: a Mermaid block with an unclosed subgraph" "$FIX" \
+  "sed -i '0,/^    end$/{/^    end$/d}' 05-trust.md && [ \$(grep -c '^    end$' 05-trust.md) -eq 2 ]" \
+  "BAD MERMAID" "unclosed subgraph"
+
 echo
 if [ "$passed" -ne "$expected" ]; then
   echo "::error::$passed of $expected controls passed"; fail=1

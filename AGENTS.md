@@ -43,7 +43,9 @@ costs: "`SEC-1` describes each session as having its own SSH keypair. The creden
 tenant profile (ADR-0030) leaves a one-line "Moved to" pointer behind and nothing more; `ARC-20`
 was a full second copy until the identifier gate refused it. **Arguments have owners too** —
 re-explaining a rule in a second document is how a second normative copy gets written, because you
-cannot explain a rule without restating it.
+cannot explain a rule without restating it. **Duties have owners too**: "`STA-24` MUST write `x`"
+written anywhere but in `STA-24` is a duty nobody implementing `STA-24` reads, and
+`tools/check_obligations.py` refuses it when `STA-24`'s own text names none of the machinery.
 
 **Cite the list; let it hold the number.** A count written into prose is wrong the first time either
 end moves. The conformance item count is what `tools/check_ids.py` prints, and lives nowhere in
