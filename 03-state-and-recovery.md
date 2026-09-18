@@ -311,7 +311,11 @@ counter. Therefore **a seed imported after loss of the canonical journal may res
 identities but MUST NOT allocate new ones**, even when the sheet claims to be current. To
 allocate again, use Replace with a freshly generated seed; old records are retained until
 migration is complete. This restriction also applies to an imported local-store backup.
-Existing identities remain usable during non-revoking Restore.
+Existing identities remain usable during non-revoking Restore. The index rules are carried as
+`TauWeb.Allocation.allocate` (ADR-0032): under the restriction above,
+`TauWeb.Allocation.issued_nodup` proves over every trace that no two allocations share an
+identity, and the restriction is the parameter whose pair is
+`TauWeb.Allocation.stale_sheet_refused` and `TauWeb.Allocation.stale_sheet_admitted`.
 
 With no sheet, or for machines missing from a stale sheet, Robot recovery installs keys from
 a fresh seed through vendor-authenticated rescue and re-reads host pins; it does not guess old

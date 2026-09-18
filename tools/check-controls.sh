@@ -101,6 +101,32 @@ formal_control "formal: a CNF identifier in the formal tree" \
   "printf '\n-- exercised by CNF-83\n' >> $ALLOC" \
   "a CNF identifier in tools/formal/"
 
+# The restored-seed guard (STA-22b, 2026-09-09) is one field of TauWeb.Allocation.current.
+# Flipped, `lake build` must go red with exactly one error, in the allocation module, and it
+# must be `decide` refuting stale_sheet_refused's own proposition -- a second error would
+# mean a neighbouring witness asserts what this guard decides, and a red elsewhere would
+# mean the mutation broke something other than the property it targets.
+expected=$((expected + 1))
+tmp="$(mktemp -d)"
+cp -r . "$tmp/repo"
+if ! (cd "$tmp/repo" && sed -i 's/^@\[req "STA-22b"\] def current : Params := { restoredAllocatesNone := true }$/@[req "STA-22b"] def current : Params := { restoredAllocatesNone := false }/' $ALLOC && grep -q 'def current : Params := { restoredAllocatesNone := false }$' $ALLOC); then
+  echo "::error::formal: the guard flip did not apply"; fail=1
+else
+  out="$(cd "$tmp/repo" && bash "$FORMAL" 2>&1)"
+  rc=$?
+  if [ "$rc" -eq 0 ]; then
+    echo "::error::formal: the formal gate passed with the restored-seed guard removed"; echo "$out"; fail=1
+  elif [ "$(grep -c '^error: TauWeb/' <<<"$out")" -ne 1 ]; then
+    echo "::error::formal: the guard flip did not produce exactly one error"; echo "$out"; fail=1
+  elif ! grep -qE "^error: TauWeb/Allocation.lean:[0-9]+:[0-9]+: Tactic .decide. proved that the proposition" <<<"$out" \
+       || ! grep -A1 'proved that the proposition' <<<"$out" | grep -q '(staleSheetTrace current).issued = \[m1, m0\]'; then
+    echo "::error::formal: the red is not decide refuting stale_sheet_refused in the allocation module"; echo "$out"; fail=1
+  else
+    echo "ok: formal: the restored-seed guard flipped -> stale_sheet_refused"; passed=$((passed + 1))
+  fi
+fi
+rm -rf "$tmp"
+
 # A missing toolchain is a red gate, not a skip.
 expected=$((expected + 1))
 if out="$(env PATH=/nonexistent "$(command -v bash)" "$FORMAL" 2>&1)"; then

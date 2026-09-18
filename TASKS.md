@@ -67,7 +67,11 @@ gated on it.
       trace. Lands with `lake exe witnesses`, its witness file
       `docs/design/allocation-witnesses-v1.json`, and the emission gate that holds the file to
       the emission (ADR-0032, "How the implementation is compared"). Blocked by T30. Modules
-      2–5 follow in the ADR's order; module 4's rule is `STA-24`.
+      2–5 follow in the ADR's order; module 4's rule is `STA-24`. *The module landed
+      2026-09-18 in `tools/formal/TauWeb/Allocation.lean`: the identity structure, the
+      allocator as a trace, the theorems over every trace, the guard as a parameter with its
+      refused-and-admitted pair, the decided witnesses, and the control that flips the guard.
+      `lake exe witnesses` and the witness file are the epic's next ticket.*
 - [x] **T26 — Measure `STA-23` unlock latency on the first-stage phone.**
       `prototypes/unlock-latency/index.html` builds the v1 envelope and times one unlock.
       Done 2026-09-11: 58 ms at 600,000 iterations on the phone, 57 ms on the desktop
