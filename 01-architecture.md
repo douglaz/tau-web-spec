@@ -411,7 +411,12 @@ demonstrate.
 [`docs/design/delivery-declaration-v1.md`](./docs/design/delivery-declaration-v1.md)**, which is
 normative: every field is present, as a concrete value, an explicit empty set, or the marker
 `unspecified`. An absent field is a schema error; `unspecified` blocks delivery (ADR-0030). The
-harness invents no default for any field.
+harness invents no default for any field. Presence and meaning are carried as
+`TauWeb.Declaration.check` (ADR-0032): `TauWeb.Declaration.delivered_specified` proves over every
+trace, declaration and machine that no path reaches delivered while any field is missing or
+unspecified, and the 2026-09-16 rule that an empty list's meaning is the field's own is the
+parameter whose pair is `TauWeb.Declaration.empty_inbound_refused` and
+`TauWeb.Declaration.empty_inbound_admitted`.
 
 A declaration covers at least:
 

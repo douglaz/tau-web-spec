@@ -133,6 +133,23 @@ formal_control "formal: a tagged witness the emitter does not reach" \
   "printf '\n@[req \"STA-22b\"] theorem TauWeb.Allocation.unreached : TauWeb.Allocation.init.journal.epoch = 0 := by decide\n' >> $ALLOC" \
   "witness TauWeb.Allocation.unreached is tagged but no trace in the emitter reaches it (module allocation)"
 
+DECL=tools/formal/TauWeb/Declaration.lean
+
+# The field table (ARC-39) is a function over TauWeb.Declaration.Field with no wildcard: a
+# field added without its row is a missing case, red at the table before anything else.
+formal_control "formal: a declaration field added without its row" \
+  "sed -i 's/^  | defaultCredentials$/  | defaultCredentials\n  | added/' $DECL && grep -q '^  | added$' $DECL" \
+  "Field.added"
+
+# The 2026-09-16 rule -- what an empty list means is the field's own -- is one field of
+# TauWeb.Declaration.current. Flipped, the build must go red with decide refuting
+# empty_inbound_refused's own proposition: the empty inbound list with a socket answering
+# is a finding.
+formal_control "formal: the empty-list rule flipped" \
+  "sed -i 's/^@\[req \"ARC-39\"\] def current : Params := { emptyMeansPerField := true }$/@[req \"ARC-39\"] def current : Params := { emptyMeansPerField := false }/' $DECL && grep -q 'def current : Params := { emptyMeansPerField := false }$' $DECL" \
+  "r.verdict Field.listenersInbound = some Verdict.finding ∧ r.delivered = false
+is false"
+
 # A missing toolchain is a red gate, not a skip.
 expected=$((expected + 1))
 if out="$(env PATH=/nonexistent "$(command -v bash)" "$FORMAL" 2>&1)"; then

@@ -88,6 +88,17 @@ def Side.name : Side → String
   | .refused => "refused"
   | .admitted => "admitted"
 
+/-- One trace of the file's shape: its declarations, the module's assumptions, the pair if any,
+the start and the steps. -/
+def traceJson (decls : List String) (assumptions : Json) (pair : Option (Side × String))
+    (start : Json) (steps : Array Json) : Json :=
+  Json.mkObj <|
+    [("declarations", toJson decls), ("assumptions", assumptions)] ++
+    (match pair with
+     | some (side, other) => [("pair", Json.mkObj [("side", side.name), ("with", other)])]
+     | none => []) ++
+    [("start", start), ("steps", Json.arr steps)]
+
 structure Trace where
   decls : List String
   events : List Event
@@ -100,13 +111,8 @@ def Trace.json (t : Trace) : Json :=
   let steps := (t.events.foldl
     (fun (acc, w) e => let (j, w') := stepJson t.params w e; (acc.push j, w'))
     (#[], t.start)).1
-  Json.mkObj <|
-    [("declarations", toJson t.decls),
-     ("assumptions", Json.mkObj [("restoredAllocatesNone", toJson t.params.restoredAllocatesNone)])] ++
-    (match t.pair with
-     | some (side, other) => [("pair", Json.mkObj [("side", side.name), ("with", other)])]
-     | none => []) ++
-    [("start", journalJson t.start.journal), ("steps", Json.arr steps)]
+  traceJson t.decls (Json.mkObj [("restoredAllocatesNone", toJson t.params.restoredAllocatesNone)])
+    t.pair (journalJson t.start.journal) steps
 
 def noGuard : Params := { current with restoredAllocatesNone := false }
 
@@ -134,9 +140,9 @@ structure Module where
   refs : List String
 
 /-- The header pretty, one trace per line: a diff names the trace that moved. -/
-def fileText (name : String) (ns : Name) (bound : Json) (witnesses enumeration : List Trace) :
+def fileText (name : String) (ns : Name) (bound : Json) (witnesses enumeration : List Json) :
     String :=
-  let lines (ts : List Trace) := String.intercalate ",\n" (ts.map fun t => "    " ++ t.json.compress)
+  let lines (ts : List Json) := String.intercalate ",\n" (ts.map fun t => "    " ++ t.compress)
   "{\n  \"schema\": 1,\n" ++
   s!"  \"module\": \"{name}\",\n  \"namespace\": \"{ns}\",\n  \"bound\": {bound.compress},\n" ++
   s!"  \"witnesses\": [\n{lines witnesses}\n  ],\n" ++
@@ -148,11 +154,125 @@ def allocationModule : Module :=
                            ("alphabet", Json.arr (alphabet.map eventJson).toArray)]
   let traces := allocationWitnesses ++ allocationEnumeration
   { name := "allocation", ns := `TauWeb.Allocation,
-    text := fileText "allocation" `TauWeb.Allocation bound allocationWitnesses allocationEnumeration,
+    text := fileText "allocation" `TauWeb.Allocation bound (allocationWitnesses.map (·.json))
+      (allocationEnumeration.map (·.json)),
     named := traces.flatMap (·.decls),
     refs := boundDecl :: traces.filterMap fun t => t.pair.map (·.2) }
 
-def modules : List Module := [allocationModule]
+/-! ## Declaration, in `delivery-declaration-v1.md`'s vocabulary -/
+
+namespace Declaration
+
+open TauWeb.Declaration hiding Event Params current init
+
+def verdictName : Verdict → String
+  | .refused => "refused"
+  | .blocked => "blocked"
+  | .finding => "finding"
+  | .pass => "pass"
+
+def valueJson : Value → Json
+  | .number n => toJson n
+  | .flag b => toJson b
+  | .list xs => toJson xs
+
+/-- A field's presence as the document writes it: the value, or the marker; `missing` is the
+member absent, so that a reader meets it as absent and not as `unspecified`. `"none"` for
+`default_credentials` is the empty list, written as the table does. -/
+def presenceJson (f : Field) : Presence Value → Option Json
+  | .missing => none
+  | .unspecified => some "unspecified"
+  | .specified (.list []) => some (if f = .defaultCredentials then "none" else Json.arr #[])
+  | .specified v => some (valueJson v)
+
+/-- Keyed by the table's names. -/
+def declarationJson (d : TauWeb.Declaration.Declaration) : Json :=
+  Json.mkObj (fields.filterMap fun f => (presenceJson f (d f)).map ((row f).name, ·))
+
+def machineJson (m : Machine) : Json :=
+  Json.mkObj [("multi_tenant", toJson m.multiTenant),
+              ("observed", Json.mkObj (fields.map fun f => ((row f).name, toJson (m.observed f))))]
+
+/-- The projection of harness knowledge: each field's verdict as recorded, and whether
+delivery was reached. -/
+def recordJson (r : Record) : Json :=
+  Json.mkObj [("verdicts", Json.mkObj (fields.filterMap fun f =>
+                (r.verdict f).map fun v => ((row f).name, toJson (verdictName v)))),
+              ("delivered", toJson r.delivered)]
+
+def eventJson : TauWeb.Declaration.Event → Json
+  | .check f => Json.mkObj [("kind", "check"), ("provenance", "adapter observation"),
+                            ("field", toJson (row f).name)]
+  | .deliver => Json.mkObj [("kind", "deliver"), ("provenance", "model request")]
+
+/-- One step: the event, the verdict a check recorded or whether delivery was reached, and the
+record after. -/
+def stepJson (p : TauWeb.Declaration.Params) (m : Machine) (d : TauWeb.Declaration.Declaration)
+    (r : Record) (e : TauWeb.Declaration.Event) : Json × Record :=
+  let r' := TauWeb.Declaration.step p m d r e
+  let outcome := match e with
+    | .check f => [("verdict", toJson ((r'.verdict f).map verdictName))]
+    | .deliver => [("delivered", toJson r'.delivered)]
+  (Json.mkObj ([("event", eventJson e)] ++ outcome ++ [("record", recordJson r')]), r')
+
+structure Trace where
+  decls : List String
+  declaration : TauWeb.Declaration.Declaration
+  machine : Machine
+  params : TauWeb.Declaration.Params := TauWeb.Declaration.current
+  pair : Option (Side × String) := none
+
+def Trace.json (t : Trace) : Json :=
+  let steps := (walk.foldl
+    (fun (acc, r) e => let (j, r') := stepJson t.params t.machine t.declaration r e; (acc.push j, r'))
+    (#[], TauWeb.Declaration.init)).1
+  traceJson t.decls (Json.mkObj [("emptyMeansPerField", toJson t.params.emptyMeansPerField)]) t.pair
+    (Json.mkObj [("declaration", declarationJson t.declaration), ("machine", machineJson t.machine),
+                 ("record", recordJson TauWeb.Declaration.init)])
+    steps
+
+def noRule : TauWeb.Declaration.Params := { TauWeb.Declaration.current with emptyMeansPerField := false }
+
+def witnesses : List Trace := [
+  { decls := ["TauWeb.Declaration.adhoc_delivered"], declaration := adhoc, machine := machine22 },
+  { decls := ["TauWeb.Declaration.empty_inbound_refused"], declaration := emptyInbound,
+    machine := machine22, pair := some (.refused, "TauWeb.Declaration.empty_inbound_admitted") },
+  { decls := ["TauWeb.Declaration.empty_inbound_admitted"], declaration := emptyInbound,
+    machine := machine22, params := noRule,
+    pair := some (.admitted, "TauWeb.Declaration.empty_inbound_refused") },
+  { decls := ["TauWeb.Declaration.undeclared_listener_finding"], declaration := adhoc,
+    machine := machine22and80 },
+  { decls := ["TauWeb.Declaration.empty_outbound_not_finding"], declaration := adhoc,
+    machine := machineRestricted },
+  { decls := ["TauWeb.Declaration.template_blocked"], declaration := template,
+    machine := machineWithService },
+  { decls := ["TauWeb.Declaration.absent_field_refused"], declaration := absentDriftChecks,
+    machine := machine22 },
+  { decls := ["TauWeb.Declaration.spendable_declared_refused"], declaration := spendableTrue,
+    machine := machineMultiTenant } ]
+
+def enumeration : List Trace :=
+  cases.map fun c => { decls := ["TauWeb.Declaration.bounded"],
+                       declaration := c.declaration, machine := c.machine }
+
+def module : Module :=
+  let boundDecl := "TauWeb.Declaration.bound"
+  let bound := Json.mkObj [("declaration", boundDecl),
+    ("base", Json.mkObj [("declaration", declarationJson bound.declaration),
+                         ("machine", machineJson bound.machine)]),
+    ("presences", Json.mkObj (fields.map fun f => ((row f).name,
+      Json.arr ((bound.presences f).map fun v => (presenceJson f v).getD "missing").toArray))),
+    ("observations", toJson bound.observations), ("tenancies", toJson bound.tenancies)]
+  let traces := witnesses ++ enumeration
+  { name := "declaration", ns := `TauWeb.Declaration,
+    text := fileText "declaration" `TauWeb.Declaration bound (witnesses.map (·.json))
+      (enumeration.map (·.json)),
+    named := traces.flatMap (·.decls),
+    refs := boundDecl :: traces.filterMap fun t => t.pair.map (·.2) }
+
+end Declaration
+
+def modules : List Module := [allocationModule, Declaration.module]
 
 /-- A statement that binds no variable: a decided proposition about a concrete trace, `let`s
 and non-dependent arrows (`¬P`, `A → B`) included. -/

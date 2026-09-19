@@ -75,6 +75,20 @@ gated on it.
       `docs/design/witness-file-v1.md`, and the emission gate `tools/check_witnesses.py`
       landed the same day, with the bound as `TauWeb.Allocation.bound` and its decided
       enumeration.*
+- [ ] **T33 — Port the rendering gate** (ADR-0032, "No marked regions yet": "the gate is ported
+      when the first one exists"). `TauWeb.Declaration.row` is the first formalized table; the
+      field table in `docs/design/delivery-declaration-v1.md` is its marked region once the gate
+      holds the two equal.
+- [x] **T32 — Formal companion, module 2: declaration presence and meaning** (ADR-0032's
+      inventory; `ARC-39`, `docs/design/delivery-declaration-v1.md`). Landed 2026-09-19 in
+      `tools/formal/TauWeb/Declaration.lean`: presence as one type for every field, the field
+      table as `TauWeb.Declaration.row` with what an empty list means as a column, the delivery
+      check as a trace, and over every trace, declaration and machine: no path reaches delivered
+      while any field is missing or unspecified; an empty inbound list with any answering socket
+      is a finding and an empty outbound list is not; a multi-tenant machine cannot declare
+      spendable key material. The 2026-09-16 rule is a parameter with the refused-and-admitted
+      pair; `docs/design/declaration-witnesses-v1.json` is its file; the controls add a field
+      without its row and flip the rule.
 - [x] **T26 — Measure `STA-23` unlock latency on the first-stage phone.**
       `prototypes/unlock-latency/index.html` builds the v1 envelope and times one unlock.
       Done 2026-09-11: 58 ms at 600,000 iterations on the phone, 57 ms on the desktop
