@@ -108,7 +108,8 @@ _Avoid_: example (a witness is checked; an example is illustrated), sample, test
 
 **Witness file** · ADR-0032
 The companion's serialized witnesses and bounded traces for one module, one file under
-`docs/design/` — `allocation-witnesses-v1.json` and `declaration-witnesses-v1.json`, with
+`docs/design/` — `allocation-witnesses-v1.json`, `declaration-witnesses-v1.json` and
+`relay-witnesses-v1.json`, with
 `witness-file-v1.md` as the schema — emitted by `lake exe witnesses` and held equal to the emission by
 `tools/check_witnesses.py`. Read by the implementation's tests from the pinned tree; never
 compiled into the build. It
@@ -124,7 +125,8 @@ in the declaration the theorem and the emitter share, and rendered into the file
 bound is the theorem's statement, not the file's; the file's size is never coverage.
 Allocation's is `TauWeb.Allocation.bound`: a number of events over a closed alphabet.
 Declaration's is `TauWeb.Declaration.bound`: a sweep of every field through its presences and
-observations over a base declaration and machine.
+observations over a base declaration and machine. Relay's is `TauWeb.Relay.bound`: a number of
+events over a closed alphabet, from one opened connection.
 _Avoid_: depth, budget, sample size
 
 **Companion comparison** · ADR-0032

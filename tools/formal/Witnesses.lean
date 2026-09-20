@@ -272,7 +272,196 @@ def module : Module :=
 
 end Declaration
 
-def modules : List Module := [allocationModule, Declaration.module]
+/-! ## Relay admission, in `relay-protocol-v1.md`'s vocabulary -/
+
+namespace Relay
+
+-- The clashing names of TauWeb.Allocation, opened above, are qualified here on purpose.
+open TauWeb.Relay hiding Family Event Params current step run bound alphabet tracesOf tracesUpTo
+
+def phaseName : Phase → String
+  | .opened => "opened"
+  | .authAccepted => "auth_accepted"
+  | .okSent => "ok_sent"
+  | .closed => "closed"
+
+def reasonName : Reason → String
+  | .auth => "auth"
+  | .pass => "pass"
+  | .destination => "destination"
+  | .address => "address"
+  | .pace => "pace"
+  | .dial => "dial"
+
+def familyName : TauWeb.Relay.Family → String
+  | .v4 => "v4"
+  | .v6 => "v6"
+  | .v4mapped => "v4_mapped"
+
+/-- An address is its family and its opaque value, never wire bytes. -/
+def addrJson (a : Addr) : Json :=
+  Json.mkObj [("family", Json.str (familyName a.family)), ("value", toJson a.value)]
+
+def hostJson : Host → Json
+  | .dns n => Json.mkObj [("name", toJson n)]
+  | .numeric a => Json.mkObj [("address", addrJson a)]
+
+def destinationJson (d : Destination) : Json :=
+  Json.mkObj [("host", hostJson d.host), ("port", toJson d.port)]
+
+/-- The projection of harness knowledge: the connection as `relay-protocol-v1.md` names it — the
+phase, whether the AUTH was accepted and whether OK went out, the addresses the dialer was
+handed, the application bytes forwarded, and the refusal reason. Nothing of the companion's
+`Connection` beyond it, and never a challenge, a signature or an address the relay did not dial. -/
+def connectionJson (s : Connection) : Json :=
+  Json.mkObj [
+    ("phase", Json.str (phaseName s.phase)),
+    ("auth_accepted", toJson s.accepted),
+    ("ok_sent", toJson s.okSent),
+    ("dialed", Json.arr (s.dialed.reverse.map addrJson).toArray),
+    ("forwarded", toJson s.forwarded),
+    ("refused", match s.refused with | some r => Json.str (reasonName r) | none => Json.null) ]
+
+/-- The AUTH as the checks read it. Its provenance is `replay` exactly when the frame answers a
+challenge that is not this connection's, and `operator act` otherwise, since the browser signs
+with the operator's relay key. The challenge itself is not carried: what is compared is whether
+the frame answered this connection's. -/
+def authJson (s : Connection) (a : Auth) : Json :=
+  Json.mkObj [
+    ("kind", "auth"),
+    ("provenance", Json.str (if a.challenge == s.challenge then "operator act" else "replay")),
+    ("destination", destinationJson a.destinationTag),
+    ("key", toJson a.key),
+    ("event_kind", toJson a.kind),
+    ("relay_tag", toJson a.relayTag),
+    ("within_skew", toJson a.fresh),
+    ("signature_verifies", toJson a.signature),
+    ("answers_challenge", toJson (a.challenge == s.challenge)) ]
+
+def eventJson (s : Connection) : TauWeb.Relay.Event → Json
+  | .auth a => authJson s a
+  | .dial up => Json.mkObj [("kind", "dial"), ("provenance", "adapter observation"),
+                            ("connected", toJson up)]
+  | .appFrame => Json.mkObj [("kind", "app_frame"), ("provenance", "operator act")]
+
+/-- One step: the event, what the connection did with it, and the projection after. -/
+def stepJson (p : TauWeb.Relay.Params) (r : TauWeb.Relay.Relay) (s : Connection)
+    (e : TauWeb.Relay.Event) : Json × Connection :=
+  let s' := TauWeb.Relay.step p r s e
+  let outcome := match e with
+    | .auth _ =>
+      [("auth", Json.str (if s.phase != .opened then "ignored"
+                          else if s'.accepted then "accepted" else "refused"))]
+    | .dial _ =>
+      [("dial", Json.str (if s.dialed.length < s'.dialed.length then "dialed" else "refused"))]
+    | .appFrame => [("forwarded", toJson (decide (s.forwarded < s'.forwarded)))]
+  (Json.mkObj ([("event", eventJson s e)] ++ outcome ++ [("connection", connectionJson s')]), s')
+
+structure Trace where
+  decls : List String
+  events : List TauWeb.Relay.Event
+  start : Connection
+  relay : TauWeb.Relay.Relay := publisherRelay
+  params : TauWeb.Relay.Params := TauWeb.Relay.current
+  /-- A refused-and-admitted pair: this side, and the declaration of the other. -/
+  pair : Option (Side × String) := none
+
+/-- The pass the operator's key holds, as the checks read it: whether it is live, and one entry
+per recorded host with whether pacing admits a dial to it now. An AUTH under another key finds
+none. -/
+def passJson (r : TauWeb.Relay.Relay) : Json :=
+  match r.pass operatorKey with
+  | none => Json.null
+  | some p => Json.mkObj [
+      ("live", toJson p.live),
+      ("recorded", Json.arr (p.hosts.map fun h =>
+        Json.mkObj [("host", hostJson h), ("paced", toJson (p.paced h))]).toArray) ]
+
+/-- The assumptions: the guard parameter, and the classification tables and resolver answers the
+trace ran under — `CHN-16a`'s pinned registries are the module's assumption, so a witness carries
+the value it assumed rather than a table the companion owns. -/
+def assumptionsJson (p : TauWeb.Relay.Params) : Json :=
+  Json.mkObj [
+    ("dialRequiresAuthAccepted", toJson p.dialRequiresAuthAccepted),
+    ("special", Json.arr (facts.special.map addrJson).toArray),
+    ("ownAddress", Json.arr (facts.own.map addrJson).toArray),
+    ("resolve", Json.arr (facts.answers.map fun na =>
+      Json.mkObj [("name", toJson na.1),
+                  ("answers", Json.arr (na.2.map addrJson).toArray)]).toArray) ]
+
+def startJson (t : Trace) : Json :=
+  Json.mkObj [
+    ("challenge", toJson t.start.challenge),
+    ("destination", match t.start.destination with
+                    | some d => destinationJson d | none => Json.null),
+    ("classified", match t.start.classified with
+                   | some x => addrJson x.addr | none => Json.null),
+    ("pass", passJson t.relay),
+    ("connection", connectionJson t.start) ]
+
+def Trace.json (t : Trace) : Json :=
+  let steps := (t.events.foldl
+    (fun (acc, s) e => let (j, s') := stepJson t.params t.relay s e; (acc.push j, s'))
+    (#[], t.start)).1
+  traceJson t.decls (assumptionsJson t.params) t.pair (startJson t) steps
+
+def noSeparation : TauWeb.Relay.Params :=
+  { TauWeb.Relay.current with dialRequiresAuthAccepted := false }
+
+def witnesses : List Trace := [
+  { decls := ["TauWeb.Relay.handshake_ok"], events := handshakeEvents,
+    start := recordedConnection },
+  { decls := ["TauWeb.Relay.dial_before_auth_refused"], events := dialFirstEvents,
+    start := recordedConnection,
+    pair := some (.refused, "TauWeb.Relay.dial_before_auth_admitted") },
+  { decls := ["TauWeb.Relay.dial_before_auth_admitted"], events := dialFirstEvents,
+    start := recordedConnection, params := noSeparation,
+    pair := some (.admitted, "TauWeb.Relay.dial_before_auth_refused") },
+  { decls := ["TauWeb.Relay.replayed_signature_refused"], events := authEvents,
+    start := nextConnection },
+  { decls := ["TauWeb.Relay.mismatched_tag_refused"], events := strangerDestEvents,
+    start := recordedConnection },
+  { decls := ["TauWeb.Relay.unknown_key_refused"], events := strangerKeyEvents,
+    start := recordedConnection },
+  { decls := ["TauWeb.Relay.undeclared_destination_refused"], events := strangerDestEvents,
+    start := strangerConnection },
+  { decls := ["TauWeb.Relay.admitted_name_dialed"], events := cleanNameEvents,
+    start := cleanConnection },
+  { decls := ["TauWeb.Relay.forbidden_answer_refused"], events := mixedEvents,
+    start := mixedConnection },
+  { decls := ["TauWeb.Relay.mapped_loopback_refused"], events := mappedEvents,
+    start := mappedConnection },
+  { decls := ["TauWeb.Relay.paced_out_refused"], events := authEvents,
+    start := recordedConnection, relay := pacedOutRelay },
+  { decls := ["TauWeb.Relay.alternate_spelling_closed"], events := authEvents,
+    start := alternateConnection },
+  { decls := ["TauWeb.Relay.bad_port_closed"], events := authEvents,
+    start := badPortConnection },
+  { decls := ["TauWeb.Relay.bytes_before_ok_closed"], events := bytesBeforeOkEvents,
+    start := recordedConnection },
+  { decls := ["TauWeb.Relay.failed_dial_sends_no_ok"], events := failedDialEvents,
+    start := recordedConnection } ]
+
+def enumeration : List Trace :=
+  (TauWeb.Relay.tracesUpTo TauWeb.Relay.bound).map fun es =>
+    { decls := ["TauWeb.Relay.bounded"], events := es, start := recordedConnection }
+
+def module : Module :=
+  let boundDecl := "TauWeb.Relay.bound"
+  let bound := Json.mkObj [
+    ("declaration", boundDecl), ("events", toJson TauWeb.Relay.bound),
+    ("alphabet", Json.arr (TauWeb.Relay.alphabet.map (eventJson recordedConnection)).toArray),
+    ("start", startJson { decls := [], events := [], start := recordedConnection })]
+  let traces := witnesses ++ enumeration
+  { name := "relay", ns := `TauWeb.Relay,
+    text := fileText "relay" `TauWeb.Relay bound (witnesses.map (·.json))
+      (enumeration.map (·.json)),
+    named := traces.flatMap (·.decls),
+    refs := boundDecl :: traces.filterMap fun t => t.pair.map (·.2) }
+
+end Relay
+
+def modules : List Module := [allocationModule, Declaration.module, Relay.module]
 
 /-- A statement that binds no variable: a decided proposition about a concrete trace, `let`s
 and non-dependent arrows (`¬P`, `A → B`) included. -/

@@ -344,7 +344,8 @@ of checks before any dial — is
 [`docs/design/relay-protocol-v1.md`](./docs/design/relay-protocol-v1.md), which is normative.
 **Nothing bearer exists.** There is no bearer string to store: the key
 re-derives from the seed plus its exported pass index (`STA-22b`), and the relay remembers
-the pass. Missing allocation metadata can lose access to paid quota.
+the pass. Missing allocation metadata can lose access to paid quota. The handshake and its check
+order are carried in Lean under `TauWeb.Relay` (ADR-0032); that note names the declarations.
 
 *What this replaced.* The pass used to be an opaque random string presented on connect. It was
 held encrypted at rest, exported nowhere, and "re-bought rather than recovered" after a lost
@@ -362,7 +363,10 @@ destination set, which `CHN-13` already prices.
 is bought before the machines exist, so its destination list grows as the operator creates them
 — which is the moment the relay learns topology, already priced at `CHN-13`. **Recording a
 destination requires the relay key's signature**, so nobody but the key holder can widen a pass —
-which a bearer string could not promise, since anyone holding it could.
+which a bearer string could not promise, since anyone holding it could. The record is read at
+the host and not at the port, as `TauWeb.Relay.recorded` (ADR-0032);
+`TauWeb.Relay.recorded_any_port` and `TauWeb.Relay.unrecorded_destination_refused` are that
+reading and its refusal.
 
 **CHN-16a Destination authorization never grants access to the relay's private network.**
 At registration and again on **every outbound connection**, the relay accepts only public
@@ -379,6 +383,16 @@ inside the dialer. Apply the check to retries, refreshed DNS results and every p
 or alternate targets are new destinations requiring the same authorization and validation.
 Use an egress firewall to deny local/private/metadata routes as defense in depth. Private
 proxying is not a first-stage exception: the hand-recorded relay key obeys the same rule.
+
+The check on every outbound connection is carried as `TauWeb.Relay.parse`,
+`TauWeb.Relay.classify` and `TauWeb.Relay.dial` (ADR-0032), whose argument is by type the
+classified numeric address, so a hostname cannot be passed to it; the check at registration is
+the recording message, which the first stage does not carry.
+`TauWeb.Relay.forbidden_answer_refuses` is the DNS rule above,
+`TauWeb.Relay.dialed_admitted` proves over every trace that the dialer receives only an admitted
+address, `TauWeb.Relay.mapped_forbidden_refused` closes the IPv4-mapped spelling and
+`TauWeb.Relay.parse_fails_closed` the forms the grammar does not admit. The special-purpose
+tables enter the companion as an assumption it quantifies over, never as data it owns.
 
 **A revoked pass closes its live connections and refuses new ones**, and revocation is a
 message signed by the pass's key. That is the teardown rule `CNF-60` was waiting for. What

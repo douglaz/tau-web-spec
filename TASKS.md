@@ -98,6 +98,22 @@ gated on it.
       spendable key material. The 2026-09-16 rule is a parameter with the refused-and-admitted
       pair; `docs/design/declaration-witnesses-v1.json` is its file; the controls add a field
       without its row and flip the rule.
+- [x] **T34 — Formal companion, module 3: relay admission** (ADR-0032's inventory; `CHN-15`,
+      `CHN-16`, `CHN-16a`, `docs/design/relay-protocol-v1.md`). Landed 2026-09-20 in
+      `tools/formal/TauWeb/Relay.lean`: the handshake as a machine whose `authAccepted` and
+      `okSent` are two phases with the dial between them, so the two orderings the 2026-09-16 fix
+      separated are two theorems over every trace — nothing dialed before the AUTH is accepted,
+      nothing forwarded before OK; step 3's check order as `TauWeb.Relay.admit`, total over the
+      protocol's refusal reasons; the destination as parse, normalize, classify, dial, with the
+      dialer's argument the classified numeric address by type. `CHN-16a`'s special-purpose
+      tables and the relay's resolver are an assumption the module quantifies over. The shorthand
+      "no dial before OK" is the parameter with the refused-and-admitted pair, and under it the
+      relay dials and sends OK having accepted no AUTH. `docs/design/relay-witnesses-v1.json` is
+      its file; the controls collapse the two orderings into the shorthand and pass a hostname to
+      the dialer. The inventory's second trap for this module — a hostname re-entering the dialer
+      after validation — is retained as that type and that control rather than as a trace, since
+      no trace in which the dialer receives a name can be written at all; what the file carries of
+      it is the positive side, the dialer handed the resolver's answer and never the name.
 - [x] **T26 — Measure `STA-23` unlock latency on the first-stage phone.**
       `prototypes/unlock-latency/index.html` builds the v1 envelope and times one unlock.
       Done 2026-09-11: 58 ms at 600,000 iterations on the phone, 57 ms on the desktop

@@ -175,6 +175,46 @@ formal_control "formal: the empty-list rule flipped" \
   "r.verdict Field.listenersInbound = some Verdict.finding ∧ r.delivered = false
 is false"
 
+RELAY=tools/formal/TauWeb/Relay.lean
+
+# The 2026-09-16 fix -- two orderings where the shorthand named one -- is one field of
+# TauWeb.Relay.current. Flipped, the relay's only order is against OK, which collapses
+# authAccepted and okSent into one gate. `lake build` must go red with exactly two errors, both
+# the first ordering: `decide` refuting dial_before_auth_refused, whose dial before the AUTH now
+# reaches the dialer, and `decide` refuting `bounded`, which closes over that same property
+# within the bound. A third error, or a red naming the second ordering -- which the shorthand
+# keeps, and which needs no guard -- would mean the flip broke something other than the property
+# it targets.
+expected=$((expected + 1))
+tmp="$(mktemp -d)"
+cp -r . "$tmp/repo"
+if ! (cd "$tmp/repo" && sed -i 's/^@\[req "CHN-15"\] def current : Params := { dialRequiresAuthAccepted := true }$/@[req "CHN-15"] def current : Params := { dialRequiresAuthAccepted := false }/' $RELAY && grep -q 'def current : Params := { dialRequiresAuthAccepted := false }$' $RELAY); then
+  echo "::error::formal: the ordering flip did not apply"; fail=1
+else
+  out="$(cd "$tmp/repo" && bash "$FORMAL" 2>&1)"
+  rc=$?
+  if [ "$rc" -eq 0 ]; then
+    echo "::error::formal: the formal gate passed with the two orderings collapsed"; echo "$out"; fail=1
+  elif [ "$(grep -c '^error: TauWeb/' <<<"$out")" -ne 2 ]; then
+    echo "::error::formal: the ordering flip did not produce exactly two errors"; echo "$out"; fail=1
+  elif ! grep -qF 's.dialed = [] ∧ s.okSent = false ∧ s.phase = Phase.authAccepted ∧ s.accepted = true' <<<"$out" \
+       || ! grep -qF '(s.dialed.isEmpty || s.accepted)' <<<"$out"; then
+    echo "::error::formal: the reds are not dial_before_auth_refused and bounded"; echo "$out"; fail=1
+  elif grep -qF 's.forwarded = 0 ∧ s.okSent = false ∧ s.phase = Phase.closed' <<<"$out"; then
+    echo "::error::formal: a red also names the second ordering, which the shorthand keeps"; echo "$out"; fail=1
+  else
+    echo "ok: formal: the two orderings collapsed -> dial_before_auth_refused and bounded"; passed=$((passed + 1))
+  fi
+fi
+rm -rf "$tmp"
+
+# The dialer takes the classified address and nothing else: a hostname passed to it is a type
+# error, so "without a second resolution inside the dialer" is checked by the elaborator rather
+# than asserted in prose.
+formal_control "formal: a hostname passed to the dialer" \
+  "printf '\ndef TauWeb.Relay.dialsAName : TauWeb.Relay.Addr := TauWeb.Relay.dial (TauWeb.Relay.Host.dns 1)\n' >> $RELAY" \
+  "Host.dns 1"
+
 # A missing toolchain is a red gate, not a skip.
 expected=$((expected + 1))
 if out="$(env PATH=/nonexistent "$(command -v bash)" "$FORMAL" 2>&1)"; then

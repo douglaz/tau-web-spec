@@ -58,6 +58,16 @@ invariants, not one: OK is sent *after* the dial succeeds, so "no dial before OK
 this section carried until 2026-09-16 — named an order the protocol does not have, and a relay
 and a test could each satisfy it while enforcing different things.
 
+The handshake is carried as `TauWeb.Relay.step` (ADR-0032), a machine whose `authAccepted` and
+`okSent` are two phases with the dial between them, and the two invariants are two theorems over
+every trace: `TauWeb.Relay.no_dial_before_auth` and `TauWeb.Relay.no_bytes_before_ok`. Step 3's
+order is `TauWeb.Relay.admit`, total over the reasons above, and
+`TauWeb.Relay.replay_refused` is the replayed frame. The shorthand is retained as the
+refused-and-admitted pair `TauWeb.Relay.dial_before_auth_refused` and
+`TauWeb.Relay.dial_before_auth_admitted`: read as a guard it leaves only "OK has not gone out",
+which every dial satisfies, so the admitted side dials and sends OK having accepted no AUTH.
+[`relay-witnesses-v1.json`](./relay-witnesses-v1.json) is the module's witness file.
+
 ## Not in v1
 
 Multiplexing several TCP streams over one socket, DNS-name destinations resolved to more than
