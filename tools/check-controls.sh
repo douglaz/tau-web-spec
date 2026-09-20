@@ -264,6 +264,45 @@ else
 fi
 rm -rf "$tmp"
 
+PINS=tools/formal/TauWeb/Pins.lean
+
+# The admission source is a type, and a source added without the scopes it may pin is a missing
+# case in TauWeb.Pins.admits before anything else -- so a new way for a value to reach the
+# harness admits nothing until someone decides what it may pin.
+formal_control "formal: a pin source added without what it may pin" \
+  "sed -i 's/^  | modelText\$/  | modelText\n  | vendorNotify/' $PINS && grep -q '^  | vendorNotify\$' $PINS" \
+  "Source.vendorNotify"
+
+# ARC-43's rule -- the source decides what it may pin -- is one field of TauWeb.Pins.current.
+# Collapsed, any source may pin anything. `lake build` must go red with exactly two errors: the
+# model-text witness, whose set is now journaled as the installed system's pin and admits a
+# session, and `bounded`, which closes over the same rule within the bound. A red naming the
+# ceremony would mean the flip broke something other than the property it targets, since
+# /rescue/last and the job record are admitted under both settings.
+expected=$((expected + 1))
+tmp="$(mktemp -d)"
+cp -r . "$tmp/repo"
+if ! (cd "$tmp/repo" && sed -i 's/^@\[req "ARC-43"\] def current : Params := { sourceAdmitsPin := true }$/@[req "ARC-43"] def current : Params := { sourceAdmitsPin := false }/' $PINS && grep -q '^@\[req "ARC-43"\] def current : Params := { sourceAdmitsPin := false }$' $PINS); then
+  echo "::error::formal: the source collapse did not apply"; fail=1
+else
+  out="$(cd "$tmp/repo" && bash "$FORMAL" 2>&1)"
+  rc=$?
+  if [ "$rc" -eq 0 ]; then
+    echo "::error::formal: the formal gate passed with the admission source collapsed"; echo "$out"; fail=1
+  elif [ "$(grep -c '^error: TauWeb/' <<<"$out")" -ne 2 ]; then
+    echo "::error::formal: the source collapse did not produce exactly two errors"; echo "$out"; fail=1
+  elif ! grep -qF 'init modelTextEvents' <<<"$out" \
+       || ! grep -qF 'wellPinned (run current start es)' <<<"$out"; then
+    echo "::error::formal: the reds are not the model-text witness and bounded"; echo "$out"; fail=1
+  elif grep -qF 'init ceremonyEvents' <<<"$out"; then
+    echo "::error::formal: a red also names the ceremony, which the source does not decide"; echo "$out"; fail=1
+  else
+    echo "ok: formal: the admission source collapsed -> the model-text witness and bounded"
+    passed=$((passed + 1))
+  fi
+fi
+rm -rf "$tmp"
+
 # A missing toolchain is a red gate, not a skip.
 expected=$((expected + 1))
 if out="$(env PATH=/nonexistent "$(command -v bash)" "$FORMAL" 2>&1)"; then

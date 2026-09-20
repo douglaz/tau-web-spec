@@ -148,7 +148,10 @@ durably appended, with `TauWeb.Dispatch.reset_offered_after_failed_append_refuse
 `TauWeb.Dispatch.reset_offered_after_failed_append_admitted` its pair. What a changed boot ID
 establishes is `TauWeb.Dispatch.confirms`, whose lattice keeps *ended* below *succeeded*, with
 `TauWeb.Dispatch.boot_id_change_not_success_refused` and
-`TauWeb.Dispatch.boot_id_change_not_success_admitted` its pair.
+`TauWeb.Dispatch.boot_id_change_not_success_admitted` its pair. That the halt against the old
+pin is the reset's confirmation rather than an error is
+`TauWeb.Pins.halt_on_expected_pin_confirms` over every trace, with
+`TauWeb.Pins.pin_halt_is_confirmation` its decided trace.
 
 **STA-21 The job record is machine-reported and advisory.** The browser journal is authoritative
 for what was **sent** (`STA-3`, `ARC-8`); the machine's record says what it **received** and what

@@ -684,8 +684,169 @@ def module : Module :=
 
 end Dispatch
 
+/-! ## The host-pin lifecycle, in `SEC-11`'s and `CHN-R1`'s vocabulary -/
+
+namespace Pins
+
+-- The clashing names of TauWeb.Allocation, opened above, are qualified here on purpose.
+open TauWeb.Pins hiding Entry Event Params current init start step run bound alphabet tracesOf
+  tracesUpTo
+
+def systemName : System → String
+  | .rescue => "rescue"
+  | .installed => "installed"
+
+def sourceName : Source → String
+  | .rescueLast => "rescue_last"
+  | .readyToReset => "ready_to_reset"
+  | .modelText => "model_text"
+
+def haltName : Halt → String
+  | .noPin => "no_pin"
+  | .mismatch => "mismatch"
+  | .confirmsReset => "confirms_reset"
+
+/-- What a pin is held per, as `CHN-R1` words it: the rescue pin is "per boot, not per machine",
+and the installed system's keys are "generated there, per machine". -/
+def perJson : Per → List (String × Json)
+  | .boot n => [("per", "boot"), ("boot", toJson n)]
+  | .machine => [("per", "machine")]
+
+/-- A host-key set is the ordinal of a fingerprint set and never key material. -/
+def pinJson (pin : Pin) : Json :=
+  Json.mkObj ([("entry", toJson pin.entry)] ++ perJson pin.per ++
+              [("keys", toJson pin.keys), ("source", Json.str (sourceName pin.source))])
+
+/-- A reset as the harness journals it: the entry, the system it resets into, and the pin the
+intent named as its expected next pin, where it named one (`STA-20b`). -/
+def awaitedJson (a : TauWeb.Pins.Awaited) : Json :=
+  Json.mkObj [("entry", toJson a.entry), ("into", Json.str (systemName a.into)),
+              ("expects", match a.expect with | some x => toJson x | none => Json.null)]
+
+def confirmedJson (x : TauWeb.Pins.Entry × System) : Json :=
+  Json.mkObj [("entry", toJson x.1), ("into", Json.str (systemName x.2))]
+
+def sessionJson (s : Session) : Json :=
+  Json.mkObj [("entry", toJson s.entry), ("system", Json.str (systemName s.system)),
+              ("boot", toJson s.boot), ("keys", toJson s.keys), ("pin", pinJson s.pin)]
+
+def haltedJson (h : Halted) : Json :=
+  Json.mkObj [("entry", toJson h.entry), ("system", Json.str (systemName h.system)),
+              ("presented", toJson h.keys), ("reason", Json.str (haltName h.reason))]
+
+/-- The approved entries the harness knows anything about, oldest first, so that what is read
+per entry — the snapshot, the boot — is read over those and not over an association list whose
+older entries a lookup never reaches. -/
+def entriesOf (k : Knowledge) : List TauWeb.Pins.Entry :=
+  (k.pins.map (·.entry) ++ k.snapshot.map (·.1) ++ k.boot.map (·.1) ++ k.awaiting.map (·.entry) ++
+    k.confirmed.map (·.1) ++ k.sessions.map (·.entry) ++
+    k.halts.map (·.entry)).reverse.eraseDups
+
+/-- The projection of harness knowledge: the pins and what they admitted, in `SEC-11`'s,
+`CHN-R1`'s and `ARC-43`'s vocabulary. Nothing of the companion's `Knowledge` beyond it, and never
+external state: `snapshot` is what the vendor's field showed when it was read, not what the
+machine is running, and a session's `keys` is what the far sshd presented. -/
+def knowledgeJson (k : Knowledge) : Json :=
+  Json.mkObj [
+    ("pins", Json.arr (k.pins.reverse.map pinJson).toArray),
+    ("snapshot", Json.arr ((entriesOf k).filterMap fun m =>
+      (k.snapshot.lookup m).map fun f =>
+        Json.mkObj [("entry", toJson m),
+                    ("keys", match f with | some x => toJson x | none => Json.null)]).toArray),
+    ("boot", Json.arr ((entriesOf k).map fun m =>
+      Json.mkObj [("entry", toJson m), ("boot", toJson (bootOf k m))]).toArray),
+    ("awaiting", Json.arr (k.awaiting.reverse.map awaitedJson).toArray),
+    ("confirmed", Json.arr (k.confirmed.reverse.map confirmedJson).toArray),
+    ("sessions", Json.arr (k.sessions.reverse.map sessionJson).toArray),
+    ("halts", Json.arr (k.halts.reverse.map haltedJson).toArray) ]
+
+/-- An event's provenance is ADR-0032's closed vocabulary; `source` beside it, on the three
+events that offer a pin, is `ARC-43`'s admission source, which is what `admits` reads. -/
+def eventJson : TauWeb.Pins.Event → Json
+  | .reset m into => Json.mkObj [
+      ("kind", "reset"), ("provenance", "operator act"),
+      ("entry", toJson m), ("into", Json.str (systemName into))]
+  | .rescueLast m keys => Json.mkObj [
+      ("kind", "rescue_last"), ("provenance", "adapter observation"), ("source", "rescue_last"),
+      ("entry", toJson m),
+      ("keys", match keys with | some f => toJson f | none => Json.null)]
+  | .readyToReset m f => Json.mkObj [
+      ("kind", "ready_to_reset"), ("provenance", "adapter observation"),
+      ("source", "ready_to_reset"), ("entry", toJson m), ("keys", toJson f)]
+  | .claim m pr f => Json.mkObj (
+      [("kind", Json.str "claim"), ("provenance", Json.str "model request"),
+       ("source", Json.str "model_text"), ("entry", toJson m)] ++ perJson pr ++
+      [("keys", toJson f)])
+  | .connect m sys keys => Json.mkObj [
+      ("kind", "connect"), ("provenance", "adapter observation"), ("entry", toJson m),
+      ("system", Json.str (systemName sys)), ("presents", toJson keys)]
+
+/-- One step: the event, what the harness did with it, and the projection after. -/
+def stepJson (p : TauWeb.Pins.Params) (k : Knowledge) (e : TauWeb.Pins.Event) :
+    Json × Knowledge :=
+  let k' := TauWeb.Pins.step p k e
+  let outcome := match e with
+    | .reset m _ => [("boot", toJson (bootOf k' m))]
+    | .rescueLast _ _ | .readyToReset _ _ | .claim _ _ _ =>
+      [("pinned", toJson (decide (k.pins.length < k'.pins.length)))]
+    | .connect m sys keys =>
+      match TauWeb.Pins.check k m sys keys with
+      | .admitted _ => [("check", Json.str "admitted")]
+      | .halted h => [("check", Json.str "halted"), ("halt", Json.str (haltName h))]
+  (Json.mkObj ([("event", eventJson e)] ++ outcome ++ [("knowledge", knowledgeJson k')]), k')
+
+structure Trace where
+  decls : List String
+  events : List TauWeb.Pins.Event
+  params : TauWeb.Pins.Params := TauWeb.Pins.current
+  /-- The witnesses run from nothing known; the enumeration from `TauWeb.Pins.start`. -/
+  start : Knowledge := TauWeb.Pins.init
+  /-- A refused-and-admitted pair: this side, and the declaration of the other. -/
+  pair : Option (Side × String) := none
+
+def assumptionsJson (p : TauWeb.Pins.Params) : Json :=
+  Json.mkObj [("sourceAdmitsPin", toJson p.sourceAdmitsPin)]
+
+def Trace.json (t : Trace) : Json :=
+  let steps := (t.events.foldl
+    (fun (acc, k) e => let (j, k') := stepJson t.params k e; (acc.push j, k'))
+    (#[], t.start)).1
+  traceJson t.decls (assumptionsJson t.params) t.pair (knowledgeJson t.start) steps
+
+def witnesses : List Trace := [
+  { decls := ["TauWeb.Pins.pin_ceremony_trace"], events := ceremonyEvents },
+  { decls := ["TauWeb.Pins.rescue_pin_not_reused_across_boots"], events := reuseEvents },
+  { decls := ["TauWeb.Pins.connection_before_fill_refused"], events := beforeFillEvents },
+  { decls := ["TauWeb.Pins.installed_pin_from_model_text_refused"], events := modelTextEvents,
+    pair := some (.refused, "TauWeb.Pins.installed_pin_from_model_text_admitted") },
+  { decls := ["TauWeb.Pins.installed_pin_from_model_text_admitted"], events := modelTextEvents,
+    params := anySource,
+    pair := some (.admitted, "TauWeb.Pins.installed_pin_from_model_text_refused") },
+  { decls := ["TauWeb.Pins.pin_halt_is_confirmation"], events := resumeProbeEvents },
+  { decls := ["TauWeb.Pins.other_machine_pin_refused"], events := otherMachineEvents },
+  { decls := ["TauWeb.Pins.mismatched_key_halts"], events := mismatchEvents } ]
+
+def enumeration : List Trace :=
+  (TauWeb.Pins.tracesUpTo TauWeb.Pins.bound).map fun es =>
+    { decls := ["TauWeb.Pins.bounded"], events := es, start := TauWeb.Pins.start }
+
+def module : Module :=
+  let boundDecl := "TauWeb.Pins.bound"
+  let bound := Json.mkObj [
+    ("declaration", boundDecl), ("events", toJson TauWeb.Pins.bound),
+    ("alphabet", Json.arr (TauWeb.Pins.alphabet.map eventJson).toArray),
+    ("start", knowledgeJson TauWeb.Pins.start)]
+  let traces := witnesses ++ enumeration
+  { name := "pins", ns := `TauWeb.Pins,
+    text := fileText "pins" `TauWeb.Pins bound (witnesses.map (·.json))
+      (enumeration.map (·.json)),
+    named := traces.flatMap (·.decls),
+    refs := boundDecl :: traces.filterMap fun t => t.pair.map (·.2) }
+
+end Pins
+
 def modules : List Module :=
-  [allocationModule, Declaration.module, Relay.module, Dispatch.module]
+  [allocationModule, Declaration.module, Relay.module, Dispatch.module, Pins.module]
 
 /-- A statement that binds no variable: a decided proposition about a concrete trace, `let`s
 and non-dependent arrows (`¬P`, `A → B`) included. -/

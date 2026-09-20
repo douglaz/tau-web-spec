@@ -133,6 +133,22 @@ gated on it.
       lattice, which keeps a changed boot ID below success; and the disposition's binding to the
       one continuation it names. `docs/design/dispatch-witnesses-v1.json` is its file; the
       controls switch the key to the call id and add an operation with no plane.
+- [x] **T36 — Formal companion, module 5: the host-pin lifecycle** (ADR-0032's inventory;
+      `SEC-11`, `CHN-R1`, `ARC-43`, with `STA-20b`'s resume rule and `STG-4`'s third
+      confirmation predicate). Landed 2026-09-20 in `tools/formal/TauWeb/Pins.lean`: what a pin
+      is held per is `TauWeb.Pins.Per`, a boot for rescue and the machine for the installed
+      system, and where it may come from is `TauWeb.Pins.Source`, paired with what each source
+      may pin by `TauWeb.Pins.admits`. The four theorems over every trace are
+      `TauWeb.Pins.rescue_pin_per_boot`, `TauWeb.Pins.installed_pin_from_job`,
+      `TauWeb.Pins.no_rescue_session_before_fill` and
+      `TauWeb.Pins.halt_on_expected_pin_confirms`, the last with
+      `TauWeb.Pins.mismatch_not_the_reset` beside it over every state: the halt the reset
+      explains and the error are two answers and never one. The one parameter is the source
+      distinction, with `TauWeb.Pins.installed_pin_from_model_text_refused` and
+      `TauWeb.Pins.installed_pin_from_model_text_admitted` its pair.
+      `docs/design/pins-witnesses-v1.json` is its file; the controls collapse the source
+      distinction, which must red on the model-text witness and on the bounded property and
+      nowhere else, and add a scope with no system.
 - [x] **T26 — Measure `STA-23` unlock latency on the first-stage phone.**
       `prototypes/unlock-latency/index.html` builds the v1 envelope and times one unlock.
       Done 2026-09-11: 58 ms at 600,000 iterations on the phone, 57 ms on the desktop

@@ -62,6 +62,12 @@ has consumed the activation — only `/rescue/last` knows. Never trust-on-first-
 that connects before `/rescue/last` fills has nothing to check against and MUST wait. The
 input side, `authorized_key[]`, takes MD5 colon fingerprints of keys registered at Robot.
 
+What a pin is held per — a boot, or a machine — is `TauWeb.Pins.Per` (ADR-0032), and the two
+rules above are `TauWeb.Pins.rescue_pin_per_boot` and
+`TauWeb.Pins.no_rescue_session_before_fill` over every trace, with
+`TauWeb.Pins.rescue_pin_not_reused_across_boots` and
+`TauWeb.Pins.connection_before_fill_refused` their decided traces.
+
 **Robot is NOT reachable by a browser `fetch`, verified 2026-08-31.** An earlier probe recorded
 the opposite and was wrong — almost certainly run with a tool that does not enforce CORS. Live
 results against the API, on a real account: an unauthenticated preflight returns 401, and an

@@ -202,6 +202,11 @@ first stage:
 - `ready_to_reset` — reads `/mnt/etc/ssh/ssh_host_*_key.pub`, journals the pins, unmounts the
   target, and only then offers the reset typed operation (`STA-20b`'s planned-reset ordering).
 
+Where a host-key pin may come from is `TauWeb.Pins.Source` and what each source may pin is
+`TauWeb.Pins.admits` (ADR-0032), with `TauWeb.Pins.installed_pin_from_job` over every trace and
+`TauWeb.Pins.installed_pin_from_model_text_refused` and
+`TauWeb.Pins.installed_pin_from_model_text_admitted` its pair.
+
 These jobs are **box-plane work**: they run under the box-plane scope like any `exec`, recorded
 before transmission (`ARC-8`) and never approved per call — what distinguishes them is that the
 harness composed the command, not that the operator sees it. Only the reset that

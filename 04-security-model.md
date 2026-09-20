@@ -271,6 +271,12 @@ floor: under trust-on-first-use there is no stored fingerprint at first contact,
 contact is trusted rather than verified and MUST be presented to the operator as such. No
 other path may accept an unverified key.
 
+On the routes the first stage walks, where a fingerprint is always stored before contact, the
+check is `TauWeb.Pins.check` (ADR-0032) — not the exempt moment above, which it has no branch
+for. Its halts are three and not one: nothing stored to check against, the key that does not
+match, and the halt `STA-20b`'s resume rule explains.
+`TauWeb.Pins.mismatch_not_the_reset` is that the last two are never the same answer.
+
 ### SEC-12 — every off-machine call is recorded before it is sent
 
 **Every off-machine call made with an operator credential MUST be recorded before it is
