@@ -91,6 +91,15 @@ The same run emits the witness files (`docs/design/witness-file-v1.md`), and
 `tools/check_witnesses.py` refuses a committed one under `docs/design/` that differs from
 the emission.
 
+It also emits the **marked regions**, and `tools/check_regions.py` refuses a table between
+`<!-- formal: TauWeb.Render.… -->` and `<!-- /formal -->` that is not what its declaration
+emits. `ARC-39`'s field table and `STA-22a`'s role table are marked, each in the normative
+companion its requirement links, and the gate prints what it rendered. Each is compared on the tokens the declaration determines —
+a field's shape, a role's family, credential and secret — so a row's prose and its conformance
+citations stay the document's. The gate also refuses a region naming a declaration the index
+does not carry, one sitting where its requirement neither defines nor links, a declaration
+rendered twice, a malformed marker, and an emitted region no document renders.
+
 | Prefix | Domain |
 |---|---|
 | `OVR-n` | Overview and scope |

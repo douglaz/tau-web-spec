@@ -24,13 +24,15 @@ Indices are integers from 0 through 2^31−1; each family has its own monotonic 
 No wraparound is allowed. Derivation rejects an invalid BIP-32 master or child rather than
 silently skipping to another path; a failed reserved allocation remains consumed.
 
+<!-- formal: TauWeb.Render.roleTable -->
 | Role | Family/index | Credential | Child-secret interpretation |
 |---|---|---|---|
-| 0 | Machine | SSH client | 32-byte big-endian child scalar used as an RFC 8032 Ed25519 seed; OpenSSH `ssh-ed25519` public-key encoding |
-| 1 | Same machine index | Attest sender | secp256k1 secret; Nostr BIP-340 x-only public key |
-| 2 | Same machine index | Attest recipient | secp256k1 secret; Nostr BIP-340 x-only public key |
-| 3 | Pass | Relay | secp256k1 secret; Nostr BIP-340 x-only public key |
-| 4 | Handoff | Post-harness credential | 32-byte big-endian child scalar used as an RFC 8032 Ed25519 seed |
+| `0` | **machine** index | **SSH client** | 32-byte big-endian child scalar used as an RFC 8032 **Ed25519 seed**; OpenSSH `ssh-ed25519` public-key encoding |
+| `1` | Same **machine** index | **Attest sender** | **secp256k1** secret; Nostr BIP-340 x-only public key |
+| `2` | Same **machine** index | **Attest recipient** | **secp256k1** secret; Nostr BIP-340 x-only public key |
+| `3` | **pass** | **Relay** | **secp256k1** secret; Nostr BIP-340 x-only public key |
+| `4` | **handoff** | **Post-harness credential** | 32-byte big-endian child scalar used as an RFC 8032 **Ed25519 seed** |
+<!-- /formal -->
 
 The family, credential and child-secret columns of this table are carried as
 `TauWeb.Allocation.row` (ADR-0032): its totality over the roles it defines is decided, and

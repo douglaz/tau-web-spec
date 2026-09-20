@@ -27,6 +27,10 @@ if grep -rnE 'CNF-[0-9]+' --exclude-dir=.lake . ; then
   exit 1
 fi
 
+# Both emissions go before the build: a red run must leave neither, since the gates that read
+# them treat a missing one as a red gate and a stale one as this run's truth.
+rm -f .lake/index.jsonl .lake/regions.jsonl
+
 lake build || exit 1
 
 # Every module under TauWeb/ must be reachable from TauWeb.lean through imports, read by
@@ -59,10 +63,16 @@ done < <(find TauWeb -name '*.lean' | sort)
 rm -rf .lake/witnesses && mkdir -p .lake/witnesses
 lake exe witnesses .lake/witnesses || exit 1
 
+# The marked regions (TauWeb/Render.lean); check_regions.py reads these beside the index, so
+# both are written on the same run, and both only once this one is green.
+lake exe render > .lake/regions.new || { rm -f .lake/regions.new; exit 1; }
+
 # Written only on a green run: a red run must not leave an index the citations gate resolves
 # against as if it were this run's truth.
 lake exe gate > .lake/index.new
 rc=$?
-[ "$rc" -eq 0 ] || { rm -f .lake/index.new; exit "$rc"; }
+[ "$rc" -eq 0 ] || { rm -f .lake/index.new .lake/regions.new; exit "$rc"; }
 mv .lake/index.new .lake/index.jsonl
+mv .lake/regions.new .lake/regions.jsonl
 echo "index: $(wc -l < .lake/index.jsonl) tagged declarations -> tools/formal/.lake/index.jsonl"
+echo "regions: $(wc -l < .lake/regions.jsonl) marked regions -> tools/formal/.lake/regions.jsonl"

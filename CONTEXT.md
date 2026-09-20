@@ -70,7 +70,8 @@ fork is forced: bare *model* is the weights here, so the artifact is a *companio
 The Lean package under `tools/formal/` that states selected clauses of requirements as
 executable definitions and transitions, and carries their properties as theorems. A formalized
 clause's home is its tagged declaration; the requirement keeps its identifier, its MUST, its
-rationale and its retained traps, and renders the clause. It is specification, not harness code
+rationale and its retained traps, and renders the clause — in a **marked region** once one
+covers it, and in prose until then. It is specification, not harness code
 (ADR-0031). What it distinguishes is **harness knowledge** — what was durably authorized,
 attempted and observed — from **external state** — what a vendor or machine may actually have
 done; a theorem about the first never speaks for the second.
@@ -85,6 +86,17 @@ by `tools/check-all.sh`. Bare *gate* means this in `README.md`, `AGENTS.md` and 
 requirement it is qualified, because the corpus also uses *gate* for what a stage or a tier
 gates, and those are requirements, not checks.
 _Avoid_: test (that is a conformance item's word), linter
+
+**Marked region** · ADR-0032
+The lines between `<!-- formal: TauWeb.Render.… -->` and `<!-- /formal -->` in a requirement, or
+in the normative companion that requirement's body links: a table the formal companion emits and
+`tools/check_regions.py` holds to what the named declaration emits. Inside one the declaration is
+authoritative and the Markdown is its rendering; outside one the transitional rule holds and the
+Markdown is. What a region carries is a table's outcome, never its rationale: the prose beside a
+compared token stays the document's, where the citation gates read it. A worked example inside
+one is computed by the declaration and illustrates it; it is not a **witness**, which is retained
+to refuse a trap.
+_Avoid_: generated section (a token-compared region is diffed, not generated), snippet, template
 
 **Witness**
 A concrete input or trace, checked by the formal companion, that exhibits a property or its

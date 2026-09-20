@@ -49,7 +49,16 @@ written.
 - **No marked regions yet.** provisiond-spec's rendering gate keeps a table or worked example in
   a requirement equal to what its declaration emits. This corpus has no formalized table to
   render on the day of this decision; the gate is ported when the first one exists, and until
-  then every formalized clause is under the transitional rule above.
+  then every formalized clause is under the transitional rule above. **The gate
+  (`tools/check_regions.py`) landed 2026-09-20 with the tables that triggered it**:
+  `ARC-39`'s field table in `delivery-declaration-v1.md` and `STA-22a`'s role table in
+  `credential-format-v1.md`, each a `match` region, since both carry prose and the first carries
+  conformance citations the companion may never emit. Inside a marked region the declaration is
+  authoritative and the Markdown renders it; every other formalized clause stays under the
+  transitional rule. **One adaptation**: provisiond refuses a region outside the requirement its
+  declaration is tagged with, and here the normative companion carries the table while the
+  requirement points at it, so a region may also sit in a document that requirement's body
+  links. The test is directional and read from the Markdown, so it opens no second map.
 
 ## The inventory, in order
 

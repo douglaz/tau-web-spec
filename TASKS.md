@@ -75,12 +75,19 @@ gated on it.
       `docs/design/witness-file-v1.md`, and the emission gate `tools/check_witnesses.py`
       landed the same day, with the bound as `TauWeb.Allocation.bound` and its decided
       enumeration.*
-- [ ] **T33 — Port the rendering gate** (ADR-0032, "No marked regions yet": "the gate is ported
+- [x] **T33 — Port the rendering gate** (ADR-0032, "No marked regions yet": "the gate is ported
       when the first one exists"). `TauWeb.Declaration.row` is ADR-0032's first candidate for a
       marked region and `TauWeb.Allocation.row`, formalized first in module 1, is the second: the
       field table in `docs/design/delivery-declaration-v1.md` and the role table in
       `docs/design/credential-format-v1.md` are their regions once the gate holds each equal to
-      its declaration.
+      its declaration. *Landed 2026-09-20: `tools/formal/TauWeb/Render.lean` computes both
+      tables' rows from the declarations' own constructors, `lake exe render` emits them before
+      the index is written, and `tools/check_regions.py` holds each document to its emission on
+      the tokens the declaration determines, so a row's prose and its conformance citations stay
+      the document's. The delivery table gained a shape column; the role table gained tokens and
+      backticked keys. Twelve controls, one per refusal and one proving an edit outside a region
+      stays green. ADR-0032's deviation closes with one adaptation: a region may sit in the
+      normative companion its requirement links.*
 - [x] **T32 — Formal companion, module 2: declaration presence and meaning** (ADR-0032's
       inventory; `ARC-39`, `docs/design/delivery-declaration-v1.md`). Landed 2026-09-19 in
       `tools/formal/TauWeb/Declaration.lean`: presence as one type for every field, the field

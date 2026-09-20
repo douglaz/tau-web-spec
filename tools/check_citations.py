@@ -85,19 +85,31 @@ INDEX = os.path.join(ROOT, "tools", "formal", ".lake", "index.jsonl")
 MODULES = os.path.join(ROOT, "tools", "formal", "TauWeb.lean")
 
 
-def lean_names():
-    """Every name a document may cite: tagged declarations, their namespaces, the
-    modules the umbrella imports, and `TauWeb.Explore`, which holds untagged scratch.
-    Not caught: a declaration renamed and a new one tagged under the old name."""
+def read_index():
+    """{declaration: the requirement it is tagged with}, from what `lake exe gate` wrote.
+    A missing index is exit 2, never a skip: `check-all.sh` runs the formal gate first so
+    the index is this run's. The rendering gate reads it for the requirement; this one
+    reads it for the names."""
     if not os.path.exists(INDEX):
         print(f"FAIL: {INDEX} missing -- run tools/check_formal.sh first "
               f"(check-all.sh orders it before this gate)")
         sys.exit(2)
-    names = {"TauWeb.Explore"}
+    out = {}
     for line in open(INDEX):
         if line.strip():
-            parts = json.loads(line)["decl"].split(".")
-            names.update(".".join(parts[:k]) for k in range(1, len(parts) + 1))
+            row = json.loads(line)
+            out[row["decl"]] = row["req"]
+    return out
+
+
+def lean_names():
+    """Every name a document may cite: tagged declarations, their namespaces, the
+    modules the umbrella imports, and `TauWeb.Explore`, which holds untagged scratch.
+    Not caught: a declaration renamed and a new one tagged under the old name."""
+    names = {"TauWeb.Explore"}
+    for decl in read_index():
+        parts = decl.split(".")
+        names.update(".".join(parts[:k]) for k in range(1, len(parts) + 1))
     for line in open(MODULES):
         if line.startswith("import "):
             names.add(line.split()[1])
@@ -117,9 +129,10 @@ def norm(s):
     return re.sub(r"\s+", " ", s).lower().strip(" .,;:")
 
 
-def bodies():
-    """{id: body}: a definition line and what follows it, up to the next
-    definition or heading. A "Moved to" pointer defines nothing (ADR-0030)."""
+def owners():
+    """{id: (the file that defines it, its body)}: a definition line and what follows
+    it, up to the next definition or heading. A "Moved to" pointer defines nothing
+    (ADR-0030). The file is what the rendering gate resolves a body's links against."""
     out = {}
     for f in files(DEFINING):
         cur, buf = None, []
@@ -127,15 +140,20 @@ def bodies():
             m = DEF_RE.match(line)
             if m or line.startswith("#"):
                 if cur:
-                    out.setdefault(cur, "".join(buf))
+                    out.setdefault(cur, (f, "".join(buf)))
                 cur, buf = None, []
                 if m and not POINTER_RE.search(line):
                     cur, buf = (m.group(1) or m.group(2)), [line]
             elif cur:
                 buf.append(line)
         if cur:
-            out.setdefault(cur, "".join(buf))
+            out.setdefault(cur, (f, "".join(buf)))
     return out
+
+
+def bodies():
+    """{id: body}, for the quote checks."""
+    return {i: body for i, (_, body) in owners().items()}
 
 
 def find():

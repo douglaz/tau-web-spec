@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Negative controls: prove each specification gate can fail, for the reason it
-# exists (CNF-3's rule, applied to this repository's own gates).
+# Controls: prove each specification gate can fail, for the reason it exists
+# (CNF-3's rule, applied to this repository's own gates) -- and, where a gate
+# could pass by refusing everything, that it still accepts what it must.
 #
 # Each control copies the tree to a scratch directory, breaks one thing, and
 # requires the gate to go red with exactly one finding, naming that thing. A red
@@ -45,6 +46,30 @@ control() {
     echo "::error::$name: $findings findings, expected exactly one"; echo "$out"; fail=1
   else
     echo "ok: $name -> $label names $token"
+    passed=$((passed + 1))
+  fi
+}
+
+# passes NAME GATE MUTATION
+#   The other direction: a gate that reddens on everything is not a check. The
+#   mutation must apply and the gate must stay green.
+passes() {
+  local name="$1" gate="$2" mutate="$3"
+  expected=$((expected + 1))
+  local tmp
+  tmp="$(mktemp -d)"
+  cp -r . "$tmp/repo"
+  if ! (cd "$tmp/repo" && eval "$mutate"); then
+    echo "::error::$name: the mutation did not apply"; fail=1; rm -rf "$tmp"; return
+  fi
+  local out rc
+  out="$(cd "$tmp/repo" && python3 "$gate" 2>&1)"
+  rc=$?
+  rm -rf "$tmp"
+  if [ "$rc" -ne 0 ]; then
+    echo "::error::$name: $gate went red"; echo "$out"; fail=1
+  else
+    echo "ok: $name -> stays green"
     passed=$((passed + 1))
   fi
 }
@@ -178,6 +203,85 @@ control "witnesses: an emission carrying a CNF identifier" "$WIT" \
 control "witnesses: a committed file no module emits" "$WIT" \
   "cp $WITFILE docs/design/orphan-witnesses-v1.json" \
   "WITNESS DRIFT" "orphan-witnesses-v1.json is committed but no module emits it"
+
+REG=tools/check_regions.py
+CRED=docs/design/credential-format-v1.md
+DECL=docs/design/delivery-declaration-v1.md
+RELAY=docs/design/relay-protocol-v1.md
+REGJSON=tools/formal/.lake/regions.jsonl
+BLOCK='/<!-- formal: TauWeb.Render.roleTable -->/,/<!-- \/formal -->/'
+
+# Compared against the emission the formal gate wrote before this script ran. One outcome token
+# changed by hand in the document is red, naming the row and column -- and the prose beside it,
+# which the declaration does not determine, is not what the gate reads.
+control "regions: an outcome token edited by hand" "$REG" \
+  "sed -i 's/^| \`3\` | \*\*pass\*\*/| \`3\` | **handoff**/' \$CRED && grep -q '^| \`3\` | \*\*handoff\*\*' \$CRED" \
+  "REGION DRIFT" "row 4, column 2"
+
+# The other direction: a gate that reddens on everything is not a check.
+passes "regions: a sentence one line outside a region" "$REG" \
+  "sed -i '/^<!-- \/formal -->$/a A sentence one line outside the region.' \$CRED && grep -q '^A sentence one line outside the region.$' \$CRED"
+
+# A region may sit in the requirement its declaration is tagged with or in a document that
+# requirement's body links. relay-protocol-v1.md is neither, for STA-22a.
+control "regions: a region in a file its requirement does not link" "$REG" \
+  "sed -n \"\$BLOCK p\" \$CRED >> \$RELAY && sed -i \"\$BLOCK d\" \$CRED && grep -q 'TauWeb.Render.roleTable' \$RELAY" \
+  "REGION PLACEMENT" "neither defines this file nor links it"
+
+control "regions: an outcome token edited in the other region" "$REG" \
+  "sed -i 's/| \*\*number\*\* |/| **flag** |/' \$DECL && grep -q '| \*\*flag\*\* |$' \$DECL" \
+  "REGION DRIFT" "row 1, column 4"
+
+control "regions: a key column that no longer names its row" "$REG" \
+  "sed -i 's/^| \`required\` |/| \`requiredx\` |/' \$DECL && grep -q '^| \`requiredx\` |' \$DECL" \
+  "REGION DRIFT" "row 8, key column"
+
+# A region's declaration is tagged, and the index is the list of what is. Dropped from the
+# index, the region names a declaration no requirement owns.
+control "regions: a region whose declaration the index does not carry" "$REG" \
+  "sed -i '/TauWeb.Render.declarationTable/d' tools/formal/.lake/index.jsonl && ! grep -q 'TauWeb.Render.declarationTable' tools/formal/.lake/index.jsonl" \
+  "REGION PLACEMENT" "is not in the index"
+
+control "regions: a marker naming a declaration nothing emits" "$REG" \
+  "printf '\n<!-- formal: TauWeb.Render.absent -->\n<!-- /formal -->\n' >> \$RELAY" \
+  "REGION PLACEMENT" "the declarations do not emit"
+
+control "regions: one declaration rendered in two places" "$REG" \
+  "sed -n \"\$BLOCK p\" \$CRED >> \$RELAY && grep -q 'TauWeb.Render.roleTable' \$RELAY" \
+  "REGION STRUCTURE" "is already rendered at"
+
+control "regions: a marker never closed" "$REG" \
+  "printf '\n<!-- formal: TauWeb.Render.roleTable -->\n' >> \$RELAY" \
+  "REGION STRUCTURE" "is never closed"
+
+control "regions: an end marker with no region open" "$REG" \
+  "printf '\n<!-- /formal -->\n' >> \$RELAY" \
+  "REGION STRUCTURE" "with no open region"
+
+control "regions: a region opened inside another" "$REG" \
+  "printf '\n<!-- formal: TauWeb.Render.roleTable -->\n<!-- formal: TauWeb.Render.declarationTable -->\n<!-- /formal -->\n' >> \$RELAY" \
+  "REGION STRUCTURE" "a region opened inside the one at line"
+
+# A match region holds the table and nothing else: prose inside it is refused rather than
+# silently compared as a row.
+control "regions: a line that is not a table row inside a match region" "$REG" \
+  "sed -i '/^| \`2\` |/i A sentence inside the region.' \$CRED && grep -q '^A sentence inside the region.$' \$CRED" \
+  "REGION STRUCTURE" "a line that is not a table row"
+
+control "regions: an emitted region no document renders" "$REG" \
+  "sed -i \"\$BLOCK d\" \$CRED && ! grep -q 'TauWeb.Render.roleTable' \$CRED" \
+  "UNRENDERED REGIONS" "TauWeb.Render.roleTable"
+
+# The emitted JSON is a boundary between two programs: an inductive in Lean cannot stop a kind
+# the Python gate has no branch for.
+control "regions: an emission with a kind the gate does not know" "$REG" \
+  "sed -i '0,/\"kind\":\"match\"/s//\"kind\":\"tokens\"/' \$REGJSON && grep -q '\"kind\":\"tokens\"' \$REGJSON" \
+  "REGION STRUCTURE" "which is not one of"
+
+# Refused before the comparison, so the one finding is that and not the drift it also causes.
+control "regions: an emission carrying a CNF identifier" "$REG" \
+  "sed -i 's/\*\*number\*\*/**number** CNF-83/' \$REGJSON && grep -q CNF-83 \$REGJSON" \
+  "CNF IN A REGION" "carries CNF-83"
 
 IDS=tools/check_ids.py
 

@@ -15,14 +15,17 @@ the Lean `flake.nix` pins, and a missing toolchain is a red gate, not a skipped 
 A formalized clause's home is its Lean declaration in `tools/formal/`, tagged `@[req "STA-22b"]`
 (ADR-0032, "Authority is per clause"). The Markdown keeps the identifier, the MUST, the rationale
 and the retained traps, and stays authoritative for every clause until a rendering gate covers it.
+The gate that covers one is `tools/check_regions.py`, over the **marked regions** ADR-0032 records
+and `CONTEXT.md` defines.
 Change the declaration and the Markdown together; a theorem that stops proving is the gate telling
 you the amendment contradicts a property the corpus claims — read the theorem before weakening it,
 since weakening a statement to make a proof pass is a semantic change like any other. Never put a
-`CNF` identifier in `tools/formal/` or in a witness file.
+`CNF` identifier in `tools/formal/`, in a witness file or in a marked region's emission.
 
 Green is evidence only because `tools/check-controls.sh` breaks a document on every run and asserts
 the gates reject it — one negative control per refusal, each requiring exactly one finding under
-the label it targets. `CNF-3` says "The test suite fails when a test is deliberately broken —
+the label it targets, and, where a gate could pass by refusing everything, one control that it
+accepts what it must. `CNF-3` says "The test suite fails when a test is deliberately broken —
 verified once, by hand, so that 'tests passed' means something"; the controls are that, for the
 gates, on every run.
 
