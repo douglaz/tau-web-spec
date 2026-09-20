@@ -215,6 +215,55 @@ formal_control "formal: a hostname passed to the dialer" \
   "printf '\ndef TauWeb.Relay.dialsAName : TauWeb.Relay.Addr := TauWeb.Relay.dial (TauWeb.Relay.Host.dns 1)\n' >> $RELAY" \
   "Host.dns 1"
 
+DISP=tools/formal/TauWeb/Dispatch.lean
+
+# The planes are functions over TauWeb.Dispatch.Kind with no wildcard: an operation added without
+# one is a missing case, red at the plane before anything else.
+formal_control "formal: a dispatch operation added without a plane" \
+  "sed -i 's/^  | create$/  | added\n  | create/' $DISP && grep -q '^  | added$' $DISP" \
+  "Kind.added"
+
+# The barrier's carve-out is what is dispatched, not what is outstanding: an unresolved box-plane
+# command still bars a cloud-plane operation (STA-24's general rule; STA-20b "waits for all
+# tracked commands to end"). Narrowed to cloud-plane callers, the bounded property -- which is
+# stated without `bars`, so it decides what `bars` reads -- must go red, and must not name the
+# resource key's own witness, which this mutation does not touch.
+formal_control "formal: an unresolved box-plane command barring nothing" \
+  "sed -i \"s/^  else if cloudPlane k' then true\$/  else if cloudPlane k' then cloudPlane k/\" $DISP && grep -q \"else if cloudPlane k' then cloudPlane k\" $DISP" \
+  "atMostOneOutstanding current" \
+  "init sameActionEvents"
+
+# STA-24's resource key is one field of TauWeb.Dispatch.current. Switched to the call id -- STA-8
+# alone, which "speaks of a call", and every request carries a fresh one -- the barrier refuses
+# nothing across call ids. `lake build` must go red with exactly six errors: the two witnesses the
+# key is for, the two other refusals it holds up, the disposition's admitted side, which the key
+# changes too, and `bounded`, which closes over the barrier. A red naming the reset offer's
+# witness, which is the durability rule's and not the key's, would mean the flip broke something
+# other than the property it targets.
+expected=$((expected + 1))
+tmp="$(mktemp -d)"
+cp -r . "$tmp/repo"
+if ! (cd "$tmp/repo" && sed -i 's/{ resourceKey := .entry,/{ resourceKey := .call,/' $DISP && grep -q '{ resourceKey := .call,' $DISP); then
+  echo "::error::formal: the resource key switch did not apply"; fail=1
+else
+  out="$(cd "$tmp/repo" && bash "$FORMAL" 2>&1)"
+  rc=$?
+  if [ "$rc" -eq 0 ]; then
+    echo "::error::formal: the formal gate passed with the barrier keyed on the call id"; echo "$out"; fail=1
+  elif [ "$(grep -c '^error: TauWeb/' <<<"$out")" -ne 6 ]; then
+    echo "::error::formal: the resource key switch did not produce exactly six errors"; echo "$out"; fail=1
+  elif ! grep -qF 'init sameActionEvents' <<<"$out" || ! grep -qF 'init secondIndexEvents' <<<"$out" \
+       || ! grep -qF 'atMostOneOutstanding current' <<<"$out"; then
+    echo "::error::formal: the reds are not the two key witnesses and bounded"; echo "$out"; fail=1
+  elif grep -qF 'init resetOfferEvents' <<<"$out"; then
+    echo "::error::formal: a red also names the reset offer, which the key does not decide"; echo "$out"; fail=1
+  else
+    echo "ok: formal: the barrier keyed on the call id -> the barrier witnesses and bounded"
+    passed=$((passed + 1))
+  fi
+fi
+rm -rf "$tmp"
+
 # A missing toolchain is a red gate, not a skip.
 expected=$((expected + 1))
 if out="$(env PATH=/nonexistent "$(command -v bash)" "$FORMAL" 2>&1)"; then

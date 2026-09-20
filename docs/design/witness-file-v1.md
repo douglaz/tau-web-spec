@@ -7,8 +7,9 @@ decided there and not restated here). `lake exe witnesses` writes them from `too
 `tools/check_witnesses.py` refuses a committed file that differs from the emission, and
 `tools/check_fixtures.py` parses each as a document. So far,
 [`allocation-witnesses-v1.json`](./allocation-witnesses-v1.json) from `TauWeb.Allocation`,
-[`declaration-witnesses-v1.json`](./declaration-witnesses-v1.json) from `TauWeb.Declaration`, and
-[`relay-witnesses-v1.json`](./relay-witnesses-v1.json) from `TauWeb.Relay`.
+[`declaration-witnesses-v1.json`](./declaration-witnesses-v1.json) from `TauWeb.Declaration`,
+[`relay-witnesses-v1.json`](./relay-witnesses-v1.json) from `TauWeb.Relay`, and
+[`dispatch-witnesses-v1.json`](./dispatch-witnesses-v1.json) from `TauWeb.Dispatch`.
 
 ## The file
 
@@ -18,21 +19,21 @@ the trace that moved.
 | Member | What it holds |
 |---|---|
 | `schema` | `1`. A change to any shape below is a new version and a new file name. |
-| `module` | The inventory name, lower-case: `allocation`, `declaration`, `relay`. |
+| `module` | The inventory name, lower-case: `allocation`, `declaration`, `relay`, `dispatch`. |
 | `namespace` | The Lean namespace the traces' declarations live in. |
-| `bound` | `declaration`, the tagged `bound` the decided property and the emitter share, and its value rendered under the module's own members. Allocation (`TauWeb.Allocation.bound`): `events`, the number, and `alphabet`, the events the enumeration draws from. Declaration (`TauWeb.Declaration.bound`): `base`, the declaration and machine every case starts from; `presences`, per field, what the field is swept through, `missing` written as that word since a list has no absent member; `observations`, what the machine is made to show for it; `tenancies`. Relay (`TauWeb.Relay.bound`): `events`, the number; `alphabet`; and `start`, the opened connection every trace of the enumeration runs from. |
+| `bound` | `declaration`, the tagged `bound` the decided property and the emitter share, and its value rendered under the module's own members. Allocation (`TauWeb.Allocation.bound`): `events`, the number, and `alphabet`, the events the enumeration draws from. Declaration (`TauWeb.Declaration.bound`): `base`, the declaration and machine every case starts from; `presences`, per field, what the field is swept through, `missing` written as that word since a list has no absent member; `observations`, what the machine is made to show for it; `tenancies`. Relay (`TauWeb.Relay.bound`): `events`, the number; `alphabet`; and `start`, the opened connection every trace of the enumeration runs from. Dispatch (`TauWeb.Dispatch.bound`): `events`, the number; `alphabet`; and `start`, the journal every trace runs from, which carries the harness's associations and nothing dispatched. |
 | `witnesses` | The named traces, one per decided witness, in the order the module states them. |
-| `enumeration` | The traces the module's decided property closed over. Allocation: every trace of at most `bound.events` events over `bound.alphabet` from the initial journal, shortest first (`TauWeb.Allocation.bounded_nodup`). Declaration: one full check per case of the sweep, fields in the table's order, each field through each presence, observation and tenancy (`TauWeb.Declaration.bounded`). Relay: every trace of at most `bound.events` events over `bound.alphabet` from `bound.start`, shortest first (`TauWeb.Relay.bounded`). |
+| `enumeration` | The traces the module's decided property closed over. Allocation: every trace of at most `bound.events` events over `bound.alphabet` from the initial journal, shortest first (`TauWeb.Allocation.bounded_nodup`). Declaration: one full check per case of the sweep, fields in the table's order, each field through each presence, observation and tenancy (`TauWeb.Declaration.bounded`). Relay: every trace of at most `bound.events` events over `bound.alphabet` from `bound.start`, shortest first (`TauWeb.Relay.bounded`). Dispatch: the same shape, from `bound.start` (`TauWeb.Dispatch.bounded`). |
 
 Both arrays hold traces of one shape:
 
 | Member | What it holds |
 |---|---|
 | `declarations` | The `TauWeb.*` theorems the trace came from, resolvable against the `lake exe gate` index. Every name the file carries — here, in `bound.declaration`, in `pair.with` — is one the emitter checked against the tags (`Witnesses.lean`). |
-| `assumptions` | Each guard parameter of the module by name, with the value the trace runs under, and each hypothesis the module takes rather than owns. Allocation has one guard, `restoredAllocatesNone`; declaration has one, `emptyMeansPerField`; relay has one, `dialRequiresAuthAccepted`, beside `special`, `ownAddress` and `resolve` — the value `CHN-16a`'s pinned tables and the relay's resolver take for the trace, since the module quantifies over them. |
+| `assumptions` | Each guard parameter of the module by name, with the value the trace runs under, and each hypothesis the module takes rather than owns. Allocation has one guard, `restoredAllocatesNone`; declaration has one, `emptyMeansPerField`; relay has one, `dialRequiresAuthAccepted`, beside `special`, `ownAddress` and `resolve` — the value `CHN-16a`'s pinned tables and the relay's resolver take for the trace, since the module quantifies over them. Dispatch has four, `resourceKey`, `durableBeforeApply`, `endedBelowSucceeded` and `dispositionBindsContinuation`, and nothing else: what the far side actually did is external state, which a witness never carries. |
 | `pair` | Present on a refused-and-admitted pair: `side`, `refused` or `admitted`, and `with`, the other side's declaration. What the comparison expects of each side is ADR-0032's. |
-| `start` | The state before the first event, in the projection below. Allocation: the `journal` — most traces start from the fresh seed; the exhaustion witness starts one below the index limit. Declaration: the `declaration` and the `machine` the check reads, and the empty `record`. Relay: the `challenge` as an ordinal, the `destination` the path parsed to, what the pipeline `classified` it as, the `pass` the operator's key holds, and the opened `connection`. |
-| `steps` | One object per event, in order: `event`, the outcome members for that event kind, and the projection after the step — `journal` for allocation, `record` for declaration, `connection` for relay. |
+| `start` | The state before the first event, in the projection below. Allocation: the `journal` — most traces start from the fresh seed; the exhaustion witness starts one below the index limit. Declaration: the `declaration` and the `machine` the check reads, and the empty `record`. Relay: the `challenge` as an ordinal, the `destination` the path parsed to, what the pipeline `classified` it as, the `pass` the operator's key holds, and the opened `connection`. Dispatch: the `knowledge` below, which every trace starts with the harness's associations in and nothing else. |
+| `steps` | One object per event, in order: `event`, the outcome members for that event kind, and the projection after the step — `journal` for allocation, `record` for declaration, `connection` for relay, `knowledge` for dispatch. |
 
 ## Events
 
@@ -53,6 +54,12 @@ beside them are the event's arguments.
 | `auth` | operator act, or replay | `destination`, `key`, `event_kind`, `relay_tag`, `within_skew`, `signature_verifies`, `answers_challenge` | `auth`: `accepted`, `refused` or `ignored` |
 | `dial` | adapter observation | `connected` | `dial`: `dialed` or `refused` |
 | `app_frame` | operator act | — | `forwarded` |
+| `request` | model request | `call`, `target`, `operation`, `session`, `facts`, `approved`, `appended` | `dispatch`: `dispatched` or `refused`, with `refusal` on the second |
+| `read` | adapter observation | `source`, `resource`, `operation`, `reports`, `appended` | `settled`: the call ids the read took out of the barrier |
+| `dispose` | disposition | `resource`, `calls`, `continuation`, `appended` | — |
+| `associate` | operator act | `target`, `entry` | — |
+| `reset_prereqs` | adapter observation | `entry`, `appended` | `offer`: whether the planned reset may be offered |
+| `replay` | replay | — | — |
 
 An `auth` event's provenance is `replay` exactly when `answers_challenge` is `false`: a frame
 that verifies and answers another connection's challenge is the replay. `ignored` is an AUTH the
@@ -63,7 +70,15 @@ make.
 
 `allocate` carries the family and nothing a model would send beyond it: `STA-22b` decides the
 index, not the request, so the request-to-entry mapping ADR-0032 has the comparison exercise
-is module 4's, not this file's.
+is dispatch's, not allocation's.
+
+A `request` carries what a model sends and no resource: the harness resolves the `target` against
+its own `associations`, and that resolution is what the comparison exercises. `appended` on an
+event is the storage outcome of that event's own append — a driver instruction, like a lost
+response, which the harness sees only as absence. A lost response has no event at all: nothing
+settles the call, and it stays in the barrier. Whether a `read` clears anything is its `source`
+and its `reports` together, and the step's `settled` is the answer; a read settles the calls that
+were outstanding when it was taken, never one dispatched afterwards.
 
 What is compared at a step is the projection after it. For allocation, an observation the journal cannot apply — `created`
 for an identity never reserved, `destroyed` for one never created, `restore` with no sheet
@@ -125,4 +140,27 @@ maps each to one concrete address of that family, and a DNS name likewise.
 | `dialed` | The addresses the dialer was handed, oldest first. |
 | `forwarded` | Application bytes forwarded. A binary frame before OK closes the connection instead. |
 | `refused` | The reason sent before closing — `auth`, `pass`, `destination`, `address`, `pace` — or `dial` for a dial that failed after the checks passed, or `null`. |
+
+### Dispatch
+
+`knowledge` is harness knowledge in `STA-24`'s vocabulary and never the companion's state layout,
+and it is the running worker's — which `STA-3` makes what was durably appended. External state is
+not in the file at all: no member says what a vendor or machine did, and a `read`'s `reports` is
+the adapter's answer rather than the far side itself. Resources and targets are opaque: an approved machine entry, an
+allocation index and a vendor machine id are integers, and `facts` is one integer
+standing for the structured facts an approval was rendered on, so the comparison exercises the
+resolution, the barrier and the approval checks and nothing about arguments or cost bounds.
+
+| Member | Meaning |
+|---|---|
+| `durable` | Whether in-memory state is also what was appended. `STA-3` makes it always true; the traces without that rule are where it is false. |
+| `associations` | The harness's own mapping of what a model may name — an allocation index, a vendor machine id — to the approved machine entry, oldest first. Never taken from a request. |
+| `calls` | One entry per intent the journal holds, oldest first: the `call`, the `target` the model named, the `resource` the harness assigned, the `operation`, the `session`, the `approved` session and facts, and `state` — `unresolved`, `terminal` (an admissible confirming read, or a disposition), or `no_effect` for a read. |
+| `unresolved` | Per resource the journal names, the call ids the barrier stands on. |
+| `continuation` | Per resource, what a standing disposition permits, absent where none stands. |
+| `reset_offer` | The approved entries whose planned reset may be offered (`STA-20b`). |
+| `dispatched` | The calls whose effect went out, oldest first. |
+
+A refusal is `reason` — `unmapped`, `binding`, `facts`, `append`, `barrier` or `continuation` —
+with `calls` on the barrier and `permits` on the continuation.
 

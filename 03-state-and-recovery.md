@@ -16,7 +16,10 @@ transitions, held in origin-private storage. Content-addressed with periodic com
 snapshots; in-memory state is authoritative only while a worker is running.
 
 **STA-3** A canonical event MUST be durably appended **before** it is applied to in-memory
-state. If the append fails, the transition does not occur.
+state. If the append fails, the transition does not occur. The rule is carried as
+`TauWeb.Dispatch.append` (ADR-0032); `TauWeb.Dispatch.failed_append_keeps_barrier` is what it
+costs a resolution whose own append fails, and `TauWeb.Dispatch.resolution_append_failed_refused`
+and `TauWeb.Dispatch.resolution_append_failed_admitted` are the pair.
 
 **STA-4** A side-effecting call MUST have a durable record, an approval decision, and an
 idempotency identity **before execution begins**. For an off-machine call this is `SEC-12`;
@@ -24,7 +27,10 @@ for box-plane work it is the per-command record of `ARC-8`. The record is append
 before the bytes leave, so on replay an intent with no terminal record means the call **may have
 been sent**, never that it was not; an intent with no journaled approval decision was never
 dispatched, and that is what `STA-7` cancels. A "sent" record written *after* transmission
-would not help: its absence could mean a kill between the send and the append.
+would not help: its absence could mean a kill between the send and the append. The check a
+request passes before its bytes leave is `TauWeb.Dispatch.admit`, run by `TauWeb.Dispatch.step`
+(ADR-0032), and `TauWeb.Dispatch.dispatched_only_if` is what it establishes over every journal,
+request and approval.
 
 **STA-5** Every tool MUST declare its retry safety: pure, idempotent with a key strategy,
 reconcile-before-retry, or never-retry-automatically. The Robot adapter is
@@ -40,14 +46,18 @@ recovery path is `ARC-10`: reconnect, read the machine's state, converge.
 **STA-7** After a crash the worker MUST acquire its lock, load the latest snapshot, replay
 subsequent events, classify incomplete calls, cancel those that cannot still exist,
 reconcile or surface uncertain ones, and resume only where policy permits. **No model turn
-is silently resumed from an uncertain destructive operation.**
+is silently resumed from an uncertain destructive operation.** What replay does not change is the
+barrier: `TauWeb.Dispatch.replay_same_unresolved` (ADR-0032) is that the worker reads back the
+unresolved set it had. Cancelling the calls that were never dispatched is not carried there.
 
 **STA-8** A call that may have produced an external effect but has no terminal record MUST
 enter an unresolved state requiring evidence or operator inspection to leave. It MUST NOT be
 retried automatically and no timer may clear it. Establishing *what happened* by a status
 query is permitted and required where a tool supports one; doing it *again* is not. What the
 unresolved state **blocks**, and for which resource, is `STA-24`; an operator disposition may
-permit the continuation it names without establishing the earlier call's outcome.
+permit the continuation it names without establishing the earlier call's outcome. The state is
+derived and never journaled as its own event: `TauWeb.Dispatch.unresolved` over
+`TauWeb.Dispatch.openIntents` and `TauWeb.Dispatch.settles` (ADR-0032).
 
 **STA-9 The journal records what was sent, not what the machine did with it.** This is the
 honest limit of `STA-2` across the channel. A phone that locks mid-install kills the worker
@@ -133,6 +143,13 @@ or a record from the old boot leaves the operation unresolved under `STA-8` unti
 supports convergence or the operator explicitly chooses a new destructive reinstall. The
 browser's record of what was sent remains authoritative throughout (`STA-21`).
 
+The offer's precondition is `TauWeb.Dispatch.offersReset` (ADR-0032), read against what was
+durably appended, with `TauWeb.Dispatch.reset_offered_after_failed_append_refused` and
+`TauWeb.Dispatch.reset_offered_after_failed_append_admitted` its pair. What a changed boot ID
+establishes is `TauWeb.Dispatch.confirms`, whose lattice keeps *ended* below *succeeded*, with
+`TauWeb.Dispatch.boot_id_change_not_success_refused` and
+`TauWeb.Dispatch.boot_id_change_not_success_admitted` its pair.
+
 **STA-21 The job record is machine-reported and advisory.** The browser journal is authoritative
 for what was **sent** (`STA-3`, `ARC-8`); the machine's record says what it **received** and what
 happened next. Comparing the two catches truncation, quoting damage and a mangled multi-line
@@ -205,6 +222,23 @@ rejected twice over: it stops nothing a session needs and it ends with the sessi
 re-entering or successor session would start clean on a machine that is not. Added 2026-09-16
 from `lean-01.md` §2B, after two independent readers of one brief
 (`docs/review/2026-09-16-barrier-panel.md`).
+
+This rule is carried in Lean under `TauWeb.Dispatch` (ADR-0032). The barrier is
+`TauWeb.Dispatch.blocking` over `TauWeb.Dispatch.bars`, which holds the carve-outs above —
+reads, the box plane, and `TauWeb.Dispatch.changesRunning`'s exception — and the resource is
+`TauWeb.Dispatch.resolve`, assigned from what a model named. The key is the parameter, whose
+pairs are `TauWeb.Dispatch.same_action_new_call_id_refused` and
+`TauWeb.Dispatch.same_action_new_call_id_admitted` for the trap above and
+`TauWeb.Dispatch.second_index_same_entry_refused` and
+`TauWeb.Dispatch.second_index_same_entry_admitted` for the index one level up.
+`TauWeb.Dispatch.restriction` is what a standing disposition permits, with
+`TauWeb.Dispatch.disposition_one_continuation_refused` and
+`TauWeb.Dispatch.disposition_unrestricted_admitted` its pair;
+`TauWeb.Dispatch.admissible` is what clears a barrier and
+`TauWeb.Dispatch.cloud_confirmed_by_read_only` that nothing else does;
+`TauWeb.Dispatch.inference_unbarred` is the inference request's exemption; and
+`TauWeb.Dispatch.bounded` decides `TauWeb.Dispatch.atMostOneOutstanding` within its bound. The
+untyped call's scope is not among the resources it carries.
 
 ## The exposure ledger
 

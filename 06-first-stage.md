@@ -149,7 +149,9 @@ Anything not confirmed stays unresolved under `STA-8` and the operator decides; 
 reconcile-before-retry (`STA-5`), and a second request for the same mutation under a new call
 id is refused while the first is unresolved (`STA-24`). `STG-11` is the test, and `CNF-38` lists its cases. The host
 keys are read and the pins journaled by the harness's own `ready_to_reset` job before the
-reset is offered (`ARC-43`).
+reset is offered (`ARC-43`). The order above — each mutation dispatched once its predecessor is
+confirmed, and the box-plane work only after the reset is — is `TauWeb.Dispatch.ceremony_trace`
+(ADR-0032), decided.
 
 **STG-5** The system is installed and hardened entirely through box-plane work over the
 pinned channel, **command by command**, each recorded before transmission (`ARC-8`), and the

@@ -114,6 +114,25 @@ gated on it.
       after validation — is retained as that type and that control rather than as a trace, since
       no trace in which the dialer receives a name can be written at all; what the file carries of
       it is the positive side, the dialer handed the resolver's answer and never the name.
+- [x] **T35 — Formal companion, module 4: dispatch and the unresolved barrier** (ADR-0032's
+      inventory; `STA-3`, `STA-4`, `STA-7`, `STA-8`, `STA-24`, `SEC-12`, `STA-20b` and `STG-4`'s
+      confirmation predicates, on the decisions of
+      `docs/review/2026-09-16-barrier-panel.md`). Landed 2026-09-20 in
+      `tools/formal/TauWeb/Dispatch.lean`: harness knowledge and external state as two types, with
+      no dispatch function and no theorem statement reading the second; the journal a list of
+      records and the barrier derived from it — an intent with no terminal record — rather than an
+      event of its own; a disposition a terminal record whose outcome stays unknown; the durable
+      journal and the running worker's in-memory state both carried, so `STA-3` is the statement
+      that they never diverge. The principal theorem is
+      `TauWeb.Dispatch.dispatched_only_if`, and its companions are
+      `TauWeb.Dispatch.replay_same_unresolved`, `TauWeb.Dispatch.cloud_confirmed_by_read_only`,
+      `TauWeb.Dispatch.failed_append_keeps_barrier` and `TauWeb.Dispatch.inference_unbarred`.
+      Each parameter has its refused-and-admitted pair: the resource key, which the panel settled
+      at the approved entry rather than the allocation index or the call id; `STA-3`'s
+      append-before-apply, which is also `STA-20b`'s reset-offer precondition; the observation
+      lattice, which keeps a changed boot ID below success; and the disposition's binding to the
+      one continuation it names. `docs/design/dispatch-witnesses-v1.json` is its file; the
+      controls switch the key to the call id and add an operation with no plane.
 - [x] **T26 — Measure `STA-23` unlock latency on the first-stage phone.**
       `prototypes/unlock-latency/index.html` builds the v1 envelope and times one unlock.
       Done 2026-09-11: 58 ms at 600,000 iterations on the phone, 57 ms on the desktop
