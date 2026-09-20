@@ -76,9 +76,11 @@ gated on it.
       landed the same day, with the bound as `TauWeb.Allocation.bound` and its decided
       enumeration.*
 - [ ] **T33 — Port the rendering gate** (ADR-0032, "No marked regions yet": "the gate is ported
-      when the first one exists"). `TauWeb.Declaration.row` is the first formalized table; the
-      field table in `docs/design/delivery-declaration-v1.md` is its marked region once the gate
-      holds the two equal.
+      when the first one exists"). `TauWeb.Declaration.row` is ADR-0032's first candidate for a
+      marked region and `TauWeb.Allocation.row`, formalized first in module 1, is the second: the
+      field table in `docs/design/delivery-declaration-v1.md` and the role table in
+      `docs/design/credential-format-v1.md` are their regions once the gate holds each equal to
+      its declaration.
 - [x] **T32 — Formal companion, module 2: declaration presence and meaning** (ADR-0032's
       inventory; `ARC-39`, `docs/design/delivery-declaration-v1.md`). Landed 2026-09-19 in
       `tools/formal/TauWeb/Declaration.lean`: presence as one type for every field, the field

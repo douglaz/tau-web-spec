@@ -51,8 +51,9 @@ inductive Secret
   | secp256k1
   deriving DecidableEq, Repr
 
-/-- One row of the table: the two columns that decide index sharing and secret handling. The
-public-key encoding column stays in the Markdown. -/
+/-- One row of the table: the three columns that decide index sharing, the credential derived,
+and secret handling. The public-key encoding stays in the Markdown, as prose in the last
+column. -/
 structure Row where
   family : Family
   credential : Credential

@@ -42,12 +42,14 @@ JSON object, `version: 1`. Field names are fixed; values are as described.
 | `required` | list of `{name, check: command, expect}` — software and checks that must hold at delivery, or `[]` | Run at delivery |
 | `default_credentials` | `"none"` or a list of what must have been changed | Checked at delivery (`ARC-17`) |
 
-The field and what-an-empty-list-means columns of this table are carried as
-`TauWeb.Declaration.row` (ADR-0032), one row per field of `TauWeb.Declaration.Field`, so a field
-added without its row does not build; `TauWeb.Declaration.empty_inbound_finding` and
-`TauWeb.Declaration.empty_outbound_passes` prove the two readings of `[]` above, and
-`TauWeb.Declaration.spendable_multi_tenant_refused` that `true` for `key_material.spendable` on a
-multi-tenant machine is refused. The value shapes and the commands stay here.
+Every field of this table is carried as `TauWeb.Declaration.row` (ADR-0032), one row per field
+of `TauWeb.Declaration.Field`, so a field added without its row does not build. The declaration
+carries each field's coarse shape and, for a list, which of the two readings of `[]` above its
+row takes; the rows state that in prose until a rendering gate marks a column for it.
+`TauWeb.Declaration.empty_inbound_finding` and `TauWeb.Declaration.empty_outbound_passes` prove
+those two readings, and `TauWeb.Declaration.spendable_multi_tenant_refused` that `true` for
+`key_material.spendable` on a multi-tenant machine is refused. The concrete value grammar and the
+commands stay here.
 
 `command`/`check` strings are box-plane commands the harness composes into typed reads; their
 output never enters model context as authority (`SEC-8`).
