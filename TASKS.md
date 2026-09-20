@@ -42,7 +42,7 @@ gated on it.
       bump) from the pinned tree as its CI gate.
       `bundle/inference.toml` has an empty model slug on purpose; the build fails until the
       publisher fills it.
-- [ ] **T30 — Port the specification gates and the formal companion's scaffold** (ADR-0032).
+- [x] **T30 — Port the specification gates and the formal companion's scaffold** (ADR-0032).
       From `~/projects/provisiond-spec`: `tools/check-all.sh`, the identifier, fixture,
       obligation, coverage and citation gates with this corpus's namespace table; `tools/formal/`
       with `Req.lean`, `Gate.lean`, `check_formal.sh`, `lakefile.toml` and `lean-toolchain` under a
@@ -57,7 +57,13 @@ gated on it.
       requirement conventions with the withdrawn-identifier table; the first run found
       `STG-8` and the `ARC-20` duplicate. The Lean package landed 2026-09-18: `flake.nix`,
       `tools/formal/` with `Req.lean`, `Gate.lean` and `check_formal.sh`, the citations
-      gate's `TauWeb.*` resolver, and `STA-22a`'s role table as the first clause.*
+      gate's `TauWeb.*` resolver, and `STA-22a`'s role table as the first clause. The epic
+      closed 2026-09-20 with its last ticket: every gate the corpus has, the five modules of
+      ADR-0032's inventory with a witness file each and the gate that holds each file to its
+      emission, and the rendering gate over the two formalized tables — each landed with its
+      own negative controls, which `tools/check-controls.sh` runs on every push. What remains
+      of the inventory is the row ADR-0032 defers to cloud-route and btc-policy work, which is
+      not this task's and has no ticket.*
 - [x] **T31 — Formal companion, module 1: allocation** (ADR-0032's inventory). Identities as
       distinct structures — seed epoch, derivation version, role family, index; reserve durably
       before any effect; a failed or destroyed allocation keeps its index as a tombstone; no
