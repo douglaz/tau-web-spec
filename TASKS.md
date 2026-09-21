@@ -38,8 +38,9 @@ gated on it.
       (`docs/briefs/`), and which briefs are promoted is decided when it leaves draft — and
       runs `bundle/cors-probe.sh` (`CNF-4`) and
       `prototypes/spec-checks/` (evidence for `CNF-85`, not for `CNF-1`–`CNF-4`; the
-      implementation's README carries the same mislabel and is corrected with the next pin
-      bump) from the pinned tree as its CI gate.
+      implementation's README carried the same mislabel and was corrected on 2026-09-21, at
+      the pin bump that took it to the commit closing the formal companion) from the pinned
+      tree as its CI gate.
       `bundle/inference.toml` has an empty model slug on purpose; the build fails until the
       publisher fills it.
 - [x] **T30 — Port the specification gates and the formal companion's scaffold** (ADR-0032).
