@@ -226,6 +226,22 @@ gated on it.
       pin bump (ADR-0031). `CNF-78`'s measurement is owed before a provider value is written
       and blocks nothing else here.
 
+- [ ] **T38 — Correct the corpus where the provider measurement contradicts it**
+      (`docs/findings/2026-09-22-provider-routing.md`). `CNF-78`'s open fact is measured: an
+      unsatisfiable `provider.only` is refused with `404`, and a satisfiable one comes back
+      naming the provider that served it. So `ARC-31`'s "the chosen aggregator returns no
+      routing metadata" and `CONTEXT.md`'s *inference provider* — "not reported back by the
+      chosen aggregator" — are both false on that path and are the rules to change; ADR-0033's
+      "publishes no provider vocabulary and names no provider per model" is false of the
+      behaviour and true of the documentation, and says which it meant. `OPN-23` closed for
+      want of a source for the observed layer, and the `provider.only` path is one: decide
+      whether it reopens or whether one path's evidence is not the layer. `bundle/inference.toml`'s
+      comment carries the answer instead of the question. Say also what the trust display shows
+      when two of `ARC-14`'s three layers are one party — today's bundle requests the weights'
+      own maker as the provider, so a machine has two parties across three layers, and `OVR-6`
+      counts a collision between two machines rather than a collapse inside one. The finding is
+      the record; these are the rules.
+
 The September 9 review's specification corrections are applied: canonical disk selection,
 rescue job lifetime, local unlock, derivation/allocation metadata, relay destination limits,
 Alpine signer trust, rescue sequence and stage applicability. The open tasks above are

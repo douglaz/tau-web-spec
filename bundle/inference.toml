@@ -9,11 +9,16 @@ base_url = "https://api.ppq.ai"
 name = "PayPerQ"
 
 [session]
-model = ""                 # TODO publisher: model slug, with the reason recorded in this comment
-provider = ""              # TODO publisher: the provider requested per machine (ARC-14); empty fails the build.
+model = "glm-5.3"          # chosen 2026-09-22 by ADR-0033's rule, not by hand: of the models the aggregator
+                           # listed that day, 109 were served under its zero-retention tier and supported tool
+                           # calls, and exactly one of those carried the aggregator's `popular` flag.
+provider = "z-ai"          # the provider requested per machine (ARC-14); empty fails the build.
                            # Sent as the aggregator's routing object `provider: {"only": ["<value>"]}` (ADR-0007:
-                           # order/only/ignore). Whether an unsatisfiable value fails the call or silently
-                           # reroutes is the one observable fact CNF-78 records.
+                           # order/only/ignore). An unsatisfiable value is REFUSED with 404, not silently
+                           # rerouted, and a satisfiable one comes back naming the provider that served it
+                           # (measured 2026-09-22, docs/findings/2026-09-22-provider-routing.md).
+                           # Z.AI makes these weights and also serves them, so this value buys the fewest
+                           # parties and counts as one trust domain, not two.
 retention = "strictest"    # requested explicitly on every call; the API default is the weaker tier (ARC-31a)
 
 # The recovery ladder's middle rung (ARC-16) needs a stronger model behind the same proxy.
