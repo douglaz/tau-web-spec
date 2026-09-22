@@ -462,6 +462,19 @@ is no observation today)
 The weights behind an inference provider. Two providers may serve the same model, so provider
 diversity does not imply model diversity. This distinction is the whole security argument.
 
+**Eligible set** · `ADR-0033`
+The models the harness may be pointed at: those the aggregator serves under its zero-retention
+tier, that support tool calls, and that clear the context floor. Membership is a fact about the
+aggregator's list on a given day, not a judgement about a model.
+_Avoid_: available models, supported models, "the model list" (that is the aggregator's endpoint)
+
+**Candidate order** · `ADR-0033`
+The ordered model slugs `bundle/inference.toml` carries. Ordered for **availability**: the
+harness takes the highest-ranked candidate the aggregator still lists, and the order says
+nothing about which candidate is stronger.
+_Avoid_: fallback chain, preference list, ranking (unqualified), model ladder (the ladder is
+`ARC-16`, and it climbs)
+
 **Collision** · `OVR-6`
 Two machines sharing a trust domain at any counted layer, the requested provider included.
 Shown, not blocked.
