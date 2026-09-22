@@ -213,6 +213,19 @@ gated on it.
       from the general files wherever the harness's own machines were meant; it remains where
       btc-policy's federation is (its claim, `ARC-20`, `SEC-T4`, TRU-A3's retirement note).
 
+- [ ] **T37 — The candidate order and the job that maintains it** (ADR-0033). Change
+      `bundle/inference.toml` from one model slug to an ordered candidate list, and say where
+      each filter's owner already stands (`ARC-31a`'s retention tier; tool support, which has
+      no owner yet and needs one). Amend `STG-17` so the order reads as availability and not
+      as strength. Add the conformance item for the session-start selection — which candidate
+      was used, what the exposure ledger and the provenance record carry when it was not the
+      first, and that "still served" is read from the list and never from a status code, the
+      aggregator having answered an unknown path with HTTP 200 and an error body. Add the
+      scheduled job that recomputes the eligible set and opens a pull request; it never
+      commits. The implementation's build gate changes with the schema and arrives with the
+      pin bump (ADR-0031). `CNF-78`'s measurement is owed before a provider value is written
+      and blocks nothing else here.
+
 The September 9 review's specification corrections are applied: canonical disk selection,
 rescue job lifetime, local unlock, derivation/allocation metadata, relay destination limits,
 Alpine signer trust, rescue sequence and stage applicability. The open tasks above are
