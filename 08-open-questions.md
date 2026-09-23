@@ -244,6 +244,14 @@ provider fields "may be overridden"; that is `TRU-E2`'s existing trust, and the 
 `CNF-78` checks the request carries the pin, and whether an unsatisfiable pin fails the call or
 silently reroutes — the one thing about the override that *is* observable.
 
+*2026-09-22, measured.* An unsatisfiable pin fails the call: refused with `404` at a named
+routing step, on two days (`docs/findings/2026-09-22-provider-routing.md`). And "exposes no
+equivalent" is no longer unqualified: a response to a `provider.only` request carries a
+`provider` field that follows the pin. It is the proxy's own report in a body, not a header a
+browser was shown to read, and not evidence from the party that served; the label stays
+*requested*, and whether that field is *the served provider* is T38's question. The standing
+ask below stands.
+
 *Rejected:* switching to an aggregator that reports the served provider, which trades the
 accountless Lightning funding and open CORS that won this one the slot for a number; and
 retiring the layer, which throws away reasoning that is still right.
@@ -259,8 +267,10 @@ provider is a layer nobody configures, so there was nothing there to enforce eit
 honest position was the one `ARC-14` recorded at the time: report what was observed, promise
 nothing forward.
 
-*The signal situation changed, and not only for the worse.* On the chosen aggregator there is
-no provider signal at all, so the sentence above describes a signal that is gone. But
+*The signal situation changed, and not only for the worse.* On the chosen aggregator there was
+no provider signal at all when this closed, so the sentence above described a signal that was
+gone; a `provider` field has since appeared on one request path, as the proxy's own report
+(2026-09-22, `docs/findings/2026-09-22-provider-routing.md`). But
 the **weights are configured, not observed**: the harness picks the model per machine, and the
 catalogue names which vendor made it, so distinctness across machines is enforceable **by
 construction** rather than by inspection. What remains unverifiable is whether the proxy served

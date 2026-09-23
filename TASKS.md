@@ -213,34 +213,43 @@ gated on it.
       from the general files wherever the harness's own machines were meant; it remains where
       btc-policy's federation is (its claim, `ARC-20`, `SEC-T4`, TRU-A3's retirement note).
 
-- [ ] **T37 — The candidate order and the job that maintains it** (ADR-0033). Change
-      `bundle/inference.toml` from one model slug to an ordered candidate list, and say where
-      each filter's owner already stands (`ARC-31a`'s retention tier; tool support, which has
-      no owner yet and needs one). Amend `STG-17` so the order reads as availability and not
-      as strength. Add the conformance item for the session-start selection — which candidate
-      was used, what the exposure ledger and the provenance record carry when it was not the
-      first, and that "still served" is read from the list and never from a status code, the
-      aggregator having answered an unknown path with HTTP 200 and an error body. Add the
-      scheduled job that recomputes the eligible set and opens a pull request; it never
-      commits. The implementation's build gate changes with the schema and arrives with the
-      pin bump (ADR-0031). `CNF-78`'s measurement is owed before a provider value is written
-      and blocks nothing else here.
+- [ ] **T37 — The candidate order and the job that maintains it** (ADR-0033). The rules first,
+      each in its owner, then the schema. Give the zero-retention filter its clause in
+      `ARC-31a` — only models the aggregator lists under that tier are eligible — since `ARC-31a`
+      says "The retention tier MUST be requested explicitly on every call" and names a request,
+      not a model attribute. Give `ARC-43` the sentence that a candidate model must be able to
+      call the tool set it says "is exactly four". Set the context floor's value and owner. Give
+      the candidate order, the session-start selection, the unanswered-list disposition and the
+      proposing job a requirement owner — `TRU-A1` says "Model selection ships in the signed
+      bundle", and owns the publisher's part; the harness's part has none. Amend `STG-17` with
+      a MUST NOT: the order is never `ARC-16`'s escalation rung. Then change
+      `bundle/inference.toml` from one slug to the ordered list, point its comment at `STG-17`
+      rather than restating the rule, and add the conformance item. Add the scheduled job; it
+      opens pull requests and never commits. The implementation's build gate changes with the
+      schema and arrives with the pin bump. Separately owed: the retention flag's wire form —
+      `ARC-31a` and ADR-0028 say "the flag" and the published API documents none — without
+      which `CNF-71` cannot be measured.
 
-- [ ] **T38 — Correct the corpus where the provider measurement contradicts it**
-      (`docs/findings/2026-09-22-provider-routing.md`). `CNF-78`'s open fact is measured: an
-      unsatisfiable `provider.only` is refused with `404`, and a satisfiable one comes back
-      naming the provider that served it. So `ARC-31`'s "the chosen aggregator returns no
-      routing metadata" and `CONTEXT.md`'s *inference provider* — "not reported back by the
-      chosen aggregator" — are both false on that path and are the rules to change; ADR-0033's
-      "publishes no provider vocabulary and names no provider per model" is false of the
-      behaviour and true of the documentation, and says which it meant. `OPN-23` closed for
-      want of a source for the observed layer, and the `provider.only` path is one: decide
-      whether it reopens or whether one path's evidence is not the layer. `bundle/inference.toml`'s
-      comment carries the answer instead of the question. Say also what the trust display shows
-      when two of `ARC-14`'s three layers are one party — today's bundle requests the weights'
-      own maker as the provider, so a machine has two parties across three layers, and `OVR-6`
-      counts a collision between two machines rather than a collapse inside one. The finding is
-      the record; these are the rules.
+- [ ] **T38 — What the provider measurement left open**
+      (`docs/findings/2026-09-22-provider-routing.md`). The sentences it proved false were
+      corrected with it; these are the decisions it raised. *The field.* A `provider.only`
+      response carries a `provider` field that follows the pin, as a display name. `SEC-9` says
+      "Should a response ever carry the served provider, an observed count may sit beside the
+      requested one": decide whether this field is *the served provider* or the proxy's echo of
+      the request, what would tell them apart, and whether the *may* is taken; the field's
+      display names have no published mapping to the requested slugs. *The path.* Those
+      responses arrive in a different envelope, with the marks of a party in series; `SEC-10`
+      says "The trusted-party list MUST NOT grow silently", so name the party or show there is
+      none — and measure whether a browser can read that envelope, which `OPN-23`'s standing ask
+      turns on. *The documentation.* ADR-0007 and `OPN-23` quote the aggregator saying supplied
+      provider fields "may be overridden"; its published API no longer contains the phrase and
+      documents no `provider` object. Record which text said it, or retire the quote. *One
+      party, two layers.* Today's provider is the maker of the weights it serves. `ARC-14` keeps
+      the layers counted separately; say in `SEC-9` what the display shows when they are one
+      party, and how `CNF-41`'s "never derived from the model name" is told apart from a
+      requested value that matches it — only `CNF-78`'s request inspection can. *`OPN-23`.*
+      Its closure said the layer had no source; a body field on one path is a candidate source
+      and not the header a browser reads. Decide whether it reopens.
 
 The September 9 review's specification corrections are applied: canonical disk selection,
 rescue job lifetime, local unlock, derivation/allocation metadata, relay destination limits,

@@ -218,7 +218,8 @@ reason it is optional.
 
 **OVR-6** Independence between the machines of one setup MUST be counted per layer and shown,
 not enforced. Weights, proxy and requested provider are counted separately — the third
-labelled *requested*, since the aggregator reports nothing back and may override — and a
+labelled *requested*, since what a response says about the provider is the proxy's own word
+and it may override — and a
 collision at any counted layer is displayed rather than blocked
 ([ADR-0007](./docs/adr/0007-trust-is-counted-in-two-layers-and-shown.md)). Blocking would
 make the default configuration impossible, because procured inference routes every machine
