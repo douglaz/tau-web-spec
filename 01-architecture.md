@@ -334,19 +334,23 @@ number ([ADR-0007](./docs/adr/0007-trust-is-counted-in-two-layers-and-shown.md))
   prompt and response it carries, whatever weights sit behind it.
 - **Provider, requested** — the party that actually runs the inference behind the aggregator.
   The harness **requests** a provider per machine in the call itself, the same way it requests a
-  model, using the routing object the chosen aggregator documents. The display shows what was
-  requested. **The aggregator may override it, and says so** in its own documentation — which is
-  no new trust, since `TRU-E2` already names the proxy as able to alter everything it carries.
+  model, using the aggregator's routing object — which its published API did not document
+  when read on 2026-09-22, and which works. The display shows what was requested. **The
+  aggregator may override it**: its documentation was recorded on 2026-09-05 as saying so, and
+  when measured an unsatisfiable request was refused rather than rerouted
+  (`docs/findings/2026-09-22-provider-routing.md`). Either way it is no new trust, since
+  `TRU-E2` already names the proxy as able to alter everything it carries.
   This is the same shape `OPN-4` reached for weights: configured and unverifiable is a
   better-shaped gap than observed with no source.
 
 *What this layer used to be.* It was **observed** — read off a response header after the fact —
 and the header it was specified around was a **different aggregator's**, recorded while that one
-was still the candidate. The chosen aggregator exposes no equivalent, and a browser could not
-read one if it did (`TRU-E3`, verified 2026-09-05). Requesting the provider replaces a signal
-that did not exist with one the harness controls. Whether the request was honoured is not
-observable from a response today; `OPN-23`'s closure records a standing ask that would make it
-so.
+was still the candidate. The chosen aggregator exposed no equivalent when checked on 2026-09-05
+(`TRU-E3`); on 2026-09-22 a `provider` field appeared in its responses to a `provider.only`
+request, following the pin (`docs/findings/2026-09-22-provider-routing.md`). Requesting the
+provider replaces a signal that did not exist with one the harness controls. Whether the request
+was honoured is still not observable independently of the proxy — the field is its report
+(`TRU-E2`) — and `OPN-23`'s closure records a standing ask that would make it so.
 
 A 3-of-5 federation on five sets of weights behind one proxy is 3-of-5 against backdoored
 weights and 1-of-1 against a backdoored proxy. Both numbers are true; one number would be a
@@ -684,8 +688,10 @@ intermediary would be the one place in the design where the operator is asked to
 **ARC-31** Payment evidence MUST NOT be overstated. A **settled invoice** proves the
 operator funded credits at a provider and bounds which proxies are available; it does not
 prove which machine used which proxy, because one top-up buys many queries. Per-machine routing
-is **requested** in each call, not read back from a response: the chosen aggregator returns no
-routing metadata, so what the display shows is what was asked for (`ARC-14`).
+is **requested** in each call, and what the display shows is what was asked for (`ARC-14`). A
+response may carry the aggregator's own report of the provider — it did on the `provider.only`
+path, measured 2026-09-22 (`docs/findings/2026-09-22-provider-routing.md`) — but that report is
+the proxy's word (`TRU-E2`), not evidence read back from the party that served.
 
 **Inference has two paths.** *Procured* is the default: the operator funds an account-free
 balance at one aggregator, and the publisher selects the models, so every machine is routed

@@ -166,10 +166,11 @@ harness requests per machine — never blended into one score**. Machines on sev
 behind one proxy survive a backdoored model and do not survive a backdoored proxy. One number
 would be a lie about whichever layer is thin, and the thin layer is the one that gets exploited.
 
-The provider layer is labelled **requested**, and that word is doing real work: the chosen
-aggregator does not report which provider served a request and documents that it may override
-the one asked for. What is shown is what was sent, not what happened, and the display says so
-rather than deriving a number from the model name and calling it observed.
+The provider layer is labelled **requested**, and that word is doing real work: what the chosen
+aggregator reports about the provider is its own word — a response field that follows the pin,
+on one request path, measured 2026-09-22 — and it has said it may override the one asked for.
+What is shown is what was sent, not what happened, and the display says so rather than deriving
+a number from the model name and calling it observed.
 
 ## What must still be trusted
 

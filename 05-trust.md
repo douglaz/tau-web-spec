@@ -81,11 +81,13 @@ it routes to whoever does, and that party sees and can rewrite every prompt and 
 to it. It stays named here because observation is not separation.
 
 **This party is now requested per machine, not observed after the fact.** The row used to promise
-an *observed* count read from a response header; checked against the default aggregator, **no
-response field or header names the provider that served a request**, and the browser could not
-read one if it did. So the harness **asks** for a provider in each call, using the routing object
-the aggregator documents, and the display shows what was asked (`ARC-14`). The aggregator states
-that it may override the request — that is this row's trust exactly, not a new one, since the
+an *observed* count read from a response header; checked against the default aggregator on
+2026-09-05, **no response field or header named the provider that served a request**, and the
+browser could not read one if it did. On 2026-09-22 a `provider` field appeared on the
+`provider.only` path, as the proxy's own report (`docs/findings/2026-09-22-provider-routing.md`).
+So the harness **asks** for a provider in each call, using the aggregator's routing object, and
+the display shows what was asked (`ARC-14`). The aggregator's documentation was recorded as
+saying it may override the request — that is this row's trust exactly, not a new one, since the
 proxy above it can already alter everything it carries (`TRU-E2`). What cannot be shown is
 whether the request was honoured, and the label *requested* is what keeps that honest (`SEC-9`).
 A standing ask to the aggregator to expose the served provider would add an *observed* column

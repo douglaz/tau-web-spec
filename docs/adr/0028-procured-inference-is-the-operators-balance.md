@@ -112,7 +112,10 @@ reliability record. Against that it is visibly a real operation, shipping contin
 eighteen months, running its own Lightning node. `TRU-E2` states both halves. The reason this is
 acceptable is the prepaid bound: the operator's exposure is what the operator chose to fund.
 
-**One thing this record did not fix, settled separately.** The aggregator does not report which
-provider served a request, so `ARC-14`'s observed layer had no source. The layer is now
-*requested* per member rather than observed — ADR-0007's third amendment — using the routing
-object this same aggregator documents.
+**One thing this record did not fix, settled separately.** The aggregator did not report which
+provider served a request when this was checked (2026-09-05), so `ARC-14`'s observed layer had
+no source. The layer is now *requested* per member rather than observed — ADR-0007's third
+amendment — using this same aggregator's routing object, which its published API did not
+document when read on 2026-09-22. On that date its `provider.only` path returned a `provider`
+field following the pin: the proxy's own report, and the label stays *requested*
+(`docs/findings/2026-09-22-provider-routing.md`, ADR-0007's fourth amendment).

@@ -434,7 +434,8 @@ _Avoid_: audit trail, proof
 **Provenance record**
 The claim that a machine was provisioned by a specific cloud vendor, configured model and
 requested provider. It once claimed the *set* of providers *observed* serving it; the chosen
-aggregator reports none. In the first version a local claim rather than evidence.
+aggregator reported none when checked on 2026-09-05, and on the `provider.only` path reports one
+as its own word (2026-09-22). In the first version a local claim rather than evidence.
 _Avoid_: attestation, certificate, lineage
 
 ### Trust and diversity
@@ -451,12 +452,14 @@ An independent way for an AI to be compromised. Counted at three configured laye
 
 **Inference provider**
 The party that actually serves the weights for a request. **Distinct from the proxy the session
-connects to**, and distinct from the party that *made* the weights. **Requested** by the harness
-in each call and shown under that label; not reported back by the chosen aggregator, which
-documents that it may override the request. (`X-Provider-Name` is a different aggregator's
-header and was recorded while that one was still the candidate.)
-_Avoid_: AI provider, model provider, LLM vendor, serving provider; "observed provider" (there
-is no observation today)
+connects to**, and distinct from the party that *made* the weights — as roles; one party may
+hold both, as `z-ai` does for its own weights. **Requested** by the harness in each call and
+shown under that label. A response on the `provider.only` path carries the aggregator's own
+report of the provider (measured 2026-09-22); it is the proxy's word, not an observation of the
+serving party, and the aggregator has said it may override the request. (`X-Provider-Name` is a
+different aggregator's header and was recorded while that one was still the candidate.)
+_Avoid_: AI provider, model provider, LLM vendor, serving provider; "observed provider" (a
+response field is the proxy's report, not an observation)
 
 **Model**
 The weights behind an inference provider. Two providers may serve the same model, so provider

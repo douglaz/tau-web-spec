@@ -125,5 +125,25 @@ reasoning that is still right. Asking PayPerQ to expose the served provider cost
 recorded in `OPN-23`'s closure as a standing ask; if it lands, an *observed* column sits beside
 the requested one and override becomes visible per response.
 
+## Amended a fourth time: the aggregator reports a provider, on one path, as its own word
+
+Measured 2026-09-22 and 2026-09-23 (`docs/findings/2026-09-22-provider-routing.md`): a request
+carrying `provider.only` is served with a `provider` field in the response, and the field
+follows the pin — `Z.AI` for `z-ai`, `DeepInfra` for `deepinfra`. Requests with no routing
+preference, or a model-name suffix, carry no such field. An unsatisfiable pin is refused with
+`404` at a named routing step, never silently rerouted. So the second amendment's "no response
+field or header names the provider that served a request" was true of what was checked on
+2026-09-05 and is not true of this path now, and the third amendment's "one observable thing"
+is two.
+
+**What does not change.** The field is the proxy's report of itself (`TRU-E2`), in a body, and
+nothing in a response can make it more than that; the count stays *requested*, and `SEC-9`'s
+*observed* column stays a *may*. The `provider.only` responses also arrive in a different
+envelope from the others, which suggests a distinct path and possibly a party in series — that
+is what `SEC-10` exists for, and T38 carries it. The documentation is now inconsistent in both
+directions: the published API describes routing only as suffixes and never the `provider`
+object, while this record and `OPN-23` quote a text saying supplied fields "may be overridden"
+that the published API no longer contains.
+
 The title of this record is now wrong twice over — it is three layers, not two, and none of
 them is observed — and it is kept, because the reasoning it names is the reasoning that survived.
