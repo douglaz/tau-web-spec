@@ -22,10 +22,15 @@ gated on it.
 - [ ] **T23 — Demonstrate interrupted rescue installation** (`OPN-18`). Implement the
       `STA-20b` handoff and run `CNF-40`, `CNF-55`, `CNF-85` and `CNF-86` on the integrated
       harness. Non-destructive example checks are not a completed hardware rehearsal.
-- [ ] **T27 — Build the first-stage relay** (publisher; `docs/design/relay-protocol-v1.md`,
-      `CNF-87`). Challenge, AUTH, OK, then binary frames; destination checked against the
-      hand-recorded set; `CHN-16a` and `bundle/timing.toml` limits before any dial. Ahead of
-      harness integration: nothing over the channel can be tested without it.
+- [ ] **T27 — Build the first-stage relay** (publisher; `CNF-87`). *Moved 2026-09-24: the relay
+      is paid-tcp-relay's product (github.com/douglaz/paid-tcp-relay) and its checklist is the
+      build's gate; what stays here is integrating a relay that passes it, with a hand-recorded
+      pass (its `PAS-6`).* Ahead of harness integration: nothing over the channel can be tested
+      without it.
+- [ ] **T30 — Port `TauWeb.Relay` to paid-tcp-relay** (its `F4`). The module, its witness file
+      `docs/design/relay-witnesses-v1.json` and the controls that read them move when that set
+      grows a formal layer; until then `CHN-15`, `CHN-16` and `CHN-16a` keep their `@[req]` tags
+      and tau-web's index is the proof of record for the handshake and the destination pipeline.
 - [ ] **T28 — Restate the three tenant declarations in v1** (`docs/design/delivery-declaration-v1.md`).
       ad-hoc is complete in the schema document; lnrent's template goes to lnrent#87 as the
       answer format; btc-policy's waits on its drift checks and required software. Each profile

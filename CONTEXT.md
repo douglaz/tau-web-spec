@@ -345,7 +345,7 @@ _Avoid_: master key, root key (both suggest something a session holds), "the use
 unqualified "seed" in any sentence that also mentions a vault
 (a derived key is one of many, and none is the operator's social identity)
 
-**Relay pass** · `CHN-15`, `CHN-16`
+**Relay pass** · `CHN-15`, `CHN-16`; owned by paid-tcp-relay (`PAS-3`)
 What is bought: the relay's record of which destinations a relay key may reach, until when, and
 how fast. Paid for by invoice, bound to a key, never held as a value. There is no identity
 behind it. Its key re-derives from the seed and exported pass index; losing the index can
@@ -353,7 +353,7 @@ lose the remaining quota.
 _Avoid_: token, subscription, API key (all imply an account or a bearer string); "present the
 pass" (one presents the key; the relay finds the pass)
 
-**Relay key** · `CHN-15`, `SEC-5` row 4
+**Relay key** · `CHN-15`, `SEC-5` row 4; owned by paid-tcp-relay (`PAS-2`)
 The keypair the browser derives from the seed for one relay pass. Its public half is what the
 relay binds a purchase to and what the first stage hands the publisher; its private half signs
 the connection challenge, destination records, and revocation. Never stored, never bearer.

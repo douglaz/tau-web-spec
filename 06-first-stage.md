@@ -251,8 +251,9 @@ way".
 - **Relay enrolment.** The operator's relay **public** key, derived from the seed (`CHN-15`),
   is handed to the publisher out of band and recorded by hand. Nothing secret crosses and
   nothing is pasted into the app. The publisher configures the allowed public destinations
-  and connection/probe limits; fresh challenge authentication, destination restriction and
-  private-address refusal still apply (`CNF-81`, `CNF-87`). There is no purchase flow or tested reacquisition story;
+  and connection/probe limits (paid-tcp-relay `PAS-6`, its `bundle/timing.toml`); fresh
+  challenge authentication, destination restriction and private-address refusal still apply
+  (`CNF-81`, `CNF-87`). There is no purchase flow or tested reacquisition story;
   that is `OPN-2`.
 - **Inference funding.** Assumed already funded.
 - **Tenant-secret delivery.** `CNF-16` is not first-stage work, so no tenant secret is placed

@@ -34,7 +34,7 @@ implementation's CI runs; `bundle/` holds the publisher-chosen values the build 
 | [`docs/adr/`](./docs/adr/) | The decisions, and for most of them the alternatives rejected and why |
 | [`docs/review/`](./docs/review/) | Review records, kept as history |
 | [`docs/tenants/`](./docs/tenants/) | One profile per tenant, on ADR-0030's schema |
-| [`docs/design/`](./docs/design/) | Design sessions, kept as history — and three normative companions: `credential-format-v1.md` (`STA-22a`), `relay-protocol-v1.md` (`CHN-15`), `delivery-declaration-v1.md` (`ARC-39`) |
+| [`docs/design/`](./docs/design/) | Design sessions, kept as history — and two normative companions, `credential-format-v1.md` (`STA-22a`) and `delivery-declaration-v1.md` (`ARC-39`); `relay-protocol-v1.md` is retained as history since its move to paid-tcp-relay |
 | [`bundle/`](./bundle/) | Publisher-chosen inputs the implementation compiles in: artifact pin and signers, inference target, timings, the CORS probe (ADR-0031) |
 | [`docs/briefs/`](./docs/briefs/) | Draft briefs written from real runs, not yet in any bundle |
 | [`docs/findings/`](./docs/findings/) | What the prototypes found when they ran |

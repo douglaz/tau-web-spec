@@ -1,5 +1,9 @@
 # The publisher operates the default relay; bring-your-own is the escape hatch
 
+**Moved 2026-09-24.** The rule this record adopted is paid-tcp-relay's (its ADR 0002, `OPR-3`,
+`OPR-4`; github.com/douglaz/paid-tcp-relay). This record stays as the history of why tau-web
+adopted it and is no longer the rule's home; `CHN-11` is tau-web's decision to adopt the default.
+
 The WebSocket-to-TCP relay of
 [ADR-0015](./0015-the-browser-reaches-a-machine-over-pinned-ssh.md) is operated by the
 **publisher** on the default path. The operator may point the app at any other relay
