@@ -1,0 +1,13 @@
+listed: 378
+privacyLevel: {'anon': 227, 'zdr': 143, 'e2e': 8}
+eligible (zero-retention badge + tool calls): 111
+of those flagged popular: 1
+  glm-5.3  context=1310720  owned_by=Z.ai
+flagged popular overall: 16, of which not badged zdr: 15
+badge by owner (zdr / all):
+  Anthropic: 0 / 19
+  OpenAI: 3 / 68
+  Google: 6 / 30
+  Z.ai: 12 / 18
+  DeepSeek: 15 / 18
+  Qwen: 27 / 50

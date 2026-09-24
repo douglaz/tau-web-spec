@@ -247,7 +247,8 @@ authorize an action on its own, declare capabilities, or override policy.
 
 **Trust counts MUST be shown per layer and MUST NOT be blended into a single score** — and
 the provider layer MUST be labelled **requested**, never *observed* or *verified*: it is what
-the harness asked the aggregator for, and the aggregator documents that it may override.
+the harness asked the aggregator for, and the aggregator documents that for some models it may
+override.
 
 **A count MUST NOT be derived from something it does not measure.** The provider layer used to
 be *observed* and had no source on the chosen aggregator; deriving it from the model name would
@@ -255,6 +256,27 @@ have produced a figure labelled *observed* that was read off the request. It is 
 which is a count of what was sent — and that label is the whole of its honesty. Should a
 response ever carry the served provider, an *observed* count may sit beside the requested one;
 until then there is one column, and it says what it is.
+
+**A response's own report of the provider is compared, never shown as a count.** The aggregator
+answers a provider selection with a *reported provider*, its own word about itself
+(`CONTEXT.md`). The harness MUST compare it with the requested provider and MUST record it in
+the call's terminal record (`ARC-31a`). The two are spelled differently — the request carries a
+slug, the report a display name, `z-ai` against `Z.AI` — so until the aggregator publishes the
+mapping `OPN-23` asks for and the bundle carries it, equality is by both names folded to lower
+case with punctuation removed. A match displays nothing and proves nothing. A mismatch MUST be
+surfaced on that machine as *requested X; the proxy reported Y* — the report's provenance kept in
+the words, because it is the proxy saying it did not honour the request, and nothing more. A
+selection whose response carries no report, or a report that, folded the same way, matches
+neither the requested provider nor any other provider the bundle names, MUST be surfaced as
+*unrecognized*. No column is derived from any of it. If the report
+merely echoes the request the detector never fires, which is why the *observed* column above
+stays a *may* and `OPN-23`'s ask stands.
+
+**When the requested provider is the maker of the weights, the display MUST say so on that
+machine.** The maker is a fact the bundle records beside the model, never parsed from the
+model's name (`CNF-41`). The counts are unchanged — `ARC-14` lists the layers — but the
+requested provider and the maker are then one party, and the operator is told rather than left
+to recognise the name.
 
 ### SEC-10 — the trusted list does not grow silently
 

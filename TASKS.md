@@ -214,42 +214,42 @@ gated on it.
       btc-policy's federation is (its claim, `ARC-20`, `SEC-T4`, TRU-A3's retirement note).
 
 - [ ] **T37 — The candidate order and the job that maintains it** (ADR-0033). The rules first,
-      each in its owner, then the schema. Give the zero-retention filter its clause in
-      `ARC-31a` — only models the aggregator lists under that tier are eligible — since `ARC-31a`
-      says "The retention tier MUST be requested explicitly on every call" and names a request,
-      not a model attribute. Give `ARC-43` the sentence that a candidate model must be able to
-      call the tool set it says "is exactly four". Set the context floor's value and owner. Give
-      the candidate order, the session-start selection, the unanswered-list disposition and the
-      proposing job a requirement owner — `TRU-A1` says "Model selection ships in the signed
-      bundle", and owns the publisher's part; the harness's part has none. Amend `STG-17` with
-      a MUST NOT: the order is never `ARC-16`'s escalation rung. Then change
-      `bundle/inference.toml` from one slug to the ordered list, point its comment at `STG-17`
-      rather than restating the rule, and add the conformance item. Add the scheduled job; it
-      opens pull requests and never commits. The implementation's build gate changes with the
-      schema and arrives with the pin bump. Separately owed: the retention flag's wire form —
-      `ARC-31a` and ADR-0028 say "the flag" and the published API documents none — without
-      which `CNF-71` cannot be measured.
+      each in its owner, then the schema. *Eligibility.* Give the zero-retention **badge** filter
+      its clause beside `ARC-31a`'s request rule — `ARC-31a` says "The retention tier MUST be
+      requested explicitly on every call" and names a request, not a model attribute, so the
+      filter is a new clause and not a reading of that one — and give the publisher's
+      **allowlist** of proprietary models that route zero-retention its clause in the publisher's
+      part, which `TRU-A1` names ("Model selection ships in the signed bundle"); both decided
+      2026-09-24, neither landed. Name the wire form in `ARC-31a`: `provider.zdr: true`,
+      documented on the aggregator's `api-docs` page and accepted together with the pinned
+      provider (finding, cases G–I) — and decide what `retention = "strictest"` means against a
+      list that also carries an `e2e` tier. Give `ARC-43` the sentence that a candidate model
+      must be able to call the tool set it says "is exactly four". Set the context floor's value
+      and owner. *Selection and job.* Give the candidate order, the session-start selection, the
+      unanswered-list disposition and the proposing job a requirement owner; the job probes
+      allowlisted models against the model, the pinned provider and `zdr` together, and its
+      credential and spend need an owner. Amend `STG-17` with a MUST NOT: the order is never
+      `ARC-16`'s escalation rung. *Schema.* Change `bundle/inference.toml` from one slug to the
+      ordered list, carry the maker beside each model (`SEC-9`'s same-party mark reads it,
+      never the slug) and the allowlist, and point the comment at `STG-17` rather than
+      restating the rule. *Conformance.* Add the items: the selection; `SEC-9`'s comparison,
+      its *unrecognized* case and the same-party mark, with a fixture whose requested provider
+      is not the maker — with today's bundle the two cannot be told apart. Add the scheduled
+      job; it opens pull requests and never commits. The implementation's build gate changes
+      with the schema and arrives with the pin bump.
 
-- [ ] **T38 — What the provider measurement left open**
-      (`docs/findings/2026-09-22-provider-routing.md`). The sentences it proved false were
-      corrected with it; these are the decisions it raised. *The field.* A `provider.only`
-      response carries a `provider` field that follows the pin, as a display name. `SEC-9` says
-      "Should a response ever carry the served provider, an observed count may sit beside the
-      requested one": decide whether this field is *the served provider* or the proxy's echo of
-      the request, what would tell them apart, and whether the *may* is taken; the field's
-      display names have no published mapping to the requested slugs. *The path.* Those
-      responses arrive in a different envelope, with the marks of a party in series; `SEC-10`
-      says "The trusted-party list MUST NOT grow silently", so name the party or show there is
-      none — and measure whether a browser can read that envelope, which `OPN-23`'s standing ask
-      turns on. *The documentation.* ADR-0007 and `OPN-23` quote the aggregator saying supplied
-      provider fields "may be overridden"; its published API no longer contains the phrase and
-      documents no `provider` object. Record which text said it, or retire the quote. *One
-      party, two layers.* Today's provider is the maker of the weights it serves. `ARC-14` keeps
-      the layers counted separately; say in `SEC-9` what the display shows when they are one
-      party, and how `CNF-41`'s "never derived from the model name" is told apart from a
-      requested value that matches it — only `CNF-78`'s request inspection can. *`OPN-23`.*
-      Its closure said the layer had no source; a body field on one path is a candidate source
-      and not the header a browser reads. Decide whether it reopens.
+- [x] **T38 — What the provider measurement left open**
+      (`docs/findings/2026-09-22-provider-routing.md`). *Decided 2026-09-24, and the rules
+      landed with the decisions.* The reported provider is a mismatch detector and nothing more
+      — `SEC-9` says "A response's own report of the provider is compared, never shown as a
+      count"; the proxy's upstream is named by inference on `TRU-E2`'s row, not a new row, since
+      `SEC-10` says "The trusted-party list MUST NOT grow silently" and a dated name is not
+      silence; the "may be overridden" text is the aggregator's `api-docs` page, which documents
+      the routing object and scopes the override, and the corrections that had called the object
+      undocumented are reversed; `SEC-9` says "When the requested provider is the maker of the
+      weights, the display MUST say so on that machine"; `OPN-23` stays closed with its standing
+      ask rewritten. The conformance items for the comparison and the
+      same-party mark are T37's.
 
 The September 9 review's specification corrections are applied: canonical disk selection,
 rescue job lifetime, local unlock, derivation/allocation metadata, relay destination limits,

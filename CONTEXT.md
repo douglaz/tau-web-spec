@@ -456,19 +456,29 @@ connects to**, and distinct from the party that *made* the weights — as roles;
 hold both, as `z-ai` does for its own weights. **Requested** by the harness in each call and
 shown under that label. A response on the `provider.only` path carries the aggregator's own
 report of the provider (measured 2026-09-22); it is the proxy's word, not an observation of the
-serving party, and the aggregator has said it may override the request. (`X-Provider-Name` is a
+serving party, and the aggregator has said it may override the request for some models.
+(`X-Provider-Name` is a
 different aggregator's header and was recorded while that one was still the candidate.)
 _Avoid_: AI provider, model provider, LLM vendor, serving provider; "observed provider" (a
 response field is the proxy's report, not an observation)
+
+**Reported provider** · `SEC-9`
+What the aggregator's own response says served a request. Neither *requested* — what the
+harness sent — nor *observed* — evidence independent of the aggregator: it is the proxy's word
+about itself. What the harness does with it is `SEC-9`'s rule, not this entry's.
+_Avoid_: served provider (claims what only independent evidence could), observed provider, "the
+provider field" (unqualified)
 
 **Model**
 The weights behind an inference provider. Two providers may serve the same model, so provider
 diversity does not imply model diversity. This distinction is the whole security argument.
 
 **Eligible set** · `ADR-0033`
-The models the harness may be pointed at: those the aggregator serves under its zero-retention
-tier, that support tool calls, and that clear the context floor. Membership is a fact about the
-aggregator's list on a given day, not a judgement about a model.
+The models the harness may be pointed at: those carrying the aggregator's zero-retention badge
+— open-weights models with a zero-retention endpoint — or named on the publisher's **allowlist**
+of proprietary models that route zero-retention; that support tool calls; and that clear the
+context floor. Badge membership is a fact about the aggregator's list on a given day; the
+allowlist is the publisher's judgement, and says so.
 _Avoid_: available models, supported models, "the model list" (that is the aggregator's endpoint)
 
 **Candidate order** · `ADR-0033`
