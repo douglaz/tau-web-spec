@@ -57,12 +57,22 @@ exactly the set a hosted service picks on your behalf, silently and unlisted.
 disk. Host-key pinning buys transport safety, not vendor independence; vendor independence is
 what placing machines at several vendors buys.
 
-**TRU-E2 — The inference proxy, and on the default path there is only one of it.** Procured
-inference means the publisher picks the models, and it has one aggregator that reaches them
-all, so the normal configuration is several sets of weights behind a single proxy. That proxy
-can alter every prompt and response it carries, which makes it the thinnest layer in the
+**TRU-E2 — The inference proxy: the one the operator funds, and whatever it routes through.**
+Procured inference means the publisher picks the models, and it has one aggregator that reaches
+them all, so the normal configuration is several sets of weights behind a single proxy. That
+proxy can alter every prompt and response it carries, which makes it the thinnest layer in the
 default product even when the weights count looks healthy. Adding a second is a supported move,
 not a redesign.
+
+**The row names the proxy's upstream too, by inference, dated 2026-09-23.** A request carrying a
+provider selection (`only`) comes back in a second aggregator's response schema, field for
+field — `gen-` ids, `native_finish_reason`, `usage.is_byok`,
+`cost_details.upstream_inference_cost` — and the default one still accepts a legacy
+`openrouter:` alias in its own documentation; a request carrying `zdr` alone does not switch
+(`docs/findings/2026-09-22-provider-routing.md`). The harness sends both on every call, so the
+default path transits two aggregators. That party has exactly this row's power and no more,
+reached only through the proxy the operator chose, which is why it is a second name on this row
+and not a row of its own (`SEC-10`): the list has not grown silently, it has been read aloud.
 
 **What is known about the default one, verified 2026-09-05 against its own pages and its live
 API.** It states that it stores no prompts, keeping only token counts against a random

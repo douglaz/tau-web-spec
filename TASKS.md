@@ -226,30 +226,24 @@ gated on it.
       `bundle/inference.toml` from one slug to the ordered list, point its comment at `STG-17`
       rather than restating the rule, and add the conformance item. Add the scheduled job; it
       opens pull requests and never commits. The implementation's build gate changes with the
-      schema and arrives with the pin bump. Separately owed: the retention flag's wire form —
-      `ARC-31a` and ADR-0028 say "the flag" and the published API documents none — without
-      which `CNF-71` cannot be measured.
+      schema and arrives with the pin bump. The retention flag's wire form is found:
+      `provider.zdr: true`, documented on the aggregator's `api-docs` page and measured to route
+      with the pinned provider (finding, cases G–I); `ARC-31a` names it and `CNF-71` inspects
+      it. The eligibility filter is the aggregator's zero-retention **badge** plus a
+      publisher-kept **allowlist** of proprietary models that route zero-retention (decided
+      2026-09-24, ADR-0033): the job probes only allowlisted models, and the allowlist has an
+      owner clause beside the badge's.
 
-- [ ] **T38 — What the provider measurement left open**
-      (`docs/findings/2026-09-22-provider-routing.md`). The sentences it proved false were
-      corrected with it; these are the decisions it raised. *The field.* A `provider.only`
-      response carries a `provider` field that follows the pin, as a display name. `SEC-9` says
-      "Should a response ever carry the served provider, an observed count may sit beside the
-      requested one": decide whether this field is *the served provider* or the proxy's echo of
-      the request, what would tell them apart, and whether the *may* is taken; the field's
-      display names have no published mapping to the requested slugs. *The path.* Those
-      responses arrive in a different envelope, with the marks of a party in series; `SEC-10`
-      says "The trusted-party list MUST NOT grow silently", so name the party or show there is
-      none — and measure whether a browser can read that envelope, which `OPN-23`'s standing ask
-      turns on. *The documentation.* ADR-0007 and `OPN-23` quote the aggregator saying supplied
-      provider fields "may be overridden"; its published API no longer contains the phrase and
-      documents no `provider` object. Record which text said it, or retire the quote. *One
-      party, two layers.* Today's provider is the maker of the weights it serves. `ARC-14` keeps
-      the layers counted separately; say in `SEC-9` what the display shows when they are one
-      party, and how `CNF-41`'s "never derived from the model name" is told apart from a
-      requested value that matches it — only `CNF-78`'s request inspection can. *`OPN-23`.*
-      Its closure said the layer had no source; a body field on one path is a candidate source
-      and not the header a browser reads. Decide whether it reopens.
+- [x] **T38 — What the provider measurement left open**
+      (`docs/findings/2026-09-22-provider-routing.md`). *Decided 2026-09-24, and the rules
+      landed with the decisions.* The reported provider is a mismatch detector and nothing more
+      (`SEC-9`, `CONTEXT.md`); the proxy's upstream is named by inference on `TRU-E2`'s row,
+      not a new row (`SEC-10`); the "may be overridden" text is the aggregator's `api-docs`
+      page, which documents the routing object and scopes the override, and the corrections
+      that had called the object undocumented are reversed; when the requested provider is the
+      maker of the weights the display says so, counts unchanged (`SEC-9`); `OPN-23` stays
+      closed with its standing ask rewritten. What remains is a conformance item for the
+      comparison and the same-party mark, owed with T37's.
 
 The September 9 review's specification corrections are applied: canonical disk selection,
 rescue job lifetime, local unlock, derivation/allocation metadata, relay destination limits,

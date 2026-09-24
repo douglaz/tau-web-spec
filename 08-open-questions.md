@@ -256,10 +256,14 @@ ask below stands.
 accountless Lightning funding and open CORS that won this one the slot for a number; and
 retiring the layer, which throws away reasoning that is still right.
 
-*A standing ask, not a dependency.* If the aggregator exposes the served provider and adds it to
-the headers a browser may read, an *observed* column sits beside the requested one and override
-becomes visible per response. Cheap for them if the circumstantial evidence that they resell
-another aggregator holds — **inference, not verification** — and nothing here waits on it.
+*A standing ask, rewritten 2026-09-24.* The first ask — expose the served provider where a
+browser can read it — is met in substance: a `provider` field, in a body a browser can read, on
+the selection path. It is used as `SEC-9`'s mismatch detector and never as an *observed* column,
+because the proxy's word about itself is not observation. What is asked now costs them as little
+and is still missing: document the field's semantics — the party that served, or an echo of the
+request — and publish the mapping from the display names it prints (`Z.AI`) to the slugs it
+accepts (`z-ai`). The resale of another aggregator, once inference, is named on `TRU-E2`'s row.
+Nothing here waits on any of it.
 
 **OPN-4 — Weights-level diversity may not be enforceable.** *Closed 2026-09-12 by restatement.*
 The runtime signal named the *inference provider*, not the weights behind it — and the

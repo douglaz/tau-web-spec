@@ -1,0 +1,11 @@
+HTTP/1.1 200 OK
+access-control-allow-origin: *
+access-control-allow-headers: *, Authorization
+access-control-allow-methods: GET,POST,OPTIONS
+access-control-expose-headers: Ehbp-Response-Nonce, X-Tinfoil-Usage-Metrics
+content-type: application/json
+transfer-encoding: chunked
+Date: Wed, 23 Sep 2026 15:35:22 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+

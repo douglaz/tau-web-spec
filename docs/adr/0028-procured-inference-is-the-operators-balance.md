@@ -115,7 +115,7 @@ acceptable is the prepaid bound: the operator's exposure is what the operator ch
 **One thing this record did not fix, settled separately.** The aggregator did not report which
 provider served a request when this was checked (2026-09-05), so `ARC-14`'s observed layer had
 no source. The layer is now *requested* per member rather than observed — ADR-0007's third
-amendment — using this same aggregator's routing object, which its published API did not
-document when read on 2026-09-22. On that date its `provider.only` path returned a `provider`
+amendment — using this same aggregator's routing object, documented on its `api-docs` page and
+absent from its `llms.txt`. On 2026-09-22 its `provider.only` path returned a `provider`
 field following the pin: the proxy's own report, and the label stays *requested*
 (`docs/findings/2026-09-22-provider-routing.md`, ADR-0007's fourth amendment).

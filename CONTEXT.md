@@ -461,14 +461,24 @@ different aggregator's header and was recorded while that one was still the cand
 _Avoid_: AI provider, model provider, LLM vendor, serving provider; "observed provider" (a
 response field is the proxy's report, not an observation)
 
+**Reported provider** · ADR-0007 (fourth amendment)
+What the aggregator's own response says served a request. Neither *requested* — what the
+harness sent — nor *observed* — evidence independent of the aggregator: it is the proxy's word
+about itself. Its one use is comparison with the requested provider. A match shows nothing and
+proves nothing; a mismatch is the proxy saying it did not honour the request, and is surfaced.
+_Avoid_: served provider (claims what only independent evidence could), observed provider, "the
+provider field" (unqualified)
+
 **Model**
 The weights behind an inference provider. Two providers may serve the same model, so provider
 diversity does not imply model diversity. This distinction is the whole security argument.
 
 **Eligible set** · `ADR-0033`
-The models the harness may be pointed at: those the aggregator serves under its zero-retention
-tier, that support tool calls, and that clear the context floor. Membership is a fact about the
-aggregator's list on a given day, not a judgement about a model.
+The models the harness may be pointed at: those carrying the aggregator's zero-retention badge
+— open-weights models with a zero-retention endpoint — or named on the publisher's **allowlist**
+of proprietary models that route zero-retention; that support tool calls; and that clear the
+context floor. Badge membership is a fact about the aggregator's list on a given day; the
+allowlist is the publisher's judgement, and says so.
 _Avoid_: available models, supported models, "the model list" (that is the aggregator's endpoint)
 
 **Candidate order** · `ADR-0033`

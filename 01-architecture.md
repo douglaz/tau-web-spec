@@ -334,10 +334,11 @@ number ([ADR-0007](./docs/adr/0007-trust-is-counted-in-two-layers-and-shown.md))
   prompt and response it carries, whatever weights sit behind it.
 - **Provider, requested** — the party that actually runs the inference behind the aggregator.
   The harness **requests** a provider per machine in the call itself, the same way it requests a
-  model, using the aggregator's routing object — which its published API did not document
-  when read on 2026-09-22, and which works. The display shows what was requested. **The
-  aggregator may override it**: its documentation was recorded on 2026-09-05 as saying so, and
-  when measured an unsatisfiable request was refused rather than rerouted
+  model, using the aggregator's routing object — `order`, `only`, `ignore` and `zdr`, documented
+  on its `api-docs` page and absent from its `llms.txt`. The display shows what was requested.
+  **The aggregator may override it**, and its documentation scopes that to the few models with
+  routing rules it enforces — some Anthropic and Gemini variants — while keeping the `zdr`
+  request; when measured, an unsatisfiable request was refused rather than rerouted
   (`docs/findings/2026-09-22-provider-routing.md`). Either way it is no new trust, since
   `TRU-E2` already names the proxy as able to alter everything it carries.
   This is the same shape `OPN-4` reached for weights: configured and unverifiable is a

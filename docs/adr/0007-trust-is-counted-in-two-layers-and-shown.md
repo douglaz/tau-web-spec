@@ -125,25 +125,35 @@ reasoning that is still right. Asking PayPerQ to expose the served provider cost
 recorded in `OPN-23`'s closure as a standing ask; if it lands, an *observed* column sits beside
 the requested one and override becomes visible per response.
 
-## Amended a fourth time: the aggregator reports a provider, on one path, as its own word
+## Amended a fourth time: the aggregator reports a provider, and the report is a detector
 
 Measured 2026-09-22 and 2026-09-23 (`docs/findings/2026-09-22-provider-routing.md`): a request
-carrying `provider.only` is served with a `provider` field in the response, and the field
-follows the pin — `Z.AI` for `z-ai`, `DeepInfra` for `deepinfra`. Requests with no routing
-preference, or a model-name suffix, carry no such field. An unsatisfiable pin is refused with
-`404` at a named routing step, never silently rerouted. So the second amendment's "no response
-field or header names the provider that served a request" was true of what was checked on
-2026-09-05 and is not true of this path now, and the third amendment's "one observable thing"
-is two.
+carrying a provider selection — `provider.only` — is served with a `provider` field in the
+response, and the field follows the pin: `Z.AI` for `z-ai`, `DeepInfra` for `deepinfra`.
+Requests with no routing preference, with a model-name suffix, or with `zdr` alone carry no such
+field. An unsatisfiable pin is refused with `404` at a named routing step, never silently
+rerouted. So the second amendment's "no response field or header names the provider that served
+a request" was true of what was checked on 2026-09-05 and is not true now, and the third
+amendment's "one observable thing" is two.
 
-**What does not change.** The field is the proxy's report of itself (`TRU-E2`), in a body, and
-nothing in a response can make it more than that; the count stays *requested*, and `SEC-9`'s
-*observed* column stays a *may*. The `provider.only` responses also arrive in a different
-envelope from the others, which suggests a distinct path and possibly a party in series — that
-is what `SEC-10` exists for, and T38 carries it. The documentation is now inconsistent in both
-directions: the published API describes routing only as suffixes and never the `provider`
-object, while this record and `OPN-23` quote a text saying supplied fields "may be overridden"
-that the published API no longer contains.
+**What the field is, decided 2026-09-24.** It is the proxy's report of itself (`TRU-E2`), in a
+body a browser can read, and nothing in a response can make it more than that. So it is named —
+the *reported provider*, `CONTEXT.md` — and given one use: comparison. A match displays nothing
+and proves nothing; a mismatch is the proxy saying it did not honour the request, which is
+believable because it is against interest, and `SEC-9` surfaces it. The count stays
+*requested*; the *observed* column stays a *may*, untaken.
+
+**What the envelope showed.** Responses on that path arrive in a second aggregator's schema,
+field for field, and the switch is triggered by the selection (`only`), not by `zdr`. `TRU-E2`
+now names that upstream by inference, dated, as a second name on the same row: the same power,
+reached only through the proxy the operator chose (`SEC-10`).
+
+**The documentation, read properly.** The second amendment's phrase "may be overridden" is from
+the aggregator's `api-docs` page, which documents the whole routing object — `zdr`,
+`data_collection`, `order`/`only`/`ignore`, `sort`, price and latency preferences, fallback
+controls — and scopes the override to "a few models (some Anthropic and Gemini variants)" with
+routing rules it enforces, the `zdr` request preserved. Its `llms.txt`, read on 2026-09-22 and
+-23, omits all of it, which is what an earlier draft of this amendment mistook for "undocumented".
 
 The title of this record is now wrong twice over — it is three layers, not two, and none of
 them is observed — and it is kept, because the reasoning it names is the reasoning that survived.

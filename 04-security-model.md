@@ -247,7 +247,8 @@ authorize an action on its own, declare capabilities, or override policy.
 
 **Trust counts MUST be shown per layer and MUST NOT be blended into a single score** — and
 the provider layer MUST be labelled **requested**, never *observed* or *verified*: it is what
-the harness asked the aggregator for, and the aggregator documents that it may override.
+the harness asked the aggregator for, and the aggregator documents that for some models it may
+override.
 
 **A count MUST NOT be derived from something it does not measure.** The provider layer used to
 be *observed* and had no source on the chosen aggregator; deriving it from the model name would
@@ -255,6 +256,16 @@ have produced a figure labelled *observed* that was read off the request. It is 
 which is a count of what was sent — and that label is the whole of its honesty. Should a
 response ever carry the served provider, an *observed* count may sit beside the requested one;
 until then there is one column, and it says what it is.
+
+**A response's own report of the provider is compared, never shown as a count.** The aggregator
+answers a provider selection with a *reported provider*, its own word about itself
+(`CONTEXT.md`). The harness MUST compare it with the requested provider: a match displays
+nothing and proves nothing, and a mismatch MUST be surfaced on that machine, because it is the
+proxy saying it did not honour the request. No column is derived from it.
+
+**When the requested provider is the maker of the weights, the display MUST say so on that
+machine.** The three counts are unchanged — `ARC-14` counts the layers separately — but two of
+them are then one party, and the operator is told rather than left to recognise the name.
 
 ### SEC-10 — the trusted list does not grow silently
 

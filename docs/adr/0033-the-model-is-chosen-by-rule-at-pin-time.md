@@ -5,7 +5,8 @@ slug, and a scheduled job in this repository recomputes what belongs in it and o
 request when the answer changes. At session start the harness takes the highest-ranked
 candidate the aggregator still lists; nothing else moves it down the order, and a list that does
 not answer moves it nowhere. Decided 2026-09-22. Corrected 2026-09-23, after the measurement
-that took the two values and an independent-reader review of this record.
+that took the two values and an independent-reader review of this record; and 2026-09-24, when
+the decisions that measurement left open were taken (TASKS T38).
 
 ## Why
 
@@ -23,12 +24,18 @@ to the party that can do it.
 **The eligible set** is every model the aggregator lists that meets three conditions, each with
 an owner or with one owed:
 
-- *Served under the aggregator's zero-retention tier* — its `privacyLevel` attribute. This is
-  not the same thing as `ARC-31a`'s rule, which says "The retention tier MUST be requested
-  explicitly on every call": that is a request parameter, this is a model attribute, and the
-  corpus maps neither onto the other. The filter is the precondition the request needs — a tier
-  requested of a model that does not offer it is exactly the silent drop `ARC-31a` warns of —
-  and its owner is a clause T37 adds to `ARC-31a`. Until then it is this record's rule only.
+- *Zero retention.* Two things, related and distinct. `ARC-31a` says "The retention tier MUST
+  be requested explicitly on every call": that is a request parameter, and on this aggregator
+  it is `provider.zdr: true`, documented on its `api-docs` page, which also says a model with no
+  zero-retention endpoint "will fail to route" — loud, not silent, except one documented
+  model-plus-web-search case. The eligibility filter is the other thing: which models the rule
+  may pick at all. It is the aggregator's zero-retention **badge** — its `privacyLevel`
+  attribute, which by its own documentation marks open-weights models that have a zero-retention
+  endpoint and is stricter than "can be routed zero-retention", excluding every Claude and
+  almost every GPT — **plus a publisher-kept allowlist** of proprietary models that route
+  zero-retention, each named by the publisher and probed by the job. The badge is computable
+  from a committed snapshot; the allowlist is the publisher's judgement and says so. Both take an
+  owner clause beside `ARC-31a`'s request rule (T37). Until then they are this record's rule.
 - *Able to call the harness's tools.* `ARC-43` says "The model's tool set in the first stage is
   exactly four", and a candidate that cannot call them cannot do the work. `ARC-43` owns the
   interface; T37 adds the sentence that a candidate must be able to drive it.
@@ -44,9 +51,10 @@ order is otherwise for.
 finding's directory applies this rule to `models-<date>.json`; what it prints is the count.
 
 **The job proposes; it never commits.** It opens a pull request when a candidate leaves the
-eligible set — retired, or its retention tier or tool support changed — and when a new entrant
-clears the floor. `TRU-A1` says "Model selection ships in the signed bundle", and that is the
-publisher's; a job that edited the bundle itself would hold that authority unnamed.
+eligible set — retired, or its badge or tool support changed, or an allowlisted model stops
+routing zero-retention — and when a new entrant clears the floor. `TRU-A1` says "Model
+selection ships in the signed bundle", and that is the publisher's; a job that edited the bundle
+itself would hold that authority unnamed.
 
 **At runtime the order is read for availability and for nothing else.** The harness reads the
 aggregator's model list once, at session start, and takes the highest-ranked candidate it
@@ -68,10 +76,11 @@ decides only *whether* a signed candidate is still there.
 
 **The provider is not chosen by any of this.** It is a hand-taken value. Measured before it was
 written (`docs/findings/2026-09-22-provider-routing.md`): an unsatisfiable `provider.only` is
-refused with `404`, a satisfiable one is served with a `provider` field that follows the pin,
-and the field is the proxy's own report, so the label stays *requested*. The aggregator's
-published API documents no provider vocabulary; a refusal discloses, per model, the providers
-that serve it.
+refused with `404`; a satisfiable one is served with a `provider` field that follows the pin,
+which `SEC-9` names the *reported provider* and uses only to detect a mismatch; the label stays
+*requested*. The aggregator documents the routing object on its `api-docs` page and no provider
+vocabulary anywhere; a refusal discloses, per model, the providers that serve it. Selecting a
+provider also routes the request through the proxy's upstream, which `TRU-E2` now names.
 
 **A fallback is new weights on a machine.** `SEC-1` conditions the ladder's escalation on the
 stronger model being one that "is not assigned — and will never be assigned — to any other
@@ -106,6 +115,17 @@ point of the rule is a criterion that does not wait on the publisher's attention
 exactly one eligible model carried the flag, which leaves the availability fallback nowhere to
 go on the day it is withdrawn.
 
+**The badge alone, as the retention filter.** The reviewer's recommendation: it is the only
+zero-retention fact the list carries, so the set stays reproducible from a snapshot, and badged
+models are open weights served by many providers, which gives `ARC-14`'s provider layer room.
+Rejected by the publisher on 2026-09-24: it excludes every Claude and almost every GPT although
+they route zero-retention per call; the allowlist admits named ones under the publisher's own
+name, and the job probes those and only those.
+
+**Zero-retention capability instead of the badge**, admitting any model for which `provider.zdr`
+routes. Rejected: it is not discoverable from the list, only by a paid probe per candidate per
+run, so the set would no longer reproduce from a snapshot.
+
 ## Consequences
 
 **`bundle/inference.toml`'s schema changes** from one model slug to an ordered list, and the
@@ -129,8 +149,16 @@ assumption is vacuous." An order every machine reads the same way gives every ma
 setup the same top candidate. Tolerable while the stage provisions one machine; it is the first
 thing to revisit at the second.
 
+**The allowlist can change the top of the order the day it is populated.** Most of the models
+the aggregator flagged as popular on 2026-09-23 are proprietary and unbadged
+(`models-2026-09-23.json`). Today the allowlist is empty and the top candidate is the one
+badged model that carries the flag; the day a proprietary model is allowlisted, the aggregator's
+popularity order decides whether it takes the top from the open-weights model. That is the
+publisher's judgement exercised twice — once in the allowlist, once by accepting the flag's
+order — and both are named as such.
+
 **The same party can hold two layers.** Today's provider is the maker of the weights it serves.
-The layers stay counted and displayed separately, per `ARC-14`; what the display says when two
-of them are one party has no owner yet, and `CNF-41`'s rule that the provider is "never derived
-from the model name" cannot be told apart from a requested value that happens to match. T38
-carries both.
+The layers stay counted and displayed separately, per `ARC-14`, and `SEC-9` now says the
+display marks that machine as the same party at both, counts unchanged. `CNF-41`'s rule that the
+provider is "never derived from the model name" cannot be told apart, on screen, from a
+requested value that happens to match; only `CNF-78`'s request inspection can, and does.
