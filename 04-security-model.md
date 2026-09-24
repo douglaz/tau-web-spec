@@ -266,8 +266,9 @@ mapping `OPN-23` asks for and the bundle carries it, equality is by both names f
 case with punctuation removed. A match displays nothing and proves nothing. A mismatch MUST be
 surfaced on that machine as *requested X; the proxy reported Y* — the report's provenance kept in
 the words, because it is the proxy saying it did not honour the request, and nothing more. A
-selection whose response carries no report, or a report that matches no name the aggregator
-accepts, MUST be surfaced as *unrecognized*. No column is derived from any of it. If the report
+selection whose response carries no report, or a report that, folded the same way, matches
+neither the requested provider nor any other provider the bundle names, MUST be surfaced as
+*unrecognized*. No column is derived from any of it. If the report
 merely echoes the request the detector never fires, which is why the *observed* column above
 stays a *may* and `OPN-23`'s ask stands.
 

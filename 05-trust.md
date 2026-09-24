@@ -105,9 +105,9 @@ the display shows what was asked (`ARC-14`). The aggregator's documentation was 
 saying it may override the request — that is this row's trust exactly, not a new one, since the
 proxy above it can already alter everything it carries (`TRU-E2`). What cannot be shown is
 whether the request was honoured, and the label *requested* is what keeps that honest (`SEC-9`).
-The aggregator now reports a provider in its responses to a selection; `SEC-9` compares that
-report with the request and derives no column from it, and `OPN-23`'s standing ask is for the
-report's semantics and its name mapping, which no response can supply.
+The aggregator now reports a provider in its responses to a selection; `SEC-9` says "A
+response's own report of the provider is compared, never shown as a count", and `OPN-23`'s
+standing ask is for the report's semantics and its name mapping, which no response can supply.
 
 **TRU-E4 — A majority of the models**, being both honest *and* competent.
 

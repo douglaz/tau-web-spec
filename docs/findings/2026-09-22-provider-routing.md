@@ -63,7 +63,8 @@ the bundle carries — `zdr` and the pin — and is accepted with the pinned pro
 is the same for a second provider. Under the aggregator's documented contract that a model with
 no zero-retention endpoint "will fail to route", both selections are consistent with
 zero-retention routing. Nothing here shows which party served, or that anything about retention
-happened: B and G are identical down to the reported cost, and no response field reflects `zdr`.
+happened: B and G report the same provider and the same cost, and no response field reflects
+`zdr`.
 No negative control was run — `zdr` together with a provider known to lack a zero-retention
 endpoint — and the documented sentence is about the model, not the provider.
 

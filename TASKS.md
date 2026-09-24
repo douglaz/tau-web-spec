@@ -241,12 +241,14 @@ gated on it.
 - [x] **T38 — What the provider measurement left open**
       (`docs/findings/2026-09-22-provider-routing.md`). *Decided 2026-09-24, and the rules
       landed with the decisions.* The reported provider is a mismatch detector and nothing more
-      (`SEC-9`, `CONTEXT.md`); the proxy's upstream is named by inference on `TRU-E2`'s row,
-      not a new row (`SEC-10`); the "may be overridden" text is the aggregator's `api-docs`
-      page, which documents the routing object and scopes the override, and the corrections
-      that had called the object undocumented are reversed; when the requested provider is the
-      maker of the weights the display says so, counts unchanged (`SEC-9`); `OPN-23` stays
-      closed with its standing ask rewritten. The conformance items for the comparison and the
+      — `SEC-9` says "A response's own report of the provider is compared, never shown as a
+      count"; the proxy's upstream is named by inference on `TRU-E2`'s row, not a new row, since
+      `SEC-10` says "The trusted-party list MUST NOT grow silently" and a dated name is not
+      silence; the "may be overridden" text is the aggregator's `api-docs` page, which documents
+      the routing object and scopes the override, and the corrections that had called the object
+      undocumented are reversed; `SEC-9` says "When the requested provider is the maker of the
+      weights, the display MUST say so on that machine"; `OPN-23` stays closed with its standing
+      ask rewritten. The conformance items for the comparison and the
       same-party mark are T37's.
 
 The September 9 review's specification corrections are applied: canonical disk selection,

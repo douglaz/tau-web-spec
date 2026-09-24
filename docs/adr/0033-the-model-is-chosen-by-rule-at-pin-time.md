@@ -157,15 +157,16 @@ setup the same top candidate. Tolerable while the stage provisions one machine; 
 thing to revisit at the second.
 
 **The allowlist can change the top of the order the day it is populated.** `eligible-set.py`
-prints how many of the models the aggregator flags as popular are unbadged; most are, and they
-are proprietary. Today the allowlist is empty and the top candidate is the one badged model that
-carries the flag; the day a proprietary model is allowlisted, the aggregator's popularity order
-decides whether it takes the top from the open-weights model. Two more things follow. The
-proprietary families the allowlist would admit are the ones the aggregator's documentation names
-as subject to override of `only`, so the *requested* label is weakest exactly there. And they
-are usually served by their maker, which is `SEC-9`'s same-party case by default. All of it is
-the publisher's judgement exercised twice — once in the allowlist, once by accepting the flag's
-order — and both are named as such.
+prints how many of the models the aggregator flags as popular are unbadged; most are, and the
+snapshot names them. Today the allowlist is empty and the top candidate is the one badged model
+that carries the flag; the day an allowlisted model carries the flag, the aggregator's popularity
+order decides whether it takes the top from the open-weights model. Two more things follow.
+Some of the models an allowlist would admit — the aggregator's documentation names "some
+Anthropic and Gemini variants" — are the ones it says `only` may be overridden for, so the
+*requested* label is weakest exactly there. And proprietary models are usually served by their
+maker, which is `SEC-9`'s same-party case by default. All of it is the publisher's judgement
+exercised twice — once in the allowlist, once by accepting the flag's order — and both are named
+as such.
 
 **The same party can hold two layers.** Today's provider is the maker of the weights it serves.
 The layers stay counted and displayed separately, per `ARC-14`; `SEC-9` says "When the requested
