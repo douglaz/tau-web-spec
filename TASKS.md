@@ -222,7 +222,7 @@ gated on it.
       part, which `TRU-A1` names ("Model selection ships in the signed bundle"); both decided
       2026-09-24, neither landed. Name the wire form in `ARC-31a`: `provider.zdr: true`,
       documented on the aggregator's `api-docs` page and accepted together with the pinned
-      provider (finding, cases G–I) — and decide what `retention = "strictest"` means against a
+      provider (finding, cases G and I) — and decide what `retention = "strictest"` means against a
       list that also carries an `e2e` tier. Give `ARC-43` the sentence that a candidate model
       must be able to call the tool set it says "is exactly four". Set the context floor's value
       and owner. *Selection and job.* Give the candidate order, the session-start selection, the
@@ -237,6 +237,35 @@ gated on it.
       is not the maker — with today's bundle the two cannot be told apart. Add the scheduled
       job; it opens pull requests and never commits. The implementation's build gate changes
       with the schema and arrives with the pin bump.
+      *The rules landed 2026-09-24, each in its owner.* `ARC-31a` gained the badge-against-request
+      clause: the wire form, the badge as the aggregator's page defines it, and the `e2e` tier
+      ruled out of reach on the browser path, so *strictest* means `zdr`. `TRU-A1a`
+      (`05-trust.md`) is the publisher's allowlist. `ARC-43` says a candidate "MUST be able to
+      call this tool set". `ARC-31b` (`01-architecture.md`) is the one home of the candidate
+      order, the context floor (owner here; value unset until the schema carries
+      `context_floor`), the session-start selection with its unanswered-list disposition, and
+      the proposing job's contract, credential and spend. `STG-17` no longer reasons from one
+      slug and carries the MUST NOT. `CNF-88`–`CNF-90` (trust display section) test the
+      selection, `SEC-9`'s comparison with its *unrecognized* case, and the same-party mark
+      against case I's fixture; each has its applicability row. `CONTEXT.md` gained the badge
+      against the request, the context floor and the proposing job, and its *Eligible set* and
+      *Candidate order* entries point at the owners.
+      *Owed to the next step:* `bundle/inference.toml`'s schema — the ordered list, the maker
+      beside each model, the allowlist, the `context_floor` placeholder, and a comment pointing
+      at `STG-17` and `ARC-31b` rather than restating them; the scheduled job under
+      `.github/workflows/` with the publisher's aggregator credential as a repository secret;
+      the implementation's build gate at the pin bump, failing on an empty list or an empty
+      floor; `eligible-set.py` growing to apply the allowlist and the floor once either is
+      populated, so that `ARC-31b`'s "what `eligible-set.py` prints" stays true; and, once the
+      schema lands, removing the three "TASKS T37" pointers inside
+      normative text (`ARC-31b`'s floor and job bullets, `TRU-A1a`) and leaving the "carries"
+      tense in `ARC-31b` and `STG-17` true, since both describe a bundle shape that does not
+      exist until then. *Undecided by the sources and named as owed, not decided here:* the
+      `context_floor` value, the order's fixed depth, the job's cadence, what the job does
+      when the aggregator's list cannot be fetched, and what the harness does with a list that
+      answers, is well-formed, and contains none of the signed candidates — `ARC-31b` covers
+      the first candidate absent and the list unanswered, ADR-0033 is silent, and refusing to
+      start and calling the first candidate are two different behaviours.
 
 - [x] **T38 — What the provider measurement left open**
       (`docs/findings/2026-09-22-provider-routing.md`). *Decided 2026-09-24, and the rules

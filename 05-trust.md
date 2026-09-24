@@ -190,6 +190,22 @@ publisher decides which tenants can exist and when a tenant's change reaches ope
 listed here because an unnamed power is exactly what this section exists to prevent. It is a
 bootstrap seat with a stated trajectory, not a resting state.
 
+**TRU-A1a — The publisher's allowlist of proprietary models.** `TRU-A1` says "On the default
+path the publisher also selects the models" and "Model selection ships in the signed bundle
+(`bundle/inference.toml`)"; the allowlist is that selection exercised by name. The **allowlist**
+of proprietary models that route zero-retention is the publisher's judgement, carried in the
+signed bundle (`bundle/inference.toml`; its schema is TASKS T37's next step), each entry named
+by the publisher. An allowlisted model is admitted to the eligible set beside the models
+carrying the aggregator's zero-retention badge (`ARC-31a`) and is never ordered by the
+publisher: the order is `ARC-31b`'s, and the allowlist admits candidates without ranking them.
+The proposing job probes each allowlisted entry with the model, the pinned provider and `zdr`
+together — the bundle's routing shape, case G of
+`docs/findings/2026-09-22-provider-routing.md` — and proposes removal when one stops routing.
+What the job does with a proposal, its credential and its spend are `ARC-31b`'s contract, and
+this entry states no part of it. What the allowlist carries is a risk ADR-0033 records:
+"proprietary models are usually served by their maker, which is `SEC-9`'s same-party case by
+default".
+
 **TRU-A2 — The relay**, once it exists. It cannot read or alter a session whose host key was
 pinned out of band, but **it learns the machine topology** — which operator, which destination,
 when, accumulated, is the machine set (`CHN-13`) — and one that authenticates callers and

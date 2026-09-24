@@ -344,6 +344,34 @@ yet.
       serve the requested model either **fails the call** or **silently succeeds**, and which
       one is recorded, because it decides whether the label *requested* means "honoured or
       refused" or merely "sent".
+- [ ] **CNF-88 · PRE-SCALE** The session-start selection (`ARC-31b`), fixture-based as
+      `CNF-17`'s first-stage evidence is. With an injected model-list fixture in which the first
+      candidate is absent, the harness selects the highest-ranked candidate present, an
+      allowlisted one (`TRU-A1a`) under the same rule as a badged one; with a fixture answering
+      200 and an error body, "still listed" is not read from the status and the first candidate
+      is called; with no answer, the first candidate is called; with a fixture carrying a model
+      that is not in the signed order, that model is never selected — `SEC-8` says fetched
+      external content "MUST NOT authorize an action on its own", and the read can only remove
+      a candidate from consideration. And the **selected** slug, not the first, is what the
+      exposure ledger (`STA-10`), the provenance record (`STG-17`) and the terminal record
+      (`ARC-31a`) carry, and what the display shows.
+- [ ] **CNF-89 · PRE-SCALE** `SEC-9`'s comparison and its *unrecognized* case, with injected
+      responses. One reporting the requested provider under its display name — `z-ai`
+      requested, `Z.AI` reported, the finding's cases B and G — displays nothing; one reporting
+      another provider the bundle names surfaces *requested X; the proxy reported Y* — today's
+      bundle names one provider, so the fixture bundle names a second that serves the model,
+      the finding's `deepinfra` (cases F and I); one carrying no report (case H's shape), or a
+      name that folded matches nothing the bundle names, surfaces *unrecognized*. Every report
+      is recorded in the terminal record (`ARC-31a`) and no count is derived from any of them.
+- [ ] **CNF-90 · PRE-SCALE** `SEC-9`'s same-party mark, with a fixture whose requested provider
+      is **not** the maker of the weights. With today's bundle (`glm-5.3`, maker Z.ai, provider
+      `z-ai`) a harness deriving the provider from the model name passes `CNF-78`'s request
+      inspection identically, so the fixture requests a provider that serves the same model and
+      is not its maker — the finding's case I (`provider.zdr: true, only: ["deepinfra"]`,
+      reported `DeepInfra`). The mark is shown when the requested provider is the maker (case
+      G's shape) and absent for case I's shape; the maker is read from the bundle's maker field
+      (`ARC-31b`) and never from the slug — `CNF-41` says "never derived from the model name";
+      the counts are unchanged.
 - [ ] **CNF-42 · PRE-SCALE** Every approved scope and every placed tenant secret appears in the
       trust display until revoked or rotated, not merely while the approval stands.
 - [ ] **CNF-43 · PRE-SCALE** The relay's row names its operator and states that it learns the
@@ -430,7 +458,7 @@ untested capability. A broader deployment still applies the PRE-SCALE promotion 
 
 | Applies when | CNF items | First-stage interpretation |
 |---|---|---|
-| First stage: required | 1–7, 10–15, 17, 21–22, 24–26, 28–30, 32, 34–35, 37–40, 41, 43–44, 49–56, 62–64, 66–73, 78–83, 85–87 | One live dedicated machine; synthetic unbound identities exercise 6 and 26. Item 50 covers the delivery check; its scanner half waits for scanner enablement. Item 10 covers local ledger persistence; its sheet-export half waits for recovery. Item 72 covers local allocation; imported-state cases are 84. Item 67 uses Alpine; NixOS evidence is required before enabling NixOS. Item 81's migration case waits for self-host migration, which the first stage does not offer. Item 32 covers the typed Robot origin's route selection. Items 68–71 and 78 apply to the procured inference path; bring-your-own and local inference have no aggregator to test. |
+| First stage: required | 1–7, 10–15, 17, 21–22, 24–26, 28–30, 32, 34–35, 37–40, 41, 43–44, 49–56, 62–64, 66–73, 78–83, 85–90 | One live dedicated machine; synthetic unbound identities exercise 6 and 26. Item 50 covers the delivery check; its scanner half waits for scanner enablement. Item 10 covers local ledger persistence; its sheet-export half waits for recovery. Item 72 covers local allocation; imported-state cases are 84. Item 67 uses Alpine; NixOS evidence is required before enabling NixOS. Item 81's migration case waits for self-host migration, which the first stage does not offer. Item 32 covers the typed Robot origin's route selection. Items 68–71, 78 and 88–90 apply to the procured inference path; bring-your-own and local inference have no aggregator to test. Item 88 uses injected list fixtures the way 17 uses an injected response. |
 | First stage: record measurements | 45–48 | 48 has by-hand evidence; 45–47 require the integrated browser channel, not the rehearsal's timings. |
 | Post-harness handoff | 8, 77 | Before enabling any profile that declares one; the first stage has none. |
 | Scanner and advisory monitoring | 9, 36 | Also complete item 50's scanner case before exposing scanner results. |

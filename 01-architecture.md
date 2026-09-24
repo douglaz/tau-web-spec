@@ -215,7 +215,10 @@ harness composed the command, not that the operator sees it. Only the reset that
 The model's tool set in the first stage is exactly four: `exec` (a box-plane command it
 composed), `request_harness_job` (one of the jobs above, by name), `request_typed_operation`
 (a cloud-plane operation, approved on facts), and `done`. There is no tool by which the model
-reports a value, so a wrong or hostile report cannot pass `CNF-24` or pin a key.
+reports a value, so a wrong or hostile report cannot pass `CNF-24` or pin a key. A model in
+`ARC-31b`'s candidate order MUST be able to call this tool set — on the aggregator's list that
+is the `tools` entry of `supported_parameters`, which `eligible-set.py` reads
+(`docs/findings/2026-09-22-provider-routing/`).
 
 ## Briefs
 
@@ -724,6 +727,26 @@ the publisher from model selection and, locally, the proxy layer entirely.
   defaults to the weaker tier even where its own web app defaults to the stronger, so a harness
   that omits the flag gets prompt retention at the upstream and is not told. It is also
   documented to drop silently on at least one model-plus-web-search combination.
+- **The zero-retention badge is the eligibility filter; the request is the request.** The
+  request above has a wire form on the chosen aggregator: `provider.zdr: true` in the routing
+  object, accepted together with the pinned provider (cases G and I of
+  `docs/findings/2026-09-22-provider-routing.md`), and its `api-docs` page, read 2026-09-23,
+  says "Requesting zdr on a model that has no ZDR endpoint at all will fail to route".
+  `retention = "strictest"` in `bundle/inference.toml` means that request. The **badge** is a
+  different thing: the aggregator's `privacyLevel: "zdr"` model attribute, which the same page
+  defines as "The ZDR badge is a stricter PPQ classification (open-source models that also have
+  a ZDR endpoint)". The badge is the eligibility filter for the candidate order (`ARC-31b`,
+  ADR-0033), computable from a committed snapshot, and it is not a reading of the request rule
+  above; the publisher's allowlist that admits models beside it is `TRU-A1a`'s. The list's
+  `e2e` tier is out of reach on the direct browser path and so outside the eligible set: those
+  entries are the aggregator's `private/*` models, and its `llms.txt`, read 2026-09-24, says
+  "`private/*` models are not supported on this endpoint — use the local TEE proxy described
+  below for end-to-end-encrypted requests" and "you can't hit
+  `https://api.ppq.ai/v1/chat/completions` with a `private/*` model directly". *Strictest* is
+  therefore the strongest tier the browser can request, which is `zdr`. Which entries carry
+  `e2e`, and how many, is `eligible-set.2026-09-23.txt`'s and the snapshot's beside it
+  (`docs/findings/2026-09-22-provider-routing/`). No copy of either page is committed; the
+  sentences are as read, dated.
 - **An inference request is the inference adapter's own off-machine call**, composed by harness
   code and approved once at session creation. It is neither a typed operation the operator sees
   nor an untyped scope: no scope object exists for it and the aggregator is `TRU-E2`, not a
@@ -753,6 +776,55 @@ are not: they want an account, a card, and a recurring billing relationship, and
 federation across distinct vendors means several of those. Without something like lnrent,
 `OVR-5` collides with the operator's willingness to open billing relationships, and vendor
 diversity quietly collapses to whatever account they already had.
+
+**ARC-31b The candidate order is chosen by rule at pin time, read for availability at session
+start, and maintained by a job that proposes and never commits.** `ARC-31` says "the publisher
+selects the models" and that it "supplies the model choice in the signed bundle
+(`bundle/inference.toml`)"; this amendment says what that choice is made of and how it is read
+([ADR-0033](./docs/adr/0033-the-model-is-chosen-by-rule-at-pin-time.md)).
+
+- **The candidate order is a bundle value.** `bundle/inference.toml` carries an ordered list of
+  model slugs, each with its maker recorded beside it — `SEC-9` says "The maker is a fact the
+  bundle records beside the model, never parsed from the model's name". The **eligible set** is
+  every model the aggregator lists that carries the zero-retention badge or is named on the
+  publisher's allowlist (`ARC-31a`, `TRU-A1a`), can call the tool set (`ARC-43`) and clears the
+  context floor below. The order is the eligible models the aggregator flags as popular, in its
+  order, then the rest of the eligible set newest first, to a fixed depth. It is ordered for
+  availability only and says nothing about strength. Every count the rule produces is what
+  `eligible-set.py` prints over the committed snapshot beside it
+  (`docs/findings/2026-09-22-provider-routing/`); the recorded output beside them is today's,
+  and no count lives in prose.
+- **The context floor.** A candidate whose listed `context_length` is below the floor is not
+  eligible. The floor is the publisher's decision, carried in `bundle/inference.toml` under
+  `context_floor`; an empty value fails the build the way an empty `model` does today. Until the
+  schema carries the key (TASKS T37) the value is **unset** — the "TODO publisher" shape the
+  file used for its slug before 2026-09-23 — and this requirement does not invent it.
+- **The session-start selection.** The harness reads the aggregator's model list once, at
+  session start, and takes the highest-ranked candidate it finds there. "Still listed" is read
+  from the list's own entries and never from an HTTP status, and a body that is not a list is
+  no answer. A list that does not answer moves the session nowhere — the harness calls the
+  **first** candidate — and nothing else moves a session down the order: not a failed call,
+  not a stuck session, not a stronger sibling. The read is fetched external
+  content, and `SEC-8` says "All tool output and fetched external content MUST be typed as
+  untrusted and MUST NOT authorize an action on its own, declare capabilities, or override
+  policy"; the read complies, because the signed order is the authorization and the read can
+  only remove a candidate from consideration, never add one. The selected candidate is the
+  session's **configured model**: `STA-10` says the exposure ledger is "the per-machine history
+  of every configured model that has ever touched a machine", and the model `STG-17`'s
+  provenance record carries and the `model` in `ARC-31a`'s terminal record are the same
+  selection, not the first slug of the order.
+- **The proposing job.** A scheduled job in this repository recomputes the eligible set from a
+  fresh snapshot, runs `TRU-A1a`'s probe over every allowlisted entry, and **opens a pull
+  request** when a candidate leaves the set — retired, its badge or tool support changed, an
+  allowlisted entry that probe proposes for removal — or a new entrant clears the floor. It
+  MUST NOT commit to the bundle: `TRU-A1` says "Model selection ships in
+  the signed bundle (`bundle/inference.toml`)", and that authority stays the publisher's. Its
+  credential is the **publisher's own** aggregator account and its spend the publisher's, never
+  an operator's balance or session key: `ARC-31` says "The publisher handles neither the money
+  nor the credential", and that stays true of the operator's procured path. The job's workflow
+  file (`.github/workflows/`, TASKS T37) implements this contract and adds nothing to it.
+- **What this is not.** The order is never `ARC-16`'s escalation rung; `STG-17` carries the
+  MUST NOT, and this requirement does not repeat it.
 
 ## Distribution
 

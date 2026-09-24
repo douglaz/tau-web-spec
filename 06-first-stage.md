@@ -224,16 +224,23 @@ network and the recipe was wrong four times; see `STG-20`.
 ## Provenance in the first stage
 
 **STG-17** Provenance is still recorded — vendor, model, requested provider, surviving reload
-and restart — and the per-layer counts are still shown per `SEC-9`. All three read one: one set
-of weights, one proxy on the procured path, one requested provider, and no proxy entry at all
-under local inference. The provider column carries its *requested* label even at one machine,
-because a first stage that shows the label correctly is worth more than one that shows a number
-nothing produced. The smaller claim, stated as numbers.
+and restart — and the per-layer counts are still shown per `SEC-9`. On the procured path the
+model recorded is the candidate `ARC-31b`'s session-start selection took, never the first slug
+of the order. All three read one: one set of weights, one proxy on the procured path, one
+requested provider, and no proxy entry at all under local inference. The provider column
+carries its *requested* label even at one machine, because a first stage that shows the label
+correctly is worth more than one that shows a number nothing produced. The smaller claim,
+stated as numbers.
 
 What waits is comparison: with one machine there is no collision to display, so the collision
-display and the operable panel arrive with the tenant that needs them. And with one model slug
-in `bundle/inference.toml`, `ARC-16`'s middle rung has no stronger model to escalate to: the
-first stage offers rungs one and three only, and says so.
+display and the operable panel arrive with the tenant that needs them. And
+`bundle/inference.toml` carries a candidate order (`ARC-31b`) ordered for availability and not
+for strength, so `ARC-16`'s middle rung has no stronger model to escalate to. `ARC-16` says
+"then escalate to a stronger model behind the same proxy", and the harness **MUST NOT** use the
+candidate order as that rung: the first stage offers rungs one and three only, and says so. An
+availability fallback on a successor session is new weights on that machine and stays inside
+`SEC-1` like any other configured model — `SEC-1` says "Re-entry stays inside this rule the same
+way".
 
 ## What the first stage does not test
 
