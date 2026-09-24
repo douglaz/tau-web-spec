@@ -1,6 +1,6 @@
 {
-  "max_uncovered_ratcheted": 101,
-  "recorded": "2026-09-17",
-  "reason": "first recording at the gate's landing (tw-formal-companion-nxy.2); the standing count, not a target",
+  "max_uncovered_ratcheted": 99,
+  "recorded": "2026-09-24",
+  "reason": "T37's rules cited STA-10 and SEC-8, 101 to 99; ratcheted down so the appended-requirement control bites again",
   "note": "Lower is better. Raise only deliberately, with a reason."
 }

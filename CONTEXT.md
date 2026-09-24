@@ -473,20 +473,45 @@ provider field" (unqualified)
 The weights behind an inference provider. Two providers may serve the same model, so provider
 diversity does not imply model diversity. This distinction is the whole security argument.
 
-**Eligible set** · `ADR-0033`
+**Eligible set** · `ARC-31b`, `ADR-0033`
 The models the harness may be pointed at: those carrying the aggregator's zero-retention badge
 — open-weights models with a zero-retention endpoint — or named on the publisher's **allowlist**
 of proprietary models that route zero-retention; that support tool calls; and that clear the
 context floor. Badge membership is a fact about the aggregator's list on a given day; the
-allowlist is the publisher's judgement, and says so.
+allowlist is the publisher's judgement, and says so. Each condition has an owner: the badge is
+`ARC-31a`'s, the allowlist `TRU-A1a`'s, the tool calls `ARC-43`'s, the floor `ARC-31b`'s.
+**Allowlist** in this sense — the publisher's named admissions to the eligible set — is the one
+sanctioned use of the word; the *Avoid* notes under *Delivery declaration* and *Pin* refuse it
+for a firewall's or a trust store's sense.
 _Avoid_: available models, supported models, "the model list" (that is the aggregator's endpoint)
 
-**Candidate order** · `ADR-0033`
-The ordered model slugs `bundle/inference.toml` carries. Ordered for **availability**: the
-harness takes the highest-ranked candidate the aggregator still lists, and the order says
-nothing about which candidate is stronger.
+**Zero-retention badge** vs **zero-retention request** · `ARC-31a`
+The **request** is what the harness asks of every call: `provider.zdr: true` in the routing
+object, which `retention = "strictest"` in the bundle names. The **badge** is the aggregator's
+`privacyLevel` model attribute, a fact about its list on a given day and the eligible set's
+filter. A model can route zero-retention on request without carrying the badge; the allowlist
+exists for exactly those.
+_Avoid_: ZDR as a bare noun (which of the two), "zero-retention model" (says neither which)
+
+**Candidate order** · `ARC-31b`, `ADR-0033`
+The ordered model slugs `bundle/inference.toml` carries, each with its maker beside it.
+Ordered for **availability**: the harness takes the highest-ranked candidate the aggregator
+still lists, and the order says nothing about which candidate is stronger. The rule orders it;
+the publisher never does by hand.
 _Avoid_: fallback chain, preference list, ranking (unqualified), model ladder (the ladder is
 `ARC-16`, and it climbs)
+
+**Context floor** · `ARC-31b`
+The least listed `context_length` a candidate must clear to be eligible. A publisher value in
+the bundle, unset until the schema carries it.
+_Avoid_: "the floor" unqualified, context budget (a budget is spent; a floor is cleared)
+
+**Proposing job** · `ARC-31b`
+The scheduled job in this repository that recomputes the eligible set from a fresh snapshot,
+probes the allowlist, and opens a pull request when the candidate order should change. It
+proposes; the publisher merges. Whose credential it runs on is `ARC-31b`'s. It is not a
+*harness job* (`ARC-43`), which runs on a machine.
+_Avoid_: bot, auto-updater, "the job" unqualified where a harness job is in play
 
 **Collision** · `OVR-6`
 Two machines sharing a trust domain at any counted layer, the requested provider included.

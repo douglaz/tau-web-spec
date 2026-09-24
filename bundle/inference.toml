@@ -22,5 +22,5 @@ provider = "z-ai"          # the provider requested per machine (ARC-14); empty 
                            # party in two of ARC-14's three layers, which stay counted and displayed separately.
 retention = "strictest"    # requested explicitly on every call; the API default is the weaker tier (ARC-31a)
 
-# The recovery ladder's middle rung (ARC-16) needs a stronger model behind the same proxy.
-# With one slug the first stage offers rungs one and three only (STG-17).
+# The candidate order this file will carry is ARC-31b's; that it is never the recovery
+# ladder's middle rung is STG-17's.
