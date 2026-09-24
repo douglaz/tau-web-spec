@@ -214,25 +214,29 @@ gated on it.
       btc-policy's federation is (its claim, `ARC-20`, `SEC-T4`, TRU-A3's retirement note).
 
 - [ ] **T37 — The candidate order and the job that maintains it** (ADR-0033). The rules first,
-      each in its owner, then the schema. Give the zero-retention filter its clause in
-      `ARC-31a` — only models the aggregator lists under that tier are eligible — since `ARC-31a`
-      says "The retention tier MUST be requested explicitly on every call" and names a request,
-      not a model attribute. Give `ARC-43` the sentence that a candidate model must be able to
-      call the tool set it says "is exactly four". Set the context floor's value and owner. Give
-      the candidate order, the session-start selection, the unanswered-list disposition and the
-      proposing job a requirement owner — `TRU-A1` says "Model selection ships in the signed
-      bundle", and owns the publisher's part; the harness's part has none. Amend `STG-17` with
-      a MUST NOT: the order is never `ARC-16`'s escalation rung. Then change
-      `bundle/inference.toml` from one slug to the ordered list, point its comment at `STG-17`
-      rather than restating the rule, and add the conformance item. Add the scheduled job; it
-      opens pull requests and never commits. The implementation's build gate changes with the
-      schema and arrives with the pin bump. The retention flag's wire form is found:
-      `provider.zdr: true`, documented on the aggregator's `api-docs` page and measured to route
-      with the pinned provider (finding, cases G–I); `ARC-31a` names it and `CNF-71` inspects
-      it. The eligibility filter is the aggregator's zero-retention **badge** plus a
-      publisher-kept **allowlist** of proprietary models that route zero-retention (decided
-      2026-09-24, ADR-0033): the job probes only allowlisted models, and the allowlist has an
-      owner clause beside the badge's.
+      each in its owner, then the schema. *Eligibility.* Give the zero-retention **badge** filter
+      its clause beside `ARC-31a`'s request rule — `ARC-31a` says "The retention tier MUST be
+      requested explicitly on every call" and names a request, not a model attribute, so the
+      filter is a new clause and not a reading of that one — and give the publisher's
+      **allowlist** of proprietary models that route zero-retention its clause in the publisher's
+      part, which `TRU-A1` names ("Model selection ships in the signed bundle"); both decided
+      2026-09-24, neither landed. Name the wire form in `ARC-31a`: `provider.zdr: true`,
+      documented on the aggregator's `api-docs` page and accepted together with the pinned
+      provider (finding, cases G–I) — and decide what `retention = "strictest"` means against a
+      list that also carries an `e2e` tier. Give `ARC-43` the sentence that a candidate model
+      must be able to call the tool set it says "is exactly four". Set the context floor's value
+      and owner. *Selection and job.* Give the candidate order, the session-start selection, the
+      unanswered-list disposition and the proposing job a requirement owner; the job probes
+      allowlisted models against the model, the pinned provider and `zdr` together, and its
+      credential and spend need an owner. Amend `STG-17` with a MUST NOT: the order is never
+      `ARC-16`'s escalation rung. *Schema.* Change `bundle/inference.toml` from one slug to the
+      ordered list, carry the maker beside each model (`SEC-9`'s same-party mark reads it,
+      never the slug) and the allowlist, and point the comment at `STG-17` rather than
+      restating the rule. *Conformance.* Add the items: the selection; `SEC-9`'s comparison,
+      its *unrecognized* case and the same-party mark, with a fixture whose requested provider
+      is not the maker — with today's bundle the two cannot be told apart. Add the scheduled
+      job; it opens pull requests and never commits. The implementation's build gate changes
+      with the schema and arrives with the pin bump.
 
 - [x] **T38 — What the provider measurement left open**
       (`docs/findings/2026-09-22-provider-routing.md`). *Decided 2026-09-24, and the rules
@@ -242,8 +246,8 @@ gated on it.
       page, which documents the routing object and scopes the override, and the corrections
       that had called the object undocumented are reversed; when the requested provider is the
       maker of the weights the display says so, counts unchanged (`SEC-9`); `OPN-23` stays
-      closed with its standing ask rewritten. What remains is a conformance item for the
-      comparison and the same-party mark, owed with T37's.
+      closed with its standing ask rewritten. The conformance items for the comparison and the
+      same-party mark are T37's.
 
 The September 9 review's specification corrections are applied: canonical disk selection,
 rescue job lifetime, local unlock, derivation/allocation metadata, relay destination limits,

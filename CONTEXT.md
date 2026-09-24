@@ -456,16 +456,16 @@ connects to**, and distinct from the party that *made* the weights — as roles;
 hold both, as `z-ai` does for its own weights. **Requested** by the harness in each call and
 shown under that label. A response on the `provider.only` path carries the aggregator's own
 report of the provider (measured 2026-09-22); it is the proxy's word, not an observation of the
-serving party, and the aggregator has said it may override the request. (`X-Provider-Name` is a
+serving party, and the aggregator has said it may override the request for some models.
+(`X-Provider-Name` is a
 different aggregator's header and was recorded while that one was still the candidate.)
 _Avoid_: AI provider, model provider, LLM vendor, serving provider; "observed provider" (a
 response field is the proxy's report, not an observation)
 
-**Reported provider** · ADR-0007 (fourth amendment)
+**Reported provider** · `SEC-9`
 What the aggregator's own response says served a request. Neither *requested* — what the
 harness sent — nor *observed* — evidence independent of the aggregator: it is the proxy's word
-about itself. Its one use is comparison with the requested provider. A match shows nothing and
-proves nothing; a mismatch is the proxy saying it did not honour the request, and is surfaced.
+about itself. What the harness does with it is `SEC-9`'s rule, not this entry's.
 _Avoid_: served provider (claims what only independent evidence could), observed provider, "the
 provider field" (unqualified)
 

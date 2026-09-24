@@ -334,8 +334,9 @@ number ([ADR-0007](./docs/adr/0007-trust-is-counted-in-two-layers-and-shown.md))
   prompt and response it carries, whatever weights sit behind it.
 - **Provider, requested** — the party that actually runs the inference behind the aggregator.
   The harness **requests** a provider per machine in the call itself, the same way it requests a
-  model, using the aggregator's routing object — `order`, `only`, `ignore` and `zdr`, documented
-  on its `api-docs` page and absent from its `llms.txt`. The display shows what was requested.
+  model, using the aggregator's routing object — `order`, `only`, `ignore`, `zdr` among its
+  fields, documented on its `api-docs` page and absent from its `llms.txt`, both read
+  2026-09-23. The display shows what was requested.
   **The aggregator may override it**, and its documentation scopes that to the few models with
   routing rules it enforces — some Anthropic and Gemini variants — while keeping the `zdr`
   request; when measured, an unsatisfiable request was refused rather than rerouted
@@ -351,7 +352,8 @@ was still the candidate. The chosen aggregator exposed no equivalent when checke
 request, following the pin (`docs/findings/2026-09-22-provider-routing.md`). Requesting the
 provider replaces a signal that did not exist with one the harness controls. Whether the request
 was honoured is still not observable independently of the proxy — the field is its report
-(`TRU-E2`) — and `OPN-23`'s closure records a standing ask that would make it so.
+(`TRU-E2`), compared and never counted (`SEC-9`) — and nothing a response carries can make it
+so; `OPN-23`'s standing ask is now for the report's semantics and its name mapping.
 
 A 3-of-5 federation on five sets of weights behind one proxy is 3-of-5 against backdoored
 weights and 1-of-1 against a backdoored proxy. Both numbers are true; one number would be a
@@ -727,7 +729,8 @@ the publisher from model selection and, locally, the proxy layer entirely.
   nor an untyped scope: no scope object exists for it and the aggregator is `TRU-E2`, not a
   `TRU-E6` entry. `SEC-12` applies in this shape: before sending, an **intent** record with a
   local call id in unresolved state; on response, a **terminal** record with model, requested
-  provider, token counts, spend and the aggregator's request id. Prompt bodies are not
+  provider, the reported provider when the response carries one (`SEC-9`), token counts, spend
+  and the aggregator's request id. Prompt bodies are not
   journaled — the action transcript already records every command the model chose. `ARC-6`'s
   redirect rule and `CNF-32`'s route probe apply to the aggregator origin as to any other.
 

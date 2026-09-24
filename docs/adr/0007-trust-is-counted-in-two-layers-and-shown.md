@@ -134,26 +134,28 @@ Requests with no routing preference, with a model-name suffix, or with `zdr` alo
 field. An unsatisfiable pin is refused with `404` at a named routing step, never silently
 rerouted. So the second amendment's "no response field or header names the provider that served
 a request" was true of what was checked on 2026-09-05 and is not true now, and the third
-amendment's "one observable thing" is two.
+amendment's "one observable thing" — refusal or silent success — has a second beside it: a
+report that follows the pin.
 
 **What the field is, decided 2026-09-24.** It is the proxy's report of itself (`TRU-E2`), in a
-body a browser can read, and nothing in a response can make it more than that. So it is named —
-the *reported provider*, `CONTEXT.md` — and given one use: comparison. A match displays nothing
-and proves nothing; a mismatch is the proxy saying it did not honour the request, which is
-believable because it is against interest, and `SEC-9` surfaces it. The count stays
-*requested*; the *observed* column stays a *may*, untaken.
+body whose CORS headers a browser could read, and nothing in a response can make it more than
+that. So it is named — the *reported provider*, `CONTEXT.md` — and given one use: comparison.
+`SEC-9` says "A match displays nothing and proves nothing" and "A mismatch MUST be surfaced on
+that machine", the report's provenance kept in the words; the mismatch is believable because it
+is against interest. The count stays *requested*; the *observed* column stays a *may*, untaken.
 
-**What the envelope showed.** Responses on that path arrive in a second aggregator's schema,
-field for field, and the switch is triggered by the selection (`only`), not by `zdr`. `TRU-E2`
-now names that upstream by inference, dated, as a second name on the same row: the same power,
-reached only through the proxy the operator chose (`SEC-10`).
+**What the envelope showed.** Responses on that path arrive in OpenRouter's response schema, and
+the switch is triggered by the selection (`only`), not by `zdr`. `TRU-E2` now carries that
+name by inference, dated, as a second name on the same row; whether it earns a row of its own
+waits on confirmation.
 
-**The documentation, read properly.** The second amendment's phrase "may be overridden" is from
+**The documentation, read properly.** The third amendment's phrase "may be overridden" is from
 the aggregator's `api-docs` page, which documents the whole routing object — `zdr`,
 `data_collection`, `order`/`only`/`ignore`, `sort`, price and latency preferences, fallback
 controls — and scopes the override to "a few models (some Anthropic and Gemini variants)" with
 routing rules it enforces, the `zdr` request preserved. Its `llms.txt`, read on 2026-09-22 and
--23, omits all of it, which is what an earlier draft of this amendment mistook for "undocumented".
+-23, omits all of it, which is what the text of this amendment merged on 2026-09-23 mistook for
+"undocumented".
 
 The title of this record is now wrong twice over — it is three layers, not two, and none of
 them is observed — and it is kept, because the reasoning it names is the reasoning that survived.

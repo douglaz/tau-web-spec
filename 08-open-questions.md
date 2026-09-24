@@ -240,7 +240,8 @@ the request — the same conventions as the aggregator whose header this layer w
 the harness **requests** a provider per machine exactly as it requests a model, and the display
 shows what was asked, labelled *requested*. All three layers are then configured, which is the
 shape `OPN-4` had already reached for weights. The aggregator's own documentation says supplied
-provider fields "may be overridden"; that is `TRU-E2`'s existing trust, and the label carries it.
+provider fields "may be overridden" — for a few models with routing rules it enforces, per its
+`api-docs` page read 2026-09-23; that is `TRU-E2`'s existing trust, and the label carries it.
 `CNF-78` checks the request carries the pin, and whether an unsatisfiable pin fails the call or
 silently reroutes — the one thing about the override that *is* observable.
 
@@ -249,21 +250,21 @@ routing step, on two days (`docs/findings/2026-09-22-provider-routing.md`). And 
 equivalent" is no longer unqualified: a response to a `provider.only` request carries a
 `provider` field that follows the pin. It is the proxy's own report in a body, not a header a
 browser was shown to read, and not evidence from the party that served; the label stays
-*requested*, and whether that field is *the served provider* is T38's question. The standing
-ask below stands.
+*requested*. Whether that field is *the served provider* was T38's question; its use was
+decided on 2026-09-24 without answering it, and the standing ask is rewritten below.
 
 *Rejected:* switching to an aggregator that reports the served provider, which trades the
 accountless Lightning funding and open CORS that won this one the slot for a number; and
 retiring the layer, which throws away reasoning that is still right.
 
 *A standing ask, rewritten 2026-09-24.* The first ask — expose the served provider where a
-browser can read it — is met in substance: a `provider` field, in a body a browser can read, on
-the selection path. It is used as `SEC-9`'s mismatch detector and never as an *observed* column,
-because the proxy's word about itself is not observation. What is asked now costs them as little
-and is still missing: document the field's semantics — the party that served, or an echo of the
-request — and publish the mapping from the display names it prints (`Z.AI`) to the slugs it
-accepts (`z-ai`). The resale of another aggregator, once inference, is named on `TRU-E2`'s row.
-Nothing here waits on any of it.
+browser can read it — cannot be met by a response field: what appeared is a *reported provider*,
+the proxy's word about itself, in a body whose CORS headers a browser could read. `SEC-9` says
+"A response's own report of the provider is compared, never shown as a count", and the
+*observed* column stays a *may*. What is asked now costs them as little and is still missing:
+document the field's semantics — the party that served, or an echo of the request; publish the
+mapping from the display names it prints (`Z.AI`) to the slugs it accepts (`z-ai`); and confirm
+or deny the upstream that `TRU-E2` now names by inference. Nothing here waits on any of it.
 
 **OPN-4 — Weights-level diversity may not be enforceable.** *Closed 2026-09-12 by restatement.*
 The runtime signal named the *inference provider*, not the weights behind it — and the

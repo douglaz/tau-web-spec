@@ -57,22 +57,27 @@ exactly the set a hosted service picks on your behalf, silently and unlisted.
 disk. Host-key pinning buys transport safety, not vendor independence; vendor independence is
 what placing machines at several vendors buys.
 
-**TRU-E2 — The inference proxy: the one the operator funds, and whatever it routes through.**
-Procured inference means the publisher picks the models, and it has one aggregator that reaches
-them all, so the normal configuration is several sets of weights behind a single proxy. That
-proxy can alter every prompt and response it carries, which makes it the thinnest layer in the
-default product even when the weights count looks healthy. Adding a second is a supported move,
-not a redesign.
+**TRU-E2 — The inference proxy: the one the operator funds, and the aggregator it appears to
+route through.** Procured inference means the publisher picks the models, and it has one
+aggregator that reaches them all, so the normal configuration is several sets of weights behind
+a single funded proxy. That proxy can alter every prompt and response it carries, which makes it
+the thinnest layer in the default product even when the weights count looks healthy. Adding a
+second is a supported move, not a redesign.
 
-**The row names the proxy's upstream too, by inference, dated 2026-09-23.** A request carrying a
-provider selection (`only`) comes back in a second aggregator's response schema, field for
-field — `gen-` ids, `native_finish_reason`, `usage.is_byok`,
-`cost_details.upstream_inference_cost` — and the default one still accepts a legacy
-`openrouter:` alias in its own documentation; a request carrying `zdr` alone does not switch
-(`docs/findings/2026-09-22-provider-routing.md`). The harness sends both on every call, so the
-default path transits two aggregators. That party has exactly this row's power and no more,
-reached only through the proxy the operator chose, which is why it is a second name on this row
-and not a row of its own (`SEC-10`): the list has not grown silently, it has been read aloud.
+**The row also carries a second name, by inference, dated 2026-09-23: OpenRouter.** A request
+carrying a provider selection (`only`) comes back in OpenRouter's response schema — `gen-`
+ids, `native_finish_reason`, `usage.is_byok`, `cost_details.upstream_inference_cost` equal to
+`usage.cost` — while a request carrying `zdr` alone does not switch, and the funded aggregator's
+`api-docs` page (read 2026-09-23) still accepts a legacy `"type": "openrouter:web_search"`
+alias (`docs/findings/2026-09-22-provider-routing.md`). An OpenRouter-compatible router run by
+the funded aggregator itself would produce the same schema, which is why this is inference and
+not verification. The harness sends a selection on every call, so if the inference holds the
+default path transits two aggregators. `SEC-10` says "The trusted-party list MUST NOT grow
+silently"; a dated name here is the opposite of silence, and whether the inferred party earns a
+row of its own — with its own retention posture and jurisdiction, about which nothing is
+recorded — waits on the confirmation `OPN-23` now asks for. Two things this row does not cover:
+the paragraph below is about the funded aggregator alone, and if a second proxy (`OPN-7`) resold
+the same upstream, two proxy domains would share a party and no display shows that today.
 
 **What is known about the default one, verified 2026-09-05 against its own pages and its live
 API.** It states that it stores no prompts, keeping only token counts against a random
@@ -100,8 +105,9 @@ the display shows what was asked (`ARC-14`). The aggregator's documentation was 
 saying it may override the request — that is this row's trust exactly, not a new one, since the
 proxy above it can already alter everything it carries (`TRU-E2`). What cannot be shown is
 whether the request was honoured, and the label *requested* is what keeps that honest (`SEC-9`).
-A standing ask to the aggregator to expose the served provider would add an *observed* column
-beside it; `OPN-23`'s closure records it.
+The aggregator now reports a provider in its responses to a selection; `SEC-9` compares that
+report with the request and derives no column from it, and `OPN-23`'s standing ask is for the
+report's semantics and its name mapping, which no response can supply.
 
 **TRU-E4 — A majority of the models**, being both honest *and* competent.
 
