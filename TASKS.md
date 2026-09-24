@@ -266,7 +266,9 @@ gated on it.
       calls the first candidate, since the read can only remove a candidate and never veto a
       session, and the selection is recorded as unconfirmed (`ARC-31b`, `CNF-88`); the order's
       depth is **five**; the job runs **daily**, opens a pull request only when the set changes,
-      does nothing on a fetch failure and alerts after three consecutive ones; the
+      and a fetch failure fails the run — the platform's notification of a failed scheduled run
+      is the alert, and no streak is kept across runs (decided 2026-09-24 after a Run blocked on
+      the streak's semantics); the
       `context_floor` is **500,000** tokens, which `eligible-set.py` over
       `models-2026-09-23.json` shows leaves 23 of 111 eligible models, `glm-5.3` among them, all
       of them at or above one million.
