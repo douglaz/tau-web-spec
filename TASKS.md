@@ -260,12 +260,16 @@ gated on it.
       schema lands, removing the three "TASKS T37" pointers inside
       normative text (`ARC-31b`'s floor and job bullets, `TRU-A1a`) and leaving the "carries"
       tense in `ARC-31b` and `STG-17` true, since both describe a bundle shape that does not
-      exist until then. *Undecided by the sources and named as owed, not decided here:* the
-      `context_floor` value, the order's fixed depth, the job's cadence, what the job does
-      when the aggregator's list cannot be fetched, and what the harness does with a list that
-      answers, is well-formed, and contains none of the signed candidates — `ARC-31b` covers
-      the first candidate absent and the list unanswered, ADR-0033 is silent, and refusing to
-      start and calling the first candidate are two different behaviours.
+      exist until then. *Decided by the publisher on 2026-09-24, after the rules landed, and
+      owed to the next step as rules and values:* a list that answers, is well-formed and
+      contains none of the signed candidates is treated as an unanswered list — the harness
+      calls the first candidate, since the read can only remove a candidate and never veto a
+      session, and the selection is recorded as unconfirmed (`ARC-31b`, `CNF-88`); the order's
+      depth is **five**; the job runs **daily**, opens a pull request only when the set changes,
+      does nothing on a fetch failure and alerts after three consecutive ones; the
+      `context_floor` is **500,000** tokens, which `eligible-set.py` over
+      `models-2026-09-23.json` shows leaves 23 of 111 eligible models, `glm-5.3` among them, all
+      of them at or above one million.
 
 - [x] **T38 — What the provider measurement left open**
       (`docs/findings/2026-09-22-provider-routing.md`). *Decided 2026-09-24, and the rules
