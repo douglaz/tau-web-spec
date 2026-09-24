@@ -2,7 +2,7 @@
 """Reproduce ARC-31b's selection and snapshot diagnostics using bundle inputs.
 
 python3 eligible-set.py models-2026-09-23.json [--bundle path/to/inference.toml]
-The proposing job imports the same selection function. Makers come from owned_by.
+The proposing job shares eligibility and ordering, but constructs drafts separately. Makers come from owned_by.
 """
 import argparse
 import collections
@@ -15,26 +15,31 @@ DEFAULT_BUNDLE = Path(__file__).resolve().parents[3] / "bundle/inference.toml"
 
 def read_bundle(path):
     bundle = tomllib.loads(Path(path).read_text())
-    session = bundle["session"]
+    validate_session(bundle["session"])
+    return bundle
+
+
+def validate_entries(entries, fields, label, *, nonempty=False):
+    if not isinstance(entries, list) or (nonempty and not entries):
+        raise ValueError(f"{label} must be a {'nonempty ' if nonempty else ''}list")
+    for entry in entries:
+        if not isinstance(entry, dict) or set(entry) != fields:
+            raise ValueError(f"{label} entries must carry {', '.join(sorted(fields))}")
+        if any(not isinstance(v, str) or not v.strip() for v in entry.values()):
+            raise ValueError(f"{label} fields must be nonempty strings")
+
+
+def validate_session(session):
     for key in ("context_floor", "depth"):
         if type(session.get(key)) is not int or session[key] <= 0:
             raise ValueError(f"session.{key} must be a positive integer")
-    allowlist = session.get("allowlist")
-    if not isinstance(allowlist, list) or any(not isinstance(s, str) or not s for s in allowlist):
-        raise ValueError("session.allowlist must be a list of nonempty slugs")
-    candidates = session.get("model")
-    if not isinstance(candidates, list) or not candidates:
-        raise ValueError("session.model must be a nonempty candidate list")
-    for candidate in candidates:
-        if not isinstance(candidate, dict) or set(candidate) != {"slug", "maker"}:
-            raise ValueError("each candidate must carry slug and maker")
-        if any(not isinstance(v, str) or not v for v in candidate.values()):
-            raise ValueError("candidate slug and maker must be nonempty strings")
-    if not isinstance(session.get("provider"), str) or not session["provider"]:
-        raise ValueError("session.provider must be nonempty")
+    validate_entries(session.get("allowlist"), {"slug", "provider"}, "allowlist")
+    validate_entries(session.get("model"), {"slug", "maker", "provider"},
+                     "candidate", nonempty=True)
+    if "provider" in session:
+        raise ValueError("provider belongs on each entry, not session")
     if session.get("retention") != "strictest":
         raise ValueError("unsupported retention request")
-    return bundle
 
 
 def model_list(payload):
@@ -64,19 +69,36 @@ def model_list(payload):
 
 
 def eligible_models(models, session):
+    allowlist = {entry["slug"] for entry in session["allowlist"]}
     return [m for m in models
-            if (m["privacyLevel"] == "zdr" or m["id"] in session["allowlist"])
+            if (m["privacyLevel"] == "zdr" or m["id"] in allowlist)
             and "tools" in (m.get("supported_parameters") or [])
             and m["context_length"] >= session["context_floor"]]
 
 
-def select(models, session):
+def ordered_models(models, session):
     eligible = eligible_models(models, session)
     popular = [m for m in eligible if m["popular"]]
     tail = sorted((m for m in eligible if not m["popular"]),
                   key=lambda m: m["created_at"], reverse=True)
-    return [{"slug": m["id"], "maker": m["owned_by"]}
-            for m in (popular + tail)[:session["depth"]]]
+    return (popular + tail)[:session["depth"]]
+
+
+def draft_candidates(models, session):
+    """Construct a proposal from valid inputs; unknown pins stay explicitly empty."""
+    validate_session(session)
+    pins = {entry["slug"]: entry["provider"] for entry in session["allowlist"]}
+    # Preserve a current candidate's pin; allowlist pins apply only to entrants.
+    pins.update({entry["slug"]: entry["provider"] for entry in session["model"]})
+    return [{"slug": m["id"], "maker": m["owned_by"], "provider": pins.get(m["id"], "")}
+            for m in ordered_models(models, session)]
+
+
+def select(models, session):
+    """Strict offline selection, including direct callers that did not read a file."""
+    candidates = draft_candidates(models, session)
+    validate_entries(candidates, {"slug", "maker", "provider"}, "candidate", nonempty=True)
+    return candidates
 
 
 def diagnostics(models, session):
@@ -90,9 +112,9 @@ def diagnostics(models, session):
     print(f"of those flagged popular: {len(flagged)}")
     for m in flagged:
         print(f"  {m['id']}  context={m['context_length']}  owned_by={m['owned_by']}")
-    print("candidate order (slug / maker):")
+    print("candidate order (slug / maker / provider):")
     for m in select(models, session):
-        print(f"  {m['slug']} / {m['maker']}")
+        print(f"  {m['slug']} / {m['maker']} / {m['provider']}")
     popular = [m for m in models if m["popular"]]
     unbadged = [m for m in popular if m["privacyLevel"] != "zdr"]
     print(f"flagged popular overall: {len(popular)}, of which not badged zdr: {len(unbadged)}")

@@ -7,20 +7,14 @@ name = "PayPerQ"
 [session]
 # Candidate order: ARC-31b and STG-17.
 model = [
-  { slug = "glm-5.3", maker = "Z.ai" },
-  { slug = "xiaomi/mimo-v2.6-flash", maker = "Xiaomi" },
-  { slug = "xiaomi/mimo-v2.6-pro", maker = "Xiaomi" },
-  { slug = "deepseek/deepseek-v4.1-flash", maker = "DeepSeek" },
-  { slug = "tencent/hy4-preview", maker = "Tencent" },
+  { slug = "glm-5.3", maker = "Z.ai", provider = "z-ai" },
+  { slug = "xiaomi/mimo-v2.6-flash", maker = "Xiaomi", provider = "xiaomi" },
+  { slug = "xiaomi/mimo-v2.6-pro", maker = "Xiaomi", provider = "xiaomi" },
+  { slug = "deepseek/deepseek-v4.1-flash", maker = "DeepSeek", provider = "deepseek" },
+  { slug = "tencent/hy4-preview", maker = "Tencent", provider = "tencent" },
 ]
 allowlist = []             # TRU-A1a
 context_floor = 500000     # ARC-31b, tokens
 depth = 5                 # ARC-31b
-provider = "z-ai"          # the provider requested per machine (ARC-14); empty fails the build.
-                           # Sent as the aggregator's routing object `provider: {"only": ["<value>"]}` (ADR-0007:
-                           # order/only/ignore). Measured 2026-09-22 and -23: an unsatisfiable value is refused
-                           # with 404, and a satisfiable one is served with a `provider` field that follows the
-                           # pin — the proxy's own report, so the display label stays *requested*
-                           # (docs/findings/2026-09-22-provider-routing.md).
-                           # Provider/maker display: SEC-9.
+# Requested providers: ARC-31b, TRU-A1a; display: SEC-9.
 retention = "strictest"    # requested explicitly on every call; the API default is the weaker tier (ARC-31a)

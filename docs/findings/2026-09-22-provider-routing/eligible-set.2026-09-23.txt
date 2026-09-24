@@ -5,12 +5,12 @@ context_floor: 500000 tokens; depth: 5
 eligible (badge or allowlist, tool calls, context floor): 23
 of those flagged popular: 1
   glm-5.3  context=1310720  owned_by=Z.ai
-candidate order (slug / maker):
-  glm-5.3 / Z.ai
-  xiaomi/mimo-v2.6-flash / Xiaomi
-  xiaomi/mimo-v2.6-pro / Xiaomi
-  deepseek/deepseek-v4.1-flash / DeepSeek
-  tencent/hy4-preview / Tencent
+candidate order (slug / maker / provider):
+  glm-5.3 / Z.ai / z-ai
+  xiaomi/mimo-v2.6-flash / Xiaomi / xiaomi
+  xiaomi/mimo-v2.6-pro / Xiaomi / xiaomi
+  deepseek/deepseek-v4.1-flash / DeepSeek / deepseek
+  tencent/hy4-preview / Tencent / tencent
 flagged popular overall: 16, of which not badged zdr: 15
 badge by owner (zdr / all; before tool and context filters):
   Anthropic: 0 / 19

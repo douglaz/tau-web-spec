@@ -494,7 +494,7 @@ exists for exactly those.
 _Avoid_: ZDR as a bare noun (which of the two), "zero-retention model" (says neither which)
 
 **Candidate order** · `ARC-31b`, `ADR-0033`
-The ordered model slugs `bundle/inference.toml` carries, each with its maker beside it.
+The ordered model slugs `bundle/inference.toml` carries, each with its maker and requested provider beside it.
 Ordered for **availability**: the harness takes the highest-ranked candidate the aggregator
 still lists, and the order says nothing about which candidate is stronger. The rule orders it;
 the publisher never does by hand.

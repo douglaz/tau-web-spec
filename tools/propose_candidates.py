@@ -18,6 +18,7 @@ selection = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(selection)
 BRANCH = "proposals/candidate-order"
 SECRET = "PUBLISHER_AGGREGATOR_KEY"
+IMPOSSIBLE_PROVIDER = "definitely-not-a-provider-xyz"
 
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
@@ -46,13 +47,18 @@ def request_json(url, body=None, credential=None):
     return status, payload
 
 
-def probe(base_url, slug, session, credential):
+def routing_request(base_url, slug, provider, credential):
     status, payload = request_json(base_url + "/v1/chat/completions", {
         "model": slug,
         "messages": [{"role": "user", "content": "Reply with exactly: ok"}],
         "max_tokens": 5,
-        "provider": {"only": [session["provider"]], "zdr": True},
+        "provider": {"only": [provider], "zdr": True},
     }, credential)
+    return status, payload
+
+
+def probe(base_url, entry, credential):
+    status, payload = routing_request(base_url, entry["slug"], entry["provider"], credential)
     # The recorded refusal shape is case C/E beside the case G request fixture.
     error = payload.get("error") if isinstance(payload, dict) else None
     if status == 404 and isinstance(error, dict) and error.get("code") == 404:
@@ -68,6 +74,31 @@ def probe(base_url, slug, session, credential):
     return True
 
 
+def discover_providers(base_url, slug, credential):
+    # C/E's impossible-only refusal, now with G's zdr condition. This is advice
+    # for a publisher, distinct from a successful probe of a hand-taken pin.
+    if not credential:
+        raise ValueError(f"provider discovery requires repository secret {SECRET}")
+    status, payload = routing_request(base_url, slug, IMPOSSIBLE_PROVIDER, credential)
+    error = payload.get("error") if isinstance(payload, dict) else None
+    metadata = error.get("metadata") if isinstance(error, dict) else None
+    if (status != 404 or not isinstance(error, dict) or error.get("code") != 404
+            or not isinstance(metadata, dict)
+            or metadata.get("failed_routing_step") != "Filter by Allowed Providers"
+            or metadata.get("requested_providers") != [IMPOSSIBLE_PROVIDER]):
+        raise ValueError(f"provider discovery inconclusive (HTTP {status}); no proposal")
+    providers = metadata.get("available_providers")
+    if (not isinstance(providers, list) or not providers
+            or any(not isinstance(p, str) or not p.strip() for p in providers)
+            or IMPOSSIBLE_PROVIDER in providers):
+        raise ValueError("provider discovery returned no valid provider list; no proposal")
+    return providers
+
+
+def inline_table(entry):
+    return "{ " + ", ".join(f"{key} = {json.dumps(value, ensure_ascii=False)}" for key, value in entry.items()) + " }"
+
+
 def bundle_patch(source, original, candidates, allowlist):
     # Replace only these session assignments; preserve every other byte. Parse the
     # result and compare every other value before permitting a proposal.
@@ -78,13 +109,13 @@ def bundle_patch(source, original, candidates, allowlist):
     end = start.end() + following.start() if following else len(source)
     section = source[start.end():end]
     models = "model = [\n" + "".join(
-        "  { slug = " + json.dumps(c["slug"]) + ", maker = " + json.dumps(c["maker"]) + " },\n"
+        "  " + inline_table(c) + ",\n"
         for c in candidates) + "]"
     section, count = re.subn(r"(?ms)^model = \[\n.*?^\]", lambda _: models, section)
     if count != 1:
         raise ValueError("expected one multiline session.model assignment")
-    section, count = re.subn(r"(?m)^allowlist = \[[^\n]*?\]",
-                             lambda _: "allowlist = " + json.dumps(allowlist), section)
+    section, count = re.subn(r'(?m)^allowlist = \[(?:[^"\n\]]|"(?:\\.|[^"\\])*")*\]',
+                             lambda _: "allowlist = [" + ", ".join(map(inline_table, allowlist)) + "]", section)
     if count != 1:
         raise ValueError("expected one single-line session.allowlist assignment")
     patched = source[:start.end()] + section + source[end:]
@@ -108,24 +139,41 @@ def update_bundle(path):
     if status != 200:
         raise ValueError(f"model-list fetch failed (HTTP {status})")
     models = selection.model_list(payload)
-    allowlist = [slug for slug in session["allowlist"] if probe(base_url, slug, session, credential)]
-    candidates = selection.select(models, {**session, "allowlist": allowlist})
+    allowlist = [entry for entry in session["allowlist"] if probe(base_url, entry, credential)]
+    candidates = selection.draft_candidates(models, {**session, "allowlist": allowlist})
     if not candidates:
         raise ValueError("selection is empty; no proposal")
     if candidates == session["model"]:
         print("Candidate order unchanged; no proposal.")
-        return False
+        return None
+    evidence = {entry["slug"]: discover_providers(base_url, entry["slug"], credential)
+                for entry in candidates if not entry["provider"]}
     patched = bundle_patch(path.read_text(), original, candidates, allowlist)
     path.write_text(patched)
     print("Candidate order changed; prepared bundle proposal.")
-    return True
+    return evidence
 
 
 def command(*args):
     return subprocess.run(args, check=True, text=True, stdout=subprocess.PIPE).stdout.strip()
 
 
-def publish(default_branch):
+def proposal_body(evidence):
+    # JSON string escaping preserves model/list association and prevents external
+    # names from terminating the fenced data block or becoming Markdown markup.
+    data = json.dumps(evidence, indent=2, ensure_ascii=True).replace("`", "\\u0060")
+    return ("Recompute the candidate order from the public model list using the "
+            "bundle's selection inputs. Apply any allowlist routing refusals to "
+            "the proposed bundle. Existing candidate pins stay attached to their slugs. "
+            "Retention and aggregator values are preserved.\n\n"
+            "Provider evidence by model: the aggregator's available_providers from an "
+            "impossible provider.only request with zdr: true. These lists are advice; "
+            "the publisher must fill every empty provider before shipping.\n\n"
+            f"```json\n{data}\n```\n\n"
+            "Contract owners: ARC-31b and TRU-A1a. Publisher review and merge required.\n")
+
+
+def publish(default_branch, evidence):
     if not default_branch or default_branch == BRANCH:
         raise ValueError("proposal branch must differ from the default branch")
     ref = f"refs/heads/{BRANCH}"
@@ -139,14 +187,13 @@ def publish(default_branch):
     command("git", "push", f"--force-with-lease={ref}:{old}", "origin", f"HEAD:{ref}")
     existing = json.loads(command("gh", "pr", "list", "--state", "open", "--head", BRANCH,
                                   "--base", default_branch, "--json", "number"))
-    # Updating the same head branch updates its open PR. No merge command exists here.
-    if not existing:
-        with tempfile.NamedTemporaryFile(mode="w+", suffix=".md") as body:
-            body.write("Recompute the candidate order from the public model list using the "
-                       "bundle's selection inputs. Apply any allowlist routing refusals to "
-                       "the proposed bundle. Provider, retention and aggregator values are preserved.\n\n"
-                       "Contract owners: ARC-31b and TRU-A1a. Publisher review and merge required.\n")
-            body.flush()
+    # Replace the body on updates too: evidence belongs to this proposal's models.
+    with tempfile.NamedTemporaryFile(mode="w+", suffix=".md") as body:
+        body.write(proposal_body(evidence))
+        body.flush()
+        if existing:
+            print(command("gh", "pr", "edit", str(existing[0]["number"]), "--body-file", body.name))
+        else:
             print(command("gh", "pr", "create", "--base", default_branch, "--head", BRANCH,
                           "--title", "chore(bundle): refresh candidate order", "--body-file", body.name))
 
@@ -164,8 +211,9 @@ def main():
     if command("git", "rev-parse", "HEAD") != command(
             "git", "rev-parse", f"refs/remotes/origin/{args.default_branch}"):
         raise ValueError("proposal must start at the checked-out default branch")
-    if update_bundle(Path("bundle/inference.toml")):
-        publish(args.default_branch)
+    evidence = update_bundle(Path("bundle/inference.toml"))
+    if evidence is not None:
+        publish(args.default_branch, evidence)
 
 
 if __name__ == "__main__":

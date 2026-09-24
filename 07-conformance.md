@@ -346,7 +346,10 @@ yet.
       refused" or merely "sent".
 - [ ] **CNF-88 · PRE-SCALE** The session-start selection (`ARC-31b`), fixture-based as
       `CNF-17`'s first-stage evidence is. With an injected model-list fixture in which the first
-      candidate is absent, the harness selects the highest-ranked candidate present, an
+      candidate is absent, the harness selects the highest-ranked candidate present and sends
+      that candidate's own requested pin with `zdr` (`ARC-14`): a fixture falling back from
+      `glm-5.3` / `z-ai` to `xiaomi/mimo-v2.6-flash` / `xiaomi` sends `only: ["xiaomi"]`.
+      Selection treats an
       allowlisted one (`TRU-A1a`) under the same rule as a badged one; with a fixture answering
       200 and an error body or a malformed body, "still listed" is not read from the status and
       the first candidate is called with the selection recorded as **unconfirmed**; with no
@@ -357,13 +360,19 @@ yet.
       external content "MUST NOT authorize an action on its own", and the read can only remove
       a candidate from consideration. And the **selected** slug, not the first, is what the
       exposure ledger (`STA-10`), the provenance record (`STG-17`) and the terminal record
-      (`ARC-31a`) carry, and what the display shows.
+      (`ARC-31a`) carry, and what the display shows. Build fixtures reject missing or empty
+      providers on either candidate or allowlist entries, as well as the empty candidate list
+      and context floor. Runtime fixtures MUST NOT select a missing- or empty-provider entry,
+      including when it is first and the list is unanswered or has no match; an incomplete
+      entry is not silently filtered out to change the publisher's order.
 - [ ] **CNF-89 · PRE-SCALE** `SEC-9`'s comparison and its *unrecognized* case, with injected
       responses. One reporting the requested provider under its display name — `z-ai`
       requested, `Z.AI` reported, the finding's cases B and G — displays nothing; one reporting
-      another provider the bundle names surfaces *requested X; the proxy reported Y* — today's
-      bundle names one provider, so the fixture bundle names a second that serves the model,
-      the finding's `deepinfra` (cases F and I); one carrying no report (case H's shape), or a
+      another provider the fixture bundle names surfaces *requested X; the proxy reported Y* —
+      for example `z-ai` requested and `deepinfra` reported (cases F and I). For the fallback
+      fixture in `CNF-88`, `Xiaomi` reported matches the selected candidate's `xiaomi`, while
+      `Z.AI` reported is a mismatch against it; comparison never uses the first candidate's
+      provider. One carrying no report (case H's shape), or a
       name that folded matches nothing the bundle names, surfaces *unrecognized*. Every report
       is recorded in the terminal record (`ARC-31a`) and no count is derived from any of them.
 - [ ] **CNF-90 · PRE-SCALE** `SEC-9`'s same-party mark, with a fixture whose requested provider

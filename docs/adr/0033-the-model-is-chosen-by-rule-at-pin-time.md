@@ -136,10 +136,19 @@ run, so the set would no longer reproduce from a snapshot.
 
 ## Consequences
 
+**2026-09-24 — per-entry requested providers.** The model became a list on 2026-09-22,
+while the provider remained bundle-wide. On 2026-09-24 the publisher reported that requesting
+`z-ai` with `xiaomi/mimo-v2.6-flash` or `deepseek/deepseek-v4.1-flash`, using the method of
+cases C and E in `docs/findings/2026-09-22-provider-routing.md`, returned 404,
+"No allowed providers are available for the selected model". This is the publisher's reported
+measurement, not a new experiment here. The publisher then chose per-entry pins; the committed
+values live in `bundle/inference.toml`, and the amendment's owners are `ARC-31b` and `TRU-A1a`.
+
 **`bundle/inference.toml` carries the candidate schema.** T37 landed the ordered entries
-with separate slug and maker, the allowlist, context floor and depth, and the daily proposing
-workflow. The implementation repository's `build.rs` migration remains owed at its spec pin
-bump: consume the new schema and fail on an empty candidate list or an empty context floor.
+with separate slug, maker and provider, the allowlist with its own pins, context floor and
+depth, and the daily proposing workflow. The implementation repository's `build.rs` migration remains owed at its spec pin
+bump: consume the new schema and reject missing or empty candidate or allowlist providers, alongside
+the existing empty candidate-list and context-floor gates, and enforce selection at runtime.
 No implementation build gate changed in this repository (ADR-0031).
 
 **The first-stage and conformance amendments landed with the rules.** `STG-17` says "the first
@@ -168,7 +177,7 @@ maker, which is `SEC-9`'s same-party case by default. All of it is the publisher
 exercised twice — once in the allowlist, once by accepting the flag's order — and both are named
 as such.
 
-**The same party can hold two layers.** Today's provider is the maker of the weights it serves.
+**The same party can hold two layers.** The committed entries request their weights' makers.
 The layers stay counted and displayed separately, per `ARC-14`; `SEC-9` says "When the requested
 provider is the maker of the weights, the display MUST say so on that machine", reading the
 maker from the bundle, never from the slug (`CNF-41`).

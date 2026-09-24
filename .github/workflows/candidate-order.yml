@@ -30,13 +30,15 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      # No credential or probe is needed for an empty allowlist. Otherwise the
-      # publisher supplies PUBLISHER_AGGREGATOR_KEY as a repository secret;
-      # its absence fails loudly. Each probe sends model + provider.only + zdr.
+      # Allowlist probes and discovery for unpinned entrants require the publisher's
+      # PUBLISHER_AGGREGATOR_KEY repository secret, even with an empty allowlist for
+      # discovery. Missing credentials or inconclusive responses fail loudly.
+      # Probes send each entry's model + provider.only + zdr; discovery sends an
+      # impossible only value with zdr and carries the refusal's providers into the PR.
       # The same eligible-set.py serves both historical snapshots and this job.
       # Unchanged order is a no-op. Changes commit/push only to the fixed
       # proposals/candidate-order branch, with a lease, creating a PR or updating
-      # its head. No direct default-branch push or automatic merge is performed.
+      # its head and evidence body. No direct default-branch push or automatic merge is performed.
       # Repository settings must allow GITHUB_TOKEN to create pull requests.
       # The publisher approves the resulting PR workflow runs in GitHub before
       # merging: https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow

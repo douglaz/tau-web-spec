@@ -213,11 +213,11 @@ gated on it.
       from the general files wherever the harness's own machines were meant; it remains where
       btc-policy's federation is (its claim, `ARC-20`, `SEC-T4`, TRU-A3's retirement note).
 
-- [ ] **T37 — The candidate order and the job that maintains it** (ADR-0033).
-      *Completed 2026-09-24 in the specification repository.* The rules first landed in
+- [x] **T37 — The candidate order and the job that maintains it** (ADR-0033).
+      *Initial schema/job completed 2026-09-24 in the specification repository.* The rules first landed in
       PR #8; their owners are `ARC-31a`, `ARC-31b`, `ARC-43`, `TRU-A1a`, `SEC-9` and `STG-17`.
       Conformance fixtures: `CNF-88`–`CNF-90`, with their existing applicability unchanged.
-      The schema now carries ordered `{ slug, maker }` entries, the publisher allowlist,
+      The initial schema carried ordered `{ slug, maker }` entries, the publisher allowlist,
       `context_floor` and `depth`. `eligible-set.py` applies those inputs to the unchanged
       `models-2026-09-23.json`; the candidate order and diagnostics are recorded in
       `docs/findings/2026-09-22-provider-routing/eligible-set.2026-09-23.txt`, not counted here.
@@ -225,18 +225,20 @@ gated on it.
       *Decided by the publisher on 2026-09-24:* depth **5**, context floor **500000** tokens,
       an empty allowlist today, and a daily job proposing only candidate-order changes.
       A fetch failure fails the run; the platform's failed-run notification is the alert,
-      with no cross-run streak or history. Fetch the public model list without a credential;
-      probe only a non-empty allowlist, failing loudly if the publisher's repository secret
-      is missing. Keep provider `z-ai`, retention `strictest` and the aggregator values.
+      with no cross-run streak or history. The public model-list fetch uses no credential.
+      The initial job probed only a non-empty allowlist, requiring the publisher's repository
+      secret, and kept the bundle-wide `z-ai` pin; the amendment below supersedes that shape.
+      Retention `strictest` and the aggregator values remain unchanged.
       The runtime no-match decision is now in its owner: `ARC-31b` says "A well-formed list
       containing none of the signed candidates is also treated as unanswered" and "MUST
       record the selection as **unconfirmed**". Its fixture is in `CNF-88`; no running
       harness was exercised by these prose edits.
       *What landed:* `.github/workflows/candidate-order.yml` runs at 06:17 UTC daily and uses
-      `tools/propose_candidates.py` with the same selector. It creates or updates a proposal
+      `tools/propose_candidates.py` with shared eligibility and ordering. It creates or updates a proposal
       branch and pull request, preserving unrelated bundle values. `ARC-31b` says "MUST NOT
       commit directly to the default branch or merge its proposal". The optional repository
-      secret is `PUBLISHER_AGGREGATOR_KEY`; none was obtained or used here. Probe fixtures
+      secret was `PUBLISHER_AGGREGATOR_KEY`; the amendment below also requires it for discovery.
+      None was obtained or used here. Probe fixtures
       exercise the case G request shape and case C refusal, including a removal proposal.
       The deferred schema pointers and directly affected descriptions are updated.
       *Verification:* `python3 -m unittest discover -s tools/tests -v` passed; the fixtures
@@ -245,14 +247,14 @@ gated on it.
       remote with mocked pull-request commands. Both required Nix gate commands passed:
       `tools/check-all.sh` and `tools/check-controls.sh`. Workflow syntax passed `actionlint`.
       *Owed to tau-web-rust at its spec pin bump:* migrate `build.rs` to consume the new schema
-      and fail on an empty candidate list or an empty context floor. That build gate was not
-      changed here. The publisher's runtime decisions remain implementation obligations there.
+      and reject missing or empty candidate or allowlist providers alongside the existing empty
+      candidate-list and context-floor gates. That build gate was not changed here. Runtime
+      selection, requested pins and report comparison remain implementation obligations there.
       *Reopened 2026-09-24 for per-candidate requested providers (tw-xe0).* The publisher's
-      values and empty-provider proposal rule are decided; the amendment is not yet landed.
-      *Clarification needed:* `TRU-A1a` says "The proposing job probes each allowlisted entry
-      with the model, the pinned provider and `zdr` together". With the bundle-wide provider
+      values and empty-provider proposal rule were decided; completed below.
+      *Clarification raised, now resolved:* with the bundle-wide provider
       removed and the allowlist retained as slugs, an allowlisted entry outside the candidate
-      order has no place to carry its publisher-taken provider. The existing
+      order had no place to carry its publisher-taken provider. The existing
       `test_refusal_outside_candidate_order_is_no_proposal` fixture covers that case.
       *Clarified by the publisher, 2026-09-24:* the pin belongs on the allowlist entry. The
       allowlist becomes a list of `{ slug, provider }`, the provider hand-taken exactly as a
@@ -261,6 +263,25 @@ gated on it.
       from the allowlist inherits it. Discovery without a pin does not replace the probe. The
       implementation's build gate rejecting an empty candidate or allowlist provider remains
       owed at the spec pin bump, alongside the migration recorded above.
+      *Amendment completed 2026-09-24:* the bundle carries the publisher's per-entry pins;
+      the allowlist clarification is resolved. Strict offline selection rejects incomplete
+      inputs, while separate draft construction preserves candidate pins and inherits entrant
+      allowlist pins. Unpinned entrants remain empty and the PR creation/update body carries
+      model-associated provider evidence from impossible-`only` requests with `zdr`.
+      The unchanged snapshot reproduces with provider columns. Conformance fixtures remain
+      obligations for tau-web-rust; no build/runtime behavior there was exercised.
+      *Remaining questions:* a candidate and allowlist entry naming the same slug with different
+      pins still have no general conflict policy. No equality requirement or new removal policy
+      was introduced. The outside-order refusal/no-proposal fixture is retained; the wording
+      tension between `TRU-A1a`'s "proposes removal when one stops routing" and `ARC-31b`'s
+      "opens a pull request only when the candidate order changes" remains for the publisher.
+      *Amendment verification:* `nix develop --command bash tools/check-all.sh`,
+      `nix develop --command bash tools/check-controls.sh`, and
+      `nix develop --command python3 -m unittest discover -s tools/tests -v` each exited zero,
+      run sequentially and unpiped. The unit suite includes snapshot reproduction and actual
+      PR creation/update paths against a temporary remote with mocked network/PR commands.
+      Coverage is unchanged, so no baseline ratchet was needed. `actionlint` was unavailable
+      on PATH and in the Nix development shell. No live probe or real proposal was published.
 
 - [x] **T38 — What the provider measurement left open**
       (`docs/findings/2026-09-22-provider-routing.md`). *Decided 2026-09-24, and the rules
