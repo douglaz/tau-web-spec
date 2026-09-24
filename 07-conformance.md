@@ -348,8 +348,11 @@ yet.
       `CNF-17`'s first-stage evidence is. With an injected model-list fixture in which the first
       candidate is absent, the harness selects the highest-ranked candidate present, an
       allowlisted one (`TRU-A1a`) under the same rule as a badged one; with a fixture answering
-      200 and an error body, "still listed" is not read from the status and the first candidate
-      is called; with no answer, the first candidate is called; with a fixture carrying a model
+      200 and an error body or a malformed body, "still listed" is not read from the status and
+      the first candidate is called with the selection recorded as **unconfirmed**; with no
+      answer, the same happens; with a well-formed list containing none of the signed
+      candidates (including an empty list), the first candidate is called and the selection
+      is recorded as **unconfirmed**; with a fixture carrying a model
       that is not in the signed order, that model is never selected — `SEC-8` says fetched
       external content "MUST NOT authorize an action on its own", and the read can only remove
       a candidate from consideration. And the **selected** slug, not the first, is what the

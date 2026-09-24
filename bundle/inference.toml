@@ -1,26 +1,26 @@
-# Procured inference target for the first stage (ARC-31a, ADR-0028; the publisher's authority
-# over the choice is TRU-A1's). The publisher chooses the model here, not in a brief. CNF-78
-# checks every outgoing request against `provider`; CNF-71 checks `retention`. An empty `model`
-# or an empty `provider` fails the build: both are publisher decisions, and a build must not
-# guess either.
+# Procured inference inputs (ARC-31a, ARC-31b, ADR-0033).
 
 [aggregator]
 base_url = "https://api.ppq.ai"
 name = "PayPerQ"
 
 [session]
-model = "glm-5.3"          # the output of ADR-0033's rule, not a hand pick. The rule, the snapshot it ran on and
-                           # its counts are docs/findings/2026-09-22-provider-routing/ (eligible-set.py over
-                           # models-2026-09-23.json). One slug until T37 makes this an ordered candidate list.
+# Candidate order: ARC-31b and STG-17.
+model = [
+  { slug = "glm-5.3", maker = "Z.ai" },
+  { slug = "xiaomi/mimo-v2.6-flash", maker = "Xiaomi" },
+  { slug = "xiaomi/mimo-v2.6-pro", maker = "Xiaomi" },
+  { slug = "deepseek/deepseek-v4.1-flash", maker = "DeepSeek" },
+  { slug = "tencent/hy4-preview", maker = "Tencent" },
+]
+allowlist = []             # TRU-A1a
+context_floor = 500000     # ARC-31b, tokens
+depth = 5                 # ARC-31b
 provider = "z-ai"          # the provider requested per machine (ARC-14); empty fails the build.
                            # Sent as the aggregator's routing object `provider: {"only": ["<value>"]}` (ADR-0007:
                            # order/only/ignore). Measured 2026-09-22 and -23: an unsatisfiable value is refused
                            # with 404, and a satisfiable one is served with a `provider` field that follows the
                            # pin — the proxy's own report, so the display label stays *requested*
                            # (docs/findings/2026-09-22-provider-routing.md).
-                           # Z.AI makes these weights and is also the party requested to serve them: the same
-                           # party in two of ARC-14's three layers, which stay counted and displayed separately.
+                           # Provider/maker display: SEC-9.
 retention = "strictest"    # requested explicitly on every call; the API default is the weaker tier (ARC-31a)
-
-# The candidate order this file will carry is ARC-31b's; that it is never the recovery
-# ladder's middle rung is STG-17's.

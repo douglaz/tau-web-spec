@@ -503,7 +503,7 @@ _Avoid_: fallback chain, preference list, ranking (unqualified), model ladder (t
 
 **Context floor** · `ARC-31b`
 The least listed `context_length` a candidate must clear to be eligible. A publisher value in
-the bundle, unset until the schema carries it.
+the bundle under `session.context_floor`, in tokens.
 _Avoid_: "the floor" unqualified, context budget (a budget is spent; a floor is cleared)
 
 **Proposing job** · `ARC-31b`

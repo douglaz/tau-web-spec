@@ -1,10 +1,18 @@
 listed: 378
 privacyLevel: {'anon': 227, 'zdr': 143, 'e2e': 8}
-eligible (zero-retention badge + tool calls): 111
+publisher allowlist: []
+context_floor: 500000 tokens; depth: 5
+eligible (badge or allowlist, tool calls, context floor): 23
 of those flagged popular: 1
   glm-5.3  context=1310720  owned_by=Z.ai
+candidate order (slug / maker):
+  glm-5.3 / Z.ai
+  xiaomi/mimo-v2.6-flash / Xiaomi
+  xiaomi/mimo-v2.6-pro / Xiaomi
+  deepseek/deepseek-v4.1-flash / DeepSeek
+  tencent/hy4-preview / Tencent
 flagged popular overall: 16, of which not badged zdr: 15
-badge by owner (zdr / all):
+badge by owner (zdr / all; before tool and context filters):
   Anthropic: 0 / 19
   OpenAI: 3 / 68
   Google: 6 / 30

@@ -194,8 +194,7 @@ bootstrap seat with a stated trajectory, not a resting state.
 path the publisher also selects the models" and "Model selection ships in the signed bundle
 (`bundle/inference.toml`)"; the allowlist is that selection exercised by name. The **allowlist**
 of proprietary models that route zero-retention is the publisher's judgement, carried in the
-signed bundle (`bundle/inference.toml`; its schema is TASKS T37's next step), each entry named
-by the publisher. An allowlisted model is admitted to the eligible set beside the models
+signed bundle (`bundle/inference.toml`), each entry named by the publisher. An allowlisted model is admitted to the eligible set beside the models
 carrying the aggregator's zero-retention badge (`ARC-31a`) and is never ordered by the
 publisher: the order is `ARC-31b`'s, and the allowlist admits candidates without ranking them.
 The proposing job probes each allowlisted entry with the model, the pinned provider and `zdr`

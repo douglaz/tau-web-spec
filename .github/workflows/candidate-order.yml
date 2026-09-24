@@ -1,0 +1,49 @@
+name: propose candidate order
+
+# ARC-31b and TRU-A1a own the contract. Run daily at 06:17 UTC.
+# GET /v1/models uses the bundle aggregator's public endpoint, without a key.
+# HTTP failures, malformed lists (including HTTP 200 error envelopes), and
+# inconclusive probes fail the run; the platform's failed-run notification is
+# the alert. There is no failure counter or probe history between runs.
+on:
+  schedule:
+    - cron: '17 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: candidate-order-proposal
+  cancel-in-progress: false
+
+jobs:
+  propose:
+    if: github.ref_name == github.event.repository.default_branch
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      # No credential or probe is needed for an empty allowlist. Otherwise the
+      # publisher supplies PUBLISHER_AGGREGATOR_KEY as a repository secret;
+      # its absence fails loudly. Each probe sends model + provider.only + zdr.
+      # The same eligible-set.py serves both historical snapshots and this job.
+      # Unchanged order is a no-op. Changes commit/push only to the fixed
+      # proposals/candidate-order branch, with a lease, creating a PR or updating
+      # its head. No direct default-branch push or automatic merge is performed.
+      # Repository settings must allow GITHUB_TOKEN to create pull requests.
+      # The publisher approves the resulting PR workflow runs in GitHub before
+      # merging: https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow
+      # Offline verification: python3 -m unittest discover -s tools/tests -v
+      - name: Fetch, select, probe when needed, and propose
+        env:
+          PUBLISHER_AGGREGATOR_KEY: ${{ secrets.PUBLISHER_AGGREGATOR_KEY }}
+          GH_TOKEN: ${{ github.token }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: python3 tools/propose_candidates.py --default-branch "$DEFAULT_BRANCH"

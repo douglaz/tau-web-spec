@@ -213,65 +213,40 @@ gated on it.
       from the general files wherever the harness's own machines were meant; it remains where
       btc-policy's federation is (its claim, `ARC-20`, `SEC-T4`, TRU-A3's retirement note).
 
-- [ ] **T37 — The candidate order and the job that maintains it** (ADR-0033). The rules first,
-      each in its owner, then the schema. *Eligibility.* Give the zero-retention **badge** filter
-      its clause beside `ARC-31a`'s request rule — `ARC-31a` says "The retention tier MUST be
-      requested explicitly on every call" and names a request, not a model attribute, so the
-      filter is a new clause and not a reading of that one — and give the publisher's
-      **allowlist** of proprietary models that route zero-retention its clause in the publisher's
-      part, which `TRU-A1` names ("Model selection ships in the signed bundle"); both decided
-      2026-09-24, neither landed. Name the wire form in `ARC-31a`: `provider.zdr: true`,
-      documented on the aggregator's `api-docs` page and accepted together with the pinned
-      provider (finding, cases G and I) — and decide what `retention = "strictest"` means against a
-      list that also carries an `e2e` tier. Give `ARC-43` the sentence that a candidate model
-      must be able to call the tool set it says "is exactly four". Set the context floor's value
-      and owner. *Selection and job.* Give the candidate order, the session-start selection, the
-      unanswered-list disposition and the proposing job a requirement owner; the job probes
-      allowlisted models against the model, the pinned provider and `zdr` together, and its
-      credential and spend need an owner. Amend `STG-17` with a MUST NOT: the order is never
-      `ARC-16`'s escalation rung. *Schema.* Change `bundle/inference.toml` from one slug to the
-      ordered list, carry the maker beside each model (`SEC-9`'s same-party mark reads it,
-      never the slug) and the allowlist, and point the comment at `STG-17` rather than
-      restating the rule. *Conformance.* Add the items: the selection; `SEC-9`'s comparison,
-      its *unrecognized* case and the same-party mark, with a fixture whose requested provider
-      is not the maker — with today's bundle the two cannot be told apart. Add the scheduled
-      job; it opens pull requests and never commits. The implementation's build gate changes
-      with the schema and arrives with the pin bump.
-      *The rules landed 2026-09-24, each in its owner.* `ARC-31a` gained the badge-against-request
-      clause: the wire form, the badge as the aggregator's page defines it, and the `e2e` tier
-      ruled out of reach on the browser path, so *strictest* means `zdr`. `TRU-A1a`
-      (`05-trust.md`) is the publisher's allowlist. `ARC-43` says a candidate "MUST be able to
-      call this tool set". `ARC-31b` (`01-architecture.md`) is the one home of the candidate
-      order, the context floor (owner here; value unset until the schema carries
-      `context_floor`), the session-start selection with its unanswered-list disposition, and
-      the proposing job's contract, credential and spend. `STG-17` no longer reasons from one
-      slug and carries the MUST NOT. `CNF-88`–`CNF-90` (trust display section) test the
-      selection, `SEC-9`'s comparison with its *unrecognized* case, and the same-party mark
-      against case I's fixture; each has its applicability row. `CONTEXT.md` gained the badge
-      against the request, the context floor and the proposing job, and its *Eligible set* and
-      *Candidate order* entries point at the owners.
-      *Owed to the next step:* `bundle/inference.toml`'s schema — the ordered list, the maker
-      beside each model, the allowlist, the `context_floor` placeholder, and a comment pointing
-      at `STG-17` and `ARC-31b` rather than restating them; the scheduled job under
-      `.github/workflows/` with the publisher's aggregator credential as a repository secret;
-      the implementation's build gate at the pin bump, failing on an empty list or an empty
-      floor; `eligible-set.py` growing to apply the allowlist and the floor once either is
-      populated, so that `ARC-31b`'s "what `eligible-set.py` prints" stays true; and, once the
-      schema lands, removing the three "TASKS T37" pointers inside
-      normative text (`ARC-31b`'s floor and job bullets, `TRU-A1a`) and leaving the "carries"
-      tense in `ARC-31b` and `STG-17` true, since both describe a bundle shape that does not
-      exist until then. *Decided by the publisher on 2026-09-24, after the rules landed, and
-      owed to the next step as rules and values:* a list that answers, is well-formed and
-      contains none of the signed candidates is treated as an unanswered list — the harness
-      calls the first candidate, since the read can only remove a candidate and never veto a
-      session, and the selection is recorded as unconfirmed (`ARC-31b`, `CNF-88`); the order's
-      depth is **five**; the job runs **daily**, opens a pull request only when the set changes,
-      and a fetch failure fails the run — the platform's notification of a failed scheduled run
-      is the alert, and no streak is kept across runs (decided 2026-09-24 after a Run blocked on
-      the streak's semantics); the
-      `context_floor` is **500,000** tokens, which `eligible-set.py` over
-      `models-2026-09-23.json` shows leaves 23 of 111 eligible models, `glm-5.3` among them, all
-      of them at or above one million.
+- [x] **T37 — The candidate order and the job that maintains it** (ADR-0033).
+      *Completed 2026-09-24 in the specification repository.* The rules first landed in
+      PR #8; their owners are `ARC-31a`, `ARC-31b`, `ARC-43`, `TRU-A1a`, `SEC-9` and `STG-17`.
+      Conformance fixtures: `CNF-88`–`CNF-90`, with their existing applicability unchanged.
+      The schema now carries ordered `{ slug, maker }` entries, the publisher allowlist,
+      `context_floor` and `depth`. `eligible-set.py` applies those inputs to the unchanged
+      `models-2026-09-23.json`; the candidate order and diagnostics are recorded in
+      `docs/findings/2026-09-22-provider-routing/eligible-set.2026-09-23.txt`, not counted here.
+      Makers come from the snapshot's `owned_by`. The bundle and recorded order agree.
+      *Decided by the publisher on 2026-09-24:* depth **5**, context floor **500000** tokens,
+      an empty allowlist today, and a daily job proposing only candidate-order changes.
+      A fetch failure fails the run; the platform's failed-run notification is the alert,
+      with no cross-run streak or history. Fetch the public model list without a credential;
+      probe only a non-empty allowlist, failing loudly if the publisher's repository secret
+      is missing. Keep provider `z-ai`, retention `strictest` and the aggregator values.
+      The runtime no-match decision is now in its owner: `ARC-31b` says "A well-formed list
+      containing none of the signed candidates is also treated as unanswered" and "MUST
+      record the selection as **unconfirmed**". Its fixture is in `CNF-88`; no running
+      harness was exercised by these prose edits.
+      *What landed:* `.github/workflows/candidate-order.yml` runs at 06:17 UTC daily and uses
+      `tools/propose_candidates.py` with the same selector. It creates or updates a proposal
+      branch and pull request, preserving unrelated bundle values. `ARC-31b` says "MUST NOT
+      commit directly to the default branch or merge its proposal". The optional repository
+      secret is `PUBLISHER_AGGREGATOR_KEY`; none was obtained or used here. Probe fixtures
+      exercise the case G request shape and case C refusal, including a removal proposal.
+      The deferred schema pointers and directly affected descriptions are updated.
+      *Verification:* `python3 -m unittest discover -s tools/tests -v` passed; the fixtures
+      cover historical reproduction, filters and order, no-op and changed bundles, fetch
+      and probe failures, secret gating, and proposal create/update against a temporary Git
+      remote with mocked pull-request commands. Both required Nix gate commands passed:
+      `tools/check-all.sh` and `tools/check-controls.sh`. Workflow syntax passed `actionlint`.
+      *Owed to tau-web-rust at its spec pin bump:* migrate `build.rs` to consume the new schema
+      and fail on an empty candidate list or an empty context floor. That build gate was not
+      changed here. The publisher's runtime decisions remain implementation obligations there.
 
 - [x] **T38 — What the provider measurement left open**
       (`docs/findings/2026-09-22-provider-routing.md`). *Decided 2026-09-24, and the rules

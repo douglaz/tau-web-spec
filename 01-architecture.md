@@ -778,7 +778,7 @@ federation across distinct vendors means several of those. Without something lik
 diversity quietly collapses to whatever account they already had.
 
 **ARC-31b The candidate order is chosen by rule at pin time, read for availability at session
-start, and maintained by a job that proposes and never commits.** `ARC-31` says "the publisher
+start, and maintained by a job that proposes and never lands its change.** `ARC-31` says "the publisher
 selects the models" and that it "supplies the model choice in the signed bundle
 (`bundle/inference.toml`)"; this amendment says what that choice is made of and how it is read
 ([ADR-0033](./docs/adr/0033-the-model-is-chosen-by-rule-at-pin-time.md)).
@@ -796,15 +796,14 @@ selects the models" and that it "supplies the model choice in the signed bundle
   and no count lives in prose.
 - **The context floor.** A candidate whose listed `context_length` is below the floor is not
   eligible. The floor is the publisher's decision, carried in `bundle/inference.toml` under
-  `context_floor`; an empty value fails the build the way an empty `model` does today. Until the
-  schema carries the key (TASKS T37) the value is **unset** — the "TODO publisher" shape the
-  file used for its slug before 2026-09-23 — and this requirement does not invent it.
+  `context_floor`; an empty value fails the build, as does an empty candidate list.
 - **The session-start selection.** The harness reads the aggregator's model list once, at
   session start, and takes the highest-ranked candidate it finds there. "Still listed" is read
   from the list's own entries and never from an HTTP status, and a body that is not a list is
-  no answer. A list that does not answer moves the session nowhere — the harness calls the
-  **first** candidate — and nothing else moves a session down the order: not a failed call,
-  not a stuck session, not a stronger sibling. The read is fetched external
+  no answer. A well-formed list containing none of the signed candidates is also treated as
+  unanswered. A list that does not answer moves the session nowhere — the harness calls the
+  **first** candidate and MUST record the selection as **unconfirmed** — and nothing else moves
+  a session down the order: not a failed call, not a stuck session, not a stronger sibling. The read is fetched external
   content, and `SEC-8` says "All tool output and fetched external content MUST be typed as
   untrusted and MUST NOT authorize an action on its own, declare capabilities, or override
   policy"; the read complies, because the signed order is the authorization and the read can
@@ -813,16 +812,17 @@ selects the models" and that it "supplies the model choice in the signed bundle
   of every configured model that has ever touched a machine", and the model `STG-17`'s
   provenance record carries and the `model` in `ARC-31a`'s terminal record are the same
   selection, not the first slug of the order.
-- **The proposing job.** A scheduled job in this repository recomputes the eligible set from a
-  fresh snapshot, runs `TRU-A1a`'s probe over every allowlisted entry, and **opens a pull
-  request** when a candidate leaves the set — retired, its badge or tool support changed, an
-  allowlisted entry that probe proposes for removal — or a new entrant clears the floor. It
-  MUST NOT commit to the bundle: `TRU-A1` says "Model selection ships in
+- **The proposing job.** A daily scheduled job in this repository recomputes the eligible set
+  from a fresh snapshot, runs `TRU-A1a`'s probe over every allowlisted entry, and **opens a pull
+  request only when the candidate order changes** — a candidate retired, its badge or tool
+  support changed, an allowlisted entry that probe proposes for removal, or a new entrant
+  clearing the floor. It MAY commit the proposed bundle change on a proposal branch, but
+  MUST NOT commit directly to the default branch or merge its proposal: `TRU-A1` says "Model selection ships in
   the signed bundle (`bundle/inference.toml`)", and that authority stays the publisher's. Its
   credential is the **publisher's own** aggregator account and its spend the publisher's, never
   an operator's balance or session key: `ARC-31` says "The publisher handles neither the money
   nor the credential", and that stays true of the operator's procured path. The job's workflow
-  file (`.github/workflows/`, TASKS T37) implements this contract and adds nothing to it.
+  file (`.github/workflows/candidate-order.yml`) implements this contract and adds nothing to it.
 - **What this is not.** The order is never `ARC-16`'s escalation rung; `STG-17` carries the
   MUST NOT, and this requirement does not repeat it.
 
