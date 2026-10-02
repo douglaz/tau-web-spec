@@ -141,9 +141,10 @@ until capped.
 ## The eligible set, from a committed snapshot
 
 `models-2026-09-23.json` is the aggregator's model list as returned on 2026-09-23, and
-`eligible-set.py` applies ADR-0033's badge rule to it. Its output is recorded in
-`eligible-set.2026-09-23.txt` beside it, and is what the ADR and the bundle cite. The same rule
-on 2026-09-22, against a list not kept, gave the same one flagged model. The badge is stricter
+`eligible-set.py` applies the bundle's allowlist, context floor and depth to it, alongside the
+badge and tool-support filters (`ARC-31b`). Its output is recorded in
+`eligible-set.2026-09-23.txt` beside it, and is what the ADR and the bundle cite. The earlier badge-and-tool-only computation
+on 2026-09-22, against a list not kept, gave the same flagged model. The badge is stricter
 than zero-retention routing, by the aggregator's own definition quoted above, and the script
 prints how it falls by owner; that is why ADR-0033's eligible set now has an allowlist beside the
 badge.

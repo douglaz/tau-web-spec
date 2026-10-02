@@ -21,9 +21,8 @@ jobs and gives each to the party that can do it.
 
 ## What the rule is made of
 
-**The eligible set** is every model the aggregator lists that meets three conditions. None of
-the three has landed as a requirement yet; each is a decision awaiting its clause, and T37 says
-where each goes.
+**The eligible set** has its requirement home in `ARC-31b`; the clauses landed on
+2026-09-24. The following records why those conditions were chosen.
 
 - *Zero retention.* Two things, related and distinct. `ARC-31a` says "The retention tier MUST
   be requested explicitly on every call": that is a request parameter, and on this aggregator
@@ -35,14 +34,13 @@ where each goes.
   endpoint" and is stricter than "can be routed zero-retention"; `eligible-set.py` prints how it
   falls by owner — **plus a publisher-kept allowlist** of proprietary models that route
   zero-retention, each named by the publisher and probed by the job. The badge is computable
-  from a committed snapshot and its clause belongs beside `ARC-31a`'s request rule; the allowlist
-  is the publisher's judgement and its clause belongs in the publisher's part, which `TRU-A1`
-  names: "Model selection ships in the signed bundle". The list also carries an `e2e` tier, and
-  what `retention = "strictest"` means against it is T37's to say.
+  from a committed snapshot (`ARC-31a`); the allowlist is the publisher's judgement (`TRU-A1a`). The list also carries an `e2e` tier; `ARC-31a` says
+  "the strongest tier the browser can request, which is `zdr`".
 - *Able to call the harness's tools.* `ARC-43` says "The model's tool set in the first stage is
   exactly four", and a candidate that cannot call them cannot do the work. `ARC-43` owns the
-  interface; T37 adds the sentence that a candidate must be able to drive it.
-- *Above a context floor.* Neither the value nor an owner exists yet; T37 carries both.
+  interface and says a candidate "MUST be able to call this tool set".
+- *Above a context floor.* The publisher value is `session.context_floor` in the bundle;
+  `ARC-31b` says "A candidate whose listed `context_length` is below the floor is not eligible."
 
 **The candidate order** is the eligible models the aggregator flags as popular, in its order,
 then the rest of the eligible set newest first, to a fixed depth. The flag is the aggregator's
@@ -51,13 +49,15 @@ nothing about quality, which no party here measures, and nothing about availabil
 order is otherwise for.
 
 **The counts come from a committed snapshot, never from prose.** `eligible-set.py` in the
-finding's directory applies the badge rule to `models-<date>.json`; what it prints is the count.
+finding's directory applies the bundle inputs and selection rule to `models-<date>.json`;
+what it prints is the count.
 
-**The job proposes; it never commits.** It opens a pull request when a candidate leaves the
-eligible set — retired, or its badge or tool support changed, or an allowlisted model stops
-routing zero-retention with the pinned provider — and when a new entrant clears the floor. The
+**The job proposes; the publisher lands the change.** `ARC-31b` says "opens a pull
+request only when the candidate order changes". The
 publisher's authority is `TRU-A1`'s, and a job that edited the bundle itself would hold it
-unnamed. The probe spends from a funded balance; whose credential and spend that is, T37 owns.
+unnamed. `ARC-31b` says "Its credential is the **publisher's own** aggregator account and its
+spend the publisher's, never an operator's balance or session key". The workflow commits only on
+a proposal branch; the publisher alone decides whether the bundle change lands.
 
 **At runtime the order is read for availability and for nothing else.** The harness reads the
 aggregator's model list once, at session start, and takes the highest-ranked candidate it
@@ -65,7 +65,9 @@ finds there. "Still listed" is read from the list's own entries, never from a st
 aggregator answers an unknown path with HTTP 200 and an error body. If the list does not answer,
 the harness calls the first candidate anyway: the list is an optimization and never a gate, an
 unreachable catalogue must not become a way to stop every session from starting, and the call
-itself fails loudly if the model is gone.
+itself fails loudly if the model is gone. The no-match case was settled on 2026-09-24:
+`ARC-31b` says "A well-formed list containing none of the signed candidates is also treated as
+unanswered."
 
 That read is fetched external content, and `SEC-8` says "All tool output and fetched external
 content MUST be typed as untrusted and MUST NOT authorize an action on its own, declare
@@ -91,8 +93,8 @@ the proxy's upstream.
 stronger model being one that "is not assigned — and will never be assigned — to any other
 machine", and says "Re-entry stays inside this rule the same way". An availability fallback on
 a re-entered or successor session is a new configured model on that machine and stays inside
-`SEC-1` like any other; the candidate order is never `ARC-16`'s escalation rung, and T37 gives
-`STG-17` the sentence that says so.
+`SEC-1` like any other; `STG-17` says "the harness **MUST NOT** use the
+candidate order as that rung".
 
 ## Considered options
 
@@ -134,20 +136,27 @@ run, so the set would no longer reproduce from a snapshot.
 
 ## Consequences
 
-**`bundle/inference.toml`'s schema changes** from one model slug to an ordered list, and the
-implementation's build gate changes with it: an empty list fails the build where an empty slug
-fails it today (TASKS T29). Until T37 lands the file carries one slug, the rule's top candidate.
+**2026-09-24 — per-entry requested providers.** The model became a list on 2026-09-22,
+while the provider remained bundle-wide. On 2026-09-24 the publisher reported that requesting
+`z-ai` with `xiaomi/mimo-v2.6-flash` or `deepseek/deepseek-v4.1-flash`, using the method of
+cases C and E in `docs/findings/2026-09-22-provider-routing.md`, returned 404,
+"No allowed providers are available for the selected model". This is the publisher's reported
+measurement, not a new experiment here. The publisher then chose per-entry pins; the committed
+values live in `bundle/inference.toml`, and the amendment's owners are `ARC-31b` and `TRU-A1a`.
 
-**`STG-17` needs an amendment.** It says "the first stage offers rungs one and three only, and
-says so", reasoning from one model slug. A list does not change that — it is ordered for
-availability and not for strength — and `STG-17` should say so as a rule, not leave a reader
-to infer it from a list that now holds more than one entry.
+**`bundle/inference.toml` carries the candidate schema.** T37 landed the ordered entries
+with separate slug, maker and provider, the allowlist with its own pins, context floor and
+depth, and the daily proposing workflow. The implementation repository's `build.rs` migration remains owed at its spec pin
+bump: consume the new schema and reject missing or empty candidate or allowlist providers, alongside
+the existing empty candidate-list and context-floor gates, and enforce selection at runtime.
+No implementation build gate changed in this repository (ADR-0031).
 
-**Conformance items are owed** — for the session-start selection, and for `SEC-9`'s comparison
-and same-party mark — after a requirement owns each, since a conformance item tests a rule. The
-same-party fixture must request a provider that is not the maker: with today's bundle, a harness
-that derived the provider from the model name would pass `CNF-78`'s request inspection
-identically, so the two cannot be told apart until the fixture differs.
+**The first-stage and conformance amendments landed with the rules.** `STG-17` says "the first
+stage offers rungs one and three only, and says so". Fixtures: `CNF-88` (selection),
+`CNF-89` (comparison), `CNF-90` (same-party mark). These are conformance obligations, not evidence of a
+running harness. The same-party fixture requests a provider that is not the maker; with the
+current top candidate and provider, deriving the provider from the model name would pass
+`CNF-78`'s request inspection identically.
 
 **Popularity is a third party's editorial judgement and the order inherits it.** The risk
 ADR-0004 names is inside one setup: "If a user configures three inference providers that all
@@ -168,7 +177,7 @@ maker, which is `SEC-9`'s same-party case by default. All of it is the publisher
 exercised twice — once in the allowlist, once by accepting the flag's order — and both are named
 as such.
 
-**The same party can hold two layers.** Today's provider is the maker of the weights it serves.
+**The same party can hold two layers.** The committed entries request their weights' makers.
 The layers stay counted and displayed separately, per `ARC-14`; `SEC-9` says "When the requested
 provider is the maker of the weights, the display MUST say so on that machine", reading the
 maker from the bundle, never from the slug (`CNF-41`).

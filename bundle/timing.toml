@@ -13,8 +13,5 @@ probe_interval = "15s"     # each probe IS the pinned SSH attempt: TCP refusal o
                            # any sshd answer ends the wait (success, or a pin halt). Never a bare
                            # connect-and-close, which accrues OpenSSH's per-source penalty (ARC-41).
 
-[relay]                    # first-stage relay (CNF-87, docs/design/relay-protocol-v1.md). Placeholders.
-auth_skew = "10m"          # AUTH event created_at must be within this of the relay's clock
-min_spacing = "1s"         # per destination, from here down
-window = "15m"
-window_cap = 200
+# [relay] moved to paid-tcp-relay's bundle/timing.toml on 2026-09-24 (its OPR-7): auth_skew,
+# min_spacing, window, window_cap are that set's to name. CNF-87 cites it there.

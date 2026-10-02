@@ -293,10 +293,11 @@ or it spends seconds looking up optional keys on the network before an inbox exi
 
 ## The relay
 
-**CHN-8** The relay MUST NOT be a generic open proxy. A WebSocket-to-arbitrary-TCP bridge
-with no authentication will be abused within days of being reachable. The archived
-specification's §21 requirements are the resolution: authenticate the user, enforce
-destination and operation policy, prevent generic open-proxy behaviour.
+**CHN-8** The relay MUST NOT be a generic open proxy — paid-tcp-relay's `OPR-1`
+(github.com/douglaz/paid-tcp-relay), where the combination that makes a relay defensible —
+paid, recorded, capped, paced, revocable — is stated once. The archived specification's §21
+requirements were the origin; the rule moved there on 2026-09-24, and the harness relies on
+that set and adds nothing.
 
 **CHN-9** The relay has two duties: the TCP bridge — the SSH channel, `ARC-26`'s surface
 probes, the pinned vendor tunnel (`CHN-12a`) and a profile-declared post-harness credential's
@@ -317,13 +318,16 @@ probes, the pinned vendor tunnel where a vendor refuses CORS (`CHN-12a`), and wh
 profile's post-harness credential speaks to its machines after delivery (`ARC-19a`) — and, if
 `CHN-12b` is ever built, untyped calls whose destination refuses browser CORS.
 The machine-originated attest post no longer crosses it at all. Minimum usage is a design
-property, not an accident.
+property, not an accident; the relay-side statement of the same property is paid-tcp-relay's
+`OPR-2`.
 
 **CHN-11** The relay's operator is the **publisher** by default, with bring-your-own as the
 escape hatch ([ADR-0019](./docs/adr/0019-the-publisher-operates-the-default-relay.md)). The
 publisher's seat is a **bootstrap**: before the operator has any machine, someone must carry
 the bytes that provision the first one. The product actively offers the move to a relay on
-the operator's own maintained machine once one exists.
+the operator's own maintained machine once one exists. Who runs a relay and what a self-hosted
+one still depends on is stated once in paid-tcp-relay (`OPR-3`, `OPR-4`, its ADR 0002); this
+requirement is tau-web's decision to adopt that default.
 
 That move retains an **external relay route for the relay-host machine itself**, for SSH,
 recovery and outside-in scans. `CHN-16a` forbids a relay from dialing its own addresses.
@@ -337,27 +341,18 @@ does not complete; never relax the self-address prohibition to make it appear su
 `CHN-R4` it is not**: at first contact there is nothing to check the key against, so a
 hostile relay can present its own, have it pinned, and read the session from then on.
 
-**CHN-15** Relay access is **bought, not granted**
-([ADR-0025](./docs/adr/0025-relay-access-is-bought-not-granted.md)), and what is bought is
-recorded against a **relay key** the browser derives from the seed (`STA-22`), one per
-purchase. The browser asks for access naming that key's public half; the relay answers `402`
-with an invoice over ordinary HTTPS; the operator's own wallet pays it (`ARC-30`, `SEC-13`); the
-relay observes its own invoice settle and binds a **pass** — destinations, expiry, pacing — to
-the key. When the WebSocket opens the relay issues a challenge and the browser signs it with the
-key, in the shape NIP-42 already defines and the browser already implements for the Nostr relay.
-The wire protocol — destination grammar, challenge, AUTH, OK, then binary frames, and the order
-of checks before any dial — is
-[`docs/design/relay-protocol-v1.md`](./docs/design/relay-protocol-v1.md), which is normative.
-**Nothing bearer exists.** There is no bearer string to store: the key
-re-derives from the seed plus its exported pass index (`STA-22b`), and the relay remembers
-the pass. Missing allocation metadata can lose access to paid quota. The handshake and its check
-order are carried in Lean under `TauWeb.Relay` (ADR-0032); that note names the declarations.
-
-*What this replaced.* The pass used to be an opaque random string presented on connect. It was
-held encrypted at rest, exported nowhere, and "re-bought rather than recovered" after a lost
-phone. It also could not be revoked after that loss, because the relay had no way to recognise
-whoever was asking — which is what the seed's derived key gives it: a revocation is a message
-signed by the key the pass is bound to.
+**CHN-15** Relay access is **bought, not granted**, and what is bought is recorded against a
+**relay key** the browser derives from the seed (`STA-22`), one per purchase. The model — the
+`402` purchase, the key-bound pass, the challenge the browser signs in the NIP-42 shape it
+already implements for the Nostr relay, and the wire with its check order — is paid-tcp-relay's
+(`PAS-1`–`PAS-8`, `WIR-1`–`WIR-11`; github.com/douglaz/paid-tcp-relay), adopted by
+[ADR-0025](./docs/adr/0025-relay-access-is-bought-not-granted.md) and moved there on
+2026-09-24; `docs/design/relay-protocol-v1.md` is retained as history. What tau-web owns: the
+key derives from the seed and re-derives from the seed plus its exported pass index (`STA-22b`),
+so **nothing bearer is stored** and missing allocation metadata can lose access to paid quota;
+and the operator's own wallet pays the invoice (`ARC-30`, `SEC-13`). The handshake and its check
+order are carried in Lean under `TauWeb.Relay` (ADR-0032) until the port to paid-tcp-relay lands
+(T30); that note names the declarations.
 
 **No account, and therefore no identity party.** That is the point: an account system is a party
 that knows every operator and can deny them service, which `SEC-10` prices as a schema
@@ -365,30 +360,24 @@ migration. A relay key is not an identity: it is one random-looking public key, 
 purchase, and the relay cannot link two purchases by their keys. What it can link is the
 destination set, which `CHN-13` already prices.
 
-**CHN-16** A pass's **destination record is the authorization**, not a separate system. A pass
-is bought before the machines exist, so its destination list grows as the operator creates them
-— which is the moment the relay learns topology, already priced at `CHN-13`. **Recording a
-destination requires the relay key's signature**, so nobody but the key holder can widen a pass —
-which a bearer string could not promise, since anyone holding it could. The record is read at
-the host and not at the port, as `TauWeb.Relay.recorded` (ADR-0032);
-`TauWeb.Relay.recorded_any_port` and `TauWeb.Relay.unrecorded_destination_refused` are that
-reading and its refusal.
+**CHN-16** A pass's **destination record is the authorization**, not a separate system
+(paid-tcp-relay `PAS-4`, `DST-1`, moved 2026-09-24). A pass is bought before the machines exist,
+so its destination list grows as the operator creates them — the moment the relay learns
+topology, already priced at `CHN-13` — and recording a destination requires the relay key's
+signature, so nobody but the key holder can widen a pass. A recorded destination is reachable
+**on any port** (`DST-2`, that set's ADR 0003), which is what `ARC-41`'s equality needs and what
+`ARC-26`'s surface scan relies on. The record is read at the host and not at the port, as
+`TauWeb.Relay.recorded` (ADR-0032) carries it until T30; `TauWeb.Relay.recorded_any_port` and
+`TauWeb.Relay.unrecorded_destination_refused` are that reading and its refusal. A revoked pass
+closes its live connections and refuses new ones (`PAS-5`), which is the teardown rule `CNF-60`
+was waiting for; what revocation protects is money and attribution, since under `ARC-41` the
+relay's view equals the world's.
 
 **CHN-16a Destination authorization never grants access to the relay's private network.**
-At registration and again on **every outbound connection**, the relay accepts only public
-unicast destinations. It refuses loopback, private, link-local, unspecified, multicast,
-broadcast, documentation, reserved and other non-global addresses in IPv4 and IPv6, including
-metadata endpoints, IPv4-mapped IPv6 and alternate numeric spellings after normalization.
-It also refuses every address belonging to the relay host itself, including its public IPs.
-The implementation pins the IANA special-purpose address tables used for classification and
-treats their updates as reviewed policy updates. Unknown address forms fail closed.
-
-For a DNS destination, resolve through the relay's resolver, reject the request if **any**
-answer is forbidden, and connect to the checked numeric address without a second resolution
-inside the dialer. Apply the check to retries, refreshed DNS results and every port; redirects
-or alternate targets are new destinations requiring the same authorization and validation.
-Use an egress firewall to deny local/private/metadata routes as defense in depth. Private
-proxying is not a first-stage exception: the hand-recorded relay key obeys the same rule.
+The policy — public unicast only, at registration and on every outbound connection; the refused
+address classes; the resolver rule; the pinned IANA tables; unknown forms failing closed; an
+egress firewall as defence in depth — is paid-tcp-relay's (`DST-4`–`DST-7`, moved 2026-09-24)
+and applies to the first stage's hand-recorded relay key unchanged (`PAS-6`).
 
 The check on every outbound connection is carried as `TauWeb.Relay.parse`,
 `TauWeb.Relay.classify` and `TauWeb.Relay.dial` (ADR-0032), whose argument is by type the
@@ -398,35 +387,10 @@ the recording message, which the first stage does not carry.
 `TauWeb.Relay.dialed_admitted` proves over every trace that the dialer receives only an admitted
 address, `TauWeb.Relay.mapped_forbidden_refused` closes the IPv4-mapped spelling and
 `TauWeb.Relay.parse_fails_closed` the forms the grammar does not admit. The special-purpose
-tables enter the companion as an assumption it quantifies over, never as data it owns.
-
-**A revoked pass closes its live connections and refuses new ones**, and revocation is a
-message signed by the pass's key. That is the teardown rule `CNF-60` was waiting for. What
-revocation protects is stated at its real size: under `ARC-41` the relay's view equals the
-world's, so a pass in the wrong hands reaches nothing the public internet does not; it spends
-the operator's paid quota and gets the operator's pass blamed for the traffic. Revocation
-protects money and attribution, not machines.
-
-**A recorded destination is reachable on any port, not on the SSH port alone.** `ARC-26`'s
-surface scan probes which ports answer; a relay forwarding only port 22 would report exactly one
-open port on every machine whatever that machine's firewall was doing — a check that cannot fail,
-which is worse than no check, because it is displayed to the operator as an observation.
-`ARC-41` requires the relay-side view of a machine to *equal* the world's: forbidding privilege
-keeps that view from being larger, and this keeps it from being smaller.
-
-Payment alone does not satisfy `CHN-8`: a relay forwarding wherever it is told is a paid proxy
-rather than an open one. What makes it defensible is the combination — only destinations
-recorded against that pass, capped in number, **paced per destination**, and revocable the moment
-abuse is seen. Payment raises the cost of abuse and makes revocation meaningful; the destination
-record does the narrowing; **pacing is what makes a wide port range useless as a scanning
-service**, and it is the same per-target limit `ARC-26`'s tool contract already imposes.
-
-**The relay cannot verify that a recorded destination belongs to the operator**, and is not
-asked to. Every scan target is assumed to be a machine the harness provisioned — a design
-assumption, not an enforced one, and weaker than the port restriction it replaces. What bounds
-the residual is that the relay is a *worse* scanner than what an attacker already has: a pass
-buys a capped, paced, revocable, billed view of a handful of addresses, where the same money
-rents a machine with none of those limits.
+tables enter the companion as an assumption it quantifies over, never as data it owns. The
+any-port rationale, pacing as the anti-abuse control, and the economic bound on a destination
+the relay cannot verify are that set's `DST-2`, `DST-3`, `DST-8` and ADR 0003; `ARC-26`'s
+per-target limit is the same figure paid-tcp-relay names as pacing.
 
 **CHN-12** A tunnel terminates TLS **inside the browser** and carries ciphertext over the
 relay, so the relay stays a carrier and learns nothing of the contents. Browsers do not expose
@@ -462,7 +426,8 @@ arbitrary service refusing browser CORS is out of reach for untyped calls.**
 
 ## What the relay learns
 
-**CHN-13** The relay learns the **machine topology**, and the product MUST say so. Which
+**CHN-13** The relay learns the **machine topology** (paid-tcp-relay `OPR-6`), and the product
+MUST say so. Which
 operator, which destination, when, accumulated over time, *is* the machine set for a
 federation. That is the same knowledge `TRU-E5` prices as a named trust row for the scanner,
 and calling it merely "connection metadata" understates it.
@@ -495,5 +460,6 @@ bite it.
 
 **CHN-14** Self-hosting has its own honest price, named rather than hidden: the hosting
 machine's **bound model** has box-plane reach over whatever the relay retains, so the
-relay-install brief configures no connection logging, and the trust display prices the host
-machine's model as a potential metadata observer regardless.
+relay-install brief configures no connection logging — a relay keeps none, paid-tcp-relay
+`OPR-5` — and the trust display prices the host machine's model as a potential metadata observer
+regardless.

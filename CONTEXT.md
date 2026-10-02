@@ -345,7 +345,7 @@ _Avoid_: master key, root key (both suggest something a session holds), "the use
 unqualified "seed" in any sentence that also mentions a vault
 (a derived key is one of many, and none is the operator's social identity)
 
-**Relay pass** · `CHN-15`, `CHN-16`
+**Relay pass** · `CHN-15`, `CHN-16`; owned by paid-tcp-relay (`PAS-3`)
 What is bought: the relay's record of which destinations a relay key may reach, until when, and
 how fast. Paid for by invoice, bound to a key, never held as a value. There is no identity
 behind it. Its key re-derives from the seed and exported pass index; losing the index can
@@ -353,7 +353,7 @@ lose the remaining quota.
 _Avoid_: token, subscription, API key (all imply an account or a bearer string); "present the
 pass" (one presents the key; the relay finds the pass)
 
-**Relay key** · `CHN-15`, `SEC-5` row 4
+**Relay key** · `CHN-15`, `SEC-5` row 4; owned by paid-tcp-relay (`PAS-2`)
 The keypair the browser derives from the seed for one relay pass. Its public half is what the
 relay binds a purchase to and what the first stage hands the publisher; its private half signs
 the connection challenge, destination records, and revocation. Never stored, never bearer.
@@ -494,7 +494,7 @@ exists for exactly those.
 _Avoid_: ZDR as a bare noun (which of the two), "zero-retention model" (says neither which)
 
 **Candidate order** · `ARC-31b`, `ADR-0033`
-The ordered model slugs `bundle/inference.toml` carries, each with its maker beside it.
+The ordered model slugs `bundle/inference.toml` carries, each with its maker and requested provider beside it.
 Ordered for **availability**: the harness takes the highest-ranked candidate the aggregator
 still lists, and the order says nothing about which candidate is stronger. The rule orders it;
 the publisher never does by hand.
@@ -503,7 +503,7 @@ _Avoid_: fallback chain, preference list, ranking (unqualified), model ladder (t
 
 **Context floor** · `ARC-31b`
 The least listed `context_length` a candidate must clear to be eligible. A publisher value in
-the bundle, unset until the schema carries it.
+the bundle under `session.context_floor`, in tokens.
 _Avoid_: "the floor" unqualified, context budget (a budget is spent; a floor is cleared)
 
 **Proposing job** · `ARC-31b`

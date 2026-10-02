@@ -339,7 +339,8 @@ number ([ADR-0007](./docs/adr/0007-trust-is-counted-in-two-layers-and-shown.md))
   The harness **requests** a provider per machine in the call itself, the same way it requests a
   model, using the aggregator's routing object — `order`, `only`, `ignore`, `zdr` among its
   fields, documented on its `api-docs` page and absent from its `llms.txt`, both read
-  2026-09-23. The display shows what was requested.
+  2026-09-23. On the procured path this is the selected candidate's provider (`ARC-31b`).
+  The display shows what was requested.
   **The aggregator may override it**, and its documentation scopes that to the few models with
   routing rules it enforces — some Anthropic and Gemini variants — while keeping the `zdr`
   request; when measured, an unsatisfiable request was refused rather than rerouted
@@ -778,15 +779,19 @@ federation across distinct vendors means several of those. Without something lik
 diversity quietly collapses to whatever account they already had.
 
 **ARC-31b The candidate order is chosen by rule at pin time, read for availability at session
-start, and maintained by a job that proposes and never commits.** `ARC-31` says "the publisher
+start, and maintained by a job that proposes and never lands its change.** `ARC-31` says "the publisher
 selects the models" and that it "supplies the model choice in the signed bundle
 (`bundle/inference.toml`)"; this amendment says what that choice is made of and how it is read
 ([ADR-0033](./docs/adr/0033-the-model-is-chosen-by-rule-at-pin-time.md)).
 
 - **The candidate order is a bundle value.** `bundle/inference.toml` carries an ordered list of
   model slugs, each with its maker recorded beside it — `SEC-9` says "The maker is a fact the
-  bundle records beside the model, never parsed from the model's name". The **eligible set** is
-  every model the aggregator lists that carries the zero-retention badge or is named on the
+  bundle records beside the model, never parsed from the model's name".
+  Each candidate also carries its hand-taken requested `provider`, sent as that selected
+  candidate's `provider.only` together with `zdr` — ADR-0033 says "It is a hand-taken value."
+  Missing or empty candidate providers MUST be rejected as selection inputs and MUST fail
+  the build; the harness MUST NOT select an entry with a missing or empty provider, including
+  when the model list is unanswered. The **eligible set** is every model the aggregator lists that carries the zero-retention badge or is named on the
   publisher's allowlist (`ARC-31a`, `TRU-A1a`), can call the tool set (`ARC-43`) and clears the
   context floor below. The order is the eligible models the aggregator flags as popular, in its
   order, then the rest of the eligible set newest first, to a fixed depth. It is ordered for
@@ -796,15 +801,14 @@ selects the models" and that it "supplies the model choice in the signed bundle
   and no count lives in prose.
 - **The context floor.** A candidate whose listed `context_length` is below the floor is not
   eligible. The floor is the publisher's decision, carried in `bundle/inference.toml` under
-  `context_floor`; an empty value fails the build the way an empty `model` does today. Until the
-  schema carries the key (TASKS T37) the value is **unset** — the "TODO publisher" shape the
-  file used for its slug before 2026-09-23 — and this requirement does not invent it.
+  `context_floor`; an empty value fails the build, as does an empty candidate list.
 - **The session-start selection.** The harness reads the aggregator's model list once, at
   session start, and takes the highest-ranked candidate it finds there. "Still listed" is read
   from the list's own entries and never from an HTTP status, and a body that is not a list is
-  no answer. A list that does not answer moves the session nowhere — the harness calls the
-  **first** candidate — and nothing else moves a session down the order: not a failed call,
-  not a stuck session, not a stronger sibling. The read is fetched external
+  no answer. A well-formed list containing none of the signed candidates is also treated as
+  unanswered. A list that does not answer moves the session nowhere — the harness calls the
+  **first** candidate and MUST record the selection as **unconfirmed** — and nothing else moves
+  a session down the order: not a failed call, not a stuck session, not a stronger sibling. The read is fetched external
   content, and `SEC-8` says "All tool output and fetched external content MUST be typed as
   untrusted and MUST NOT authorize an action on its own, declare capabilities, or override
   policy"; the read complies, because the signed order is the authorization and the read can
@@ -813,16 +817,24 @@ selects the models" and that it "supplies the model choice in the signed bundle
   of every configured model that has ever touched a machine", and the model `STG-17`'s
   provenance record carries and the `model` in `ARC-31a`'s terminal record are the same
   selection, not the first slug of the order.
-- **The proposing job.** A scheduled job in this repository recomputes the eligible set from a
-  fresh snapshot, runs `TRU-A1a`'s probe over every allowlisted entry, and **opens a pull
-  request** when a candidate leaves the set — retired, its badge or tool support changed, an
-  allowlisted entry that probe proposes for removal — or a new entrant clears the floor. It
-  MUST NOT commit to the bundle: `TRU-A1` says "Model selection ships in
+- **The proposing job.** A daily scheduled job in this repository recomputes the eligible set
+  from a fresh snapshot, runs `TRU-A1a`'s probe over every allowlisted entry, and **opens a pull
+  request only when the candidate order changes** — a candidate retired, its badge or tool
+  support changed, an allowlisted entry that probe proposes for removal, or a new entrant
+  clearing the floor. Existing candidate pins MUST stay attached to their slugs when the order
+  changes. For a new entrant without a publisher pin, the job MUST propose `provider = ""`
+  and include in the pull-request body the zero-retention-capable providers the aggregator
+  lists for that specific model, on both creation and update, replacing stale evidence.
+  It MUST NOT choose a provider, whether from the maker, the slug or the discovered list.
+  Missing credentials or inconclusive discovery MUST fail the run without a proposal;
+  an incomplete proposal is neither selectable nor shippable. It MAY commit the proposed
+  bundle change on a proposal branch, but
+  MUST NOT commit directly to the default branch or merge its proposal: `TRU-A1` says "Model selection ships in
   the signed bundle (`bundle/inference.toml`)", and that authority stays the publisher's. Its
   credential is the **publisher's own** aggregator account and its spend the publisher's, never
   an operator's balance or session key: `ARC-31` says "The publisher handles neither the money
   nor the credential", and that stays true of the operator's procured path. The job's workflow
-  file (`.github/workflows/`, TASKS T37) implements this contract and adds nothing to it.
+  file (`.github/workflows/candidate-order.yml`) implements this contract and adds nothing to it.
 - **What this is not.** The order is never `ARC-16`'s escalation rung; `STG-17` carries the
   MUST NOT, and this requirement does not repeat it.
 

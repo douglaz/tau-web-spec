@@ -1,5 +1,10 @@
 # Relay access is bought, not granted
 
+**Moved 2026-09-24.** The rule this record adopted, with both amendments below, is
+paid-tcp-relay's (its ADRs 0001 and 0003, `PAS-1`–`PAS-8`, `DST-2`, `DST-3`;
+github.com/douglaz/paid-tcp-relay). This record stays as the history of why tau-web adopted it
+and is no longer the rule's home; `CHN-15` and `CHN-16` are tau-web's adoption.
+
 An operator obtains relay access by **paying for a pass**, not by holding an account. The
 relay returns `402` with an invoice over ordinary HTTPS; the operator's own wallet pays it;
 the relay observes its own invoice settle and issues an **opaque random pass**, against which
