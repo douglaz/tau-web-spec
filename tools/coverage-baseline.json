@@ -1,6 +1,6 @@
 {
-  "max_uncovered_ratcheted": 99,
-  "recorded": "2026-09-24",
-  "reason": "T37's rules cited STA-10 and SEC-8, 101 to 99; ratcheted down so the appended-requirement control bites again",
+  "max_uncovered_ratcheted": 97,
+  "recorded": "2026-10-02",
+  "reason": "the relay restatement named the relay rules in CNF items and the candidate-order work cited more owners, 99 to 97; ratcheted so the coverage controls bite again",
   "note": "Lower is better. Raise only deliberately, with a reason."
 }
