@@ -36,7 +36,7 @@ jobs:
       # Probes send each entry's model + provider.only + zdr; discovery sends an
       # impossible only value with zdr and carries the refusal's providers into the PR.
       # The same eligible-set.py serves both historical snapshots and this job.
-      # Unchanged order is a no-op. Changes commit/push only to the fixed
+      # An unchanged proposed bundle is a no-op. Changes commit/push only to the fixed
       # proposals/candidate-order branch, with a lease, creating a PR or updating
       # its head and evidence body. No direct default-branch push or automatic merge is performed.
       # Repository settings must allow GITHUB_TOKEN to create pull requests.

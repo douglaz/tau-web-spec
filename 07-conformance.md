@@ -360,7 +360,8 @@ evidence is that set's test run against the relay the harness uses.
       exposure ledger (`STA-10`), the provenance record (`STG-17`) and the terminal record
       (`ARC-31a`) carry, and what the display shows. Build fixtures reject missing or empty
       providers on either candidate or allowlist entries, as well as the empty candidate list
-      and context floor. Runtime fixtures MUST NOT select a missing- or empty-provider entry,
+      and context floor, and a slug carrying different providers in the candidate order and on
+      the allowlist. Runtime fixtures MUST NOT select a missing- or empty-provider entry,
       including when it is first and the list is unanswered or has no match; an incomplete
       entry is not silently filtered out to change the publisher's order.
 - [ ] **CNF-89 · PRE-SCALE** `SEC-9`'s comparison and its *unrecognized* case, with injected

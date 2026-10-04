@@ -136,6 +136,28 @@ class Selection(unittest.TestCase):
                         with self.assertRaises(ValueError):
                             select.draft_candidates([model("glm-5.3")], invalid)
 
+    def test_slug_in_both_lists_carries_one_provider(self):
+        models = [model("glm-5.3")]
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "inference.toml"
+            # Exact bundle strings: a case difference is a different provider.
+            for provider, accepted in (("z-ai", True), ("other-pin", False), ("Z-AI", False)):
+                session = session_inputs(allowlist=[{"slug": "glm-5.3", "provider": provider}])
+                path.write_text(bundle_source(session["model"], session["allowlist"]))
+                with self.subTest(provider=provider):
+                    if accepted:
+                        self.assertEqual(select.read_bundle(path)["session"], session)
+                        for chosen in (select.select(models, session),
+                                       select.draft_candidates(models, session)):
+                            self.assertEqual([(c["slug"], c["provider"]) for c in chosen],
+                                             [("glm-5.3", "z-ai")])
+                        continue
+                    for call in (lambda: select.read_bundle(path),
+                                 lambda: select.select(models, session),
+                                 lambda: select.draft_candidates(models, session)):
+                        with self.assertRaisesRegex(ValueError, "same provider"):
+                            call()
+
     def test_reordering_preserves_pins_and_entrant_inherits_allowlist_pin(self):
         session = session_inputs(allowlist=[{"slug": "admitted", "provider": "chosen-by-publisher"}])
         models = [model("admitted", popular=True, badge="anon"),
@@ -174,7 +196,7 @@ class Update(unittest.TestCase):
         data = json.loads((FINDING / "models-2026-09-23.json").read_text())
         before = self.path.read_bytes()
         with patch.object(job, "request_json", return_value=(200, data)) as request:
-            self.assertFalse(job.update_bundle(self.path))
+            self.assertIsNone(job.update_bundle(self.path))
         request.assert_called_once_with("https://api.ppq.ai/v1/models")
         self.assertEqual(self.path.read_bytes(), before)
 
@@ -258,16 +280,22 @@ class Update(unittest.TestCase):
                     job.update_bundle(self.path)
             self.assertEqual(self.path.read_bytes(), before)
 
-    def test_refusal_outside_candidate_order_is_no_proposal(self):
+    def test_refusal_outside_candidate_order_proposes_allowlist_removal(self):
         data = self.allowlisted()
-        self.path.write_text(bundle_source(
-            [{"slug": "replacement", "maker": "Maker unrelated to slug", "provider": "kept-pin"}],
-            [{"slug": "private-choice", "provider": "private-pin"}]))
-        before = self.path.read_bytes()
+        kept = [{"slug": "replacement", "maker": "Maker unrelated to slug", "provider": "kept-pin"}]
+        self.path.write_text(bundle_source(kept, [{"slug": "private-choice", "provider": "private-pin"}]))
         refusal = json.loads((FINDING / "run-2026-09-23/case-C.json").read_text())
-        with patch.object(job, "request_json", side_effect=[(200, data), (404, refusal)]):
-            self.assertFalse(job.update_bundle(self.path))
-        self.assertEqual(self.path.read_bytes(), before)
+        with patch.object(job, "request_json", side_effect=[(200, data), (404, refusal)]) as request:
+            evidence = job.update_bundle(self.path)
+        # Exactly {}: no entrant, so no evidence, yet a proposal (None is the no-op).
+        self.assertIsNotNone(evidence)
+        self.assertEqual(evidence, {})
+        # The model list and the probe; no discovery request.
+        self.assertEqual(request.call_count, 2)
+        self.assertNotIn(job.IMPOSSIBLE_PROVIDER, json.dumps(request.call_args.args[1]))
+        session = draft(self.path)["session"]
+        self.assertEqual(session["allowlist"], [])
+        self.assertEqual(session["model"], kept)
 
     def test_discovery_needs_secret_even_with_empty_allowlist(self):
         before = self.path.read_bytes()
@@ -359,7 +387,7 @@ class Transport(unittest.TestCase):
 
 
 class Proposal(unittest.TestCase):
-    def test_real_git_proposal_create_update_and_noop(self):
+    def test_real_git_proposal_create_update_noop_and_allowlist_only_removal(self):
         real_command = job.command
         gh_calls = []
         pr_exists = False
@@ -380,7 +408,8 @@ class Proposal(unittest.TestCase):
                 self.assertEqual(args[3], "1")
             body = Path(args[args.index("--body-file") + 1]).read_text()
             self.assertIn("Publisher review", body)
-            bodies.append(json.loads(body.split("```json\n")[1].split("\n```")[0]))
+            bodies.append(json.loads(body.split("```json\n")[1].split("\n```")[0])
+                          if "```" in body else body)
             pr_exists = True
             return "https://example.invalid/pull/1"
 
@@ -428,10 +457,37 @@ class Proposal(unittest.TestCase):
                         self.assertEqual(real_command("git", "diff", "--name-only", "main", "HEAD"),
                                          "bundle/inference.toml")
                         self.assertEqual(real_command("git", "ls-remote", "origin", "refs/heads/main").split()[0], original)
+                    # An allowlist-only removal has empty evidence and is still published.
+                    real_command("git", "checkout", "main")
+                    Path("bundle/inference.toml").write_text(bundle_source(
+                        allowlist=[{"slug": "outside", "provider": "outside-pin"}]))
+                    real_command("git", "commit", "-am", "fixture allowlist")
+                    real_command("git", "push", "origin", "main")
+                    refusal = json.loads((FINDING / "run-2026-09-23/case-C.json").read_text())
+                    with patch.object(job, "request_json", side_effect=[(200, historical), (404, refusal)]):
+                        job.main()
+                    self.assertEqual(real_command("git", "branch", "--show-current"), job.BRANCH)
+                    self.assertEqual(real_command("git", "rev-parse", "HEAD"), real_command(
+                        "git", "ls-remote", "origin", f"refs/heads/{job.BRANCH}").split()[0])
+                    proposed = select.read_bundle(Path("bundle/inference.toml"))["session"]
+                    self.assertEqual(proposed["allowlist"], [])
+                    self.assertEqual(proposed["model"], HISTORICAL)
+                    self.assertIn("No provider evidence", bodies[-1])
                 self.assertEqual(sum(c[1:3] == ("pr", "create") for c in gh_calls), 1)
-                self.assertEqual(sum(c[1:3] == ("pr", "list") for c in gh_calls), 2)
-                self.assertEqual(sum(c[1:3] == ("pr", "edit") for c in gh_calls), 1)
+                self.assertEqual(sum(c[1:3] == ("pr", "list") for c in gh_calls), 3)
+                self.assertEqual(sum(c[1:3] == ("pr", "edit") for c in gh_calls), 2)
                 self.assertEqual(real_command("git", "status", "--porcelain"), "")
+
+    def test_body_states_absent_evidence_instead_of_an_empty_block(self):
+        empty = job.proposal_body({})
+        self.assertIn("No provider evidence", empty)
+        self.assertNotIn("```", empty)
+        self.assertNotIn("must fill", empty)
+        filled = job.proposal_body({"new": ["a", "b"]})
+        self.assertNotIn("No provider evidence", filled)
+        self.assertEqual(json.loads(filled.split("```json\n")[1].split("\n```")[0]), {"new": ["a", "b"]})
+        for body in (empty, filled):
+            self.assertIn("Contract owners: ARC-31b and TRU-A1a. Publisher review and merge required.", body)
 
     def test_default_branch_guard(self):
         with patch.object(job, "command") as command:

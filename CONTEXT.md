@@ -508,7 +508,7 @@ _Avoid_: "the floor" unqualified, context budget (a budget is spent; a floor is 
 
 **Proposing job** · `ARC-31b`
 The scheduled job in this repository that recomputes the eligible set from a fresh snapshot,
-probes the allowlist, and opens a pull request when the candidate order should change. It
+probes the allowlist, and opens a pull request when the proposed bundle should change. It
 proposes; the publisher merges. Whose credential it runs on is `ARC-31b`'s. It is not a
 *harness job* (`ARC-43`), which runs on a machine.
 _Avoid_: bot, auto-updater, "the job" unqualified where a harness job is in play
