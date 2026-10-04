@@ -287,6 +287,47 @@ gated on it.
       PR creation/update paths against a temporary remote with mocked network/PR commands.
       Coverage is unchanged, so no baseline ratchet was needed. `actionlint` was unavailable
       on PATH and in the Nix development shell. No live probe or real proposal was published.
+      *Resolved by the publisher, 2026-10-04 (tw-awh, tw-2a2):* both remaining questions.
+      **The job proposes whenever the proposed bundle changes — the candidate order or the
+      allowlist.** `ARC-31b` said "opens a pull request only when the candidate order changes"
+      until 2026-10-04; `ARC-31b` says "opens a pull request only when the proposed bundle
+      changes", with its trigger list unchanged. `tools/propose_candidates.py` formerly
+      discarded an allowlist removal when the order was unchanged; it is now a no-op only when
+      both the drafted candidates and the probed allowlist equal the bundle's, and its two
+      messages speak of the proposed bundle. An allowlist-only removal has no entrant, so its
+      evidence is empty and the pull-request body says there is no provider evidence instead of
+      printing an empty block. The outside-order fixture is flipped and renamed
+      `test_refusal_outside_candidate_order_proposes_allowlist_removal`; the real-git fixture
+      publishes such a removal through `main()`. The workflow comment, `CONTEXT.md`'s
+      *Proposing job* and ADR-0033 (its quote and a dated consequence) follow. The proposal
+      branch name and the commit and pull-request title are unchanged. The earlier retention of
+      the outside-order no-proposal fixture came from that amendment's task brief, not from a
+      publisher decision.
+      **One slug, one provider.** `TRU-A1a` says "A slug that appears both in the candidate
+      order and on the allowlist MUST carry the same provider in both; a mismatch MUST be
+      rejected as a selection input and MUST fail the build". `eligible-set.py`'s
+      `validate_session` raises on such a bundle, so file reading, strict selection, draft
+      construction and the proposing job (before any network call) all refuse it;
+      `test_slug_in_both_lists_carries_one_provider` covers the mismatch and the agreeing case,
+      and the recorded snapshot output still reproduces. `CNF-88`'s build-fixture sentence
+      names the case; no conformance item was added.
+      *Owed to tau-web-rust at its spec pin bump,* beside the migration recorded above: its
+      build gate rejects a slug carrying different providers in the candidate order and on the
+      allowlist. No build gate changed here.
+      *Undecided:* a slug listed twice within one list. Today `validate_entries` does not
+      reject it, `draft_candidates` keeps the last entry's pin, and the new check compares
+      every candidate with every allowlist entry of the same slug; no rule, validation or
+      fixture was added for it. As fact, not rule: the tool compares the two provider strings
+      exactly, without folding case or normalising. Also undecided: an allowlisted entry whose
+      slug is in the candidate order and still badged, when its probe is refused — the job
+      proposes the allowlist removal and the candidate keeps the same pin the probe saw
+      refused; and a proposal left open when a later run finds the proposed bundle unchanged —
+      the job does nothing and the pull request stays for the publisher.
+      *Verification:* `nix develop --command bash tools/check-all.sh`,
+      `nix develop --command bash tools/check-controls.sh`, and
+      `nix develop --command python3 -m unittest discover -s tools/tests -v` each exited zero,
+      run sequentially and unpiped. Coverage is unchanged, so the baseline was not ratcheted.
+      No live probe or real proposal was published.
 
 - [x] **T38 — What the provider measurement left open**
       (`docs/findings/2026-09-22-provider-routing.md`). *Decided 2026-09-24, and the rules

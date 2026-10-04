@@ -197,7 +197,9 @@ of proprietary models that route zero-retention is the publisher's judgement, ca
 signed bundle (`bundle/inference.toml`) as `{ slug, provider }` entries, each with its own
 hand-taken requested provider. Missing or empty allowlist providers MUST be rejected as selection
 inputs and MUST fail the build. A model entering the candidate order from the allowlist MUST
-inherit that entry's pin. An allowlisted model is admitted to the eligible set beside the models
+inherit that entry's pin. A slug that appears both in the candidate order and on the allowlist
+MUST carry the same provider in both; a mismatch MUST be rejected as a selection input and MUST
+fail the build. An allowlisted model is admitted to the eligible set beside the models
 carrying the aggregator's zero-retention badge (`ARC-31a`) and is never ordered by the
 publisher: the order is `ARC-31b`'s, and the allowlist admits candidates without ranking them.
 The proposing job probes each allowlisted entry with the model, that entry's own pinned provider and `zdr`

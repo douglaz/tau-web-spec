@@ -53,7 +53,7 @@ finding's directory applies the bundle inputs and selection rule to `models-<dat
 what it prints is the count.
 
 **The job proposes; the publisher lands the change.** `ARC-31b` says "opens a pull
-request only when the candidate order changes". The
+request only when the proposed bundle changes". The
 publisher's authority is `TRU-A1`'s, and a job that edited the bundle itself would hold it
 unnamed. `ARC-31b` says "Its credential is the **publisher's own** aggregator account and its
 spend the publisher's, never an operator's balance or session key". The workflow commits only on
@@ -143,6 +143,17 @@ cases C and E in `docs/findings/2026-09-22-provider-routing.md`, returned 404,
 "No allowed providers are available for the selected model". This is the publisher's reported
 measurement, not a new experiment here. The publisher then chose per-entry pins; the committed
 values live in `bundle/inference.toml`, and the amendment's owners are `ARC-31b` and `TRU-A1a`.
+
+**2026-10-04 — the job proposes on any change to the proposed bundle; one slug, one provider.**
+The publisher decided that the proposing job opens a pull request whenever the proposed bundle
+changes, the candidate order or the allowlist. `ARC-31b` said "opens a pull request only when
+the candidate order changes" until 2026-10-04, and the job formerly discarded an allowlist
+removal when the order was unchanged: an allowlisted entry outside the candidate order that
+stopped routing stayed in the bundle and was probed again every day. The owner is `ARC-31b`,
+which says "opens a pull request only when the proposed bundle changes". The same day the
+publisher decided that a slug named in both lists carries one provider, so the probe tests the
+provider that calls use; the owner is `TRU-A1a`, which says "A slug that appears both in the
+candidate order and on the allowlist MUST carry the same provider in both".
 
 **`bundle/inference.toml` carries the candidate schema.** T37 landed the ordered entries
 with separate slug, maker and provider, the allowlist with its own pins, context floor and

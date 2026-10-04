@@ -143,14 +143,14 @@ def update_bundle(path):
     candidates = selection.draft_candidates(models, {**session, "allowlist": allowlist})
     if not candidates:
         raise ValueError("selection is empty; no proposal")
-    if candidates == session["model"]:
-        print("Candidate order unchanged; no proposal.")
+    if candidates == session["model"] and allowlist == session["allowlist"]:
+        print("Proposed bundle unchanged; no proposal.")
         return None
     evidence = {entry["slug"]: discover_providers(base_url, entry["slug"], credential)
                 for entry in candidates if not entry["provider"]}
     patched = bundle_patch(path.read_text(), original, candidates, allowlist)
     path.write_text(patched)
-    print("Candidate order changed; prepared bundle proposal.")
+    print("Proposed bundle changed; prepared bundle proposal.")
     return evidence
 
 
@@ -162,14 +162,17 @@ def proposal_body(evidence):
     # JSON string escaping preserves model/list association and prevents external
     # names from terminating the fenced data block or becoming Markdown markup.
     data = json.dumps(evidence, indent=2, ensure_ascii=True).replace("`", "\\u0060")
+    # An allowlist-only removal, or an entrant inheriting its allowlist pin, has no
+    # empty provider to fill; say so rather than print an empty block.
+    detail = ("Provider evidence by model: the aggregator's available_providers from an "
+              "impossible provider.only request with zdr: true. These lists are advice; "
+              "the publisher must fill every empty provider before shipping.\n\n"
+              f"```json\n{data}\n```\n\n") if evidence else (
+              "No provider evidence: no entrant needs a provider.\n\n")
     return ("Recompute the candidate order from the public model list using the "
             "bundle's selection inputs. Apply any allowlist routing refusals to "
             "the proposed bundle. Existing candidate pins stay attached to their slugs. "
-            "Retention and aggregator values are preserved.\n\n"
-            "Provider evidence by model: the aggregator's available_providers from an "
-            "impossible provider.only request with zdr: true. These lists are advice; "
-            "the publisher must fill every empty provider before shipping.\n\n"
-            f"```json\n{data}\n```\n\n"
+            "Retention and aggregator values are preserved.\n\n" + detail +
             "Contract owners: ARC-31b and TRU-A1a. Publisher review and merge required.\n")
 
 

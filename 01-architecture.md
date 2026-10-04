@@ -819,7 +819,7 @@ selects the models" and that it "supplies the model choice in the signed bundle
   selection, not the first slug of the order.
 - **The proposing job.** A daily scheduled job in this repository recomputes the eligible set
   from a fresh snapshot, runs `TRU-A1a`'s probe over every allowlisted entry, and **opens a pull
-  request only when the candidate order changes** — a candidate retired, its badge or tool
+  request only when the proposed bundle changes** — a candidate retired, its badge or tool
   support changed, an allowlisted entry that probe proposes for removal, or a new entrant
   clearing the floor. Existing candidate pins MUST stay attached to their slugs when the order
   changes. For a new entrant without a publisher pin, the job MUST propose `provider = ""`

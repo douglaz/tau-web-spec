@@ -36,6 +36,12 @@ def validate_session(session):
     validate_entries(session.get("allowlist"), {"slug", "provider"}, "allowlist")
     validate_entries(session.get("model"), {"slug", "maker", "provider"},
                      "candidate", nonempty=True)
+    # TRU-A1a: the two bundle strings are compared exactly, as sent in provider.only.
+    for candidate in session["model"]:
+        for entry in session["allowlist"]:
+            if candidate["slug"] == entry["slug"] and candidate["provider"] != entry["provider"]:
+                raise ValueError("a slug in the candidate order and on the allowlist "
+                                 "must carry the same provider in both")
     if "provider" in session:
         raise ValueError("provider belongs on each entry, not session")
     if session.get("retention") != "strictest":
