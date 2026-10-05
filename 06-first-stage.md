@@ -239,8 +239,8 @@ for strength, so `ARC-16`'s middle rung has no stronger model to escalate to. `A
 "then escalate to a stronger model behind the same proxy", and the harness **MUST NOT** use the
 candidate order as that rung: the first stage offers rungs one and three only, and says so. An
 availability fallback on a successor session is new weights on that machine and stays inside
-`SEC-1` like any other configured model — `SEC-1` says "Re-entry stays inside this rule the same
-way".
+`SEC-1` like any other configured model — `SEC-1` says "A model that has touched a machine
+counts as touching it until that machine is destroyed".
 
 ## What the first stage does not test
 

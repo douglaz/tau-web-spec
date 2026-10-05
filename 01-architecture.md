@@ -2,19 +2,43 @@
 
 ## The AI runs only in the browser
 
-**ARC-1** The AI MUST run in the operator's browser. A provisioned machine is a target,
-never an actor: it MUST NOT hold an inference key or a vendor API token belonging to the
-harness, and it MUST NOT initiate work
+**ARC-1** The harness's AI MUST run in the operator's browser, and only there. A provisioned
+machine is a target of the harness, never an actor for it: it MUST NOT hold a credential
+belonging to the harness — an inference key, a vendor API token, the key of an untyped vendor
+scope (`SEC-3`, `CNF-11`) — and the harness MUST NOT ask a machine to act: nothing a machine
+sends starts work in the harness
 ([ADR-0003](./docs/adr/0003-the-ai-runs-only-in-the-browser.md)).
 
 A machine may *tell* the harness something over the notify channel (`CHN-17`), and what it
 tells is an **observation**: typed untrusted, never gating, never acting. The channel's one
 use today is the attest introduction (`CHN-R5`), which acts on nothing on the machine's behalf;
 its only authority is the one-time introduction, handled as the credential `SEC-5` classifies.
-An inference key on a machine is a credential living outside browser memory, and a machine that
-can call a model unprompted is a machine that can act unprompted — which is the thing this
-project exists to avoid. A machine that can send an event the browser treats as content is not
-that, and the typing is what makes the difference.
+A harness inference key on a machine is a harness credential living outside browser memory, and
+a machine that can call the harness's model unprompted is the harness acting unprompted — which
+is the thing this project exists to avoid. A machine that can send an event the browser treats
+as content is not that, and the typing is what makes the difference.
+
+*What this requirement used to say* was that the AI runs in the browser and that a machine
+"MUST NOT initiate work". Read as a rule about every AI and every machine, that forbids the
+operator from installing software that acts — which is most of what anybody installs. It was
+narrowed on 2026-10-05 to what the harness can answer for: its own model and its own
+credentials.
+
+**ARC-1a An always-on agent the operator installs is the operator's application, not the
+harness's AI.** Software the operator has the harness install may act on its own on its
+machine; Hermes, an always-on agent with a model of its own, is the first. `ARC-1` binds the
+harness's AI and the harness's credentials and says nothing against it. What the harness owes
+about one:
+
+- **Its key is an application secret** (`SEC-5` row 12), placed by `place_secret` (`ARC-43`).
+  It is the operator's credential for the application, never a harness credential.
+- **Its outbound destinations and its always-on service are stated in the machine's delivery
+  declaration** (`ARC-39`). The harness does not constrain an installed agent's reach beyond
+  what that declaration states.
+- **Its model provider is an elective party** (`TRU-E12`), listed in the trust display.
+- **The delivery card MUST say so**, with the application's name where this example has
+  Hermes: "Hermes is an AI that acts on this server by itself. tau-web's promises cover what
+  tau-web's AI does, not what Hermes does."
 
 **ARC-2** Nothing runs while the app is closed. This is accepted rather than worked around.
 Every step MUST be resumable across a locked phone, and progress MUST survive the harness
@@ -35,12 +59,24 @@ forbids that and `SEC-6` notes a model with root would read it anyway — or acc
 not a fit. A tenant's *own* credential on its own machine is permitted (`SEC-3`'s note on what
 it binds, `SEC-5` row 12) and is what `ARC-38`'s delegated receiving needs in order to authenticate to
 the service it delegates to. For lnrent that resolves to the machine being the capacity it sells.
+An operator's application (`ARC-1a`) is the same shape with no tenant: it answers while the
+browser is closed, on the machine, with its own credential and none of the harness's.
 
 **ARC-36** A machine that serves parties the operator has never met is **multi-tenant**. This
 is a definition rather than a rule: it names the class `ARC-37` binds, and what such a machine
-must demonstrate is whatever its tenant declares under `ARC-39` — including its listening
+must demonstrate is whatever its declaration states under `ARC-39` — including its listening
 surface, since `SEC-T1`'s deny-everything-but-one-port is btc-policy's rule and binds only
 there.
+
+**ARC-36a Machine class is asked, never inferred.** Every machine carries a class,
+single-purpose or multi-tenant. A tenant's profile presets it. With no tenant, the operator
+answers for each machine, to questions the harness wrote: they ship in the signed bundle, and
+nothing is preselected. The model MUST NOT word the questions, answer them or preselect an
+answer. An operator who answers "not sure" has a **multi-tenant** machine — the class whose
+only cost is `ARC-37`'s removal, which a machine needing no wallet never notices. The model MAY
+propose a tightening, single-purpose to multi-tenant, and nothing else: it never relaxes a
+class. The answer is journaled with the machine before anything is installed (`ARC-44`). A
+multi-tenant machine is always bound alone (`SEC-1`).
 
 *What this requirement used to say* was that hardening a multi-tenant machine is a different
 problem and that `ARC-17` and `OPN-14` were written for the single-purpose case. Both are now
@@ -81,7 +117,7 @@ flowchart TD
     Q -->|Yes| CLOUD{Does an adapter<br/>type the action?}
     CLOUD -->|Yes| TYPED["Typed operation<br/>approved on structured facts"]
     CLOUD -->|No| UNTYPED["Untyped call<br/>operator approves a scope"]
-    BOX --> BB["Bounded by: one machine<br/>the operator already bought"]
+    BOX --> BB["Bounded by: the session's bound set,<br/>one machine by default"]
     TYPED --> TB["Bounded by: the facts shown,<br/>and the session's binding"]
     UNTYPED --> UB["Bounded by: the credential<br/>nothing else. Stated as such"]
     BOX -.->|"never — SEC-3"| CLOUD
@@ -103,7 +139,8 @@ modes:
   this origin — every call is recorded before it is sent, and the harness **claims nothing
   about what the credential can do.** It usually cannot know: most services publish no
   machine-readable statement of what a key authorizes, and a bound stated on a guess is
-  worse than none.
+  worse than none. A vendor with no adapter is reached this way too, under the conditions
+  `SEC-4` attaches to an untyped vendor scope.
 
 One off-machine call is neither: an **inference request** is composed by the harness's own
 adapter, never chosen by the model, and is approved once at session creation rather than per
@@ -114,18 +151,20 @@ free-form, never pre-approved, always recorded.
 
 The split is **off-machine versus on-machine**, and each side carries its own reasoning
 rather than sharing one. Box-plane work can be free-form because the worst case is ruining
-one machine the operator already bought — that bound is what makes it tolerable. Cloud-plane
+the machines of one bound set — one machine by default, already bought (`SEC-1`) — and that
+bound is what makes it tolerable. Cloud-plane
 work has no such bound: it can spend a credit card, publish irreversibly, or read an entire
 account.
 
 **ARC-4** Approval means two different things and the interface MUST NOT blur them.
 Approving an *operation* means seeing structured facts about one action and permitting it —
-available only where an adapter types the action. Approving a *scope* means permitting a
+available only where an adapter types the action, or where the harness composed the job itself
+and shows its facts on a card (`ARC-43`'s `place_secret`). Approving a *scope* means permitting a
 class of activity in advance, which is what box-plane work runs under, because its contents
 are not known beforehand, and what an untyped call runs under, because nothing types it.
 
 **ARC-5** A scope names where a credential goes, not what it can do. Box-plane work is
-bounded by the machine. An untyped call is bounded only by the credential — so approving
+bounded by the session's bound set. An untyped call is bounded only by the credential — so approving
 one is approving that key's full authority at that host, for as long as it is valid,
 whatever the brief intended at the time. Where a service offers a scoped or read-only key,
 using one is the only thing that actually narrows this, and it is the operator's move
@@ -178,9 +217,16 @@ state — working directory, variables, an entered chroot — survives from one 
 A brief is therefore authored so that each example block is self-contained: a block that needs
 the installed root wraps its own `chroot /mnt sh -c '…'`, and a value one step needs from
 another has a named source rather than a variable — the bundle (`bundle/`), a per-session value
-the harness shows the model (the bound machine's client public key), a decision the model made
+the harness shows the model (a bound machine's client public key), a decision the model made
 and composed into the command it issues (which `ARC-8` journals as sent), or a machine-derived
 value recomputed inside the consuming command. Nothing is carried.
+
+**Every command and every harness job names its machine.** The model names the target; the
+harness resolves that name against the session's bound set, and a command or job naming a
+machine outside the set is not sent (`SEC-1`). With a set of one this costs nothing. With a
+larger set it is what stands between an honest, confused model and the wrong disk: a job's
+record, the values captured from it and the pins it yields belong to the machine it named, and
+satisfy no check about another.
 
 **ARC-8** Recording commits **per command**, before transmission. "Every byte recorded
 before transmission" would otherwise imply a granularity nobody chose, resting on an
@@ -194,27 +240,62 @@ MUST be handled by the brief rather than answered live.
 **ARC-43 Values the harness checks come from jobs the harness composed, never from model
 text.** The artifact hash (`ARC-25`, `CNF-24`) and the installed host keys (`CHN-R1`, `CNF-22`)
 are read by **harness-owned box-plane jobs the model requests** through the same path as a typed
-operation, and the values are taken from the job record's captured output. Two exist in the
-first stage:
+operation, and the values are taken from the job record's captured output. The jobs are:
 
 - `fetch_artifact` — downloads the pinned URL to a harness-fixed path on the machine, hashes it,
   compares against the bundle's value and halts the install on a mismatch (`STG-6`).
 - `ready_to_reset` — reads `/mnt/etc/ssh/ssh_host_*_key.pub`, journals the pins, unmounts the
   target, and only then offers the reset typed operation (`STA-20b`'s planned-reset ordering).
+- `place_secret` — writes one **application secret** (`SEC-5` row 12) to a file on a named
+  machine of the bound set. Its rules are below.
 
 Where a host-key pin may come from is `TauWeb.Pins.Source` and what each source may pin is
 `TauWeb.Pins.admits` (ADR-0032), with `TauWeb.Pins.installed_pin_from_job` over every trace and
 `TauWeb.Pins.installed_pin_from_model_text_refused` and
-`TauWeb.Pins.installed_pin_from_model_text_admitted` its pair.
+`TauWeb.Pins.installed_pin_from_model_text_admitted` its pair. The companion carries the sources
+the dedicated path walks; a pin taken at a jump-host first contact (`CHN-R6`) is not among them.
 
-These jobs are **box-plane work**: they run under the box-plane scope like any `exec`, recorded
-before transmission (`ARC-8`) and never approved per call — what distinguishes them is that the
-harness composed the command, not that the operator sees it. Only the reset that
-`ready_to_reset` goes on to offer is a cloud-plane typed operation.
+`fetch_artifact` and `ready_to_reset` are **box-plane work**: they run under the box-plane
+scope like any `exec`, recorded before transmission (`ARC-8`) and never approved per call —
+what distinguishes them is that the harness composed the command, not that the operator sees
+it. Only the reset that `ready_to_reset` goes on to offer is a cloud-plane typed operation.
 
-The model's tool set in the first stage is exactly four: `exec` (a box-plane command it
-composed), `request_harness_job` (one of the jobs above, by name), `request_typed_operation`
-(a cloud-plane operation, approved on facts), and `done`. There is no tool by which the model
+**`place_secret` differs on both counts, and says so.** It takes arguments from the model —
+which machine, a path, an owner, a mode, a name and a purpose — and never the value; and each
+placement is approved by the operator on a card the harness composes, which makes it an
+operation approved on facts (`ARC-4`). The operator enters the value on that card. Every rule
+here is non-waivable:
+
+- **The value is the job's standard input and never an argument.** `STA-20` says the machine's
+  record holds "the **command as received**", so a value in the command line is a value on the
+  machine's disk and in the journal. It is not put in an environment variable, in shell text or
+  in a diagnostic either.
+- **The job wrapper never persists its input.** The value goes from the channel to the
+  destination file and to no second file on the machine (`STA-20`).
+- **The value never enters model context on the way in**, and never appears in cleartext in the
+  journal, the transcript, the job record, a log or a request to the app's origin. What is
+  recorded before the bytes leave (`ARC-8`) is the command, the machine, the destination and the
+  approval — and that a value was sent, not the value.
+- **A value equal to a credential the harness holds is refused** (`SEC-5`). Without that, a
+  steered model asks for the vendor credential or the seed to be written where it has root, and
+  `CNF-12` has something to send after all.
+- **An unsafe destination is refused**: a mode that lets any account but the owner read the
+  file, and a path that is a symbolic link or passes through one.
+- **No secret is placed while a finding stands** on the machine (`ARC-17`).
+- **The card restates every acceptable weaker mode standing on the machine's bound set**
+  (`SEC-14`), states the root-shell caveat `SEC-5` attaches to row 12, and shows the name and
+  purpose as what the model asked for, not as the harness's description.
+- **The placed secret is listed in the trust display** until it is rotated or the machine is
+  destroyed (`SEC-6`).
+
+A key the operator minted at its service with a cap, or one the operator can revoke there, is
+the best practice, and the card says so. The harness mints nothing for an application: a key
+minted from the inference account would be a harness credential on a machine (`ARC-1`).
+
+The model's tool set in the first stage is exactly four: `exec` (a box-plane command it composed),
+`request_harness_job` (one of the jobs above, by name, with the arguments that job admits),
+`request_typed_operation` (a cloud-plane operation, approved on facts), and `done`. Each names
+its machine (`ARC-7`). There is no tool by which the model
 reports a value, so a wrong or hostile report cannot pass `CNF-24` or pin a key. A model in
 `ARC-31b`'s candidate order MUST be able to call this tool set — on the aggregator's list that
 is the `tools` entry of `supported_parameters`, which `eligible-set.py` reads
@@ -243,12 +324,32 @@ makes it close to free.
 
 **ARC-11** Briefs MUST ship inside the signed application bundle
 ([ADR-0005](./docs/adr/0005-briefs-ship-in-the-signed-bundle.md)). Nothing fetches a brief
-at runtime and operators cannot supply their own. A brief is prose that steers a model,
+at runtime and operators cannot supply their own; an operator's **goal** is not a brief
+(`ARC-11a`). A brief is prose that steers a model,
 which is prompt injection by design, and every machine reads the same brief — so whoever can
 change one reaches every machine at once. That defeats the honest-majority assumption rather
 than being absorbed by it: n honest, competent models faithfully following poisoned
 instructions all produce the wrong machine, and agree with each other perfectly while doing
 it. The brief is the one component where diversity buys nothing, so it is locked instead.
+
+**ARC-11a A goal is the operator's own instruction, and no brief is required to act on one.**
+A session MAY work from the operator's **goal** alone — what they want, in their words — with
+no brief keyed on any of it and no tenant. What keeps
+that from being the runtime-supplied brief `ARC-11` locks out is what a goal reaches:
+
+- **A goal steers one session's bound set and nothing else.** It MUST be journaled with that
+  session, together with where it came from. It is never shipped.
+- **A goal is never imported, shared or reused.** The harness MUST NOT offer a way to load a
+  goal from elsewhere, send one to another operator, or apply a stored one to another session:
+  the same words steering many sessions are an unsigned brief.
+- **A goal MUST be refused for a machine under a profile that declares an independence bound.**
+  There the same instruction would steer several members at once, which is the common mode
+  the bound exists to exclude; such a tenant ships briefs.
+- **What the model reads while acting on a goal informs and never authorizes.** A project's
+  README is fetched external content (`SEC-8`, `ARC-28`); its source is recorded with the goal.
+
+Acting with no brief is an acceptable weaker mode (`SEC-14`): a brief is the best practice,
+used when the bundle has one and shown as missing when it does not.
 
 **ARC-40 The publisher writes and signs every brief today, and that is a power worth naming.**
 ("Signs" is the glossary's *Signed bundle*: compiled into the served build until `OPN-15`
@@ -258,7 +359,8 @@ and **when a tenant's change reaches operators**. A tenant is otherwise independ
 its own software and its own security requirements
 ([ADR-0016](./docs/adr/0016-the-harness-isolates-and-counts-tenants-set-thresholds.md)) — but it
 cannot ship a brief fix, add a vendor, or appear at all without the publisher agreeing and
-cutting a release.
+cutting a release. What the publisher does not decide is whether an operator can act at all: a
+goal needs no tenant (`ARC-11a`, `ARC-44`).
 
 This is a **bootstrap seat**, in the same sense as `CHN-11`'s relay: held because there is nobody
 else yet, not because the design wants it there. The trajectory is the one agent skills took, and
@@ -278,13 +380,28 @@ format spans both. The real relationship is a **layering** — one of these docu
 the AI to invoke an lnrent hook as a deterministic tool. The library is not shared either:
 each project ships its own set inside its own bundle.
 
+**ARC-44 Every machine runs under a profile, and a tenant is optional.** A tenant is
+skill-shaped content compiled into the signed bundle — briefs, and presets for the facts its
+machines carry — and the harness works with none. A machine with
+no tenant runs under the publisher's built-in **ad-hoc profile**
+([`docs/tenants/ad-hoc/profile.md`](./docs/tenants/ad-hoc/profile.md)), whose per-machine slots
+the operator fills by answering the harness's own questions.
+
+Three facts the harness acts on exist for every machine either way: its machine class
+(`ARC-36a`), its access model (`ARC-27`) and its delivery declaration (`ARC-39`). Each is preset
+by a tenant's profile or approved by the operator in plain language, and each MUST be journaled
+with the machine before anything is installed on it. A tenant's presets make that path faster
+and more reliable; they are never a precondition for it.
+
 ## Sessions, binding, and diversity
 
 **ARC-12** A **session** is one run of the harness under one set of model weights,
-responsible for exactly one machine. A federation is provisioned by several concurrent
-sessions on a single device
+responsible for its **bound set** — one machine by default. It is one context: whatever any
+machine of the set returns is read by the model that commands all of them. A federation is
+provisioned by several concurrent sessions on a single device
 ([ADR-0009](./docs/adr/0009-one-device-concurrent-sessions-batched-approval.md)). The
-binding rule and its enforcement are `SEC-1`.
+binding rule and its enforcement are `SEC-1`. The figure shows the default, a set of one per
+session.
 
 ```mermaid
 flowchart LR
@@ -317,16 +434,18 @@ setup.
 
 **Why concurrent.** Nothing runs while the app is closed, so sequential provisioning would
 multiply the time the operator must hold a phone awake by the machine count. A twenty-minute
-install becomes a hundred-minute one. Concurrency costs nothing in security, since `SEC-1`
-binds each session to exactly one machine, and simultaneity does not change which session
-touches which machine.
+install becomes a hundred-minute one. Concurrency *between sessions* adds no reach: `SEC-1`
+gives each session the keys of its own bound set and no other, and simultaneity does not change
+which session touches which machine. Inside one session it is otherwise — a set of more than
+one machine is one model context, and that is the weaker mode `SEC-1` names.
 
 **ARC-13** Concurrency MUST be bounded for mobile. The archived specification already rates
 mobile memory pressure as a high risk and defaults its command-worker pool to one on
 mobile; five concurrent sessions each holding a model stream and a remote session need the
-same treatment. **No number has ever been measured**, and the first stage runs exactly one
-session, which makes it the only cheap opportunity to learn whether five is possible —
-`CNF-45` requires the measurement.
+same treatment, and so does one session holding a channel to each machine of a larger bound
+set. **No number has ever been measured**, and the first stage runs exactly one
+session with one machine, which makes it the only cheap opportunity to learn whether five is
+possible — `CNF-45` requires the measurement.
 
 **ARC-14** A trust domain MUST be counted at **three configured layers**, never as one blended
 number ([ADR-0007](./docs/adr/0007-trust-is-counted-in-two-layers-and-shown.md)):
@@ -336,8 +455,8 @@ number ([ADR-0007](./docs/adr/0007-trust-is-counted-in-two-layers-and-shown.md))
 - **Proxy** — the aggregator routing the request. A compromised proxy can alter every
   prompt and response it carries, whatever weights sit behind it.
 - **Provider, requested** — the party that actually runs the inference behind the aggregator.
-  The harness **requests** a provider per machine in the call itself, the same way it requests a
-  model, using the aggregator's routing object — `order`, `only`, `ignore`, `zdr` among its
+  The harness **requests** a provider in the call itself, the same way it requests a model —
+  per session, and so one for every machine of that session's bound set — using the aggregator's routing object — `order`, `only`, `ignore`, `zdr` among its
   fields, documented on its `api-docs` page and absent from its `llms.txt`, both read
   2026-09-23. On the procured path this is the selected candidate's provider (`ARC-31b`).
   The display shows what was requested.
@@ -363,10 +482,14 @@ A 3-of-5 federation on five sets of weights behind one proxy is 3-of-5 against b
 weights and 1-of-1 against a backdoored proxy. Both numbers are true; one number would be a
 lie about whichever layer is thin, and the thin layer is the one that gets exploited. A
 **collision** — two machines sharing a domain at any counted layer — is *shown, not
-blocked*, because procured inference shares a proxy by design.
+blocked*, because procured inference shares a proxy by design. The machines of one bound set
+share every layer by construction, and are shown as one unit (`SEC-1`).
 
 **ARC-15** Every machine creation is known before anything starts, so approvals MUST batch:
-one screen showing the whole setup and its true recurring cost. An untyped call's scope
+one screen showing the whole setup and its true recurring cost — each session's bound set,
+machine by machine, and any jump host a first contact will need (`CHN-R6`), with what it
+costs. A machine added to a bound set afterwards is one operator act per machine, through the
+mid-flight queue, on the card `SEC-1` describes. An untyped call's scope
 rides the same rules — approved with the up-front batch when the brief names the service,
 joining the mid-flight queue when one is discovered later. **No untyped call runs before its
 scope is approved.** Five concurrent workers producing interleaved popups on a phone is
@@ -386,10 +509,10 @@ stateDiagram-v2
     note right of Escalate
         Free at the PROXY layer only.
         The stronger model is NEW WEIGHTS
-        on this machine, so it is permitted
-        only while those weights are not —
-        and never will be — assigned to
-        another machine. SEC-1.
+        on this machine. Where a profile
+        declares an independence bound it is
+        permitted only inside that bound;
+        elsewhere it is counted and shown. SEC-1.
     end note
     Escalate --> Destroy: still stuck
     Destroy --> [*]: machine destroyed,<br/>exposure ends with it
@@ -405,15 +528,38 @@ not an error.
 ## What a session delivers
 
 **ARC-17** A session's deliverable is a machine that is provisioned, hardened, running the
-software its tenant calls for **in the state that tenant's declaration calls for**, reachable,
+software its declaration calls for **in the state that declaration calls for**, reachable,
 and **shown to be locked down** by a lightweight self-directed pentest — default credentials,
 sshd posture, and everything `ARC-39`'s declaration names
 ([ADR-0011](./docs/adr/0011-the-ai-delivers-a-locked-down-machine.md)). Hardening is a
 property the session demonstrates, not a step it reports having performed.
 
-**ARC-39** A tenant MUST supply a **delivery declaration**: a statement of what must be true of
-a finished machine. The lockdown check and the scanner measure the machine against it, and
-**the finding is a difference from the declaration**, never a property the harness assumed.
+**Delivered, or handed over with findings — never something between.** A machine is
+**delivered** only when the delivery check finds no difference from its declaration in force
+and the fixed lockdown checks — default credentials and sshd posture, from the signed lockdown
+checklist (`OPN-14`) — pass. A finding is cleared by a re-check and by nothing else: after the
+machine is fixed, or after the operator amends its declaration by a journaled act. A finding is
+never accepted in place of an amendment, and an amendment cannot widen what the harness gates —
+it cannot declare spendable key material on a multi-tenant machine (`ARC-37`, ADR-0030's first
+guard). The operator MAY take a machine while findings stand. That machine is **handed over
+with findings**: it is not delivered, it MUST NOT be described as locked down, each finding
+stays shown until a later check clears it, and no application secret is placed on it while one
+stands (`ARC-43`).
+
+**ARC-39** Every machine MUST have a **delivery declaration**: a statement of what must be true
+of the finished machine, approved before anything is installed on it. A tenant's profile presets
+it. With no tenant the model proposes it from the operator's goal (`ARC-11a`), starting from
+the ad-hoc profile's signed minimum — sshd and nothing else — and the operator approves it in
+plain language. Either way the approved declaration is journaled with the machine, and the
+journaled one is the declaration in force (ADR-0030's second guard). The lockdown check and the
+scanner measure the machine against it, and **the finding is a difference from the
+declaration**, never a property the harness assumed.
+
+**A proposed declaration carries no check the model wrote.** Its `required` and `drift_checks`
+fields are the explicit empty set or entries drawn from the signed bundle. A check the model
+composes is run and shown as a report beside the declaration; it is not one of its fields and
+never counts toward delivered, for the reason `ARC-43` gives for every other value the harness
+checks.
 
 **The harness does not know what a finished machine looks like, and must not guess.** One tenant
 needs a service enabled and surviving every reboot, because it has to answer while the operator
@@ -448,12 +594,12 @@ A declaration covers at least:
 
 **What the check does not find** is hostile use of *declared* surface, or a machine that satisfies
 a declaration which is itself wrong. A vague or wide declaration buys a weak check. That is the
-tenant's choice to make and the operator's to see, and it may not be reported as more than it is
-(`SEC-2`).
+choice of whoever wrote it — a tenant, or the model whose proposal the operator approved — and
+the operator's to see, and it may not be reported as more than it is (`SEC-2`).
 
 **The pentest is a competence check, not an integrity check.** A model examining its own
 machine proves nothing against a malicious model. Where the tenant has a threshold it does
-not need to — malice is what the threshold absorbs. On a single-machine tenant nothing
+not need to — malice is what the threshold absorbs. On a machine with no threshold nothing
 absorbs malice and the pentest does not pretend to: that risk is accepted, as `SEC-CLAIM`
 states plainly. Either way, honest-but-sloppy is the likely failure on a first-time setup,
 and it is the one this catches. It never runs from another machine.
@@ -484,7 +630,8 @@ verifies by inspection rather than by SSH's refusal. What it holds is **at most 
 the profile's handoff slot declares**, used over the relay like any other TCP (`CHN-10`), and
 that credential MUST be one the tenant's own protocol already assumes a hostile holder of: a
 peer's worth of reach, never administrative reach the tenant does not design against. `SEC-1`
-has **no exception window**
+lets a machine's client key reach that machine's bound session and nobody else, and post-harness
+machinery is never that
 ([ADR-0026](./docs/adr/0026-the-coordinator-is-the-tenants-and-runs-after-sealing.md)).
 
 **Where that credential comes from, stated because the obvious source is closed.** The
@@ -505,9 +652,9 @@ been stored.
 approval treatment as creation — because all machines exist and bill from the moment they
 are created, while one machine is retried or replaced. It runs as the **deterministic operator
 flow** `STA-18` already defines, before or outside any session, never through a session: a
-session's typed operations reach its own machine and nothing else (`SEC-4`, `CNF-26`), so no
-session can destroy its siblings, and borrowing one to do so would be the exception `SEC-1` does
-not have. Against a machine with an unresolved call it is an operator disposition (`STA-24`),
+session's typed operations reach the machines of its own bound set and nothing else (`SEC-4`,
+`CNF-26`), so no session can destroy a machine outside its set, and borrowing one to do so would
+be reach `SEC-1` does not grant. Against a machine with an unresolved call it is an operator disposition (`STA-24`),
 recorded as one and never as evidence of what the call did.
 
 **ARC-22** An unfinished setup MUST own the first screen. Nothing runs while the app is
@@ -523,7 +670,8 @@ create that no vendor listing matches that it **cannot be destroyed from here an
 exist and bill**: an allocation index is not a deletion target, and destroying the known
 machines is not a complete abandonment while that one is outstanding. The inventory listing
 that looks for it is a read and is permitted (`STA-24`); on Robot the match is by the
-registered key fingerprint the entry holds.
+registered key fingerprint the entry holds. A jump host whose destroy is unresolved (`CHN-R6`)
+is named the same way: it may still exist and bill.
 
 **An unfinished setup is device-bound.** It is resumed on the device that started it, or
 abandoned. That follows from all-or-nothing plus exposure ending with the machine (`SEC-1`),
@@ -563,7 +711,10 @@ on the channel spike (`docs/findings/2026-09-07-wasm-spikes.md`).
 
 ## The operating system, and where it comes from
 
-**ARC-24** The chosen distributions are **Alpine and NixOS**. Neither is offered by the
+**ARC-24** The chosen distributions are **Alpine and NixOS**: the two the bundle carries an
+artifact pin for. Another distribution an operator's goal names — Arch, Omarchy — is installed
+**unpinned** under `ARC-25`'s rule until the bundle carries a pin for it (`OPN-25`). Neither
+chosen distribution is offered by the
 dedicated vendor's automatic installer — verified against the live API on 2026-08-31, whose
 catalogue is AlmaLinux, Arch, CentOS Stream, Debian, openSUSE, Rocky and Ubuntu — so **custom
 image installation is mandatory on that path**, not the optimisation ADR-0011 calls it. That is one of the two reasons the install
@@ -603,7 +754,13 @@ that exact artifact is available and allowed by the bundle's release policy. If 
 changes, or is withdrawn from the allowed policy, provisioning halts until a new signed bundle
 carries an acceptable pin. The publisher must track releases and refresh this policy.
 
-**ARC-25a Both installation paths combine a pinned bootstrap with signature-admitted packages**
+**A failed pinned check halts; it never degrades into a weaker mode.** Installing a
+distribution the bundle carries no pin for is an acceptable weaker mode (`SEC-14`): the
+operator chooses it up front, from what the bundle lacks, and the machine is recorded and shown
+as **unpinned** from then on. A machine that began under a pin and failed it MUST NOT continue
+unpinned, whoever asks.
+
+**ARC-25a Both pinned installation paths combine a pinned bootstrap with signature-admitted packages**
 ([ADR-0027](./docs/adr/0027-the-artifact-pin-is-per-distribution.md)). The first-stage Alpine
 brief made the previously claimed hash-only distinction false.
 
@@ -630,7 +787,9 @@ accepted; it does not remove those key holders' authority over later packages. C
 Alpine does not avoid this party. Pinning the entire installed package closure would be a
 separate design, and the current first-stage brief does not implement it. The trust display
 names the distribution, bootstrap hash, package policy and accepted signers rather than
-calling the resulting installation hash-pinned.
+calling the resulting installation hash-pinned. An unpinned installation (`ARC-25`) has neither
+layer, and the display says **unpinned** rather than naming a hash or a signer set nothing
+checked.
 
 ## Ongoing operation
 
@@ -663,8 +822,10 @@ What the scanner costs is **topology**: its full inference path sees the machine
 proxy and provider alike, a named row in the trust display (`TRU-E5`). What it produces is
 reports: observations that never gate, never act, and are never called verified.
 
-**ARC-27** How much of the re-check is possible follows from the tenant's **access model**,
-exactly as the threshold does. On **maintained** machines — lnrent boxes, ad hoc use — the
+**ARC-27** How much of the re-check is possible follows from the machine's **access model**,
+which its tenant's profile presets. With no tenant it is **maintained**: sealing cannot be
+undone, so it needs a tenant whose own design calls for it, and neither the operator's goal nor
+the model's proposal can seal a machine. On **maintained** machines — lnrent boxes, ad hoc use — the
 machine is re-entered by a later session bound to it. On **sealed** machines nothing
 re-enters, by the tenant's own design: btc-policy uninstalls SSH after setup and forbids
 upgrade-in-place, precisely so nobody can be forced back into a vault node. There the inside
@@ -681,16 +842,24 @@ untrusted (§20.5) for that reason.
 
 ## Money
 
-**ARC-29** Recurring costs — the machines — are billed by the cloud vendor to the operator's
-own account on their own payment method. The app never mediates this and cannot stop it;
-only the operator can.
+**ARC-29** Recurring costs — the machines — are billed by the vendor to the operator: to
+their own account on their own payment method, or, at a vendor that sells by invoice, by an
+invoice the operator's own wallet pays (`ARC-30`). The app never pays for a machine and cannot
+stop a vendor's billing; only the operator can.
 
-**ARC-30** One-off costs — inference credits — are assisted. The app retrieves an invoice
-from the provider and hands it to the operator's wallet to pay. It relays an invoice; it
+**ARC-30** Costs paid by invoice — inference credits, and a machine at a vendor that sells by
+invoice — are assisted. The app retrieves the invoice from the provider or the vendor and hands
+it to the operator's wallet to pay. It relays an invoice; it
 MUST NOT hold, forward, or custody funds
 ([ADR-0014](./docs/adr/0014-the-app-relays-invoices-and-never-holds-funds.md)). A payment
 intermediary would be the one place in the design where the operator is asked to trust
 *more* rather than less.
+
+**A machine's invoice is tied to its approved entry.** The invoice handed to the wallet is the
+one harness code read from the vendor's recorded response, never one the model presents; it
+names the approved machine entry it pays for (`ARC-15`, `STA-24`), and its amount is shown
+beside the cost the operator approved. The operator pays each invoice; nothing pays one for
+them.
 
 **ARC-31** Payment evidence MUST NOT be overstated. A **settled invoice** proves the
 operator funded credits at a provider and bounds which proxies are available; it does not
@@ -776,7 +945,9 @@ answers a browser origin directly. Cloud vendors
 are not: they want an account, a card, and a recurring billing relationship, and a 3-of-5
 federation across distinct vendors means several of those. Without something like lnrent,
 `OVR-5` collides with the operator's willingness to open billing relationships, and vendor
-diversity quietly collapses to whatever account they already had.
+diversity quietly collapses to whatever account they already had. A vendor that sells machines
+by Lightning invoice with no account is the same escape seen from the buying side; the first
+candidate is unprobed (`OPN-24`).
 
 **ARC-31b The candidate order is chosen by rule at pin time, read for availability at session
 start, and maintained by a job that proposes and never lands its change.** `ARC-31` says "the publisher

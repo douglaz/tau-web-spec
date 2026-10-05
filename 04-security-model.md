@@ -3,7 +3,7 @@
 ## The posture, stated before the rules
 
 **The AI is a trusted party by default.** It is the operator's agent. It holds a root shell
-on the machine it is bound to, it can read what is on that machine, and that is ordinary —
+on each machine of its bound set, it can read what is on those machines, and that is ordinary —
 it is what any sysadmin has, and `OVR-2` exists because taking it away breaks the only
 reason the AI is there.
 
@@ -31,26 +31,55 @@ just configured" — so it was the absolutes that stood out of step, not the cla
 These may never be violated. They are product-level and distinct from the ten numbered
 invariants in the archived execution-layer specification.
 
-### SEC-1 — one session, one machine, enforced by a lock
+### SEC-1 — a session reaches only its bound set, enforced by a lock
 
-**A session MUST be bound to exactly one machine and MUST NOT read, audit, or touch any
-machine it is not bound to.**
+**A session MUST be bound to a set of machines the operator fixed, and MUST NOT read, audit, or
+touch any machine outside it. A machine MUST be in at most one live session's set at a time.**
+The set is the session's **bound set**.
 
-A session is bound by provisioning a machine; by re-entry, on a maintained machine only; or
-by the recovery ladder's escalation, which re-binds a half-provisioning machine to the
+**One machine is the default and the best practice.** A set of more than one is an acceptable
+weaker mode (`SEC-14`), named machine by machine before contact. Two cases are never offered
+it, and no operator act sets either aside:
+
+- **Wherever a profile declares any independence bound, each session is bound to exactly one
+  machine.** The rule is keyed on the profile's independence-bound slot holding a relation, not
+  on a tenant asking for it. It is the harness's form of a rule the tenant states over
+  configured models in its own profile, and the two are one rule at two strengths, as `SEC-T3`
+  is for vendors.
+- **A multi-tenant machine (`ARC-36`) is always bound alone.** Its guests are parties the
+  operator has never met, and what another machine of a set returns must not steer root
+  commands on their host.
+
+A machine is bound to a session by provisioning it; by re-entry, on a maintained machine only;
+or by the recovery ladder's escalation, which re-binds a half-provisioning machine to the
 successor session under `ARC-16`'s condition.
 
-**Binding is an operator act in the browser, made before any channel access.** The operator
-assigns the machine at session creation, and connecting is never what creates the binding —
-otherwise a refused session and a re-entering one would be indistinguishable.
+**Binding is an operator act in the browser, made before any channel access to that machine.**
+The operator names the set, machine by machine, at session creation, and connecting is never
+what creates a binding — otherwise a refused session and a re-entering one would be
+indistinguishable.
+
+**A set grows by one operator act per machine, and never shrinks while its session lives.** An
+addition goes through the mid-flight queue (`ARC-15`) on a card the harness composes: the set as
+it will be, what the added machine costs, its first-contact route, and every acceptable weaker
+mode standing on the set (`SEC-14`). The added machine's entry and its allocation index are
+journaled before any create is sent (`STA-22b`). No machine leaves a set while the session is
+alive — what the model has read from it stays in the context that commands the rest.
+
+**A bound set is one unit of harm and one model context.** Whatever the model reads on one
+machine of a set can steer what it runs on every other, which typing that output as untrusted
+(`SEC-8`) does not prevent, and a mistake aimed at one machine can land on another. So the
+blast radius, the weaker modes and the placed secrets of a set are stated for the set and never
+machine by machine, and **every box-plane command and every harness job names its machine,
+resolved by the harness** against the set before it is sent (`ARC-7`).
 
 **Enforcement is cryptographic, not procedural.** Each **machine** has its own SSH client
 keypair, derived at that machine's index (`STA-22`, `SEC-5` row 3), and only that machine's
-public key reaches its `authorized_keys`. A session is given exactly the key of the machine it
-is bound to and no other, so a session cannot authenticate to a machine it is not bound to, and
-the refusal comes from SSH rather than from the harness declining to call its own transport. A
-single shared client key would leave this invariant enforced only by routing code, which is
-bookkeeping rather than a boundary.
+public key reaches its `authorized_keys`. A session is given exactly the keys of the machines
+in its bound set and no other, so a session cannot authenticate to a machine outside its set,
+and the refusal comes from SSH rather than from the harness declining to call its own
+transport. A single shared client key would leave this invariant enforced only by routing code,
+which is bookkeeping rather than a boundary.
 
 **The key is the machine's, not the session's, and a binding is exclusive.** Until 2026-09-16
 this paragraph said each *session* held its own keypair. That was true of the case it was
@@ -62,19 +91,23 @@ one machine is the harness worker's: a machine has at most one bound session at 
 new binding — by re-entry, or by the recovery ladder's re-binding to a successor — requires the
 predecessor session to have ended, its workers stopped and its channels closed, which is the act
 `STA-23` already performs on lock. Two sessions on one machine at once is what this requirement
-exists to prevent, and the ledger would only record it after the fact.
+exists to prevent, and the ledger would only record it after the fact. Once a predecessor has
+ended, a later session MAY re-enter any subset of its maintained machines; the machines it
+leaves out stay unbound until some session is bound to them.
 
 **That the keypairs derive from one seed does not weaken this.** Derivation is how the browser
 *obtains* machine 3's key; what reaches machine 3 is still machine 3's public key alone, and
-session 2 is still refused by SSH. The seed is a root the *browser* holds — one thing to back
+a session whose set does not hold machine 3 is still refused by SSH. The seed is a root the *browser* holds — one thing to back
 up instead of a sheet of keys — not a credential any session or machine ever sees (`STA-22`).
 
 **Post-harness machinery holds no grant of this kind at all** (`ARC-19a`). It runs after every
 machine of the setup is delivered, and where the profile seals, a sealed machine has no SSH to
 authenticate to. It holds at most the credential the profile's handoff slot declares, which is
-never a machine's own key. So this requirement has **no exception window**: there is no moment
-in a machine's life when some party holds every machine's client key, and `CNF-8` tests that
-absolutely rather than after a deadline.
+never a machine's own key. So no party other than a machine's bound session ever holds that
+machine's client key, at any moment in the machine's life, and `CNF-8` tests that of
+post-harness machinery absolutely rather than after a deadline. A session whose bound set is the
+whole setup does hold every key of it — which is why such a set is a weaker mode the operator
+chose and sees, and never something a session is handed.
 
 *What this requirement used to say* was that the coordinator held a distinct grant covering
 every machine's keypair for the setup window. That described a shape the ordering makes
@@ -82,25 +115,35 @@ impossible, and it quietly reintroduced the shared-key condition the paragraph a
 enforcement by routing code rather than by SSH. It is recorded because a reader who assumes the
 coordinator must reach inside every member will re-derive it.
 
-Access is what composes, not intent: a model with a foothold on two machines halves the
-number of malicious domains needed to reach k-of-n
-([ADR-0004](./docs/adr/0004-one-model-one-machine.md)). No exception for debugging, for
-auditing, or for any scheme in which one model inspects another's machine **from inside** —
-the scanner's access-free surface probe is outside this subject, not an exception to it.
+Access is what composes, not intent, and it composes two ways. Across a threshold, a model with
+a foothold on two machines halves the number of malicious domains needed to reach k-of-n
+([ADR-0004](./docs/adr/0004-one-model-one-machine.md)) — the tenant's argument, and the reason
+a declared independence bound means one machine per session. Inside one session, a set is one
+context, as above. No exception for debugging, for auditing, or for any scheme in which one
+model inspects **from inside** a machine outside its set — the scanner's access-free surface
+probe is outside this subject, not an exception to it.
 
 **Exposure is permanent for the life of the machine.** A model that has touched a machine
 counts as touching it until that machine is destroyed, because ending a session does not
-remove whatever the model may already have left behind. Tracking is `STA-10`. So the
-recovery ladder's middle rung stays inside this rule only while the stronger configured
-model is not assigned — and will never be assigned — to any other machine; past that rung the
-machine is destroyed rather than handed on. **Re-entry stays inside this rule the same way.**
+remove whatever the model may already have left behind. A model bound to a set is entered
+against every machine of it at binding, together with the set. Tracking is `STA-10`. Where a
+profile declares an independence bound, the recovery ladder's middle rung and re-entry stay
+inside this rule only while the configured model's **footprint** — every machine it has
+touched, and every machine co-bound with those — stays within that bound for the life of those
+machines; past that rung the machine is destroyed rather than handed on. Where no bound is
+declared, the footprint is counted and shown (`OVR-6`), and neither the rung nor a re-entry is
+refused for it.
 
 **What this invariant reaches, and what it does not.** It binds the harness's own channels —
 the box-plane channel and typed operations. An approved untyped scope is outside its reach:
 if the service behind the scope can itself administer machines, what bounds the session there
-is the credential's authority, counted in the blast radius. A **scanner** run is outside this
+is the credential's authority, counted in the blast radius — and where that service is a
+vendor, `SEC-4` attaches its own conditions. A **scanner** run is outside this
 invariant's subject because it is bound to no machine — and for exactly that reason it MUST
-NOT hold any machine credential or channel: addresses in, observations out, nothing else.
+NOT hold any machine credential or channel: addresses in, observations out, nothing else. A
+**jump host** (`CHN-R6`) is outside every bound set for a different reason: the flow that
+creates and uses it is the harness's own and not a session, and no session is given its key or
+its vendor identity.
 
 It does not decide whether two sessions configured with different models are served the
 *same weights* — nothing observable tells it (`OPN-4`). Identical weights behind two machines
@@ -115,14 +158,14 @@ implementation can be required to prevent.
 ### SEC-3 — the box plane has no path to the harness's cloud plane
 
 **The box plane MUST NOT have a path to the harness's cloud plane.** A machine never holds a
-vendor API token *belonging to the harness*, and work needing a cloud-plane action returns to
-the browser, even mid-way through box-plane work.
+vendor API token *belonging to the harness* — nor the key of an untyped vendor scope — and work
+needing a cloud-plane action returns to the browser, even mid-way through box-plane work.
 
 **What this binds, stated because it was previously absolute and unenforceable:** the
-harness's own placements and actions. A tenant's own credential, on the tenant's own machine, for the
-tenant's own account, is a different thing — it is permitted, delivered under `SEC-5`, and
-counted under `SEC-6`. What it is not is a way for the harness's vendor authority to reach a
-machine.
+harness's own placements and actions. An **application secret** — a tenant's or an operator's
+application's own credential, on its own machine, for its own account — is a different thing:
+it is permitted, placed under `SEC-5` row 12, and counted under `SEC-6`. What it is not is a
+way for the harness's vendor authority to reach a machine.
 
 ### SEC-4 — how cloud-plane actions are approved
 
@@ -130,15 +173,25 @@ machine.
 — and an untyped call MUST NOT be presented as though its scope bounds what the credential
 can do.**
 
-**A scope MUST NOT name a vendor the harness knows.** A vendor control API reaches every
-machine on the account — machines other sessions are bound to — and with no adapter the
-harness cannot see which resource a call touches, so an untyped scope there is a path around
-`SEC-1` that nothing records at the machine level. Vendor APIs are typed operations or
-nothing.
+**A vendor's control API may reach machines outside the calling session's bound set** —
+machines bound to other sessions, delivered machines no session holds, sealed machines nothing
+re-enters, and machines of the operator's that the harness has never heard of: the whole
+account, unless the operator minted a narrower credential, and the harness cannot see which.
+Rescue, console, rebuild and credential minting make that API a door SSH keys do not guard, so
+how a session goes through it is ruled here, in two modes.
+
+**Typed, wherever an adapter covers the origin.** A scope MUST NOT name an origin a vendor
+adapter covers: an untyped scope at the same API would walk around the check below. There each
+operation names its resource and is authorized as the next paragraph says, which closes the
+hazard per operation whatever the credential can reach — so one vendor credential MAY serve
+several sessions, and none reaches a machine outside its own set. What an adapter can list of
+the account is displayed and never relied on: a listing is the vendor's word at one moment, and
+the authorization at each dispatch is the enforcement.
 
 **A typed operation that names an existing machine MUST be authorized against the calling
-session's binding**, enforced by the adapter rather than left to the approval screen. A
-session's vendor operations reach its own machine and account-level creation, nothing else.
+session's binding**, enforced by the adapter rather than left to the approval screen: one
+naming a machine outside the calling session's bound set is refused. A session's vendor
+operations reach the machines of its own set and account-level creation, nothing else.
 
 **What is dispatched is the approved record.** The adapter executes the structured facts as
 they were approved and journaled — the resource (`STA-24`), the arguments, the declared cost
@@ -147,10 +200,48 @@ arguments the model supplies afterwards. `STA-24` says an approval is checked ag
 dispatch; this says what is checked. "There was an approval" and "the approved thing is what
 ran" are two different properties, and only the second is worth proving.
 
-The refusal has an honest boundary: only *known vendors* can be classified by hostname. A
-third-party deployment or networking service may well administer machines, the harness cannot
-know, and that unknown authority is precisely what the blast-radius statement counts an active
-scope as.
+**Untyped, at a vendor with no adapter — an acceptable weaker mode (`SEC-14`), under
+conditions no operator act sets aside.** A typed adapter is the best practice: used where the
+bundle has one, shown as missing where it does not. Without one the session reaches the vendor
+through an **untyped vendor scope**, a scope (`ARC-5`) naming that vendor's origin, and each of
+these holds:
+
+- **Known-machine exclusivity, checked against the journal.** The scope MUST be refused if any
+  undestroyed machine provisioned through that origin, or through that vendor identity, lies
+  outside the calling session's bound set; and while the scope stands, no such machine is bound
+  to another session.
+- **Never under an independence bound.** A session whose profile declares one is given no
+  untyped vendor scope.
+- **Invoices are read by harness code.** An invoice is decoded by harness code from the
+  recorded response, tied to an approved machine entry, and paid by the operator (`ARC-30`).
+- **The box plane pauses while a vendor call is open or unresolved** — to the set's machines
+  at that vendor (`STA-24`).
+- **First contact is through a jump host** (`CHN-R6`).
+
+**What the mode cannot keep out of model context, it shows.** A token the vendor mints and a
+root password the vendor generates arrive in a response no adapter reads, so the model reads
+them. The scope's card and the trust display say so; `CNF-12` and `CNF-14` are restated for
+this mode rather than quietly failed.
+
+**The operator's statement, labelled as theirs.** When the key is supplied, the card the
+harness writes asks two questions, once, with nothing preselected:
+
+1. "Are there other servers in this account that you care about?"
+2. "Can this account pay for things by itself? (a saved card, a prepaid balance, auto-renew)"
+
+"Not sure" counts as yes. The answers never block. They set the warnings — "may reach every
+server in this account", "can spend without asking" — and they are journaled and restated at
+every later irreversible act on the set (`SEC-14`).
+
+**The best practice** is a vendor identity derived per set, or a fresh project per set, so that
+the credential reaches nothing else by construction. A derived vendor identity cannot be
+derived today (`SEC-5` row 22).
+
+Classification has an honest boundary: only an origin an adapter covers can be recognised by
+hostname, and the conditions above attach where a session provisions machines through a scope.
+A third-party deployment or networking service may well administer machines, the harness
+cannot know, and that unknown authority is precisely what the blast-radius statement counts an
+active scope as.
 
 ### SEC-5 — the credential inventory
 
@@ -164,26 +255,28 @@ outgrown, because adding a credential means adding a row.
 
 | # | Credential | Origin | Where it lives | Lifetime | What it authorizes | How it dies |
 |---|---|---|---|---|---|---|
-| 1 | Vendor API credential | Operator | Browser memory only | One session, or one deterministic recovery flow (`STA-18`) | Full account authority at that vendor | Session or flow ends |
+| 1 | Vendor API credential, used through a typed adapter | Operator | Browser memory only | The sessions it is supplied to, or one deterministic harness flow (`STA-18`, `ARC-21`) | Whatever the vendor grants it, up to full account authority; the adapter authorizes each operation against the calling session's bound set (`SEC-4`), so one credential may serve several sessions | Session or flow ends |
 | 2 | Inference **session** key | Minted from row 14 (procured); supplied by the operator (BYO) | Browser memory only | One session | Inference spend, **up to its own cap** | Revoked at session end (procured); session ends (BYO) |
-| 3 | **SSH client private key, one per machine** | **Derived** from row 15 at that machine's index (`STA-22`) | Re-derived on demand; nothing to export | Machine lifetime | Login to **that one machine** | Removed from the machine on Replace (`STA-17`), which is a new seed |
+| 3 | **SSH client private key, one per machine** | **Derived** from row 15 at that machine's index (`STA-22`) | Re-derived on demand; nothing to export. Given to the machine's bound session and no other; a jump host's, at the jump host's own index, is given to no session (`CHN-R6`) | Machine lifetime | Login to **that one machine** | Removed from the machine on Replace (`STA-17`), which is a new seed; a jump host's dies with the jump host |
 | 4 | **Relay key**, one per pass | Derived from row 15 (`STA-22`); its public half is what the relay binds a bought pass to (`CHN-15`), and what the first stage hands the publisher out of band | Re-derived on demand; nothing to store | Until the pass expires or is revoked | Reaching the destinations recorded against its pass, on any port; recording destinations; revoking (`CHN-16`) | Pass expires; revoked by its own signature on Replace, and a new key bound to a new purchase |
-| 5 | Host-key pins | Vendor API, rescue, or attest | Encrypted at rest; exported in the sheet | Installed system: machine lifetime. Rescue: one boot (`CHN-R1`) | Nothing — integrity reference | Machine destroyed; rescue pin discarded at the reset |
+| 5 | Host-key pins | Vendor API, rescue, attest, or a first contact from a jump host (`CHN-R6`), recorded with which | Encrypted at rest; exported in the sheet | Installed system: machine lifetime. Rescue: one boot (`CHN-R1`). A jump host's: one first contact | Nothing — integrity reference | Machine destroyed; rescue pin discarded at the reset; a jump host's pin kept as the record of how the target's was obtained |
 | 6 | Exposure ledger | Harness-derived | Encrypted at rest; exported in the sheet | Machine lifetime | Nothing — record | Machine destroyed |
-| 7 | **Attest sender key**, one per machine | Derived from row 15 (`STA-22`) | Boot user-data; **never stored in the browser**, re-derived to check the seal | Until the browser accepts one introduction, or its window closes | **One** host-key introduction (`CHN-7`) | **The browser stops listening (`CHN-5`)** — that is the bound; scrubbed from disk as defence in depth (`CHN-6`); the metadata copy is permanent and worthless |
+| 7 | **Attest sender key**, one per machine — a jump host pinned by attest included, at its own index | Derived from row 15 (`STA-22`) | Boot user-data; **never stored in the browser**, re-derived to check the seal | Until the browser accepts one introduction, or its window closes | **One** host-key introduction (`CHN-7`) | **The browser stops listening (`CHN-5`)** — that is the bound; scrubbed from disk as defence in depth (`CHN-6`); the metadata copy is permanent and worthless |
 | 8 | ~~Drop-box collection token~~ | — | — | — | — | **Row retired.** The drop-box is gone (`CHN-4`); the attest post is a gift-wrapped event to an inbox any Nostr relay provides. |
-| 9 | Rescue root password | Vendor-generated, in an API response | Never stored | Never used | Root login the harness declines to use | **Redacted before the response is recorded or reaches a model** |
+| 9 | Rescue root password, in a typed adapter's response | Vendor-generated, in an API response | Never stored | Never used | Root login the harness declines to use | **Redacted before the response is recorded or reaches a model.** Under an untyped vendor scope no adapter reads the response, so a vendor-generated password is outside this row and inside model context, and is shown as that (`SEC-4`) |
 | 10 | Recovery sheet passphrase | Operator-chosen | Never stored anywhere | Operator's memory | Unwraps the sheet | Not applicable |
-| 11 | Untyped-scope credential | Operator | Browser memory only | Until the operator revokes or rotates it | **Unbounded at that origin** | Operator revokes at the service |
-| 12 | **Tenant secret placed on a machine** | Operator | Browser memory, then the machine | Machine lifetime | Whatever the tenant's software uses it for | Machine destroyed, or operator rotates |
+| 11 | Untyped-scope credential — a vendor's included, under `SEC-4`'s untyped vendor scope | Operator | Browser memory only | Until the operator revokes or rotates it | **Unbounded at that origin** | Operator revokes at the service |
+| 12 | **Application secret placed on a machine** | Operator, on `place_secret`'s card (`ARC-43`) | Browser memory until the session that placed it ends, then the machine alone | Machine lifetime | Whatever the application it was placed for uses it for | Machine destroyed, or operator rotates |
 | 13 | ~~Injected SSH host private key~~ | — | — | — | — | **Row retired. `CHN-R3` is abandoned**: user-data stays readable from the vendor's metadata endpoint for the instance's life, so the key would be permanently re-fetchable by anything on the machine. No exception wording fixes that. |
 | 14 | **Inference account credential** (procured only) | Operator, on funding an account-free balance | Encrypted at rest; **exported in the sheet** | Until the balance is spent | The remaining balance; minting and revoking row 2; attaching a funding source (`ARC-31a`) | Spent down or abandoned — **it is bearer and cannot be revoked** |
 | 15 | **Operator seed** | Operator, at first use; backed up by the operator | Encrypted at rest; **in the operator's head or seed backup**, never in the sheet | Until replaced | Deriving rows 3, 4, 7, 16 and 17 — **every maintained machine, every relay pass, every future introduction, and every declared handoff** (`STA-22`) | Replaced by a new seed on Replace (`STA-17`); the old one is not revocable, only abandoned — and it is still needed *during* Replace |
-| 16 | **Attest recipient key**, one per machine | Derived from row 15 (`STA-22`) | Re-derived on demand; public half in boot user-data | Until the introduction is accepted or the window closes | Decrypting **one** machine's introduction, and authenticating the inbox subscription that receives it (NIP-42, `CHN-18`) | The browser stops listening; the key is never used again |
+| 16 | **Attest recipient key**, one per machine — a jump host pinned by attest included, at its own index | Derived from row 15 (`STA-22`) | Re-derived on demand; public half in boot user-data | Until the introduction is accepted or the window closes | Decrypting **one** machine's introduction, and authenticating the inbox subscription that receives it (NIP-42, `CHN-18`) | The browser stops listening; the key is never used again |
 | 17 | **Post-harness credential** (profiles declaring a handoff credential) | Derived from row 15 (`STA-22`); public half installed only on the machines the profile's handoff slot declares, during setup, before the handoff point (`ARC-19a`) | Re-derived on demand; nothing stored | As declared by the profile's handoff slot | Exactly the reach the profile's handoff slot declares, and no more — btc-policy's instance is the coordinator peer credential | As declared by the profile's handoff slot |
 | 18 | Local unlock passphrase | Operator-chosen (`STA-23`) | Input UI briefly, then harness-worker memory; never persisted or sent | Unlock or passphrase-change operation | Derives row 19 to unwrap the local data key | Input and buffers cleared after use |
 | 19 | Wrapping key (local store or sheet) | PBKDF2 from row 18 or row 10, with independent salts and purposes | Harness-worker memory only | Wrap/unwrap operation | Unwraps one row-20 key | Cleared after wrap/unwrap |
 | 20 | Data-encryption key (local store or sheet) | Browser CSPRNG, independent per store/export | Harness-worker memory; only an authenticated wrapped copy persists | Local store unlocked; sheet import/export operation | Decrypts the named local store or sheet, never another purpose | Cleared on lock/end; replaced on re-encryption |
+| 21 | **Jump-vendor credential**: a vendor credential supplied separately from the target's (`CHN-R6`) | Operator | Browser memory only, held by the jump-host flow; never given to a session | One jump-host flow, from the create to the confirmed destroy | Creating one jump host, reading its address and destroying it, through the jump vendor's adapter | Flow ends |
+| 22 | **Derived vendor identity** — not derivable today | — | — | — | — | No role exists for it. `STA-22` says "an implementation must not choose paths independently", and credential format v1 (`STA-22a`) defines no role, index family or known-answer vector for a vendor identity; until it does, none is derived or used (`OPN-26`) |
 
 Rows 18–20 use the versioned envelope in `STA-23`. Row 15 derives row 17 as well as the
 machine and relay credentials. Derivation indices, resource mappings and allocator counters
@@ -191,14 +284,30 @@ are encrypted recoverable metadata (`STA-22b`); a seed alone cannot discover the
 seed is barred from new allocations until Replace. Losing an old seed or metadata prevents
 direct Replace but does not remove Robot's vendor-authenticated rescue route (`STA-17`).
 
-**Row 12 carries a caveat that MUST be stated wherever it is offered.** Delivery redaction
-keeps the secret out of the transcript and out of model context *on the way in*. It does not
-keep it from a model that later reads the machine's filesystem with the root shell `OVR-2`
-grants. A tenant secret on a machine is therefore permanently inside that model's reach and
-is counted under `SEC-6`. Anything else would be the overstatement this design refuses
-everywhere else.
+**Row 12 carries a caveat that MUST be stated wherever it is offered.** `place_secret`
+(`ARC-43`) keeps the secret out of the transcript and out of model context *on the way in*. It
+does not keep it from a model that later reads the machine's filesystem with the root shell
+`OVR-2` grants, nor from one that touched the machine earlier and left something behind. An
+application secret on a machine is therefore permanently inside the reach of every model that
+has touched or will touch that machine, and is counted under `SEC-6`. Anything else would be
+the overstatement this design refuses everywhere else.
 
-**Rows 1, 2 and 11 never reach storage.** They are re-supplied by the operator each session,
+**Exact copies of a placed secret are redacted from box-plane output before that output
+reaches the model or the transcript, and the claim is no wider than that.** In the session that
+placed it the scan compares against the value still in browser memory; a later session's scan
+compares against a keyed digest, never the value, and is not offered until the digest's key
+has a row in this table. The scan sees exact values only: an encoded, partial or transformed
+copy passes. And it runs in the browser — `STA-20a`'s output file lands on the machine before
+any browser scan runs — so it is a statement about the harness's records and the model's
+context, never about what the machine holds.
+
+**Rows 3, 7 and 16 cover a jump host's keys, and row 21 its vendor credential.** A jump host
+(`CHN-R6`) is allocated its own index in the machine family, an index that is never an entry
+of any session's bound set, and its keys are the three those rows name at that index. Row 21
+is what keeps the jump vendor's identity separate from the target's until row 22 can be
+derived: a separately supplied credential, held by a harness flow no session holds.
+
+**Rows 1, 2, 11 and 21 never reach storage.** They are re-supplied by the operator each session,
 deliberately, which is why they appear in `STA-14`'s "dies with the phone" column. Row 2 is the
 one that changed shape: on the procured path it is no longer something the operator retypes but
 something the harness **mints, caps, and revokes**, which is why its lifetime is now enforced
@@ -223,9 +332,10 @@ record, because a service can echo the key it was sent. The scan sees exact valu
 **The harness MUST minimize what a model can reach and MUST count what remains in the blast
 radius.** Minimizing means: deliver secrets redacted, keep them out of model context, prefer
 generating on the machine over delivering, and prefer sealing where the tenant allows it.
-Counting means: a tenant secret on a machine (`SEC-5` row 12) and an approved untyped scope
-(row 11) both widen a model's reach beyond its machine, and both appear in the blast-radius
-statement and the trust display for as long as they are live.
+Counting means: an application secret on a machine (`SEC-5` row 12) and an approved untyped
+scope (row 11) both widen a model's reach beyond its bound set, and both appear in the
+blast-radius statement and the trust display for as long as they are live. Every acceptable
+weaker mode standing on a set (`SEC-14`) is counted and shown the same way, for the set.
 
 This replaces an absolute the root shell already defeated. A tenant that needs the absolute
 supplies it by procedure — `SEC-T4`.
@@ -270,7 +380,8 @@ selection whose response carries no report, or a report that, folded the same wa
 neither the requested provider nor any other provider the bundle names, MUST be surfaced as
 *unrecognized*. No column is derived from any of it. If the report
 merely echoes the request the detector never fires, which is why the *observed* column above
-stays a *may* and `OPN-23`'s ask stands.
+stays a *may* and `OPN-23`'s ask stands. A provider is requested per session (`ARC-14`), so
+"that machine" in this requirement is each machine of the session's bound set.
 
 **When the requested provider is the maker of the weights, the display MUST say so on that
 machine.** The maker is a fact the bundle records beside the model, never parsed from the
@@ -288,14 +399,15 @@ unbuilt.
 ### SEC-11 — the host key is checked
 
 **An SSH session MUST check the host key against the stored fingerprint, and a key that does
-not match MUST halt the session.** Exactly one moment is exempt, and it is why `CHN-R4` is a
-floor: under trust-on-first-use there is no stored fingerprint at first contact, so that
-contact is trusted rather than verified and MUST be presented to the operator as such. No
-other path may accept an unverified key.
+not match MUST halt the session.** Through the relay no moment is exempt: a first contact with
+no stored fingerprint is refused there (`CHN-R4`). Exactly one first contact is made with
+nothing to check the presented key against — the one from a jump host, inside a pinned outer
+session (`CHN-R6`) — and that contact is trusted, not checked against a pin, and MUST be
+presented to the operator as such. No other path may accept a key no pin was stored for.
 
-On the routes the first stage walks, where a fingerprint is always stored before contact, the
-check is `TauWeb.Pins.check` (ADR-0032) — not the exempt moment above, which it has no branch
-for. Its halts are three and not one: nothing stored to check against, the key that does not
+On the routes where a fingerprint is always stored before contact, the check is
+`TauWeb.Pins.check` (ADR-0032). The jump-host contact above is not carried there: `check` has
+no branch that admits a handshake with no pin. Its halts are three and not one: nothing stored to check against, the key that does not
 match, and the halt `STA-20b`'s resume rule explains.
 `TauWeb.Pins.mismatch_not_the_reset` is that the last two are never the same answer.
 
@@ -313,7 +425,9 @@ and for an untyped call no adapter exists to find out. So the record MUST carry 
 unresolved state, the harness MUST NOT retry the call on its own or report it as failed, and
 reconciliation belongs to the operator, at the service. `STA-8` is the same rule at the state
 layer, and `STA-24` says what the unresolved state blocks: for an untyped call, every further
-call under that scope until the operator disposes.
+call under that scope until the operator disposes. Under an untyped vendor scope the record is
+also what the money rule reads: `SEC-4` says "An invoice is decoded by harness code from the
+recorded response".
 
 The CORS sent-but-unreadable case is engineered away: an origin's route is chosen by a
 dedicated harmless probe before any side-effecting call exists, every untyped call carries a
@@ -324,7 +438,47 @@ route. Should an unreadable response occur anyway, it is the same unknown outcom
 
 **The app MUST NOT hold, forward, or custody funds.** A Bitcoin wallet able to pay for
 machines is an intended future capability and it collides with this, so the collision is
-recorded rather than resolved (`OPN-17`).
+recorded rather than resolved (`OPN-17`). Handing a machine's invoice to the operator's own
+wallet (`ARC-30`) is not that capability: the app relays and holds nothing.
+
+### SEC-14 — a weaker mode is accepted by name, before contact, and never entered by failing
+
+**A weaker mode MUST be one of the named ones, accepted by the operator by its label for one
+bound set before any contact with that set's machines. It MUST NOT be entered because a
+stronger check failed, and it MUST be restated at every later irreversible act on any machine
+of the set.**
+
+The **acceptable weaker modes** are these and no others, each beside the **best practice** it
+stands in for — which is used when available and shown when missing:
+
+| Acceptable weaker mode | Best practice it stands in for | Owner |
+|---|---|---|
+| An installation with no artifact pin | A pinned distribution | `ARC-25` |
+| A first contact from a jump host | A host key pinned out of band by retrieve or attest | `CHN-R6` |
+| Acting on a goal with no brief | A brief | `ARC-11a` |
+| A bound set of more than one machine | A set of one | `SEC-1` |
+| An untyped scope at a vendor with no adapter | A typed adapter | `SEC-4` |
+
+A mode is on the list because its harm stays inside that bound set, shows when it happens, and
+cannot be multiplied by a model retrying on its own. Nothing that fails one of those tests is
+on it: every item `07-conformance.md`'s tiering rule makes BLOCKING is a **non-waivable rule**,
+which no label, no answer and no operator act sets aside.
+
+- **By its label, for one bound set.** The set is named machine by machine before contact. A
+  mode accepted for one set says nothing about another, and a machine added to a set later is
+  added on a card that restates the set's modes (`SEC-1`).
+- **Chosen before contact.** The operator chooses a mode from what the bundle or the vendor
+  lacks — no pin for this distribution, no adapter for this vendor, no out-of-band route at
+  this vendor — before the harness contacts any machine of the set.
+- **Never entered by failing.** A failed check halts. An artifact that does not match its pin,
+  an introduction that never arrives, a host key that does not match: none of them continues
+  in the weaker mode (`ARC-25`, `CHN-R5`, `SEC-11`).
+- **Restated at every later irreversible act** on any machine of the set — placing an
+  application secret (`ARC-43`), paying an invoice, a destroy or a reinstall, adding a machine
+  among them — together with every other mode standing on the set, because acceptances do not
+  compose silently.
+- **Recorded and shown.** Each mode is journaled with the set and appears in the trust display
+  for as long as it stands (`SEC-6`).
 
 ## Supplied by btc-policy, not by the harness
 
@@ -342,18 +496,26 @@ belong to that tenant and live with it.
 The harness and its tenants make **different** claims, and blurring them is how a single
 machine ends up shipping under a vault's guarantee.
 
-**What the harness claims.** No session reaches a machine it is not bound to **through
-anything the harness controls** — bound by provisioning it, by re-entry on a maintained
-machine, or by the recovery ladder's escalation. A model's blast radius is:
+**What the harness claims.** No session reaches a machine outside its bound set **through
+anything the harness controls** — each machine bound by provisioning it, by re-entry on a
+maintained machine, or by the recovery ladder's escalation. A model's blast radius is:
 
-- the machines its weights have touched, **plus**
+- the machines its weights have touched — every machine of every set it was bound to — **plus**
 - any credential authority standing approved for its session as an untyped scope, at that
-  origin, which may itself reach machines the harness cannot see, **plus**
-- any tenant secret placed on a machine it is bound to, which its root shell can read.
+  origin, which may itself reach machines the harness cannot see — a vendor's account under an
+  untyped vendor scope included — **plus**
+- any application secret placed on a machine it is bound to, which its root shell can read.
 
 Those three are stated together because no one of them alone is the boundary. Every approved
-scope and every placed tenant secret appears in the trust display until revoked or rotated —
-closing an approval does not un-trust a service that still holds the key.
+scope and every placed application secret appears in the trust display until revoked or
+rotated — closing an approval does not un-trust a service that still holds the key. Every
+acceptable weaker mode standing on a set is stated with them (`SEC-14`); for a machine first
+contacted from a jump host that statement is that its identity is as good as two paths
+agreeing once (`CHN-R6`).
+
+**The claim covers the harness's own AI and nothing else that thinks.** An operator's
+application that acts on its own (`ARC-1a`) is outside it, and its machine's delivery card says
+so.
 
 The trusted set is named rather than small, and the tier this product adds is fixed. What the
 harness *removes* is the party that would otherwise choose the operator's vendor, model and

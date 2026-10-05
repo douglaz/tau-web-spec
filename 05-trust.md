@@ -25,6 +25,8 @@ flowchart LR
         E8a["Package/cache signing keys<br/>both distributions"]
         E9[Delegated receiving service]
         E10["Public Nostr relay,<br/>if the operator adds one"]
+        E11["Jump vendor and path,<br/>where a first contact uses one"]
+        E12["An operator application's<br/>model provider"]
     end
     subgraph A["Added by this product — the only tier the design controls"]
         A1[Bundle + publisher]
@@ -119,7 +121,9 @@ what it can do is steer the operator, which is why its findings are reports and 
 whose authority the harness cannot bound, so for the life of that key the service is trusted
 with everything the key can do. This class cannot be enumerated in advance — which is why it is
 named here as a class, and why each approved scope must appear in the trust display until its
-credential is revoked or rotated, not merely while the approval stands.
+credential is revoked or rotated, not merely while the approval stands. A vendor reached
+through an untyped vendor scope (`SEC-4`) is in this class as well as being `TRU-E1`: it holds
+a key the harness cannot bound, at an API that can remake the machine.
 
 **TRU-E7 — Whoever signs the software the machines run.** For a single machine the signer is
 trusted for that machine, the same shape as any installed software. For a federation it is
@@ -161,6 +165,25 @@ only way to keep spending authority off a multi-tenant box. That party sees the 
 custodies value between receipt and sweep. It is elective — the operator picks it and can pick
 another — and it is named here rather than absorbed, because `SEC-10` prices an unlisted addition
 as a schema migration. The exposure is bounded by how often the operator sweeps.
+
+**TRU-E11 — The jump vendor, and the path from a jump host to its target**, where a machine's
+first contact is made from a jump host (`CHN-R6`). The jump vendor owns the jump host's memory
+and disk; with its image and the networks between the two machines, it is trusted at that one
+contact, because any of them can put its own key in front of the browser there. `CHN-R6` says
+"The first direct connection to the target through the relay MUST present the key pinned from
+the jump host", which leaves a substitution only to a party standing on both paths. One jump
+vendor used for machines at several target vendors is one party at the first contact of all of
+them, a common mode the display names. Elective: the operator accepted the route by its label,
+and a vendor with a route of its own needs no jump host. It is a row because `SEC-10` says "The
+trusted-party list MUST NOT grow silently".
+
+**TRU-E12 — The model provider of an operator's application**, where the operator installs one
+(`ARC-1a`). An always-on agent with a model of its own sends what it reads on its machine to
+whoever serves that model, under a key the operator supplied as an application secret. The
+harness neither chooses that party nor asks anything of it: the retention request of `ARC-31a`
+and the counts of `ARC-14` cover the harness's own inference and none of the application's.
+Elective — it comes with the application the operator chose — and listed in the trust display
+beside the application for as long as its secret is placed.
 
 ## Added by this product
 
@@ -214,8 +237,9 @@ default".
 **TRU-A2 — The relay**, once it exists. It cannot read or alter a session whose host key was
 pinned out of band, but **it learns the machine topology** — which operator, which destination,
 when, accumulated, is the machine set (`CHN-13`) — and one that authenticates callers and
-constrains destinations decides who may connect where. Under trust-on-first-use it is trusted
-outright at first contact. **The Nostr relay beside it** (`CHN-18`) is the same party learning
+constrains destinations decides who may connect where. A first contact with no pin is refused
+through it (`CHN-R4`), so it is never the party a key is taken from on trust; at a jump-host
+first contact it carries the outer ciphertext and sees the jump host (`CHN-R6`). **The Nostr relay beside it** (`CHN-18`) is the same party learning
 the same thing by another route — a cloud address publishes to an inbox, the operator's address
 reads it — and it cannot forge an introduction, since it never holds a sender key. It is not a
 new row.
