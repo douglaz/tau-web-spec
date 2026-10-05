@@ -2,8 +2,8 @@
 
 ## The stages
 
-The work is staged in four, re-drawn on 2026-10-05 around the general case: an operator with a
-goal and no tenant
+The work is staged as the list below sets out, re-drawn on 2026-10-05 around the general case:
+an operator with a goal and no tenant
 ([ADR-0034](./docs/adr/0034-general-case-first-tenants-are-optional-skills.md)).
 
 - **Stage 0 — the probes**, run now and in parallel with construction. The LNVPS probe
@@ -11,7 +11,7 @@ goal and no tenant
   minimum, an Arch image. Attest on a real first boot (`OPN-3`). And Omarchy's server edition,
   or plain Arch in its place (`OPN-25`). None of it needs the harness.
 - **Stage 1 — the owner's scenario, with no tenant** (`STG-21`).
-- **Stage 2 — any vendor** (`STG-22`).
+- **Stage 2 — a vendor with no adapter** (`STG-22`).
 - **Stage 3 — tenants, as skills** (`STG-23`).
 
 Typed comes before untyped for a reason of order, not of preference: an untyped vendor scope
@@ -41,7 +41,9 @@ journal, the stage needs:
 
 - **goal input, and the harness's own questions** for machine class and the declaration
   (`ARC-36a`, `ARC-39`);
-- **`place_secret`**, for the application's key (`ARC-43`, `CNF-16`);
+- **`place_secret`**, for the application's key (`ARC-43`, `CNF-16`) — the later-session scan
+  of its output is required, and the design of that scan's digest key is `OPN-28`, which gates
+  completing this stage and not constructing it;
 - **the unpinned label, or a publisher pin for Arch** (`ARC-25`);
 - **delivered against handed over with findings**, and a generic signed lockdown checklist
   (`ARC-17`, `OPN-14`);
@@ -52,8 +54,10 @@ journal, the stage needs:
 **If LNVPS fails its probe**, stage 1 — and no later stage — runs on Hetzner Cloud with attest
 and a card account.
 
-**STG-22 Stage 2 is any vendor.** A vendor with no adapter, reached through an untyped vendor
-scope on `SEC-4`'s conditions; the jump-host route (`CHN-R6`), with LNVPS as the jump vendor;
+**STG-22 Stage 2 is a vendor with no adapter, where the browser can reach its API.** Such a
+vendor is reached through an untyped vendor scope on `SEC-4`'s conditions, and no further than
+the channel goes: `CHN-12b` says "an arbitrary service refusing browser CORS is out of reach for
+untyped calls". Beside it: the jump-host route (`CHN-R6`), with LNVPS as the jump vendor;
 bound sets of more than one machine (`SEC-1`); and a second vendor, which is what closes
 `OPN-5`.
 
@@ -262,7 +266,8 @@ adapter's response, the session inference key, the SSH client private key, the r
 placed application secret — appears in a request to the app origin, in
 any model request body, or in any log; and none appears in origin-private storage, local
 storage, or service-worker caches outside the encrypted-at-rest store `SEC-5` names.
-Cleartext nowhere. The local store unlocks and locks under `STA-23`; killing the worker
+Cleartext nowhere. What a model reads under an untyped vendor scope is `SEC-4`'s to state, and
+this stage has no such scope. The local store unlocks and locks under `STA-23`; killing the worker
 requires a new unlock and replay, never a plaintext fallback.
 
 **STG-11** A rescue activation or its reset, interrupted between intent and confirmation,
@@ -335,7 +340,7 @@ counts as touching it until that machine is destroyed".
   (`CNF-81`, `CNF-87`). There is no purchase flow or tested reacquisition story;
   that is `OPN-2`.
 - **Inference funding.** Assumed already funded.
-- **Any vendor but one, and any set but one machine.** Untyped vendor scopes, the jump host and
+- **A vendor with no adapter, and any set but one machine.** Untyped vendor scopes, the jump host and
   bound sets above one are stage 2's (`STG-22`); tenants are stage 3's (`STG-23`).
 - **The general tunnel.** Only the **pinned** kind is built (`CHN-12a`), for a vendor known at
   build time. Reaching an arbitrary CORS-refusing service needs `CHN-12b`'s certificate-authority

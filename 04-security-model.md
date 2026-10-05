@@ -105,7 +105,9 @@ up instead of a sheet of keys — not a credential any session or machine ever s
 machine of the setup is delivered, and where the profile seals, a sealed machine has no SSH to
 authenticate to. It holds at most the credential the profile's handoff slot declares, which is
 never a machine's own key. So no party other than a machine's bound session ever holds that
-machine's client key, at any moment in the machine's life, and `CNF-8` tests that of
+machine's client key, at any moment in the machine's life — a jump host has no bound session,
+and its key is held by the harness flow that makes the contact and by nothing else (`CHN-R6`)
+— and `CNF-8` tests that of
 post-harness machinery absolutely rather than after a deadline. A session whose bound set is the
 whole setup does hold every key of it — which is why such a set is a weaker mode the operator
 chose and sees, and never something a session is handed.
@@ -297,20 +299,23 @@ the overstatement this design refuses everywhere else.
 **Exact copies of a placed secret are redacted from box-plane output before that output
 reaches the model or the transcript, and the claim is no wider than that.** In the session that
 placed it the scan compares against the value still in browser memory; a later session's scan
-compares against a keyed digest, never the value, and is not offered until the digest's key
-has a row in this table. The scan sees exact values only: an encoded, partial or transformed
+compares against a keyed digest, never the value. The later scan is required like the first.
+What it needs is not yet permitted: the digest's key has no row in this table, so, as with row
+22, none is held until `OPN-28` closes with one. The scan sees exact values only: an encoded, partial or transformed
 copy passes. And it runs in the browser — `STA-20a`'s output file lands on the machine before
 any browser scan runs — so it is a statement about the harness's records and the model's
 context, never about what the machine holds.
 
 **Rows 3, 7 and 16 cover a jump host's keys, and row 21 its vendor credential.** A jump host
 (`CHN-R6`) is allocated its own index in the machine family, an index that is never an entry
-of any session's bound set, and its keys are the three those rows name at that index. Row 21
+of any session's bound set, and its keys are the ones those rows name at that index — rows 7
+and 16 only where it is pinned by attest. Row 21
 is what keeps the jump vendor's identity separate from the target's until row 22 can be
 derived: a separately supplied credential, held by a harness flow no session holds.
 
-**Rows 1, 2, 11 and 21 never reach storage.** They are re-supplied by the operator each session,
-deliberately, which is why they appear in `STA-14`'s "dies with the phone" column. Row 2 is the
+**Rows 1, 2, 11 and 21 never reach storage.** Rows 1, 2 and 11 are re-supplied by the operator
+each session, deliberately, which is why they appear in `STA-14`'s "dies with the phone" column;
+row 21 is given to no session, and is supplied for each jump-host flow. Row 2 is the
 one that changed shape: on the procured path it is no longer something the operator retypes but
 something the harness **mints, caps, and revokes**, which is why its lifetime is now enforced
 rather than asserted.

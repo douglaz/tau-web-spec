@@ -271,8 +271,8 @@ here is non-waivable:
   record holds "the **command as received**", so a value in the command line is a value on the
   machine's disk and in the journal. It is not put in an environment variable, in shell text or
   in a diagnostic either.
-- **The job wrapper never persists its input.** The value goes from the channel to the
-  destination file and to no second file on the machine (`STA-20`).
+- **The job wrapper's duty is `STA-20`'s.** `STA-20` says "the job wrapper MUST NOT write that
+  input to any file but the job's destination".
 - **The value never enters model context on the way in**, and never appears in cleartext in the
   journal, the transcript, the job record, a log or a request to the app's origin. What is
   recorded before the bytes leave (`ARC-8`) is the command, the machine, the destination and the
@@ -764,8 +764,8 @@ as **unpinned** from then on. A machine that began under a pin and failed it MUS
 unpinned, whoever asks.
 
 **ARC-25a Both pinned installation paths combine a pinned bootstrap with signature-admitted packages**
-([ADR-0027](./docs/adr/0027-the-artifact-pin-is-per-distribution.md)). The first-stage Alpine
-brief made the previously claimed hash-only distinction false.
+([ADR-0027](./docs/adr/0027-the-artifact-pin-is-per-distribution.md)). The construction test bed's
+Alpine brief made the previously claimed hash-only distinction false.
 
 - **Alpine:** the signed bundle pins the immutable minirootfs URL and its hash. The installed
   kernel, SSH server, bootloaders and dependencies then come from `apk` repositories. The
@@ -788,7 +788,7 @@ brief made the previously claimed hash-only distinction false.
 **Both paths trust package signers (`TRU-E8a`).** A signed bundle bounds which keys are
 accepted; it does not remove those key holders' authority over later packages. Choosing
 Alpine does not avoid this party. Pinning the entire installed package closure would be a
-separate design, and the current first-stage brief does not implement it. The trust display
+separate design, and the construction test bed's brief does not implement it. The trust display
 names the distribution, bootstrap hash, package policy and accepted signers rather than
 calling the resulting installation hash-pinned. An unpinned installation (`ARC-25`) has neither
 layer, and the display says **unpinned** rather than naming a hash or a signer set nothing
@@ -828,7 +828,7 @@ reports: observations that never gate, never act, and are never called verified.
 **ARC-27** How much of the re-check is possible follows from the machine's **access model**,
 which its tenant's profile presets. With no tenant it is **maintained**: sealing cannot be
 undone, so it needs a tenant whose own design calls for it, and neither the operator's goal nor
-the model's proposal can seal a machine. On **maintained** machines — lnrent boxes, ad hoc use — the
+the model's proposal can seal a machine. On **maintained** machines — lnrent boxes, a machine with no tenant — the
 machine is re-entered by a later session bound to it. On **sealed** machines nothing
 re-enters, by the tenant's own design: btc-policy uninstalls SSH after setup and forbids
 upgrade-in-place, precisely so nobody can be forced back into a vault node. There the inside

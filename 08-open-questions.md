@@ -14,10 +14,13 @@ dedicated path that is now the construction test bed. The stages were re-drawn o
 (`06-first-stage.md`). **Stage 0** is the probes, run now and in parallel with construction:
 `OPN-24`, `OPN-25`, and attest on a real first boot under `OPN-3`. **Completing stage 1** gates
 on those three, on the generic lockdown checklist of `OPN-14`, on integrated resume
-(`OPN-18`), and on the stage-1 acceptance subset in `07-conformance.md`, including `STA-23`
+(`OPN-18`), on the placed secret's digest key (`OPN-28`), and on the stage-1 acceptance subset in `07-conformance.md`, including `STA-23`
 unlock and v1 derivation evidence (`OPN-18` is closed by design and open as that
 implementation). `OPN-3` also gates recovery, which a maintained cloud machine needs. `OPN-5`
-and `OPN-26` gate stage 2; `OPN-27` gates stage 3. `OPN-4` closed by restating `SEC-CLAIM`
+gates stage 2. `OPN-26` gates no route of stage 2 — the jump-host route runs on a separately
+supplied credential (`SEC-5` row 21) — and what waits on it there is the untyped vendor scope's
+best practice, a vendor identity derived per set, which is shown as missing until it closes.
+`OPN-27` gates stage 3. `OPN-4` closed by restating `SEC-CLAIM`
 around configured weights; the vault claim stays conditional on `TRU-E2`.
 
 **OPN-3 — The recovery machinery is designed and unproven.** The design is recorded across
@@ -178,6 +181,19 @@ is undecided. So is whether lnrent is a tenant at all, or a vendor the operator 
 one known gap sits under any declared independence bound: `ARC-31b` gives every session the
 highest-ranked candidate, so a different model per machine is not deliverable on the procured
 path. *Closes when:* stage 3 is designed.
+
+**OPN-28 — The key of a placed secret's digest has no design.** That a later session scans
+box-plane output for a placed application secret is decided and is not this question: `SEC-5`
+says "a later session's scan compares against a keyed digest, never the value". What is open is
+everything about the key and the digest. The key's origin, where it is stored and how long it
+lives. Where the digest is kept, and any metadata a match needs beside it, such as the value's
+length. Whether the machine's job record carries a digest. And what happens on a lost or a
+restored store. A key derived from the seed is excluded until `STA-22a` defines a role for one.
+One candidate, and no more than a candidate: a per-secret random key from the browser CSPRNG,
+kept with the digest in the encrypted local store. Until this closes the key has no row in
+`SEC-5`, so no implementation may hold one; construction proceeds, and stage 1 does not
+complete. *Closes when:* a key origin and lifecycle are approved, `SEC-5` carries a complete row
+for the key, and `CNF-95`'s later-session case has passing evidence.
 
 **OPN-15 — Reproducible builds and the watchdogs that would make them mean something.** Neither
 exists. Until they do, the bundle's integrity rests on trusting the host outright, and `TRU-A1`

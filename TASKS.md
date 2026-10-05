@@ -51,7 +51,7 @@ gated on it.
       tree as its CI gate.
       `bundle/inference.toml` has an empty model slug on purpose; the build fails until the
       publisher fills it.
-- [ ] **T39 — Stage 0: probe LNVPS** (`OPN-24`). One probe, four answers: boot-time user-data
+- [ ] **T39 — Stage 0: probe LNVPS** (`OPN-24`). One probe: boot-time user-data
       or host-key exposure, browser reachability, the minimum billing period, an Arch image.
       Record it under `docs/findings/`. If it fails, stage 1 and only stage 1 runs on Hetzner
       Cloud with attest and a card account (`STG-21`).
@@ -71,6 +71,11 @@ gated on it.
       findings (`ARC-17`); the unpinned label (`ARC-25`). *Owed to tau-web-rust at its spec pin
       bump:* the new and restated conformance items, `CNF-91`–`CNF-106` with `CNF-16` and
       `CNF-42`, as tests; no implementation was exercised by this amendment.
+- [ ] **T48 — Stage 1: the key of a placed secret's digest** (`OPN-28`). The later-session scan
+      is required (`SEC-5`, `CNF-95`) and its key has no design: origin, storage and lifetime;
+      where the digest and any matching metadata are kept; whether the machine's job record
+      carries a digest; a lost or restored store. Until it lands the key has no row in `SEC-5`
+      and none is held. Construction proceeds; stage 1 does not complete without it.
 - [ ] **T44 — The derived vendor identity's format** (`OPN-26`). Not decided: what it is derived
       per — a bound set, a machine or a session; its index family and what its allocation entry
       holds; its key type, pending T39. Until it lands, `SEC-5` row 22 keeps it unavailable and
@@ -80,10 +85,10 @@ gated on it.
       typed LNVPS adapter uses an operator-supplied credential (`SEC-5` row 1, today's text) or
       a derived one.
 - [ ] **T45 — Stage 2: the jump host and the untyped vendor scope** (`STG-22`, `CHN-R6`,
-      `SEC-4`). Includes two things the rules name and nothing yet carries: a jump-host source
+      `SEC-4`). Includes one thing the rules name and nothing yet carries: a jump-host source
       for a pin in the formal companion (`ARC-43` says "a pin taken at a jump-host first
-      contact (`CHN-R6`) is not among them"), and a row in `SEC-5` for the key of the placed
-      secret's keyed digest, without which a later session's scan is not offered.
+      contact (`CHN-R6`) is not among them"). The placed secret's digest key is not here: it is
+      stage 1's (T48).
 - [ ] **T46 — What the sibling repositories now owe.** Recorded here; none of them was edited.
       **btc-policy:** state its independence rule over configured models as `SEC-T5` records
       it, and say which members a footprint is counted across — one federation, overlapping
@@ -115,8 +120,20 @@ gated on it.
       - **Convergence with no brief.** `ARC-10` makes convergence an authoring rule, and a
         goal-driven run has no author. Whether the bundle ships a harness-level convergence
         instruction is undecided; `CNF-37` is exercised on the goal-driven run meanwhile.
-      - **The keyed digest of a placed secret.** What keys it, where that key lives, and
-        whether the machine's job record carries a digest at all (T45).
+      - **Whether what a model reads under an untyped vendor scope needs a `SEC-5` row.** A
+        token the vendor mints and a root password the vendor generates are in model context
+        and in the recorded response there (`SEC-4`, `CNF-14`). `SEC-5` puts a secret returned
+        in an untyped response "outside the harness's sight and outside this table's reach",
+        and row 9 puts such a password outside itself; whether the recorded copy makes either
+        a credential the harness holds, owed a row for `CNF-13` to pass, is undecided.
+      - **Harm that moves between the machines of one set.** `SEC-14` admits a mode whose harm
+        "shows when it happens", and a bound set is one unit of harm, shown as one (`SEC-1`).
+        Whether harm crossing from one machine of a set to another meets that test, or the test
+        needs wording for a set, is undecided.
+      - **The recovery root at an account-free vendor.** `STA-14` names the vendor account as
+        "the recovery root" and as "recoverable through the vendor's own processes", while
+        stage 1's vendor keeps no account and identifies the operator by a key (`OPN-24`). What
+        the recovery root is there is undecided, and `STA-14` keeps its text.
       - **An unpinned installation under an independence bound.** The decisions bar a goal, a
         larger set and an untyped vendor scope there, and say nothing of an unpinned OS.
       - **`CNF-67` on an unpinned installation.** Whether the item splits into a pinned and an

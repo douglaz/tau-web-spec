@@ -242,6 +242,7 @@ client and the pinned TLS client ran on a physical Android phone. Harness constr
 start; the integrated harness, a goal-driven install, interrupted resume and lockdown remain
 unproven.
 
-Any vendor, the jump host and larger sets come after that; tenants come last — the vault among
+A vendor with no adapter — where the browser can reach its API — the jump host and larger sets
+come after that; tenants come last — the vault among
 them, with its concurrent sessions, trust panel and federation — and all of it reuses the channel
 the first stage proves.

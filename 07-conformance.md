@@ -105,7 +105,8 @@ an item that tests a mode's conditions or its label is tiered by them like any o
 - [ ] **CNF-92 · BLOCKING** Under a profile that declares any independence bound, a second
       machine in a session's bound set is refused at binding, and so is a binding, a re-entry
       or an escalation that would take a configured model's footprint past the bound
-      (`SEC-1`, `OVR-5`; btc-policy's `SEC-T5` is the first such bound, `STG-23`). A multi-tenant machine is refused any set but its own, and a machine
+      (`SEC-1`, `OVR-5`; btc-policy's slot is the first to declare one, and `SEC-T5` is its
+      bound over configured models, `STG-23`). A multi-tenant machine is refused any set but its own, and a machine
       whose class was answered "not sure" is multi-tenant for this purpose (`ARC-36a`). No
       operator act sets either refusal aside. Boundary crossed: one model context across
       members a tenant counts as independent, or across a host of strangers and another
@@ -147,8 +148,9 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       model context, the journal, the transcript, the machine's job record and job directory,
       the logs and every request to the app's origin, and present only in the destination
       file. The card states plainly that a model with root can read it afterwards, restates
-      every acceptable weaker mode standing on the machine's bound set, and shows the name and
-      purpose as the model's request. Escaped secret.
+      every acceptable weaker mode standing on the machine's bound set, shows the name and
+      purpose as the model's request, and says that a key the operator minted at its service
+      with a cap, or one the operator can revoke there, is the best practice. Escaped secret.
 - [ ] **CNF-94 · BLOCKING** `place_secret` refuses what it must (`ARC-43`): a value equal to a
       credential the harness holds — the vendor credential, the seed, either inference tier —
       a destination mode that lets another account read the file, a path that is or passes
@@ -159,7 +161,7 @@ an item that tests a mode's conditions or its label is tiered by them like any o
 - [ ] **CNF-95 · PRE-SCALE** An exact copy of a placed application secret in box-plane output
       is redacted before that output reaches the model or the transcript (`SEC-5`): in the
       placing session against the value in memory, and in a later session against a keyed
-      digest once that scan is offered. Verified by printing the file. The machine-side output
+      digest. Verified by printing the file in each. The machine-side output
       file still holds the value (`STA-20a`), and the test record says so rather than
       reporting the value as contained.
 - [ ] **CNF-17 · BLOCKING** An untyped response containing a harness-held credential is
@@ -281,7 +283,8 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       contact and is destroyed once the target is pinned, and one whose destroy is unresolved
       is never reused; a reinstall through the vendor's API starts a new first contact; and
       with no separately supplied jump-vendor credential the route is unavailable rather than
-      run on the target's. Boundary crossed.
+      run on the target's. The route is unavailable as well at a jump vendor that is not paid
+      in Bitcoin, that needs an account, or that is the publisher. Boundary crossed.
 - [ ] **CNF-98 · PRE-SCALE** The jump-host route's residual trust is shown in full (`CHN-R6`,
       `TRU-E11`): the jump vendor and its image, the route between the two machines, the
       source of the target's address, baked image keys, and a jump vendor shared across
@@ -394,7 +397,7 @@ evidence is that set's test run against the relay the harness uses.
       vendor, until the call's terminal record or the operator's disposition (`STA-24`).
       Verified by withholding a vendor response and requesting a disk-writing command.
       Destroyed data: no adapter says which call reinstalls the machine being written.
-- [ ] **CNF-106 · BLOCKING** The untyped vendor scope's card asks the operator's two questions
+- [ ] **CNF-106 · BLOCKING** The untyped vendor scope's card asks the operator's questions
       in `SEC-4`'s words, once, when the key is supplied, with nothing preselected. "Not sure"
       sets the same warnings as yes; no answer blocks; the answers are journaled and labelled
       as the operator's statement; and the warnings they set, with the statement that minted
@@ -630,11 +633,11 @@ promotion rule above.
 
 | Applies when | CNF items | Interpretation |
 |---|---|---|
-| Stage 1: required | 1–7, 10–18, 21, 23–26, 28–30, 32, 34–35, 37, 39–44, 49–56, 61, 66–75, 78–79, 81–83, 87–91, 93–95, 99–104 | One goal, one session, one live cloud machine with no tenant, created through a typed adapter and first contacted by attest; synthetic unbound identities exercise 6 and 26. Item 7's growth and subset cases, and item 91's two-machine case, use fixtures until stage 2. Item 12 is exercised with a hostile goal and a hostile fetched document; its untyped-scope restatement, and item 14's, wait for stage 2. Item 14 covers any root password the typed adapter's response carries. Item 23 covers the refusal and the attest window; its jump-host label waits for stage 2. Items 24, 66 and 67 apply wherever the installation is pinned, and item 93's unpinned case wherever it is not; NixOS evidence is required before enabling NixOS. Item 37's run has no brief. Item 50 covers the delivery check; its scanner half waits for scanner enablement. Item 10 covers local ledger persistence; its sheet-export half is the recovery row's. Item 72 covers local allocation; imported-state cases are 84. Item 81's migration case waits for self-host migration, which no stage yet offers. Item 32 covers the typed adapter's origin. Items 68–71, 78 and 88–90 apply to the procured inference path; bring-your-own and local inference have no aggregator to test. Item 88 uses injected list fixtures the way 17 uses an injected response. Item 104 covers the typed adapter's invoice. |
+| Stage 1: required | 1–7, 10–18, 21, 23–26, 28–30, 32, 34–35, 37, 39–44, 49–56, 61, 66–75, 78–79, 81–83, 87–91, 93–95, 99–104 | One goal, one session, one live cloud machine with no tenant, created through a typed adapter and first contacted by attest; synthetic unbound identities exercise 6 and 26. Item 7's growth and subset cases, and item 91's two-machine case, use fixtures until stage 2. Item 12 is exercised with a hostile goal and a hostile fetched document; its untyped-scope restatement, and item 14's, wait for stage 2. Item 14 covers any root password the typed adapter's response carries. Item 23 covers the refusal and the attest window; its jump-host label waits for stage 2. Items 24, 66 and 67 apply wherever the installation is pinned, and item 93's unpinned case wherever it is not; NixOS evidence is required before enabling NixOS. Item 37's run has no brief. Interrupted resume (`STG-12`) is carried here by items 37, 39, 40 and 54–56; item 86's cases are a rescue boot's, and stay the test bed's. Item 95's later-session case is required like its first, and what it waits on is `OPN-28`, which gates completing this stage. Item 50 covers the delivery check; its scanner half waits for scanner enablement. Item 10 covers local ledger persistence; its sheet-export half is the recovery row's. Item 72 covers local allocation; imported-state cases are 84. Item 81's migration case waits for self-host migration, which no stage yet offers. Item 32 covers the typed adapter's origin. Items 68–71, 78 and 88–90 apply to the procured inference path; bring-your-own and local inference have no aggregator to test. Item 88 uses injected list fixtures the way 17 uses an injected response. Item 104 covers the typed adapter's invoice. |
 | Stage 1: record measurements | 45–47 | Require the integrated browser channel, not the rehearsal's timings. |
 | Recovery export/import and Replace | 19–20, 84 | Before offering recovery UI or maintained cloud delivery — which stage 1 is, so these pass before stage 1 completes; item 10's export case with them. Local unlock/restart is stage-1 work either way. |
 | The dedicated path: the construction test bed | 22, 38, 48, 62–64, 80, 85–86 | The Robot dedicated path's own checks. Their by-hand evidence stands (48 is recorded), construction exercises them on the test bed, and they pass on the integrated harness before a dedicated-server path is offered to an operator, which no stage before the third does. Items 62–64 also apply to any typed adapter that rides the pinned tunnel, stage 1's included if its vendor refuses a browser origin. |
-| Stage 2: any vendor, the jump host, sets above one | 27, 31, 33, 92, 96–98, 105–106 | Before enabling an untyped scope, an untyped vendor scope, the jump-host route or a bound set of more than one machine. Item 92's multi-tenant case gates sets above one; its independence-bound case gates the first profile that declares a bound. Repeat item 17 against real untyped responses. |
+| Stage 2: a vendor with no adapter whose API the browser can reach (`CHN-12b`), the jump host, sets above one | 27, 31, 33, 92, 96–98, 105–106 | Before enabling an untyped scope, an untyped vendor scope, the jump-host route or a bound set of more than one machine. Item 92's multi-tenant case gates sets above one; its independence-bound case gates the first profile that declares a bound. Repeat item 17 against real untyped responses. |
 | Post-harness handoff | 8, 77 | Before enabling any profile that declares one; none exists before stage 3. |
 | Scanner and advisory monitoring | 9, 36 | Also complete item 50's scanner case before exposing scanner results. |
 | Paid/public relay access | 57–60, 65, 76 | Before enrolment opens beyond the publisher's fixed first-stage record. Stage 1 still requires 81 and 87. |
@@ -663,6 +666,8 @@ harness, `STG-14` supplies physical Android evidence, and measurements are recor
 ad-hoc profile, the harness's machine-class questions and the signed lockdown checklist
 (`OPN-14`) must exist in the signed bundle, and the operator's approved declaration in the
 journal (`CNF-49`); a missing one fails completion rather than being replaced by an essay.
+`OPN-28` closes first: item 95's later-session evidence needs a digest key `SEC-5` has a row
+for.
 No tenant's artifact gates this stage: lnrent's delivery declaration and briefs 2–3 gate the
 third. Rehearsal/prototype results do not automatically check harness items. This is the
 distinction between being ready to construct and ready to deliver.

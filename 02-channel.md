@@ -208,7 +208,8 @@ following is a condition of the route, and without any one of them the route is 
   is shown the way `CNF-8` shows a like absence: by what sessions are given.
 - **It has its own index and its own credential rows.** The jump host is allocated an index
   in the machine family, journaled before its create (`STA-22b`) and never an entry of any
-  session's bound set; its keys and its vendor credential are `SEC-5` rows 3, 7, 16 and 21.
+  session's bound set; its client key and its vendor credential are `SEC-5` rows 3 and 21, and
+  where it is pinned by attest its attest keys are rows 7 and 16.
 - **Its vendor identity is separate from the target's.** Until a derived vendor identity can be
   derived (`SEC-5` row 22), that is met only by a separately supplied vendor credential — row
   21, held by the flow and by no session. Where the operator supplies none, the route is
