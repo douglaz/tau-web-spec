@@ -2,7 +2,8 @@
 
 Work arising from the [engineering review of 2026-08-19](docs/review/2026-08-19-engineering-review.md),
 which reviewed the corpus at `726ad44`, and from the reviews and decision records since
-(T21–T23 from the September 9 review, T27–T29 from the September 15 construction decisions).
+(T21–T23 from the September 9 review, T27–T29 from the September 15 construction decisions,
+T39–T47 from the general-case decisions of 2026-10-04 and 2026-10-05).
 Each task names the finding or decision it came from, so nobody has to reopen the record to
 know why it exists.
 
@@ -12,10 +13,12 @@ gated on it.
 
 ## Open
 
-- [ ] **T21 — First-stage tenant delivery inputs** (`OPN-14`; tracked in lnrent as
+- [ ] **T21 — Stage-3 tenant delivery inputs** (`OPN-14`; tracked in lnrent as
       [douglaz/lnrent#87](https://github.com/douglaz/lnrent/issues/87)). Obtain the lnrent-owned
       declaration, finish the Robot lockdown checklist and briefs 2–3, then exercise
-      `CNF-49`–`CNF-53`. This blocks stage completion, not harness construction.
+      `CNF-49`–`CNF-53` on a tenant's machine. *Until 2026-10-05 this blocked completing the
+      first stage. It no longer does:* stage 1 has no tenant (`STG-21`), and what it needs from
+      `OPN-14` is T42's generic checklist. This task now gates stage 3 (`STG-23`).
 - [ ] **T22 — Implement the clarified credential and recovery contracts** (`OPN-3`).
       Local unlock and v1 derivation gate the first stage (`CNF-82`–`CNF-83`); recovery
       export/import and partial Replace gate recovery enablement (`CNF-84`).
@@ -48,6 +51,100 @@ gated on it.
       tree as its CI gate.
       `bundle/inference.toml` has an empty model slug on purpose; the build fails until the
       publisher fills it.
+- [ ] **T39 — Stage 0: probe LNVPS** (`OPN-24`). One probe, four answers: boot-time user-data
+      or host-key exposure, browser reachability, the minimum billing period, an Arch image.
+      Record it under `docs/findings/`. If it fails, stage 1 and only stage 1 runs on Hetzner
+      Cloud with attest and a card account (`STG-21`).
+- [ ] **T40 — Stage 0: attest on a real first boot** (`OPN-3`). Cloud-init timing, the static
+      first-boot tool, and the browser's window against a measured slowest boot (`CHN-6`). It
+      is stage 1's first contact, and a window that closes now ends in a recreate (`CHN-R5`).
+- [ ] **T41 — Stage 0: Omarchy's server edition, or plain Arch** (`OPN-25`). And the
+      publisher's choice that follows from it: run stage 1 under the unpinned label, or add an
+      Arch pin to the bundle first (`ARC-24`, `ARC-25`).
+- [ ] **T42 — The generic signed lockdown checklist, and the harness's questions** (`OPN-14`,
+      `ARC-17`, `ARC-36a`). The fixed checks, keyed on no vendor and no tenant; the machine-class
+      questions, in the harness's words; and the plain-language rendering of a proposed
+      declaration the operator approves (`ARC-39`). All three ship in the bundle and gate
+      stage 1.
+- [ ] **T43 — Stage 1's build list** (`STG-21`). A typed LNVPS adapter; goal input; `place_secret`
+      (`ARC-43`); invoice relay for a machine (`ARC-30`); delivered against handed over with
+      findings (`ARC-17`); the unpinned label (`ARC-25`). *Owed to tau-web-rust at its spec pin
+      bump:* the new and restated conformance items, `CNF-91`–`CNF-106` with `CNF-16` and
+      `CNF-42`, as tests; no implementation was exercised by this amendment.
+- [ ] **T44 — The derived vendor identity's format** (`OPN-26`). Not decided: what it is derived
+      per — a bound set, a machine or a session; its index family and what its allocation entry
+      holds; its key type, pending T39. Until it lands, `SEC-5` row 22 keeps it unavailable and
+      `CHN-R6` runs only on a separately supplied jump-vendor credential (row 21). When it
+      lands, the Markdown, the Lean declarations, the known-answer vectors, their checker and
+      the witness files change together (`STA-22a`, ADR-0032). Decide with it: whether stage 1's
+      typed LNVPS adapter uses an operator-supplied credential (`SEC-5` row 1, today's text) or
+      a derived one.
+- [ ] **T45 — Stage 2: the jump host and the untyped vendor scope** (`STG-22`, `CHN-R6`,
+      `SEC-4`). Includes two things the rules name and nothing yet carries: a jump-host source
+      for a pin in the formal companion (`ARC-43` says "a pin taken at a jump-host first
+      contact (`CHN-R6`) is not among them"), and a row in `SEC-5` for the key of the placed
+      secret's keyed digest, without which a later session's scan is not offered.
+- [ ] **T46 — What the sibling repositories now owe.** Recorded here; none of them was edited.
+      **btc-policy:** state its independence rule over configured models as `SEC-T5` records
+      it, and say which members a footprint is counted across — one federation, overlapping
+      successor federations, or more; its drift checks and required software are still T28.
+      **lnrent:** its declaration (lnrent#87) now gates stage 3, and the project decides with
+      the publisher whether it is a tenant or a vendor the operator buys from (`OPN-27`).
+      **paid-tcp-relay:** wherever its text describes a client that accepts a first contact
+      through the relay on trust, this client no longer does (`CHN-R4`); a jump host is an
+      ordinary recorded destination and should need nothing new, which is to be confirmed
+      against that set and not assumed.
+- [ ] **T47 — Questions the general-case decisions left open.** Each is recorded because the
+      decisions are silent on it; where one touched a requirement, the requirement kept what it
+      said. None is a rule until decided.
+      - **A different model per machine is not deliverable on the procured path.** `ARC-31b`
+        gives every session the highest-ranked candidate, so several one-machine sessions are
+        one configured model, and `SEC-T5`'s footprint reaches quorum at once. Pre-existing;
+        stage 3 cannot ship past it (`OPN-27`).
+      - **Whether a multi-machine tenant fits the skill shape**, and whether atomic
+        multi-vendor creation, sealing and the coordinator stay a harness capability
+        (`OPN-27`). **Whether lnrent is a tenant or a vendor** (`OPN-27`).
+      - **The recovery ladder's middle rung under a bound set of more than one.** `SEC-1` still
+        speaks of re-binding "a half-provisioning machine"; whether escalation re-binds the
+        whole set, a subset the operator picks, or is never automatic is undecided.
+      - **`OVR-4` and the jump host.** The constraint stayed unconditional and the jump vendor is
+        priced as `TRU-E11`. Whether `OVR-4`'s "**one** component in every session's path" should
+        itself name the jump host is undecided.
+      - **A goal against a shipped brief.** Which wins when the operator's goal contradicts a
+        brief the bundle carries for the same software is undecided.
+      - **Convergence with no brief.** `ARC-10` makes convergence an authoring rule, and a
+        goal-driven run has no author. Whether the bundle ships a harness-level convergence
+        instruction is undecided; `CNF-37` is exercised on the goal-driven run meanwhile.
+      - **The keyed digest of a placed secret.** What keys it, where that key lives, and
+        whether the machine's job record carries a digest at all (T45).
+      - **An unpinned installation under an independence bound.** The decisions bar a goal, a
+        larger set and an untyped vendor scope there, and say nothing of an unpinned OS.
+      - **`CNF-67` on an unpinned installation.** Whether the item splits into a pinned and an
+        unpinned case, or stays one item that applies where a pin exists, as the applicability
+        table reads today.
+      - **The untyped vendor scope's remaining edges.** `STA-24` keys an untyped call's barrier
+        on "the same origin and credential", so a rotated token at the same origin starts with
+        none. `ARC-22`'s abandonment destroys "through typed operations", which an untyped
+        vendor has none of. A vendor with no adapter that refuses a browser origin is out of
+        reach until `CHN-12b` exists. And under such a scope the target's address arrives in a
+        response the model reads, while `CHN-R6` wants it read by harness code.
+      - **Host keys baked into a stock image.** `CHN-R6` lists them as a residual. Whether a
+        harness job regenerates and re-pins them, and whether a placed secret waits on that, is
+        undecided.
+      - **Which irreversible family "a multi-tenant machine is bound alone" belongs to.**
+        `CNF-92` files it under boundary crossed with the independence-bound case; harm to
+        the machine's guests and an escaped secret were both argued.
+      - **Two additions argued for machine class and not decided:** running `CNF-52`'s search
+        on every machine whatever its class, and asking the class again when a machine gains a
+        public listener beyond sshd. And whether Hermes, as shipped, serves parties the operator
+        has never met — which would make its machine multi-tenant by `ARC-36`'s definition.
+      - **A maintained cloud machine whose pin is lost with no sheet.** `STA-15` now leaves
+        destroy-and-recreate alone. Whether a jump-host first contact may re-pin such a machine
+        instead is undecided.
+      - **Recovery items in stage 1.** Stage 1 delivers a maintained cloud machine, so by the
+        applicability table's existing condition `CNF-19`, `CNF-20` and `CNF-84` pass before it
+        completes. Recorded as a consequence, because nobody decided it as a stage-1 need.
+
 - [x] **T30 — Port the specification gates and the formal companion's scaffold** (ADR-0032).
       From `~/projects/provisiond-spec`: `tools/check-all.sh`, the identifier, fixture,
       obligation, coverage and citation gates with this corpus's namespace table; `tools/formal/`

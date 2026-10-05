@@ -1,18 +1,87 @@
-# 06 — What the first stage must demonstrate
+# 06 — The stages, and what the first must demonstrate
 
-**STG-1** The first stage provisions **one lnrent box on a dedicated server, over the full
-channel** ([ADR-0018](./docs/adr/0018-first-stage-is-one-lnrent-box-on-dedicated.md)). One
-session, one machine, one real tenant.
+## The stages
 
-**Dedicated because it is the only place the identity chain closes.** On Cloud there is no way
-today to obtain a host key without trusting first contact — `CHN-R2` is dead, `CHN-R3` is
-abandoned, `CHN-R5` is unproven — so `OVR-4` is satisfied nowhere. On dedicated it closes at both
-hops. The corollary is that Robot offers no boot-time user-data at all, so nothing can be done
-to the machine except through the channel: a cost this stage accepts, not a benefit it seeks.
+The work is staged in four, re-drawn on 2026-10-05 around the general case: an operator with a
+goal and no tenant.
 
-It replaces the two-cloud-machine diversity demo the design session chose: that staged a
-vault argument the platform no longer leads with, proved the easy machinery, and deferred
-both hard problems.
+- **Stage 0 — the probes**, run now and in parallel with construction. The LNVPS probe
+  (`OPN-24`): boot-time user-data or host-key exposure, browser reachability, the billing
+  minimum, an Arch image. Attest on a real first boot (`OPN-3`). And Omarchy's server edition,
+  or plain Arch in its place (`OPN-25`). None of it needs the harness.
+- **Stage 1 — the owner's scenario, with no tenant** (`STG-21`).
+- **Stage 2 — any vendor** (`STG-22`).
+- **Stage 3 — tenants, as skills** (`STG-23`).
+
+Typed comes before untyped for a reason of order, not of preference: an untyped vendor scope
+needs the jump host for its machines' first contact (`SEC-4`), and the jump host needs a jump
+vendor whose creation the harness composes — a typed adapter — plus attest to pin it
+(`CHN-R6`).
+
+**What each identifier below gates.** No identifier was renumbered when the stages were
+re-drawn; the ones written for the dedicated path say so here.
+
+| Identifiers | Gate |
+|---|---|
+| `STG-21`; `STG-5`, `STG-6` where the installation is pinned, `STG-7`, `STG-9`, `STG-10`, `STG-12`, `STG-13`, `STG-14` | Stage 1 |
+| `STG-15`, `STG-16`, `STG-17` | Stage 1, as recorded measurements and provenance |
+| `STG-1`, `STG-3`, `STG-3a`, `STG-4`, `STG-11`, `STG-20` | The dedicated path — the construction test bed now, and a path offered to an operator no earlier than stage 3 |
+| `STG-2` | Nothing further: construction admission, closed 2026-09-08 |
+| `STG-18`, `STG-19` | Nothing: they state what a passing stage does not show |
+| `STG-22`, `STG-23` | Stages 2 and 3 |
+
+**STG-21 Stage 1 is the owner's scenario: one goal, one machine, no tenant.** "Launch a VPS
+paid in Bitcoin and install Hermes on Omarchy." One session works from that goal alone
+(`ARC-11a`), under the ad-hoc profile (`ARC-44`). The machine is a VPS at LNVPS, created through
+a **typed adapter**, paid for by a Lightning invoice from the operator's own wallet (`ARC-30`),
+and first contacted by attest (`CHN-R5`). Hermes is installed on Omarchy — or on Arch, if
+`OPN-25` closes that way — as the operator's application (`ARC-1a`). Beyond the channel and the
+journal, the stage needs:
+
+- **goal input, and the harness's own questions** for machine class and the declaration
+  (`ARC-36a`, `ARC-39`);
+- **`place_secret`**, for the application's key (`ARC-43`, `CNF-16`);
+- **the unpinned label, or a publisher pin for Arch** (`ARC-25`);
+- **delivered against handed over with findings**, and a generic signed lockdown checklist
+  (`ARC-17`, `OPN-14`);
+- **invoice relay for a machine** (`ARC-29`, `ARC-30`);
+- **interrupted resume** (`STG-12`); and
+- **one re-entry** (`STG-9`).
+
+**If LNVPS fails its probe**, stage 1 — and no later stage — runs on Hetzner Cloud with attest
+and a card account.
+
+**STG-22 Stage 2 is any vendor.** A vendor with no adapter, reached through an untyped vendor
+scope on `SEC-4`'s conditions; the jump-host route (`CHN-R6`), with LNVPS as the jump vendor;
+bound sets of more than one machine (`SEC-1`); and a second vendor, which is what closes
+`OPN-5`.
+
+**STG-23 Stage 3 is tenants, as skills.** lnrent's skill, on the dedicated path. And
+btc-policy's vault, with everything it brings: a declared independence bound, sealing, the
+coordinator, concurrent sessions and the trust panel. What shape those take is `OPN-27`.
+
+## The construction test bed: one machine on a dedicated server
+
+**STG-1** The construction test bed is **one machine on a dedicated server, over the full
+channel**: rescue, a pinned host key at both hops, an install through the box plane, one
+re-entry. It is where construction exercises the channel, the pinning chain, the box plane and
+the transcript before any stage's vendor is ready, and its rehearsal evidence and brief 1
+stand. It gates no stage by itself; it gates offering a dedicated-server path to an operator.
+
+*What this requirement used to say* was that the first stage provisions one lnrent box on a
+dedicated server — one session, one machine, one real tenant
+([ADR-0018](./docs/adr/0018-first-stage-is-one-lnrent-box-on-dedicated.md), superseded). The
+first stage is now `STG-21`'s. Neither the tenant's daemon, nor brief 3, nor lnrent's
+declaration gates it.
+
+**Dedicated came first because it was the only place the identity chain closed.** On Cloud
+there was no way to obtain a host key without trusting first contact — `CHN-R2` is dead,
+`CHN-R3` is abandoned, `CHN-R5` is unproven. On dedicated it closes at both hops. The corollary
+is that Robot offers no boot-time user-data at all, so nothing can be done to the machine
+except through the channel: a cost the test bed accepts, not a benefit it seeks. What changed
+is not that argument but what is refused: a first contact with no pin is no longer a route of
+last resort (`CHN-R4`), so the cloud path's own route has to run before anything ships there,
+and stage 0 is where it does.
 
 **STG-2 Construction gates on the installation and identity-chain rehearsal, once, first.** Activate rescue on a
 disposable dedicated server; read what `host_key` actually returns; read what the automatic
@@ -22,7 +91,7 @@ write the briefs from the captured install transcript. "By hand" means no harnes
 captured once and no credential is typed twice (`prototypes/first-stage-rehearsal/`).
 
 **Run 2026-09-08** (`docs/findings/2026-09-08-first-stage-rehearsal.md`). The three briefs
-this stage needs are: **(1) install** — from a pinned rescue session to an installed,
+the dedicated path was planned around are: **(1) install** — from a pinned rescue session to an installed,
 reachable system whose host keys the harness already holds; **(2) lock-down** — harden and
 demonstrate against the tenant's delivery declaration (`ARC-39`, `ARC-17`); **(3) the
 tenant's daemon** — installed and started to the tenant's declared lifecycle, authored from
@@ -32,7 +101,8 @@ host-key pin are **not** brief content: they are the harness's typed ceremony (`
 `STG-4`), deterministic by design, and no improvising model owns the identity chain. Only
 brief 1 has evidence today and is written
 ([`docs/briefs/01-install.md`](./docs/briefs/01-install.md)); briefs 2 and 3 wait on a
-lock-down checklist (`OPN-14`) and a delivery declaration that do not yet exist.
+lock-down checklist (`OPN-14`) and a delivery declaration that do not yet exist, and they gate
+stage 3, not stage 1.
 
 The reason is that the two risks are wildly mismatched, and research has widened the gap
 rather than narrowed it. The SSH client is no longer a bet: a deployed Rust implementation
@@ -40,10 +110,9 @@ exists on the same target, with the same UI and build stack this design specifie
 configuration is published
 ([ADR-0024](./docs/adr/0024-the-ssh-client-is-rust-following-a-known-good-configuration.md)).
 The unknown was Robot's rescue response (`OPN-6`); the September 8 rehearsal closed it.
-Harness construction can now start. Completing the stage still requires the tenant-owned
-lockdown declaration/checklist and briefs 2–3 (`OPN-14`), plus the integrated acceptance
-checks listed in `07-conformance.md`. A successful installation rehearsal is not completion
-of the first stage.
+Harness construction can now start. Completing stage 1 requires what `STG-21` lists and the
+integrated acceptance checks in `07-conformance.md`. A successful installation rehearsal is not
+completion of any stage.
 
 ## Why the install runs from inside rescue
 
@@ -94,11 +163,14 @@ sequenceDiagram
     Note over B: pins them — no TOFU at this hop either
     B->>RB: reboot into the installed system
     B->>M: SSH, verified against the second pinned key
-    B->>M: harden · demonstrate lockdown · start the daemon
+    B->>M: harden · demonstrate lockdown · start what the declaration calls for
     Note over OP,M: later: a second session re-enters<br/>over the same pinned channel
 ```
 
 ## Acceptance
+
+The identifiers in this section were written for the dedicated path. The table under *The
+stages* says which of them gate stage 1.
 
 **STG-3a Every Robot call rides the tunnel, not `fetch`.** Robot serves no CORS
 headers at all, so no browser origin can read its responses (`CHN-R1`, verified 2026-08-31).
@@ -166,10 +238,12 @@ harness's `fetch_artifact` job (`ARC-43`); the model requests it and never repor
 the bootstrap URL/hash and the package/cache signing keys and repository policy. On Alpine,
 record the repository branch, index digests and installed versions; on NixOS, record the
 source revision and cache keys. Neither path may report the bootstrap hash as covering the
-complete installed system. Reject untrusted package signatures before delivery (`CNF-67`).
+complete installed system. Reject untrusted package signatures before delivery (`CNF-67`). An
+unpinned installation records that it is unpinned, and names neither layer (`ARC-25`).
 
-**STG-7** The machine ends **locked down and demonstrated**: the deliverable of `ARC-17`,
-with the tenant's daemon running.
+**STG-7** The machine ends **delivered**: locked down and demonstrated, the deliverable of
+`ARC-17`, with the software its declaration calls for running. In stage 1 that is the
+operator's application; a tenant's daemon is stage 3's.
 
 *`STG-8` retired.* It required a real tenant outcome — a published listing and a delivered
 order — or a written statement of why not. Both halves were wrong. The first tested **lnrent**
@@ -181,8 +255,9 @@ positional, so nothing renumbers.
 **STG-9** The machine is **maintained**, and the story is exercised: at least one later
 session re-enters over the same pinned channel and re-runs the check.
 
-**STG-10** No credential — the Robot credential, the rescue root password, the session inference key,
-the SSH client private key, or the relay key — appears in a request to the app origin, in
+**STG-10** No credential — the vendor credential, a vendor-generated root password in a typed
+adapter's response, the session inference key, the SSH client private key, the relay key, or a
+placed application secret — appears in a request to the app origin, in
 any model request body, or in any log; and none appears in origin-private storage, local
 storage, or service-worker caches outside the encrypted-at-rest store `SEC-5` names.
 Cleartext nowhere. The local store unlocks and locks under `STA-23`; killing the worker
@@ -191,8 +266,9 @@ requires a new unlock and replay, never a plaintext fallback.
 **STG-11** A rescue activation or its reset, interrupted between intent and confirmation,
 then resumed, results in exactly one rescue session and one install.
 
-**STG-12** A brief interrupted mid-run — by a phone lock, a killed worker, a dropped session
-— and re-run from the top **converges** rather than duplicating (`ARC-10`). This is the
+**STG-12** An install interrupted mid-run — by a phone lock, a killed worker, a dropped session
+— and resumed, a brief re-run from the top included, **converges** rather than duplicating
+(`ARC-10`). This is the
 predicate most likely to fail under tab suspension — Android's, which is tested, and iOS's,
 which would be harsher if it were — and the one the by-hand rehearsal should be designed to
 stress.
@@ -246,8 +322,9 @@ counts as touching it until that machine is destroyed".
 
 **STG-18** Stated because a passing stage would otherwise read as a working product.
 
-- **Acquisition.** The stage assumes an existing vendor account, an already-rented dedicated
-  server, and a Robot webservice user. It tests none of them.
+- **Acquisition beyond one invoice.** Stage 1 buys one machine by one invoice at one
+  account-free vendor. It tests no account, no card, and no second vendor (`OPN-5`); on the
+  dedicated test bed the server is already rented.
 - **Relay enrolment.** The operator's relay **public** key, derived from the seed (`CHN-15`),
   is handed to the publisher out of band and recorded by hand. Nothing secret crosses and
   nothing is pasted into the app. The publisher configures the allowed public destinations
@@ -256,24 +333,22 @@ counts as touching it until that machine is destroyed".
   (`CNF-81`, `CNF-87`). There is no purchase flow or tested reacquisition story;
   that is `OPN-2`.
 - **Inference funding.** Assumed already funded.
-- **Tenant-secret delivery.** `CNF-16` is not first-stage work, so no tenant secret is placed
-  on the machine. If lnrent's declaration puts the receiving-service credential on the box
-  (its profile, `SEC-5` row 12), first-stage delivery stops short of Lightning receiving until
-  injection is enabled.
-- **The general tunnel.** The stage builds only the **pinned** kind (`CHN-12a`), for one known
-  vendor. Reaching an arbitrary CORS-refusing service needs `CHN-12b`'s certificate-authority
+- **Any vendor but one, and any set but one machine.** Untyped vendor scopes, the jump host and
+  bound sets above one are stage 2's (`STG-22`); tenants are stage 3's (`STG-23`).
+- **The general tunnel.** Only the **pinned** kind is built (`CHN-12a`), for a vendor known at
+  build time. Reaching an arbitrary CORS-refusing service needs `CHN-12b`'s certificate-authority
   store, which `OPN-20` still prices and this stage does not touch.
 - **A phone-only non-technical operator getting started at all.** A developer can pass every
   predicate above while the target operator still cannot begin. That gap is the product
   thesis, and nothing in this stage measures it.
 
-**STG-19 "If the maximal path works, the rest is subsetting" is too strong.** Dedicated rescue
-demonstrates the channel, the pinning chain, the box plane, the transcript and one re-entry.
-It demonstrates **none** of: attestation (`CHN-R5`), boot-time user-data, recovery-sheet
-handling, second-vendor reachability, concurrent sessions, federation formation, or threshold
-isolation. Those are orthogonal systems that arrive with the second stage, not subsets of this
-one. The honest claim is that this stage de-risks the channel, which is the item everything
-else waits on.
+**STG-19 "If the maximal path works, the rest is subsetting" is too strong.** The dedicated
+test bed demonstrates the channel, the pinning chain, the box plane, the transcript and one
+re-entry. It demonstrates **none** of: attestation (`CHN-R5`), boot-time user-data,
+recovery-sheet handling, second-vendor reachability, concurrent sessions, federation formation,
+or threshold isolation. Those are orthogonal systems, not subsets of it: stage 1 walks the
+first three on its own evidence, and the rest arrive with stages 2 and 3. The honest claim is
+that the test bed de-risks the channel, which is the item everything else waits on.
 
 **STG-20 A machine that does not come back is reinstalled, not diagnosed.** A dedicated server
 that fails to boot after the install is **invisible over the network**: the vendor API reports
@@ -307,9 +382,7 @@ those was a silent failure once. And a brief distinguishes **resuming** an inter
 install (`ARC-10`, `STG-12`: inspect what is there and continue) from this rung's
 **reinstall**, which wipes: the rehearsal's recipe only knew how to wipe.
 
-## The second stage
+## After the first stage
 
-Brings the vault: Cloud machines, multiple concurrent sessions, the trust panel, the
-coordinator, federation formation, all-or-nothing creation — and Cloud's identity problem:
-`CHN-R2` dead, `CHN-R3` abandoned, `CHN-R5` designed for exactly this and unproven. It reuses the channel the first stage proved. If the SSH client fails instead, the
-fallback is the old cloud-first stage with the channel question reopened.
+`STG-22` and `STG-23` say what stages 2 and 3 bring. Both reuse the channel, the journal and
+the delivery check that stage 1 proves; neither is a subset of it.

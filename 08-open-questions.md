@@ -80,7 +80,7 @@ passes or fails against a named second vendor.
 **OPN-24 — Whether LNVPS can be the first vendor, and the jump vendor.** LNVPS (lnvps.net;
 its API is published at github.com/LNVPS/api) sells machines for Lightning, identifies a buyer
 by a Nostr key, and keeps no account: what `CHN-R6` asks of a jump vendor, and what stage 1
-wants of its only vendor. Nothing about it has been measured. One probe answers four things:
+wants of its only vendor (`STG-21`). Nothing about it has been measured. One probe answers four things:
 
 - **Boot-time user-data, or published host keys** — whether `CHN-R5` or a retrieve route can
   pin a machine there at all.

@@ -105,7 +105,7 @@ an item that tests a mode's conditions or its label is tiered by them like any o
 - [ ] **CNF-92 · BLOCKING** Under a profile that declares any independence bound, a second
       machine in a session's bound set is refused at binding, and so is a binding, a re-entry
       or an escalation that would take a configured model's footprint past the bound
-      (`SEC-1`, `OVR-5`; btc-policy's `SEC-T5` is the first such bound). A multi-tenant machine is refused any set but its own, and a machine
+      (`SEC-1`, `OVR-5`; btc-policy's `SEC-T5` is the first such bound, `STG-23`). A multi-tenant machine is refused any set but its own, and a machine
       whose class was answered "not sure" is multi-tenant for this purpose (`ARC-36a`). No
       operator act sets either refusal aside. Boundary crossed: one model context across
       members a tenant counts as independent, or across a host of strangers and another
@@ -273,7 +273,7 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       ledger is empty (`STA-10`). Boundary crossed: a model that can reach the jump host can
       reach the first contact of the machine behind it.
 - [ ] **CNF-97 · BLOCKING** A jump-host first contact keeps every condition of its route
-      (`CHN-R6`). The jump host's own key is pinned out of band before anything is sent
+      (`CHN-R6`, `STG-22`). The jump host's own key is pinned out of band before anything is sent
       through it; the target's handshake runs end to end inside that pinned session; the only
       forwarding requested is to the target's address, which was read from the target's vendor
       over browser-terminated TLS and journaled before the jump; a first direct connection
@@ -318,7 +318,7 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       neither a goal nor a model's proposal seals one (`ARC-27`). Class, access model and
       declaration are each journaled with the machine before anything is installed
       (`ARC-44`).
-- [ ] **CNF-102 · BLOCKING** A goal steers one session's bound set (`ARC-11a`): it is journaled
+- [ ] **CNF-102 · BLOCKING** A goal steers one session's bound set (`ARC-11a`, `STG-21`): it is journaled
       with that session and its source, the interface offers no import, sharing or reuse of
       one, and a goal is refused for a machine under a profile that declares an independence
       bound. A fetched document's source is recorded with the goal, and its text authorizes
@@ -622,7 +622,7 @@ Not pass/fail. Required to be recorded.
 ## Stage applicability and admission
 
 This table is exhaustive; every new CNF item must acquire a row before it can gate a stage.
-The stages are `06-first-stage.md`'s. **Required** means that stage's completion report must
+The stages are `06-first-stage.md`'s (`STG-21`, `STG-22`, `STG-23`). **Required** means that stage's completion report must
 include passing evidence, even for PRE-SCALE items promoted by `STG-*`. Measurements must have
 recorded values. Later features remain unavailable until their BLOCKING checks pass; deferral
 never enables an untested capability. A broader deployment still applies the PRE-SCALE

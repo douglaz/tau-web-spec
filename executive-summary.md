@@ -42,19 +42,22 @@ because the host becomes the party you were trying not to need. A vault whose me
 provisioned by a single party has been defeated by that party, whatever its intentions.
 
 So: a harness in the browser that provisions and operates machines the operator rents and
-controls. **Tenants build on it** — Bitcoin custody, server rental over Bitcoin, and ad hoc use
-that needs neither. The second turns out to be load-bearing for the first, because a federation
+controls. **It works from the operator's goal alone**, with no tenant and no brief written for
+the software in question. **Tenants build on it and are optional** — Bitcoin custody, server
+rental over Bitcoin. The second turns out to be load-bearing for the first, because a federation
 across several vendors means several billing relationships, and renting for sats with no account
 is the only escape from that.
 
 ## How it works
 
-**The AI runs only in the browser, and it is a trusted party.** A machine is a target, never an
-actor: it holds no inference key and no vendor token belonging to the harness, and it never
-initiates work. Its one outbound message, the attest introduction, acts on nothing on its
-behalf.
+**The harness's AI runs only in the browser, and it is a trusted party.** A machine is a target
+of the harness, never an actor for it: it holds no credential belonging to the harness, and the
+harness never asks a machine to act. Its one outbound message, the attest introduction, acts on
+nothing on its behalf. Software the operator has installed that acts on its own — an always-on
+agent with a model of its own — is the **operator's application**: it is outside what the
+harness claims, and its machine's delivery card says so.
 
-But the model has a root shell on the machine it is bound to, and the design says so plainly
+But the model has a root shell on each machine it is bound to, and the design says so plainly
 rather than pretending a rule could take that away. It is the operator's agent, which is the
 whole point. What the harness does is **minimize** what the model can reach and **count** what
 remains — and where a tenant genuinely needs the model kept away from secrets, that tenant
@@ -69,34 +72,47 @@ identify.
 the operator's machines with a credential they supplied. Where an adapter types the action it is
 approved on structured facts; where none does, the operator approves a *scope* naming the
 credential and the origin, every call is recorded before it is sent, and the harness **claims
-nothing about what that credential can do** — for most services it cannot know. The **box plane**
+nothing about what that credential can do** — for most services it cannot know. A vendor with
+no adapter is reached the same way, as a weaker mode the operator accepts by its label, on
+conditions of its own. The **box plane**
 is command-at-a-time shell on a machine the operator already owns: nothing is pre-approved,
 because nothing is known in advance, and everything is recorded before transmission.
 
 Each side carries its own bound. Box-plane work can be free-form because the worst case is
-ruining a machine already paid for. Cloud-plane work has no such bound, so an untyped call means
+ruining the machines of one bound set, already paid for. Cloud-plane work has no such bound, so an untyped call means
 approving a key's full authority at an origin, and the interface has to say that rather than
 imply a limit.
 
 **Briefs are instructions, not scripts.** The AI reads prose plus example commands and decides
 what to run. A script stops dead at the first surprise, and the AI exists precisely for the
 surprises. Briefs ship inside the signed bundle, because a brief steers every machine at once and
-diversity buys nothing against it.
+diversity buys nothing against it. An operator's goal is not a brief: it steers one session, is
+journaled with it, and is never shipped, imported or shared.
 
-**One session, one machine, and the lock is real.** Each session is bound to exactly one machine
-by an operator act before anything connects, and **each machine has its own SSH keypair**, so
-only that machine's public key reaches it and a session is given only the key of the machine it
-is bound to. A session cannot authenticate to a machine it is not bound to, and the refusal
-comes from SSH rather than from the harness declining to call itself. A machine has at most one
-bound session at a time; a later session re-enters a maintained machine with the same key.
-Access composes, not intent. Sessions run concurrently on the one device the operator owns, each
-configured with a different model, with all machine creations approved together before any work
-begins.
+**A session reaches only its bound set, and the lock is real.** Each session is bound, by an
+operator act before anything connects, to a set of machines — one by default — and **each
+machine has its own SSH keypair**, so only that machine's public key reaches it and a session is
+given the keys of its own set and no other. A session cannot authenticate to a machine outside
+its set, and the refusal comes from SSH rather than from the harness declining to call itself. A
+machine has at most one bound session at a time; a later session re-enters a maintained machine
+with the same key. Access composes, not intent: a set of more than one machine is one model
+context, shown as one unit of harm, and accepted by the operator as a weaker mode by its label.
+Where a tenant declares an independence bound, it is always one machine per session, each
+configured with a different model. Sessions run concurrently on the one device the operator
+owns, with all machine creations approved together before any work begins.
 
 **The deliverable is a locked-down machine, demonstrated** by a lightweight self-directed pentest
 — a **competence check, not an integrity check**. A model examining its own machine proves nothing
 against a malicious model. What it catches is honest-but-sloppy, the likely failure on a
-first-time setup.
+first-time setup. A machine is **delivered** only with no finding standing; one the operator
+takes anyway is **handed over with findings**, is never called locked down, and receives no
+placed secret until a re-check clears it.
+
+**Some rules no operator act sets aside, and a few weaker modes an operator may accept by
+name.** An installation with no artifact pin, a first contact from a jump host, a run with no
+brief, a set of more than one machine, an untyped scope at a vendor with no adapter: each is
+chosen before contact, never entered because a stronger check failed, and restated at every
+later irreversible act.
 
 **Whatever runs after the harness is AI-free, and holds no channel to any machine at any
 point.** A tenant may declare post-harness machinery in its profile: deterministic code from
@@ -117,13 +133,16 @@ assumption a threshold cannot survive losing.
 by other means, through a relay that carries ciphertext. On dedicated hardware the vendor API
 hands over the key; on the cloud path, where retrieval is dead, a designed and not yet booted
 route — *attest*, the machine introducing its own key over Nostr under a per-machine key
-planted at creation — closes the gap without trusting first contact. **Every per-machine key the
+planted at creation — closes the gap without trusting first contact. A first contact with no
+pin is refused through the relay; where a vendor offers no route of its own, the first contact
+runs from a temporary jump host no model has touched, inside a pinned session — trust on first
+use moved off the relay, and labelled as that. **Every per-machine key the
 browser needs derives from a seed the operator holds**, so a lost phone re-derives them from
 twelve words plus exported derivation indices; what the seed cannot re-derive — allocation
 metadata, pins, the ledger, the inference balance — is what
 the recovery sheet is for, and the vendor account is what says which machines exist.
 
-**The system is written from inside a rescue environment**, for two reasons: rescue is what
+**On the dedicated path the system is written from inside a rescue environment**, for two reasons: rescue is what
 publishes the host key, and the chosen distributions are not on the vendor's installer menu. That
 makes the **artifact source** — wherever the bits come from — a party that decides what every
 machine runs. The browser supplies the bootstrap hash and accepted package/cache signing keys
@@ -142,9 +161,10 @@ ships signed.
 The harness and its tenants claim **different** things, and blurring them is how a single machine
 ends up shipping under a vault's guarantee.
 
-**The harness claims** that no session reaches a machine it is not bound to *through anything the
-harness controls*, and that a model's blast radius is the machines its weights have touched, plus
-any approved untyped scope, plus any tenant secret placed on those machines — all three stated
+**The harness claims** that no session reaches a machine outside its bound set *through anything
+the harness controls*, and that a model's blast radius is the machines its weights have touched,
+plus any approved untyped scope, plus any application secret placed on those machines — all three
+stated
 together, because no one of them alone is the boundary. What it *removes* is the party that would
 otherwise pick the operator's vendor, model and configuration while holding their credentials.
 
@@ -184,8 +204,9 @@ machines.
 **Elective** — real trust, chosen and changeable. The cloud vendor, which owns its machine's
 memory and disk. The inference proxy, of which the default path has exactly one. The provider
 behind it. A majority of the models, honest *and* competent. The scanner's model. Any service an
-approved untyped call hands a credential to. Whoever signs the software the machines run. And the
-artifact source, which decides what every machine boots. **This is precisely the set a hosted
+approved untyped call hands a credential to. Whoever signs the software the machines run. The
+artifact source, which decides what every machine boots. Where a first contact uses one, the jump
+vendor and the path from it. And the model provider of an application the operator installed. **This is precisely the set a hosted
 service picks for you, silently and unlisted.**
 
 **Added by this product** — the only tier the design controls, and the only one an invariant
@@ -203,20 +224,24 @@ than "trustless" — but it survives the regress.
 ## What is not settled
 
 The maintained list is [`08-open-questions.md`](./08-open-questions.md), and each entry says what
-would close it. What gates completing the first stage is the tenant's delivery declaration and
-lockdown checklist, from which the remaining briefs are written; and the integrated harness
-demonstrating interrupted-install resume. The recovery machinery, designed and unproven on a
-real cloud first boot, gates recovery and the cloud path. The cloud-account floor that makes
+would close it. What gates completing the first stage is a set of probes — the first vendor,
+attest on a real first boot, the distribution on a server — a generic lockdown checklist, and
+the integrated harness demonstrating interrupted-install resume. The recovery machinery,
+designed and unproven on a real cloud first boot, gates recovery, which that first machine
+needs. The cloud-account floor that makes
 rental structural gates the phone-only acquisition experience.
 
 ## Status
 
-The first stage is **one rental box on a dedicated server, over the full channel** — the hardest
-machinery on purpose. It was rehearsed **by hand, once**, on a disposable server on
-September 8, 2026: both pinned SSH hops closed, and the install brief was written from the
-transcript. Separately, the browser SSH client and the pinned TLS client ran on a physical
-Android phone. Harness construction can start; the integrated harness, interrupted resume,
-lockdown and tenant delivery remain unproven.
+The first stage is **the owner's own scenario, with no tenant**: one goal, one machine bought by
+Lightning invoice, an always-on agent installed on it. The path it replaced as first — one
+machine on a dedicated server, over the full channel — was rehearsed **by hand, once**, on a
+disposable server on September 8, 2026: both pinned SSH hops closed, and the install brief was
+written from the transcript. It is now the construction test bed. Separately, the browser SSH
+client and the pinned TLS client ran on a physical Android phone. Harness construction can
+start; the integrated harness, a goal-driven install, interrupted resume and lockdown remain
+unproven.
 
-The vault, with its concurrent sessions, trust panel and federation, is the second stage and
-reuses the channel the first one proves.
+Any vendor, the jump host and larger sets come after that; tenants come last — the vault among
+them, with its concurrent sessions, trust panel and federation — and all of it reuses the channel
+the first stage proves.
