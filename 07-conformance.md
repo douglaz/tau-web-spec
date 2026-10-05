@@ -105,7 +105,7 @@ an item that tests a mode's conditions or its label is tiered by them like any o
 - [ ] **CNF-92 · BLOCKING** Under a profile that declares any independence bound, a second
       machine in a session's bound set is refused at binding, and so is a binding, a re-entry
       or an escalation that would take a configured model's footprint past the bound
-      (`SEC-1`, `OVR-5`). A multi-tenant machine is refused any set but its own, and a machine
+      (`SEC-1`, `OVR-5`; btc-policy's `SEC-T5` is the first such bound). A multi-tenant machine is refused any set but its own, and a machine
       whose class was answered "not sure" is multi-tenant for this purpose (`ARC-36a`). No
       operator act sets either refusal aside. Boundary crossed: one model context across
       members a tenant counts as independent, or across a host of strangers and another

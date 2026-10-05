@@ -3,7 +3,9 @@
 Normative companion to `ARC-39` and ADR-0030's "Delivery declaration" slot. The structured form
 the delivery check (`CNF-49`–`CNF-53`) reads. A tenant's profile carries the prose; a v1
 document carries the values the harness measures against — today the examples below, and a
-file beside each profile once T28 lands.
+file beside each profile once T28 lands. Where no tenant applies, the declaration is the one
+the operator approved for that machine, starting from the ad-hoc minimum below (`ARC-39`), and
+"the tenant" in this document reads as whoever stated the declaration.
 
 ## Presence rule
 
@@ -70,8 +72,9 @@ output never enters model context as authority (`SEC-8`).
 }
 ```
 
-Listeners the operator adds during a session are per-machine journal input, not profile
-content (ad-hoc profile).
+This is the signed minimum every proposal starts from. What the operator approves beyond it
+for a machine — a listener, a service, an application's outbound destinations — is that
+machine's journaled declaration, not profile content (ad-hoc profile).
 
 ## lnrent, v1 (template, every field unspecified)
 

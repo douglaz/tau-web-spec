@@ -106,7 +106,7 @@ rendered twice, a malformed marker, and an emitted region no document renders.
 | `ARC-n` | Architecture |
 | `CHN-n` | The channel; `CHN-Rn` is one of the routes to a pinned host key |
 | `STA-n` | State and recovery |
-| `SEC-n` | Security model; `SEC-Tn` is a tenant rule now in btc-policy's profile; `SEC-CLAIM` is the claim itself |
+| `SEC-n` | Security model; `SEC-Tn` is a tenant rule in btc-policy's profile; `SEC-CLAIM` is the claim itself |
 | `TRU-Un`, `TRU-En`, `TRU-An` | Trust: unavoidable, elective, and added by this product |
 | `STG-n` | The first stage |
 | `CNF-n` | Conformance items |

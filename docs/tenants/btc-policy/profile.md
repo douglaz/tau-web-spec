@@ -2,7 +2,7 @@
 
 Owned by [btc-policy](https://github.com/douglaz/btc-policy). Records:
 https://github.com/douglaz/btc-policy. Briefs supplied: none yet.
-Profile revision: 1 (2026-09-10).
+Profile revision: 2 (2026-10-05).
 
 Schema: ADR-0030. Rules that only make sense here are the tenant's; everything else is the
 harness's. Identifiers below keep their original numbers.
@@ -45,6 +45,19 @@ which binds. The harness ships a stricter default: one vendor, one machine. The 
 rule at two strengths: btc-policy's quorum-relative form is the bound an implementation MUST
 enforce, and the flat form is the default the harness applies — relaxable by the tenant
 toward its own bound, never past it, and never by the harness on its own.
+
+**SEC-T5** No configured model's footprint — every member it has touched, and every member
+co-bound with one of those — may reach a federation's quorum, for the life of those members:
+the tenant's rule, which binds at binding, at re-entry and at the recovery ladder's
+escalation. The harness ships a stricter default wherever a profile declares an independence
+bound: **one member per session** (`SEC-1`), so a session's bound set here is exactly one
+machine. The two are one rule at two strengths, as `SEC-T3`'s are — with one difference: the
+harness's form is non-waivable, and this profile does not relax it. The slot's structured
+value, which the harness enforces by refusing the binding: one machine per session, and a
+configured model's footprint below quorum.
+
+Because this slot is declared, no goal steers a member (`ARC-11a`) and no member's session is
+given an untyped vendor scope (`SEC-4`): this tenant ships briefs and uses typed adapters.
 
 ## Delivery declaration
 
