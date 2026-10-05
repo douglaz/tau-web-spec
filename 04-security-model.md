@@ -104,10 +104,9 @@ up instead of a sheet of keys — not a credential any session or machine ever s
 **Post-harness machinery holds no grant of this kind at all** (`ARC-19a`). It runs after every
 machine of the setup is delivered, and where the profile seals, a sealed machine has no SSH to
 authenticate to. It holds at most the credential the profile's handoff slot declares, which is
-never a machine's own key. So no party other than a machine's bound session ever holds that
-machine's client key, at any moment in the machine's life — a jump host has no bound session,
-and its key is held by the harness flow that makes the contact and by nothing else (`CHN-R6`)
-— and `CNF-8` tests that of
+never a machine's own key. So no party other than a machine's bound session — or, for a jump
+host, which has none, the harness flow that makes the contact (`CHN-R6`) — ever holds that
+machine's client key, at any moment in the machine's life, and `CNF-8` tests that of
 post-harness machinery absolutely rather than after a deadline. A session whose bound set is the
 whole setup does hold every key of it — which is why such a set is a weaker mode the operator
 chose and sees, and never something a session is handed.

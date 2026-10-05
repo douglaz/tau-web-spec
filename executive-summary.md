@@ -97,8 +97,8 @@ its set, and the refusal comes from SSH rather than from the harness declining t
 machine has at most one bound session at a time; a later session re-enters a maintained machine
 with the same key. Access composes, not intent: a set of more than one machine is one model
 context, shown as one unit of harm, and accepted by the operator as a weaker mode by its label.
-Where a tenant declares an independence bound, it is always one machine per session, each
-configured with a different model. Sessions run concurrently on the one device the operator
+Where a tenant declares an independence bound, it is always one machine per session, with a
+configured model's footprint held within the profile's bound. Sessions run concurrently on the one device the operator
 owns, with all machine creations approved together before any work begins.
 
 **The deliverable is a locked-down machine, demonstrated** by a lightweight self-directed pentest
@@ -224,9 +224,8 @@ than "trustless" — but it survives the regress.
 ## What is not settled
 
 The maintained list is [`08-open-questions.md`](./08-open-questions.md), and each entry says what
-would close it. What gates completing the first stage is a set of probes — the first vendor,
-attest on a real first boot, the distribution on a server — a generic lockdown checklist, and
-the integrated harness demonstrating interrupted-install resume. The recovery machinery,
+would close it. What gates completing the first stage is listed in that file's "Gates by
+milestone" paragraph. The recovery machinery,
 designed and unproven on a real cloud first boot, gates recovery, which that first machine
 needs. The cloud-account floor that makes
 rental structural gates the phone-only acquisition experience.

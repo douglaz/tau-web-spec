@@ -23,7 +23,8 @@ nothing preselected, and "not sure" is multi-tenant.
 ## Vendor products targeted
 
 Any. A vendor with a typed adapter is used through it. A vendor with none is reached through an
-untyped vendor scope, on `SEC-4`'s conditions.
+untyped vendor scope, on `SEC-4`'s conditions, and no further than `CHN-12b` lets an untyped
+call go.
 
 ## Machine set
 

@@ -107,5 +107,6 @@ This record says "`SEC-1` gains no exception window". What it meant stands: post
 machinery never holds a machine's client key. The wider sentence it supported — that no party
 ever holds every machine's key — is no longer true of a session whose bound set is the whole
 setup ([ADR-0037](./0037-bound-sets.md)), and `SEC-1` says "no party other than a machine's
-bound session ever holds that machine's client key". The body above is unchanged and records
+bound session — or, for a jump host, which has none, the harness flow that makes the contact
+(`CHN-R6`) — ever holds that machine's client key". The body above is unchanged and records
 what was decided then.

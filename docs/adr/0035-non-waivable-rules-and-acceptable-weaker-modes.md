@@ -29,9 +29,9 @@ display's listing of placed secrets became BLOCKING, and secret placement moved 
 stage.
 
 **The list, the best practice each mode stands in for, and the rule are `SEC-14`'s.** Of
-everything outside that list, `SEC-14` says "every item `07-conformance.md`'s tiering rule
-makes BLOCKING is a **non-waivable rule**, which no label, no answer and no operator act sets
-aside".
+the tests a mode passes to be on that list, `SEC-14` says "Nothing that fails one of those
+tests is on it: every item `07-conformance.md`'s tiering rule makes BLOCKING is a
+**non-waivable rule**, which no label, no answer and no operator act sets aside".
 
 **A weaker mode is chosen, never fallen into.** `SEC-14` says "A failed check halts", and the
 requirement that owns each stronger check says the same of its own: `ARC-25` says "A failed
@@ -111,7 +111,7 @@ not otherwise see, the item that tests the label is BLOCKING by the rule's secon
 first boot, a refused adapter call each end in a stop and a named remedy. That is the cost, and
 it is the same cost `ARC-25` already paid for artifacts.
 
-**The list is closed, and growing it is a decision of this weight.** A sixth mode is a record,
+**The list is closed, and growing it is a decision of this weight.** Another mode is a record,
 not a row somebody adds while implementing a vendor.
 
 **What the decisions left open is in `TASKS.md`**, including whether an unpinned installation

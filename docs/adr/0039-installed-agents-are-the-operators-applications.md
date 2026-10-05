@@ -28,10 +28,10 @@ MUST run in the operator's browser, and only there". No harness credential reach
 and the harness never asks a machine to act; what a machine sends is an observation, typed
 untrusted, exactly as before.
 
-**The installed agent has a name, and the facts about it are `ARC-1a`'s**: its key is an
-application secret, placed by `place_secret`; its outbound destinations and its always-on
-service are in the machine's delivery declaration; its model provider is an elective party,
-listed; and the harness does not constrain its reach beyond what the declaration states.
+**The installed agent has a name, and the facts about it are `ARC-1a`'s.** Of its key,
+`ARC-1a` says "It is the operator's credential for the application, never a harness
+credential"; of its reach, `ARC-1a` says "The harness does not constrain an installed agent's
+reach beyond what that declaration states".
 
 **The operator is told at delivery, in one sentence.** `ARC-1a` says "Hermes is an AI that acts
 on this server by itself", and the card goes on to say whose promises cover what.

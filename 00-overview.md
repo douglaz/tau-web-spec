@@ -234,7 +234,9 @@ reason it is optional.
 **OVR-6** Independence between the machines of one setup MUST be counted per layer and shown,
 not enforced. The machines of one bound set are one unit at every layer, and are shown as one
 (`SEC-1`); where no independence bound is declared, a configured model's footprint across sets
-is counted and shown the same way — where one is, `SEC-1` refuses the binding instead. Weights, proxy and requested provider are counted separately — the third
+is counted and shown the same way — where one is, the footprint is the exception and is enforced:
+it is held within that bound (`SEC-1`), and a binding, a re-entry or an escalation that would
+take it past the bound is refused (`CNF-92`). Weights, proxy and requested provider are counted separately — the third
 labelled *requested*, since what a response says about the provider is the proxy's own word
 and it may override — and a
 collision at any counted layer is displayed rather than blocked

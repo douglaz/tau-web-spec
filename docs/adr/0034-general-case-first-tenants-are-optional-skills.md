@@ -19,7 +19,7 @@ use, was a profile with every slot filled in advance for a machine that serves n
 person the product is for — someone with a phone who wants a machine that is theirs — arrives
 with a sentence, not with a tenant.
 
-What the harness acts on never needed a tenant. It needs three facts about a machine: its
+What the harness acts on never needed a tenant. It needs facts about a machine: its
 class, its access model and its delivery declaration. A tenant is one source of them. The
 operator, answering the harness's own questions and approving a proposal in plain language, is
 the other.
@@ -35,7 +35,7 @@ because there is nothing to measure against" — and both of ADR-0030's guards s
 declaration never widens what the harness gates, and the journal holds the declaration in
 force.
 
-**The three facts, without a tenant.**
+**Those facts, without a tenant.**
 
 - *Machine class* is asked. `ARC-36a` says "The model MAY propose a tightening, single-purpose
   to multi-tenant, and nothing else". The questions are the harness's, nothing is preselected,

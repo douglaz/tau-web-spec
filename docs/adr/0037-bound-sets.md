@@ -73,7 +73,7 @@ practice an operator skipped. Rejected: a set of several machines does not meet 
 weaker mode must meet per machine — its harm does not stay on one machine — so the test was
 restated for the set and the set made a mode of its own: a bound set is one unit of harm, and
 is shown as one. What "shows when it happens" means for harm that moves between the machines
-of one set is not decided here (`TASKS.md`).
+of one set is not decided here (`TASKS.md`, T47).
 
 **A loose default that a tenant tightens.** Rejected: it inverts the direction every shipped
 default in this design runs. The default is the strict value.
