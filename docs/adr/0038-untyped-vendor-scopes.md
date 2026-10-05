@@ -19,7 +19,7 @@ release-between-the-operator-and-the-thing that ADR-0017 refused for third-party
 
 The reason is still true. What changed is the answer to it: rather than refusing the vendor,
 bound what an unseen call can reach by facts the harness does hold — its own journal — and
-show the operator, as theirs to answer, the two things it cannot know.
+show the operator, as theirs to answer, the things it cannot know.
 
 ## The decision
 
@@ -28,12 +28,9 @@ origin a vendor adapter covers". An untyped scope at an API an adapter covers wo
 the adapter's per-operation check, so the weaker mode is never a way past an available
 stronger one.
 
-**Untyped where none exists, on five conditions**, each `SEC-4`'s: the machines the journal
-knows at that origin or vendor identity all lie inside the calling session's bound set, and
-none of them binds to another session while the scope stands; never under a declared
-independence bound; invoices read by harness code from the recorded response, tied to an
-approved entry and paid by the operator; the box plane paused while a vendor call is open or
-unresolved; and first contact through a jump host.
+**Untyped where none exists, on conditions `SEC-4` lists.** `SEC-4` says "Untyped, at a vendor
+with no adapter — an acceptable weaker mode (`SEC-14`), under conditions no operator act sets
+aside", and each condition is in its list.
 
 The pause is `STA-24`'s to state: `STA-24` says "the harness worker MUST NOT dispatch a
 box-plane command to any machine of the session's bound set at that vendor".
@@ -43,7 +40,7 @@ mints and a root password it generates are in model context. The conformance ite
 such values from a model are restated for this mode, not waived and not quietly failed: what
 is tested here is that the operator was told before approving.
 
-**Two questions the harness cannot answer are put to the operator, once, and labelled as the
+**The questions the harness cannot answer are put to the operator, once, and labelled as the
 operator's statement.** Whether the account holds other servers that matter, and whether it
 can spend by itself. `SEC-4` carries the questions and the warnings word for word, and says
 "The answers never block".

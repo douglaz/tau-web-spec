@@ -36,7 +36,7 @@ harm and one model context". That is why a larger set is an acceptable weaker mo
 ([ADR-0035](./0035-non-waivable-rules-and-acceptable-weaker-modes.md)) and not a preference:
 its weaker modes, its placed secrets and its blast radius are stated for the set.
 
-**Two cases keep one machine per session, and no operator act changes that.** `SEC-1` says
+**Where `SEC-1` keeps one machine per session, no operator act changes that.** `SEC-1` says
 "Wherever a profile declares any independence bound, each session is bound to exactly one
 machine" and "A multi-tenant machine (`ARC-36`) is always bound alone". The first is the
 harness's form of a rule the tenant states over configured models; btc-policy's is in its
@@ -71,9 +71,9 @@ rule for a multi-tenant machine.
 **Allow larger sets and say nothing more**, treating one machine per session as a best
 practice an operator skipped. Rejected: a set of several machines does not meet the test a
 weaker mode must meet per machine — its harm does not stay on one machine — so the test was
-restated for the set and the set made a mode of its own. One residual is accepted and
-recorded: inside a set, harm crossing from one machine to another need not show when it
-happens. The label is given in advance; it is not detection.
+restated for the set and the set made a mode of its own: a bound set is one unit of harm, and
+is shown as one. What "shows when it happens" means for harm that moves between the machines
+of one set is not decided here (`TASKS.md`).
 
 **A loose default that a tenant tightens.** Rejected: it inverts the direction every shipped
 default in this design runs. The default is the strict value.

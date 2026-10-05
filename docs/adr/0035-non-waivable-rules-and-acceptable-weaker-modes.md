@@ -22,16 +22,14 @@ somebody else — is nobody's to accept.
 
 ## The decision
 
-**The tiering rule's three questions do not change, and no tier moved because of this record.**
+**The tiering rule's questions do not change, and no tier moved because of this record.**
 `07-conformance.md`'s tiering section defines both terms beside the rule. The promotions and
 moves made with it are of another kind and are recorded where they happened: the trust
 display's listing of placed secrets became BLOCKING, and secret placement moved into the first
 stage.
 
-**The list, the best practice each mode stands in for, and the rule are `SEC-14`'s.** It names
-five modes — an installation with no artifact pin, a first contact from a jump host, acting
-with no brief, a bound set of more than one machine, an untyped scope at a vendor with no
-adapter — and says of all of them: `SEC-14` says "every item `07-conformance.md`'s tiering rule
+**The list, the best practice each mode stands in for, and the rule are `SEC-14`'s.** Of
+everything outside that list, `SEC-14` says "every item `07-conformance.md`'s tiering rule
 makes BLOCKING is a **non-waivable rule**, which no label, no answer and no operator act sets
 aside".
 

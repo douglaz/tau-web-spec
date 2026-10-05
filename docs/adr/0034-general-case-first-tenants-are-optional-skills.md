@@ -54,7 +54,8 @@ imported, shared or reused", and "A goal MUST be refused for a machine under a p
 declares an independence bound".
 
 **The roadmap follows.** `STG-21` says "Stage 1 is the owner's scenario: one goal, one machine,
-no tenant". The probes come before it, any vendor after it, and tenants last
+no tenant". The probes come before it, a vendor with no adapter after it — where the browser can reach
+its API, as `STG-22` words it — and tenants last
 (`06-first-stage.md`). The dedicated path ADR-0018 made the first stage is the construction
 test bed: its rehearsal evidence and its install brief stand, and it gates offering a
 dedicated server to an operator rather than gating the first stage.
@@ -112,7 +113,7 @@ vendor whose creation the harness composes, plus attest.
 
 **The first stage has no tenant in it.** lnrent's declaration, the tenant daemon's brief and
 the Robot lockdown checklist stop gating it and gate the third stage. What the first stage
-needs instead is listed in `STG-21`, and three probes stand in front of it: the first vendor,
+needs instead is listed in `STG-21`, and the probes that stand in front of it are stage 0's: the first vendor,
 attest on a real first boot, and the distribution on a server (`OPN-24`, `OPN-3`, `OPN-25`).
 
 **The publisher's seat narrows by one power.** `ARC-40` still records that the publisher

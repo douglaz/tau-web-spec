@@ -28,7 +28,7 @@ MUST run in the operator's browser, and only there". No harness credential reach
 and the harness never asks a machine to act; what a machine sends is an observation, typed
 untrusted, exactly as before.
 
-**The installed agent has a name and four facts**, which are `ARC-1a`'s: its key is an
+**The installed agent has a name, and the facts about it are `ARC-1a`'s**: its key is an
 application secret, placed by `place_secret`; its outbound destinations and its always-on
 service are in the machine's delivery declaration; its model provider is an elective party,
 listed; and the harness does not constrain its reach beyond what the declaration states.
