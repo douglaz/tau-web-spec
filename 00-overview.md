@@ -264,7 +264,7 @@ an ADR is where *why* lives.
 | [0015](./docs/adr/0015-the-browser-reaches-a-machine-over-pinned-ssh.md) | The browser reaches a machine over SSH, pinned at the application layer |
 | [0016](./docs/adr/0016-the-harness-isolates-and-counts-tenants-set-thresholds.md) | The harness isolates and counts; tenants set thresholds |
 | [0017](./docs/adr/0017-off-machine-calls-and-scope-approval.md) | Off-machine calls generalize the cloud plane; untyped ones are approved by scope |
-| [0018](./docs/adr/0018-first-stage-is-one-lnrent-box-on-dedicated.md) | The first stage is one lnrent box on a dedicated server, over the full channel |
+| [0018](./docs/adr/0018-first-stage-is-one-lnrent-box-on-dedicated.md) | The first stage is one lnrent box on a dedicated server, over the full channel. Superseded by 0034; the path is the construction test bed |
 | [0019](./docs/adr/0019-the-publisher-operates-the-default-relay.md) | The publisher operates the default relay; bring-your-own is the escape hatch |
 | [0020](./docs/adr/0020-recovery-roots-in-the-vendor-account.md) | Vendor inventory and seed credentials are separate recovery roots |
 | [0021](./docs/adr/0021-the-surface-pentest-is-outside-in.md) | The surface pentest is outside-in, and may use a specialist model |
@@ -279,3 +279,10 @@ an ADR is where *why* lives.
 | [0030](./docs/adr/0030-tenant-specific-rules-live-in-a-tenant-profile.md) | Tenant-specific rules live in a tenant profile with a fixed schema |
 | [0031](./docs/adr/0031-the-specification-and-the-implementation-are-separate-repositories.md) | The specification and the implementation are separate repositories, pinned by commit |
 | [0032](./docs/adr/0032-the-formal-companion-follows-provisiond-spec.md) | Selected clauses are carried in Lean under `tools/formal/`, on provisiond-spec's decision, by reference |
+| [0033](./docs/adr/0033-the-model-is-chosen-by-rule-at-pin-time.md) | The model is chosen by rule at pin time, and the harness falls back only on availability |
+| [0034](./docs/adr/0034-general-case-first-tenants-are-optional-skills.md) | The general case comes first: a tenant is an optional skill, and a goal is enough to act on. Supersedes 0018 |
+| [0035](./docs/adr/0035-non-waivable-rules-and-acceptable-weaker-modes.md) | Non-waivable rules, and the few weaker modes an operator may accept by name |
+| [0036](./docs/adr/0036-first-contact-is-never-trusted-through-the-relay.md) | First contact is never trusted through the relay; a jump host carries it where no route exists |
+| [0037](./docs/adr/0037-bound-sets.md) | A session is bound to a set of machines, one by default |
+| [0038](./docs/adr/0038-untyped-vendor-scopes.md) | A vendor with no adapter is reached through an untyped vendor scope, on stated conditions |
+| [0039](./docs/adr/0039-installed-agents-are-the-operators-applications.md) | An agent the operator installs is the operator's application, not the harness's AI |

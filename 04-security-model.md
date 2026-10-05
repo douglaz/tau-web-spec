@@ -35,7 +35,8 @@ invariants in the archived execution-layer specification.
 
 **A session MUST be bound to a set of machines the operator fixed, and MUST NOT read, audit, or
 touch any machine outside it. A machine MUST be in at most one live session's set at a time.**
-The set is the session's **bound set**.
+The set is the session's **bound set**
+([ADR-0037](./docs/adr/0037-bound-sets.md)).
 
 **One machine is the default and the best practice.** A set of more than one is an acceptable
 weaker mode (`SEC-14`), named machine by machine before contact. Two cases are never offered
@@ -178,7 +179,8 @@ machines bound to other sessions, delivered machines no session holds, sealed ma
 re-enters, and machines of the operator's that the harness has never heard of: the whole
 account, unless the operator minted a narrower credential, and the harness cannot see which.
 Rescue, console, rebuild and credential minting make that API a door SSH keys do not guard, so
-how a session goes through it is ruled here, in two modes.
+how a session goes through it is ruled here, in two modes
+([ADR-0038](./docs/adr/0038-untyped-vendor-scopes.md)).
 
 **Typed, wherever an adapter covers the origin.** A scope MUST NOT name an origin a vendor
 adapter covers: an untyped scope at the same API would walk around the check below. There each
@@ -446,7 +448,8 @@ wallet (`ARC-30`) is not that capability: the app relays and holds nothing.
 **A weaker mode MUST be one of the named ones, accepted by the operator by its label for one
 bound set before any contact with that set's machines. It MUST NOT be entered because a
 stronger check failed, and it MUST be restated at every later irreversible act on any machine
-of the set.**
+of the set**
+([ADR-0035](./docs/adr/0035-non-waivable-rules-and-acceptable-weaker-modes.md)).
 
 The **acceptable weaker modes** are these and no others, each beside the **best practice** it
 stands in for — which is used when available and shown when missing:

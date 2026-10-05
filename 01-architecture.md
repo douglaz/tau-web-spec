@@ -7,7 +7,8 @@ machine is a target of the harness, never an actor for it: it MUST NOT hold a cr
 belonging to the harness — an inference key, a vendor API token, the key of an untyped vendor
 scope (`SEC-3`, `CNF-11`) — and the harness MUST NOT ask a machine to act: nothing a machine
 sends starts work in the harness
-([ADR-0003](./docs/adr/0003-the-ai-runs-only-in-the-browser.md)).
+([ADR-0003](./docs/adr/0003-the-ai-runs-only-in-the-browser.md), narrowed by
+[ADR-0039](./docs/adr/0039-installed-agents-are-the-operators-applications.md)).
 
 A machine may *tell* the harness something over the notify channel (`CHN-17`), and what it
 tells is an **observation**: typed untrusted, never gating, never acting. The channel's one
@@ -334,7 +335,8 @@ it. The brief is the one component where diversity buys nothing, so it is locked
 
 **ARC-11a A goal is the operator's own instruction, and no brief is required to act on one.**
 A session MAY work from the operator's **goal** alone — what they want, in their words — with
-no brief keyed on any of it and no tenant. What keeps
+no brief keyed on any of it and no tenant
+([ADR-0034](./docs/adr/0034-general-case-first-tenants-are-optional-skills.md)). What keeps
 that from being the runtime-supplied brief `ARC-11` locks out is what a goal reaches:
 
 - **A goal steers one session's bound set and nothing else.** It MUST be journaled with that
@@ -382,7 +384,8 @@ each project ships its own set inside its own bundle.
 
 **ARC-44 Every machine runs under a profile, and a tenant is optional.** A tenant is
 skill-shaped content compiled into the signed bundle — briefs, and presets for the facts its
-machines carry — and the harness works with none. A machine with
+machines carry — and the harness works with none
+([ADR-0034](./docs/adr/0034-general-case-first-tenants-are-optional-skills.md)). A machine with
 no tenant runs under the publisher's built-in **ad-hoc profile**
 ([`docs/tenants/ad-hoc/profile.md`](./docs/tenants/ad-hoc/profile.md)), whose per-machine slots
 the operator fills by answering the harness's own questions.

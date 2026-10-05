@@ -92,3 +92,14 @@ rename separated them.
 **Two projects now have to agree on where a decision belongs**, and the failure mode is a
 decision recorded in neither. The meta project owns anything that spans tenants; this
 repository owns anything true of the harness with no tenant present.
+
+## Amended 2026-10-05: a tenant is optional, and the harness's guarantee is the bound set
+
+Two sentences of this record are amended. It describes the projects built on the harness as
+what it exists for; [ADR-0034](./0034-general-case-first-tenants-are-optional-skills.md) makes
+a tenant optional skill-shaped content, and `ARC-44` says "Every machine runs under a profile,
+and a tenant is optional". And it states the harness's guarantee as "one session touches
+exactly one machine"; [ADR-0037](./0037-bound-sets.md) restates it as the bound set, one
+machine by default. What this record decided — the harness isolates and counts, and never says
+how many independent domains are enough — stands. The body above is unchanged and records what
+was decided then.

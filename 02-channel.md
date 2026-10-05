@@ -185,7 +185,8 @@ says "A failed check halts".
 **CHN-R6 — a first contact from a jump host.** For a machine at a vendor with no route of its
 own — no endpoint that publishes a host key, and no boot configuration the harness composes —
 the browser makes the first contact from a **jump host**: a temporary machine no model has
-touched, whose own host key is pinned out of band by `CHN-R1` or `CHN-R5`. The browser
+touched, whose own host key is pinned out of band by `CHN-R1` or `CHN-R5`
+([ADR-0036](./docs/adr/0036-first-contact-is-never-trusted-through-the-relay.md)). The browser
 opens a pinned SSH session to the jump host through the relay, and inside it a forwarded
 channel to the target — `direct-tcpip`, which is what `ProxyJump` does — through which the
 target's own SSH handshake runs end to end. The relay carries the outer ciphertext and nothing

@@ -3,7 +3,8 @@
 ## The stages
 
 The work is staged in four, re-drawn on 2026-10-05 around the general case: an operator with a
-goal and no tenant.
+goal and no tenant
+([ADR-0034](./docs/adr/0034-general-case-first-tenants-are-optional-skills.md)).
 
 - **Stage 0 — the probes**, run now and in parallel with construction. The LNVPS probe
   (`OPN-24`): boot-time user-data or host-key exposure, browser reachability, the billing
@@ -70,7 +71,8 @@ stand. It gates no stage by itself; it gates offering a dedicated-server path to
 
 *What this requirement used to say* was that the first stage provisions one lnrent box on a
 dedicated server — one session, one machine, one real tenant
-([ADR-0018](./docs/adr/0018-first-stage-is-one-lnrent-box-on-dedicated.md), superseded). The
+([ADR-0018](./docs/adr/0018-first-stage-is-one-lnrent-box-on-dedicated.md), superseded by
+[ADR-0034](./docs/adr/0034-general-case-first-tenants-are-optional-skills.md)). The
 first stage is now `STG-21`'s. Neither the tenant's daemon, nor brief 3, nor lnrent's
 declaration gates it.
 

@@ -50,3 +50,13 @@ individually resumable, and progress must survive the harness worker being kille
 
 The periodic security audit of a running vault requires the operator to open the app.
 It cannot be scheduled server-side without reversing this decision.
+
+## Amended 2026-10-05: the rule is about the harness's AI, and an installed agent is the operator's application
+
+This record says a provisioned machine "never holds an inference key or a vendor API token and
+never initiates work". Its reasons were about the harness's own key and the harness's own
+model, and read as a rule about every program on every machine it forbids the operator from
+installing software that acts. [ADR-0039](./0039-installed-agents-are-the-operators-applications.md)
+narrows it: `ARC-1` says "The harness's AI MUST run in the operator's browser, and only there",
+and an always-on agent the operator installs is the operator's application (`ARC-1a`). The body
+above is unchanged and records what was decided then.

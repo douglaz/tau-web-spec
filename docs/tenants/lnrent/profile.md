@@ -23,7 +23,8 @@ switches on the harness's spendable-key rule (`ARC-37`, `CNF-52`).
 Dedicated. An lnrent box is stage 3's work (`06-first-stage.md`), and the dedicated path it
 needs is the construction test bed until then.
 [ADR-0018](../../adr/0018-first-stage-is-one-lnrent-box-on-dedicated.md) made this box the
-first stage, and is superseded.
+first stage, and is superseded by
+[ADR-0034](../../adr/0034-general-case-first-tenants-are-optional-skills.md).
 
 ## Machine set
 
