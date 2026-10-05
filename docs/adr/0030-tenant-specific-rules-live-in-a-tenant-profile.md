@@ -94,5 +94,6 @@ optional profile stands: every machine runs under one. What changes is the built
 content. Its per-machine slots are no longer preset for a machine that serves nothing; the
 operator fills them by answering the harness's own questions — `ARC-36a` for machine class,
 `ARC-27` for the access model, `ARC-39` for the declaration, which starts from this record's
-signed minimum. Both guards above survive unchanged. The body above is unchanged and records
+signed minimum. Both guards above survive unchanged. The schema's "tenant secrets placed on
+machines" are application secrets, as `SEC-5` row 12 now names them. The body above is unchanged and records
 what was decided then.

@@ -122,5 +122,7 @@ operator act. Never merge two counters and call the result proof that a backup i
 Export asks the operator to retain both the seed backup and the separate sheet passphrase.
 For maintained cloud, setup completion requires confirmation that the current sheet was
 saved (`STA-15`). A stale or absent sheet may lose newer machines' metadata and relay quota.
-The first stage implements local storage and derivation; sheet export/import and recovery
-remain later-stage work, with these formats fixed in advance.
+The dedicated test bed implements local storage and derivation alone. Stage 1 delivers a
+maintained cloud machine, so the sheet's export is needed before that stage completes
+(`STA-15`); import and Replace follow `07-conformance.md`'s applicability table, with these
+formats fixed in advance.

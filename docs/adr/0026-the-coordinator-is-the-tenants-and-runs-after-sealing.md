@@ -100,3 +100,12 @@ window a member can still be configured — and whose private half re-derives ra
 stored. It is `SEC-5` row 17, a credential the harness places rather than an unlisted grant,
 which is what `CNF-13`'s completeness rule requires. The reach it confers was always understood:
 a hostile peer's worth, which `ARC-23` designs for.
+
+## Amended 2026-10-05: the sentence about every machine's key is restated for bound sets
+
+This record says "`SEC-1` gains no exception window". What it meant stands: post-harness
+machinery never holds a machine's client key. The wider sentence it supported — that no party
+ever holds every machine's key — is no longer true of a session whose bound set is the whole
+setup ([ADR-0037](./0037-bound-sets.md)), and `SEC-1` says "no party other than a machine's
+bound session ever holds that machine's client key". The body above is unchanged and records
+what was decided then.

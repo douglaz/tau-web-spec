@@ -31,6 +31,11 @@ _Avoid_: permission, grant, allowance — and **"scope" in its ordinary sense**:
 binds is "what it binds" or "its reach", the extent of a task is its "extent", and a tier that
 applies to a stage "says which stage it gates". The word is reserved for the object above.
 
+**Untyped vendor scope** · `SEC-4`
+A scope naming the origin of a cloud vendor the bundle has no adapter for. One of the
+acceptable weaker modes; the typed adapter is the best practice it stands in for.
+_Avoid_: vendor token scope (that is the vendor's own word for what a token may do), raw mode
+
 ### Briefs
 
 **Brief** · `ARC-9`
@@ -49,12 +54,11 @@ The format is **not** shared with lnrent. That project's *recipes* are executabl
 runs with high privilege; briefs are prose that must never be run as written. What is real is
 a **layering**: a brief can tell the AI to invoke an lnrent hook as a deterministic tool.
 
-**Goal**
+**Goal** · `ARC-11a`
 The operator's own instruction for one session, in their words — "launch a VPS paid in
 Bitcoin and install Hermes on Omarchy". Journaled with that session and never shipped, so it
-steers only that session's bound set; a brief steers every machine that reads it. Decided 2026-10-04 that no
-brief or tenant is required to act on one; the requirements that say otherwise (`ARC-11`) are
-not yet amended.
+steers only that session's bound set; a brief steers every machine that reads it. No brief and
+no tenant is needed to act on one (decided 2026-10-04).
 _Avoid_: prompt, task, request (a *call*'s word), intent (the journal's *intent record*, `STA-4`)
 
 **Signed bundle** · `SEC-7`, `ARC-32`, `ADR-0031`
@@ -168,8 +172,8 @@ _Avoid_: guarantee, claim (that is `SEC-CLAIM`'s word), invariant (the invariant
 **Session** · `ARC-12`, `SEC-1`
 One run of the harness under one set of model weights, responsible for its **bound set** —
 one machine by default. One context: whatever any machine of the set returns is read by the
-model that commands all of them. (Until 2026-10-05, exactly one machine; `SEC-1` not yet
-amended.) See also *Flagged ambiguities*.
+model that commands all of them. (Until 2026-10-05, exactly one machine.) See also *Flagged
+ambiguities*.
 
 **Binding** · `SEC-1`
 The operator's act that puts one machine into one session's bound set, before any channel
@@ -180,11 +184,17 @@ re-derived, and no other; a key is never the session's. Connecting never creates
 _Avoid_: session key (that is the inference key, row 2), session grant, assignment, lease
 (all suggest the session owns something; it borrows the machine's)
 
-**Bound set**
+**Bound set** · `SEC-1`
 The machines bound to one session: fixed before contact, grown only by a further operator act
 per machine, and shown as one unit of harm, because what the model reads on one can steer what
 it runs on another. Named 2026-10-05.
 _Avoid_: setup (a setup may span several sessions), group, fleet, cluster
+
+**Footprint** · `SEC-1`
+Of a configured model: every machine it has touched, and every machine co-bound with one of
+those. Read from the exposure ledger, which records the set each machine was bound in.
+_Avoid_: reach (that is what a rule or a credential has), blast radius (that also counts
+scopes and placed secrets)
 
 **Operator**
 The human at the browser — the person who holds the credentials, approves the operations, and
@@ -230,23 +240,24 @@ AI, because it reads what the machine chooses to tell it.
 
 ### Tenancy
 
-**Tenant** · `ADR-0016`, `ARC-40`
+**Tenant** · `ADR-0016`, `ARC-40`, `ARC-44`
 A project whose skill-shaped content is compiled into the signed bundle: briefs that make
 installing its software faster and more reliable, and presets for the facts its machines carry.
-**Optional** (decided 2026-10-04, requirements not yet amended): a single machine needs no
-tenant, and the model works from the operator's **goal** alone; a tenant improves that path.
-Whether a multi-machine tenant such as btc-policy fits this shape is open. The harness never sets a threshold; it isolates and counts. A tenant's briefs still
+**Optional** (decided 2026-10-04): a machine needs no tenant, and the model works from the
+operator's **goal** alone; a tenant improves that path. Whether a multi-machine tenant such as
+btc-policy fits this shape is open (`OPN-27`). The harness never sets a threshold; it isolates
+and counts. A tenant's briefs still
 ship in the publisher's signed bundle, so the publisher decides which tenants exist — a
 bootstrap seat with a stated trajectory, not a property of the design.
 _Avoid_: app, plugin, integration, use case
 
-**Tenant profile** · `ADR-0030`
+**Tenant profile** · `ADR-0030`, `ARC-44`
 A tenant's values for ADR-0030's fixed slots. Three are facts every machine carries anyway —
 machine class, access model, delivery declaration — and the rest (vendor products, machine set,
 independence bound, secrets and parties, runtime obligations, handoff) bind only where a tenant
 needs them. Every machine runs under one: its tenant's, or else the publisher's built-in
 **ad-hoc profile**, whose per-machine slots the operator fills by answering the harness's own
-questions (decided 2026-10-05; ADR-0030 and the ad-hoc profile not yet amended).
+questions (decided 2026-10-05, ADR-0034).
 _Avoid_: tenant config, manifest (lnrent's recipes have manifests; not the same thing),
 "the btc-policy section"
 
@@ -258,18 +269,18 @@ credential on its own machine is permitted (`SEC-5` row 12). A project with an o
 cannot move onto a machine is not a fit for this harness.
 _Avoid_: background job, daemon work (both describe the mechanism rather than the duty)
 
-**Operator's application**
+**Operator's application** · `ARC-1a`
 Software the operator has the harness install that may act on its own on its machine — an
 always-on agent such as Hermes, with a model of its own. Not the harness's AI: the harness's
 claims cover what its own model does, never what an application does. Named 2026-10-05, when
-`ARC-1` was narrowed to the harness's own AI and credentials (not yet amended).
-_Avoid_: agent unqualified (the harness's AI is also one), tenant (a tenant is a skill-shaped
-package, not running software)
+`ARC-1` was narrowed to the harness's own AI and credentials.
+_Avoid_: agent unqualified (the harness's AI is also one), tenant (a tenant is skill-shaped
+content in the bundle, not running software)
 
-**Application secret** · `SEC-5` row 12
-A credential for an operator's application, placed on its machine by the harness without
-entering the model's context, and readable afterwards by any model with root there. Row 12
-still says *tenant secret*.
+**Application secret** · `SEC-5` row 12, `ARC-43`
+A credential for an operator's application or a tenant's software, placed on its machine by
+the harness's `place_secret` job without entering the model's context, and readable afterwards
+by any model with root there.
 _Avoid_: tenant secret (the row's old name), harness credential (none ever reaches a machine)
 
 **Watch-only** · `ARC-37`
@@ -322,15 +333,15 @@ declaration is the finding. It does not catch hostile use of declared surface, n
 wrong, and a vague one buys a weak check. Its structured form is
 `docs/design/delivery-declaration-v1.md`, where every field is present as a value, an
 explicit empty set, or *unspecified* — and *unspecified* blocks delivery.
-_Avoid_: allowlist, firewall rules (both name a mechanism; this is the tenant's statement of
-intent, which a mechanism then enforces), spec (too broad)
+_Avoid_: allowlist, firewall rules (both name a mechanism; this is a statement of intent,
+which a mechanism then enforces), spec (too broad)
 
 **Delivered** / **handed over with findings** · `ARC-17`
 *Delivered*: the delivery check finds no difference from the machine's declaration in force,
 and the fixed lockdown checks pass. *Handed over with findings*: the operator takes the machine
 while findings stand; it is not delivered, is never described as locked down, and receives no
 placed secret until a re-check clears them — after the machine is fixed or its declaration
-amended by a journaled operator act. Named 2026-10-05; `ARC-17` not yet amended.
+amended by a journaled operator act. Named 2026-10-05.
 _Avoid_: accepted finding (a finding is never accepted in place of an amendment), waived,
 passed with warnings
 
@@ -341,10 +352,9 @@ posture is the tenant's to state.
 _Avoid_: shared host, multi-user (neither carries the untrusted-guest sense)
 
 **Access model** · `ARC-27`
-Whether a machine remains enterable after delivery — preset by its tenant, or approved by the
-operator where none applies. **Maintained**
-— the session can go back in. **Sealed** — the door is welded shut after setup by the tenant's
-own design.
+Whether a machine remains enterable after delivery — preset by its tenant, and maintained
+where none applies. **Maintained** — a later session can go back in. **Sealed** — the door is
+welded shut after setup by the tenant's own design, which is why sealing needs a tenant.
 _Avoid_: maintenance mode, managed/unmanaged
 
 **Threshold**
@@ -440,22 +450,22 @@ holding many authorities is a **trust store**, which is the unpriced object of `
 _Avoid_: "the pin" unqualified where two kinds are in play; allowlist; whitelist; "root
 store" for a store of one (it carries the general-trust sense)
 
-**Trust on first use** · `CHN-R4`
+**Trust on first use** · `CHN-R4`, `CHN-2`
 Accepting a machine's host key at first contact with no pin to check it against. **Refused
-through the relay** (decided 2026-10-05; `CHN-R4` and `CHN-2` not yet amended): every
+through the relay** (decided 2026-10-05): every
 connection runs through it, so a key accepted there is the relay's word, and an impostor there
 receives every secret placed afterwards. A first contact with no independently obtained pin is
 admitted only from a **jump host** — which the relay cannot alter, though the jump host can.
 _Avoid_: TOFU as a "floor" or fallback (it was both until this decision)
 
-**Jump host**
+**Jump host** · `CHN-R6`
 A temporary machine no model has touched, pinned out of band, through which the browser makes
 another machine's first contact: the target's SSH handshake runs end to end inside the pinned
 outer session, so the relay sees only the outer ciphertext. The jump host itself, its vendor
-and the path to the target can still alter that first contact. Decided 2026-10-05; no route
-identifier defines it yet.
+and the path to the target can still alter that first contact. Outside every bound set.
+Decided 2026-10-05.
 _Avoid_: bastion (permanent), gateway (terminates traffic), relay (the TCP bridge), "vouches"
-(it vouches for nothing; the browser checks the target's key itself)
+(it vouches for nothing: the target's key is taken on trust through it, and shown as that)
 
 **Artifact source** · `ARC-25`, `ARC-25a`, `TRU-E8`, `TRU-E8a`
 Wherever the installed system's bits come from: an image, a mirror, a channel. An untrusted
@@ -505,10 +515,10 @@ _Avoid_: attestation, certificate, lineage
 **Non-waivable rule** · `07-conformance.md`, tiering
 A rule no operator act sets aside: every item the tiering rule makes BLOCKING, because its harm
 is irreversible, would go unseen, could be multiplied by a model retrying on its own, or falls
-on someone other than the operator. Named 2026-10-05; the requirements do not use it yet.
+on someone other than the operator. Named 2026-10-05; `SEC-14` uses it.
 _Avoid_: the floor (taken four times over), hard rule, invariant (the formal companion's word)
 
-**Acceptable weaker mode**
+**Acceptable weaker mode** · `SEC-14`
 A named weaker mode the operator may accept by its label for one bound set — an unpinned OS, a
 first contact from a jump host, no brief, a set of more than one machine, an untyped scope at a
 vendor with no adapter — because its harm
@@ -610,12 +620,13 @@ _Avoid_: "the inference key" for either one on its own; API key (says nothing ab
 
 ### Money
 
-**Recurring cost**
-The machines. Billed by the cloud vendor to the operator's own account. The app never mediates
-it and cannot stop it.
+**Recurring cost** · `ARC-29`
+The machines. Billed by the vendor to the operator: to their own account, or by an invoice
+their own wallet pays. The app never pays it and cannot stop it.
 
-**One-off cost**
-Inference credits. The app retrieves an invoice; the operator's wallet pays it.
+**One-off cost** · `ARC-30`
+Inference credits. The app retrieves an invoice; the operator's wallet pays it. A machine
+bought by invoice is paid the same way.
 
 **Settled invoice**
 Evidence that the operator has funded credits at a provider. It does **not** prove which machine
@@ -656,9 +667,10 @@ money. The brief can *suggest* it. Only a typed operation can *do* it.
 
 **Dev:** Machine 1 looks misconfigured. Can I point the model from machine 2 at it to check?
 
-**Domain expert:** No, and it isn't a policy question — machine 1 only has session 1's public
-key, so session 2 literally cannot log in. That's deliberate. The only thing protecting the
-operator is that no model reaches the threshold, and your audit would hand one model a second
+**Domain expert:** No, and it isn't a policy question — machine 1 accepts machine 1's own
+client key and nothing else, and the session bound to machine 2 was never given it, so it
+literally cannot log in. That's deliberate. In a vault the only thing protecting the operator
+is that no model reaches the threshold, and your audit would hand one model a second
 foothold.
 
 **Dev:** So nothing ever checks anyone's work?

@@ -77,3 +77,12 @@ already rates
 mobile memory pressure as a high risk and defaults its command-worker pool to one on
 mobile; five concurrent sessions each holding a model stream and a remote session needs
 the same treatment.
+
+## Amended 2026-10-05: a session may hold a bound set, and concurrency inside one is not free
+
+This record says each session is bound to exactly one machine, and that "Concurrency costs
+nothing in security". Between sessions that still holds. [ADR-0037](./0037-bound-sets.md) lets
+one session hold a bound set of more than one machine as a weaker mode the operator accepts by
+its label, and inside such a session the machines share one model context: `SEC-1` says "A
+bound set is one unit of harm and one model context". The body above is unchanged and records
+what was decided then.

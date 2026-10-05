@@ -83,3 +83,12 @@ objection that would have to be answered rather than ignored), the same bundle w
 consequence rewritten, or a tenant of its own. **This is deferred, not decided**, and it is
 recorded here because a wallet is the kind of feature that arrives looking harmless and
 lands on the invariant most easily violated by accident.
+
+## Amended 2026-10-05: a machine bought by invoice is relayed the same way
+
+This record says of the machines' cost that "The app never mediates this". Where a vendor sells
+machines by invoice, the app now relays that invoice to the operator's own wallet exactly as it
+relays an inference invoice, and still holds no funds: `ARC-30` says "It relays an invoice; it
+MUST NOT hold, forward, or custody funds". The first stage buys its machine that way
+([ADR-0034](./0034-general-case-first-tenants-are-optional-skills.md)). A wallet inside the
+harness remains undecided, as this record left it.
