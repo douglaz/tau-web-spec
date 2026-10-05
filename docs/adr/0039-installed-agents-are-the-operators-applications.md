@@ -30,8 +30,9 @@ untrusted, exactly as before.
 
 **The installed agent has a name, and the facts about it are `ARC-1a`'s.** Of its key,
 `ARC-1a` says "It is the operator's credential for the application, never a harness
-credential"; of its reach, `ARC-1a` says "The harness does not constrain an installed agent's
-reach beyond what that declaration states".
+credential"; of its reach, which the machine's delivery declaration (`ARC-39`) states,
+`ARC-1a` says "The harness does not constrain an installed agent's reach beyond what that
+declaration states".
 
 **The operator is told at delivery, in one sentence.** `ARC-1a` says "Hermes is an AI that acts
 on this server by itself", and the card goes on to say whose promises cover what.

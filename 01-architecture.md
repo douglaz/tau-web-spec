@@ -633,8 +633,9 @@ verifies by inspection rather than by SSH's refusal. What it holds is **at most 
 the profile's handoff slot declares**, used over the relay like any other TCP (`CHN-10`), and
 that credential MUST be one the tenant's own protocol already assumes a hostile holder of: a
 peer's worth of reach, never administrative reach the tenant does not design against. `SEC-1`
-lets a machine's client key reach that machine's bound session and nobody else, and post-harness
-machinery is never that
+says "no party other than a machine's bound session — or, for a jump host, which has none, the
+harness flow that makes the contact (`CHN-R6`) — ever holds that machine's client key", and
+post-harness machinery is neither
 ([ADR-0026](./docs/adr/0026-the-coordinator-is-the-tenants-and-runs-after-sealing.md)).
 
 **Where that credential comes from, stated because the obvious source is closed.** The

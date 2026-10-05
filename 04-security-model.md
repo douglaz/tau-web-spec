@@ -541,8 +541,9 @@ larger one.
 
 That claim needs a vault. It is conditional on the trust domains being genuinely distinct: if
 several endpoints serve the same weights the operator has one model rather than five and it is
-vacuous. Distinct weights are **configured** per machine, so distinctness is enforced by
-construction; whether the proxy served the weights it was asked for is not observable, and that
+vacuous. What is enforced is that a configured model's footprint stays within the profile's
+independence bound (`SEC-1`, `SEC-T5`), and it is the **configured** weights that are counted;
+whether the proxy served the weights it was asked for is not observable, and that
 residue is `TRU-E2`'s trust rather than a property this claim can check (`OPN-4`). Until a
 served-model signal exists, this is a design goal rather than a demonstrated property.
 
