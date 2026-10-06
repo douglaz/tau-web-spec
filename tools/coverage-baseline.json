@@ -1,6 +1,6 @@
 {
-  "max_uncovered_ratcheted": 81,
-  "recorded": "2026-10-05",
-  "reason": "the general-case amendment gave its new rules conformance items and those items cite more owners, 97 to 81; ratcheted so the coverage controls bite again",
+  "max_uncovered_ratcheted": 80,
+  "recorded": "2026-10-06",
+  "reason": "CNF-107 covers the model-written report label in SEC-2; ratchet the newly covered owner without weakening any coverage",
   "note": "Lower is better. Raise only deliberately, with a reason."
 }

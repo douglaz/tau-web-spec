@@ -3,7 +3,7 @@
 Work arising from the [engineering review of 2026-08-19](docs/review/2026-08-19-engineering-review.md),
 which reviewed the corpus at `726ad44`, and from the reviews and decision records since
 (T21–T23 from the September 9 review, T27–T29 from the September 15 construction decisions,
-T39–T47 from the general-case decisions of 2026-10-04 and 2026-10-05).
+the general-case tasks from the decisions of 2026-10-04 through 2026-10-06).
 Each task names the finding or decision it came from, so nobody has to reopen the record to
 know why it exists.
 
@@ -21,7 +21,9 @@ gated on it.
       `OPN-14` is T42's generic checklist. This task now gates stage 3 (`STG-23`).
 - [ ] **T22 — Implement the clarified credential and recovery contracts** (`OPN-3`).
       Local unlock and v1 derivation gate the first stage (`CNF-82`–`CNF-83`); recovery
-      export/import and partial Replace gate recovery enablement (`CNF-84`).
+      export/import and Replace gate maintained-cloud stage-1 completion under the recovery
+      row of `07-conformance.md`. Implement `STA-17`'s manual relay retirement, with signed
+      revocation and Robot rescue following their separate applicability rows.
 - [ ] **T23 — Demonstrate interrupted rescue installation** (`OPN-18`). Implement the
       `STA-20b` handoff and run `CNF-40`, `CNF-55`, `CNF-85` and `CNF-86` on the integrated
       harness. Non-destructive example checks are not a completed hardware rehearsal.
@@ -51,8 +53,7 @@ gated on it.
       tree as its CI gate.
       `bundle/inference.toml` has an empty model slug on purpose; the build fails until the
       publisher fills it.
-- [ ] **T39 — Stage 0: probe LNVPS** (`OPN-24`). One probe: boot-time user-data
-      or host-key exposure, browser reachability, the minimum billing period, an Arch image.
+- [ ] **T39 — Stage 0: probe LNVPS**. Exercise the owning list in `OPN-24`.
       Record it under `docs/findings/`. If it fails, stage 1 and only stage 1 runs on Hetzner
       Cloud with attest and a card account (`STG-21`).
 - [ ] **T40 — Stage 0: attest on a real first boot** (`OPN-3`). Cloud-init timing, the static
@@ -64,18 +65,26 @@ gated on it.
 - [ ] **T42 — The generic signed lockdown checklist, and the harness's questions** (`OPN-14`,
       `ARC-17`, `ARC-36a`). The fixed checks, keyed on no vendor and no tenant; the machine-class
       questions, in the harness's words; and the plain-language rendering of a proposed
-      declaration the operator approves (`ARC-39`). All three ship in the bundle and gate
-      stage 1.
-- [ ] **T43 — Stage 1's build list** (`STG-21`). A typed LNVPS adapter; goal input; `place_secret`
-      (`ARC-43`); invoice relay for a machine (`ARC-30`); delivered against handed over with
-      findings (`ARC-17`); the unpinned label (`ARC-25`). *Owed to tau-web-rust at its spec pin
-      bump:* the new and restated conformance items, `CNF-91`–`CNF-106` with `CNF-16` and
-      `CNF-42`, as tests; no implementation was exercised by this amendment.
-- [ ] **T48 — Stage 1: the key of a placed secret's digest** (`OPN-28`). The later-session scan
-      is required (`SEC-5`, `CNF-95`) and its key has no design: origin, storage and lifetime;
-      where the digest and any matching metadata are kept; whether the machine's job record
-      carries a digest; a lost or restored store. Until it lands the key has no row in `SEC-5`
-      and none is held. Construction proceeds; stage 1 does not complete without it.
+      declaration the operator approves (`ARC-39`). These ship in the bundle and gate stage 1.
+      Implement `ARC-43`'s harness-composed listener, unit-state and enablement reads behind
+      `CNF-50` and `CNF-53`. Still to decide: what establishes survival of a restart, and the
+      service-name grammar for a validated argument, never shell syntax. No init-specific
+      procedure or physical-restart requirement is selected by this task.
+- [ ] **T43 — Stage 1's build list**. Implement `STG-21`'s owning list and the stage-1
+      applicability rows in `07-conformance.md` at tau-web-rust's next spec pin. These include
+      the recovery, scan and report-only evidence; specification edits exercise no harness.
+- [ ] **T48 — Stage 1: build placed-secret scanning and recovery re-arm** (`OPN-28`).
+      Implement `SEC-5` row 23 and scan semantics, `ARC-43`'s jobs and fallback, and `STA-16`'s
+      sheet metadata; demonstrate `CNF-95` with `CNF-42` and `CNF-84`. The design permits
+      construction now. Still open: the numeric minimum accepted secret byte length; any
+      further changed-file detection policy after loss of the old reference; and compatibility
+      policy beyond the adopted sheet-payload version bump, should it become necessary. No
+      length/value-derived reference belongs on the sheet and no legacy migration is selected.
+- [ ] **T49 — Later best practice: a signed library of read-only typed checks** (`ARC-39`).
+      Bundle-owned unit-state, TCP/HTTP on a declared listener, and binary-version checks whose
+      results can count toward the declaration, using no secret and no third party. This is
+      later work, not a stage-1 gate or an acceptable weaker mode. It does not change the
+      declaration schema; model-written reports remain reports.
 - [ ] **T44 — The derived vendor identity's format** (`OPN-26`). Not decided: what it is derived
       per — a bound set, a machine or a session; its index family and what its allocation entry
       holds; its key type, pending T39. Until it lands, `SEC-5` row 22 keeps it unavailable and
@@ -158,9 +167,6 @@ gated on it.
       - **A maintained cloud machine whose pin is lost with no sheet.** `STA-15` now leaves
         destroy-and-recreate alone. Whether a jump-host first contact may re-pin such a machine
         instead is undecided.
-      - **Recovery items in stage 1.** Stage 1 delivers a maintained cloud machine, so by the
-        applicability table's existing condition `CNF-19`, `CNF-20` and `CNF-84` pass before it
-        completes. Recorded as a consequence, because nobody decided it as a stage-1 need.
 
 - [x] **T30 — Port the specification gates and the formal companion's scaffold** (ADR-0032).
       From `~/projects/provisiond-spec`: `tools/check-all.sh`, the identifier, fixture,

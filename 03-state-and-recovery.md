@@ -327,9 +327,8 @@ implementation must not choose paths independently.
   on two machines is the same client key on two machines, which is `SEC-1` broken by
   bookkeeping. `STA-3` already requires the record before the effect; the index is part of
   that record, and indices are monotonic.
-- **The sheet no longer carries keys.** It holds allocation metadata, pins, the ledger and
-  the inference account credential (`STA-16`). The seed reconstructs a key only when its role
-  and index are known. Seed-only recovery does not discover indices or relay purchases.
+- **The sheet no longer carries keys.** Its contents are listed in `STA-16`. The seed
+  reconstructs a key only when its role and index are known. Seed-only recovery does not discover indices or relay purchases.
 - **A stolen seed is not revocable.** Replace (`STA-17`) is therefore a **new seed**, from which
   new client keys derive, with the old public keys removed from every maintained machine during
   re-entry — the same flow as before, with a different origin for the new keys and one more
@@ -368,7 +367,8 @@ counter. Therefore **a seed imported after loss of the canonical journal may res
 identities but MUST NOT allocate new ones**, even when the sheet claims to be current. To
 allocate again, use Replace with a freshly generated seed; old records are retained until
 migration is complete. This restriction also applies to an imported local-store backup.
-Existing identities remain usable during non-revoking Restore. The index rules are carried as
+Existing identities remain usable during non-revoking Restore. Restored knowledge beyond allocation
+is governed by `STA-16`. The index rules are carried as
 `TauWeb.Allocation.allocate` (ADR-0032): under the restriction above,
 `TauWeb.Allocation.issued_nodup` proves over every trace that no two allocations share an
 identity, and the restriction is the parameter whose pair is
@@ -383,7 +383,8 @@ backup service. Export is recommended after each allocation, including on dedica
 
 **STA-23 The local store has an explicit unlock boundary.** The operator chooses a local
 passphrase, separate from the seed backup and the recovery-sheet passphrase. A random data
-key encrypts the journal, snapshots, seed, pins, ledger and inference account credential;
+key encrypts the journal, snapshots, seed, pins, ledger, inference account credential and
+placed-secret scan references (`SEC-5` row 23);
 only a passphrase-wrapped data key persists. The v1 envelope, KDF and authentication rules
 are defined in the credential format. There is no plaintext or device-synced fallback.
 
@@ -398,6 +399,9 @@ callback is relied on for journaling. A killed worker restarts locked; after unl
 is best effort in a browser, not a claim of physical memory erasure. Wrong passphrases,
 tampered envelopes or unsupported versions fail closed without creating a replacement store.
 Lost local passphrases require seed/sheet/vendor recovery; the publisher cannot reset them.
+The browser MUST request persistent storage and visibly report a refusal. This is a request,
+not a promise that storage will be granted or that eviction, device loss or corruption cannot
+lose it; recovery remains necessary.
 
 ## Recovery, by access model and vendor
 
@@ -429,12 +433,23 @@ check — is withdrawn with `CHN-R5`'s: it accepted a key through the relay with
 `CHN-R4` refuses.
 
 **STA-16** The recovery sheet holds the allocation metadata of `STA-22b`, host-key
-fingerprints, the exposure ledger, and — on the
-procured path — the **inference account credential**, wrapped under a passphrase the operator
-chooses. **It no longer carries the SSH client keys**, which re-derive from the seed
+fingerprints, the exposure ledger, placement metadata (`machine_index`, name, path and placement
+time), and — on the procured path — the **inference account credential**, wrapped under a
+passphrase the operator chooses. **It no longer carries the SSH client keys**, which re-derive from the seed
 (`STA-22`). The export screen MUST say what the sheet can do in the wrong hands with the
 passphrase: **spend the remaining inference balance**. Reaching a machine needs the seed, and
-the seed is never in the sheet.
+the seed is never in the sheet. Placement records carry no value, digest, scan key, byte
+length or other value-derived reference. Their versioned wire shape and association checks
+live in the credential format; incompatible sheet payloads MUST be refused, never imported
+as though no placements existed.
+
+**A restored sheet is knowledge as of export.** The placement inventory, standing acceptable
+weaker modes and delivery declaration MUST be shown as **"unknown since export"** after
+store loss. That qualification MUST be restated at every later irreversible act until the
+operator explicitly reapproves the relevant restored state. No machine report or scan re-arm
+is reapproval of a declaration or weaker mode. The missing-placement question and re-arm
+procedure belong to `ARC-43`; reapproval cannot establish an inventory of forgotten secrets.
+These knowledge limits are additional to the allocation restriction in `STA-22b`.
 
 **The balance is in the sheet because the alternative is worse, not because it is comfortable.**
 The account credential is bearer and unrevocable (`SEC-5` row 14), so exporting it raises the
@@ -447,30 +462,38 @@ must say so plainly rather than inheriting the old warning.
 stolen phone's encrypted store may eventually be unlocked, so the flows are named and
 distinct, and the screen says which one is happening:
 
-- **Replace** (the default, for a phone that is lost): a **new seed** (`STA-22`), from which
-  new client keypairs derive; the old public keys removed from every maintained machine during
-  re-entry; the old relay pass revoked by its own key's signature and a new pass bought against
-  a key from the new seed. The old seed is not revocable — a thief who unlocks the store has it
-  — which is why the keys it derives are removed from the machines rather than merely stopped
-  being used.
-- **Restore** (for a phone that died in hand): the same seed re-derives the same keys,
-  explicitly presented as non-revoking.
+- **Replace** (the default, for a phone that is lost): generate a **new seed** (`STA-22`),
+  re-enter each maintained machine using its old client key and the sheet's old host pin,
+  install the new seed's client public key, then remove the old public key. The old seed is
+  not revocable; changing what the browser uses is not removing a thief's access. The old
+  relay pass is revoked by its own key's signature and a new pass bought against a key from
+  the new seed on the paid/public path. Stage 1's manually enrolled relay instead requires
+  publisher confirmation that the old hand-recorded pass is retired and the new key recorded.
+  The UI MUST NOT claim the old pass revoked before that confirmation.
+- **Restore** (for a phone that died in hand): the same seed plus sheet re-derives the same
+  keys and reuses the old host pin, with no first contact, explicitly presented as non-revoking.
+  New allocations remain barred until Replace with a fresh seed (`STA-22b`).
 
 **Direct Replace needs both seeds and the old allocation metadata, and MUST say so before
 it starts.** Re-entering a machine to remove
-the old key uses the old key; revoking the old pass is signed by the old key. Both derive from
-the seed being retired, so the operator needs its backup *during* Replace and abandons it after.
+the old key uses the old key; signed revocation on the paid/public path uses the old pass key.
+Both derive from the seed being retired, so the operator needs its backup *during* Replace and abandons it after.
 If the old seed or an index is missing, direct re-entry and pass revocation cannot finish.
 Robot machines can still be rekeyed through vendor-authenticated rescue (`STA-15`); cloud
 machines are destroyed and recreated, as that section says. The screen names unrecovered machines
-and unrevocable passes, and never reports a complete Replace while either remains outstanding.
+and unrevocable passes, and never reports a complete Replace or complete revocation while
+either remains outstanding, including a manual relay retirement awaiting confirmation.
 
-**Replace cannot cover the inference account credential, and MUST say so.** Every other item in
-the flow has an issuer that can kill the old value; this one has no account behind it, so there
-is nothing to revoke against (`SEC-5` row 14). What Replace *can* do is revoke every session key
+**Replace cannot cover the inference account credential, and MUST say so.** This credential
+has no account behind it, so there is nothing to revoke against (`SEC-5` row 14). What Replace *can* do is revoke every session key
 minted from it and mint no more — which stops the harness's own use and does nothing about a
 thief's. The only real remedy is to spend the balance down or move it, and the screen should
 offer that rather than implying the Replace flow handled it.
+
+Application secrets a thief could have read require rotation at their services; replacing
+SSH keys or re-arming a scan does not revoke them. A thief may also have left persistence on
+a machine. Replace MUST state these limits and offer destroy/rebuild where persistence is
+suspected; a successful key replacement is no claim that the machine is clean.
 
 **STA-18** Inventory recovery makes the vendor list authoritative. Listing the account is how
 a new phone learns what exists. That listing is performed by the deterministic recovery flow

@@ -109,12 +109,20 @@ nonce and AAD `tau-web/sheet/v1/<id>/payload`; only the wrapped key persists. Th
 envelope adds `payload_nonce` and `payload` to the fields above. Never reuse a local-store
 key or envelope as a sheet. Local and sheet purposes cannot be interchanged.
 
-The authenticated UTF-8 JSON payload contains `version: 1`, `derivation_version: 1`,
+The authenticated UTF-8 JSON payload contains `version: 2`, `derivation_version: 1`,
 `seed_id`, `exported_at` (UTC RFC 3339), `journal_sequence`, `next_indices` (machine/pass/
 handoff), `allocations` (including consumed tombstones), `host_pins`, `exposure_ledger`,
-and optional `inference_account_credential`. Each allocation has its family, index, stable
+`placements: [{machine_index, name, path, placed_at}]`, and optional
+`inference_account_credential`. Each allocation has its family, index, stable
 resource identity and expected public key as required by `STA-22b`; a failed allocation may
 have no vendor resource ID, but retains its index. No seed or derived private key is included.
+Each placement associates a machine-family allocation with its nonempty name, recorded path
+and UTC RFC 3339 placement time. Reject missing or ambiguous machine associations, duplicate
+placement records and malformed fields before binding. No placement value, digest, scan key,
+byte length or other value-derived reference is included. Payload version 1 and unknown
+payload versions are unsupported: refuse them explicitly, never interpret a missing placement
+list as empty. This payload-version change does not change the v1 envelope, derivation paths,
+algorithms or known-answer vectors.
 Reject unknown versions, duplicate identities/indices and malformed fields before binding
 anything; imported data never creates a binding without vendor reconciliation and an
 operator act. Never merge two counters and call the result proof that a backup is current.
@@ -122,7 +130,7 @@ operator act. Never merge two counters and call the result proof that a backup i
 Export asks the operator to retain both the seed backup and the separate sheet passphrase.
 For maintained cloud, setup completion requires confirmation that the current sheet was
 saved (`STA-15`). A stale or absent sheet may lose newer machines' metadata and relay quota.
-The dedicated test bed implements local storage and derivation alone. Stage 1 delivers a
-maintained cloud machine, so the sheet's export is needed before that stage completes
-(`STA-15`); import and Replace follow `07-conformance.md`'s applicability table, with these
-formats fixed in advance.
+The dedicated test bed covers local storage and derivation. Stage 1 also requires export,
+Restore and Replace for maintained cloud; Robot rescue and paid/public signed relay revocation
+have their own milestones in `07-conformance.md`'s applicability table. These are required
+implementation demonstrations, not claims that this specification has run them.

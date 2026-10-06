@@ -14,9 +14,9 @@ dedicated path that is now the construction test bed. The stages were re-drawn o
 (`06-first-stage.md`). **Stage 0** is the probes, run now and in parallel with construction:
 `OPN-24`, `OPN-25`, and attest on a real first boot under `OPN-3`. **Completing stage 1** gates
 on those three, on the generic lockdown checklist of `OPN-14`, on integrated resume
-(`OPN-18`), on the placed secret's digest key (`OPN-28`), and on the stage-1 acceptance subset in `07-conformance.md`, including `STA-23`
-unlock and v1 derivation evidence (`OPN-18` is closed by design and open as that
-implementation). `OPN-3` also gates recovery, which a maintained cloud machine needs. `OPN-5`
+(`OPN-18`), on integrated placed-secret scanning (`OPN-28`, closed by design), and on the
+stage-1 acceptance rows in `07-conformance.md`, including local unlock, derivation and
+maintained-cloud recovery. `OPN-3`'s evidence is split by milestone below. `OPN-5`
 gates stage 2. `OPN-26` gates no route of stage 2 — the jump-host route runs on a separately
 supplied credential (`SEC-5` row 21) — and what waits on it there is the untyped vendor scope's
 best practice, a vendor identity derived per set, which is shown as missing until it closes.
@@ -51,8 +51,18 @@ narrowed with it: `CHN-R5` says "If the introduction never arrives, the machine 
 and nothing weaker is entered", so a window measured too short now costs a machine rather than
 a displayed leap.
 
-*Closes when:* `CNF-18`, `CNF-19`, `CNF-20`, `CNF-72`, `CNF-83` and `CNF-84` pass on the
-app and hardware to which each applies. The format alone does not close the recovery gate.
+*Closure evidence by milestone (amended 2026-10-06):*
+
+- Stage 0 supplies real-first-boot attest evidence (`CNF-18`), then stage 1 integrates it.
+- Stage 1 supplies the recovery row of `07-conformance.md`, including `CNF-10`'s export
+  case, and local allocation/derivation evidence (`CNF-72`, `CNF-83`). Its relay replacement
+  is the manual route in `STA-17`.
+- The dedicated path supplies `CNF-84`'s Robot rescue case on the integrated harness; the
+  historical rehearsal is not that evidence.
+- Paid/public relay enablement supplies signed revocation (`CNF-60`).
+
+Each part closes on the app and hardware to which its applicability row applies. A format
+alone closes none of these empirical gaps.
 
 **OPN-5 — The cloud-account floor.** Cloud vendors want an account, a card, and a recurring
 relationship, several times over, and invoice relay cannot fix it. This is what makes lnrent
@@ -83,12 +93,13 @@ passes or fails against a named second vendor.
 **OPN-24 — Whether LNVPS can be the first vendor, and the jump vendor.** LNVPS (lnvps.net;
 its API is published at github.com/LNVPS/api) sells machines for Lightning, identifies a buyer
 by a Nostr key, and keeps no account: what `CHN-R6` asks of a jump vendor, and what stage 1
-wants of its only vendor (`STG-21`). Nothing about it has been measured. One probe answers four things:
+wants of its only vendor (`STG-21`). Nothing about it has been measured. The probe's owning list is:
 
 - **Boot-time user-data, or published host keys** — whether `CHN-R5` or a retrieve route can
   pin a machine there at all.
 - **Browser reachability** — whether its API answers a browser origin, or needs the pinned
   tunnel of `CHN-12a`.
+- **Inventory and destruction** — whether it **lists a key's machines and can destroy them**.
 - **The minimum billing period** — which is what a jump host that lives for minutes costs.
 - **An Arch image** — whether stage 1's distribution can be installed from the vendor's own
   catalogue.
@@ -154,6 +165,12 @@ template shipped with every unstated field `unspecified` so the harness invents 
 and sshd posture — keyed on no vendor and no tenant, shipped in the bundle. It does not exist
 yet. lnrent's declaration, the Robot checklist and briefs 2–3 gate stage 3.
 
+*Owed 2026-10-06:* the harness-composed reads of `ARC-43` behind `CNF-50` and `CNF-53`:
+listeners, unit state and enablement, evidence establishing survival of a restart, and a
+service-name grammar that passes a validated name as an argument, never shell syntax.
+Neither the concrete grammar, init-specific reads nor restart-demonstration mechanism is
+selected here. T42 carries their implementation and stage 1 still owes their evidence.
+
 *Closes when:* the generic checklist ships and `CNF-49`–`CNF-53` and `CNF-99` have integrated
 evidence against it — that much for stage 1; and, for stage 3, the lnrent owner fills that
 template ([douglaz/lnrent#87](https://github.com/douglaz/lnrent/issues/87)), the Robot lockdown
@@ -182,18 +199,15 @@ one known gap sits under any declared independence bound: `ARC-31b` gives every 
 highest-ranked candidate, so a different model per machine is not deliverable on the procured
 path. *Closes when:* stage 3 is designed.
 
-**OPN-28 — The key of a placed secret's digest has no design.** That a later session scans
-box-plane output for a placed application secret is decided and is not this question: `SEC-5`
-says "a later session's scan compares against a keyed digest, never the value". What is open is
-everything about the key and the digest. The key's origin, where it is stored and how long it
-lives. Where the digest is kept, and any metadata a match needs beside it, such as the value's
-length. Whether the machine's job record carries a digest. And what happens on a lost or a
-restored store. A key derived from the seed is excluded until `STA-22a` defines a role for one.
-One candidate, and no more than a candidate: a per-secret random key from the browser CSPRNG,
-kept with the digest in the encrypted local store. Until this closes the key has no row in
-`SEC-5`, so no implementation may hold one; construction proceeds, and stage 1 does not
-complete. *Closes when:* a key origin and lifecycle are approved, `SEC-5` carries a complete row
-for the key, and `CNF-95`'s later-session case has passing evidence.
+**OPN-28 — Placed-secret scanning after store loss.** *Closed by design; open as
+implementation, 2026-10-06.* `SEC-5` row 23 and its scan semantics define the browser-keyed
+reference; `ARC-43` owns placement, machine re-hashing and the local paste fallback. The key
+may be held immediately under that design; evidence is a completion gate, not authority to
+construct it. T48 carries the build and the still-open numeric minimum secret length.
+
+*Closes when:* `CNF-95`'s cases pass on the integrated harness, paired with `CNF-84` for
+Restore and `CNF-42` for the retained exposure display. Construction can proceed; stage 1
+requires that evidence, including fallback and output boundaries.
 
 **OPN-15 — Reproducible builds and the watchdogs that would make them mean something.** Neither
 exists. Until they do, the bundle's integrity rests on trusting the host outright, and `TRU-A1`
@@ -367,6 +381,11 @@ requested per machine rather than observed, and the same override caveat applies
 *What closed it:* `SEC-CLAIM` now states the condition that way — configured weights, distinct
 by construction, with service-as-requested left to `TRU-E2`. A signal confirming the served
 model would add an *observed* column; none has a candidate, and nothing waits on it.
+
+*Amended 2026-10-06.* The historical "distinct by construction" account above is not what
+the procured path currently delivers: `ARC-31b` says it "takes the highest-ranked candidate
+it finds there" at session start. The configured-diversity gap is `OPN-27`'s stage-3 question.
+This note does not reopen the served-weights observability question closed here.
 
 **OPN-1 — The SSH client.** *Closed 2026-09-08: the mechanism ran, and it ran on a phone.* An SSH implementation compiled to `wasm32-unknown-unknown` with
 its transport swapped for a WebSocket. It gates, because nothing works without one.

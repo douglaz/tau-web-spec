@@ -39,7 +39,9 @@ about one:
 - **Its model provider is an elective party** (`TRU-E12`), listed in the trust display.
 - **The delivery card MUST say so**, with the application's name where this example has
   Hermes: "Hermes is an AI that acts on this server by itself. tau-web's promises cover what
-  tau-web's AI does, not what Hermes does."
+  tau-web's AI does, not what Hermes does." Beside it the card MUST explain that Delivered
+  covers the declared machine state and the fixed lockdown checks, and MUST say, substituting
+  the application's name: "It does not mean Hermes works".
 
 **ARC-2** Nothing runs while the app is closed. This is accepted rather than worked around.
 Every step MUST be resumable across a locked phone, and progress MUST survive the harness
@@ -240,8 +242,8 @@ MUST be handled by the brief rather than answered live.
 
 **ARC-43 Values the harness checks come from jobs the harness composed, never from model
 text.** The artifact hash (`ARC-25`, `CNF-24`) and the installed host keys (`CHN-R1`, `CNF-22`)
-are read by **harness-owned box-plane jobs the model requests** through the same path as a typed
-operation, and the values are taken from the job record's captured output. The jobs are:
+are read by **harness-owned box-plane jobs**, requested by the model where permitted or
+initiated by the harness itself. Values come from the job record's captured output. The jobs are:
 
 - `fetch_artifact` — downloads the pinned URL to a harness-fixed path on the machine, hashes it,
   compares against the bundle's value and halts the install on a mismatch (`STG-6`).
@@ -249,6 +251,14 @@ operation, and the values are taken from the job record's captured output. The j
   target, and only then offers the reset typed operation (`STA-20b`'s planned-reset ordering).
 - `place_secret` — writes one **application secret** (`SEC-5` row 12) to a file on a named
   machine of the bound set. Its rules are below.
+- `digest_secret` — a harness-initiated read of a recorded placement, under the rules below.
+  The model MUST NOT request it through `request_harness_job` or supply its command.
+
+Listener observations and service state/enablement observations used for delivery also MUST
+come from harness-composed reads. The signed checklist (`OPN-14`) owes the concrete reads,
+the evidence for `enabled-survives-reboot`, and a service-name grammar whose validated values
+are passed as arguments, never interpolated as shell syntax. The model proposes values,
+not the measuring procedure.
 
 Where a host-key pin may come from is `TauWeb.Pins.Source` and what each source may pin is
 `TauWeb.Pins.admits` (ADR-0032), with `TauWeb.Pins.installed_pin_from_job` over every trace and
@@ -272,7 +282,8 @@ here is non-waivable:
   machine's disk and in the journal. It is not put in an environment variable, in shell text or
   in a diagnostic either.
 - **The job wrapper's duty is `STA-20`'s.** `STA-20` says "the job wrapper MUST NOT write that
-  input to any file but the job's destination".
+  input to any file but the job's destination". The destination receives exactly the entered
+  bytes: no added newline, wrapper, or `KEY=` prefix.
 - **The value never enters model context on the way in**, and never appears in cleartext in the
   journal, the transcript, the job record, a log or a request to the app's origin. What is
   recorded before the bytes leave (`ARC-8`) is the command, the machine, the destination and the
@@ -281,20 +292,61 @@ here is non-waivable:
   steered model asks for the vendor credential or the seed to be written where it has root, and
   `CNF-12` has something to send after all.
 - **An unsafe destination is refused**: a mode that lets any account but the owner read the
-  file, and a path that is a symbolic link or passes through one.
+  file, and a path that is a symbolic link or passes through one. An existing file MUST be
+  refused unless the placement records name it as this placement; placing a new secret must
+  not overwrite unrelated data.
 - **No secret is placed while a finding stands** on the machine (`ARC-17`).
 - **The card restates every acceptable weaker mode standing on the machine's bound set**
   (`SEC-14`), states the root-shell caveat `SEC-5` attaches to row 12, and shows the name and
   purpose as what the model asked for, not as the harness's description.
 - **The placed secret is listed in the trust display** until it is rotated or the machine is
-  destroyed (`SEC-6`).
+  destroyed (`SEC-6`). Restore takes the union of the journal and sheet's placement records
+  (`STA-16`). Machine records may add entries, visibly labelled as machine-reported and
+  advisory, but MUST NOT remove any. An absent file stays listed; absence, scan re-arm and
+  a machine's claim of removal are not rotation or destruction.
 
 A key the operator minted at its service with a cap, or one the operator can revoke there, is
 the best practice, and the card says so. The harness mints nothing for an application: a key
 minted from the inference account would be a harness credential on a machine (`ARC-1`).
 
+**Re-arming after store loss is harness work.** On binding a session after local-store loss,
+`digest_secret` MUST run for every placement recorded in the sheet before any model command
+or collection of old or new job records can release output to either the model or the
+transcript on that bound set. It reads the recorded path, refuses a symbolic link or a path
+traversing one, writes nothing to the placement, and outputs only SHA-256 of the file's bytes
+and their byte count, never the bytes. Normal machine-side capture remains `STA-20`'s; its
+raw digest output MUST reach neither model context nor transcript, which receive status only.
+The browser constructs the reference with a fresh browser-only key under `SEC-5` row 23;
+no harness secret is sent to the machine. An entry known only from machine records requires
+an explicit operator act before arming its reference.
+
+The same job MUST run immediately after placement, cross-checking the browser-held value's
+hash and byte count. A mismatch is visible and MUST NOT silently replace the browser's
+reference. With an intact store, later sessions retain that reference: a machine report cannot
+overwrite it. After store loss there is no old reference with which to detect every rewrite.
+A machine-derived reference MUST be labelled **"re-armed from the machine's report"**, never
+"protected" or proof that the original value was recovered. It covers no forgotten placement.
+Further changed-file detection policy remains open in T48.
+
+If the file is absent, changed against an intact reference, or the digest job fails, the
+harness MUST offer a visible fallback card: the operator may paste the secret locally to
+create a fresh reference under `SEC-5`. This act writes nothing to the machine and is not a
+placement or rotation. Rotation goes through the full `place_secret` ceremony. Re-arming
+neither reapproves the restored declaration nor any weaker mode; recovery placement waits
+for their reapproval under `STA-16`.
+
+Model `exec` across the bound set MUST wait while any known required placement reference is
+unarmed. Only harness jobs whose output goes to **neither** model nor transcript are exempt;
+read-only work, reconnect records and a job merely hidden from the model are not loopholes.
+Unscanned output is withheld under `SEC-5`, with no automatic retry authority added to `STA-6`.
+After Restore the harness asks whether secrets were placed since export, with no answer
+preselected; **"Not sure" is treated as yes**. It displays unknown coverage and restates it at
+later irreversible acts under `STA-16`, but that unknown inventory does not itself block
+work once all known required references are armed.
+
 The model's tool set in the first stage is exactly four: `exec` (a box-plane command it composed),
-`request_harness_job` (one of the jobs above, by name, with the arguments that job admits),
+`request_harness_job` (`fetch_artifact`, `ready_to_reset` or `place_secret`, by name, with the
+arguments that job admits),
 `request_typed_operation` (a cloud-plane operation, approved on facts), and `done`. Each names
 its machine (`ARC-7`). There is no tool by which the model
 reports a value, so a wrong or hostile report cannot pass `CNF-24` or pin a key. A model in
@@ -549,6 +601,13 @@ with findings**: it is not delivered, it MUST NOT be described as locked down, e
 stays shown until a later check clears it, and no application secret is placed on it while one
 stands (`ARC-43`).
 
+**Placement comes between lockdown and the final lifecycle demonstration.** The fixed lockdown
+checks and applicable pre-placement declaration checks MUST pass before an application secret
+is placed. A declared service that cannot start until its secret exists is not a finding
+merely for failing lifecycle before placement. After placement its declared lifecycle MUST
+be demonstrated before delivery. Actual lockdown findings still block placement; this ordering
+neither waives them nor makes the final lifecycle demonstration optional.
+
 **ARC-39** Every machine MUST have a **delivery declaration**: a statement of what must be true
 of the finished machine, approved before anything is installed on it. A tenant's profile presets
 it. With no tenant the model proposes it from the operator's goal (`ARC-11a`), starting from
@@ -558,11 +617,15 @@ journaled one is the declaration in force (ADR-0030's second guard). The lockdow
 scanner measure the machine against it, and **the finding is a difference from the
 declaration**, never a property the harness assumed.
 
-**A proposed declaration carries no check the model wrote.** Its `required` and `drift_checks`
-fields are the explicit empty set or entries drawn from the signed bundle. A check the model
-composes is run and shown as a report beside the declaration; it is not one of its fields and
-never counts toward delivered, for the reason `ARC-43` gives for every other value the harness
-checks.
+**A proposed declaration carries no check the model wrote.** The model proposes typed values
+such as ports, service names and hosts; the operator approves them. It never supplies the
+procedure that measures them. Its `required` and `drift_checks` fields are the explicit empty
+set or entries drawn from the signed bundle. A check the model composes may run through its
+own `exec` and be shown beside the declaration as a report (`SEC-2`). Neither success nor
+failure counts toward Delivered, creates or clears a finding, or blocks delivery or secret
+placement. Such commands MUST NOT be retained for automatic re-execution. Their historical
+command records remain; a later session may choose its own commands,
+subject to the same report-only rule. The source of measured values is `ARC-43`.
 
 **The harness does not know what a finished machine looks like, and must not guess.** One tenant
 needs a service enabled and surviving every reboot, because it has to answer while the operator

@@ -155,7 +155,9 @@ implementation can be required to prevent.
 ### SEC-2 — nothing is presented as verified
 
 **The product MUST NOT present any claim as verified.** There is no verification layer.
-"Verified" and "no anomalies found" are claims this design cannot make.
+"Verified" and "no anomalies found" are claims this design cannot make. A model-written check
+report MUST be labelled **"Checks the AI wrote — not part of Delivered"**, with no tick mark
+and no "passed" or "verified" treatment, whatever its output (`ARC-39`).
 
 ### SEC-3 — the box plane has no path to the harness's cloud plane
 
@@ -261,7 +263,7 @@ outgrown, because adding a credential means adding a row.
 | 1 | Vendor API credential, used through a typed adapter | Operator | Browser memory only | The sessions it is supplied to, or one deterministic harness flow (`STA-18`, `ARC-21`) | Whatever the vendor grants it, up to full account authority; the adapter authorizes each operation against the calling session's bound set (`SEC-4`), so one credential may serve several sessions | Session or flow ends |
 | 2 | Inference **session** key | Minted from row 14 (procured); supplied by the operator (BYO) | Browser memory only | One session | Inference spend, **up to its own cap** | Revoked at session end (procured); session ends (BYO) |
 | 3 | **SSH client private key, one per machine** | **Derived** from row 15 at that machine's index (`STA-22`) | Re-derived on demand; nothing to export. Given to the machine's bound session and no other; a jump host's, at the jump host's own index, is given to no session (`CHN-R6`) | Machine lifetime | Login to **that one machine** | Removed from the machine on Replace (`STA-17`), which is a new seed; a jump host's dies with the jump host |
-| 4 | **Relay key**, one per pass | Derived from row 15 (`STA-22`); its public half is what the relay binds a bought pass to (`CHN-15`), and what the first stage hands the publisher out of band | Re-derived on demand; nothing to store | Until the pass expires or is revoked | Reaching the destinations recorded against its pass, on any port; recording destinations; revoking (`CHN-16`) | Pass expires; revoked by its own signature on Replace, and a new key bound to a new purchase |
+| 4 | **Relay key**, one per pass | Derived from row 15 (`STA-22`); its public half is what the relay binds a bought pass to (`CHN-15`), and what the first stage hands the publisher out of band | Re-derived on demand; nothing to store | Until the pass expires or is revoked | Reaching the destinations recorded against its pass, on any port; recording destinations; revoking (`CHN-16`) | Pass expires or replacement is confirmed under `STA-17`, by signed revocation or stage 1's manual retirement |
 | 5 | Host-key pins | Vendor API, rescue, attest, or a first contact from a jump host (`CHN-R6`), recorded with which | Encrypted at rest; exported in the sheet | Installed system: machine lifetime. Rescue: one boot (`CHN-R1`). A jump host's: one first contact | Nothing — integrity reference | Machine destroyed; rescue pin discarded at the reset; a jump host's pin kept as the record of how the target's was obtained |
 | 6 | Exposure ledger | Harness-derived | Encrypted at rest; exported in the sheet | Machine lifetime | Nothing — record | Machine destroyed |
 | 7 | **Attest sender key**, one per machine — a jump host pinned by attest included, at its own index | Derived from row 15 (`STA-22`) | Boot user-data; **never stored in the browser**, re-derived to check the seal | Until the browser accepts one introduction, or its window closes | **One** host-key introduction (`CHN-7`) | **The browser stops listening (`CHN-5`)** — that is the bound; scrubbed from disk as defence in depth (`CHN-6`); the metadata copy is permanent and worthless |
@@ -269,7 +271,7 @@ outgrown, because adding a credential means adding a row.
 | 9 | Rescue root password, in a typed adapter's response | Vendor-generated, in an API response | Never stored | Never used | Root login the harness declines to use | **Redacted before the response is recorded or reaches a model.** Under an untyped vendor scope no adapter reads the response, so a vendor-generated password is outside this row and inside model context, and is shown as that (`SEC-4`) |
 | 10 | Recovery sheet passphrase | Operator-chosen | Never stored anywhere | Operator's memory | Unwraps the sheet | Not applicable |
 | 11 | Untyped-scope credential — a vendor's included, under `SEC-4`'s untyped vendor scope | Operator | Browser memory only | Until the operator revokes or rotates it | **Unbounded at that origin** | Operator revokes at the service |
-| 12 | **Application secret placed on a machine** | Operator, on `place_secret`'s card (`ARC-43`) | Browser memory until the session that placed it ends, then the machine alone | Machine lifetime | Whatever the application it was placed for uses it for | Machine destroyed, or operator rotates |
+| 12 | **Application secret placed on a machine** | Operator, on `place_secret`'s card (`ARC-43`) | Browser memory until the placing session ends, then the machine alone; briefly in the local paste re-arm card (`ARC-43`), cleared after reference construction and never persisted or sent | Machine lifetime | Whatever the application it was placed for uses it for | Machine destroyed, or operator rotates |
 | 13 | ~~Injected SSH host private key~~ | — | — | — | — | **Row retired. `CHN-R3` is abandoned**: user-data stays readable from the vendor's metadata endpoint for the instance's life, so the key would be permanently re-fetchable by anything on the machine. No exception wording fixes that. |
 | 14 | **Inference account credential** (procured only) | Operator, on funding an account-free balance | Encrypted at rest; **exported in the sheet** | Until the balance is spent | The remaining balance; minting and revoking row 2; attaching a funding source (`ARC-31a`) | Spent down or abandoned — **it is bearer and cannot be revoked** |
 | 15 | **Operator seed** | Operator, at first use; backed up by the operator | Encrypted at rest; **in the operator's head or seed backup**, never in the sheet | Until replaced | Deriving rows 3, 4, 7, 16 and 17 — **every maintained machine, every relay pass, every future introduction, and every declared handoff** (`STA-22`) | Replaced by a new seed on Replace (`STA-17`); the old one is not revocable, only abandoned — and it is still needed *during* Replace |
@@ -280,6 +282,7 @@ outgrown, because adding a credential means adding a row.
 | 20 | Data-encryption key (local store or sheet) | Browser CSPRNG, independent per store/export | Harness-worker memory; only an authenticated wrapped copy persists | Local store unlocked; sheet import/export operation | Decrypts the named local store or sheet, never another purpose | Cleared on lock/end; replaced on re-encryption |
 | 21 | **Jump-vendor credential**: a vendor credential supplied separately from the target's (`CHN-R6`) | Operator | Browser memory only, held by the jump-host flow; never given to a session | One jump-host flow, from the create to the confirmed destroy | Creating one jump host, reading its address and destroying it, through the jump vendor's adapter | Flow ends |
 | 22 | **Derived vendor identity** — not derivable today | — | — | — | — | No role exists for it. `STA-22` says "an implementation must not choose paths independently", and credential format v1 (`STA-22a`) defines no role, index family or known-answer vector for a vendor identity; until it does, none is derived or used (`OPN-26`) |
+| 23 | **Placed-secret scan key and reference**, per secret | Fresh independent browser-CSPRNG key `K` on placement or re-arm; reference `HMAC-SHA-256(K, SHA-256(value))` plus byte length `L` | Encrypted local store under `STA-23`; working copy only in browser memory. Neither key nor reference goes to the machine, sheet, model, transcript or app origin | Until rotation, machine destruction or local-store loss; re-arm replaces it with a fresh key/reference | Local exact-value comparison only; no external authority | Cleared from working memory on lock, page hide, worker shutdown or session end; persistent copy removed on rotation/destruction, lost with the store |
 
 Rows 18–20 use the versioned envelope in `STA-23`. Row 15 derives row 17 as well as the
 machine and relay credentials. Derivation indices, resource mappings and allocator counters
@@ -296,14 +299,20 @@ has touched or will touch that machine, and is counted under `SEC-6`. Anything e
 the overstatement this design refuses everywhere else.
 
 **Exact copies of a placed secret are redacted from box-plane output before that output
-reaches the model or the transcript, and the claim is no wider than that.** In the session that
-placed it the scan compares against the value still in browser memory; a later session's scan
-compares against a keyed digest, never the value. The later scan is required like the first.
-What it needs is not yet permitted: the digest's key has no row in this table, so, as with row
-22, none is held until `OPN-28` closes with one. The scan sees exact values only: an encoded, partial or transformed
-copy passes. And it runs in the browser — `STA-20a`'s output file lands on the machine before
-any browser scan runs — so it is a statement about the harness's records and the model's
-context, never about what the machine holds.
+reaches the model or the transcript, and the claim is no wider than that.** During placement
+the scan may compare the entered value in browser memory. Later it MUST compare
+`HMAC-SHA-256(K, SHA-256(window))` against row 23's reference, over raw-byte windows of length
+`L`, including windows crossing output chunks, before decoding or release to either sink.
+Unscanned bytes MUST be withheld; matches become visible redaction markers naming the secret,
+never silent omissions. The browser retains only the keyed reference and length after the
+value is cleared; neither a bare hash nor the value persists there. A minimum byte length is
+required at placement and every re-arm, with the numeric bound still open in T48; no arbitrary number
+is implied by this construction. Placement and recovery arming are `ARC-43`'s procedures.
+
+The scan sees exact values only: an encoded, partial or transformed copy passes. It runs in
+the browser — `STA-20a`'s output file lands on the machine before any browser scan runs — so
+it is a statement about the harness's records and the model's context, never about what the
+machine holds. The root-shell caveat on row 12 remains, including plaintext machine output.
 
 **Rows 3, 7 and 16 cover a jump host's keys, and row 21 its vendor credential.** A jump host
 (`CHN-R6`) is allocated its own index in the machine family, an index that is never an entry
@@ -322,8 +331,8 @@ rather than asserted.
 **Row 14 is an unrevocable service credential, and it holds money.** It
 is a bearer value: whoever has it can spend the balance and mint keys against it. That is why
 row 2 exists at all — a session gets a capped, expiring derivative rather than the thing itself
-— and why `STA-17`'s Replace flow cannot treat it like row 4. A relay pass is revoked by its
-key's own signature and a new one bought; a stolen account credential can only be raced to the
+— and why `STA-17`'s Replace flow cannot treat it like row 4. Relay replacement follows
+`STA-17`, including its manual stage-1 case; a stolen account credential can only be raced to the
 bottom of its balance.
 The bound is what the operator chose to fund.
 

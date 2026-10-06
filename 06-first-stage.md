@@ -7,8 +7,7 @@ an operator with a goal and no tenant
 ([ADR-0034](./docs/adr/0034-general-case-first-tenants-are-optional-skills.md)).
 
 - **Stage 0 — the probes**, run now and in parallel with construction. The LNVPS probe
-  (`OPN-24`): boot-time user-data or host-key exposure, browser reachability, the billing
-  minimum, an Arch image. Attest on a real first boot (`OPN-3`). And Omarchy's server edition,
+  follows `OPN-24`'s owning list. Attest on a real first boot (`OPN-3`). And Omarchy's server edition,
   or plain Arch in its place (`OPN-25`). None of it needs the harness.
 - **Stage 1 — the owner's scenario, with no tenant** (`STG-21`).
 - **Stage 2 — a vendor with no adapter** (`STG-22`).
@@ -41,12 +40,14 @@ journal, the stage needs:
 
 - **goal input, and the harness's own questions** for machine class and the declaration
   (`ARC-36a`, `ARC-39`);
-- **`place_secret`**, for the application's key (`ARC-43`, `CNF-16`) — the later-session scan
-  of its output is required, and the design of that scan's digest key is `OPN-28`, which gates
-  completing this stage and not constructing it;
+- **`place_secret` and its scan/re-arm paths**, for the application's key (`ARC-43`, `SEC-5`):
+  `CNF-95`'s cases pass before completion (`OPN-28`);
 - **the unpinned label, or a publisher pin for Arch** (`ARC-25`);
 - **delivered against handed over with findings**, and a generic signed lockdown checklist
-  (`ARC-17`, `OPN-14`);
+  (`ARC-17`, `OPN-14`), with the harness-composed listener and service-lifecycle evidence
+  still owed there and model-written reports under `CNF-107`;
+- **maintained-cloud recovery**, under the recovery row of `07-conformance.md`: export,
+  Restore and Replace, including manual relay retirement (`STA-15`–`STA-17`);
 - **invoice relay for a machine** (`ARC-29`, `ARC-30`);
 - **interrupted resume** (`STG-12`); and
 - **one re-entry** (`STG-9`).
@@ -337,8 +338,10 @@ counts as touching it until that machine is destroyed".
   nothing is pasted into the app. The publisher configures the allowed public destinations
   and connection/probe limits (paid-tcp-relay `PAS-6`, its `bundle/timing.toml`); fresh
   challenge authentication, destination restriction and private-address refusal still apply
-  (`CNF-81`, `CNF-87`). There is no purchase flow or tested reacquisition story;
-  that is `OPN-2`.
+  (`CNF-81`, `CNF-87`). There is no purchase flow or automated reacquisition story;
+  that is `OPN-2`. Manual replacement follows `STA-17` and the stage-1 recovery row.
+- **That the application works.** Hermes's functional behavior and its provider are not
+  stage-1 gates; the delivery claim is bounded by `ARC-1a` and `ARC-17`.
 - **Inference funding.** Assumed already funded.
 - **A vendor with no adapter, and any set but one machine.** Untyped vendor scopes, the jump host and
   bound sets above one are stage 2's (`STG-22`); tenants are stage 3's (`STG-23`).

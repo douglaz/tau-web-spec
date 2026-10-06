@@ -2,7 +2,7 @@
 
 Owned by the publisher and shipped in the bundle. Records: this file. Briefs supplied: none;
 a machine here is steered by the operator's goal (`ARC-11a`).
-Profile revision: 2 (2026-10-05).
+Profile revision: 3 (2026-10-06).
 
 Schema: ADR-0030. Every machine runs under a profile, and this is the one a machine with no
 tenant runs under (`ARC-44`). Its per-machine slots carry no preset: the operator fills them by
@@ -42,6 +42,7 @@ scope (`SEC-4`) — do not apply to a machine under this profile.
 Per machine (`ARC-39`). The minimum below is signed content shipped in the bundle, and it is
 where every proposal starts. From the operator's goal the model proposes what to add — what the
 installed software listens on, what must be running, where an operator's application connects —
+as typed values under `ARC-39`, whose measuring procedures remain the harness's,
 and the operator approves the result in plain language; the approved declaration is journaled
 with the machine and is the one in force. An unspecified field blocks delivery; an explicit
 empty set does not. The minimum's structured v1 form is complete in
@@ -62,15 +63,17 @@ service among it.
 
 ### Permitted key material
 
-The minimum: no application key material. What the harness itself places is expected: the
-machine's own SSH host keys, generated at install (`CHN-R1`), and the machine's own client
+The minimum: no tenant key material. The scope of `key_material` is defined in
+[`delivery-declaration-v1.md`](../../design/delivery-declaration-v1.md); the separately
+classified application secrets in `SEC-5` row 12 use `place_secret`. What the harness itself
+places is expected: the machine's own SSH host keys, generated at install (`CHN-R1`), and the machine's own client
 public key in `authorized_keys` (`SEC-1`). No proposal and no amendment declares spendable key
 material on a machine whose class is multi-tenant (`ARC-37`).
 
 ### Drift checks
 
 The explicit empty set, or entries drawn from the signed bundle. A check the model writes is a
-report and is never one of these (`ARC-39`).
+report under `ARC-39`, with `SEC-2`'s label, and is never one of these.
 
 ### Required software and checks
 

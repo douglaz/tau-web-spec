@@ -60,11 +60,11 @@ disk. Host-key pinning buys transport safety, not vendor independence; vendor in
 what placing machines at several vendors buys.
 
 **TRU-E2 — The inference proxy: the one the operator funds, and the aggregator it appears to
-route through.** Procured inference means the publisher picks the models, and it has one
-aggregator that reaches them all, so the normal configuration is several sets of weights behind
-a single funded proxy. That proxy can alter every prompt and response it carries, which makes it
-the thinnest layer in the default product even when the weights count looks healthy. Adding a
-second is a supported move, not a redesign.
+route through.** Procured inference uses the candidate order in `ARC-31b` behind a single
+funded proxy; that selection supplies availability fallback, not different weights per
+machine (`OPN-27`). The proxy can alter every prompt and response it carries, so it remains
+a common party across the machines even if their configured models differ. Adding a second
+is a supported move, not a redesign.
 
 **The row also carries a second name, by inference, dated 2026-09-23: OpenRouter.** A request
 carrying a provider selection (`only`) comes back in OpenRouter's response schema — `gen-`
