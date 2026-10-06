@@ -50,8 +50,8 @@ UI MUST NOT claim the old pass revoked before that confirmation".
 
 Recovery knowledge is separate from recovered access. `STA-16` owns the "unknown since
 export" state of placements, weaker modes and the declaration, and its reapproval boundary.
-The sheet carries each machine's state as approved — declaration, class, access model,
-standing weaker modes and pin route — because none of it is secret and a Restore that had to
+The sheet carries each live machine's state as approved — declaration, class, access model,
+installation pin status and standing weaker modes, with each pin's route beside it — because none of it is secret and a Restore that had to
 re-propose a declaration from a lost goal would make every Restore a re-setup.
 `STA-23` owns the persistent-storage request and visible refusal. Neither is a promise that
 a phone retains its store. Placement metadata and scan recovery are addressed by

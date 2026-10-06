@@ -114,7 +114,8 @@ The authenticated UTF-8 JSON payload contains `version: 2`, `derivation_version:
 handoff), `allocations` (including consumed tombstones), `host_pins`, `exposure_ledger`,
 `placements: [{machine_index, name, path, placed_at}]`, `machine_states`, and optional
 `inference_account_credential`. Each allocation has its family, index, stable
-resource identity and expected public key as required by `STA-22b`; a failed allocation may
+resource identity and expected public key as required by `STA-22b`, and a jump host's entry
+records that it is in no session's bound set; a failed allocation may
 have no vendor resource ID, but retains its index. No seed or derived private key is included.
 Each `host_pins` entry names the host-key route that produced it: `retrieve` (`CHN-R1`),
 `attest` (`CHN-R5`) or `jump_host` (`CHN-R6`). Whether the installation carries an artifact
@@ -123,9 +124,10 @@ pin is a different fact, carried per machine below. Each `machine_states` entry 
 declaration in force as a delivery-declaration v1 document, the class `ARC-36a` records, the
 access model of `ARC-27`, `installation` as `"pinned"` or `"unpinned"` (`ARC-25`), and the labels
 of the acceptable weaker modes standing on the machine's bound set (`SEC-14`). A field not yet approved
-at export carries the explicit marker `"pending"`, never an absent field. Every live machine in
-a bound set has exactly one entry; a jump host's allocation (`STA-22b`) has none. Reject a
-missing, duplicate or malformed entry, and never interpret a missing entry or a `"pending"`
+at export carries the explicit marker `"unapproved"`, never an absent field. Every live machine
+other than a jump host has exactly one entry, bound to a session or not; a jump host's allocation
+(`STA-22b`) has none. Reject a
+missing, duplicate or malformed entry, and never interpret a missing entry or an `"unapproved"`
 field as a default.
 Each placement associates a machine-family allocation with its nonempty name, recorded path
 and UTC RFC 3339 placement time. Reject missing or ambiguous machine associations, duplicate

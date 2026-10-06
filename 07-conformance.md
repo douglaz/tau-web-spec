@@ -154,8 +154,8 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       a destination mode that lets another account read the file, a path that is or passes
       through a symbolic link, an existing file not recorded as this placement, and any
       placement on a machine where a finding other than a lifecycle finding stands
-      (`ARC-17`), or whose fixed lockdown checks have not yet passed — a machine never checked
-      included. A lifecycle finding beside any other finding still refuses, and a finding's
+      (`ARC-17`), on a machine whose fixed lockdown checks have not yet passed — a machine
+      never checked included — and on one restored from a sheet before its re-check (`STA-16`). A lifecycle finding beside any other finding still refuses, and a finding's
       class comes from the declaration field that produced it, never from the model's
       arguments. Each refusal is verified by asking for it, with the model supplying the
       arguments. Escaped secret: without the first, the job is the way to put a harness
@@ -344,8 +344,10 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       or explicit empty sets.
 - [ ] **CNF-99 · BLOCKING** A machine on which a finding stands is **handed over with
       findings** and nothing more (`ARC-17`): it is not reported as delivered, is never
-      described as locked down, keeps each finding shown, and receives no application secret
-      while a finding other than a lifecycle finding stands. A machine whose only finding is a
+      described as locked down, keeps each finding shown — a machine restored after store
+      loss shows its findings as unknown until a re-check (`STA-16`) — and receives no
+      application secret while a finding other than a lifecycle finding stands, or before
+      that re-check. A machine whose only finding is a
       lifecycle finding is still handed over with findings: never reported delivered, never
       described as locked down. A finding clears only on a re-check, after the machine is fixed or its declaration
       amended by a journaled operator act; verified by attempting to accept a finding without
@@ -599,9 +601,10 @@ evidence is that set's test run against the relay the harness uses.
       advisory entries and remove none. An absent file stays listed. Re-arming or a machine's
       removal claim never drops an entry; only the owning rotation/destruction rules do.
 - [ ] **CNF-93 · BLOCKING** An acceptable weaker mode is accepted by its label for one bound
-      set before the first contact it governs — a mode offered after that contact is
+      set before the first contact it governs — an acceptance after that contact is
       refused — and is never entered by failing
-      (`SEC-14`). Verified three ways: an artifact that fails its pin halts and the machine
+      (`SEC-14`). Verified four ways: accepting a mode after the first contact it governs is
+      refused; an artifact that fails its pin halts and the machine
       does not continue unpinned (`ARC-25`); an installation with no pin is recorded and shown
       as **unpinned**, with no hash or signer named (`ARC-25a`); and every mode standing on a
       set is shown in the trust display and restated, together, at each later irreversible
@@ -654,18 +657,19 @@ Not pass/fail. Required to be recorded.
 - [ ] **CNF-84 · BLOCKING** A seed plus sheet restores machine and relay identities from their
       exported indices and reconnects using the old host pin, never a new first contact. A
       mismatched seed, duplicate mappings, invalid counters or malformed placement associations
-      are refused before binding, and so is a live machine in a bound set with a missing,
-      duplicate or malformed machine state; a jump host's allocation carries none, and a
-      machine exported with an unpinned installation and an attested pin restores both. The sheet has `STA-16`'s placement metadata, pin routes and
+      are refused before binding, and so is a live machine other than a jump host with a
+      missing, duplicate or malformed machine state, bound or not; a jump host's allocation
+      carries none, an unapproved field restores as unapproved, and a machine exported with
+      an unpinned installation and an attested pin restores both. The sheet has `STA-16`'s placement metadata, pin routes and
       machine states; values, digests, scan keys and lengths are absent, and unsupported
       payload versions are refused rather than read as having no placements. A stale sheet or imported store cannot allocate
       under the restored seed; Replace with a fresh seed restores allocation. Cloud with no
       sheet exposes destroy/recreate, never an unpinned keyed-rescue login. Missing relay
       indices are reported unrecoverable, and partial Replace never reports complete revocation
-      (`STA-22b`, `STA-17`). Restored placement state, declaration, class, access model,
-      installation pin status and weaker modes are shown as the sheet holds them and labelled
-      "unknown since export" under `STA-16`, restated at later irreversible acts until
-      explicitly reapproved; pin routes are shown, and each machine is shown unchecked until a
+      (`STA-22b`, `STA-17`). Restored placement state, declaration, class, access model and
+      weaker modes are shown as the sheet holds them and labelled "unknown since export" under
+      `STA-16`, restated at later irreversible acts until explicitly reapproved; installation
+      pin status and pin routes are shown, and each machine is shown unchecked until a
       re-check runs; scan
       re-arm reapproves none of them (`CNF-95`), and a `place_secret` card is among the acts
       that restate them. The dedicated-path

@@ -104,8 +104,8 @@ of all of them.
 
 **The cloud path has no route for a machine the harness cannot create or reach this way.** A
 maintained cloud machine whose pin is lost with no sheet is destroyed and recreated
-(`STA-15`): neither attest nor a jump host re-pins a machine that already exists. Whether a
-later rule should allow it is not decided.
+(`STA-15`). Attest's introduction and a jump host's first contact each introduce a machine, so
+neither re-pins one that already exists. Whether a later rule should allow it is not decided.
 
 **The formal companion carries none of this yet.** Its pin sources are the dedicated path's;
 a jump-host source is owed with the route (`TASKS.md`).

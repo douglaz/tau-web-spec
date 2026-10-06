@@ -119,9 +119,8 @@ is admissible under a declared independence bound, which nothing here settles.
 
 *Amended 2026-10-06: placement while a finding stands is refused for every finding but one
 kind.* A lifecycle finding — a declared service not in its declared lifecycle — no longer
-refuses `place_secret`. `ARC-43` now says "No secret is placed before the fixed lockdown
-checks have passed on the machine, nor while a finding stands there other than a lifecycle
-finding". Refusing it blocked the very placement that starts a
+refuses `place_secret`. `ARC-17` now says "Every other finding, a lockdown finding included,
+still refuses placement, and the fixed lockdown checks MUST have passed first". Refusing it blocked the very placement that starts a
 service needing its key, a key placed in a later session, and a rotation after a re-check found
 the service down. The machine still is not delivered and is never described as locked down while
 the finding stands, and every other finding, a lockdown finding included, still refuses. The
@@ -130,6 +129,6 @@ The sentences above that quote or state the unqualified rule are history.
 
 *Amended 2026-10-06: one listed mode passes the three tests only in part.* `SEC-14` now says
 "The untyped vendor scope passes those tests only in part": its harm can reach the rest of the
-operator's vendor account and its spending. `SEC-4`'s conditions admit it, and the operator's
+operator's vendor account and its spending. It is admitted on the conditions `SEC-4` lists, and the operator's
 two answers disclose that reach rather than bound it. The quotation of `SEC-14`
 under "The list, the best practice each mode stands in for, and the rule" is history.

@@ -296,10 +296,9 @@ here is non-waivable:
   file, and a path that is a symbolic link or passes through one. An existing file MUST be
   refused unless the placement records name it as this placement; placing a new secret must
   not overwrite unrelated data.
-- **No secret is placed before the fixed lockdown checks have passed on the machine, nor while
-  a finding stands there other than a lifecycle finding** (`ARC-17`, which owns both and what
-  makes a finding a lifecycle finding). The card lists every lifecycle finding standing on the
-  machine and says that placement clears none of them.
+- **`ARC-17`'s placement gates hold** — the fixed lockdown checks first, and the findings that
+  refuse a secret. The card lists every lifecycle finding standing on the machine and says that
+  placement clears none of them.
 - **The card restates every acceptable weaker mode standing on the machine's bound set**
   (`SEC-14`), states the root-shell caveat `SEC-5` attaches to row 12, and shows the name and
   purpose as what the model asked for, not as the harness's description.
@@ -337,7 +336,7 @@ harness MUST offer a visible fallback card: the operator may paste the secret lo
 create a fresh reference under `SEC-5`. This act writes nothing to the machine and is not a
 placement or rotation. Rotation goes through the full `place_secret` ceremony. Re-arming
 neither reapproves the restored declaration nor any weaker mode; until the operator does,
-`place_secret`'s card restates them as "unknown since export" (`STA-16`).
+`place_secret`'s card restates the restored state as "unknown since export" (`STA-16`).
 
 Model `exec` across the bound set MUST wait while any known required placement reference is
 unarmed. Only harness jobs whose output goes to **neither** model nor transcript are exempt;
@@ -601,7 +600,10 @@ checklist (`OPN-14`) — pass. A finding is cleared by a re-check and by nothing
 machine is fixed, or after the operator amends its declaration by a journaled act. A finding is
 never accepted in place of an amendment, and an amendment cannot widen what the harness gates —
 it cannot declare spendable key material on a multi-tenant machine (`ARC-37`, ADR-0030's first
-guard). The operator MAY take a machine while findings stand. That machine is **handed over
+guard). A machine restored from a sheet after store loss is the one place a finding is not
+carried: the sheet holds none, so its findings show as unknown, and no secret is placed on it,
+until a re-check (`STA-16`). The
+operator MAY take a machine while findings stand. That machine is **handed over
 with findings**: it is not delivered, it MUST NOT be described as locked down, each finding
 stays shown until a later check clears it, and no application secret is placed on it while a
 finding other than a lifecycle finding stands — the rule below, applied by `ARC-43`'s
@@ -793,8 +795,8 @@ on the channel spike (`docs/findings/2026-09-07-wasm-spikes.md`).
 ## The operating system, and where it comes from
 
 **ARC-24** The chosen distributions are **Alpine and NixOS**: the two the bundle is designed to
-pin. Today it carries Alpine's (`bundle/artifact-alpine.toml`); NixOS is not offered until its
-pin and evidence exist (`07-conformance.md`'s stage-1 row). Another distribution an operator's goal names — Arch, Omarchy — is installed
+pin. Today it carries Alpine's (`bundle/artifact-alpine.toml`); NixOS is not offered until the
+bundle carries its pin and its evidence exists (`07-conformance.md`'s stage-1 row). Another distribution an operator's goal names — Arch, Omarchy — is installed
 **unpinned** under `ARC-25`'s rule until the bundle carries a pin for it (`OPN-25`). Neither
 chosen distribution is offered by the
 dedicated vendor's automatic installer — verified against the live API on 2026-08-31, whose

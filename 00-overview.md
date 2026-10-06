@@ -187,8 +187,8 @@ keeps. Two owners
 state where this stops holding. Under an untyped vendor scope, `SEC-4` says "A token the
 vendor mints and a root password the vendor generates arrive in a response no adapter reads, so
 the model reads them". And an application secret, once placed, is within reach of every model
-with root on its machine, and in whatever that machine records — `SEC-5` row 12's caveat, which "MUST be stated wherever it is
-offered".
+with root on its machine — `SEC-5` row 12's caveat, which "MUST be stated wherever it is
+offered" — and `SEC-5`'s scan concedes "plaintext machine output".
 
 **OVR-4** Beyond the application itself, this product MUST add **one** component in every
 session's path — the relay, publisher-run by default and so a capability of an
@@ -237,8 +237,8 @@ reason it is optional.
 **OVR-6** Independence between the machines of one setup MUST be counted per layer and shown,
 not enforced. The machines of one bound set are one unit at every layer, and are shown as one
 (`SEC-1`); where no independence bound is declared, a configured model's footprint across sets
-is counted and shown the same way — where one is, the footprint is the exception, held within
-that bound by `SEC-1`. Weights, proxy and requested provider are counted separately — the third
+is counted and shown the same way — where one is, the footprint is the exception, and its rule
+is `SEC-1`'s. Weights, proxy and requested provider are counted separately — the third
 labelled *requested*, since what a response says about the provider is the proxy's own word
 and it may override — and a
 collision at any counted layer is displayed rather than blocked

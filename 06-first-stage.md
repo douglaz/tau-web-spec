@@ -63,7 +63,7 @@ and wait for a vendor that issues one.
 vendor is reached through an untyped vendor scope on `SEC-4`'s conditions, and no further than
 the channel goes: `CHN-12b` says "an arbitrary service refusing browser CORS is out of reach for
 untyped calls". Beside it: the jump-host route (`CHN-R6`), with LNVPS as the jump vendor if
-it meets that route's conditions (`OPN-24`); bound sets of more than one machine (`SEC-1`); and a second vendor, which is what closes
+it meets that route's conditions (`CHN-R6`, `OPN-24`); bound sets of more than one machine (`SEC-1`); and a second vendor, which is what closes
 `OPN-5`.
 
 **STG-23 Stage 3 is tenants, as skills.** lnrent's skill, on the dedicated path. And

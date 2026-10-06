@@ -481,11 +481,12 @@ stands in for — which is used when available and shown when missing:
 | A bound set of more than one machine | A set of one | `SEC-1` |
 | An untyped scope at a vendor with no adapter | A typed adapter | `SEC-4` |
 
-Every mode but one is on the list because its harm stays inside that bound set, shows when it
+Every mode but the untyped vendor scope is on the list because its harm stays inside that
+bound set, shows when it
 happens, and cannot be multiplied by a model retrying on its own. The untyped vendor scope
 passes those tests only in part: it can reach whatever the vendor account reaches, and an
 account that pays by itself can spend without asking. Its harm stays on the operator's own
-account rather than inside the set. `SEC-4`'s conditions admit it, and the operator's two
+account rather than inside the set. It is admitted on the conditions `SEC-4` lists, and the operator's two
 answers, journaled and restated as warnings, disclose that reach rather than bound it
 (ADR-0038).
 Every item `07-conformance.md`'s tiering rule makes BLOCKING is a **non-waivable rule**, which

@@ -438,11 +438,13 @@ check — is withdrawn with `CHN-R5`'s: it accepted a key through the relay with
 **STA-16** The recovery sheet holds the allocation metadata of `STA-22b`, host-key
 fingerprints with the route that produced each pin (`CHN-R1`, `CHN-R5` or `CHN-R6`), the
 exposure ledger, placement metadata
-(`machine_index`, name, path and placement time), each machine's **machine state as approved**
-— its declaration in force (`ARC-39`), its class (`ARC-36a`), its access model (`ARC-27`), whether its installation is
-pinned (`ARC-25`) and the acceptable weaker modes standing on its bound set (`SEC-14`) — and, on the procured path,
-the **inference account credential**, wrapped under a passphrase the operator chooses. None of
-the machine state is secret, and all of it exists by the export `STA-15` requires. **It no longer carries the SSH client keys**, which re-derive from the seed
+(`machine_index`, name, path and placement time), each live machine's **machine state as
+approved** — its declaration in force (`ARC-39`), its class (`ARC-36a`), its access model
+(`ARC-27`), whether its installation is pinned (`ARC-25`) and the acceptable weaker modes
+standing on its bound set (`SEC-14`) — and, on the procured path, the **inference account
+credential**, wrapped under a passphrase the operator chooses. A jump host carries no machine
+state, and a part not yet approved when an earlier sheet is exported is marked unapproved there.
+None of the machine state is secret, and all of it exists by the export `STA-15` requires. **It no longer carries the SSH client keys**, which re-derive from the seed
 (`STA-22`). The export screen MUST say what the sheet can do in the wrong hands with the
 passphrase: **spend the remaining inference balance**. Reaching a machine needs the seed, and
 the seed is never in the sheet. Placement records carry no value, digest, scan key, byte
@@ -451,14 +453,14 @@ live in the credential format; incompatible sheet payloads MUST be refused, neve
 as though no placements existed.
 
 **A restored sheet is knowledge as of export.** The placement inventory and each machine's state
-as approved — declaration, class, access model, whether its installation is pinned (`ARC-25`)
-and the standing weaker modes — are restored as the sheet holds them and MUST be shown as
-**"unknown since export"** after store loss. That qualification MUST be restated at every later
-irreversible act until the operator explicitly reapproves the relevant restored state. Each
-pin's route is restored and shown with it; a route is how a pin was obtained, not something the
-operator approves. The sheet carries no check result and no finding, so after a Restore each
-machine is shown as **unchecked** until a re-check runs (`ARC-17`), and a placement waits for
-the fixed lockdown checks as on any machine never checked (`ARC-43`). No machine report or scan re-arm
+as approved — declaration, class, access model and the standing weaker modes — are restored as
+the sheet holds them and MUST be shown as **"unknown since export"** after store loss. That
+qualification MUST be restated at every later irreversible act until the operator explicitly
+reapproves the relevant restored state. Whether an installation is pinned and each pin's route
+are restored and shown beside it; they record what happened, not something the operator
+approves. The sheet carries no check result and no finding, so after store loss each maintained
+machine is shown as **unchecked**, its findings unknown, until a re-check runs (`ARC-17`), and
+no secret is placed on it before that re-check (`ARC-43`). No machine report or scan re-arm
 is reapproval of a declaration or weaker mode. The missing-placement question and re-arm
 procedure belong to `ARC-43`; reapproval cannot establish an inventory of forgotten secrets.
 These knowledge limits are additional to the allocation restriction in `STA-22b`.
