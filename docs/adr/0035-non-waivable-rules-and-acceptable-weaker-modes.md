@@ -129,6 +129,7 @@ The sentences above that quote or state the unqualified rule are history.
 
 *Amended 2026-10-06: one listed mode passes the three tests only in part.* `SEC-14` now says
 "The untyped vendor scope passes those tests only in part": its harm can reach the rest of the
-operator's vendor account and its spending. It is admitted on the conditions `SEC-4` lists, and the operator's
+operator's vendor account and its spending. `SEC-4` says it stands "under conditions no operator
+act sets aside", and the operator's
 two answers disclose that reach rather than bound it. The quotation of `SEC-14`
 under "The list, the best practice each mode stands in for, and the rule" is history.

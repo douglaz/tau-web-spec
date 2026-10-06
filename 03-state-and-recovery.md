@@ -440,8 +440,8 @@ fingerprints with the route that produced each pin (`CHN-R1`, `CHN-R5` or `CHN-R
 exposure ledger, placement metadata
 (`machine_index`, name, path and placement time), each live machine's **machine state as
 approved** — its declaration in force (`ARC-39`), its class (`ARC-36a`), its access model
-(`ARC-27`), whether its installation is pinned (`ARC-25`) and the acceptable weaker modes
-standing on its bound set (`SEC-14`) — and, on the procured path, the **inference account
+(`ARC-27`) and the acceptable weaker modes standing on its bound set (`SEC-14`) — with whether
+its installation is pinned (`ARC-25`) beside it, and, on the procured path, the **inference account
 credential**, wrapped under a passphrase the operator chooses. A jump host carries no machine
 state, and a part not yet approved when an earlier sheet is exported is marked unapproved there.
 None of the machine state is secret, and all of it exists by the export `STA-15` requires. **It no longer carries the SSH client keys**, which re-derive from the seed
@@ -460,7 +460,7 @@ reapproves the relevant restored state. Whether an installation is pinned and ea
 are restored and shown beside it; they record what happened, not something the operator
 approves. The sheet carries no check result and no finding, so after store loss each maintained
 machine is shown as **unchecked**, its findings unknown, until a re-check runs (`ARC-17`), and
-no secret is placed on it before that re-check (`ARC-43`). No machine report or scan re-arm
+no secret is placed on it before that re-check (`ARC-17`). No machine report or scan re-arm
 is reapproval of a declaration or weaker mode. The missing-placement question and re-arm
 procedure belong to `ARC-43`; reapproval cannot establish an inventory of forgotten secrets.
 These knowledge limits are additional to the allocation restriction in `STA-22b`.

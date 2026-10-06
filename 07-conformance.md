@@ -603,7 +603,7 @@ evidence is that set's test run against the relay the harness uses.
 - [ ] **CNF-93 · BLOCKING** An acceptable weaker mode is accepted by its label for one bound
       set before the first contact it governs — an acceptance after that contact is
       refused — and is never entered by failing
-      (`SEC-14`). Verified four ways: accepting a mode after the first contact it governs is
+      (`SEC-14`). Verified by these cases: accepting a mode after the first contact it governs is
       refused; an artifact that fails its pin halts and the machine
       does not continue unpinned (`ARC-25`); an installation with no pin is recorded and shown
       as **unpinned**, with no hash or signer named (`ARC-25a`); and every mode standing on a
@@ -659,7 +659,8 @@ Not pass/fail. Required to be recorded.
       mismatched seed, duplicate mappings, invalid counters or malformed placement associations
       are refused before binding, and so is a live machine other than a jump host with a
       missing, duplicate or malformed machine state, bound or not; a jump host's allocation
-      carries none, an unapproved field restores as unapproved, and a machine exported with
+      carries none and one carrying a machine state is refused, an unapproved field restores
+      as unapproved, and a machine exported with
       an unpinned installation and an attested pin restores both. The sheet has `STA-16`'s placement metadata, pin routes and
       machine states; values, digests, scan keys and lengths are absent, and unsupported
       payload versions are refused rather than read as having no placements. A stale sheet or imported store cannot allocate
@@ -669,7 +670,7 @@ Not pass/fail. Required to be recorded.
       (`STA-22b`, `STA-17`). Restored placement state, declaration, class, access model and
       weaker modes are shown as the sheet holds them and labelled "unknown since export" under
       `STA-16`, restated at later irreversible acts until explicitly reapproved; installation
-      pin status and pin routes are shown, and each machine is shown unchecked until a
+      pin status and pin routes are shown, and each maintained machine is shown unchecked until a
       re-check runs; scan
       re-arm reapproves none of them (`CNF-95`), and a `place_secret` card is among the acts
       that restate them. The dedicated-path

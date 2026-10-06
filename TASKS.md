@@ -186,7 +186,11 @@ gated on it.
         `CNF-94` until T48 sets the bound. The sheet carries neither `SEC-4`'s two answers for an
         untyped vendor scope nor `CHN-R6`'s jump vendor and date, both stage 2's. And a set
         re-entered (`STG-9`) or restored makes no first contact, so whether its standing modes
-        are carried over or accepted again (`SEC-14`, `CNF-93`) is unstated.
+        are carried over or accepted again (`SEC-14`, `CNF-93`) is unstated. After store loss,
+        rotating a placement whose file is absent waits for the re-check, while model work on
+        the set waits for unarmed references; whether that re-check releases only a status, so
+        the two waits cannot hold each other, is unstated (`ARC-43`, `STA-16`). An imported
+        local-store backup (`STA-22b`) also loses findings raised after it was taken.
 
 - [x] **T30 — Port the specification gates and the formal companion's scaffold** (ADR-0032).
       From `~/projects/provisiond-spec`: `tools/check-all.sh`, the identifier, fixture,
