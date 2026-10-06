@@ -6,6 +6,17 @@ plus host pins, exposure history and the inference account credential. The opera
 are `STA-14`–`STA-18` and `STA-22`–`STA-23` in
 [`03-state-and-recovery.md`](../../03-state-and-recovery.md).
 
+## Amended 2026-10-06: the cloud fallback and stage-1 recovery
+
+The "honestly labelled keyed-rescue fallback" below is superseded. `STA-15` says "Where a
+maintained cloud machine's pin is lost with no sheet anyway, the machine is destroyed and
+recreated"; `CHN-R4` owns refusal of an unpinned first contact through the relay. The recovery
+choice and its stage applicability are recorded in
+[ADR-0040](./0040-stage-one-includes-restore-and-replace.md). `STA-17` owns the current key
+replacement order, manual relay retirement and revocation limits. `STA-16` owns the sheet's
+current contents and restored-state qualification. The body below is unchanged and records
+what was decided then.
+
 ## Current recovery paths
 
 On maintained dedicated machines, the vendor-authenticated Robot rescue ceremony can install

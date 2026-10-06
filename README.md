@@ -69,11 +69,12 @@ Two are intended:
 
 The installation rehearsal ran on a disposable dedicated server on September 8, 2026; both
 pinned SSH hops closed. Harness construction can start, with that dedicated path as its test
-bed. The stages were re-drawn on October 5, 2026 (`06-first-stage.md`): the next work is
-construction, plus the probes the first stage waits on — LNVPS, attest on a real first boot,
-Omarchy on a server — and a generic lockdown checklist. The integrated harness, a goal-driven
-install, interrupted resume and lockdown remain unproven; `07-conformance.md` defines each
-stage's completion.
+bed. The stages and build list are in `06-first-stage.md`; the probe lists and evidence gaps
+are in `08-open-questions.md`. The October 6 recovery and secret-scan decisions are
+[ADR-0040](./docs/adr/0040-stage-one-includes-restore-and-replace.md) and
+[ADR-0041](./docs/adr/0041-secret-scan-rearms-from-machine-reports.md); model-written reports
+are clarified in ADR-0034. The integrated harness remains unproven, including recovery and
+scan re-arming; `07-conformance.md` defines each stage's completion.
 
 ## Requirement conventions
 

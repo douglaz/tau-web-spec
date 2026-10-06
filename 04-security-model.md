@@ -313,6 +313,8 @@ The scan sees exact values only: an encoded, partial or transformed copy passes.
 the browser — `STA-20a`'s output file lands on the machine before any browser scan runs — so
 it is a statement about the harness's records and the model's context, never about what the
 machine holds. The root-shell caveat on row 12 remains, including plaintext machine output.
+[ADR-0041](./docs/adr/0041-secret-scan-rearms-from-machine-reports.md) records the choice and
+its residual trust in the machine's current report.
 
 **Rows 3, 7 and 16 cover a jump host's keys, and row 21 its vendor credential.** A jump host
 (`CHN-R6`) is allocated its own index in the machine family, an index that is never an entry

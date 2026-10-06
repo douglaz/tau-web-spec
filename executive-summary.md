@@ -106,7 +106,9 @@ owns, with all machine creations approved together before any work begins.
 against a malicious model. What it catches is honest-but-sloppy, the likely failure on a
 first-time setup. A machine is **delivered** only with no finding standing; one the operator
 takes anyway is **handed over with findings**, is never called locked down, and receives no
-placed secret until a re-check clears it.
+placed secret until a re-check clears it (`ARC-17`). Delivered covers the declared machine
+state and lockdown; it is not a claim that the application works (`ARC-1a`). Model-written
+checks are reports with no verdict authority (`ARC-39`), labelled under `SEC-2`.
 
 **Some rules no operator act sets aside, and a few weaker modes an operator may accept by
 name.** An installation with no artifact pin, a first contact from a jump host, a run with no
@@ -138,9 +140,12 @@ pin is refused through the relay; where a vendor offers no route of its own, the
 runs from a temporary jump host no model has touched, inside a pinned session — trust on first
 use moved off the relay, and labelled as that. **Every per-machine key the
 browser needs derives from a seed the operator holds**, so a lost phone re-derives them from
-twelve words plus exported derivation indices; what the seed cannot re-derive — allocation
-metadata, pins, the ledger, the inference balance — is what
-the recovery sheet is for, and the vendor account is what says which machines exist.
+twelve words plus exported derivation indices. `STA-16` lists the recovery sheet's contents,
+including placement metadata without secret matching material. `STA-17` distinguishes
+non-revoking Restore from Replace, including stage 1's manual relay retirement and the limits
+of revocation. The account-free vendor's recovery root remains open in T47. The browser-only
+secret reference and its lost-store re-arm are defined in `SEC-5` and `ARC-43`; a machine
+report is not proof of the original value.
 
 **On the dedicated path the system is written from inside a rescue environment**, for two reasons: rescue is what
 publishes the host key, and the chosen distributions are not on the vendor's installer menu. That
@@ -225,10 +230,10 @@ than "trustless" — but it survives the regress.
 
 The maintained list is [`08-open-questions.md`](./08-open-questions.md), and each entry says what
 would close it. What gates completing the first stage is listed in that file's "Gates by
-milestone" paragraph. The recovery machinery,
-designed and unproven on a real cloud first boot, gates recovery, which that first machine
-needs. The cloud-account floor that makes
-rental structural gates the phone-only acquisition experience.
+milestone" paragraph and `07-conformance.md`'s applicability table. `OPN-3` splits first-boot,
+maintained-cloud recovery, dedicated rescue and signed relay-revocation evidence by milestone;
+`OPN-28` is closed by design and open for integrated scan evidence. The cloud-account floor
+that makes rental structural gates the phone-only acquisition experience.
 
 ## Status
 
@@ -238,8 +243,8 @@ machine on a dedicated server, over the full channel — was rehearsed **by hand
 disposable server on September 8, 2026: both pinned SSH hops closed, and the install brief was
 written from the transcript. It is now the construction test bed. Separately, the browser SSH
 client and the pinned TLS client ran on a physical Android phone. Harness construction can
-start; the integrated harness, a goal-driven install, interrupted resume and lockdown remain
-unproven.
+start; `STG-21`'s build list and the stage-1 conformance rows remain to be demonstrated on the
+integrated harness. Specification decisions are not passing product evidence.
 
 A vendor with no adapter — where the browser can reach its API — the jump host and larger sets
 come after that; tenants come last — the vault among

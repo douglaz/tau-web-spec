@@ -5,6 +5,15 @@ concurrently. Each session is configured with different model weights and touche
 exactly one machine. The machine creations are approved together in one screen before
 any work starts; unexpected cloud-plane actions during the run join a single queue.
 
+## Amended 2026-10-06: configured diversity is still a stage-3 gap
+
+The opening account of different configured weights is not what the procured path currently
+selects. `ARC-31b` says it "takes the highest-ranked candidate it finds there" at session
+start; that availability rule does not assign different candidates across machines. `OPN-27`
+owns the configured-diversity gap. The served-weights observability question in `OPN-4`
+stays closed. The body and the bound-set amendment below are unchanged and record their
+respective decisions.
+
 ## Why one device
 
 The separation that matters is between **models**, not between pieces of hardware. The

@@ -293,3 +293,5 @@ an ADR is where *why* lives.
 | [0037](./docs/adr/0037-bound-sets.md) | A session is bound to a set of machines, one by default |
 | [0038](./docs/adr/0038-untyped-vendor-scopes.md) | A vendor with no adapter is reached through an untyped vendor scope, on stated conditions |
 | [0039](./docs/adr/0039-installed-agents-are-the-operators-applications.md) | An agent the operator installs is the operator's application, not the harness's AI |
+| [0040](./docs/adr/0040-stage-one-includes-restore-and-replace.md) | Stage 1 includes Restore and Replace, with manual relay retirement |
+| [0041](./docs/adr/0041-secret-scan-rearms-from-machine-reports.md) | The secret scan re-arms from a machine report, with its key kept in the browser |

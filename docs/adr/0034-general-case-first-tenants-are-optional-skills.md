@@ -95,6 +95,23 @@ That is a tenant's design, not an approval.
 harness relies on cannot come from model text, and a model-written command that reports its
 own success is that. Such a check is run and shown as a report.
 
+*Amended 2026-10-06: this rejection is confirmed, with the procedure/parameter distinction
+made explicit.* A model can propose typed field values for operator approval without
+supplying their measuring procedure. `ARC-39` says "Neither success nor failure counts
+toward Delivered, creates or clears a finding, or blocks delivery or secret placement" and
+"Such commands MUST NOT be retained for automatic re-execution". Command history remains
+history. `SEC-2` owns the report label and `CNF-107` its PRE-SCALE stage-1 evidence; no
+declaration-presence gate is weakened.
+
+The placement ordering is `ARC-17`'s: "Placement comes between lockdown and the final
+lifecycle demonstration". A service needing its secret cannot demonstrate its final state
+before that secret exists; this ordering preserves actual lockdown findings and the final
+lifecycle gate. The application-secret/key-material distinction is in the declaration format
+companion, and `ARC-1a` owns the delivery-card limit. `OPN-14` and T42 still owe the concrete
+listener and lifecycle reads, restart evidence and safe service-name grammar. T49 records a
+later signed typed-check library, not a stage-1 dependency. The original rejected option above
+is retained as history; these are the operative clarifications.
+
 **Treat a fetched README as instructions.** Rejected: it is fetched external content, typed
 untrusted, and it informs work the goal already authorized.
 

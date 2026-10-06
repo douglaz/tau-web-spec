@@ -280,7 +280,7 @@ content in the bundle, not running software)
 **Application secret** · `SEC-5` row 12, `ARC-43`
 A credential for an operator's application or a tenant's software, placed on its machine by
 the harness's `place_secret` job without entering the model's context, and readable afterwards
-by any model with root there.
+by any model with root there. Distinct from the declaration's tenant `key_material`.
 _Avoid_: tenant secret (the row's old name), harness credential (none ever reaches a machine)
 
 **Watch-only** · `ARC-37`
@@ -324,8 +324,9 @@ _Avoid_: log, transcript (the transcript is the browser's, and authoritative)
 
 **Delivery declaration** · `ARC-39`
 The statement of what must be true of a finished machine — its listening surface, its
-service lifecycle, whatever else it needs demonstrated. Proposed by the model from the goal, or
-preset by a tenant, and approved by the operator in plain language before anything is
+service lifecycle, whatever else it needs demonstrated. Its parameters are proposed by the
+model from the goal, or preset by a tenant; its measuring procedures are harness-owned.
+Approved by the operator in plain language before anything is
 installed; the journal holds the approved one (decided 2026-10-04). The harness measures
 against it rather than assuming, because machines disagree: one needs a service enabled and
 surviving reboot, another needs a node that dies on reboot by design. A difference from the
@@ -338,7 +339,9 @@ which a mechanism then enforces), spec (too broad)
 
 **Delivered** / **handed over with findings** · `ARC-17`
 *Delivered*: the delivery check finds no difference from the machine's declaration in force,
-and the fixed lockdown checks pass. *Handed over with findings*: the operator takes the machine
+and the fixed lockdown checks pass. It is a claim about that machine state, not that the
+application works; model-written check reports are outside it. *Handed over with findings*:
+the operator takes the machine
 while findings stand; it is not delivered, is never described as locked down, and receives no
 placed secret until a re-check clears them — after the machine is fixed or its declaration
 amended by a journaled operator act. Named 2026-10-05.
@@ -482,9 +485,10 @@ The per-machine history of every configured model that has ever touched it.
 _Avoid_: audit log, history (unqualified)
 
 **Recovery sheet** · `STA-16`
-An exported record of derivation indices/resource mappings, host-key fingerprints, the
-exposure ledger and the inference account credential, wrapped under a passphrase. It carries
-no derived private keys; those re-derive from the seed plus the exported metadata.
+A passphrase-wrapped export of the recoverable metadata and inference credential listed in
+`STA-16`. Its placement entries identify a machine, name, path and placement time, without
+value-derived scan material. Sheet payload version 2 is distinct from the unchanged v1
+derivation and encryption-envelope formats.
 _Avoid_: backup (unqualified), export file, "the keys" (they are not in it)
 
 **Replace / Restore** · `STA-17`
@@ -493,6 +497,16 @@ derive, with the old keys removed from every machine — the default, for a phon
 **Restore** re-derives the same keys from the same seed and does not revoke — for a phone that
 died in hand. A restored seed may use recovered identities but cannot allocate new ones until
 Replace, because an old export cannot prove the latest allocation counter (`STA-22b`).
+
+**Placed-secret scan reference** · `SEC-5` row 23
+A browser-held per-secret random key, keyed digest and byte length used for exact-value
+redaction of output. Encrypted local state, not recovery-sheet content or a machine credential.
+
+**Re-arm** · `ARC-43`
+Rebuilding a placed-secret scan reference after it is lost or unusable, from a machine report
+or an operator's local paste. A machine-derived reference describes the reported current
+bytes, not proof of the originally placed value. Distinct from placement, rotation and
+reapproval of restored state.
 
 **Recovery ladder** · `ARC-16`
 What happens when a model cannot finish its machine: retry, escalate behind the same proxy,

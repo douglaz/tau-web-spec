@@ -460,7 +460,8 @@ must say so plainly rather than inheriting the old warning.
 
 **STA-17** Recovery after a *lost* phone revokes; restore after a *dead* one may not. A
 stolen phone's encrypted store may eventually be unlocked, so the flows are named and
-distinct, and the screen says which one is happening:
+distinct, and the screen says which one is happening
+([ADR-0040](./docs/adr/0040-stage-one-includes-restore-and-replace.md)):
 
 - **Replace** (the default, for a phone that is lost): generate a **new seed** (`STA-22`),
   re-enter each maintained machine using its old client key and the sheet's old host pin,
