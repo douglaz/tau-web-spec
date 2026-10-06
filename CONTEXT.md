@@ -343,8 +343,9 @@ and the fixed lockdown checks pass. It is a claim about that machine state, not 
 application works; model-written check reports are outside it. *Handed over with findings*:
 the operator takes the machine
 while findings stand; it is not delivered, is never described as locked down, and receives no
-placed secret until a re-check clears them — after the machine is fixed or its declaration
-amended by a journaled operator act. Named 2026-10-05.
+placed secret while any finding but a lifecycle finding (a declared service not in its declared
+lifecycle) stands. A finding clears only on a re-check — after the machine is fixed or its
+declaration amended by a journaled operator act. Named 2026-10-05.
 _Avoid_: accepted finding (a finding is never accepted in place of an amendment), waived,
 passed with warnings
 

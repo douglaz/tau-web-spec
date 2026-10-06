@@ -295,7 +295,10 @@ here is non-waivable:
   file, and a path that is a symbolic link or passes through one. An existing file MUST be
   refused unless the placement records name it as this placement; placing a new secret must
   not overwrite unrelated data.
-- **No secret is placed while a finding stands** on the machine (`ARC-17`).
+- **No secret is placed while a finding stands** on the machine, except a lifecycle finding
+  (`ARC-17`). Whether a finding is a lifecycle finding follows from the declaration field that
+  produced it (`services`), never from the model. The card lists every lifecycle finding
+  standing on the machine and says that placement clears none of them.
 - **The card restates every acceptable weaker mode standing on the machine's bound set**
   (`SEC-14`), states the root-shell caveat `SEC-5` attaches to row 12, and shows the name and
   purpose as what the model asked for, not as the harness's description.
@@ -598,15 +601,23 @@ never accepted in place of an amendment, and an amendment cannot widen what the 
 it cannot declare spendable key material on a multi-tenant machine (`ARC-37`, ADR-0030's first
 guard). The operator MAY take a machine while findings stand. That machine is **handed over
 with findings**: it is not delivered, it MUST NOT be described as locked down, each finding
-stays shown until a later check clears it, and no application secret is placed on it while one
-stands (`ARC-43`).
+stays shown until a later check clears it, and no application secret is placed on it while a
+finding other than a lifecycle finding stands (`ARC-43`).
 
-**Placement comes between lockdown and the final lifecycle demonstration.** The fixed lockdown
-checks MUST pass, then the application secret is placed, then the declared service lifecycle
-MUST be demonstrated before delivery. Any lifecycle failure before placement is not a finding,
-whether or not the declared service needs the secret to start. An actual non-lifecycle finding,
-including a lockdown finding, still blocks placement; this ordering neither waives those
-findings nor makes the final lifecycle demonstration optional.
+**A stopped service is a finding, and it does not refuse a secret.** A declared service that a
+harness-composed read does not find in its declared lifecycle is a **lifecycle finding**
+whenever that read runs — at a delivery check or a later re-check, whether or not any secret is
+placed on the machine, and whether or not the service needs one to start. It is a finding like
+any other: the machine is not delivered while it stands, it stays shown, and only a re-check
+clears it. It does not refuse `place_secret`, in the session that built the machine or in any
+later one: the harness does not know which service a secret is for, and a refusal would block a
+first key and a rotated one alike. Every other finding, a lockdown finding included, still
+refuses placement, and the fixed lockdown checks MUST have passed first. Whether a finding is a
+lifecycle finding follows from the declaration field that produced it (`services`), never from
+the model. A session that places secrets demonstrates the declared lifecycle after its
+placements, and delivery rests on that demonstration; placement itself clears no finding. A
+session that ends before its final demonstration leaves the verdict of its last check standing,
+shown with any placement made since.
 
 **ARC-39** Every machine MUST have a **delivery declaration**: a statement of what must be true
 of the finished machine, approved before anything is installed on it. A tenant's profile presets

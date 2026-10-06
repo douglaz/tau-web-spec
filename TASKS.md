@@ -69,7 +69,10 @@ gated on it.
       Implement `ARC-43`'s harness-composed listener, unit-state and enablement reads behind
       `CNF-50` and `CNF-53`. Still to decide: what establishes survival of a restart, and the
       service-name grammar for a validated argument, never shell syntax. No init-specific
-      procedure or physical-restart requirement is selected by this task.
+      procedure or physical-restart requirement is selected by this task. Also to decide:
+      whether `STG-9`'s re-entry re-check reads `services` as well as `drift_checks`, and
+      whether `running-at-delivery` binds after delivery. Neither changes how a lifecycle
+      finding treats placement (`ARC-17`).
 - [ ] **T43 — Stage 1's build list**. Implement `STG-21`'s owning list and the stage-1
       applicability rows in `07-conformance.md` at tau-web-rust's next spec pin. These include
       the recovery, scan and report-only evidence; specification edits exercise no harness.
@@ -84,7 +87,10 @@ gated on it.
       Bundle-owned unit-state, TCP/HTTP on a declared listener, and binary-version checks whose
       results can count toward the declaration, using no secret and no third party. This is
       later work, not a stage-1 gate or an acceptable weaker mode. It does not change the
-      declaration schema; model-written reports remain reports.
+      declaration schema; model-written reports remain reports. Before it lands, the bundle
+      classes each check as refusing placement or not: a TCP/HTTP check that counts would
+      otherwise refuse the key of an application that only listens once it has its key — the
+      trap `ARC-17`'s lifecycle-finding rule removed for `services`.
 - [ ] **T44 — The derived vendor identity's format** (`OPN-26`). Not decided: what it is derived
       per — a bound set, a machine or a session; its index family and what its allocation entry
       holds; its key type, pending T39. Until it lands, `SEC-5` row 22 keeps it unavailable and

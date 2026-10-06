@@ -106,8 +106,8 @@ owns, with all machine creations approved together before any work begins.
 against a malicious model. What it catches is honest-but-sloppy, the likely failure on a
 first-time setup. A machine is **delivered** only with no finding standing; one the operator
 takes anyway is **handed over with findings**, is never called locked down, and receives no
-placed secret until a re-check clears it (`ARC-17`). Delivered covers the declared machine
-state and lockdown; it is not a claim that the application works (`ARC-1a`). Model-written
+placed secret while any finding but a stopped declared service stands (`ARC-17`). Delivered
+covers the declared machine state and lockdown; it is not a claim that the application works (`ARC-1a`). Model-written
 checks are reports with no verdict authority (`ARC-39`), labelled under `SEC-2`.
 
 **Some rules no operator act sets aside, and a few weaker modes an operator may accept by

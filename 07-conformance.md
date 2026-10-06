@@ -155,8 +155,10 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       credential the harness holds — the vendor credential, the seed, either inference tier —
       a destination mode that lets another account read the file, a path that is or passes
       through a symbolic link, an existing file not recorded as this placement, and any
-      placement on a machine where a finding stands
-      (`ARC-17`). Each refusal is verified by asking for it, with the model supplying the
+      placement on a machine where a finding other than a lifecycle finding stands
+      (`ARC-17`). A lifecycle finding beside any other finding still refuses, and a finding's
+      class comes from the declaration field that produced it, never from the model's
+      arguments. Each refusal is verified by asking for it, with the model supplying the
       arguments. Escaped secret: without the first, the job is the way to put a harness
       credential where the model has root. Destroyed data: an unrelated existing file must
       survive a refused placement unchanged.
@@ -342,8 +344,10 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       or explicit empty sets.
 - [ ] **CNF-99 · BLOCKING** A machine on which a finding stands is **handed over with
       findings** and nothing more (`ARC-17`): it is not reported as delivered, is never
-      described as locked down, keeps each finding shown, and receives no application secret.
-      A finding clears only on a re-check, after the machine is fixed or its declaration
+      described as locked down, keeps each finding shown, and receives no application secret
+      while a finding other than a lifecycle finding stands. A machine whose only finding is a
+      lifecycle finding is still handed over with findings: never reported delivered, never
+      described as locked down. A finding clears only on a re-check, after the machine is fixed or its declaration
       amended by a journaled operator act; verified by attempting to accept a finding without
       either, and by attempting an amendment that declares spendable key material on a
       multi-tenant machine. Escaped secret: a secret placed on a machine reported as locked
@@ -376,12 +380,17 @@ an item that tests a mode's conditions or its label is tiered by them like any o
 - [ ] **CNF-53 · PRE-SCALE** The declared **service lifecycle** is demonstrated as declared, and
       the harness asserts nothing beyond it. A tenant declaring a service enabled and
       restart-surviving has that verified; a tenant declaring a deliberately non-durable node
-      is not failed for it (`ARC-17`, `ARC-43`). Exercise a stopped declared service before
-      placement, both when it needs the application secret to start and when it does not:
-      neither creates a lifecycle finding, and placement proceeds once lockdown checks pass
-      and no non-lifecycle finding stands. An actual lockdown finding still refuses placement.
-      After placement, a failed required lifecycle demonstration still prevents delivery.
-      The ad-hoc minimum's
+      is not failed for it (`ARC-17`, `ARC-43`). A declared service not in its declared
+      lifecycle is a lifecycle finding wherever the harness reads it: (a) with no placement, a
+      stopped service yields the finding at the delivery check, and the machine is handed over
+      with findings, never left neither; (b) before placement, a stopped service that needs the
+      secret and one that does not each yield a finding, `place_secret` proceeds and its card
+      lists the finding, and a re-check after placement clears it and the machine is
+      delivered; (c) a session that hands over with a lifecycle finding is followed by one that
+      places the key, re-checks and delivers; (d) two declared services, each needing its own
+      key and both stopped, receive both keys; (e) with a lifecycle finding standing on a
+      delivered machine at re-entry, rotation through `place_secret` proceeds and a re-check
+      clears it. An actual lockdown finding still refuses placement. The ad-hoc minimum's
       empty permitted tenant-key-material list does not itself refuse `place_secret`.
 - [ ] **CNF-52 · BLOCKING** On a multi-tenant machine, no spendable key material is present
       (`ARC-37`). Verified by searching the machine for private key material after a full

@@ -116,3 +116,13 @@ not a row somebody adds while implementing a vendor.
 
 **What the decisions left open is in `TASKS.md`**, including whether an unpinned installation
 is admissible under a declared independence bound, which nothing here settles.
+
+*Amended 2026-10-06: placement while a finding stands is refused for every finding but one
+kind.* A lifecycle finding — a declared service not in its declared lifecycle — no longer
+refuses `place_secret`. `ARC-43` now says "No secret is placed while a finding stands on the
+machine, except a lifecycle finding". Refusing it blocked the very placement that starts a
+service needing its key, a key placed in a later session, and a rotation after a re-check found
+the service down. The machine still is not delivered and is never described as locked down while
+the finding stands, and every other finding, a lockdown finding included, still refuses. The
+cost is that a secret can be placed beside an unrelated stopped service, which the card names.
+The two sentences above that quote the unqualified rule are history.

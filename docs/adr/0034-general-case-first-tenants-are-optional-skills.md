@@ -103,9 +103,9 @@ toward Delivered, creates or clears a finding, or blocks delivery or secret plac
 history. `SEC-2` owns the report label and `CNF-107` its PRE-SCALE stage-1 evidence; no
 declaration-presence gate is weakened.
 
-The placement ordering is `ARC-17`'s: "Placement comes between lockdown and the final
+The placement ordering was `ARC-17`'s: "Placement comes between lockdown and the final
 lifecycle demonstration". A service needing its secret cannot demonstrate its final state
-before that secret exists; this ordering preserves actual lockdown findings and the final
+before that secret exists; this ordering preserved actual lockdown findings and the final
 lifecycle gate. The application-secret/key-material distinction is in the declaration format
 companion, and `ARC-1a` owns the delivery-card limit. `OPN-14` and T42 still owe the concrete
 listener and lifecycle reads, restart evidence and safe service-name grammar. T49 records a
@@ -113,9 +113,19 @@ later signed typed-check library, not a stage-1 dependency. The original rejecte
 is retained as history; these are the operative clarifications.
 
 *Clarified 2026-10-06: the secret-dependent service above is an example, not a condition.*
-`ARC-17` says "Any lifecycle failure before placement is not a finding, whether or not the
+`ARC-17` said "Any lifecycle failure before placement is not a finding, whether or not the
 declared service needs the secret to start". The ordering requires no classification of a
 service's dependency on its secret; `CNF-53` covers both cases.
+
+*Amended 2026-10-06: the pre-placement window above is replaced.* It left a machine that never
+receives a secret, with its declared service stopped, neither delivered nor handed over with
+findings, and a window that closed at the first placement still refused a key placed in a later
+session or rotated after a re-check. `ARC-17` now says "A stopped service is a finding, and it
+does not refuse a secret": a lifecycle finding arises whenever a harness-composed read observes
+one, and every other finding still refuses placement. Considered and rejected: ending the
+window when no placement is pending (nothing defines "pending" but the model's intent) and
+exempting only the finding of the secret's own service (nothing links a placement to a
+service). The two sentences quoted above are history.
 
 **Treat a fetched README as instructions.** Rejected: it is fetched external content, typed
 untrusted, and it informs work the goal already authorized.
