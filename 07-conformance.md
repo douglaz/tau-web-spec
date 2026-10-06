@@ -376,10 +376,12 @@ an item that tests a mode's conditions or its label is tiered by them like any o
 - [ ] **CNF-53 · PRE-SCALE** The declared **service lifecycle** is demonstrated as declared, and
       the harness asserts nothing beyond it. A tenant declaring a service enabled and
       restart-surviving has that verified; a tenant declaring a deliberately non-durable node
-      is not failed for it (`ARC-17`, `ARC-43`). A service needing an application secret is
-      allowed placement after lockdown and applicable pre-placement checks pass, without a
-      premature lifecycle finding; final delivery waits for the post-placement lifecycle
-      demonstration. An actual lockdown finding still refuses placement. The ad-hoc minimum's
+      is not failed for it (`ARC-17`, `ARC-43`). Exercise a stopped declared service before
+      placement, both when it needs the application secret to start and when it does not:
+      neither creates a lifecycle finding, and placement proceeds once lockdown checks pass
+      and no non-lifecycle finding stands. An actual lockdown finding still refuses placement.
+      After placement, a failed required lifecycle demonstration still prevents delivery.
+      The ad-hoc minimum's
       empty permitted tenant-key-material list does not itself refuse `place_secret`.
 - [ ] **CNF-52 · BLOCKING** On a multi-tenant machine, no spendable key material is present
       (`ARC-37`). Verified by searching the machine for private key material after a full

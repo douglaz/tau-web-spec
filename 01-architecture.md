@@ -602,11 +602,11 @@ stays shown until a later check clears it, and no application secret is placed o
 stands (`ARC-43`).
 
 **Placement comes between lockdown and the final lifecycle demonstration.** The fixed lockdown
-checks and applicable pre-placement declaration checks MUST pass before an application secret
-is placed. A declared service that cannot start until its secret exists is not a finding
-merely for failing lifecycle before placement. After placement its declared lifecycle MUST
-be demonstrated before delivery. Actual lockdown findings still block placement; this ordering
-neither waives them nor makes the final lifecycle demonstration optional.
+checks MUST pass, then the application secret is placed, then the declared service lifecycle
+MUST be demonstrated before delivery. Any lifecycle failure before placement is not a finding,
+whether or not the declared service needs the secret to start. An actual non-lifecycle finding,
+including a lockdown finding, still blocks placement; this ordering neither waives those
+findings nor makes the final lifecycle demonstration optional.
 
 **ARC-39** Every machine MUST have a **delivery declaration**: a statement of what must be true
 of the finished machine, approved before anything is installed on it. A tenant's profile presets

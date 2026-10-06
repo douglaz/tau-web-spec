@@ -304,8 +304,8 @@ the scan may compare the entered value in browser memory. Later it MUST compare
 `HMAC-SHA-256(K, SHA-256(window))` against row 23's reference, over raw-byte windows of length
 `L`, including windows crossing output chunks, before decoding or release to either sink.
 Unscanned bytes MUST be withheld; matches become visible redaction markers naming the secret,
-never silent omissions. The browser retains only the keyed reference and length after the
-value is cleared; neither a bare hash nor the value persists there. A minimum byte length is
+never silent omissions. The browser retains only the scan key, keyed reference and byte length
+after the value is cleared; neither a bare hash nor the value persists there. A minimum byte length is
 required at placement and every re-arm, with the numeric bound still open in T48; no arbitrary number
 is implied by this construction. Placement and recovery arming are `ARC-43`'s procedures.
 
