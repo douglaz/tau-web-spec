@@ -99,7 +99,8 @@ with the same key. Access composes, not intent: a set of more than one machine i
 context, shown as one unit of harm, and accepted by the operator as a weaker mode by its label.
 Where a tenant declares an independence bound, it is always one machine per session, with a
 configured model's footprint held within the profile's bound. Sessions run concurrently on the one device the operator
-owns, with all machine creations approved together before any work begins.
+owns, with the machine creations known at the start approved together before any work
+begins, and each later one approved on its own card.
 
 **The deliverable is a locked-down machine, demonstrated** by a lightweight self-directed pentest
 — a **competence check, not an integrity check**. A model examining its own machine proves nothing
@@ -112,12 +113,11 @@ checks are reports with no verdict authority (`ARC-39`), labelled under `SEC-2`.
 
 **Some rules no operator act sets aside, and a few weaker modes an operator may accept by
 name.** An installation with no artifact pin, a first contact from a jump host, a run with no
-brief, a set of more than one machine, an untyped scope at a vendor with no adapter: each is
-chosen before contact, never entered because a stronger check failed, and restated at every
-later irreversible act.
+brief, a set of more than one machine, an untyped scope at a vendor with no adapter. `SEC-14`
+holds the list, and says when each is chosen and restated.
 
-**Whatever runs after the harness is AI-free, and holds no channel to any machine at any
-point.** A tenant may declare post-harness machinery in its profile: deterministic code from
+**Post-harness machinery a tenant's profile declares is AI-free, and holds no channel to any
+machine at any point.** A tenant may declare post-harness machinery in its profile: deterministic code from
 the signed bundle, holding at most the credential the profile declares. btc-policy's is the
 coordinator, which forms the federation by calling member APIs once every machine is sealed —
 at which point there is no SSH left to hold — carrying what one member may do to another,

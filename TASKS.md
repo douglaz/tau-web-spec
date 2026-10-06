@@ -69,10 +69,8 @@ gated on it.
       Implement `ARC-43`'s harness-composed listener, unit-state and enablement reads behind
       `CNF-50` and `CNF-53`. Still to decide: what establishes survival of a restart, and the
       service-name grammar for a validated argument, never shell syntax. No init-specific
-      procedure or physical-restart requirement is selected by this task. Also to decide:
-      whether `STG-9`'s re-entry re-check reads `services` as well as `drift_checks`, and
-      whether `running-at-delivery` binds after delivery. Neither changes how a lifecycle
-      finding treats placement (`ARC-17`).
+      procedure or physical-restart requirement is selected by this task, nor are the two
+      re-check points `OPN-14` leaves open.
 - [ ] **T43 — Stage 1's build list**. Implement `STG-21`'s owning list and the stage-1
       applicability rows in `07-conformance.md` at tau-web-rust's next spec pin. These include
       the recovery, scan and report-only evidence; specification edits exercise no harness.
@@ -106,7 +104,8 @@ gated on it.
       stage 1's (T48).
 - [ ] **T46 — What the sibling repositories now owe.** Recorded here; none of them was edited.
       **tau-web-rust:** at its next spec pin bump, implement as tests the new and restated
-      cases owned by `07-conformance.md`: `CNF-91`–`CNF-106`, with `CNF-16` and `CNF-42`.
+      cases owned by `07-conformance.md`: `CNF-91`–`CNF-107`, with `CNF-16` and `CNF-42`, and
+      the untyped-scope restatements of `CNF-12`, `CNF-14` and `CNF-27`.
       This prior cross-stage handoff debt remains open alongside T43's stage-1 recovery,
       scan and report-only evidence. The applicability table in `07-conformance.md` still
       assigns each case to its stage; stage-2 cases do not gate stage-1 completion.
@@ -153,7 +152,7 @@ gated on it.
       - **The recovery root at an account-free vendor.** `STA-14` names the vendor account as
         "the recovery root" and as "recoverable through the vendor's own processes", while
         stage 1's vendor keeps no account and identifies the operator by a key (`OPN-24`). What
-        the recovery root is there is undecided, and `STA-14` keeps its text.
+        the recovery root is there is undecided; `STA-14` keeps its text and points here.
       - **An unpinned installation under an independence bound.** The decisions bar a goal, a
         larger set and an untyped vendor scope there, and say nothing of an unpinned OS.
       - **`CNF-67` on an unpinned installation.** Whether the item splits into a pinned and an
@@ -176,8 +175,13 @@ gated on it.
         public listener beyond sshd. And whether Hermes, as shipped, serves parties the operator
         has never met — which would make its machine multi-tenant by `ARC-36`'s definition.
       - **A maintained cloud machine whose pin is lost with no sheet.** `STA-15` now leaves
-        destroy-and-recreate alone. Whether a jump-host first contact may re-pin such a machine
-        instead is undecided.
+        destroy-and-recreate alone; under the current rules a jump host cannot re-pin it
+        (`CHN-R6`, `SEC-14`). Whether a later rule should allow it is undecided.
+      - **Found by the branch review of 2026-10-06, not fixed there.** `CHN-17` says a machine
+        event "never gates a step", while attest's seal gates first contact (`CHN-R5`); the
+        sentence predates the general-case decisions. `STG-21` lists one re-entry (`STG-9`) and
+        no conformance item names it. `SEC-5`'s minimum byte length has no refusal case in
+        `CNF-94` until T48 sets the bound.
 
 - [x] **T30 — Port the specification gates and the formal companion's scaffold** (ADR-0032).
       From `~/projects/provisiond-spec`: `tools/check-all.sh`, the identifier, fixture,

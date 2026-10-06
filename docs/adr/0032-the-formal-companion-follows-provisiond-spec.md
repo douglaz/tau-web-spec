@@ -150,3 +150,7 @@ TASKS T30 ports `tools/`, `flake.nix`, `AGENTS.md` and `ci.yml` from provisiond-
 this repository's withdrawn-identifier table for what the identifier gate finds; T31 lands
 module 1 with its witness file and the emission gate. ADR-0031's "How the boundary works" gains
 the witness files and the two settlements above.
+
+*Amended 2026-10-06:* the first stage is now first contacted by attest (`STG-21`), so it
+exercises attest single-use (`CHN-5`, `CNF-18`). The "later" row's "nothing in the first stage
+exercises them" is history for that clause; whether the companion carries it is unchanged.

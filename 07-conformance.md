@@ -61,10 +61,8 @@ yet.
 go unseen, could be multiplied by a model retrying on its own, or falls on someone other than
 the operator. What an operator *may* accept is a separate and narrow axis, and it moves no
 tier. An **acceptable weaker mode** is a named weaker mode the operator accepts by its label
-for one bound set, because its harm stays inside that set, shows when it happens, and cannot
-be multiplied by a model retrying on its own; it is chosen before contact, never entered
-because a stronger check failed, and restated at every later irreversible act on any machine
-of the set. `SEC-14` holds the list and the rule. The three questions above do not change, and
+for one bound set; `SEC-14` holds the list, the rule, and why each mode is admitted. The three
+questions above do not change, and
 an item that tests a mode's conditions or its label is tiered by them like any other.
 
 ## The access boundary — `SEC-1`
@@ -156,7 +154,8 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       a destination mode that lets another account read the file, a path that is or passes
       through a symbolic link, an existing file not recorded as this placement, and any
       placement on a machine where a finding other than a lifecycle finding stands
-      (`ARC-17`). A lifecycle finding beside any other finding still refuses, and a finding's
+      (`ARC-17`), or whose fixed lockdown checks have not yet passed — a machine never checked
+      included. A lifecycle finding beside any other finding still refuses, and a finding's
       class comes from the declaration field that produced it, never from the model's
       arguments. Each refusal is verified by asking for it, with the model supplying the
       arguments. Escaped secret: without the first, the job is the way to put a harness
@@ -320,7 +319,8 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       whose destroy is unresolved is shown as possibly still existing and billing (`ARC-22`).
 - [ ] **CNF-25 · PRE-SCALE** The vendor firewall does not privilege the relay's source
       addresses (`ARC-41`), so the scanner's view equals the world's.
-- [ ] **CNF-79 · PRE-SCALE** The channel's pinning cases (`CNF-21`, `CNF-62`) pass on a
+- [ ] **CNF-79 · PRE-SCALE** The channel's pinning cases (`CNF-21`, and `CNF-62` wherever its
+      dedicated row applies it) pass on a
       physical Android Chrome (`STG-14`, `OVR-1`); first seen 2026-09-08 on the spike
       (`docs/findings/2026-09-07-wasm-spikes.md`). iOS Safari is not a test target.
 
@@ -389,7 +389,7 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       delivered; (c) a session that hands over with a lifecycle finding is followed by one that
       places the key, re-checks and delivers; (d) two declared services, each needing its own
       key and both stopped, receive both keys; (e) with a lifecycle finding standing on a
-      delivered machine at re-entry, rotation through `place_secret` proceeds and a re-check
+      previously delivered machine at re-entry, rotation through `place_secret` proceeds and a re-check
       clears it. An actual lockdown finding still refuses placement. The ad-hoc minimum's
       empty permitted tenant-key-material list does not itself refuse `place_secret`.
 - [ ] **CNF-52 · BLOCKING** On a multi-tenant machine, no spendable key material is present
@@ -459,7 +459,8 @@ evidence is that set's test run against the relay the harness uses.
       they did not know they handed over.
 - [ ] **CNF-28 · BLOCKING** Every off-machine call is written durably before it is sent.
       Verified by killing the process between record and send and finding the record — for a
-      typed Robot operation and for an inference request alike, whose intent record carries a
+      typed operation of the stage's enabled adapter (Robot's on the dedicated path) and for an
+      inference request alike, whose intent record carries a
       local call id and whose terminal record carries metadata and no prompt body (`ARC-31a`).
 - [ ] **CNF-29 · BLOCKING** An interrupted call is recorded as **unresolved**, is not retried
       automatically, and is not reported as failed. No timer clears it. While it is
@@ -497,8 +498,9 @@ evidence is that set's test run against the relay the harness uses.
 
 ## State and recovery — `STA-*`
 
-- [ ] **CNF-37 · BLOCKING** A brief interrupted mid-run and re-run from the top **converges**:
-      one machine, one install, no duplicated side effects (`ARC-10`, `STG-12`).
+- [ ] **CNF-37 · BLOCKING** An install interrupted mid-run and resumed — a brief re-run from the
+      top included, where one exists — **converges**: one machine, one install, no duplicated
+      side effects (`ARC-10`, `STG-12`).
 - [ ] **CNF-38 · BLOCKING** A rescue activation interrupted between intent and confirmation,
       then resumed, results in exactly one rescue session and one install (`STG-11`). Four
       cases, each interrupted between intent and confirmation and resumed: the activation
@@ -597,7 +599,7 @@ evidence is that set's test run against the relay the harness uses.
       advisory entries and remove none. An absent file stays listed. Re-arming or a machine's
       removal claim never drops an entry; only the owning rotation/destruction rules do.
 - [ ] **CNF-93 · BLOCKING** An acceptable weaker mode is accepted by its label for one bound
-      set before any contact with that set's machines, and is never entered by failing
+      set before the first contact it governs, and is never entered by failing
       (`SEC-14`). Verified three ways: an artifact that fails its pin halts and the machine
       does not continue unpinned (`ARC-25`); an installation with no pin is recorded and shown
       as **unpinned**, with no hash or signer named (`ARC-25a`); and every mode standing on a
@@ -651,15 +653,18 @@ Not pass/fail. Required to be recorded.
 - [ ] **CNF-84 · BLOCKING** A seed plus sheet restores machine and relay identities from their
       exported indices and reconnects using the old host pin, never a new first contact. A
       mismatched seed, duplicate mappings, invalid counters or malformed placement associations
-      are refused before binding. The sheet has only `STA-16`'s placement metadata; values,
-      digests, scan keys and lengths are absent, and unsupported payload versions are refused
-      rather than read as having no placements. A stale sheet or imported store cannot allocate
+      are refused before binding, and so is a live machine with a missing, duplicate or
+      malformed machine state. The sheet has `STA-16`'s placement metadata, pin routes and
+      machine states; values, digests, scan keys and lengths are absent, and unsupported
+      payload versions are refused rather than read as having no placements. A stale sheet or imported store cannot allocate
       under the restored seed; Replace with a fresh seed restores allocation. Cloud with no
       sheet exposes destroy/recreate, never an unpinned keyed-rescue login. Missing relay
       indices are reported unrecoverable, and partial Replace never reports complete revocation
-      (`STA-22b`, `STA-17`). Restored placement state, weaker modes and declaration are labelled
-      "unknown since export" under `STA-16`, restated at later irreversible acts until
-      explicitly reapproved; scan re-arm reapproves none of them (`CNF-95`). The dedicated-path
+      (`STA-22b`, `STA-17`). Restored placement state, declaration, class, access model, weaker
+      modes and pin route are shown as the sheet holds them and labelled "unknown since export"
+      under `STA-16`, restated at later irreversible acts until explicitly reapproved; scan
+      re-arm reapproves none of them (`CNF-95`), and a `place_secret` before that reapproval
+      is refused (`ARC-43`). The dedicated-path
       case rekeys Robot through rescue with a fresh seed when metadata is missing; only that
       case waits for the dedicated milestone below. Boundary-crossed and destroyed-data.
 - [ ] **CNF-85 · BLOCKING** Disk selection in the install brief is checked without writes first:
@@ -698,7 +703,7 @@ promotion rule above.
 
 | Applies when | CNF items | Interpretation |
 |---|---|---|
-| Stage 1: required | 1–7, 10–18, 21, 23–26, 28–30, 32, 34–35, 37, 39–44, 49–56, 61, 66–75, 78–79, 81–83, 87–91, 93–95, 99–104 | One goal, one session, one live cloud machine with no tenant, created through a typed adapter and first contacted by attest; synthetic unbound identities exercise 6 and 26. Item 7's growth and subset cases, and item 91's two-machine case, use fixtures until stage 2. Item 12 is exercised with a hostile goal and a hostile fetched document; its untyped-scope restatement, and item 14's, wait for stage 2. Item 14 covers any root password the typed adapter's response carries. Item 23 covers the refusal and the attest window; its jump-host label waits for stage 2. Items 24, 66 and 67 apply wherever the installation is pinned, and item 93's unpinned case wherever it is not; NixOS evidence is required before enabling NixOS. Item 37's run has no brief. Interrupted resume (`STG-12`) is carried here by items 37, 39, 40 and 54–56; item 86's cases are a rescue boot's, and stay the test bed's. Item 95's cases all require integrated evidence (`OPN-28`). Item 50 covers the delivery check; its scanner half waits for scanner enablement. Item 10 covers local ledger persistence; its sheet-export half is the recovery row's. Item 72 covers local allocation; imported-state cases are 84. Item 81's migration case waits for self-host migration, which no stage yet offers. Item 32 covers the typed adapter's origin. Items 68–71, 78 and 88–90 apply to the procured inference path; bring-your-own and local inference have no aggregator to test. Item 88 uses injected list fixtures the way 17 uses an injected response. Item 104 covers the typed adapter's invoice. |
+| Stage 1: required | 1–7, 10–18, 21, 23–26, 28–30, 32, 34–35, 37, 39–44, 49–56, 61, 66–75, 78–79, 81–83, 87–91, 93–95, 99–104 | One goal, one session, one live cloud machine with no tenant, created through a typed adapter and first contacted by attest; synthetic unbound identities exercise 6 and 26. Item 7's growth and subset cases, and item 91's two-machine case, use fixtures until stage 2. Item 12 is exercised with a hostile goal and a hostile fetched document; its untyped-scope restatement, and item 14's, wait for stage 2. Item 14 covers any root password the typed adapter's response carries. Item 23 covers the refusal and the attest window; its jump-host label waits for stage 2. Items 24, 66 and 67 apply wherever the installation is pinned, and item 93's unpinned case wherever it is not; NixOS evidence is required before enabling NixOS. Interrupted resume (`STG-12`) is carried here by items 37, 39, 40 and 54–56; item 86's cases are a rescue boot's, and stay the test bed's. Item 95's cases all require integrated evidence (`OPN-28`). Item 50 covers the delivery check; its scanner half waits for scanner enablement. Item 10 covers local ledger persistence; its sheet-export half is the recovery row's. Item 72 covers local allocation; imported-state cases are 84. Item 81's migration case waits for self-host migration, which no stage yet offers. Item 32 covers the typed adapter's origin. Items 68–71, 78 and 88–90 apply to the procured inference path; bring-your-own and local inference have no aggregator to test. Item 88 uses injected list fixtures the way 17 uses an injected response. Item 104 covers the typed adapter's invoice; on `STG-21`'s Hetzner fallback, which invoices nothing, it waits for a vendor that does. |
 | Stage 1: record measurements | 45–47 | Require the integrated browser channel, not the rehearsal's timings. |
 | Stage 1: model-written check reports | 107 | The report label, verdict isolation and absence of automatic re-execution are required before stage 1 completes. |
 | Stage 1: recovery export/import and Replace | 19–20, 84 | Before maintained cloud delivery: export, Restore, allocation refusal, cloud destroy/recreate and partial-Replace cases pass, with item 10's export case. Item 20 uses the manual publisher-confirmed pass retirement/enrollment route. Only item 84's Robot rescue case waits for the dedicated row; signed pass revocation waits for the paid/public row. |

@@ -8,7 +8,9 @@ an operator with a goal and no tenant
 
 - **Stage 0 — the probes**, run now and in parallel with construction. The LNVPS probe
   follows `OPN-24`'s owning list. Attest on a real first boot (`OPN-3`). And Omarchy's server edition,
-  or plain Arch in its place (`OPN-25`). None of it needs the harness.
+  or plain Arch in its place (`OPN-25`). They run beside construction and use what it has
+  built by then: attest evidence needs the browser's acceptance (`CNF-18`), and `OPN-25`
+  closes over the channel.
 - **Stage 1 — the owner's scenario, with no tenant** (`STG-21`).
 - **Stage 2 — a vendor with no adapter** (`STG-22`).
 - **Stage 3 — tenants, as skills** (`STG-23`).
@@ -52,14 +54,16 @@ journal, the stage needs:
 - **interrupted resume** (`STG-12`); and
 - **one re-entry** (`STG-9`).
 
-**If LNVPS fails its probe**, stage 1 — and no later stage — runs on Hetzner Cloud with attest
-and a card account.
+**If LNVPS fails its probe** (`OPN-24`), stage 1 — and no later stage — runs on Hetzner Cloud
+with attest and a card account. That account pays without an invoice, so the invoice relay
+above and `CNF-104` have nothing to relay there and wait for a vendor that invoices. Stage 2's
+jump vendor still has to meet `CHN-R6`'s conditions, so a failed probe leaves it unchosen.
 
 **STG-22 Stage 2 is a vendor with no adapter, where the browser can reach its API.** Such a
 vendor is reached through an untyped vendor scope on `SEC-4`'s conditions, and no further than
 the channel goes: `CHN-12b` says "an arbitrary service refusing browser CORS is out of reach for
-untyped calls". Beside it: the jump-host route (`CHN-R6`), with LNVPS as the jump vendor;
-bound sets of more than one machine (`SEC-1`); and a second vendor, which is what closes
+untyped calls". Beside it: the jump-host route (`CHN-R6`), with LNVPS as the jump vendor if
+its probe passes (`OPN-24`); bound sets of more than one machine (`SEC-1`); and a second vendor, which is what closes
 `OPN-5`.
 
 **STG-23 Stage 3 is tenants, as skills.** lnrent's skill, on the dedicated path. And
@@ -262,13 +266,15 @@ positional, so nothing renumbers.
 **STG-9** The machine is **maintained**, and the story is exercised: at least one later
 session re-enters over the same pinned channel and re-runs the check.
 
-**STG-10** No credential — the vendor credential, a vendor-generated root password in a typed
-adapter's response, the session inference key, the SSH client private key, the relay key, or a
-placed application secret — appears in a request to the app origin, in
-any model request body, or in any log; and none appears in origin-private storage, local
-storage, or service-worker caches outside the encrypted-at-rest store `SEC-5` names.
-Cleartext nowhere. What a model reads under an untyped vendor scope is `SEC-4`'s to state, and
-this stage has no such scope. The local store unlocks and locks under `STA-23`; killing the worker
+**STG-10** No credential the harness holds — the vendor credential, a vendor-generated root
+password in a typed adapter's response, the session inference key, the SSH client private
+key, the relay key — appears in a request to the app origin, in any model request body, or in
+any log; and none appears in origin-private storage, local storage, or service-worker caches
+outside the encrypted-at-rest store `SEC-5` names. A placed application secret meets the same
+on the way in (`CNF-16`); once on the machine it is within reach of every model with root
+there, and only its exact copies are redacted from output, under `SEC-5` row 12's caveat and
+its scan's stated limits. What a model reads under an untyped vendor scope is `SEC-4`'s to
+state, and this stage has no such scope. The local store unlocks and locks under `STA-23`; killing the worker
 requires a new unlock and replay, never a plaintext fallback.
 
 **STG-11** A rescue activation or its reset, interrupted between intent and confirmation,
@@ -331,8 +337,9 @@ counts as touching it until that machine is destroyed".
 **STG-18** Stated because a passing stage would otherwise read as a working product.
 
 - **Acquisition beyond one invoice.** Stage 1 buys one machine by one invoice at one
-  account-free vendor. It tests no account, no card, and no second vendor (`OPN-5`); on the
-  dedicated test bed the server is already rented.
+  account-free vendor — or, on `STG-21`'s Hetzner fallback, through one card account. It tests
+  no second vendor (`OPN-5`), and on LNVPS no account and no card; on the dedicated test bed
+  the server is already rented.
 - **Relay enrolment.** The operator's relay **public** key, derived from the seed (`CHN-15`),
   is handed to the publisher out of band and recorded by hand. Nothing secret crosses and
   nothing is pasted into the app. The publisher configures the allowed public destinations

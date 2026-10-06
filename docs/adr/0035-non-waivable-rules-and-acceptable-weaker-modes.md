@@ -29,7 +29,7 @@ display's listing of placed secrets became BLOCKING, and secret placement moved 
 stage.
 
 **The list, the best practice each mode stands in for, and the rule are `SEC-14`'s.** Of
-the tests a mode passes to be on that list, `SEC-14` says "Nothing that fails one of those
+the tests a mode passes to be on that list, `SEC-14` said "Nothing that fails one of those
 tests is on it: every item `07-conformance.md`'s tiering rule makes BLOCKING is a
 **non-waivable rule**, which no label, no answer and no operator act sets aside".
 
@@ -46,7 +46,7 @@ placing a secret is the first such act: `ARC-43` puts the restatement on `place_
 
 - *A finding is not something an operator accepts.* `ARC-17` says "A finding is never accepted
   in place of an amendment". A machine with a finding standing may be taken by its operator; it
-  is handed over with findings, it is not delivered, and `ARC-43` says "No secret is placed
+  is handed over with findings, it is not delivered, and `ARC-43` said "No secret is placed
   while a finding stands".
 - *A secret's delivery is non-waivable in every part.* `ARC-43` says "The value is the job's
   standard input and never an argument", and the rest of that list — no persistence by the
@@ -119,10 +119,17 @@ is admissible under a declared independence bound, which nothing here settles.
 
 *Amended 2026-10-06: placement while a finding stands is refused for every finding but one
 kind.* A lifecycle finding — a declared service not in its declared lifecycle — no longer
-refuses `place_secret`. `ARC-43` now says "No secret is placed while a finding stands on the
-machine, except a lifecycle finding". Refusing it blocked the very placement that starts a
+refuses `place_secret`. `ARC-43` now says "No secret is placed before the fixed lockdown
+checks have passed on the machine, nor while a finding stands there other than a lifecycle
+finding". Refusing it blocked the very placement that starts a
 service needing its key, a key placed in a later session, and a rotation after a re-check found
 the service down. The machine still is not delivered and is never described as locked down while
 the finding stands, and every other finding, a lockdown finding included, still refuses. The
 cost is that a secret can be placed beside an unrelated stopped service, which the card names.
-The two sentences above that quote the unqualified rule are history.
+The sentences above that quote or state the unqualified rule are history.
+
+*Amended 2026-10-06: one listed mode passes the three tests only in part.* `SEC-14` now says
+"One row passes those tests only in part, and is admitted on its own conditions": an untyped
+vendor scope's harm can reach the rest of the operator's vendor account and its spending, which
+`SEC-4`'s conditions and the operator's two answers bound and show. The quotation of `SEC-14`
+under "The list, the best practice each mode stands in for, and the rule" is history.

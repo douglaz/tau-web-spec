@@ -106,7 +106,10 @@ wants of its only vendor (`STG-21`). Nothing about it has been measured. The pro
 
 *Closes when:* the probe is run and its answers recorded under `docs/findings/`. If it passes,
 LNVPS may be the target itself, by attest. If it fails, stage 1 — and only stage 1 — runs on
-Hetzner Cloud with attest and a card account.
+Hetzner Cloud with attest and a card account; what that drops is listed in `STG-21`. Which answers
+make it fail is not yet stated: the first two decide whether stage 1's design can run there at
+all, and the inventory answer decides whether a loss with no sheet can destroy and recreate
+(`CNF-84`).
 
 **OPN-25 — Whether Omarchy has a server edition, or plain Arch stands in.** The owner's
 scenario installs Hermes on Omarchy. Whether Omarchy installs and runs on a machine with no
@@ -131,8 +134,9 @@ does not* — every model-issued command is a stateless job and values have name
 (`ARC-7`). Designing a second consumer
 for an undefined format is premature until this exists. *First input 2026-09-08:*
 `docs/briefs/01-install.md`, plain prose with example commands and deliberately no format.
-A fourth brief, the relay-install brief that `CHN-14` and ADR-0019 rely on, is the harness's
-and second-stage work; nothing has been written for it.
+A fourth brief, the relay-install brief that `CHN-14` and ADR-0019 rely on, is the harness's,
+and is owed when self-host migration is offered, which no stage yet does; nothing has been
+written for it.
 *Closes when:* the three briefs named in `STG-2` are generalized into a schema.
 
 **OPN-11 — What executes brief commands locally in the browser.** Either a WASI host with
@@ -149,7 +153,8 @@ the checklist is part of the signed brief set — and it does not exist yet for 
 it does, `ARC-17`'s deliverable has no definition to be measured against.
 
 Two parts are no longer open. Who may run which check was settled by `ARC-26`. And the *shape* is
-settled by `ARC-39`: the tenant supplies a delivery declaration and the check measures against it.
+settled by `ARC-39`: a delivery declaration — a tenant's, or with no tenant the one the operator
+approved — and the check measures against it.
 The declaration format was the missing piece and now exists (below; default credentials are a
 field of it). What remains outside any declaration is the **vendor lockdown checklist** —
 sshd posture and whatever a given vendor makes possible.
@@ -169,7 +174,10 @@ yet. lnrent's declaration, the Robot checklist and briefs 2–3 gate stage 3.
 listeners, unit state and enablement, evidence establishing survival of a restart, and a
 service-name grammar that passes a validated name as an argument, never shell syntax.
 Neither the concrete grammar, init-specific reads nor restart-demonstration mechanism is
-selected here. T42 carries their implementation and stage 1 still owes their evidence.
+selected here. Also open: whether `STG-9`'s re-entry re-check reads `services` as well as
+`drift_checks`, and whether `running-at-delivery` binds after delivery; neither changes how a
+lifecycle finding treats placement (`ARC-17`). T42 carries their implementation and stage 1
+still owes their evidence.
 
 *Closes when:* the generic checklist ships and `CNF-49`–`CNF-53` and `CNF-99` have integrated
 evidence against it — that much for stage 1; and, for stage 3, the lnrent owner fills that
@@ -295,8 +303,9 @@ output, its exit code and its liveness, on installed-system persistent disk. Res
 is machine-reported and advisory, and comparing it against the browser journal catches honest
 mistakes rather than a hostile machine.
 [ADR-0022](./docs/adr/0022-durable-state-is-an-append-only-journal.md)'s amendment carries the
-reasoning and the three rejected alternatives. *Closes when:* `CNF-40`, `CNF-55` and `CNF-86`
-pass on the integrated harness (T23).
+reasoning and the three rejected alternatives. *Closes when:* `CNF-40`, `CNF-54`–`CNF-56` pass
+on the integrated harness (T23) — the part stage 1 gates on — and `CNF-86` passes there too,
+which the dedicated row of `07-conformance.md` asks for, not stage 1.
 
 **OPN-22 — What "still alive" means in `STA-20`.** **Closed: the narrow reading binds.** `STA-20`
 tracks whether **the command** is alive, not everything the command spawned. Daemon and service

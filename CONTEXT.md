@@ -57,8 +57,8 @@ a **layering**: a brief can tell the AI to invoke an lnrent hook as a determinis
 **Goal** · `ARC-11a`
 The operator's own instruction for one session, in their words — "launch a VPS paid in
 Bitcoin and install Hermes on Omarchy". Journaled with that session and never shipped, so it
-steers only that session's bound set; a brief steers every machine that reads it. No brief and
-no tenant is needed to act on one (decided 2026-10-04).
+steers only that session's bound set; a brief steers every machine that reads it. It can stand
+alone: `ARC-11a` admits a session with no brief and no tenant (decided 2026-10-04).
 _Avoid_: prompt, task, request (a *call*'s word), intent (the journal's *intent record*, `STA-4`)
 
 **Signed bundle** · `SEC-7`, `ARC-32`, `ADR-0031`
@@ -342,17 +342,15 @@ which a mechanism then enforces), spec (too broad)
 and the fixed lockdown checks pass. It is a claim about that machine state, not that the
 application works; model-written check reports are outside it. *Handed over with findings*:
 the operator takes the machine
-while findings stand; it is not delivered, is never described as locked down, and receives no
-placed secret while any finding but a lifecycle finding (a declared service not in its declared
-lifecycle) stands. A finding clears only on a re-check — after the machine is fixed or its
-declaration amended by a journaled operator act. Named 2026-10-05.
+while findings stand; it is not delivered and is never described as locked down. What may still
+be placed on it, and what clears a finding, are `ARC-17`'s. Named 2026-10-05.
 _Avoid_: accepted finding (a finding is never accepted in place of an amendment), waived,
 passed with warnings
 
 **Multi-tenant machine** · `ARC-36`
 A machine that serves parties the operator has never met — a rented slice, a hosted guest.
 Hardening one is a different problem from hardening a single-purpose box, and its network
-posture is the tenant's to state.
+posture is whatever its declaration states (`ARC-36`).
 _Avoid_: shared host, multi-user (neither carries the untrusted-guest sense)
 
 **Access model** · `ARC-27`
@@ -455,11 +453,11 @@ _Avoid_: "the pin" unqualified where two kinds are in play; allowlist; whitelist
 store" for a store of one (it carries the general-trust sense)
 
 **Trust on first use** · `CHN-R4`, `CHN-2`
-Accepting a machine's host key at first contact with no pin to check it against. **Refused
-through the relay** (decided 2026-10-05): every
-connection runs through it, so a key accepted there is the relay's word, and an impostor there
-receives every secret placed afterwards. A first contact with no independently obtained pin is
-admitted only from a **jump host** — which the relay cannot alter, though the jump host can.
+Accepting a machine's host key at first contact with no pin to check it against. `CHN-R4`
+refuses it through the relay (decided 2026-10-05): every connection runs through it, so a key
+accepted there is the relay's word, and an impostor there receives every secret placed
+afterwards. The **jump host** of `CHN-R6` is where such a first contact is made instead — one
+the relay cannot alter, though the jump host can.
 _Avoid_: TOFU as a "floor" or fallback (it was both until this decision)
 
 **Jump host** · `CHN-R6`
@@ -531,16 +529,14 @@ _Avoid_: attestation, certificate, lineage
 A rule no operator act sets aside: every item the tiering rule makes BLOCKING, because its harm
 is irreversible, would go unseen, could be multiplied by a model retrying on its own, or falls
 on someone other than the operator. Named 2026-10-05; `SEC-14` uses it.
-_Avoid_: the floor (taken four times over), hard rule, invariant (the formal companion's word)
+_Avoid_: the floor (already used for several other things), hard rule, invariant (the formal
+companion's word)
 
 **Acceptable weaker mode** · `SEC-14`
-A named weaker mode the operator may accept by its label for one bound set — an unpinned OS, a
-first contact from a jump host, no brief, a set of more than one machine, an untyped scope at a
-vendor with no adapter — because its harm
-stays inside that set, shows when it happens, and cannot be multiplied by a model retrying on
-its own. Chosen before contact, never entered because a stronger check failed, and restated at
-every later irreversible act on any machine of the set. The stronger counterpart it stands in for (a pin, an adapter, a brief) is a
-**best practice**: used when available, shown when missing. Named 2026-10-05.
+A named weaker mode the operator may accept by its label for one bound set, in place of the
+stronger counterpart it stands in for; `SEC-14` holds the closed list, why each mode is on it,
+and when one is chosen and restated. That counterpart (a pin, an adapter, a brief) is a **best
+practice**: used when available, shown when missing. Named 2026-10-05.
 _Avoid_: fallback (a failed check halts, it never falls back), degraded mode, waiver
 
 ### Trust and diversity
@@ -678,7 +674,8 @@ harness's cloud plane.
 **Dev:** What if the brief says to resize the machine because it ran out of disk?
 
 **Domain expert:** Then the AI stops and raises a cloud-plane operation, because that one spends
-money. The brief can *suggest* it. Only a typed operation can *do* it.
+money. The brief can *suggest* it. Only a cloud-plane operation can *do* it — a typed one where
+an adapter covers the vendor, an untyped vendor scope's call where none does (`SEC-4`).
 
 **Dev:** Machine 1 looks misconfigured. Can I point the model from machine 2 at it to check?
 

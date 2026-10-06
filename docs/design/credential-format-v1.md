@@ -112,10 +112,19 @@ key or envelope as a sheet. Local and sheet purposes cannot be interchanged.
 The authenticated UTF-8 JSON payload contains `version: 2`, `derivation_version: 1`,
 `seed_id`, `exported_at` (UTC RFC 3339), `journal_sequence`, `next_indices` (machine/pass/
 handoff), `allocations` (including consumed tombstones), `host_pins`, `exposure_ledger`,
-`placements: [{machine_index, name, path, placed_at}]`, and optional
+`placements: [{machine_index, name, path, placed_at}]`, `machine_states`, and optional
 `inference_account_credential`. Each allocation has its family, index, stable
 resource identity and expected public key as required by `STA-22b`; a failed allocation may
 have no vendor resource ID, but retains its index. No seed or derived private key is included.
+Each `host_pins` entry names the route that produced it: `retrieve` (`CHN-R1`), `attest`
+(`CHN-R5`), `jump_host` (`CHN-R6`), or `unpinned_install` for a machine `ARC-25` labels
+unpinned. Each `machine_states` entry is `{machine_index, declaration, class, access_model,
+weaker_modes, approved_at}`: the journaled declaration in force as a delivery-declaration v1
+document, the class `ARC-36a` records, the access model of `ARC-27`, the labels of the
+acceptable weaker modes standing on the machine's bound set (`SEC-14`), and when the operator
+last approved that state. Every machine-family allocation with a live machine has exactly one;
+reject a missing, duplicate or malformed entry, and never interpret a missing entry as a
+default.
 Each placement associates a machine-family allocation with its nonempty name, recorded path
 and UTC RFC 3339 placement time. Reject missing or ambiguous machine associations, duplicate
 placement records and malformed fields before binding. No placement value, digest, scan key,

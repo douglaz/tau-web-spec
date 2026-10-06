@@ -76,7 +76,8 @@ single-purpose or multi-tenant. A tenant's profile presets it. With no tenant, t
 answers for each machine, to questions the harness wrote: they ship in the signed bundle, and
 nothing is preselected. The model MUST NOT word the questions, answer them or preselect an
 answer. An operator who answers "not sure" has a **multi-tenant** machine — the class whose
-only cost is `ARC-37`'s removal, which a machine needing no wallet never notices. The model MAY
+costs are `ARC-37`'s removal, which a machine needing no wallet never notices, and being bound
+alone (`SEC-1`), which a one-machine session never notices. The model MAY
 propose a tightening, single-purpose to multi-tenant, and nothing else: it never relaxes a
 class. The answer is journaled with the machine before anything is installed (`ARC-44`). A
 multi-tenant machine is always bound alone (`SEC-1`).
@@ -295,16 +296,16 @@ here is non-waivable:
   file, and a path that is a symbolic link or passes through one. An existing file MUST be
   refused unless the placement records name it as this placement; placing a new secret must
   not overwrite unrelated data.
-- **No secret is placed while a finding stands** on the machine, except a lifecycle finding
-  (`ARC-17`). Whether a finding is a lifecycle finding follows from the declaration field that
-  produced it (`services`), never from the model. The card lists every lifecycle finding
-  standing on the machine and says that placement clears none of them.
+- **No secret is placed before the fixed lockdown checks have passed on the machine, nor while
+  a finding stands there other than a lifecycle finding** (`ARC-17`, which owns both and what
+  makes a finding a lifecycle finding). The card lists every lifecycle finding standing on the
+  machine and says that placement clears none of them.
 - **The card restates every acceptable weaker mode standing on the machine's bound set**
   (`SEC-14`), states the root-shell caveat `SEC-5` attaches to row 12, and shows the name and
   purpose as what the model asked for, not as the harness's description.
 - **The placed secret is listed in the trust display** until it is rotated or the machine is
-  destroyed (`SEC-6`). Restore takes the union of the journal and sheet's placement records
-  (`STA-16`). Machine records may add entries, visibly labelled as machine-reported and
+  destroyed (`SEC-6`). After a Restore the display starts from the placement records the sheet
+  holds (`STA-16`). Machine records may add entries, visibly labelled as machine-reported and
   advisory, but MUST NOT remove any. An absent file stays listed; absence, scan re-arm and
   a machine's claim of removal are not rotation or destruction.
 
@@ -335,8 +336,9 @@ If the file is absent, changed against an intact reference, or the digest job fa
 harness MUST offer a visible fallback card: the operator may paste the secret locally to
 create a fresh reference under `SEC-5`. This act writes nothing to the machine and is not a
 placement or rotation. Rotation goes through the full `place_secret` ceremony. Re-arming
-neither reapproves the restored declaration nor any weaker mode; recovery placement waits
-for their reapproval under `STA-16`.
+neither reapproves the restored declaration nor any weaker mode. After a Restore, no
+`place_secret` reaches a machine until the operator has reapproved the declaration and
+standing weaker modes the sheet restored for it (`STA-16`).
 
 Model `exec` across the bound set MUST wait while any known required placement reference is
 unarmed. Only harness jobs whose output goes to **neither** model nor transcript are exempt;
@@ -543,7 +545,8 @@ lie about whichever layer is thin, and the thin layer is the one that gets explo
 blocked*, because procured inference shares a proxy by design. The machines of one bound set
 share every layer by construction, and are shown as one unit (`SEC-1`).
 
-**ARC-15** Every machine creation is known before anything starts, so approvals MUST batch:
+**ARC-15** The machine creations a setup names are known before anything starts, so their
+approvals MUST batch:
 one screen showing the whole setup and its true recurring cost — each session's bound set,
 machine by machine, and any jump host a first contact will need (`CHN-R6`), with what it
 costs. A machine added to a bound set afterwards is one operator act per machine, through the
@@ -789,8 +792,9 @@ on the channel spike (`docs/findings/2026-09-07-wasm-spikes.md`).
 
 ## The operating system, and where it comes from
 
-**ARC-24** The chosen distributions are **Alpine and NixOS**: the two the bundle carries an
-artifact pin for. Another distribution an operator's goal names — Arch, Omarchy — is installed
+**ARC-24** The chosen distributions are **Alpine and NixOS**: the two the bundle is designed to
+pin. Today it carries Alpine's (`bundle/artifact-alpine.toml`); NixOS's waits for its evidence
+(`07-conformance.md`'s stage-1 row), and until then a NixOS installation is unpinned too. Another distribution an operator's goal names — Arch, Omarchy — is installed
 **unpinned** under `ARC-25`'s rule until the bundle carries a pin for it (`OPN-25`). Neither
 chosen distribution is offered by the
 dedicated vendor's automatic installer — verified against the live API on 2026-08-31, whose

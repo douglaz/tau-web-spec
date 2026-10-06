@@ -89,9 +89,9 @@ it reports to the slugs it accepts; a refusal discloses, per model, the provider
 Selecting a provider also routes the request through what `TRU-E2` now names, by inference, as
 the proxy's upstream.
 
-**A fallback is new weights on a machine.** `SEC-1` conditions the ladder's escalation on the
+**A fallback is new weights on a machine.** `SEC-1` conditioned the ladder's escalation on the
 stronger model being one that "is not assigned — and will never be assigned — to any other
-machine", and says "Re-entry stays inside this rule the same way". An availability fallback on
+machine", and said "Re-entry stays inside this rule the same way". An availability fallback on
 a re-entered or successor session is a new configured model on that machine and stays inside
 `SEC-1` like any other; `STG-17` says "the harness **MUST NOT** use the
 candidate order as that rung".
@@ -192,3 +192,11 @@ as such.
 The layers stay counted and displayed separately, per `ARC-14`; `SEC-9` says "When the requested
 provider is the maker of the weights, the display MUST say so on that machine", reading the
 maker from the bundle, never from the slug (`CNF-41`).
+
+*Amended 2026-10-06: `SEC-1`'s exposure rule is conditional now
+([ADR-0037](./0037-bound-sets.md)).* The two sentences quoted under "A fallback is new weights
+on a machine" are history. `SEC-1` now holds the rung and re-entry to the configured model's
+footprint only where a profile declares an independence bound, and says "Where no bound is
+declared, the footprint is counted and shown (`OVR-6`), and neither the rung nor a re-entry is
+refused for it". An availability fallback is still new weights on that machine, counted in its
+footprint like any other.

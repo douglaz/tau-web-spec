@@ -142,3 +142,7 @@ number; a session holding a channel to each machine of a larger set multiplies i
 and `CNF-45` now asks for the per-channel figure.
 
 **The first stage is untouched.** Its set is one machine, and nothing here gates it.
+
+*Amended 2026-10-06:* the first stage's set is still one machine, but its applicability row in
+`07-conformance.md` exercises `CNF-91` and `CNF-7`'s growth and subset cases by fixture, so
+"nothing here gates it" is history.

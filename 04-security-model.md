@@ -309,7 +309,10 @@ after the value is cleared; neither a bare hash nor the value persists there. A 
 required at placement and every re-arm, with the numeric bound still open in T48; no arbitrary number
 is implied by this construction. Placement and recovery arming are `ARC-43`'s procedures.
 
-The scan sees exact values only: an encoded, partial or transformed copy passes. It runs in
+The scan sees exact values only: an encoded, partial or transformed copy passes. It covers
+only placements whose reference the browser holds — none known only as "unknown since export"
+(`STA-16`) — and a reference re-armed from a machine report covers the bytes the machine
+reported, which may not be the value placed (`ARC-43`). It runs in
 the browser — `STA-20a`'s output file lands on the machine before any browser scan runs — so
 it is a statement about the harness's records and the model's context, never about what the
 machine holds. The root-shell caveat on row 12 remains, including plaintext machine output.
@@ -461,7 +464,7 @@ wallet (`ARC-30`) is not that capability: the app relays and holds nothing.
 ### SEC-14 — a weaker mode is accepted by name, before contact, and never entered by failing
 
 **A weaker mode MUST be one of the named ones, accepted by the operator by its label for one
-bound set before any contact with that set's machines. It MUST NOT be entered because a
+bound set before the first contact it governs. It MUST NOT be entered because a
 stronger check failed, and it MUST be restated at every later irreversible act on any machine
 of the set**
 ([ADR-0035](./docs/adr/0035-non-waivable-rules-and-acceptable-weaker-modes.md)).
@@ -478,16 +481,22 @@ stands in for — which is used when available and shown when missing:
 | An untyped scope at a vendor with no adapter | A typed adapter | `SEC-4` |
 
 A mode is on the list because its harm stays inside that bound set, shows when it happens, and
-cannot be multiplied by a model retrying on its own. Nothing that fails one of those tests is
-on it: every item `07-conformance.md`'s tiering rule makes BLOCKING is a **non-waivable rule**,
-which no label, no answer and no operator act sets aside.
+cannot be multiplied by a model retrying on its own. One row passes those tests only in part,
+and is admitted on its own conditions: an untyped vendor scope can reach whatever the vendor
+account reaches, and an account that pays by itself can spend without asking. Its harm stays
+on the operator's own account rather than inside the set, and `SEC-4`'s conditions and the
+operator's two answers — journaled, and restated as warnings — are what admit it (ADR-0038).
+Every item `07-conformance.md`'s tiering rule makes BLOCKING is a **non-waivable rule**, which
+no label, no answer and no operator act sets aside.
 
 - **By its label, for one bound set.** The set is named machine by machine before contact. A
   mode accepted for one set says nothing about another, and a machine added to a set later is
   added on a card that restates the set's modes (`SEC-1`).
 - **Chosen before contact.** The operator chooses a mode from what the bundle or the vendor
   lacks — no pin for this distribution, no adapter for this vendor, no out-of-band route at
-  this vendor — before the harness contacts any machine of the set.
+  this vendor — before the first contact it governs: with any machine of the set for a mode
+  accepted as the set is bound, with the added machine for one accepted as the set grows
+  (`SEC-1`).
 - **Never entered by failing.** A failed check halts. An artifact that does not match its pin,
   an introduction that never arrives, a host key that does not match: none of them continues
   in the weaker mode (`ARC-25`, `CHN-R5`, `SEC-11`).

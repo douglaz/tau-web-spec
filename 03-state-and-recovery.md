@@ -199,7 +199,7 @@ an untyped vendor scope no adapter can say which call changes what a machine is 
 same exception is taken wider there: while a call under that scope is open — sent, and not yet
 answered — or unresolved, the harness worker MUST NOT dispatch a box-plane command to any
 machine of the session's bound set at that vendor. The pause ends with the call's terminal
-record or the operator's disposition. The
+record or the operator's disposition. This pause is not carried by `TauWeb.Dispatch` below. The
 inference request (`ARC-31a`) keeps its unresolved intent under `STA-8`, shown as unaccounted
 spend against the session key's cap, and does **not** bar the next request: its only effect is
 bounded spend, and the next request is the session's only way to continue.
@@ -293,7 +293,9 @@ machine — the conservative reading, since the unknown history could contain an
 
 **STA-14** The operator's **vendor account is the recovery root**. It survives because it
 lives in their head or their password manager and is recoverable through the vendor's own
-processes, and it is the one party that always knows which machines exist.
+processes, and it is the one party that always knows which machines exist. At a vendor that
+keeps no account — LNVPS identifies a buyer by a Nostr key (`OPN-24`) — neither holds as
+stated, and what stands in for this root there is open (T47).
 
 | Dies with the phone | Survives |
 |---|---|
@@ -433,9 +435,13 @@ check — is withdrawn with `CHN-R5`'s: it accepted a key through the relay with
 `CHN-R4` refuses.
 
 **STA-16** The recovery sheet holds the allocation metadata of `STA-22b`, host-key
-fingerprints, the exposure ledger, placement metadata (`machine_index`, name, path and placement
-time), and — on the procured path — the **inference account credential**, wrapped under a
-passphrase the operator chooses. **It no longer carries the SSH client keys**, which re-derive from the seed
+fingerprints with the route that produced each pin (`CHN-R1`, `CHN-R5` or `CHN-R6`, or the
+**unpinned** label `ARC-25` gives an installation), the exposure ledger, placement metadata
+(`machine_index`, name, path and placement time), each machine's **machine state as approved**
+— its declaration in force (`ARC-39`), its class (`ARC-36a`), its access model (`ARC-27`) and
+the acceptable weaker modes standing on its bound set (`SEC-14`) — and, on the procured path,
+the **inference account credential**, wrapped under a passphrase the operator chooses. None of
+the machine state is secret, and all of it exists by the export `STA-15` requires. **It no longer carries the SSH client keys**, which re-derive from the seed
 (`STA-22`). The export screen MUST say what the sheet can do in the wrong hands with the
 passphrase: **spend the remaining inference balance**. Reaching a machine needs the seed, and
 the seed is never in the sheet. Placement records carry no value, digest, scan key, byte
@@ -443,10 +449,11 @@ length or other value-derived reference. Their versioned wire shape and associat
 live in the credential format; incompatible sheet payloads MUST be refused, never imported
 as though no placements existed.
 
-**A restored sheet is knowledge as of export.** The placement inventory, standing acceptable
-weaker modes and delivery declaration MUST be shown as **"unknown since export"** after
-store loss. That qualification MUST be restated at every later irreversible act until the
-operator explicitly reapproves the relevant restored state. No machine report or scan re-arm
+**A restored sheet is knowledge as of export.** The placement inventory and each machine's state
+as approved — declaration, class, access model, standing weaker modes and pin route — are
+restored as the sheet holds them and MUST be shown as **"unknown since export"** after store
+loss. That qualification MUST be restated at every later irreversible act until the operator
+explicitly reapproves the relevant restored state. No machine report or scan re-arm
 is reapproval of a declaration or weaker mode. The missing-placement question and re-arm
 procedure belong to `ARC-43`; reapproval cannot establish an inventory of forgotten secrets.
 These knowledge limits are additional to the allocation restriction in `STA-22b`.

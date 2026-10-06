@@ -86,6 +86,9 @@ unsure answer is the strict one, and the model may only tighten.
 **A third class, "unknown", for an operator who cannot answer.** Rejected for the default that
 costs nothing: multi-tenant removes spendable key material, and a machine that needs no wallet
 never notices.
+*Amended 2026-10-06:* the default costs a second thing the bound-set decision added after this
+was written — `ARC-36a` says "A multi-tenant machine is always bound alone (`SEC-1`)" — which a
+one-machine session never notices either.
 
 **Seal a machine on the operator's say, or the model's.** Rejected. Sealing is irreversible,
 and a machine is safe to seal only when its software was designed never to need a hand again.

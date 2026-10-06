@@ -182,10 +182,12 @@ advance. Restricting the AI's authority to keep it safe breaks the only reason i
 
 **OVR-3** Credentials MUST live only where the credential inventory (`SEC-5`) names, with
 the lifetime it states. No credential is written to storage in cleartext, sent to the
-application's own origin, included in a model request, or persisted in a log. The one
-exception stands under an untyped vendor scope, and its owner states it: `SEC-4` says "A token the
+application's own origin, included in a model request, or persisted in a log. Two owners
+state where this stops holding. Under an untyped vendor scope, `SEC-4` says "A token the
 vendor mints and a root password the vendor generates arrive in a response no adapter reads, so
-the model reads them".
+the model reads them". And an application secret, once placed, is within reach of every model
+with root on its machine — `SEC-5` row 12's caveat, which "MUST be stated wherever it is
+offered".
 
 **OVR-4** Beyond the application itself, this product MUST add **one** component in every
 session's path — the relay, publisher-run by default and so a capability of an
@@ -218,7 +220,7 @@ by its label (`TRU-E11`), not a component in every session's path. Passing the S
 necessary and does not by itself satisfy this; the routes are what make it sufficient.
 
 **OVR-5** Where a profile declares an independence bound, the machines of one setup MUST NOT
-share a cloud vendor, and each MUST be bound to its own session. Which model a session there may
+share a cloud vendor, and each is bound to its own session (`SEC-1`). Which model a session there may
 be configured with is not ruled here: it is `SEC-1`'s footprint rule, read against the
 profile's bound. The vendor owns its machine's memory and disk and is trusted under every
 design considered, so two machines at one vendor is one party able to act on both — the
