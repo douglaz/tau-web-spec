@@ -456,11 +456,12 @@ as though no placements existed.
 as approved — declaration, class, access model and the standing weaker modes — are restored as
 the sheet holds them and MUST be shown as **"unknown since export"** after store loss. That
 qualification MUST be restated at every later irreversible act until the operator explicitly
-reapproves the relevant restored state. Whether an installation is pinned and each pin's route
-are restored and shown beside it; they record what happened, not something the operator
-approves. The sheet carries no check result and no finding, so after store loss each maintained
-machine is shown as **unchecked**, its findings unknown, until a re-check runs (`ARC-17`), and
-no secret is placed on it before that re-check (`ARC-17`). No machine report or scan re-arm
+reapproves the relevant restored state. Whether an installation is pinned, or not yet made,
+and each pin's route are restored and shown beside it, as of export like the rest; they record
+what happened, not something the operator approves. The sheet carries no check result and no
+finding, so after store loss each maintained machine is shown as **unchecked**, its findings
+unknown, until a re-check runs, and no secret is placed on it before that re-check
+(`ARC-17`). No machine report or scan re-arm
 is reapproval of a declaration or weaker mode. The missing-placement question and re-arm
 procedure belong to `ARC-43`; reapproval cannot establish an inventory of forgotten secrets.
 These knowledge limits are additional to the allocation restriction in `STA-22b`.

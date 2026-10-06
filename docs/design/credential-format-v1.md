@@ -115,7 +115,8 @@ handoff), `allocations` (including consumed tombstones), `host_pins`, `exposure_
 `placements: [{machine_index, name, path, placed_at}]`, `machine_states`, and optional
 `inference_account_credential`. Each allocation has its family, index, stable
 resource identity and expected public key as required by `STA-22b`, and a jump host's entry
-carries `jump_host: true`, recording that it is in no session's bound set; a failed allocation may
+carries `jump_host: true`, recording that it is in no session's bound set, and no other
+allocation carries the field; a failed allocation may
 have no vendor resource ID, but retains its index. No seed or derived private key is included.
 Each `host_pins` entry names the host-key route that produced it: `retrieve` (`CHN-R1`),
 `attest` (`CHN-R5`) or `jump_host` (`CHN-R6`). Whether the installation carries an artifact
@@ -128,8 +129,8 @@ on the machine's bound set (`SEC-14`). A field not yet approved at export carrie
 marker `"unapproved"`, never an absent field; `installation` is recorded, not approved. Every
 live machine other than a jump host has exactly one entry, bound to a session or not; an
 allocation marked `jump_host: true` (`STA-22b`) has none. Reject a missing, duplicate or
-malformed entry, an entry for a jump host, and never interpret a missing entry or an `"unapproved"`
-field as a default.
+malformed entry and an entry for a jump host; never interpret a missing entry or an
+`"unapproved"` field as a default.
 Each placement associates a machine-family allocation with its nonempty name, recorded path
 and UTC RFC 3339 placement time. Reject missing or ambiguous machine associations, duplicate
 placement records and malformed fields before binding. No placement value, digest, scan key,

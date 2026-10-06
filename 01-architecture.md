@@ -601,8 +601,8 @@ machine is fixed, or after the operator amends its declaration by a journaled ac
 never accepted in place of an amendment, and an amendment cannot widen what the harness gates —
 it cannot declare spendable key material on a multi-tenant machine (`ARC-37`, ADR-0030's first
 guard). A machine restored from a sheet after store loss does not carry its findings: the sheet
-holds none, so its findings show as unknown, and no secret is placed on it,
-until a re-check (`STA-16`). The
+holds none (`STA-16`), so its findings show as unknown, and no secret is placed on it, until a
+re-check. The
 operator MAY take a machine while findings stand. That machine is **handed over
 with findings**: it is not delivered, it MUST NOT be described as locked down, each finding
 stays shown until a later check clears it, and no application secret is placed on it while a

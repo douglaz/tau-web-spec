@@ -486,7 +486,7 @@ bound set, shows when it
 happens, and cannot be multiplied by a model retrying on its own. The untyped vendor scope
 passes those tests only in part: it can reach whatever the vendor account reaches, and an
 account that pays by itself can spend without asking. Its harm stays on the operator's own
-account rather than inside the set. `SEC-4` says it stands "under conditions no operator act sets
+account rather than inside the set. `SEC-4` says the untyped vendor scope stands "under conditions no operator act sets
 aside", and the operator's two
 answers, journaled and restated as warnings, disclose that reach rather than bound it
 (ADR-0038).
