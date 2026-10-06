@@ -112,6 +112,11 @@ listener and lifecycle reads, restart evidence and safe service-name grammar. T4
 later signed typed-check library, not a stage-1 dependency. The original rejected option above
 is retained as history; these are the operative clarifications.
 
+*Clarified 2026-10-06: the secret-dependent service above is an example, not a condition.*
+`ARC-17` says "Any lifecycle failure before placement is not a finding, whether or not the
+declared service needs the secret to start". The ordering requires no classification of a
+service's dependency on its secret; `CNF-53` covers both cases.
+
 **Treat a fetched README as instructions.** Rejected: it is fetched external content, typed
 untrusted, and it informs work the goal already authorized.
 

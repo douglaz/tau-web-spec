@@ -11,8 +11,12 @@ which evidence completes each stage. This record amends
 
 A phone can lose its local store without being stolen; non-revoking Restore preserves the
 machine's state in that case. Theft is different. The seed is encrypted on the phone, so
-its backup is not evidence that the stolen device has no copy. `SEC-5`'s seed row says "a
-thief who unlocks the store has it"; `STA-17` says "Recovery after a *lost* phone revokes;
+its backup is not evidence that the stolen device has no copy.
+
+*Amended 2026-10-06 to correct the original quotation's attribution to `SEC-5`'s seed row.*
+`STA-17` says "A stolen phone's encrypted store may eventually be unlocked" and "The old seed
+is not revocable; changing what the browser uses is not removing a thief's access".
+`STA-17` says "Recovery after a *lost* phone revokes;
 restore after a *dead* one may not". Reusing the old key after theft leaves that key authorized.
 
 Restore also reaches an allocation dead end without Replace. `STA-22b` says "a seed imported

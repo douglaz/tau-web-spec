@@ -99,6 +99,11 @@ gated on it.
       contact (`CHN-R6`) is not among them"). The placed secret's digest key is not here: it is
       stage 1's (T48).
 - [ ] **T46 — What the sibling repositories now owe.** Recorded here; none of them was edited.
+      **tau-web-rust:** at its next spec pin bump, implement as tests the new and restated
+      cases owned by `07-conformance.md`: `CNF-91`–`CNF-106`, with `CNF-16` and `CNF-42`.
+      This prior cross-stage handoff debt remains open alongside T43's stage-1 recovery,
+      scan and report-only evidence. The applicability table in `07-conformance.md` still
+      assigns each case to its stage; stage-2 cases do not gate stage-1 completion.
       **btc-policy:** state its independence rule over configured models as `SEC-T5` records
       it, and say which members a footprint is counted across — one federation, overlapping
       successor federations, or more; its drift checks and required software are still T28.
