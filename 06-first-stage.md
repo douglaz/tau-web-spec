@@ -9,8 +9,8 @@ an operator with a goal and no tenant
 - **Stage 0 — the probes**, run now and in parallel with construction. The LNVPS probe
   follows `OPN-24`'s owning list. Attest on a real first boot (`OPN-3`). And Omarchy's server edition,
   or plain Arch in its place (`OPN-25`). They run beside construction and use what it has
-  built by then: attest evidence needs the browser's acceptance (`CNF-18`), and `OPN-25`
-  closes over the channel.
+  built by then: attest evidence needs the browser's acceptance (`CNF-18`), and an Omarchy
+  server installation for `OPN-25` runs over the channel.
 - **Stage 1 — the owner's scenario, with no tenant** (`STG-21`).
 - **Stage 2 — a vendor with no adapter** (`STG-22`).
 - **Stage 3 — tenants, as skills** (`STG-23`).
@@ -55,15 +55,15 @@ journal, the stage needs:
 - **one re-entry** (`STG-9`).
 
 **If LNVPS fails its probe** (`OPN-24`), stage 1 — and no later stage — runs on Hetzner Cloud
-with attest and a card account. That account pays without an invoice, so the invoice relay
-above and `CNF-104` have nothing to relay there and wait for a vendor that invoices. Stage 2's
-jump vendor still has to meet `CHN-R6`'s conditions, so a failed probe leaves it unchosen.
+with attest and a card account. That account is billed by card, with no per-machine invoice
+for the operator's wallet, so the invoice relay above and `CNF-104` have nothing to carry there
+and wait for a vendor that issues one.
 
 **STG-22 Stage 2 is a vendor with no adapter, where the browser can reach its API.** Such a
 vendor is reached through an untyped vendor scope on `SEC-4`'s conditions, and no further than
 the channel goes: `CHN-12b` says "an arbitrary service refusing browser CORS is out of reach for
 untyped calls". Beside it: the jump-host route (`CHN-R6`), with LNVPS as the jump vendor if
-its probe passes (`OPN-24`); bound sets of more than one machine (`SEC-1`); and a second vendor, which is what closes
+it meets that route's conditions (`OPN-24`); bound sets of more than one machine (`SEC-1`); and a second vendor, which is what closes
 `OPN-5`.
 
 **STG-23 Stage 3 is tenants, as skills.** lnrent's skill, on the dedicated path. And

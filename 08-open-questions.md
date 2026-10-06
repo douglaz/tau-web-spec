@@ -107,9 +107,7 @@ wants of its only vendor (`STG-21`). Nothing about it has been measured. The pro
 *Closes when:* the probe is run and its answers recorded under `docs/findings/`. If it passes,
 LNVPS may be the target itself, by attest. If it fails, stage 1 — and only stage 1 — runs on
 Hetzner Cloud with attest and a card account; what that drops is listed in `STG-21`. Which answers
-make it fail is not yet stated: the first two decide whether stage 1's design can run there at
-all, and the inventory answer decides whether a loss with no sheet can destroy and recreate
-(`CNF-84`).
+make it fail is not yet stated (T39).
 
 **OPN-25 — Whether Omarchy has a server edition, or plain Arch stands in.** The owner's
 scenario installs Hermes on Omarchy. Whether Omarchy installs and runs on a machine with no
@@ -153,7 +151,7 @@ the checklist is part of the signed brief set — and it does not exist yet for 
 it does, `ARC-17`'s deliverable has no definition to be measured against.
 
 Two parts are no longer open. Who may run which check was settled by `ARC-26`. And the *shape* is
-settled by `ARC-39`: a delivery declaration — a tenant's, or with no tenant the one the operator
+settled: a delivery declaration (`ARC-39`) — a tenant's, or with no tenant the one the operator
 approved — and the check measures against it.
 The declaration format was the missing piece and now exists (below; default credentials are a
 field of it). What remains outside any declaration is the **vendor lockdown checklist** —

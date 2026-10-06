@@ -336,9 +336,8 @@ If the file is absent, changed against an intact reference, or the digest job fa
 harness MUST offer a visible fallback card: the operator may paste the secret locally to
 create a fresh reference under `SEC-5`. This act writes nothing to the machine and is not a
 placement or rotation. Rotation goes through the full `place_secret` ceremony. Re-arming
-neither reapproves the restored declaration nor any weaker mode. After a Restore, no
-`place_secret` reaches a machine until the operator has reapproved the declaration and
-standing weaker modes the sheet restored for it (`STA-16`).
+neither reapproves the restored declaration nor any weaker mode; until the operator does,
+`place_secret`'s card restates them as "unknown since export" (`STA-16`).
 
 Model `exec` across the bound set MUST wait while any known required placement reference is
 unarmed. Only harness jobs whose output goes to **neither** model nor transcript are exempt;
@@ -605,7 +604,8 @@ it cannot declare spendable key material on a multi-tenant machine (`ARC-37`, AD
 guard). The operator MAY take a machine while findings stand. That machine is **handed over
 with findings**: it is not delivered, it MUST NOT be described as locked down, each finding
 stays shown until a later check clears it, and no application secret is placed on it while a
-finding other than a lifecycle finding stands (`ARC-43`).
+finding other than a lifecycle finding stands — the rule below, applied by `ARC-43`'s
+`place_secret`.
 
 **A stopped service is a finding, and it does not refuse a secret.** A declared service that a
 harness-composed read does not find in its declared lifecycle is a **lifecycle finding**
@@ -793,8 +793,8 @@ on the channel spike (`docs/findings/2026-09-07-wasm-spikes.md`).
 ## The operating system, and where it comes from
 
 **ARC-24** The chosen distributions are **Alpine and NixOS**: the two the bundle is designed to
-pin. Today it carries Alpine's (`bundle/artifact-alpine.toml`); NixOS's waits for its evidence
-(`07-conformance.md`'s stage-1 row), and until then a NixOS installation is unpinned too. Another distribution an operator's goal names — Arch, Omarchy — is installed
+pin. Today it carries Alpine's (`bundle/artifact-alpine.toml`); NixOS is not offered until its
+pin and evidence exist (`07-conformance.md`'s stage-1 row). Another distribution an operator's goal names — Arch, Omarchy — is installed
 **unpinned** under `ARC-25`'s rule until the bundle carries a pin for it (`OPN-25`). Neither
 chosen distribution is offered by the
 dedicated vendor's automatic installer — verified against the live API on 2026-08-31, whose

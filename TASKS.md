@@ -55,7 +55,8 @@ gated on it.
       publisher fills it.
 - [ ] **T39 — Stage 0: probe LNVPS**. Exercise the owning list in `OPN-24`.
       Record it under `docs/findings/`. If it fails, stage 1 and only stage 1 runs on Hetzner
-      Cloud with attest and a card account (`STG-21`).
+      Cloud with attest and a card account (`STG-21`). Still to decide: which answers count as
+      failing, for stage 1's target and, separately, for stage 2's jump vendor (`CHN-R6`).
 - [ ] **T40 — Stage 0: attest on a real first boot** (`OPN-3`). Cloud-init timing, the static
       first-boot tool, and the browser's window against a measured slowest boot (`CHN-6`). It
       is stage 1's first contact, and a window that closes now ends in a recreate (`CHN-R5`).
@@ -175,8 +176,8 @@ gated on it.
         public listener beyond sshd. And whether Hermes, as shipped, serves parties the operator
         has never met — which would make its machine multi-tenant by `ARC-36`'s definition.
       - **A maintained cloud machine whose pin is lost with no sheet.** `STA-15` now leaves
-        destroy-and-recreate alone; under the current rules a jump host cannot re-pin it
-        (`CHN-R6`, `SEC-14`). Whether a later rule should allow it is undecided.
+        destroy-and-recreate alone, and neither attest nor a jump host re-pins a machine that
+        already exists. Whether a later rule should allow it is undecided.
       - **Found by the branch review of 2026-10-06, not fixed there.** `CHN-17` says a machine
         event "never gates a step", while attest's seal gates first contact (`CHN-R5`); the
         sentence predates the general-case decisions. `STG-21` lists one re-entry (`STG-9`) and

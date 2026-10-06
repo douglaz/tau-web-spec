@@ -58,7 +58,7 @@ a **layering**: a brief can tell the AI to invoke an lnrent hook as a determinis
 The operator's own instruction for one session, in their words — "launch a VPS paid in
 Bitcoin and install Hermes on Omarchy". Journaled with that session and never shipped, so it
 steers only that session's bound set; a brief steers every machine that reads it. It can stand
-alone: `ARC-11a` admits a session with no brief and no tenant (decided 2026-10-04).
+alone (`ARC-11a`, decided 2026-10-04).
 _Avoid_: prompt, task, request (a *call*'s word), intent (the journal's *intent record*, `STA-4`)
 
 **Signed bundle** · `SEC-7`, `ARC-32`, `ADR-0031`
@@ -453,11 +453,9 @@ _Avoid_: "the pin" unqualified where two kinds are in play; allowlist; whitelist
 store" for a store of one (it carries the general-trust sense)
 
 **Trust on first use** · `CHN-R4`, `CHN-2`
-Accepting a machine's host key at first contact with no pin to check it against. `CHN-R4`
-refuses it through the relay (decided 2026-10-05): every connection runs through it, so a key
-accepted there is the relay's word, and an impostor there receives every secret placed
-afterwards. The **jump host** of `CHN-R6` is where such a first contact is made instead — one
-the relay cannot alter, though the jump host can.
+Accepting a machine's host key at first contact with no pin to check it against. Refused
+through the relay (`CHN-R4`, decided 2026-10-05); such a first contact is made from a **jump
+host** instead (`CHN-R6`).
 _Avoid_: TOFU as a "floor" or fallback (it was both until this decision)
 
 **Jump host** · `CHN-R6`

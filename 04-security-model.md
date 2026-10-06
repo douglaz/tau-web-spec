@@ -63,7 +63,7 @@ indistinguishable.
 **A set grows by one operator act per machine, and never shrinks while its session lives.** An
 addition goes through the mid-flight queue (`ARC-15`) on a card the harness composes: the set as
 it will be, what the added machine costs, its first-contact route, and every acceptable weaker
-mode standing on the set (`SEC-14`). The added machine's entry and its allocation index are
+mode standing on the set (`SEC-14`); a mode the added machine needs is accepted on that card. The added machine's entry and its allocation index are
 journaled before any create is sent (`STA-22b`). No machine leaves a set while the session is
 alive — what the model has read from it stays in the context that commands the rest.
 
@@ -298,8 +298,9 @@ application secret on a machine is therefore permanently inside the reach of eve
 has touched or will touch that machine, and is counted under `SEC-6`. Anything else would be
 the overstatement this design refuses everywhere else.
 
-**Exact copies of a placed secret are redacted from box-plane output before that output
-reaches the model or the transcript, and the claim is no wider than that.** During placement
+**Exact copies of a placed secret whose reference the browser holds are redacted from box-plane
+output before that output reaches the model or the transcript, and the claim is no wider than
+that.** During placement
 the scan may compare the entered value in browser memory. Later it MUST compare
 `HMAC-SHA-256(K, SHA-256(window))` against row 23's reference, over raw-byte windows of length
 `L`, including windows crossing output chunks, before decoding or release to either sink.
@@ -480,12 +481,13 @@ stands in for — which is used when available and shown when missing:
 | A bound set of more than one machine | A set of one | `SEC-1` |
 | An untyped scope at a vendor with no adapter | A typed adapter | `SEC-4` |
 
-A mode is on the list because its harm stays inside that bound set, shows when it happens, and
-cannot be multiplied by a model retrying on its own. One row passes those tests only in part,
-and is admitted on its own conditions: an untyped vendor scope can reach whatever the vendor
-account reaches, and an account that pays by itself can spend without asking. Its harm stays
-on the operator's own account rather than inside the set, and `SEC-4`'s conditions and the
-operator's two answers — journaled, and restated as warnings — are what admit it (ADR-0038).
+Every mode but one is on the list because its harm stays inside that bound set, shows when it
+happens, and cannot be multiplied by a model retrying on its own. The untyped vendor scope
+passes those tests only in part: it can reach whatever the vendor account reaches, and an
+account that pays by itself can spend without asking. Its harm stays on the operator's own
+account rather than inside the set. `SEC-4`'s conditions admit it, and the operator's two
+answers, journaled and restated as warnings, disclose that reach rather than bound it
+(ADR-0038).
 Every item `07-conformance.md`'s tiering rule makes BLOCKING is a **non-waivable rule**, which
 no label, no answer and no operator act sets aside.
 

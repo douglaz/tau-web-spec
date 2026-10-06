@@ -594,12 +594,13 @@ evidence is that set's test run against the relay the harness uses.
       in the trust display until revoked or rotated, not merely while the approval stands
       (`SEC-6`). Escaped secret: a placed secret the display has dropped is a live exposure
       the operator can no longer see. Promoted from PRE-SCALE on 2026-10-05, when the listing
-      became part of what placing a secret promises. After Restore, the sheet and journal's
-      placement entries remain displayed (`STA-16`, `ARC-43`); machine reports may add labelled
+      became part of what placing a secret promises. After Restore, the sheet's placement
+      entries remain displayed (`STA-16`, `ARC-43`); machine reports may add labelled
       advisory entries and remove none. An absent file stays listed. Re-arming or a machine's
       removal claim never drops an entry; only the owning rotation/destruction rules do.
 - [ ] **CNF-93 · BLOCKING** An acceptable weaker mode is accepted by its label for one bound
-      set before the first contact it governs, and is never entered by failing
+      set before the first contact it governs — a mode offered after that contact is
+      refused — and is never entered by failing
       (`SEC-14`). Verified three ways: an artifact that fails its pin halts and the machine
       does not continue unpinned (`ARC-25`); an installation with no pin is recorded and shown
       as **unpinned**, with no hash or signer named (`ARC-25a`); and every mode standing on a
@@ -653,18 +654,21 @@ Not pass/fail. Required to be recorded.
 - [ ] **CNF-84 · BLOCKING** A seed plus sheet restores machine and relay identities from their
       exported indices and reconnects using the old host pin, never a new first contact. A
       mismatched seed, duplicate mappings, invalid counters or malformed placement associations
-      are refused before binding, and so is a live machine with a missing, duplicate or
-      malformed machine state. The sheet has `STA-16`'s placement metadata, pin routes and
+      are refused before binding, and so is a live machine in a bound set with a missing,
+      duplicate or malformed machine state; a jump host's allocation carries none, and a
+      machine exported with an unpinned installation and an attested pin restores both. The sheet has `STA-16`'s placement metadata, pin routes and
       machine states; values, digests, scan keys and lengths are absent, and unsupported
       payload versions are refused rather than read as having no placements. A stale sheet or imported store cannot allocate
       under the restored seed; Replace with a fresh seed restores allocation. Cloud with no
       sheet exposes destroy/recreate, never an unpinned keyed-rescue login. Missing relay
       indices are reported unrecoverable, and partial Replace never reports complete revocation
-      (`STA-22b`, `STA-17`). Restored placement state, declaration, class, access model, weaker
-      modes and pin route are shown as the sheet holds them and labelled "unknown since export"
-      under `STA-16`, restated at later irreversible acts until explicitly reapproved; scan
-      re-arm reapproves none of them (`CNF-95`), and a `place_secret` before that reapproval
-      is refused (`ARC-43`). The dedicated-path
+      (`STA-22b`, `STA-17`). Restored placement state, declaration, class, access model,
+      installation pin status and weaker modes are shown as the sheet holds them and labelled
+      "unknown since export" under `STA-16`, restated at later irreversible acts until
+      explicitly reapproved; pin routes are shown, and each machine is shown unchecked until a
+      re-check runs; scan
+      re-arm reapproves none of them (`CNF-95`), and a `place_secret` card is among the acts
+      that restate them. The dedicated-path
       case rekeys Robot through rescue with a fresh seed when metadata is missing; only that
       case waits for the dedicated milestone below. Boundary-crossed and destroyed-data.
 - [ ] **CNF-85 · BLOCKING** Disk selection in the install brief is checked without writes first:
@@ -703,7 +707,7 @@ promotion rule above.
 
 | Applies when | CNF items | Interpretation |
 |---|---|---|
-| Stage 1: required | 1–7, 10–18, 21, 23–26, 28–30, 32, 34–35, 37, 39–44, 49–56, 61, 66–75, 78–79, 81–83, 87–91, 93–95, 99–104 | One goal, one session, one live cloud machine with no tenant, created through a typed adapter and first contacted by attest; synthetic unbound identities exercise 6 and 26. Item 7's growth and subset cases, and item 91's two-machine case, use fixtures until stage 2. Item 12 is exercised with a hostile goal and a hostile fetched document; its untyped-scope restatement, and item 14's, wait for stage 2. Item 14 covers any root password the typed adapter's response carries. Item 23 covers the refusal and the attest window; its jump-host label waits for stage 2. Items 24, 66 and 67 apply wherever the installation is pinned, and item 93's unpinned case wherever it is not; NixOS evidence is required before enabling NixOS. Interrupted resume (`STG-12`) is carried here by items 37, 39, 40 and 54–56; item 86's cases are a rescue boot's, and stay the test bed's. Item 95's cases all require integrated evidence (`OPN-28`). Item 50 covers the delivery check; its scanner half waits for scanner enablement. Item 10 covers local ledger persistence; its sheet-export half is the recovery row's. Item 72 covers local allocation; imported-state cases are 84. Item 81's migration case waits for self-host migration, which no stage yet offers. Item 32 covers the typed adapter's origin. Items 68–71, 78 and 88–90 apply to the procured inference path; bring-your-own and local inference have no aggregator to test. Item 88 uses injected list fixtures the way 17 uses an injected response. Item 104 covers the typed adapter's invoice; on `STG-21`'s Hetzner fallback, which invoices nothing, it waits for a vendor that does. |
+| Stage 1: required | 1–7, 10–18, 21, 23–26, 28–30, 32, 34–35, 37, 39–44, 49–56, 61, 66–75, 78–79, 81–83, 87–91, 93–95, 99–104 | One goal, one session, one live cloud machine with no tenant, created through a typed adapter and first contacted by attest; synthetic unbound identities exercise 6 and 26. Item 7's growth and subset cases, and item 91's two-machine case, use fixtures until stage 2. Item 12 is exercised with a hostile goal and a hostile fetched document; its untyped-scope restatement, and item 14's, wait for stage 2. Item 14 covers any root password the typed adapter's response carries. Item 23 covers the refusal and the attest window; its jump-host label waits for stage 2. Items 24, 66 and 67 apply wherever the installation is pinned, and item 93's unpinned case wherever it is not; NixOS evidence is required before enabling NixOS. Interrupted resume (`STG-12`) is carried here by items 37, 39, 40 and 54–56; item 86's cases are a rescue boot's, and stay the test bed's. Item 95's cases all require integrated evidence (`OPN-28`). Item 50 covers the delivery check; its scanner half waits for scanner enablement. Item 10 covers local ledger persistence; its sheet-export half is the recovery row's. Item 72 covers local allocation; imported-state cases are 84. Item 81's migration case waits for self-host migration, which no stage yet offers. Item 32 covers the typed adapter's origin. Items 68–71, 78 and 88–90 apply to the procured inference path; bring-your-own and local inference have no aggregator to test. Item 88 uses injected list fixtures the way 17 uses an injected response. Item 104 covers the typed adapter's invoice; on `STG-21`'s Hetzner fallback, which issues no per-machine invoice for the operator's wallet, it waits for a vendor that does. |
 | Stage 1: record measurements | 45–47 | Require the integrated browser channel, not the rehearsal's timings. |
 | Stage 1: model-written check reports | 107 | The report label, verdict isolation and absence of automatic re-execution are required before stage 1 completes. |
 | Stage 1: recovery export/import and Replace | 19–20, 84 | Before maintained cloud delivery: export, Restore, allocation refusal, cloud destroy/recreate and partial-Replace cases pass, with item 10's export case. Item 20 uses the manual publisher-confirmed pass retirement/enrollment route. Only item 84's Robot rescue case waits for the dedicated row; signed pass revocation waits for the paid/public row. |

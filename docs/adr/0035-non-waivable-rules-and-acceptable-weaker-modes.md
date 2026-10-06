@@ -129,7 +129,7 @@ cost is that a secret can be placed beside an unrelated stopped service, which t
 The sentences above that quote or state the unqualified rule are history.
 
 *Amended 2026-10-06: one listed mode passes the three tests only in part.* `SEC-14` now says
-"One row passes those tests only in part, and is admitted on its own conditions": an untyped
-vendor scope's harm can reach the rest of the operator's vendor account and its spending, which
-`SEC-4`'s conditions and the operator's two answers bound and show. The quotation of `SEC-14`
+"The untyped vendor scope passes those tests only in part": its harm can reach the rest of the
+operator's vendor account and its spending. `SEC-4`'s conditions admit it, and the operator's
+two answers disclose that reach rather than bound it. The quotation of `SEC-14`
 under "The list, the best practice each mode stands in for, and the rule" is history.

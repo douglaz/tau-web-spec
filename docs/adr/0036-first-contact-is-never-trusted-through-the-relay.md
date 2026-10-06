@@ -104,9 +104,8 @@ of all of them.
 
 **The cloud path has no route for a machine the harness cannot create or reach this way.** A
 maintained cloud machine whose pin is lost with no sheet is destroyed and recreated
-(`STA-15`). Under the current rules a jump host cannot re-pin it: `CHN-R6` serves a vendor
-with no route of its own, and a weaker mode is never entered because a stronger check failed
-(`SEC-14`). Whether a later rule should allow it is not decided.
+(`STA-15`): neither attest nor a jump host re-pins a machine that already exists. Whether a
+later rule should allow it is not decided.
 
 **The formal companion carries none of this yet.** Its pin sources are the dedicated path's;
 a jump-host source is owed with the route (`TASKS.md`).

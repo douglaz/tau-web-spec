@@ -116,15 +116,17 @@ handoff), `allocations` (including consumed tombstones), `host_pins`, `exposure_
 `inference_account_credential`. Each allocation has its family, index, stable
 resource identity and expected public key as required by `STA-22b`; a failed allocation may
 have no vendor resource ID, but retains its index. No seed or derived private key is included.
-Each `host_pins` entry names the route that produced it: `retrieve` (`CHN-R1`), `attest`
-(`CHN-R5`), `jump_host` (`CHN-R6`), or `unpinned_install` for a machine `ARC-25` labels
-unpinned. Each `machine_states` entry is `{machine_index, declaration, class, access_model,
-weaker_modes, approved_at}`: the journaled declaration in force as a delivery-declaration v1
-document, the class `ARC-36a` records, the access model of `ARC-27`, the labels of the
-acceptable weaker modes standing on the machine's bound set (`SEC-14`), and when the operator
-last approved that state. Every machine-family allocation with a live machine has exactly one;
-reject a missing, duplicate or malformed entry, and never interpret a missing entry as a
-default.
+Each `host_pins` entry names the host-key route that produced it: `retrieve` (`CHN-R1`),
+`attest` (`CHN-R5`) or `jump_host` (`CHN-R6`). Whether the installation carries an artifact
+pin is a different fact, carried per machine below. Each `machine_states` entry is
+`{machine_index, declaration, class, access_model, installation, weaker_modes}`: the journaled
+declaration in force as a delivery-declaration v1 document, the class `ARC-36a` records, the
+access model of `ARC-27`, `installation` as `"pinned"` or `"unpinned"` (`ARC-25`), and the labels
+of the acceptable weaker modes standing on the machine's bound set (`SEC-14`). A field not yet approved
+at export carries the explicit marker `"pending"`, never an absent field. Every live machine in
+a bound set has exactly one entry; a jump host's allocation (`STA-22b`) has none. Reject a
+missing, duplicate or malformed entry, and never interpret a missing entry or a `"pending"`
+field as a default.
 Each placement associates a machine-family allocation with its nonempty name, recorded path
 and UTC RFC 3339 placement time. Reject missing or ambiguous machine associations, duplicate
 placement records and malformed fields before binding. No placement value, digest, scan key,
