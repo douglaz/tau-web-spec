@@ -345,6 +345,12 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       hosts are approved as typed values; proposed measuring commands are refused as
       declaration entries, whose `required`/`drift_checks` come only from the signed bundle
       or explicit empty sets.
+- [ ] **CNF-108 · PRE-SCALE** A delivered maintained machine is re-entered by a later session
+      over the same pinned channel, and that session re-runs the delivery check against the
+      journaled declaration (`STG-9`, `ARC-26`). Verified by ending the first session, binding
+      a new one to the machine, and confirming no new first contact is made, a changed host key
+      halts, and the re-check's verdict replaces the earlier one only through findings it
+      raises or clears.
 - [ ] **CNF-99 · BLOCKING** A machine on which a finding stands is **handed over with
       findings** and nothing more (`ARC-17`): it is not reported as delivered, is never
       described as locked down, keeps each finding shown — a machine restored after store
@@ -722,6 +728,7 @@ promotion rule above.
 | Stage 1: required | 1–7, 10–18, 21, 23–26, 28–30, 32, 34–35, 37, 39–44, 49–56, 61, 66–75, 78–79, 81–83, 87–91, 93–95, 99–104 | One goal, one session, one live cloud machine with no tenant, created through a typed adapter and first contacted by attest; synthetic unbound identities exercise 6 and 26. Item 7's growth and subset cases, and item 91's two-machine case, use fixtures until stage 2. Item 12 is exercised with a hostile goal and a hostile fetched document; its untyped-scope restatement, and item 14's, wait for stage 2. Item 14 covers any root password the typed adapter's response carries. Item 23 covers the refusal and the attest window; its jump-host label waits for stage 2. Items 24, 66 and 67 apply wherever the installation is pinned, and item 93's unpinned case wherever it is not; NixOS evidence is required before enabling NixOS. Interrupted resume (`STG-12`) is carried here by items 37, 39, 40 and 54–56; item 86's cases are a rescue boot's, and stay the test bed's. Item 95's cases all require integrated evidence (`OPN-28`). Item 50 covers the delivery check; its scanner half waits for scanner enablement. Item 10 covers local ledger persistence; its sheet-export half is the recovery row's. Item 72 covers local allocation; imported-state cases are 84. Item 81's migration case waits for self-host migration, which no stage yet offers. Item 32 covers the typed adapter's origin. Items 68–71, 78 and 88–90 apply to the procured inference path; bring-your-own and local inference have no aggregator to test. Item 88 uses injected list fixtures the way 17 uses an injected response. Item 42 covers placed secrets; its untyped-scope half waits for stage 2. Item 104 covers the typed adapter's invoice; on `STG-21`'s Hetzner fallback, which issues no per-machine invoice for the operator's wallet, it waits for a vendor that does. |
 | Stage 1: record measurements | 45–47 | Require the integrated browser channel, not the rehearsal's timings. |
 | Stage 1: model-written check reports | 107 | The report label, verdict isolation and absence of automatic re-execution are required before stage 1 completes. |
+| Stage 1: re-entry | 108 | `STG-9`'s later session, re-entering over the same pin and re-running the check, is required before stage 1 completes. |
 | Stage 1: recovery export/import and Replace | 19–20, 84 | Before maintained cloud delivery: export, Restore, allocation refusal, cloud destroy/recreate and partial-Replace cases pass, with item 10's export case. Item 20 uses the manual publisher-confirmed pass retirement/enrollment route. Only item 84's Robot rescue case waits for the dedicated row; signed pass revocation waits for the paid/public row. |
 | The dedicated path: the construction test bed | 22, 38, 48, 62–64, 80, 84, 85–86 | The Robot dedicated path's own checks, including only item 84's Robot rescue case. Their by-hand evidence stands (48 is recorded), construction exercises them on the test bed, and they pass on the integrated harness before a dedicated-server path is offered to an operator, which no stage before the third does. Items 62–64 also apply to any typed adapter that rides the pinned tunnel, stage 1's included if its vendor refuses a browser origin. |
 | Stage 2: a vendor with no adapter whose API the browser can reach (`CHN-12b`), the jump host, sets above one | 7, 12, 14, 23, 27, 29, 31, 33, 42, 91–93, 96–98, 104–106 | Before enabling an untyped scope, an untyped vendor scope, the jump-host route or a bound set of more than one machine. Items 7 and 91 cover set growth, subsets and two-machine sets; items 12, 14 and 29 their untyped-scope cases; item 23 the jump-host label; item 42 the untyped-scope half of the trust display; item 93 the jump-host, untyped-scope and larger-set modes, accepted before contact and restated; item 104 an invoice decoded from an untyped response, where the vendor invoices. Item 92's multi-tenant case gates sets above one; its independence-bound case gates the first profile that declares a bound. Repeat item 17 against real untyped responses. |
@@ -754,7 +761,9 @@ ad-hoc profile, the harness's machine-class questions and the signed lockdown ch
 (`OPN-14`) must exist in the signed bundle, and the operator's approved declaration in the
 journal (`CNF-49`); a missing one fails completion rather than being replaced by an essay.
 Item 95's cases pass on the integrated harness (`OPN-28`); the key design already permits
-construction. The recovery row and the model-written check reports row also pass.
+construction. T48's minimum secret byte length is set and item 94 refuses a shorter value
+before completion: `SEC-5` requires one and leaves its number open. The recovery row, the
+model-written check reports row and the re-entry row also pass.
 No tenant's artifact gates this stage: lnrent's delivery declaration and briefs 2–3 gate the
 third. Rehearsal/prototype results do not automatically check harness items. This is the
 distinction between being ready to construct and ready to deliver.

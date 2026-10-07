@@ -81,7 +81,8 @@ gated on it.
 - [ ] **T48 — Stage 1: build placed-secret scanning and recovery re-arm** (`OPN-28`).
       Implement `SEC-5` row 23 and scan semantics, `ARC-43`'s jobs and fallback, and `STA-16`'s
       sheet metadata; demonstrate `CNF-95` with `CNF-42` and `CNF-84`. The design permits
-      construction now. Still open: the numeric minimum accepted secret byte length; any
+      construction now. Still open: the numeric minimum accepted secret byte length, which
+      stage 1's completion requires (`07-conformance.md`); any
       further changed-file detection policy after loss of the old reference; and compatibility
       policy beyond the adopted sheet-payload version bump, should it become necessary. No
       length/value-derived reference belongs on the sheet and no legacy migration is selected.
@@ -105,10 +106,13 @@ gated on it.
       `SEC-4`). Includes one thing the rules name and nothing yet carries: a jump-host source
       for a pin in the formal companion (`ARC-43` says "a pin taken at a jump-host first
       contact (`CHN-R6`) is not among them"). The placed secret's digest key is not here: it is
-      stage 1's (T48).
+      stage 1's (T48). Also owed before an untyped vendor scope is enabled: how the target's
+      address is taken from a response no adapter reads without passing through model text
+      (`CHN-R6`), and how an unfinished machine at a vendor with no typed destroy is abandoned
+      (`ARC-22`).
 - [ ] **T46 — What the sibling repositories now owe.** Recorded here; none of them was edited.
       **tau-web-rust:** at its next spec pin bump, implement as tests the new and restated
-      cases owned by `07-conformance.md`: `CNF-91`–`CNF-107`, with `CNF-16` and `CNF-42`, and
+      cases owned by `07-conformance.md`: `CNF-91`–`CNF-108`, with `CNF-16` and `CNF-42`, and
       the untyped-scope restatements of `CNF-12`, `CNF-14` and `CNF-27`.
       This prior cross-stage handoff debt remains open alongside T43's stage-1 recovery,
       scan and report-only evidence. The applicability table in `07-conformance.md` still
@@ -184,9 +188,8 @@ gated on it.
         Whether a later rule should allow it is undecided.
       - **Found by the branch review of 2026-10-06, not fixed there.** `CHN-17` says a machine
         event "never gates a step", while attest's seal gates first contact (`CHN-R5`); the
-        sentence predates the general-case decisions. `STG-21` lists one re-entry (`STG-9`) and
-        no conformance item names it. `SEC-5`'s minimum byte length has no refusal case in
-        `CNF-94` until T48 sets the bound. The sheet carries neither `SEC-4`'s two answers for an
+        sentence predates the general-case decisions. `SEC-5`'s minimum byte length has no
+        refusal case in `CNF-94` until T48 sets the bound, which stage 1's completion requires. The sheet carries neither `SEC-4`'s two answers for an
         untyped vendor scope nor `CHN-R6`'s jump vendor and date, both stage 2's. And a set
         re-entered (`STG-9`) or restored makes no first contact, so whether its standing modes
         are carried over or accepted again (`SEC-14`, `CNF-93`) is unstated. After store loss,
