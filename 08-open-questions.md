@@ -178,7 +178,7 @@ selected here. Also open: whether `STG-9`'s re-entry re-check reads `services` a
 lifecycle finding treats placement (`ARC-17`). T42 carries their implementation and stage 1
 still owes their evidence.
 
-*Closes when:* the generic checklist ships and `CNF-49`–`CNF-53` and `CNF-99` have integrated
+*Closes when:* the generic checklist ships and `CNF-49`–`CNF-53`, `CNF-99` and `CNF-103` have integrated
 evidence against it — that much for stage 1; and, for stage 3, the lnrent owner fills that
 template ([douglaz/lnrent#87](https://github.com/douglaz/lnrent/issues/87)), the Robot lockdown
 checklist exists, and briefs 2–3 are authored from them and exercised. The tenant half is a
