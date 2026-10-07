@@ -47,8 +47,8 @@ force.
   the ad-hoc profile's signed minimum, and the operator approves it.
 
 **A goal is not a brief.** `ARC-11` still says "Briefs MUST ship inside the signed application
-bundle", for the reason it gives there: one document steering every machine is the one place
-diversity buys nothing. A
+bundle", for the reason it gives there: "The brief is the one component where diversity buys
+nothing". A
 goal escapes that reason only while it stays one operator's instruction to one session.
 `ARC-11a` says "A goal steers one session's bound set and nothing else", "A goal is never
 imported, shared or reused", and "A goal MUST be refused for a machine under a profile that

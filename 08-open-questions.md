@@ -107,8 +107,8 @@ wants of its only vendor (`STG-21`). Nothing about it has been measured. The pro
 *Closes when:* the probe is run, its answers recorded under `docs/findings/`, and stage 1's
 failure criteria, not yet stated (T39), are defined and applied. If LNVPS passes them, it may be
 the target itself, by attest. If it fails them, stage 1 — and only stage 1 — runs on Hetzner
-Cloud with attest and a card account; what that drops is listed in `STG-21`. Whether LNVPS can
-be stage 2's jump vendor is judged separately, against `CHN-R6` (T39).
+Cloud with attest and a card account; what that drops is listed in `STG-21`. The jump-vendor
+half closes separately, when T39's criteria for it are applied against `CHN-R6`.
 
 **OPN-25 — Whether Omarchy has a server edition, or plain Arch stands in.** The owner's
 scenario installs Hermes on Omarchy. Whether Omarchy installs and runs on a machine with no

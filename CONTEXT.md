@@ -256,8 +256,8 @@ A tenant's values for ADR-0030's fixed slots. Three are facts every machine carr
 machine class, access model, delivery declaration — and the rest (vendor products, machine set,
 independence bound, secrets and parties, runtime obligations, handoff) bind only where a tenant
 needs them. Every machine runs under one: its tenant's, or else the publisher's built-in
-**ad-hoc profile**, whose per-machine slots the operator fills by answering the harness's own
-questions (decided 2026-10-05, ADR-0034).
+**ad-hoc profile**, whose access model is maintained and whose other per-machine slots the
+operator fills by answering the harness's own questions (decided 2026-10-05, ADR-0034).
 _Avoid_: tenant config, manifest (lnrent's recipes have manifests; not the same thing),
 "the btc-policy section"
 

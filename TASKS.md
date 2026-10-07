@@ -70,8 +70,8 @@ gated on it.
       `ARC-17`, `ARC-36a`). The fixed checks, keyed on no vendor and no tenant; the machine-class
       questions, in the harness's words; and the plain-language rendering of a proposed
       declaration the operator approves (`ARC-39`). These ship in the bundle and gate stage 1.
-      Implement `ARC-43`'s harness-composed listener, unit-state and enablement reads behind
-      `CNF-50` and `CNF-53`. Still to decide: what establishes survival of a restart, and the
+      Implement `ARC-43`'s harness-composed listener, outbound-restriction, unit-state and
+      enablement reads behind `CNF-50`, `CNF-53` and `CNF-103`. Still to decide: what establishes survival of a restart, and the
       service-name grammar for a validated argument, never shell syntax. No init-specific
       procedure or physical-restart requirement is selected by this task, nor are the two
       re-check points `OPN-14` leaves open.
@@ -193,9 +193,13 @@ gated on it.
         rotating a placement whose file is absent waits for the re-check, while model work on
         the set waits for unarmed references; whether that re-check releases only a status, so
         the two waits cannot hold each other, is unstated (`ARC-43`, `STA-16`). An imported
-        local-store backup (`STA-22b`) also loses findings raised after it was taken. A
-        renewal invoice at an invoicing vendor can be relayed only while the app is open
-        (`ARC-30`, `ARC-2`), while stage 1's application is always on.
+        local-store backup (`STA-22b`) also loses findings raised after it was taken.
+      - **Found by the pull request's review of 2026-10-07, not fixed there.** A renewal
+        invoice at an invoicing vendor can be relayed only while the app is open (`ARC-30`,
+        `ARC-2`), while stage 1's application is always on. And `ARC-36a` lets the model
+        propose a tightening to multi-tenant after binding, while a multi-tenant machine is
+        always bound alone and a set never shrinks (`SEC-1`): whether such a tightening is
+        refused or deferred in a larger set is undecided (stage 2).
 
 - [x] **T30 — Port the specification gates and the formal companion's scaffold** (ADR-0032).
       From `~/projects/provisiond-spec`: `tools/check-all.sh`, the identifier, fixture,

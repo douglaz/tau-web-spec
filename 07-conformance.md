@@ -151,7 +151,7 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       with a cap, or one the operator can revoke there, is the best practice. Escaped secret.
 - [ ] **CNF-94 · BLOCKING** `place_secret` refuses what it must (`ARC-43`): a value equal to a
       credential the harness holds — among them the vendor credential, the seed, either
-      inference tier, the relay key and another machine's client key —
+      inference tier, the relay key and a machine's client key —
       a destination mode that lets another account read the file, a path that is or passes
       through a symbolic link, an existing file not recorded as this placement, and any
       placement on a machine where a finding other than a lifecycle finding stands
@@ -173,7 +173,8 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       it is visible and does not replace the browser reference.
       (b) Later session, intact store: use the encrypted reference, preserving it when the
       machine reports changed bytes; never silently adopt the changed value.
-      (c) Seed-plus-sheet Restore, alongside `CNF-84`: each recorded placement is re-armed
+      (c) Seed-plus-sheet Restore, alongside `CNF-84`: each placement recorded on the set's
+      machines is re-armed
       before output collection or model commands on any machine of the set. The label is
       "re-armed from the machine's report", never "protected"; forgotten placements are not
       claimed covered. Machine-only entries are advisory and require an operator act to arm.
@@ -376,9 +377,9 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       coverage and says "It does not mean <app> works" with that name substituted; the declaration
       states its outbound destinations and its always-on service, and the trust display lists
       its model provider (`TRU-E12`). Where those destinations are declared as
-      `listeners.outbound` restrictions, the delivery check finds each in place: verified by a
-      connection to a declared destination succeeding and one to an undeclared destination
-      refused, or else reported as a finding. No harness credential is on that machine (`ARC-1`,
+      `listeners.outbound` restrictions, the delivery check finds each in place: verified by
+      removing one declared restriction and confirming the check reports the difference as a
+      finding. No harness credential but the attest sender key is on that machine (`ARC-1`,
       `CNF-11`).
 - [ ] **CNF-50 · BLOCKING** An **undeclared** listener is reported as a finding. Verified by
       starting one and confirming both the delivery check and a scanner run name it.
@@ -597,7 +598,7 @@ evidence is that set's test run against the relay the harness uses.
       G's shape) and absent for case I's shape; the maker is read from the bundle's maker field
       (`ARC-31b`) and never from the slug — `CNF-41` says "never derived from the model name";
       the counts are unchanged.
-- [ ] **CNF-42 · BLOCKING** Every approved scope and every placed application secret appears
+- [ ] **CNF-42 · BLOCKING** Every approved untyped scope and every placed application secret appears
       in the trust display until revoked or rotated, not merely while the approval stands
       (`SEC-6`). Escaped secret: a placed secret the display has dropped is a live exposure
       the operator can no longer see. Promoted from PRE-SCALE on 2026-10-05, when the listing
@@ -717,12 +718,12 @@ promotion rule above.
 
 | Applies when | CNF items | Interpretation |
 |---|---|---|
-| Stage 1: required | 1–7, 10–18, 21, 23–26, 28–30, 32, 34–35, 37, 39–44, 49–56, 61, 66–75, 78–79, 81–83, 87–91, 93–95, 99–104 | One goal, one session, one live cloud machine with no tenant, created through a typed adapter and first contacted by attest; synthetic unbound identities exercise 6 and 26. Item 7's growth and subset cases, and item 91's two-machine case, use fixtures until stage 2. Item 12 is exercised with a hostile goal and a hostile fetched document; its untyped-scope restatement, and item 14's, wait for stage 2. Item 14 covers any root password the typed adapter's response carries. Item 23 covers the refusal and the attest window; its jump-host label waits for stage 2. Items 24, 66 and 67 apply wherever the installation is pinned, and item 93's unpinned case wherever it is not; NixOS evidence is required before enabling NixOS. Interrupted resume (`STG-12`) is carried here by items 37, 39, 40 and 54–56; item 86's cases are a rescue boot's, and stay the test bed's. Item 95's cases all require integrated evidence (`OPN-28`). Item 50 covers the delivery check; its scanner half waits for scanner enablement. Item 10 covers local ledger persistence; its sheet-export half is the recovery row's. Item 72 covers local allocation; imported-state cases are 84. Item 81's migration case waits for self-host migration, which no stage yet offers. Item 32 covers the typed adapter's origin. Items 68–71, 78 and 88–90 apply to the procured inference path; bring-your-own and local inference have no aggregator to test. Item 88 uses injected list fixtures the way 17 uses an injected response. Item 42 covers placed secrets; its scope half waits for stage 2. Item 104 covers the typed adapter's invoice; on `STG-21`'s Hetzner fallback, which issues no per-machine invoice for the operator's wallet, it waits for a vendor that does. |
+| Stage 1: required | 1–7, 10–18, 21, 23–26, 28–30, 32, 34–35, 37, 39–44, 49–56, 61, 66–75, 78–79, 81–83, 87–91, 93–95, 99–104 | One goal, one session, one live cloud machine with no tenant, created through a typed adapter and first contacted by attest; synthetic unbound identities exercise 6 and 26. Item 7's growth and subset cases, and item 91's two-machine case, use fixtures until stage 2. Item 12 is exercised with a hostile goal and a hostile fetched document; its untyped-scope restatement, and item 14's, wait for stage 2. Item 14 covers any root password the typed adapter's response carries. Item 23 covers the refusal and the attest window; its jump-host label waits for stage 2. Items 24, 66 and 67 apply wherever the installation is pinned, and item 93's unpinned case wherever it is not; NixOS evidence is required before enabling NixOS. Interrupted resume (`STG-12`) is carried here by items 37, 39, 40 and 54–56; item 86's cases are a rescue boot's, and stay the test bed's. Item 95's cases all require integrated evidence (`OPN-28`). Item 50 covers the delivery check; its scanner half waits for scanner enablement. Item 10 covers local ledger persistence; its sheet-export half is the recovery row's. Item 72 covers local allocation; imported-state cases are 84. Item 81's migration case waits for self-host migration, which no stage yet offers. Item 32 covers the typed adapter's origin. Items 68–71, 78 and 88–90 apply to the procured inference path; bring-your-own and local inference have no aggregator to test. Item 88 uses injected list fixtures the way 17 uses an injected response. Item 42 covers placed secrets; its untyped-scope half waits for stage 2. Item 104 covers the typed adapter's invoice; on `STG-21`'s Hetzner fallback, which issues no per-machine invoice for the operator's wallet, it waits for a vendor that does. |
 | Stage 1: record measurements | 45–47 | Require the integrated browser channel, not the rehearsal's timings. |
 | Stage 1: model-written check reports | 107 | The report label, verdict isolation and absence of automatic re-execution are required before stage 1 completes. |
 | Stage 1: recovery export/import and Replace | 19–20, 84 | Before maintained cloud delivery: export, Restore, allocation refusal, cloud destroy/recreate and partial-Replace cases pass, with item 10's export case. Item 20 uses the manual publisher-confirmed pass retirement/enrollment route. Only item 84's Robot rescue case waits for the dedicated row; signed pass revocation waits for the paid/public row. |
 | The dedicated path: the construction test bed | 22, 38, 48, 62–64, 80, 84, 85–86 | The Robot dedicated path's own checks, including only item 84's Robot rescue case. Their by-hand evidence stands (48 is recorded), construction exercises them on the test bed, and they pass on the integrated harness before a dedicated-server path is offered to an operator, which no stage before the third does. Items 62–64 also apply to any typed adapter that rides the pinned tunnel, stage 1's included if its vendor refuses a browser origin. |
-| Stage 2: a vendor with no adapter whose API the browser can reach (`CHN-12b`), the jump host, sets above one | 7, 12, 14, 23, 27, 29, 31, 33, 42, 91, 92, 96–98, 104–106 | Before enabling an untyped scope, an untyped vendor scope, the jump-host route or a bound set of more than one machine. Items 7 and 91 cover set growth, subsets and two-machine sets; items 12, 14 and 29 their untyped-scope cases; item 23 the jump-host label; item 42 the approved-scope half of the trust display; item 104 an invoice decoded from an untyped response. Item 92's multi-tenant case gates sets above one; its independence-bound case gates the first profile that declares a bound. Repeat item 17 against real untyped responses. |
+| Stage 2: a vendor with no adapter whose API the browser can reach (`CHN-12b`), the jump host, sets above one | 7, 12, 14, 23, 27, 29, 31, 33, 42, 91, 92, 96–98, 104–106 | Before enabling an untyped scope, an untyped vendor scope, the jump-host route or a bound set of more than one machine. Items 7 and 91 cover set growth, subsets and two-machine sets; items 12, 14 and 29 their untyped-scope cases; item 23 the jump-host label; item 42 the untyped-scope half of the trust display; item 104 an invoice decoded from an untyped response, where the vendor invoices. Item 92's multi-tenant case gates sets above one; its independence-bound case gates the first profile that declares a bound. Repeat item 17 against real untyped responses. |
 | Post-harness handoff | 8, 77 | Before enabling any profile that declares one; none exists before stage 3. |
 | Scanner and advisory monitoring | 9, 36 | Also complete item 50's scanner case before exposing scanner results. |
 | Paid/public relay access | 57–60, 65, 76 | Before enrolment opens beyond the publisher's fixed first-stage record, including item 60's signed pass revocation. Stage 1 uses item 20's manual retirement route and still requires 81 and 87. |

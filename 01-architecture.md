@@ -258,8 +258,8 @@ initiated by the harness itself. Values come from the job record's captured outp
 - `digest_secret` — a harness-initiated read of a recorded placement, under the rules below.
   The model MUST NOT request it through `request_harness_job` or supply its command.
 
-Listener observations and service state/enablement observations used for delivery also MUST
-come from harness-composed reads. The signed checklist (`OPN-14`) owes the concrete reads,
+Listener observations, outbound-restriction observations and service state/enablement
+observations used for delivery also MUST come from harness-composed reads. The signed checklist (`OPN-14`) owes the concrete reads,
 the evidence for `enabled-survives-reboot`, and a service-name grammar whose validated values
 are passed as arguments, never interpolated as shell syntax. The model proposes values,
 not the measuring procedure.

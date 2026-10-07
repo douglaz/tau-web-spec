@@ -71,8 +71,7 @@ alive — what the model has read from it stays in the context that commands the
 machine of a set can steer what it runs on every other, which typing that output as untrusted
 (`SEC-8`) does not prevent, and a mistake aimed at one machine can land on another. So the
 blast radius, the weaker modes and the placed secrets of a set are stated for the set and never
-machine by machine, and every command and job is resolved against the set before it is sent,
-by the rule `ARC-7` owns.
+machine by machine. Machine naming and its resolution against the set are `ARC-7`'s.
 
 **Enforcement is cryptographic, not procedural.** Each **machine** has its own SSH client
 keypair, derived at that machine's index (`STA-22`, `SEC-5` row 3), and only that machine's
@@ -499,7 +498,8 @@ no label, no answer and no operator act sets aside.
   added on a card that restates the set's modes (`SEC-1`).
 - **Chosen before contact.** The operator chooses a mode from what the bundle or the vendor
   lacks — no pin for this distribution, no adapter for this vendor, no out-of-band route at
-  this vendor, no brief for this software, more than one machine in the set — before the first contact it governs: with any machine of the set for a mode
+  this vendor, no brief for this software — or from what the set needs, more than one
+  machine — before the first contact it governs: with any machine of the set for a mode
   accepted as the set is bound, with the added machine for one accepted as the set grows
   (`SEC-1`).
 - **Never entered by failing.** A failed check halts. An artifact that does not match its pin,

@@ -24,7 +24,8 @@ wrote and cannot see into.
 ## The decision
 
 **The rule is narrowed to what the harness can answer for.** `ARC-1` says "The harness's AI
-MUST run in the operator's browser, and only there". No harness credential reaches a machine,
+MUST run in the operator's browser, and only there". No harness credential reaches a machine
+but the attest sender key `ARC-1` excepts,
 and the harness never asks a machine to act; what a machine sends is an observation, typed
 untrusted, exactly as before.
 
