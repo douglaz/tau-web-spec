@@ -5,7 +5,9 @@
 **ARC-1** The harness's AI MUST run in the operator's browser, and only there. A provisioned
 machine is a target of the harness, never an actor for it: it MUST NOT hold a credential
 belonging to the harness — an inference key, a vendor API token, the key of an untyped vendor
-scope (`SEC-3`, `CNF-11`) — and the harness MUST NOT ask a machine to act: nothing a machine
+scope (`SEC-3`, `CNF-11`). Its one exception is the attest sender key, which `SEC-5` row 7
+lets authorize "One host-key introduction" and nothing else (`CHN-7`). And the harness MUST NOT
+ask a machine to act: nothing a machine
 sends starts work in the harness
 ([ADR-0003](./docs/adr/0003-the-ai-runs-only-in-the-browser.md), narrowed by
 [ADR-0039](./docs/adr/0039-installed-agents-are-the-operators-applications.md)).
@@ -79,7 +81,8 @@ answer. An operator who answers "not sure" has a **multi-tenant** machine — th
 costs are `ARC-37`'s removal, which a machine needing no wallet never notices, and being bound
 alone (`SEC-1`), which a one-machine session never notices. The model MAY
 propose a tightening, single-purpose to multi-tenant, and nothing else: it never relaxes a
-class. The answer is journaled with the machine before anything is installed (`ARC-44`). A
+class. The answer is journaled with the machine before it is bound (`SEC-1`), and so before
+anything is installed (`ARC-44`). A
 multi-tenant machine is always bound alone (`SEC-1`).
 
 *What this requirement used to say* was that hardening a multi-tenant machine is a different
@@ -265,7 +268,8 @@ Where a host-key pin may come from is `TauWeb.Pins.Source` and what each source 
 `TauWeb.Pins.admits` (ADR-0032), with `TauWeb.Pins.installed_pin_from_job` over every trace and
 `TauWeb.Pins.installed_pin_from_model_text_refused` and
 `TauWeb.Pins.installed_pin_from_model_text_admitted` its pair. The companion carries the sources
-the dedicated path walks; a pin taken at a jump-host first contact (`CHN-R6`) is not among them.
+the dedicated path walks. A pin taken by attest (`CHN-R5`), stage 1's route, is not among them
+yet (T40), and a pin taken at a jump-host first contact (`CHN-R6`) is not among them.
 
 `fetch_artifact` and `ready_to_reset` are **box-plane work**: they run under the box-plane
 scope like any `exec`, recorded before transmission (`ARC-8`) and never approved per call —
@@ -313,7 +317,8 @@ the best practice, and the card says so. The harness mints nothing for an applic
 minted from the inference account would be a harness credential on a machine (`ARC-1`).
 
 **Re-arming after store loss is harness work.** On binding a session after local-store loss,
-`digest_secret` MUST run for every placement recorded in the sheet before any model command
+`digest_secret` MUST run for every placement the sheet records on that bound set's machines
+before any model command
 or collection of old or new job records can release output to either the model or the
 transcript on that bound set. It reads the recorded path, refuses a symbolic link or a path
 traversing one, writes nothing to the placement, and outputs only SHA-256 of the file's bytes
@@ -442,12 +447,13 @@ skill-shaped content compiled into the signed bundle — briefs, and presets for
 machines carry — and the harness works with none
 ([ADR-0034](./docs/adr/0034-general-case-first-tenants-are-optional-skills.md)). A machine with
 no tenant runs under the publisher's built-in **ad-hoc profile**
-([`docs/tenants/ad-hoc/profile.md`](./docs/tenants/ad-hoc/profile.md)), whose per-machine slots
-the operator fills by answering the harness's own questions.
+([`docs/tenants/ad-hoc/profile.md`](./docs/tenants/ad-hoc/profile.md)), which fixes the access
+model at maintained and leaves its other per-machine slots for the operator to fill by answering
+the harness's own questions.
 
 Three facts the harness acts on exist for every machine either way: its machine class
 (`ARC-36a`), its access model (`ARC-27`) and its delivery declaration (`ARC-39`). Each is preset
-by a tenant's profile or approved by the operator in plain language, and each MUST be journaled
+by a profile or approved by the operator in plain language, and each MUST be journaled
 with the machine before anything is installed on it. A tenant's presets make that path faster
 and more reliable; they are never a precondition for it.
 

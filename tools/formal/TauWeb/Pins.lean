@@ -36,8 +36,9 @@ waits some eighty seconds for `/rescue/last` is a timer, which never enters a wi
 operation may be dispatched at all is `TauWeb.Dispatch.admit`, and whether a planned reset may be
 offered is `TauWeb.Dispatch.offersReset` — so a `reset` here is one already dispatched, and this
 module carries only what it does to the pins. The SSH session past the handshake, the relay hop
-underneath it (`TauWeb.Relay.start`) and `CHN-R6`'s first contact from a jump host, which the
-dedicated path does not walk, are outside it too; `CHN-R4`'s trust on first use is refused, and
+underneath it (`TauWeb.Relay.start`), `CHN-R5`'s attest introduction (stage 1's route, owed
+as a source by T40) and `CHN-R6`'s first contact from a jump host, which the dedicated path does
+not walk, are outside it too; `CHN-R4`'s trust on first use is refused, and
 no branch here admits it.
 
 ponytail: `boot` and `snapshot` are association lists that only grow, and a lookup reads the

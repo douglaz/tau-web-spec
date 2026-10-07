@@ -5,8 +5,8 @@ a machine here is steered by the operator's goal (`ARC-11a`).
 Profile revision: 3 (2026-10-06).
 
 Schema: ADR-0030. Every machine runs under a profile, and this is the one a machine with no
-tenant runs under (`ARC-44`). Its per-machine slots carry no preset: the operator fills them by
-answering the harness's own questions, and each answer is journaled with the machine before
+tenant runs under (`ARC-44`). Its access model is fixed below; its other per-machine slots carry
+no preset: the operator fills them by answering the harness's own questions, and each answer is journaled with the machine before
 anything is installed. Rules that only make sense inside a profile are that profile's;
 everything cited below is the harness's.
 

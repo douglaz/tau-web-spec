@@ -325,9 +325,8 @@ _Avoid_: log, transcript (the transcript is the browser's, and authoritative)
 **Delivery declaration** · `ARC-39`
 The statement of what must be true of a finished machine — its listening surface, its
 service lifecycle, whatever else it needs demonstrated. Its parameters are proposed by the
-model from the goal, or preset by a tenant; its measuring procedures are harness-owned.
-Approved by the operator in plain language before anything is
-installed; the journal holds the approved one (decided 2026-10-04). The harness measures
+model from the goal, or preset by a tenant; its measuring procedures are harness-owned. When
+it is approved and which copy is in force are `ARC-39`'s (decided 2026-10-04). The harness measures
 against it rather than assuming, because machines disagree: one needs a service enabled and
 surviving reboot, another needs a node that dies on reboot by design. A difference from the
 declaration is the finding. It does not catch hostile use of declared surface, nor a declaration that is itself

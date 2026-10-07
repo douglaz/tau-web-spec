@@ -71,8 +71,8 @@ alive — what the model has read from it stays in the context that commands the
 machine of a set can steer what it runs on every other, which typing that output as untrusted
 (`SEC-8`) does not prevent, and a mistake aimed at one machine can land on another. So the
 blast radius, the weaker modes and the placed secrets of a set are stated for the set and never
-machine by machine, and **every box-plane command and every harness job names its machine,
-resolved by the harness** against the set before it is sent (`ARC-7`).
+machine by machine, and every command and job is resolved against the set before it is sent,
+by the rule `ARC-7` owns.
 
 **Enforcement is cryptographic, not procedural.** Each **machine** has its own SSH client
 keypair, derived at that machine's index (`STA-22`, `SEC-5` row 3), and only that machine's
@@ -264,7 +264,7 @@ outgrown, because adding a credential means adding a row.
 | 2 | Inference **session** key | Minted from row 14 (procured); supplied by the operator (BYO) | Browser memory only | One session | Inference spend, **up to its own cap** | Revoked at session end (procured); session ends (BYO) |
 | 3 | **SSH client private key, one per machine** | **Derived** from row 15 at that machine's index (`STA-22`) | Re-derived on demand; nothing to export. Given to the machine's bound session and no other; a jump host's, at the jump host's own index, is given to no session (`CHN-R6`) | Machine lifetime | Login to **that one machine** | Removed from the machine on Replace (`STA-17`), which is a new seed; a jump host's dies with the jump host |
 | 4 | **Relay key**, one per pass | Derived from row 15 (`STA-22`); its public half is what the relay binds a bought pass to (`CHN-15`), and what the first stage hands the publisher out of band | Re-derived on demand; nothing to store | Until the pass expires or is revoked | Reaching the destinations recorded against its pass, on any port; recording destinations; revoking (`CHN-16`) | Pass expires or replacement is confirmed under `STA-17`, by signed revocation or stage 1's manual retirement |
-| 5 | Host-key pins | Vendor API, rescue, attest, or a first contact from a jump host (`CHN-R6`), recorded with which | Encrypted at rest; exported in the sheet | Installed system: machine lifetime. Rescue: one boot (`CHN-R1`). A jump host's: one first contact | Nothing — integrity reference | Machine destroyed; rescue pin discarded at the reset; a jump host's pin kept as the record of how the target's was obtained |
+| 5 | Host-key pins | Vendor API, rescue, attest, or a first contact from a jump host (`CHN-R6`), recorded with which | Encrypted at rest; exported in the sheet | Installed system: machine lifetime. Rescue: one boot (`CHN-R1`). A jump host's: one first contact | Nothing — integrity reference | Machine destroyed; rescue pin discarded at the reset; a jump host's pin discarded with the jump host, the route label (`CHN-R6`) being what the display keeps |
 | 6 | Exposure ledger | Harness-derived | Encrypted at rest; exported in the sheet | Machine lifetime | Nothing — record | Machine destroyed |
 | 7 | **Attest sender key**, one per machine — a jump host pinned by attest included, at its own index | Derived from row 15 (`STA-22`) | Boot user-data; **never stored in the browser**, re-derived to check the seal | Until the browser accepts one introduction, or its window closes | **One** host-key introduction (`CHN-7`) | **The browser stops listening (`CHN-5`)** — that is the bound; scrubbed from disk as defence in depth (`CHN-6`); the metadata copy is permanent and worthless |
 | 8 | ~~Drop-box collection token~~ | — | — | — | — | **Row retired.** The drop-box is gone (`CHN-4`); the attest post is a gift-wrapped event to an inbox any Nostr relay provides. |
@@ -426,8 +426,9 @@ nothing to check the presented key against — the one from a jump host, inside 
 session (`CHN-R6`) — and that contact is trusted, not checked against a pin, and MUST be
 presented to the operator as such. No other path may accept a key no pin was stored for.
 
-On the routes where a fingerprint is always stored before contact, the check is
-`TauWeb.Pins.check` (ADR-0032). The jump-host contact above is not carried there: `check` has
+On the dedicated path's routes, where a fingerprint is always stored before contact, the check
+is `TauWeb.Pins.check` (ADR-0032). Neither attest (`CHN-R5`) nor the jump-host contact above is
+carried there yet (`ARC-43`); for the jump host, `check` has
 no branch that admits a handshake with no pin. Its halts are three and not one: nothing stored to check against, the key that does not
 match, and the halt `STA-20b`'s resume rule explains.
 `TauWeb.Pins.mismatch_not_the_reset` is that the last two are never the same answer.
@@ -498,7 +499,7 @@ no label, no answer and no operator act sets aside.
   added on a card that restates the set's modes (`SEC-1`).
 - **Chosen before contact.** The operator chooses a mode from what the bundle or the vendor
   lacks — no pin for this distribution, no adapter for this vendor, no out-of-band route at
-  this vendor — before the first contact it governs: with any machine of the set for a mode
+  this vendor, no brief for this software, more than one machine in the set — before the first contact it governs: with any machine of the set for a mode
   accepted as the set is bound, with the added machine for one accepted as the set grows
   (`SEC-1`).
 - **Never entered by failing.** A failed check halts. An artifact that does not match its pin,

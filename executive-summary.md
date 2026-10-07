@@ -51,7 +51,8 @@ is the only escape from that.
 ## How it works
 
 **The harness's AI runs only in the browser, and it is a trusted party.** A machine is a target
-of the harness, never an actor for it: it holds no credential belonging to the harness, and the
+of the harness, never an actor for it: it holds no credential belonging to the harness but the
+single-use attest sender key, and the
 harness never asks a machine to act. Its one outbound message, the attest introduction, acts on
 nothing on its behalf. Software the operator has installed that acts on its own — an always-on
 agent with a model of its own — is the **operator's application**: it is outside what the
@@ -107,7 +108,8 @@ begins, and each later one approved on its own card.
 against a malicious model. What it catches is honest-but-sloppy, the likely failure on a
 first-time setup. A machine is **delivered** only with no finding standing; one the operator
 takes anyway is **handed over with findings**, is never called locked down, and receives no
-placed secret while any finding but a stopped declared service stands (`ARC-17`). Delivered
+placed secret while any finding but a declared service out of its declared lifecycle stands
+(`ARC-17`). Delivered
 covers the declared machine state and lockdown; it is not a claim that the application works (`ARC-1a`). Model-written
 checks are reports with no verdict authority (`ARC-39`), labelled under `SEC-2`.
 
@@ -238,7 +240,8 @@ that makes rental structural gates the phone-only acquisition experience.
 ## Status
 
 The first stage is **the owner's own scenario, with no tenant**: one goal, one machine bought by
-Lightning invoice, an always-on agent installed on it. The path it replaced as first — one
+Lightning invoice at LNVPS — or through a card account at Hetzner Cloud if LNVPS fails its probe
+— an always-on agent installed on it, on Omarchy or plain Arch (`STG-21`). The path it replaced as first — one
 machine on a dedicated server, over the full channel — was rehearsed **by hand, once**, on a
 disposable server on September 8, 2026: both pinned SSH hops closed, and the install brief was
 written from the transcript. It is now the construction test bed. Separately, the browser SSH

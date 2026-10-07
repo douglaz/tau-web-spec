@@ -25,7 +25,8 @@ gated on it.
       row of `07-conformance.md`. Implement `STA-17`'s manual relay retirement, with signed
       revocation and Robot rescue following their separate applicability rows.
 - [ ] **T23 — Demonstrate interrupted rescue installation** (`OPN-18`). Implement the
-      `STA-20b` handoff and run `CNF-40`, `CNF-55`, `CNF-85` and `CNF-86` on the integrated
+      `STA-20b` handoff and run `CNF-40` and `CNF-54`–`CNF-56` (stage 1's part of `OPN-18`), with
+      `CNF-85` and `CNF-86` for the test bed, on the integrated
       harness. Non-destructive example checks are not a completed hardware rehearsal.
 - [ ] **T27 — Build the first-stage relay** (publisher; `CNF-87`). *Moved 2026-09-24: the relay
       is paid-tcp-relay's product (github.com/douglaz/paid-tcp-relay) and its checklist is the
@@ -60,6 +61,8 @@ gated on it.
 - [ ] **T40 — Stage 0: attest on a real first boot** (`OPN-3`). Cloud-init timing, the static
       first-boot tool, and the browser's window against a measured slowest boot (`CHN-6`). It
       is stage 1's first contact, and a window that closes now ends in a recreate (`CHN-R5`).
+      The formal companion owes an attest pin source beside its dedicated-path ones (`ARC-43`,
+      `SEC-11`); until it lands, `TauWeb.Pins.check` covers the dedicated path only.
 - [ ] **T41 — Stage 0: Omarchy's server edition, or plain Arch** (`OPN-25`). And the
       publisher's choice that follows from it: run stage 1 under the unpinned label, or add an
       Arch pin to the bundle first (`ARC-24`, `ARC-25`).
@@ -190,7 +193,9 @@ gated on it.
         rotating a placement whose file is absent waits for the re-check, while model work on
         the set waits for unarmed references; whether that re-check releases only a status, so
         the two waits cannot hold each other, is unstated (`ARC-43`, `STA-16`). An imported
-        local-store backup (`STA-22b`) also loses findings raised after it was taken.
+        local-store backup (`STA-22b`) also loses findings raised after it was taken. A
+        renewal invoice at an invoicing vendor can be relayed only while the app is open
+        (`ARC-30`, `ARC-2`), while stage 1's application is always on.
 
 - [x] **T30 — Port the specification gates and the formal companion's scaffold** (ADR-0032).
       From `~/projects/provisiond-spec`: `tools/check-all.sh`, the identifier, fixture,

@@ -25,7 +25,7 @@ re-drawn; the ones written for the dedicated path say so here.
 
 | Identifiers | Gate |
 |---|---|
-| `STG-21`; `STG-5`, `STG-6` where the installation is pinned, `STG-7`, `STG-9`, `STG-10`, `STG-12`, `STG-13`, `STG-14` | Stage 1 |
+| `STG-21`; `STG-5`, `STG-6` where the installation is pinned, `STG-7`, `STG-9`, `STG-10`, `STG-12`, `STG-13`, `STG-14` | Stage 1. On a vendor catalogue image, `STG-5` covers what the session installs and hardens after first boot; `STG-14` covers the stage-1 items in this row, not the dedicated path's |
 | `STG-15`, `STG-16`, `STG-17` | Stage 1, as recorded measurements and provenance |
 | `STG-1`, `STG-3`, `STG-3a`, `STG-4`, `STG-11`, `STG-20` | The dedicated path — the construction test bed now, and a path offered to an operator no earlier than stage 3 |
 | `STG-2` | Nothing further: construction admission, closed 2026-09-08 |

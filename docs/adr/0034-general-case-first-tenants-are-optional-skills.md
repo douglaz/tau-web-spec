@@ -46,8 +46,9 @@ force.
   **delivery declaration**"; with no tenant the model proposes it from the goal, starting from
   the ad-hoc profile's signed minimum, and the operator approves it.
 
-**A goal is not a brief.** `ARC-11` still locks briefs into the bundle, for the reason it
-always gave: one document steering every machine is the one place diversity buys nothing. A
+**A goal is not a brief.** `ARC-11` still says "Briefs MUST ship inside the signed application
+bundle", for the reason it gives there: one document steering every machine is the one place
+diversity buys nothing. A
 goal escapes that reason only while it stays one operator's instruction to one session.
 `ARC-11a` says "A goal steers one session's bound set and nothing else", "A goal is never
 imported, shared or reused", and "A goal MUST be refused for a machine under a profile that
@@ -113,7 +114,7 @@ lifecycle gate. The application-secret/key-material distinction is in the declar
 companion, and `ARC-1a` owns the delivery-card limit. `OPN-14` and T42 still owe the concrete
 listener and lifecycle reads, restart evidence and safe service-name grammar. T49 records a
 later signed typed-check library, not a stage-1 dependency. The original rejected option above
-is retained as history; these are the operative clarifications.
+is retained as history; these were the operative clarifications until the amendment below.
 
 *Clarified 2026-10-06: the secret-dependent service above is an example, not a condition.*
 `ARC-17` said "Any lifecycle failure before placement is not a finding, whether or not the
