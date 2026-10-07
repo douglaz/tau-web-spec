@@ -33,8 +33,9 @@ re-drawn; the ones written for the dedicated path say so here.
 | `STG-22`, `STG-23` | Stages 2 and 3 |
 
 **STG-21 Stage 1 is the owner's scenario: one goal, one machine, no tenant.** "Launch a VPS
-paid in Bitcoin and install Hermes on Omarchy." One session works from that goal alone
-(`ARC-11a`), under the ad-hoc profile (`ARC-44`). The machine is a VPS at LNVPS, created through
+paid in Bitcoin and install Hermes on Omarchy." An initial session works from that goal alone
+(`ARC-11a`), under the ad-hoc profile (`ARC-44`), and the later session `STG-9` requires
+re-enters the same machine; whether that session carries a goal of its own is open (T47). The machine is a VPS at LNVPS, created through
 a **typed adapter**, paid for by a Lightning invoice from the operator's own wallet (`ARC-30`),
 and first contacted by attest (`CHN-R5`). Hermes is installed on Omarchy — or on Arch, if
 `OPN-25` closes that way — as the operator's application (`ARC-1a`). Beyond the channel and the

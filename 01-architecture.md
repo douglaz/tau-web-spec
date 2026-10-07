@@ -350,7 +350,10 @@ neither reapproves the restored declaration nor any weaker mode; until the opera
 
 Model `exec` across the bound set MUST wait while any known required placement reference is
 unarmed. Only harness jobs whose output goes to **neither** model nor transcript are exempt;
-read-only work, reconnect records and a job merely hidden from the model are not loopholes.
+read-only work, reconnect records and a job merely hidden from the model are not loopholes. The
+delivery check's harness-composed reads are such jobs: they release their verdict and findings,
+never their raw output, so a re-check runs while a reference is unarmed and a rotation that waits
+on it is not held by this barrier.
 Unscanned output is withheld under `SEC-5`, with no automatic retry authority added to `STA-6`.
 After Restore the harness asks whether secrets were placed since export, with no answer
 preselected; **"Not sure" is treated as yes**. It displays unknown coverage and restates it at
@@ -613,7 +616,8 @@ never accepted in place of an amendment, and an amendment cannot widen what the 
 it cannot declare spendable key material on a multi-tenant machine (`ARC-37`, ADR-0030's first
 guard). A machine restored from a sheet after store loss does not carry its findings: the sheet
 holds none (`STA-16`), so its findings show as unknown, and no secret is placed on it, until a
-re-check. The
+re-check. A machine restored from an imported local-store backup is treated the same way, since
+the backup can predate a finding (`STA-22b`). The
 operator MAY take a machine while findings stand. That machine is **handed over
 with findings**: it is not delivered, it MUST NOT be described as locked down, each finding
 stays shown until a later check clears it, and no application secret is placed on it while a
