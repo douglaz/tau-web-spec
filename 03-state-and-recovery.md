@@ -458,8 +458,8 @@ the sheet holds them and MUST be shown as **"unknown since export"** after store
 qualification MUST be restated at every later irreversible act until the operator explicitly
 reapproves the relevant restored state. Whether an installation is pinned, or not yet made,
 and each pin's route are restored and shown beside it, as of export like the rest; they record
-what happened, not something the operator approves. They are the history modes of `SEC-14` and
-are never reapproved; the restored conduct modes were the exporting session's, which ended, and a
+what happened, not something the operator approves. They are the history modes of `SEC-14`, and
+a Restore does not reapprove them — only a reinstall, a new installation, is accepted afresh; the restored conduct modes were the exporting session's, which ended, and a
 re-entering session accepts its own rather than reapproving them, while what they left live
 stays "unknown since export". The sheet carries no check result and no
 finding, so after store loss each maintained machine is shown as **unchecked**, its findings
@@ -483,7 +483,8 @@ distinct, and the screen says which one is happening
 
 - **Replace** (the default, for a phone that is lost): generate a **new seed** (`STA-22`),
   re-enter each maintained machine using its old client key and the sheet's old host pin,
-  install the new seed's client public key, then remove the old public key. The old seed is
+  install the new seed's client public key, confirm a connection authenticated by it, then
+  remove the old public key; a failed confirmation leaves the old key in place. The old seed is
   not revocable; changing what the browser uses is not removing a thief's access. The old
   relay pass is revoked by its own key's signature and a new pass bought against a key from
   the new seed on the paid/public path. Stage 1's manually enrolled relay instead requires

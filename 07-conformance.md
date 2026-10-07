@@ -226,7 +226,8 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       complete without it (`STA-15`).
 - [ ] **CNF-20 · PRE-SCALE** Replace follows `STA-17`: a fresh seed, re-entry using the old
       key and old pin, installation of the new client public key, then removal of the old
-      public key on every maintained machine, then the export of a new sheet for the new
+      public key on every maintained machine, the old key removed only after a connection
+      authenticated by the new one succeeds, then the export of a new sheet for the new
       seed, which a later import accepts and the old sheet no longer matches. Stage 1 confirms publisher retirement of the
       manually recorded relay pass and enrollment of the new key; withholding confirmation
       keeps revocation incomplete. Signed revocation is `CNF-60`'s paid/public case.
@@ -631,8 +632,8 @@ evidence is that set's test run against the relay the harness uses.
       modes are shown at binding and restated, with that session's own modes and what earlier
       modes left live, at an irreversible act the test performs there — a placement or a
       rotation — without being accepted again; a model command under a goal with no brief
-      before that goal's acceptance is refused; and a reinstall is accepted again as an
-      installation and a first contact before it is sent. Escaped secret: a secret placed on a
+      before that goal's acceptance is refused; and, on the jump-host route, a reinstall is
+      accepted again as an installation and a first contact before it is sent (`CHN-R6`). Escaped secret: a secret placed on a
       set whose standing modes the operator was never shown together.
 - [ ] **CNF-43 · PRE-SCALE** The relay's row names its operator and states that it learns the
       machine topology (`CHN-13`).

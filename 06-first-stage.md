@@ -348,8 +348,9 @@ counts as touching it until that machine is destroyed".
   challenge authentication, destination restriction and private-address refusal still apply
   (`CNF-81`, `CNF-87`). There is no purchase flow or automated reacquisition story;
   that is `OPN-2`. Manual replacement follows `STA-17` and the stage-1 recovery row.
-- **That the application works.** Hermes's functional behavior and its provider are not
-  stage-1 gates; the delivery claim is bounded by `ARC-1a` and `ARC-17`.
+- **That the application works.** Hermes's functional behavior, and whether its provider
+  answers, are not stage-1 gates; the delivery claim is bounded by `ARC-1a` and `ARC-17`.
+  Listing that provider in the trust display (`TRU-E12`, `CNF-103`) still is.
 - **Inference funding.** Assumed already funded.
 - **A vendor with no adapter, and any set but one machine.** Untyped vendor scopes, the jump host and
   bound sets above one are stage 2's (`STG-22`); tenants are stage 3's (`STG-23`).
