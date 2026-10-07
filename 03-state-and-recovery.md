@@ -488,7 +488,9 @@ distinct, and the screen says which one is happening
   relay pass is revoked by its own key's signature and a new pass bought against a key from
   the new seed on the paid/public path. Stage 1's manually enrolled relay instead requires
   publisher confirmation that the old hand-recorded pass is retired and the new key recorded.
-  The UI MUST NOT claim the old pass revoked before that confirmation.
+  The UI MUST NOT claim the old pass revoked before that confirmation. The old sheet belongs to
+  the retired seed, so Replace ends with an export of the new seed's sheet (`STA-15`); until it
+  is saved, the machines are shown as having no current sheet.
 - **Restore** (for a phone that died in hand): the same seed plus sheet re-derives the same
   keys and reuses the old host pin, with no first contact, explicitly presented as non-revoking.
   New allocations remain barred until Replace with a fresh seed (`STA-22b`).

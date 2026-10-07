@@ -226,7 +226,8 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       complete without it (`STA-15`).
 - [ ] **CNF-20 · PRE-SCALE** Replace follows `STA-17`: a fresh seed, re-entry using the old
       key and old pin, installation of the new client public key, then removal of the old
-      public key on every maintained machine. Stage 1 confirms publisher retirement of the
+      public key on every maintained machine, then the export of a new sheet for the new
+      seed, which a later import accepts and the old sheet no longer matches. Stage 1 confirms publisher retirement of the
       manually recorded relay pass and enrollment of the new key; withholding confirmation
       keeps revocation incomplete. Signed revocation is `CNF-60`'s paid/public case.
       Interrupt machine migration and pass retirement separately: neither partial result is
@@ -771,7 +772,10 @@ ad-hoc profile, the harness's machine-class questions and the signed lockdown ch
 journal (`CNF-49`); a missing one fails completion rather than being replaced by an essay.
 Item 95's cases pass on the integrated harness (`OPN-28`); the key design already permits
 construction. T48's minimum secret byte length is set and item 94 refuses a shorter value
-before completion: `SEC-5` requires one and leaves its number open. The recovery row, the
+before completion: `SEC-5` requires one and leaves its number open. On LNVPS, completion also
+waits for T44's choice of the vendor credential's origin and for what stands in for `STA-14`'s
+recovery root there (T47): Restore and Replace are demonstrated with the identity that choice
+names, never one supplied ad hoc for the test. The recovery row, the
 model-written check reports row and the re-entry row also pass.
 No tenant's artifact gates this stage: lnrent's delivery declaration and briefs 2–3 gate the
 third. Rehearsal/prototype results do not automatically check harness items. This is the
