@@ -458,7 +458,10 @@ the sheet holds them and MUST be shown as **"unknown since export"** after store
 qualification MUST be restated at every later irreversible act until the operator explicitly
 reapproves the relevant restored state. Whether an installation is pinned, or not yet made,
 and each pin's route are restored and shown beside it, as of export like the rest; they record
-what happened, not something the operator approves. The sheet carries no check result and no
+what happened, not something the operator approves. They are the history modes of `SEC-14` and
+are never reapproved; the restored conduct modes were the exporting session's, which ended, and a
+re-entering session accepts its own rather than reapproving them, while what they left live
+stays "unknown since export". The sheet carries no check result and no
 finding, so after store loss each maintained machine is shown as **unchecked**, its findings
 unknown, until a re-check runs, and no secret is placed on it before that re-check
 (`ARC-17`). No machine report or scan re-arm

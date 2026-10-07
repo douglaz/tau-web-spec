@@ -496,12 +496,20 @@ no label, no answer and no operator act sets aside.
 - **By its label, for one bound set.** The set is named machine by machine before contact. A
   mode accepted for one set says nothing about another — a machine's own history aside, below —
   and a machine added to a set later is added on a card that restates the set's modes (`SEC-1`).
-- **Across sessions.** A mode that records a machine's history — an installation with no
-  artifact pin, a first contact from a jump host — stands for the machine's life: every later
-  set that includes the machine shows and restates it, and nobody accepts it again. A mode that
-  describes a session's conduct — acting on a goal with no brief, an untyped vendor scope, a set
-  of more than one machine — is accepted anew by each session. A re-entering session makes no
-  first contact, so it accepts those before its first command on the set.
+- **Across sessions, restatement follows the machine and acceptance follows the act.** A mode
+  is accepted by the session that does what it governs, before doing it. An installation with no
+  artifact pin and a first contact from a jump host are the machine's history: every later set
+  that includes the machine is shown them at binding and restates them, and accepts them again
+  only for a reinstall, which is a new installation and a new first contact (`CHN-R6`). Each
+  session that acts on a goal with no brief, approves an untyped vendor scope or binds more than
+  one machine accepts that mode itself, on a card it already shows: a larger set at binding,
+  before any channel access, naming the history modes its machines bring into it (`SEC-1`); no
+  brief with its goal, before the model acts on it (`ARC-11a`); an untyped vendor scope on its
+  card, before the first call through it (`ARC-15`). A session that does none of these accepts
+  none, and a session resumed after an interruption (`STG-12`) accepts nothing again. What an
+  earlier session's mode left live — a vendor credential or minted token not yet revoked, a
+  co-bound footprint — is restated with the history modes and never accepted again (`SEC-6`,
+  `STA-10`).
 - **Chosen before contact.** The operator chooses a mode from what the bundle or the vendor
   lacks — no pin for this distribution, no adapter for this vendor, no out-of-band route at
   this vendor, no brief for this software — or from what the set needs, more than one

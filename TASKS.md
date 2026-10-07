@@ -199,6 +199,12 @@ gated on it.
         propose a tightening to multi-tenant after binding, while a multi-tenant machine is
         always bound alone and a set never shrinks (`SEC-1`): whether such a tightening is
         refused or deferred in a larger set is undecided (stage 2).
+      - **Left open by the weaker-modes-across-sessions decision (2026-10-07), all stage 2 or
+        later.** Whether an untyped vendor scope's permission ends with its session, the
+        credential staying shown until revoked (`SEC-4`'s "while the scope stands"); whether
+        escalation's successor (`ARC-16`) and Replace (`STA-17`) are sessions that accept modes;
+        whether stage 1's "one goal" means one per session (`STG-21`); and whether `ARC-25`
+        governs a later session's package fetches on an unpinned machine.
 
 - [x] **T30 — Port the specification gates and the formal companion's scaffold** (ADR-0032).
       From `~/projects/provisiond-spec`: `tools/check-all.sh`, the identifier, fixture,
