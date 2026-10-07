@@ -169,8 +169,8 @@ template shipped with every unstated field `unspecified` so the harness invents 
 and sshd posture — keyed on no vendor and no tenant, shipped in the bundle. It does not exist
 yet. lnrent's declaration, the Robot checklist and briefs 2–3 gate stage 3.
 
-*Owed 2026-10-06:* the harness-composed reads of `ARC-43` behind `CNF-50` and `CNF-53`:
-listeners, unit state and enablement, evidence establishing survival of a restart, and a
+*Owed 2026-10-06:* the harness-composed reads of `ARC-43` behind `CNF-50`, `CNF-53` and
+`CNF-103`: listeners, outbound restrictions, unit state and enablement, evidence establishing survival of a restart, and a
 service-name grammar that passes a validated name as an argument, never shell syntax.
 Neither the concrete grammar, init-specific reads nor restart-demonstration mechanism is
 selected here. Also open: whether `STG-9`'s re-entry re-check reads `services` as well as

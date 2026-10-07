@@ -269,7 +269,10 @@ Where a host-key pin may come from is `TauWeb.Pins.Source` and what each source 
 `TauWeb.Pins.installed_pin_from_model_text_refused` and
 `TauWeb.Pins.installed_pin_from_model_text_admitted` its pair. The companion carries the sources
 the dedicated path walks. A pin taken by attest (`CHN-R5`), stage 1's route, is not among them
-yet (T40), and a pin taken at a jump-host first contact (`CHN-R6`) is not among them.
+yet (T40), and a pin taken at a jump-host first contact (`CHN-R6`) is not among them. Only
+this pin-source clause of `ARC-43` is formalized; the rules of `place_secret` and
+`digest_secret` below are not, and this text is their home (ADR-0032, "Authority is per
+clause").
 
 `fetch_artifact` and `ready_to_reset` are **box-plane work**: they run under the box-plane
 scope like any `exec`, recorded before transmission (`ARC-8`) and never approved per call —
