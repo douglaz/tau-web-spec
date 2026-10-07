@@ -215,8 +215,9 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       declaration and confirming the machinery holds no channel and no machine's own key.
       Profiles declaring a handoff credential only.
 - [ ] **CNF-74 · PRE-SCALE** An event received on the notify channel (`CHN-17`) is typed
-      untrusted and gates nothing. Verified by delivering a well-formed event claiming a step is
-      complete and confirming no step advances.
+      untrusted and gates nothing, attest's sealed introduction aside, which gates only the
+      first contact it was planted for (`CNF-18`). Verified by delivering a well-formed event
+      claiming a step is complete and confirming no step advances.
 - [ ] **CNF-75 · PRE-SCALE** The publisher's Nostr relay serves a recipient's wraps only to a
       subscriber authenticated as that recipient (`CHN-18`). Verified by requesting an inbox
       without authenticating and receiving nothing.
@@ -350,7 +351,9 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       journaled declaration (`STG-9`, `ARC-26`). Verified by ending the first session, binding
       a new one to the machine, and confirming no new first contact is made, a changed host key
       halts, and the re-check's verdict replaces the earlier one only through findings it
-      raises or clears.
+      raises or clears. The machine's unpinned installation stays shown and restated without
+      being accepted again, and acting on a goal with no brief is accepted anew before the
+      session's first command (`SEC-14`).
 - [ ] **CNF-99 · BLOCKING** A machine on which a finding stands is **handed over with
       findings** and nothing more (`ARC-17`): it is not reported as delivered, is never
       described as locked down, keeps each finding shown — a machine restored after store

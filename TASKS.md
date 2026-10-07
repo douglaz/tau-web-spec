@@ -186,13 +186,9 @@ gated on it.
         machine is destroyed and recreated, which re-runs its first contact and loses its
         state", and neither attest nor a jump host re-pins a machine that already exists.
         Whether a later rule should allow it is undecided.
-      - **Found by the branch review of 2026-10-06, not fixed there.** `CHN-17` says a machine
-        event "never gates a step", while attest's seal gates first contact (`CHN-R5`); the
-        sentence predates the general-case decisions. `SEC-5`'s minimum byte length has no
+      - **Found by the branch review of 2026-10-06, not fixed there.** `SEC-5`'s minimum byte length has no
         refusal case in `CNF-94` until T48 sets the bound, which stage 1's completion requires. The sheet carries neither `SEC-4`'s two answers for an
-        untyped vendor scope nor `CHN-R6`'s jump vendor and date, both stage 2's. And a set
-        re-entered (`STG-9`) or restored makes no first contact, so whether its standing modes
-        are carried over or accepted again (`SEC-14`, `CNF-93`) is unstated. After store loss,
+        untyped vendor scope nor `CHN-R6`'s jump vendor and date, both stage 2's. After store loss,
         rotating a placement whose file is absent waits for the re-check, while model work on
         the set waits for unarmed references; whether that re-check releases only a status, so
         the two waits cannot hold each other, is unstated (`ARC-43`, `STA-16`). An imported

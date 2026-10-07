@@ -494,8 +494,14 @@ Every item `07-conformance.md`'s tiering rule makes BLOCKING is a **non-waivable
 no label, no answer and no operator act sets aside.
 
 - **By its label, for one bound set.** The set is named machine by machine before contact. A
-  mode accepted for one set says nothing about another, and a machine added to a set later is
-  added on a card that restates the set's modes (`SEC-1`).
+  mode accepted for one set says nothing about another — a machine's own history aside, below —
+  and a machine added to a set later is added on a card that restates the set's modes (`SEC-1`).
+- **Across sessions.** A mode that records a machine's history — an installation with no
+  artifact pin, a first contact from a jump host — stands for the machine's life: every later
+  set that includes the machine shows and restates it, and nobody accepts it again. A mode that
+  describes a session's conduct — acting on a goal with no brief, an untyped vendor scope, a set
+  of more than one machine — is accepted anew by each session. A re-entering session makes no
+  first contact, so it accepts those before its first command on the set.
 - **Chosen before contact.** The operator chooses a mode from what the bundle or the vendor
   lacks — no pin for this distribution, no adapter for this vendor, no out-of-band route at
   this vendor, no brief for this software — or from what the set needs, more than one

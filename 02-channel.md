@@ -359,7 +359,9 @@ machine and not to an operator.
 re-derives it when a second use arrives: **a machine may send the harness an event, and an event
 is an observation.** It is typed untrusted, exactly as every box-plane output already is
 (`ARC-28`); it never gates a step, never triggers an action, never enters model context as
-anything but content. `ARC-1` stands because of that typing — a machine that can *tell* the
+anything but content. Attest's introduction is the one exception, and only for the step the
+browser is already waiting on: sealed by the sender key the browser planted and accepted once
+(`CHN-R5`, `CHN-5`), it gates that machine's first contact and nothing else. `ARC-1` stands because of that typing — a machine that can *tell* the
 browser something is not a machine that can *make* it do something. **The list of uses is one
 entry long**, and each addition is a stated design change rather than a use of an open door.
 Candidates exist — a job record's completion (`STA-20`), a delivery check's result (`ARC-39`) —
