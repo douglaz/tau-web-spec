@@ -45,7 +45,9 @@ about one:
   covers the declared machine state and the fixed lockdown checks, and MUST say, substituting
   the application's name: "It does not mean Hermes works".
 
-**ARC-2** Nothing runs while the app is closed. This is accepted rather than worked around.
+**ARC-2** Nothing runs while the app is closed. This is accepted rather than worked around. It
+is a statement about the harness: an operator's application on a machine runs as the operator
+installed it, and is outside what the harness claims (`ARC-1a`).
 Every step MUST be resumable across a locked phone, and progress MUST survive the harness
 worker being killed — which is what `03-state-and-recovery.md` specifies and `STA-9`
 constrains.

@@ -221,7 +221,7 @@ by its label (`TRU-E11`), not a component in every session's path. Passing the S
 necessary and does not by itself satisfy this; the routes are what make it sufficient.
 
 **OVR-5** Where a profile declares an independence bound, the machines of one setup MUST NOT
-share a cloud vendor, and each is bound to its own session (`SEC-1`). Which model a session there may
+share a cloud vendor; how they are bound to sessions is `SEC-1`'s. Which model a session there may
 be configured with is not ruled here: it is `SEC-1`'s footprint rule, read against the
 profile's bound. The vendor owns its machine's memory and disk and is trusted under every
 design considered, so two machines at one vendor is one party able to act on both — the
