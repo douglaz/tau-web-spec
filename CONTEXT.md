@@ -482,8 +482,9 @@ _Avoid_: audit log, history (unqualified)
 **Recovery sheet** · `STA-16`
 A passphrase-wrapped export of the recoverable metadata and inference credential listed in
 `STA-16`. Its placement entries identify a machine, name, path and placement time, without
-value-derived scan material. Sheet payload version 2 is distinct from the unchanged v1
-derivation and encryption-envelope formats.
+value-derived scan material. Application/provider facts are recorded per machine. The payload
+version belongs to `docs/design/credential-format-v1.md`, distinct from its v1 derivation and
+encryption-envelope formats.
 _Avoid_: backup (unqualified), export file, "the keys" (they are not in it)
 
 **Replace / Restore** · `STA-17`

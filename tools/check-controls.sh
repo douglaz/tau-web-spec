@@ -273,35 +273,88 @@ formal_control "formal: a pin source added without what it may pin" \
   "sed -i 's/^  | modelText\$/  | modelText\n  | vendorNotify/' $PINS && grep -q '^  | vendorNotify\$' $PINS" \
   "Source.vendorNotify"
 
-# ARC-43's rule -- the source decides what it may pin -- is one field of TauWeb.Pins.current.
-# Collapsed, any source may pin anything. `lake build` must go red with exactly two errors: the
-# model-text witness, whose set is now journaled as the installed system's pin and admits a
-# session, and `bounded`, which closes over the same rule within the bound. A red naming the
-# ceremony would mean the flip broke something other than the property it targets, since
-# /rescue/last and the job record are admitted under both settings.
-expected=$((expected + 1))
-tmp="$(mktemp -d)"
-cp -r . "$tmp/repo"
-if ! (cd "$tmp/repo" && sed -i 's/^@\[req "ARC-43"\] def current : Params := { sourceAdmitsPin := true }$/@[req "ARC-43"] def current : Params := { sourceAdmitsPin := false }/' $PINS && grep -q '^@\[req "ARC-43"\] def current : Params := { sourceAdmitsPin := false }$' $PINS); then
-  echo "::error::formal: the source collapse did not apply"; fail=1
-else
-  out="$(cd "$tmp/repo" && bash "$FORMAL" 2>&1)"
+# Pin mutations must fail in exactly the named property declarations, once each. Checking the
+# source locations also rejects syntax/type errors, stale anchors and unrelated failed proofs.
+pins_control() {
+  local name="$1" mutate="$2"
+  shift 2
+  expected=$((expected + 1))
+  local tmp rc
+  tmp="$(mktemp -d)"
+  cp -r . "$tmp/repo"
+  if ! (cd "$tmp/repo" && eval "$mutate"); then
+    echo "::error::$name: the mutation did not apply"; fail=1; rm -rf "$tmp"; return
+  fi
+  (cd "$tmp/repo" && bash tools/check_formal.sh) > "$tmp/output" 2>&1
   rc=$?
   if [ "$rc" -eq 0 ]; then
-    echo "::error::formal: the formal gate passed with the admission source collapsed"; echo "$out"; fail=1
-  elif [ "$(grep -c '^error: TauWeb/' <<<"$out")" -ne 2 ]; then
-    echo "::error::formal: the source collapse did not produce exactly two errors"; echo "$out"; fail=1
-  elif ! grep -qF 'init modelTextEvents' <<<"$out" \
-       || ! grep -qF 'wellPinned (run current start es)' <<<"$out"; then
-    echo "::error::formal: the reds are not the model-text witness and bounded"; echo "$out"; fail=1
-  elif grep -qF 'init ceremonyEvents' <<<"$out"; then
-    echo "::error::formal: a red also names the ceremony, which the source does not decide"; echo "$out"; fail=1
-  else
-    echo "ok: formal: the admission source collapsed -> the model-text witness and bounded"
+    echo "::error::$name: the formal gate passed"; fail=1
+  elif python3 - "$tmp/repo/$PINS" "$tmp/output" "$@" <<'PYCONTROL'
+import re
+import sys
+from pathlib import Path
+source = Path(sys.argv[1]).read_text().splitlines()
+output = Path(sys.argv[2]).read_text()
+actual = []
+for line in output.splitlines():
+    if not line.startswith("error: "):
+        continue
+    if line in ("error: Lean exited with code 1", "error: build failed"):
+        continue
+    match = re.fullmatch(r"error: TauWeb/Pins\.lean:(\d+):\d+: (.*)", line)
+    if not match or not match[2].startswith(("Tactic `decide`", "unsolved goals")):
+        print("Unexpected failure:", line)
+        sys.exit(1)
+    preceding = "\n".join(source[:int(match[1])])
+    declarations = re.findall(r"(?:^|\] )(?:theorem|def) (\w+)", preceding, re.MULTILINE)
+    actual.append(declarations[-1] if declarations else "<none>")
+if sorted(actual) != sorted(sys.argv[3:]):
+    print("Expected property failures:", sys.argv[3:])
+    print("Actual property failures:", actual)
+    sys.exit(1)
+PYCONTROL
+  then
+    echo "ok: $name -> exactly $*"
     passed=$((passed + 1))
+  else
+    echo "::error::$name: wrong property failures"; cat "$tmp/output"; fail=1
   fi
-fi
-rm -rf "$tmp"
+  rm -rf "$tmp"
+}
+
+# Collapsing source admission permits model text and bypasses author matching as well.
+# The dedicated ceremony and valid attest traces must remain green; only these refusals and
+# the independent bounded property turn red. The rescue-source witness fixes its own guard.
+pins_control "formal: the admission source collapsed" \
+  "sed -i 's/^@\[req \"ARC-43\"\] def current : Params := { sourceAdmitsPin := true }$/@[req \"ARC-43\"] def current : Params := { sourceAdmitsPin := false }/' $PINS && grep -q 'def current : Params := { sourceAdmitsPin := false }' $PINS" \
+  installed_pin_from_model_text_refused wrong_author_refused wrong_author_then_valid bounded
+
+pins_control "formal: attest admits a forbidden rescue pin" \
+  "sed -i 's/| .attest _, .boot _ => false/| .attest _, .boot _ => true/' $PINS && grep -q '| .attest _, .boot _ => true' $PINS" \
+  no_rescue_session_before_fill attest_rescue_refused
+
+# An always-refusing attest source is not safe admission. Its positive traces, including each
+# guard-removed acceptance, must fail while the universal refusal properties remain provable.
+pins_control "formal: valid attest admission disabled" \
+  "sed -i 's/| .attest author, .machine => !p.attestAuthorMatches || author == plantedSender m/| .attest author, .machine => false/' $PINS && grep -q '| .attest author, .machine => false' $PINS" \
+  attest_admits_and_connects wrong_author_admitted wrong_author_then_valid repeat_attest_refused \
+  repeat_attest_admitted attest_per_machine failed_attest_admitted failed_append_then_valid
+
+pins_control "formal: attest author matching disabled" \
+  "sed -i 's/attestAuthorMatches : Bool := true/attestAuthorMatches : Bool := false/' $PINS && grep -q 'attestAuthorMatches : Bool := false' $PINS" \
+  wrong_author_refused wrong_author_then_valid bounded
+
+pins_control "formal: attest single use disabled" \
+  "sed -i 's/attestSingleUse : Bool := true/attestSingleUse : Bool := false/' $PINS && grep -q 'attestSingleUse : Bool := false' $PINS" \
+  repeat_attest_refused bounded
+
+pins_control "formal: attest admits before a durable append" \
+  "sed -i 's/attestDurable : Bool := true/attestDurable : Bool := false/' $PINS && grep -q 'attestDurable : Bool := false' $PINS" \
+  failed_attest_refused
+
+pins_control "formal: restart forgets consumed introductions" \
+  "sed -i 's/| .restart => { k with sessions := \[\], halts := \[\] }/| .restart => { k with consumed := [], sessions := [], halts := [] }/' $PINS && grep -q '| .restart => { k with consumed := \[\]' $PINS" \
+  consumed_step repeat_attest_refused bounded
 
 # A missing toolchain is a red gate, not a skip.
 expected=$((expected + 1))

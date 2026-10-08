@@ -395,7 +395,8 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       the delivery card carries the application's sentence with its name, explains Delivered's
       coverage and says "It does not mean <app> works" with that name substituted; the declaration
       states its outbound destinations and its always-on service, and the trust display lists
-      its model provider (`TRU-E12`). Where those destinations are declared as
+      its model provider (`TRU-E12`). Recovery of these facts is covered by `CNF-84` under
+      `STA-16`. Where those destinations are declared as
       `listeners.outbound` restrictions, the delivery check finds each in place: verified by
       removing one declared restriction and confirming the check reports the difference as a
       finding. No harness credential is on that machine but the attest sender key's metadata copy
@@ -694,7 +695,19 @@ Not pass/fail. Required to be recorded.
       as unapproved, and a machine exported with
       an unpinned installation and an attested pin restores both. The sheet has `STA-16`'s placement metadata, pin routes and
       machine states; values, digests, scan keys and lengths are absent, and unsupported
-      payload versions are refused rather than read as having no placements. An imported local-store backup's machines are shown unchecked, their findings unknown, and refuse a placement until a re-check, as a sheet Restore's do. A stale sheet or imported store cannot allocate
+      payload versions, explicitly including versions 1 and 2, are refused rather than read as
+      having no placements or applications. In one recovery case export and restore machines
+      with and without applications, including an application without its own model: inspect
+      the explicit `applications: []` and `model_provider: "no_model"` representations of
+      `docs/design/credential-format-v1.md`, and each named provider object. Refuse before
+      binding a missing applications field, missing required member, duplicate application
+      name (even with different providers), duplicate object member, or malformed application
+      or provider data. Confirm the restored application/provider list appears beside placement
+      data in the trust display as of export until re-check, without a new approval or any
+      implication that it is current. The no-model marker and empty list never mean unapproved.
+      An imported local-store backup's machines are shown unchecked, their findings unknown,
+      and refuse a placement until a re-check, as a sheet Restore's do. A stale sheet or imported
+      store cannot allocate
       under the restored seed; Replace with a fresh seed restores allocation. Cloud with no
       sheet exposes destroy/recreate, never an unpinned keyed-rescue login. Missing relay
       indices are reported unrecoverable, and partial Replace never reports complete revocation

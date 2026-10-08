@@ -109,7 +109,7 @@ nonce and AAD `tau-web/sheet/v1/<id>/payload`; only the wrapped key persists. Th
 envelope adds `payload_nonce` and `payload` to the fields above. Never reuse a local-store
 key or envelope as a sheet. Local and sheet purposes cannot be interchanged.
 
-The authenticated UTF-8 JSON payload contains `version: 2`, `derivation_version: 1`,
+The authenticated UTF-8 JSON payload contains `version: 3`, `derivation_version: 1`,
 `seed_id`, `exported_at` (UTC RFC 3339), `journal_sequence`, `next_indices` (machine/pass/
 handoff), `allocations` (including consumed tombstones), `host_pins`, `exposure_ledger`,
 `placements: [{machine_index, name, path, placed_at}]`, `machine_states`, and optional
@@ -121,23 +121,42 @@ have no vendor resource ID, but retains its index. No seed or derived private ke
 Each `host_pins` entry names the host-key route that produced it: `retrieve` (`CHN-R1`),
 `attest` (`CHN-R5`) or `jump_host` (`CHN-R6`). Whether the installation carries an artifact
 pin is a different fact, carried per machine below. Each `machine_states` entry is
-`{machine_index, declaration, class, access_model, installation, weaker_modes}`: the journaled
+`{machine_index, declaration, class, access_model, installation, weaker_modes, applications}`: the journaled
 declaration in force as a delivery-declaration v1 document, the class `ARC-36a` records, the
 access model of `ARC-27`, `installation` as `"pinned"`, `"unpinned"` (`ARC-25`) or
 `"not_installed"` before any installation, and the labels of the acceptable weaker modes standing
 on the machine's bound set (`SEC-14`). A field not yet approved at export carries the explicit
-marker `"unapproved"`, never an absent field; `installation` is recorded, not approved. Every
-live machine other than a jump host has exactly one entry, bound to a session or not; an
+marker `"unapproved"`, never an absent field; `installation` and `applications` are recorded,
+not approved. Every live machine other than a jump host has exactly one entry, bound to a session or not; an
 allocation marked `jump_host: true` (`STA-22b`) has none. Reject a missing, duplicate or
 malformed entry and an entry for a jump host; never interpret a missing entry or an
 `"unapproved"` field as a default.
+
+`applications` is a required JSON array of objects, each with exactly the required members
+`name` and `model_provider`. `name` is a nonempty string without leading or trailing Unicode
+whitespace. `model_provider` is either an object with exactly `name`, a nonempty string with
+no leading or trailing Unicode whitespace naming the party in the trust display, or the exact
+string `"no_model"` for an application without its own model. No applications is exactly `[]`.
+For example, `[{"name":"Application A","model_provider":{"name":"Provider A"}},
+{"name":"Application B","model_provider":"no_model"}]` records both cases. Application names
+are unique within a machine's array by exact Unicode string equality, with no normalization
+or case folding; the exporter uses the same names as the machine's application records and
+trust display. Reject duplicate application names even when their providers differ. Reject
+absent fields or required members, duplicate JSON object member names in machine-state
+entries or their application/provider objects, extra application/provider members, nulls,
+wrong types, empty or whitespace-padded names, and any other marker, including `"unapproved"`, before binding.
+Neither absence nor malformed data is interpreted as `[]` or `"no_model"`. These records
+contain only application and provider names, never secret-derived data. Export and restored
+display are governed by `STA-16`.
+
 Each placement associates a machine-family allocation with its nonempty name, recorded path
 and UTC RFC 3339 placement time. Reject missing or ambiguous machine associations, duplicate
 placement records and malformed fields before binding. No placement value, digest, scan key,
-byte length or other value-derived reference is included. Payload version 1 and unknown
-payload versions are unsupported: refuse them explicitly, never interpret a missing placement
-list as empty. This payload-version change does not change the v1 envelope, derivation paths,
-algorithms or known-answer vectors.
+byte length or other value-derived reference is included. Payload versions 1 and 2 and unknown
+payload versions are unsupported: refuse them explicitly, with no compatibility migration
+and no interpretation of missing placement or application lists as empty. This payload-version
+change does not change the v1 envelope, derivation paths,
+algorithms, AAD or known-answer vectors.
 Reject unknown versions, duplicate identities/indices and malformed fields before binding
 anything; imported data never creates a binding without vendor reconciliation and an
 operator act. Never merge two counters and call the result proof that a backup is current.

@@ -267,11 +267,14 @@ are passed as arguments, never interpolated as shell syntax. The model proposes 
 not the measuring procedure.
 
 Where a host-key pin may come from is `TauWeb.Pins.Source` and what each source may pin is
-`TauWeb.Pins.admits` (ADR-0032), with `TauWeb.Pins.installed_pin_from_job` over every trace and
-`TauWeb.Pins.installed_pin_from_model_text_refused` and
-`TauWeb.Pins.installed_pin_from_model_text_admitted` its pair. The companion carries the sources
-the dedicated path walks. A pin taken by attest (`CHN-R5`), stage 1's route, is not among them
-yet (T40), and a pin taken at a jump-host first contact (`CHN-R6`) is not among them. Only
+`TauWeb.Pins.admits` (ADR-0032), with `TauWeb.Pins.installed_pin_from_authorized_source` over
+every trace. The model-text trap remains `TauWeb.Pins.installed_pin_from_model_text_refused`
+and `TauWeb.Pins.installed_pin_from_model_text_admitted`. The companion carries the dedicated
+path and attest (`CHN-R5`), including the observed author's match to that machine's planted
+sender and durable single use (`CHN-5`): `TauWeb.Pins.no_later_attest` preserves refusal across
+later traces, including restart, under its stated journal assumptions. A valid introduction
+admits a matching installed-system connection (`TauWeb.Pins.attest_admits_and_connects`);
+a pin taken at a jump-host first contact (`CHN-R6`) is not among them (T45). Only
 this pin-source clause of `ARC-43` is formalized; the rules of `place_secret` and
 `digest_secret` below are not, and this text is their home (ADR-0032, "Authority is per
 clause").

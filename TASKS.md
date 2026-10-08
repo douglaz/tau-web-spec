@@ -62,8 +62,10 @@ gated on it.
 - [ ] **T40 — Stage 0: attest on a real first boot** (`OPN-3`). Cloud-init timing, the static
       first-boot tool, and the browser's window against a measured slowest boot (`CHN-6`). It
       is stage 1's first contact, and a window that closes now ends in a recreate (`CHN-R5`).
-      The formal companion owes an attest pin source beside its dedicated-path ones (`ARC-43`,
-      `SEC-11`); until it lands, `TauWeb.Pins.check` covers the dedicated path only.
+      **Formal attest-source work done (2026-10-08):** `ARC-43` and `SEC-11`, with author
+      matching, durable single use across restart, checked admission/refusal traces and emitted
+      witnesses. **Empirical first-boot work remains open:** the cloud-init timing, first-boot
+      tool and measured browser window above; no live boot result is claimed.
 - [ ] **T41 — Stage 0: Omarchy's server edition, or plain Arch** (`OPN-25`). And the
       publisher's choice that follows from it: run stage 1 under the unpinned label, or add an
       Arch pin to the bundle first (`ARC-24`, `ARC-25`).
@@ -81,8 +83,9 @@ gated on it.
       the recovery, scan and report-only evidence; specification edits exercise no harness.
 - [ ] **T48 — Stage 1: build placed-secret scanning and recovery re-arm** (`OPN-28`).
       Implement `SEC-5` row 23 and scan semantics, `ARC-43`'s jobs and fallback, and `STA-16`'s
-      sheet metadata; demonstrate `CNF-95` with `CNF-42` and `CNF-84`. The design permits
-      construction now. Still open: the numeric minimum accepted secret byte length, which
+      sheet metadata, including application/provider facts under the credential format's
+      payload v3 and explicit refusal of payloads v1/v2; demonstrate `CNF-95` with `CNF-42` and
+      `CNF-84`. The design permits construction now. Still open: the numeric minimum accepted secret byte length, which
       stage 1's completion requires (`07-conformance.md`); any
       further changed-file detection policy after loss of the old reference; and compatibility
       policy beyond the adopted sheet-payload version bump, should it become necessary. No
@@ -113,7 +116,8 @@ gated on it.
       (`ARC-22`).
 - [ ] **T46 — What the sibling repositories now owe.** Recorded here; none of them was edited.
       **tau-web-rust:** at its next spec pin bump, implement as tests the new and restated
-      cases owned by `07-conformance.md`: `CNF-91`–`CNF-108`, with `CNF-16` and `CNF-42`, and
+      cases owned by `07-conformance.md`: `CNF-91`–`CNF-108`, with `CNF-16`, `CNF-42` and
+      `CNF-84` (including `STA-16` application/provider recovery and old-payload refusal), and
       the untyped-scope restatements of `CNF-12`, `CNF-14` and `CNF-27`.
       This prior cross-stage handoff debt remains open alongside T43's stage-1 recovery,
       scan and report-only evidence. The applicability table in `07-conformance.md` still
@@ -305,7 +309,7 @@ gated on it.
       is held per is `TauWeb.Pins.Per`, a boot for rescue and the machine for the installed
       system, and where it may come from is `TauWeb.Pins.Source`, paired with what each source
       may pin by `TauWeb.Pins.admits`. The four theorems over every trace are
-      `TauWeb.Pins.rescue_pin_per_boot`, `TauWeb.Pins.installed_pin_from_job`,
+      `TauWeb.Pins.rescue_pin_per_boot`, `TauWeb.Pins.installed_pin_from_authorized_source`,
       `TauWeb.Pins.no_rescue_session_before_fill` and
       `TauWeb.Pins.halt_on_expected_pin_confirms`, the last with
       `TauWeb.Pins.mismatch_not_the_reset` beside it over every state: the halt the reset

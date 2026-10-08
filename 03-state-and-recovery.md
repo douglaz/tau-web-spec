@@ -441,8 +441,8 @@ exposure ledger, placement metadata
 (`machine_index`, name, path and placement time), each live machine's **machine state as
 approved** — its declaration in force (`ARC-39`), its class (`ARC-36a`), its access model
 (`ARC-27`) and the acceptable weaker modes standing on its bound set (`SEC-14`) — with whether
-its installation is pinned (`ARC-25`) beside it, and, on the procured path, the **inference account
-credential**, wrapped under a passphrase the operator chooses. A jump host carries no machine
+its installation is pinned (`ARC-25`) and its installed applications beside it, and, on the
+procured path, the **inference account credential**, wrapped under a passphrase the operator chooses. A jump host carries no machine
 state, and a part not yet approved when an earlier sheet is exported is marked unapproved there.
 None of the machine state is secret, and all of it exists by the export `STA-15` requires. **It no longer carries the SSH client keys**, which re-derive from the seed
 (`STA-22`). The export screen MUST say what the sheet can do in the wrong hands with the
@@ -450,7 +450,15 @@ passphrase: **spend the remaining inference balance**. Reaching a machine needs 
 the seed is never in the sheet. Placement records carry no value, digest, scan key, byte
 length or other value-derived reference. Their versioned wire shape and association checks
 live in the credential format; incompatible sheet payloads MUST be refused, never imported
-as though no placements existed.
+as though no placements or applications existed.
+
+Every machine-state entry MUST record the operator's installed applications by name and, for
+each, its model provider: the party shown beside that application in the trust display (`TRU-E12`).
+A machine without applications has an explicit empty list; an application without a model of
+its own has an explicit no-model marker in place of a provider. Neither is an absent field.
+Applications and providers are recorded facts, not approved state, and never use the
+unapproved marker. The credential format owns their wire shape and validation; missing,
+duplicate or malformed application data MUST be refused before binding.
 
 **A restored sheet is knowledge as of export.** The placement inventory and each machine's state
 as approved — declaration, class, access model and the standing weaker modes — are restored as
@@ -458,8 +466,11 @@ the sheet holds them and MUST be shown as **"unknown since export"** after store
 qualification MUST be restated at every later irreversible act until the operator explicitly
 reapproves the relevant restored state. Whether an installation is pinned, or not yet made,
 and each pin's route are restored and shown beside it, as of export like the rest; they record
-what happened, not something the operator approves. They are the history modes of `SEC-14`, and
-a Restore does not reapprove them — only a reinstall, a new installation, is accepted afresh; the restored conduct modes were the exporting session's, which ended, and a
+what happened, not something the operator approves. Restore also brings back each machine's
+application/provider list beside its placement data in the trust display, explicitly labelled
+**"as of export"** until a re-check; it MUST NOT imply current installation or provider state
+before that check. This list requires no reapproval. Installation pin status and pin routes
+are the history modes of `SEC-14`, and a Restore does not reapprove them — only a reinstall, a new installation, is accepted afresh; the restored conduct modes were the exporting session's, which ended, and a
 re-entering session accepts its own rather than reapproving them, while what they left live
 stays "unknown since export". The sheet carries no check result and no
 finding, so after store loss each maintained machine is shown as **unchecked**, its findings
