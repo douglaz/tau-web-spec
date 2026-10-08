@@ -56,7 +56,8 @@ gated on it.
       publisher fills it.
 - [ ] **T39 — Stage 0: probe LNVPS**. Exercise the owning list in `OPN-24`.
       Record it under `docs/findings/`. If it fails, stage 1 and only stage 1 runs on Hetzner
-      Cloud with attest and a card account (`STG-21`). Still to decide: which answers count as
+      Cloud with attest and a card account (`STG-21`), which holds only if Hetzner Cloud offers
+      the stage's distribution as an image at creation: check that too. Still to decide: which answers count as
       failing, for stage 1's target and, separately, for stage 2's jump vendor (`CHN-R6`).
 - [ ] **T40 — Stage 0: attest on a real first boot** (`OPN-3`). Cloud-init timing, the static
       first-boot tool, and the browser's window against a measured slowest boot (`CHN-6`). It

@@ -59,7 +59,10 @@ journal, the stage needs:
 **If LNVPS fails its probe** (`OPN-24`), stage 1 — and no later stage — runs on Hetzner Cloud
 with attest and a card account. That account is billed by card, with no per-machine invoice
 for the operator's wallet, so the invoice relay above and `CNF-104` have nothing to carry there
-and wait for a vendor that issues one.
+and wait for a vendor that issues one. The fallback holds only where Hetzner Cloud offers the
+stage's distribution as an image at creation, so attest pins its first boot: a rescue boot that
+writes an image publishes no host key (`CHN-R2`) and is not a pinned route (`CHN-R4`). Whether
+it does is checked with the probe (T39); if neither vendor qualifies, stage 1 waits.
 
 **STG-22 Stage 2 is a vendor with no adapter, where the browser can reach its API.** Such a
 vendor is reached through an untyped vendor scope on `SEC-4`'s conditions, and no further than
