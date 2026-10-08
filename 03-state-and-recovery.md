@@ -453,12 +453,14 @@ live in the credential format; incompatible sheet payloads MUST be refused, neve
 as though no placements or applications existed.
 
 Every machine-state entry MUST record the operator's installed applications by name and, for
-each, its model provider: the party shown beside that application in the trust display (`TRU-E12`).
+each, its model provider: the party `TRU-E12` names, recorded whether or not that
+application's secret is placed. What the trust display lists is `TRU-E12`'s own rule.
 A machine without applications has an explicit empty list; an application without a model of
 its own has an explicit no-model marker in place of a provider. Neither is an absent field.
 Applications and providers are recorded facts, not approved state, and never use the
-unapproved marker. The credential format owns their wire shape and validation; missing,
-duplicate or malformed application data MUST be refused before binding.
+unapproved marker. The credential format owns their wire shape and validation; missing or
+malformed application data, and a duplicate JSON member name, MUST be refused before binding.
+A repeated application name on one machine is permitted.
 
 **A restored sheet is knowledge as of export.** The placement inventory and each machine's state
 as approved — declaration, class, access model and the standing weaker modes — are restored as

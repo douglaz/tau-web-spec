@@ -700,9 +700,10 @@ Not pass/fail. Required to be recorded.
       with and without applications, including an application without its own model: inspect
       the explicit `applications: []` and `model_provider: "no_model"` representations of
       `docs/design/credential-format-v1.md`, and each named provider object. Refuse before
-      binding a missing applications field, missing required member, duplicate application
-      name (even with different providers), duplicate object member, or malformed application
-      or provider data. Confirm the restored application/provider list appears beside placement
+      binding a missing applications field, missing required member, duplicate object member,
+      or malformed application or provider data; a machine exported with two applications of
+      the same name, with the same or different providers, restores both. Confirm the restored
+      application/provider list appears beside placement
       data in the trust display as of export until re-check, without a new approval or any
       implication that it is current. The no-model marker and empty list never mean unapproved.
       An imported local-store backup's machines are shown unchecked, their findings unknown,

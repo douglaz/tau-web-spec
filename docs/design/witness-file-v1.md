@@ -31,7 +31,7 @@ Both arrays hold traces of one shape:
 | Member | What it holds |
 |---|---|
 | `declarations` | The `TauWeb.*` theorems the trace came from, resolvable against the `lake exe gate` index. Every name the file carries — here, in `bound.declaration`, in `pair.with` — is one the emitter checked against the tags (`Witnesses.lean`). |
-| `assumptions` | Each guard parameter of the module by name, with the value the trace runs under, and each hypothesis the module takes rather than owns. Allocation has one guard, `restoredAllocatesNone`; declaration has one, `emptyMeansPerField`; relay has one, `dialRequiresAuthAccepted`, beside `special`, `ownAddress` and `resolve` — the value `CHN-16a`'s pinned tables and the relay's resolver take for the trace, since the module quantifies over them. Dispatch has four, `resourceKey`, `durableBeforeApply`, `endedBelowSucceeded` and `dispositionBindsContinuation`, and nothing else: what the far side actually did is external state, which a witness never carries. Pins carries `sourceAdmitsPin`, `attestAuthorMatches`, `attestSingleUse` and `attestDurable`, with symbolic sender associations, seal-author observations, atomic durable appends and open introduction windows as stated assumptions. |
+| `assumptions` | Each guard parameter of the module by name, with the value the trace runs under, and each hypothesis the module takes rather than owns. Allocation has one guard, `restoredAllocatesNone`; declaration has one, `emptyMeansPerField`; relay has one, `dialRequiresAuthAccepted`, beside `special`, `ownAddress` and `resolve` — the value `CHN-16a`'s pinned tables and the relay's resolver take for the trace, since the module quantifies over them. Dispatch has four, `resourceKey`, `durableBeforeApply`, `endedBelowSucceeded` and `dispositionBindsContinuation`, and nothing else: what the far side actually did is external state, which a witness never carries. Pins carries `sourceAdmitsPin`, `attestAuthorMatches`, `attestSingleUse`, `attestDurable` and `attestFirstContact`, with symbolic sender associations, seal-author observations, atomic durable appends and open introduction windows as stated assumptions. |
 | `pair` | Present on a refused-and-admitted pair: `side`, `refused` or `admitted`, and `with`, the other side's declaration. What the comparison expects of each side is ADR-0032's. |
 | `start` | The state before the first event, in the projection below. Allocation: the `journal` — most traces start from the fresh seed; the exhaustion witness starts one below the index limit. Declaration: the `declaration` and the `machine` the check reads, and the empty `record`. Relay: the `challenge` as an ordinal, the `destination` the path parsed to, what the pipeline `classified` it as, the `pass` the operator's key holds, and the opened `connection`. Dispatch: the `knowledge` below, which every trace starts with the harness's associations in and nothing else. Pins: the `knowledge` below — nothing known for the witnesses, and `bound.start` for the enumeration. |
 | `steps` | One object per event, in order: `event`, the outcome members for that event kind, and the projection after the step — `journal` for allocation, `record` for declaration, `connection` for relay, `knowledge` for dispatch and for pins. |
@@ -192,7 +192,7 @@ which set was pinned, from which source, and which one a handshake presented.
 |---|---|
 | `pins` | The pins journaled, oldest first: the `entry`, what the pin is held `per` — `boot`, with the `boot` beside it, or `machine` — the `keys` and the `source` that admitted it; attest pins also carry the observed `author`. |
 | `consumed_introductions` | Machine entries whose introductions have been accepted, in journal order; retained across restart. Pins and consumption are appended together before any connection can use them. |
-| `planted_senders` | For each entry in the knowledge projection, its independently configured sender ordinal. The symbolic association is fixed by the assumptions, not supplied by the attest event; no private keys or key bytes are serialized. |
+| `planted_senders` | For every machine the trace names — each entry in the knowledge projection and each entry any event of the trace names, listed in `start` and at every step — its independently configured sender ordinal, so that a replayer can judge an attest author at the step the event arrives. The symbolic association is fixed by the assumptions, not supplied by the attest event; no private keys or key bytes are serialized. |
 | `snapshot` | Per entry, what `/rescue/last` showed when the harness read it, `null` for the empty field — the one journaled before a reset, which the confirmation is read against, and which a reading taken while that reset is outstanding does not move. Absent for an entry whose field was never read. |
 | `boot` | Per entry, the rescue boot the harness counts: `0` before the first reset into rescue, and the next one for each dispatched. Never the vendor's `boot_id`. |
 | `awaiting`, `confirmed` | The resets dispatched whose confirmation is outstanding, and those confirmed, each as the `entry` and the system it resets `into`. An outstanding one also carries what it `expects`: the pin the intent named as its expected next pin (`STA-20b`), `null` for a reset into rescue, whose next set nothing knows yet. |
@@ -205,9 +205,15 @@ sender; the file never supplies a prevalidated introduction. A failed append rec
 pins nor consumption under production parameters, so the next valid introduction can still
 succeed. The assumption of an atomic durable append and replay is a boundary of the proof,
 not evidence about real storage or cryptography. Restart preserves those journaled facts,
-including refusal of a second introduction; window timing is outside this file.
+including refusal of a second introduction; window timing is outside this file. Attest is a
+first contact only: an introduction for a machine already holding an installed-system pin
+from any source is refused, journals nothing and consumes nothing (`ARC-43`), and a connection
+presenting the introduction's set is checked against the pin the machine holds.
 
 The bounded alphabet and event limit are emitted from the companion's declarations. Longer
 named traces additionally exercise rescue refusal, wrong-author then valid admission, repeated
-introduction across restart, failed-append then valid admission and independent machines. Each
-new guard's refused/admitted pair changes only that guard, as the assumptions record.
+introduction across restart, failed-append then valid admission, independent machines and an
+introduction after a job pin. Each
+new guard's refused/admitted pair changes only that guard, as the assumptions record; the
+single-use pair runs with first contact only off, so that the consumed introduction is what
+its refused side shows.

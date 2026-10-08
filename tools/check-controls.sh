@@ -78,6 +78,8 @@ passes() {
 #   The formal gate's shape differs: no labelled finding lines, one FAIL. The gate must go
 #   red naming TOKEN, and must not name ABSENT (the neighbour the mutation leaves within
 #   policy). Runs on the scratch copy's own .lake, so the rebuild is incremental.
+FORMAL=tools/check_formal.sh
+
 formal_control() {
   local name="$1" mutate="$2" token="$3" absent="${4:-}"
   expected=$((expected + 1))
@@ -88,7 +90,7 @@ formal_control() {
     echo "::error::$name: the mutation did not apply"; fail=1; rm -rf "$tmp"; return
   fi
   local out rc
-  out="$(cd "$tmp/repo" && bash tools/check_formal.sh 2>&1)"
+  out="$(cd "$tmp/repo" && bash "$FORMAL" 2>&1)"
   rc=$?
   rm -rf "$tmp"
   if [ "$rc" -eq 0 ]; then
@@ -103,7 +105,6 @@ formal_control() {
   fi
 }
 
-FORMAL=tools/check_formal.sh
 ALLOC=tools/formal/TauWeb/Allocation.lean
 
 # `lake build` accepts a sorry with a warning; only the gate's axiom walk sees sorryAx.
@@ -285,7 +286,7 @@ pins_control() {
   if ! (cd "$tmp/repo" && eval "$mutate"); then
     echo "::error::$name: the mutation did not apply"; fail=1; rm -rf "$tmp"; return
   fi
-  (cd "$tmp/repo" && bash tools/check_formal.sh) > "$tmp/output" 2>&1
+  (cd "$tmp/repo" && bash "$FORMAL") > "$tmp/output" 2>&1
   rc=$?
   if [ "$rc" -eq 0 ]; then
     echo "::error::$name: the formal gate passed"; fail=1
@@ -338,7 +339,8 @@ pins_control "formal: attest admits a forbidden rescue pin" \
 pins_control "formal: valid attest admission disabled" \
   "sed -i 's/| .attest author, .machine => !p.attestAuthorMatches || author == plantedSender m/| .attest author, .machine => false/' $PINS && grep -q '| .attest author, .machine => false' $PINS" \
   attest_admits_and_connects wrong_author_admitted wrong_author_then_valid repeat_attest_refused \
-  repeat_attest_admitted attest_per_machine failed_attest_admitted failed_append_then_valid
+  repeat_attest_admitted attest_per_machine failed_attest_admitted failed_append_then_valid \
+  attest_after_job_pin_admitted
 
 pins_control "formal: attest author matching disabled" \
   "sed -i 's/attestAuthorMatches : Bool := true/attestAuthorMatches : Bool := false/' $PINS && grep -q 'attestAuthorMatches : Bool := false' $PINS" \
@@ -346,11 +348,26 @@ pins_control "formal: attest author matching disabled" \
 
 pins_control "formal: attest single use disabled" \
   "sed -i 's/attestSingleUse : Bool := true/attestSingleUse : Bool := false/' $PINS && grep -q 'attestSingleUse : Bool := false' $PINS" \
-  repeat_attest_refused bounded
+  repeat_attest_refused
 
 pins_control "formal: attest admits before a durable append" \
   "sed -i 's/attestDurable : Bool := true/attestDurable : Bool := false/' $PINS && grep -q 'attestDurable : Bool := false' $PINS" \
   failed_attest_refused
+
+# Attest is a first contact only (ARC-43): with the guard removed an introduction replaces a job
+# pin, which its refused witness and the bounded property both see.
+pins_control "formal: attest after an installed pin" \
+  "sed -i 's/attestFirstContact : Bool := true/attestFirstContact : Bool := false/' $PINS && grep -q 'attestFirstContact : Bool := false' $PINS" \
+  attest_after_job_pin_refused bounded
+
+# A pin journaled without its consumption recorded: single use then reads nothing, and the bounded
+# property's own clause -- an attest pin has a consumed introduction -- is what turns red beside
+# the witnesses that assert consumption.
+pins_control "formal: attest journaled without consumption" \
+  "sed -i 's/consumed := if pin.source.isAttest then pin.entry :: k.consumed else k.consumed/consumed := if pin.source.isAttest \&\& false then pin.entry :: k.consumed else k.consumed/' $PINS && grep -q 'isAttest && false then' $PINS" \
+  attest_acceptance_consumes attest_admits_and_connects wrong_author_admitted wrong_author_then_valid \
+  repeat_attest_refused attest_per_machine failed_attest_admitted failed_append_then_valid \
+  attest_after_job_pin_admitted bounded
 
 pins_control "formal: restart forgets consumed introductions" \
   "sed -i 's/| .restart => { k with sessions := \[\], halts := \[\] }/| .restart => { k with consumed := [], sessions := [], halts := [] }/' $PINS && grep -q '| .restart => { k with consumed := \[\]' $PINS" \

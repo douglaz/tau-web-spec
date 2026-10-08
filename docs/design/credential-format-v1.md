@@ -133,15 +133,17 @@ malformed entry and an entry for a jump host; never interpret a missing entry or
 `"unapproved"` field as a default.
 
 `applications` is a required JSON array of objects, each with exactly the required members
-`name` and `model_provider`. `name` is a nonempty string without leading or trailing Unicode
-whitespace. `model_provider` is either an object with exactly `name`, a nonempty string with
-no leading or trailing Unicode whitespace naming the party in the trust display, or the exact
+`name` and `model_provider`. `name` is a nonempty string without leading or trailing
+whitespace, where whitespace is a character with Unicode's `White_Space` property.
+`model_provider` is either an object with exactly `name`, a nonempty string under the same
+whitespace rule naming the application's model provider as the machine's application records
+hold it (`TRU-E12`), or the exact
 string `"no_model"` for an application without its own model. No applications is exactly `[]`.
 For example, `[{"name":"Application A","model_provider":{"name":"Provider A"}},
-{"name":"Application B","model_provider":"no_model"}]` records both cases. Application names
-are unique within a machine's array by exact Unicode string equality, with no normalization
-or case folding; the exporter uses the same names as the machine's application records and
-trust display. Reject duplicate application names even when their providers differ. Reject
+{"name":"Application B","model_provider":"no_model"}]` records both cases. The exporter uses
+the application and provider names as the machine's application records hold them. A repeated
+application name on one machine, with the same or different providers, is permitted and is not
+refused. Reject
 absent fields or required members, duplicate JSON object member names in machine-state
 entries or their application/provider objects, extra application/provider members, nulls,
 wrong types, empty or whitespace-padded names, and any other marker, including `"unapproved"`, before binding.

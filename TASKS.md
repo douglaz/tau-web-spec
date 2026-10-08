@@ -108,8 +108,9 @@ gated on it.
       a derived one.
 - [ ] **T45 — Stage 2: the jump host and the untyped vendor scope** (`STG-22`, `CHN-R6`,
       `SEC-4`). Includes one thing the rules name and nothing yet carries: a jump-host source
-      for a pin in the formal companion (`ARC-43` says "a pin taken at a jump-host first
-      contact (`CHN-R6`) is not among them"). The placed secret's digest key is not here: it is
+      for a pin in the formal companion (`ARC-43` says "A pin taken at a jump-host first
+      contact (`CHN-R6`) is not among `TauWeb.Pins.Source`'s cases"). The placed secret's
+      digest key is not here: it is
       stage 1's (T48). Also owed before an untyped vendor scope is enabled: how the target's
       address is taken from a response no adapter reads without passing through model text
       (`CHN-R6`), and how an unfinished machine at a vendor with no typed destroy is abandoned
@@ -308,17 +309,18 @@ gated on it.
       confirmation predicate). Landed 2026-09-20 in `tools/formal/TauWeb/Pins.lean`: what a pin
       is held per is `TauWeb.Pins.Per`, a boot for rescue and the machine for the installed
       system, and where it may come from is `TauWeb.Pins.Source`, paired with what each source
-      may pin by `TauWeb.Pins.admits`. The four theorems over every trace are
-      `TauWeb.Pins.rescue_pin_per_boot`, `TauWeb.Pins.installed_pin_from_authorized_source`,
+      may pin by `TauWeb.Pins.admits`. Over every trace: `TauWeb.Pins.rescue_pin_per_boot`,
+      `TauWeb.Pins.installed_pin_from_authorized_source`,
       `TauWeb.Pins.no_rescue_session_before_fill` and
       `TauWeb.Pins.halt_on_expected_pin_confirms`, the last with
       `TauWeb.Pins.mismatch_not_the_reset` beside it over every state: the halt the reset
-      explains and the error are two answers and never one. The one parameter is the source
-      distinction, with `TauWeb.Pins.installed_pin_from_model_text_refused` and
-      `TauWeb.Pins.installed_pin_from_model_text_admitted` its pair.
-      `docs/design/pins-witnesses-v1.json` is its file; the controls collapse the source
-      distinction, which must red on the model-text witness and on the bounded property and
-      nowhere else, and add a scope with no system.
+      explains and the error are two answers and never one. The parameters are the fields of
+      `TauWeb.Pins.Params`, each with a refused-and-admitted witness pair; the source
+      distinction's is `TauWeb.Pins.installed_pin_from_model_text_refused` and
+      `TauWeb.Pins.installed_pin_from_model_text_admitted`.
+      `docs/design/pins-witnesses-v1.json` is its file; the controls, and each one's exact red
+      set, are the `pins_control` calls in `tools/check-controls.sh`, beside the one that adds
+      a source with nothing it may pin.
 - [x] **T26 — Measure `STA-23` unlock latency on the first-stage phone.**
       `prototypes/unlock-latency/index.html` builds the v1 envelope and times one unlock.
       Done 2026-09-11: 58 ms at 600,000 iterations on the phone, 57 ms on the desktop

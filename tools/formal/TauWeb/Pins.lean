@@ -9,8 +9,10 @@ held without saying which it is, and the boot case carries the boot that publish
 **A pin's admission source is a type.** `Source` distinguishes the vendor's `/rescue/last`,
 the harness's `ready_to_reset` output, the author observed on an attest seal, and model text.
 `admits` pairs sources with what they may pin and checks an attest author against the sender
-planted for that machine. `journal` enforces single use and durable acceptance before use.
-Each guard has a refused-and-admitted witness pair; model text remains the source guard's pair.
+planted for that machine. `journal` enforces single use, durable acceptance before use, and
+first contact only: an introduction for a machine already holding an installed-system pin from
+any source is refused. Each guard has a refused-and-admitted witness pair; model text remains
+the source guard's pair.
 
 **Assumptions, not cryptographic or storage proofs.** Sender and host-key sets are opaque
 ordinals. `plantedSender` represents the browser's fixed per-machine sender association, not
@@ -118,12 +120,17 @@ structure Pin where
 /-- The rule `ARC-43` makes, as one field, so that removing it is a one-token change. With it the
 source decides what it may pin; without it any source may, which is a host key pinned from what a
 model said. Its pair is `installed_pin_from_model_text_refused` and
-`installed_pin_from_model_text_admitted`. -/
+`installed_pin_from_model_text_admitted`. The attest guards follow: the author must be the planted
+sender, the introduction is used once, acceptance is durable before use, and attest is a first
+contact only — `attestFirstContact` refuses an introduction for a machine that already holds an
+installed-system pin from any source, so an attest never replaces a job pin. Each has its own
+pair. -/
 @[req "ARC-43"] structure Params where
   sourceAdmitsPin : Bool
   attestAuthorMatches : Bool := true
   attestSingleUse : Bool := true
   attestDurable : Bool := true
+  attestFirstContact : Bool := true
   deriving DecidableEq, Repr
 
 /-- The rule as it stands. -/
@@ -299,12 +306,15 @@ inductive Event
   | connect (entry : Entry) (system : System) (keys : Keys)
   deriving DecidableEq, Repr
 
-/-- The one place a pin enters the journal, so that the source decides in one place. -/
+/-- The one place a pin enters the journal, so that the source decides in one place. An attest
+pin is journaled only with its introduction unconsumed, its append durable, and no
+installed-system pin already held for that machine. -/
 @[req "ARC-43"] def journal (p : Params) (k : Knowledge) (pin : Pin)
     (durable : Bool := true) : Knowledge :=
   if admits p pin.source pin.per pin.entry &&
       (!pin.source.isAttest || ((!p.attestSingleUse || !k.consumed.contains pin.entry) &&
-        (!p.attestDurable || durable))) then
+        (!p.attestDurable || durable) &&
+        (!p.attestFirstContact || (pinAt k pin.entry .machine).isNone))) then
     { k with pins := pin :: k.pins,
              consumed := if pin.source.isAttest then pin.entry :: k.consumed else k.consumed }
   else k
@@ -855,8 +865,18 @@ def failedAttestEvents : List Event :=
 
 def failedThenValidEvents : List Event := failedAttestEvents ++ [.restart] ++ attestEvents
 
+/-- A job pin, then an introduction for the same machine under the planted author with another
+set, and a connection presenting the introduction's set. -/
+def afterJobPinEvents : List Event :=
+  [.readyToReset entryA installedKeys,
+   .attest entryA .machine claimedKeys (plantedSender entryA) true,
+   .connect entryA .installed claimedKeys]
+
 def anyAuthor : Params := { current with attestAuthorMatches := false }
-def repeatAttest : Params := { current with attestSingleUse := false }
+/-- First contact only removed: an attest may follow an installed pin. Single use stands, so
+this is where single use alone is seen to refuse a repeat. -/
+def laterAttest : Params := { current with attestFirstContact := false }
+def repeatAttest : Params := { laterAttest with attestSingleUse := false }
 def volatileAttest : Params := { current with attestDurable := false }
 
 @[req "CHN-R5"] theorem attest_admits_and_connects :
@@ -885,8 +905,10 @@ def volatileAttest : Params := { current with attestDurable := false }
     k.pins = [] ∧ k.consumed = [] ∧ k.sessions = [] ∧
     k.halts.map (·.reason) = [.noPin] := by decide +kernel
 
+/-- Single use alone, with first contact only removed so that the consumed introduction is what
+refuses the repeat: the second introduction after restart changes nothing. -/
 @[req "CHN-5"] theorem repeat_attest_refused :
-    let k := run current init repeatAttestEvents
+    let k := run laterAttest init repeatAttestEvents
     k.pins.map (·.keys) = [installedKeys] ∧ k.consumed = [entryA] ∧
     k.sessions.map (·.keys) = [installedKeys] ∧
     k.halts.map (·.reason) = [.mismatch] := by decide +kernel
@@ -913,6 +935,22 @@ def volatileAttest : Params := { current with attestDurable := false }
     let k := run current init failedThenValidEvents
     k.pins.map (·.keys) = [installedKeys] ∧ k.consumed = [entryA] ∧
     k.sessions.map (·.keys) = [installedKeys] := by decide +kernel
+
+/-- **An attest after a job pin, refused.** Attest is a first contact only: the machine already
+holds the installed pin `ready_to_reset` journaled, so the introduction journals nothing and
+consumes nothing, and the connection presenting its set is checked against the job pin and
+halted as the error. -/
+@[req "ARC-43"] theorem attest_after_job_pin_refused :
+    let k := run current init afterJobPinEvents
+    k.pins.map (·.source) = [.readyToReset] ∧ k.consumed = [] ∧ k.sessions = [] ∧
+    k.halts.map (·.reason) = [.mismatch] := by decide +kernel
+
+/-- Without first contact only, the introduction replaces the job pin: the newest pin is the
+attest's, and the connection presenting its set is admitted against it. -/
+@[req "ARC-43"] theorem attest_after_job_pin_admitted :
+    let k := run laterAttest init afterJobPinEvents
+    k.pins.map (·.source) = [.attest (plantedSender entryA), .readyToReset] ∧
+    k.consumed = [entryA] ∧ k.sessions.map (·.keys) = [claimedKeys] := by decide +kernel
 
 /-! ## The bound -/
 
@@ -951,20 +989,30 @@ def tracesOf : Nat → List (List Event)
 /-- Every trace of at most `n` events over `alphabet`, shortest first. -/
 def tracesUpTo (n : Nat) : List (List Event) := (List.range (n + 1)).flatMap tracesOf
 
-/-- The lifecycle in the requirements' own terms, and stated without `admits`, `pinFor` or
-`check`, so that it decides what they read rather than agreeing with them: no pin the harness
-holds came from model text; attest pins name the planted sender, are per machine and have a
-consumed introduction, and no introduction is consumed twice; every session was admitted
-against a pin it holds for that machine,
-for the system it connected to and, in rescue, for the boot it was made in; and every halt
-recorded as the reset's confirmation is a reset confirmed. -/
+/-- Newest first: no attest pin has an older installed-system pin for its machine. -/
+def firstContactOnly : List Pin → Bool
+  | [] => true
+  | pin :: older =>
+    (!pin.source.isAttest || older.all fun q => !(q.entry == pin.entry && q.per == Per.machine)) &&
+      firstContactOnly older
+
+/-- The lifecycle in the requirements' own terms, and stated without `admits`, `pinFor`,
+`check` or `journal`'s consumed bookkeeping, so that it decides what they read rather than
+agreeing with them: no pin the harness holds came from model text; attest pins name the planted
+sender, are per machine and have a consumed introduction; the pins hold at most one attest pin
+per machine; an attest pin is never preceded by an installed-system pin for its machine, which
+is `ARC-43`'s first contact only; every session was admitted against a pin it holds for that
+machine, for the system it connected to and, in rescue, for the boot it was made in; and every
+halt recorded as the reset's confirmation is a reset confirmed. -/
 @[req "SEC-11"] def wellPinned (k : Knowledge) : Bool :=
   k.pins.all (fun pin => pin.source != Source.modelText &&
     match pin.source with
     | .attest author => pin.per == Per.machine && author == plantedSender pin.entry &&
         k.consumed.contains pin.entry
     | _ => true) &&
-  k.consumed.eraseDups == k.consumed &&
+  (let attested := (k.pins.filter (·.source.isAttest)).map (·.entry)
+   attested.eraseDups == attested) &&
+  firstContactOnly k.pins &&
   k.sessions.all (fun s =>
     k.pins.contains s.pin && s.pin.entry == s.entry && s.pin.keys == s.keys &&
     s.pin.per == (if s.system == System.rescue then Per.boot s.boot else Per.machine)) &&

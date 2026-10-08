@@ -429,8 +429,9 @@ session (`CHN-R6`) — and that contact is trusted, not checked against a pin, a
 presented to the operator as such. No other path may accept a key no pin was stored for.
 
 On the dedicated path and attest (`CHN-R5`), where a fingerprint is stored before contact,
-the check is `TauWeb.Pins.check` (ADR-0032). Attest admission includes author matching and
-durable single use under the companion's stated assumptions (`ARC-43`, `CHN-5`). The jump-host
+the check is `TauWeb.Pins.check` (ADR-0032). Attest admission includes author matching,
+durable single use and first contact only — no introduction for a machine already holding an
+installed-system pin — under the companion's stated assumptions (`ARC-43`, `CHN-5`). The jump-host
 contact above remains outside it (T45); `check` has
 no branch that admits a handshake with no pin. Its halts are three and not one: nothing stored to check against, the key that does not
 match, and the halt `STA-20b`'s resume rule explains.
