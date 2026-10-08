@@ -251,9 +251,9 @@ from a seal whose author is the sender key planted for that machine, used once; 
 model text.** An attest pin MUST be taken only from a seal by that machine's planted sender:
 `CHN-R5` says the browser "accepts the fingerprints only if the seal's author is the sender key
 it planted". Its introduction MUST be used once, and that is the browser's: `CHN-5` says
-"Single-use MUST be enforced by the browser, not by any relay", and the browser "accepts the
-first match, pins, and stops listening for that recipient". Every other checked value is job
-output. The artifact hash
+"Single-use MUST be enforced by the browser, not by any relay". The browser, `CHN-5` says,
+"accepts the first match, pins, and stops listening for that recipient". Every other checked
+value is job output. The artifact hash
 (`ARC-25`, `CNF-24`) and, on the dedicated path, the installed host keys (`CHN-R1`, `CNF-22`)
 are read by **harness-owned box-plane jobs**, requested by the model where permitted or
 initiated by the harness itself. These reads take their values from the job record's captured

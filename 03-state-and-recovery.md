@@ -460,7 +460,6 @@ its own has an explicit no-model marker in place of a provider. Neither is an ab
 Applications and providers are recorded facts, not approved state, and never use the
 unapproved marker. The credential format owns their wire shape and validation; missing or
 malformed application data, and a duplicate JSON member name, MUST be refused before binding.
-A repeated application name on one machine is permitted.
 
 **A restored sheet is knowledge as of export.** The placement inventory and each machine's state
 as approved — declaration, class, access model and the standing weaker modes — are restored as

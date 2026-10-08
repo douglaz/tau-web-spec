@@ -681,13 +681,14 @@ introduction. The premise can be obtained from `attest_acceptance_consumes`. -/
 def entryA : Entry := 1
 def entryB : Entry := 2
 
-/-- Four host-key sets, opaque: the set the rescue endpoint showed before the reset, the one the
-new rescue boot published, the installed system's as `ready_to_reset` read them, and a set a
-model named. -/
+/-- Five host-key sets, opaque: the set the rescue endpoint showed before the reset, the one the
+new rescue boot published, the installed system's as `ready_to_reset` read them, a set a model
+named, and a set an attest introduction carries. -/
 def oldRescueKeys : Keys := 10
 def rescueKeys : Keys := 11
 def installedKeys : Keys := 21
 def claimedKeys : Keys := 31
+def attestedKeys : Keys := 41
 
 /-! Each witness's events are one named list, so that the theorem and the emitter
 (`Witnesses.lean`) run the same trace. -/
@@ -869,8 +870,8 @@ def failedThenValidEvents : List Event := failedAttestEvents ++ [.restart] ++ at
 set, and a connection presenting the introduction's set. -/
 def afterJobPinEvents : List Event :=
   [.readyToReset entryA installedKeys,
-   .attest entryA .machine claimedKeys (plantedSender entryA) true,
-   .connect entryA .installed claimedKeys]
+   .attest entryA .machine attestedKeys (plantedSender entryA) true,
+   .connect entryA .installed attestedKeys]
 
 def anyAuthor : Params := { current with attestAuthorMatches := false }
 /-- First contact only removed: an attest may follow an installed pin. Single use stands, so
@@ -950,7 +951,7 @@ attest's, and the connection presenting its set is admitted against it. -/
 @[req "ARC-43"] theorem attest_after_job_pin_admitted :
     let k := run laterAttest init afterJobPinEvents
     k.pins.map (·.source) = [.attest (plantedSender entryA), .readyToReset] ∧
-    k.consumed = [entryA] ∧ k.sessions.map (·.keys) = [claimedKeys] := by decide +kernel
+    k.consumed = [entryA] ∧ k.sessions.map (·.keys) = [attestedKeys] := by decide +kernel
 
 /-! ## The bound -/
 
@@ -989,29 +990,32 @@ def tracesOf : Nat → List (List Event)
 /-- Every trace of at most `n` events over `alphabet`, shortest first. -/
 def tracesUpTo (n : Nat) : List (List Event) := (List.range (n + 1)).flatMap tracesOf
 
-/-- Newest first: no attest pin has an older installed-system pin for its machine. -/
+/-- Newest first: no attest pin has an older installed-system pin for its machine. This also
+bounds attest pins to at most one per machine: an attest pin is itself an installed-system pin
+(`wellPinned` requires `per = .machine` of it), so a second attest pin for a machine is an attest
+pin with an older installed-system pin for its machine, which this refuses. A separate clause
+for that count would be entailed by this one and never the cause of a red. -/
 def firstContactOnly : List Pin → Bool
   | [] => true
   | pin :: older =>
     (!pin.source.isAttest || older.all fun q => !(q.entry == pin.entry && q.per == Per.machine)) &&
       firstContactOnly older
 
-/-- The lifecycle in the requirements' own terms, and stated without `admits`, `pinFor`,
-`check` or `journal`'s consumed bookkeeping, so that it decides what they read rather than
-agreeing with them: no pin the harness holds came from model text; attest pins name the planted
-sender, are per machine and have a consumed introduction; the pins hold at most one attest pin
-per machine; an attest pin is never preceded by an installed-system pin for its machine, which
-is `ARC-43`'s first contact only; every session was admitted against a pin it holds for that
-machine, for the system it connected to and, in rescue, for the boot it was made in; and every
-halt recorded as the reset's confirmation is a reset confirmed. -/
+/-- The lifecycle in the requirements' own terms, and stated without `admits`, `pinFor` or
+`check`, so that it decides what they read rather than agreeing with them: no pin the harness
+holds came from model text; attest pins name the planted sender, are per machine and have a
+consumed introduction, which is the one clause that reads `consumed`; an attest pin is never
+preceded by an installed-system pin for its machine, which is `ARC-43`'s first contact only and,
+as `firstContactOnly` says, at most one attest pin per machine, decided from the pins and not
+from `consumed`; every session was admitted against a pin it holds for that machine, for the
+system it connected to and, in rescue, for the boot it was made in; and every halt recorded as
+the reset's confirmation is a reset confirmed. -/
 @[req "SEC-11"] def wellPinned (k : Knowledge) : Bool :=
   k.pins.all (fun pin => pin.source != Source.modelText &&
     match pin.source with
     | .attest author => pin.per == Per.machine && author == plantedSender pin.entry &&
         k.consumed.contains pin.entry
     | _ => true) &&
-  (let attested := (k.pins.filter (·.source.isAttest)).map (·.entry)
-   attested.eraseDups == attested) &&
   firstContactOnly k.pins &&
   k.sessions.all (fun s =>
     k.pins.contains s.pin && s.pin.entry == s.entry && s.pin.keys == s.keys &&

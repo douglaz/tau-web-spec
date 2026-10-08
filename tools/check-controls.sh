@@ -355,15 +355,17 @@ pins_control "formal: attest admits before a durable append" \
   failed_attest_refused
 
 # Attest is a first contact only (ARC-43): with the guard removed an introduction replaces a job
-# pin, which its refused witness and the bounded property both see.
+# pin, which its refused witness sees and bounded sees through its firstContactOnly clause -- the
+# one control that makes that clause false.
 pins_control "formal: attest after an installed pin" \
   "sed -i 's/attestFirstContact : Bool := true/attestFirstContact : Bool := false/' $PINS && grep -q 'attestFirstContact : Bool := false' $PINS" \
   attest_after_job_pin_refused bounded
 
-# A pin journaled without its consumption recorded: single use then reads nothing, and the bounded
-# property's own clause -- an attest pin has a consumed introduction -- is what turns red beside
-# the witnesses that assert consumption.
-pins_control "formal: attest journaled without consumption" \
+# A pin journaled without its consumption recorded: bounded reds through its consumed-introduction
+# clause -- an attest pin has a consumed introduction -- on the first attest pin, beside the
+# witnesses that assert consumption. It exercises that clause alone: under current the first-contact
+# guard refuses a second attest whatever consumed holds, so this never reaches firstContactOnly.
+pins_control "formal: attest pin without a consumed introduction" \
   "sed -i 's/consumed := if pin.source.isAttest then pin.entry :: k.consumed else k.consumed/consumed := if pin.source.isAttest \&\& false then pin.entry :: k.consumed else k.consumed/' $PINS && grep -q 'isAttest && false then' $PINS" \
   attest_acceptance_consumes attest_admits_and_connects wrong_author_admitted wrong_author_then_valid \
   repeat_attest_refused attest_per_machine failed_attest_admitted failed_append_then_valid \
