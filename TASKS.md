@@ -163,9 +163,6 @@ gated on it.
         the recovery root is there is undecided; `STA-14` keeps its text and points here.
       - **An unpinned installation under an independence bound.** The decisions bar a goal, a
         larger set and an untyped vendor scope there, and say nothing of an unpinned OS.
-      - **`CNF-67` on an unpinned installation.** Whether the item splits into a pinned and an
-        unpinned case, or stays one item that applies where a pin exists, as the applicability
-        table reads today.
       - **The untyped vendor scope's remaining edges.** `STA-24` keys an untyped call's barrier
         on "the same origin and credential", so a rotated token at the same origin starts with
         none. `ARC-22`'s abandonment destroys "through typed operations", which an untyped

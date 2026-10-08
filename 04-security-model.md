@@ -106,8 +106,9 @@ up instead of a sheet of keys — not a credential any session or machine ever s
 machine of the setup is delivered, and where the profile seals, a sealed machine has no SSH to
 authenticate to. It holds at most the credential the profile's handoff slot declares, which is
 never a machine's own key. So no party other than a machine's bound session — or, for a jump
-host, which has none, the harness flow that makes the contact (`CHN-R6`) — ever holds that
-machine's client key, at any moment in the machine's life, and `CNF-8` tests that of
+host, which has none, the harness flow that makes the contact (`CHN-R6`), or, while Replace
+migrates it, the harness's model-free Replace flow (`STA-17`) — ever holds that machine's
+client key, at any moment in the machine's life, and `CNF-8` tests that of
 post-harness machinery absolutely rather than after a deadline. A session whose bound set is the
 whole setup does hold every key of it — which is why such a set is a weaker mode the operator
 chose and sees, and never something a session is handed.
