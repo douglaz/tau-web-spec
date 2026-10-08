@@ -481,7 +481,8 @@ stolen phone's encrypted store may eventually be unlocked, so the flows are name
 distinct, and the screen says which one is happening
 ([ADR-0040](./docs/adr/0040-stage-one-includes-restore-and-replace.md)):
 
-- **Replace** (the default, for a phone that is lost): generate a **new seed** (`STA-22`),
+- **Replace** (the default, for a phone that is lost): generate a **new seed** (`STA-22`), then
+  in a model-free harness flow — no session is bound and no model sees either key (`SEC-1`) —
   re-enter each maintained machine using its old client key and the sheet's old host pin,
   install the new seed's client public key, confirm a connection authenticated by it, then
   remove the old public key; a failed confirmation leaves the old key in place. The old seed is

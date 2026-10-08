@@ -311,6 +311,10 @@ here is non-waivable:
 - **The card restates every acceptable weaker mode standing on the machine's bound set**
   (`SEC-14`), states the root-shell caveat `SEC-5` attaches to row 12, and shows the name and
   purpose as what the model asked for, not as the harness's description.
+- **On a multi-tenant machine (`ARC-36`) the card states `ARC-37`'s rule** — no spendable key
+  material on this machine — and the operator confirms the value is not spendable before it is
+  sent; without that confirmation nothing is placed. The harness cannot classify a value, so the
+  confirmation is the operator's, recorded with the placement.
 - **The placed secret is listed in the trust display** until it is rotated or the machine is
   destroyed (`SEC-6`). After a Restore the display starts from the placement records the sheet
   holds (`STA-16`). Machine records may add entries, visibly labelled as machine-reported and
@@ -888,7 +892,9 @@ separate design, and the construction test bed's brief does not implement it. Th
 names the distribution, bootstrap hash, package policy and accepted signers rather than
 calling the resulting installation hash-pinned. An unpinned installation (`ARC-25`) has neither
 layer, and the display says **unpinned** rather than naming a hash or a signer set nothing
-checked.
+checked. Its distribution's own package-signature checking still stays on: the unpinned mode
+waives the bundle's pin, never signature enforcement, and the harness never sends a command
+that lowers it (an untrusted-repository flag, a signature level of never).
 
 ## Ongoing operation
 

@@ -60,7 +60,9 @@ a model's proposed measuring procedure. The harness composes typed reads; their 
 enters model context as authority (`SEC-8`). The key-material fields govern tenant key material,
 not the separately inventoried application credentials placed through `place_secret`. Thus the
 ad-hoc minimum's `key_material.permitted: []` does not forbid an application secret. This
-classification does not relax `ARC-37` for the spendable material it governs.
+classification does not relax `ARC-37` for the spendable material it governs: on a
+multi-tenant machine `place_secret` refuses a value the operator has not confirmed is not
+spendable (`ARC-43`).
 
 ## ad-hoc, v1 (complete)
 

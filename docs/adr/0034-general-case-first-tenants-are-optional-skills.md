@@ -54,8 +54,8 @@ goal escapes that reason only while it stays one operator's instruction to one s
 imported, shared or reused", and "A goal MUST be refused for a machine under a profile that
 declares an independence bound".
 
-**The roadmap follows.** `STG-21` says "Stage 1 is the owner's scenario: one goal, one machine,
-no tenant". The probes come before it, a vendor with no adapter after it — where the browser can reach
+**The roadmap follows.** `STG-21` says "Stage 1 is the owner's scenario: one machine, no
+tenant". The probes come before it, a vendor with no adapter after it — where the browser can reach
 its API, as `STG-22` words it — and tenants last
 (`06-first-stage.md`). The dedicated path ADR-0018 made the first stage is the construction
 test bed: its rehearsal evidence and its install brief stand, and it gates offering a

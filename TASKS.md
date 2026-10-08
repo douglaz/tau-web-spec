@@ -198,8 +198,7 @@ gated on it.
       - **Left open by the weaker-modes-across-sessions decision (2026-10-07), all stage 2 or
         later.** Whether an untyped vendor scope's permission ends with its session, the
         credential staying shown until revoked (`SEC-4`'s "while the scope stands"); whether
-        escalation's successor (`ARC-16`) and Replace (`STA-17`) are sessions that accept modes;
-        whether stage 1's "one goal" means one per session (`STG-21`); and whether `ARC-25`
+        escalation's successor (`ARC-16`) is a session that accepts modes; and whether `ARC-25`
         governs a later session's package fetches on an unpinned machine. And a reinstall at
         an attest vendor (`CHN-R5`): attest's introduction identity is single-use per machine
         allocation (`CHN-5`), so whether a reinstall gets a fresh identity or is a destroy and

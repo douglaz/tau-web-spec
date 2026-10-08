@@ -239,7 +239,7 @@ that makes rental structural gates the phone-only acquisition experience.
 
 ## Status
 
-The first stage is **the owner's own scenario, with no tenant**: one goal, one machine bought by
+The first stage is **the owner's own scenario, with no tenant**: one machine bought by
 Lightning invoice at LNVPS — or through a card account at Hetzner Cloud if LNVPS fails its probe
 — an always-on agent installed on it, on Omarchy or plain Arch (`STG-21`). The path it replaced as first — one
 machine on a dedicated server, over the full channel — was rehearsed **by hand, once**, on a

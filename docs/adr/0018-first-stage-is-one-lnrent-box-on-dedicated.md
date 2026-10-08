@@ -138,7 +138,7 @@ concurrency arrive with the tenant that needs them.
 ## Amended 2026-10-05: superseded — the first stage is the owner's scenario, and this path is the construction test bed
 
 [ADR-0034](./0034-general-case-first-tenants-are-optional-skills.md) supersedes this record.
-`STG-21` says "Stage 1 is the owner's scenario: one goal, one machine, no tenant". The
+`STG-21` says "Stage 1 is the owner's scenario: one machine, no tenant". The
 dedicated path decided here is kept as the construction test bed (`STG-1`): its rehearsal
 evidence and its install brief stand, and neither the tenant's daemon nor the tenant's
 declaration gates the first stage any longer. The body above is unchanged and records what was

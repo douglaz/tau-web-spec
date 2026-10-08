@@ -156,7 +156,9 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       through a symbolic link, an existing file not recorded as this placement, and any
       placement on a machine where a finding other than a lifecycle finding stands
       (`ARC-17`), on a machine whose fixed lockdown checks have not yet passed — a machine
-      never checked included — and on one restored from a sheet before its re-check (`ARC-17`). A lifecycle finding beside any other finding still refuses, and a finding's
+      never checked included — and on one restored from a sheet before its re-check (`ARC-17`),
+      and on a multi-tenant machine any placement the operator has not confirmed as
+      non-spendable (`ARC-37`). A lifecycle finding beside any other finding still refuses, and a finding's
       class comes from the declaration field that produced it, never from the model's
       arguments. Each refusal is verified by asking for it, with the model supplying the
       arguments. Escaped secret: without the first, the job is the way to put a harness
@@ -226,7 +228,8 @@ an item that tests a mode's conditions or its label is tiered by them like any o
 - [ ] **CNF-19 · PRE-SCALE** The recovery sheet is passphrase-wrapped, its export screen states
       what it can do in the wrong hands, and a maintained cloud machine's setup does not
       complete without it (`STA-15`).
-- [ ] **CNF-20 · PRE-SCALE** Replace follows `STA-17`: a fresh seed, re-entry using the old
+- [ ] **CNF-20 · PRE-SCALE** Replace follows `STA-17`, as a model-free harness flow no session
+      holds and no model drives: a fresh seed, re-entry using the old
       key and old pin, installation of the new client public key, then removal of the old
       public key on every maintained machine, the old key removed only after a connection
       authenticated by the new one succeeds, then the export of a new sheet for the new
@@ -289,7 +292,9 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       and installed versions; NixOS checks the pinned revision and cache keys. The display
       distinguishes bootstrap hash from package signatures. The build verifies that the
       declared key list in `bundle/artifact-alpine.toml` equals the keyring extracted from the
-      pinned minirootfs, and fails otherwise. Boundary-crossed: otherwise
+      pinned minirootfs, and fails otherwise. On an unpinned installation (`ARC-25`), the
+      distribution's own signature checking stays on: an unsigned package is refused, and a
+      command lowering the check is refused before it is sent. Boundary-crossed: otherwise
       a repository can substitute the kernel or SSH server outside the stated admission policy.
 - [ ] **CNF-62 · BLOCKING** A typed vendor call over the tunnel **refuses a certificate that
       does not match the pin** (`CHN-12a`). Verified by presenting a valid certificate from a
@@ -738,7 +743,7 @@ promotion rule above.
 
 | Applies when | CNF items | Interpretation |
 |---|---|---|
-| Stage 1: required | 1–7, 10–18, 21, 23–26, 28–30, 32, 34–35, 37, 39–44, 49–56, 61, 66–75, 78–79, 81–83, 87–91, 93–95, 99–104 | One goal, one live cloud machine with no tenant, an initial session and the later session `STG-9` requires (item 108), created through a typed adapter and first contacted by attest; synthetic unbound identities exercise 6 and 26. Item 7's growth and subset cases, and item 91's two-machine case, use fixtures until stage 2. Item 12 is exercised with a hostile goal and a hostile fetched document; its untyped-scope restatement, and item 14's, wait for stage 2. Item 14 covers any root password the typed adapter's response carries. Item 23 covers the refusal and the attest window; its jump-host label waits for stage 2. Items 24, 66 and 67 apply wherever the installation is pinned, and item 93's unpinned case wherever it is not; NixOS evidence is required before enabling NixOS. Interrupted resume (`STG-12`) is carried here by items 37, 39, 40 and 54–56; item 86's cases are a rescue boot's, and stay the test bed's. Item 95's cases all require integrated evidence (`OPN-28`). Item 50 covers the delivery check; its scanner half waits for scanner enablement. Item 10 covers local ledger persistence; its sheet-export half is the recovery row's. Item 72 covers local allocation; imported-state cases are 84. Item 81's migration case waits for self-host migration, which no stage yet offers. Item 32 covers the typed adapter's origin. Items 68–71, 78 and 88–90 apply to the procured inference path; bring-your-own and local inference have no aggregator to test. Item 88 uses injected list fixtures the way 17 uses an injected response. Item 42 covers placed secrets; its untyped-scope half waits for stage 2. Item 104 covers the typed adapter's invoice; on `STG-21`'s Hetzner fallback, which issues no per-machine invoice for the operator's wallet, it waits for a vendor that does. |
+| Stage 1: required | 1–7, 10–18, 21, 23–26, 28–30, 32, 34–35, 37, 39–44, 49–56, 61, 66–75, 78–79, 81–83, 87–91, 93–95, 99–104 | One live cloud machine with no tenant, an initial session from the owner's goal and the later session `STG-9` requires (item 108) with a goal of its own, created through a typed adapter and first contacted by attest; synthetic unbound identities exercise 6 and 26. Item 7's growth and subset cases, and item 91's two-machine case, use fixtures until stage 2. Item 12 is exercised with a hostile goal and a hostile fetched document; its untyped-scope restatement, and item 14's, wait for stage 2. Item 14 covers any root password the typed adapter's response carries. Item 23 covers the refusal and the attest window; its jump-host label waits for stage 2. Items 24 and 66 apply wherever the installation is pinned, and item 67's and item 93's unpinned cases wherever it is not; NixOS evidence is required before enabling NixOS. Interrupted resume (`STG-12`) is carried here by items 37, 39, 40 and 54–56; item 86's cases are a rescue boot's, and stay the test bed's. Item 95's cases all require integrated evidence (`OPN-28`). Item 50 covers the delivery check; its scanner half waits for scanner enablement. Item 10 covers local ledger persistence; its sheet-export half is the recovery row's. Item 72 covers local allocation; imported-state cases are 84. Item 81's migration case waits for self-host migration, which no stage yet offers. Item 32 covers the typed adapter's origin. Items 68–71, 78 and 88–90 apply to the procured inference path; bring-your-own and local inference have no aggregator to test. Item 88 uses injected list fixtures the way 17 uses an injected response. Item 42 covers placed secrets; its untyped-scope half waits for stage 2. Item 104 covers the typed adapter's invoice; on `STG-21`'s Hetzner fallback, which issues no per-machine invoice for the operator's wallet, it waits for a vendor that does. |
 | Stage 1: record measurements | 45–47 | Require the integrated browser channel, not the rehearsal's timings. |
 | Stage 1: model-written check reports | 107 | The report label, verdict isolation and absence of automatic re-execution are required before stage 1 completes. |
 | Stage 1: re-entry | 108 | `STG-9`'s later session, re-entering over the same pin and re-running the check, is required before stage 1 completes. Item 93's re-entry case runs with it, using a placement or rotation in the re-entering session. |

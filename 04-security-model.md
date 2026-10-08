@@ -78,7 +78,9 @@ keypair, derived at that machine's index (`STA-22`, `SEC-5` row 3), and only tha
 public key reaches its `authorized_keys`. A session is given exactly the keys of the machines
 in its bound set and no other, so a session cannot authenticate to a machine outside its set,
 and the refusal comes from SSH rather than from the harness declining to call its own
-transport. A single shared client key would leave this invariant enforced only by routing code,
+transport. Two harness flows hold a client key outside any session, and no model drives
+either: the jump-host flow (`CHN-R6`), and Replace's key migration (`STA-17`), which holds one
+machine's old and new keys while it swaps them and runs nothing else on it. A single shared client key would leave this invariant enforced only by routing code,
 which is bookkeeping rather than a boundary.
 
 **The key is the machine's, not the session's, and a binding is exclusive.** Until 2026-09-16
@@ -261,7 +263,7 @@ outgrown, because adding a credential means adding a row.
 |---|---|---|---|---|---|---|
 | 1 | Vendor API credential, used through a typed adapter | Operator | Browser memory only | The sessions it is supplied to, or one deterministic harness flow (`STA-18`, `ARC-21`) | Whatever the vendor grants it, up to full account authority; the adapter authorizes each operation against the calling session's bound set (`SEC-4`), so one credential may serve several sessions | Session or flow ends |
 | 2 | Inference **session** key | Minted from row 14 (procured); supplied by the operator (BYO) | Browser memory only | One session | Inference spend, **up to its own cap** | Revoked at session end (procured); session ends (BYO) |
-| 3 | **SSH client private key, one per machine** | **Derived** from row 15 at that machine's index (`STA-22`) | Re-derived on demand; nothing to export. Given to the machine's bound session and no other; a jump host's, at the jump host's own index, is given to no session (`CHN-R6`) | Machine lifetime | Login to **that one machine** | Removed from the machine on Replace (`STA-17`), which is a new seed; a jump host's dies with the jump host |
+| 3 | **SSH client private key, one per machine** | **Derived** from row 15 at that machine's index (`STA-22`) | Re-derived on demand; nothing to export. Given to the machine's bound session and no other; a jump host's, at the jump host's own index, is given to no session (`CHN-R6`); during Replace, the machine's old and new keys are held by the harness's model-free Replace flow and given to no session (`STA-17`) | Machine lifetime | Login to **that one machine** | Removed from the machine on Replace (`STA-17`), which is a new seed; a jump host's dies with the jump host |
 | 4 | **Relay key**, one per pass | Derived from row 15 (`STA-22`); its public half is what the relay binds a bought pass to (`CHN-15`), and what the first stage hands the publisher out of band | Re-derived on demand; nothing to store | Until the pass expires or is revoked | Reaching the destinations recorded against its pass, on any port; recording destinations; revoking (`CHN-16`) | Pass expires or replacement is confirmed under `STA-17`, by signed revocation or stage 1's manual retirement |
 | 5 | Host-key pins | Vendor API, rescue, attest, or a first contact from a jump host (`CHN-R6`), recorded with which | Encrypted at rest; exported in the sheet | Installed system: machine lifetime. Rescue: one boot (`CHN-R1`). A jump host's: one first contact | Nothing — integrity reference | Machine destroyed; rescue pin discarded at the reset; a jump host's pin discarded with the jump host, the route label (`CHN-R6`) being what the display keeps |
 | 6 | Exposure ledger | Harness-derived | Encrypted at rest; exported in the sheet | Machine lifetime | Nothing — record | Machine destroyed |
