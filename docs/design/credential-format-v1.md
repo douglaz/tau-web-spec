@@ -109,12 +109,35 @@ nonce and AAD `tau-web/sheet/v1/<id>/payload`; only the wrapped key persists. Th
 envelope adds `payload_nonce` and `payload` to the fields above. Never reuse a local-store
 key or envelope as a sheet. Local and sheet purposes cannot be interchanged.
 
-The authenticated UTF-8 JSON payload contains `version: 1`, `derivation_version: 1`,
+The authenticated UTF-8 JSON payload contains `version: 2`, `derivation_version: 1`,
 `seed_id`, `exported_at` (UTC RFC 3339), `journal_sequence`, `next_indices` (machine/pass/
 handoff), `allocations` (including consumed tombstones), `host_pins`, `exposure_ledger`,
-and optional `inference_account_credential`. Each allocation has its family, index, stable
-resource identity and expected public key as required by `STA-22b`; a failed allocation may
+`placements: [{machine_index, name, path, placed_at}]`, `machine_states`, and optional
+`inference_account_credential`. Each allocation has its family, index, stable
+resource identity and expected public key as required by `STA-22b`, and a jump host's entry
+carries `jump_host: true`, recording that it is in no session's bound set, and no other
+allocation carries the field; a failed allocation may
 have no vendor resource ID, but retains its index. No seed or derived private key is included.
+Each `host_pins` entry names the host-key route that produced it: `retrieve` (`CHN-R1`),
+`attest` (`CHN-R5`) or `jump_host` (`CHN-R6`). Whether the installation carries an artifact
+pin is a different fact, carried per machine below. Each `machine_states` entry is
+`{machine_index, declaration, class, access_model, installation, weaker_modes}`: the journaled
+declaration in force as a delivery-declaration v1 document, the class `ARC-36a` records, the
+access model of `ARC-27`, `installation` as `"pinned"`, `"unpinned"` (`ARC-25`) or
+`"not_installed"` before any installation, and the labels of the acceptable weaker modes standing
+on the machine's bound set (`SEC-14`). A field not yet approved at export carries the explicit
+marker `"unapproved"`, never an absent field; `installation` is recorded, not approved. Every
+live machine other than a jump host has exactly one entry, bound to a session or not; an
+allocation marked `jump_host: true` (`STA-22b`) has none. Reject a missing, duplicate or
+malformed entry and an entry for a jump host; never interpret a missing entry or an
+`"unapproved"` field as a default.
+Each placement associates a machine-family allocation with its nonempty name, recorded path
+and UTC RFC 3339 placement time. Reject missing or ambiguous machine associations, duplicate
+placement records and malformed fields before binding. No placement value, digest, scan key,
+byte length or other value-derived reference is included. Payload version 1 and unknown
+payload versions are unsupported: refuse them explicitly, never interpret a missing placement
+list as empty. This payload-version change does not change the v1 envelope, derivation paths,
+algorithms or known-answer vectors.
 Reject unknown versions, duplicate identities/indices and malformed fields before binding
 anything; imported data never creates a binding without vendor reconciliation and an
 operator act. Never merge two counters and call the result proof that a backup is current.
@@ -122,5 +145,7 @@ operator act. Never merge two counters and call the result proof that a backup i
 Export asks the operator to retain both the seed backup and the separate sheet passphrase.
 For maintained cloud, setup completion requires confirmation that the current sheet was
 saved (`STA-15`). A stale or absent sheet may lose newer machines' metadata and relay quota.
-The first stage implements local storage and derivation; sheet export/import and recovery
-remain later-stage work, with these formats fixed in advance.
+The dedicated test bed covers local storage and derivation. Stage 1 also requires export,
+Restore and Replace for maintained cloud; Robot rescue and paid/public signed relay revocation
+have their own milestones in `07-conformance.md`'s applicability table. These are required
+implementation demonstrations, not claims that this specification has run them.

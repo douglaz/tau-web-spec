@@ -159,3 +159,10 @@ routing rules it enforces, the `zdr` request preserved. Its `llms.txt`, read on 
 
 The title of this record is now wrong twice over — it is three layers, not two, and none of
 them is observed — and it is kept, because the reasoning it names is the reasoning that survived.
+
+## Amended a fifth time, 2026-10-05: the access rule is the bound set
+
+This record says the rule that survives the split is about access, "each session bound to
+exactly one machine". [ADR-0037](./0037-bound-sets.md) restates that rule as the bound set, one
+machine by default; the machines of one set share every counted layer by construction and are
+shown as one unit (`ARC-14`). The counting this record decided is unchanged.

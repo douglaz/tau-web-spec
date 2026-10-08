@@ -8,10 +8,11 @@ The check that matters happens inside the SSH protocol at the application layer,
 right key is pinned the transport underneath is irrelevant to confidentiality and integrity.
 
 **CHN-2** An SSH session MUST check the host key against the stored fingerprint, and a key
-that does not match MUST halt the session. Exactly one moment is exempt and it is why
-`CHN-R4` is a floor: under trust-on-first-use there is no stored fingerprint at first
-contact, so that contact is trusted rather than verified and MUST be presented to the
-operator as such. No other path may accept an unverified key.
+that does not match MUST halt the session. A first contact with no stored fingerprint MUST be
+refused through the relay (`CHN-R4`). The one such contact the harness makes runs from a jump
+host, inside a session pinned out of band (`CHN-R6`); it is trusted, not checked against a
+pin, and MUST be presented to the operator as such. No other path may accept a key no pin was
+stored for.
 
 **CHN-3** The mechanism is chosen **and demonstrated elsewhere**. Browser-resident SSH over a
 WebSocket-to-TCP bridge ships in production in several Go implementations, and exists as a
@@ -22,28 +23,32 @@ What remains is integration; the one property the references skip, **host-key pi
 (`SEC-11`), was demonstrated on the spike of 2026-09-07 (`OPN-1`, closed) and `CNF-21` and
 `CNF-79` carry it for the real build.
 
-## The five routes to a fingerprint
+## The routes to a fingerprint
 
 Everything rests on pinning the *right* key, so the routes are part of the decision rather
-than an implementation detail. They are numbered in the order they were found and listed
-strongest first, which puts the fifth before the fourth.
+than an implementation detail. They are numbered in the order they were found — the `CHN-R`
+identifiers below are the list — and discussed strongest first, so the refused one comes last.
 
 ```mermaid
 flowchart TD
     START([Need a host-key fingerprint]) --> PROD{Which product?}
-    PROD -->|Dedicated / Robot| R1["CHN-R1 — retrieve<br/>rescue API publishes host_key<br/>✅ in use, first stage"]
+    PROD -->|Dedicated / Robot| R1["CHN-R1 — retrieve<br/>rescue API publishes host_key<br/>✅ run by hand, the construction test bed"]
     PROD -->|Cloud VPS| R2{"CHN-R2 — retrieve"}
     R2 --> R2D["☠️ DEAD, verified<br/>rescue returns an action and a<br/>root password. No host key"]
-    R2D --> R5["CHN-R5 — attest<br/>per-machine derived sender key in user-data;<br/>machine gift-wraps its fingerprints to a<br/>per-machine derived recipient over Nostr<br/>🔶 designed, unproven — OPN-3"]
-    R5 -->|"if the post never arrives"| FB["Recorded fallback:<br/>recreate, or keyed rescue<br/>with the leap of faith displayed"]
+    R2D --> BOOT{"Does the harness compose<br/>the machine's boot configuration?"}
+    BOOT -->|"Yes — a typed adapter"| R5["CHN-R5 — attest<br/>per-machine derived sender key in user-data;<br/>machine gift-wraps its fingerprints to a<br/>per-machine derived recipient over Nostr<br/>🔶 designed, unproven — OPN-3"]
+    BOOT -->|"No — an untyped vendor scope,<br/>or a vendor with no route of its own"| R6["CHN-R6 — jump host<br/>first contact inside a session pinned<br/>to a temporary, model-free machine<br/>🔶 an acceptable weaker mode, labelled"]
+    R5 -->|"if the post never arrives"| RC["Recreate the machine.<br/>No weaker route is entered"]
+    R6 -.->|"the jump host itself is pinned by attest"| R5
+    R6 -.->|"or by its vendor's own retrieve route, where one exists"| RJ["a jump vendor's retrieve route<br/>none probed yet — OPN-24"]
     R5 -.->|"was the only hope before attest"| R3["CHN-R3 — inject<br/>private host key rides in user-data,<br/>re-fetchable from metadata forever<br/>🚫 ABANDONED"]
-    FB --> R4["CHN-R4 — trust on first use<br/>+ continuity. The floor.<br/>⚠️ violates OVR-4 at first contact"]
+    R4["CHN-R4 — trust on first use<br/>🚫 REFUSED through the relay"]
     classDef live fill:#e8f5e9,stroke:#4a7c59
     classDef dead fill:#ffebee,stroke:#a54a4a
     classDef pending fill:#fff8e1,stroke:#a5934a
     class R1 live
-    class R2D,R3 dead
-    class R5,R4,FB pending
+    class R2D,R3,R4 dead
+    class R5,R6,RC,RJ pending
 ```
 
 **CHN-R1 — retrieve, dedicated servers.** Hetzner's Robot webservice exposes `host_key` on
@@ -108,8 +113,8 @@ for identity is not.
 
 **CHN-R2 — retrieve, cloud VPS. Dead, and verified dead.** Hetzner Cloud's rescue action
 returns an action and a root password and no host key, checked against the API client. The
-cloud path's identity problem belongs to the second stage; `CHN-R5` is designed for exactly
-it, with `CHN-R4` behind it as the floor and `CHN-R3` abandoned.
+cloud path's identity problem is `CHN-R5`'s, designed for exactly it; `CHN-R6` serves a
+vendor with no route of its own, `CHN-R3` is abandoned and `CHN-R4` is refused.
 
 **CHN-R3 — inject. Abandoned.** The browser generates the host keypair and writes it into
 `/etc/ssh/` through cloud-init. No retrieval endpoint is needed at any vendor and the browser
@@ -170,14 +175,101 @@ seed and the machine's index, so a phone that locks between creating the machine
 its post loses nothing — which is the case the previous design could not survive, since a
 random secret redacted from the record had nowhere to live.
 
-**CHN-R4 — trust on first use, plus continuity.** Accept the key on first connect, pin it,
-alarm on any later change. This is what ordinary SSH clients do. It needs no endpoint and
-puts no key in user-data, and it still detects a **network or relay** attacker that turns
-hostile later. It does **not** detect a vendor that turns hostile: the vendor can read the
-host private key off the machine's disk and go on presenting the same fingerprint.
-Continuity is protection against the network, not against the vendor.
+**If the introduction never arrives, the machine is recreated, and nothing weaker is
+entered.** A window that closes with no accepted seal ends that machine's first contact: the
+harness offers to destroy it and create it again, which re-runs attest under a fresh index.
+*What this route used to offer beside that* was a keyed rescue login to a system whose host key
+nothing could check, "with the leap of faith displayed". It was withdrawn on 2026-10-05: it is
+trust on first use through the relay under another name, and `CHN-R4` refuses that. `SEC-14`
+says "A failed check halts".
 
-Continuity also assumes the pin survives, which is what `03-state-and-recovery.md` supplies.
+**CHN-R6 — a first contact from a jump host.** For a machine at a vendor with no route of its
+own — no endpoint that publishes a host key, and no boot configuration the harness composes —
+the browser makes the first contact from a **jump host**: a temporary machine no model has
+touched, whose own host key is pinned out of band — by attest (`CHN-R5`), or by a retrieve
+route where the jump vendor offers one
+([ADR-0036](./docs/adr/0036-first-contact-is-never-trusted-through-the-relay.md)). The browser
+opens a pinned SSH session to the jump host through the relay, and inside it a forwarded
+channel to the target — `direct-tcpip`, which is what `ProxyJump` does — through which the
+target's own SSH handshake runs end to end. The relay carries the outer ciphertext and nothing
+else, so it can neither read that handshake nor replace the key in it: `CHN-1`'s argument,
+applied to the outer hop.
+
+**This is trust on first use moved from the relay's position to the jump host's.** It is an
+acceptable weaker mode (`SEC-14`), never a pin obtained out of band, and it is the route for
+any vendor without one of its own; attest is then needed only at the jump vendor. Each of the
+following is a condition of the route, and without any one of them the route is unavailable:
+
+- **The jump host is pinned out of band**, by retrieve or by attest, before anything is sent
+  through it.
+- **It is model-free by construction.** Harness code creates it through the jump vendor's
+  typed adapter, with boot configuration the harness composed: no model writes its user-data,
+  chooses its image or issues a command on it. The flow that creates, uses and destroys it is
+  a harness flow and not a session, as `ARC-21`'s is; no session holds its key or its vendor
+  identity, and the model never reads its output. Nothing on the machine can show this, so it
+  is shown the way `CNF-8` shows a like absence: by what sessions are given.
+- **It has its own index and its own credential rows.** The jump host is allocated an index
+  in the machine family, journaled before its create (`STA-22b`) and never an entry of any
+  session's bound set; its client key and its vendor credential are `SEC-5` rows 3 and 21, and
+  where it is pinned by attest its attest keys are rows 7 and 16.
+- **Its vendor identity is separate from the target's.** Until a derived vendor identity can be
+  derived (`SEC-5` row 22), that is met only by a separately supplied vendor credential — row
+  21, held by the flow and by no session. Where the operator supplies none, the route is
+  unavailable.
+- **The jump vendor is paid in Bitcoin and needs no account**, and it is not the publisher: a
+  publisher-run jump host is the relay's own operator standing in a second place, which is the
+  party this route exists to take out of the first contact. The bundle carries a jump-host
+  adapter only for a vendor that meets this condition. The first candidate is unprobed
+  (`OPN-24`).
+- **The target's address comes from the target's vendor**, read over TLS the browser
+  terminates — a direct fetch, or a pinned tunnel (`CHN-12a`) — and journaled against the
+  machine's approved entry before the jump. An address from relay metadata or from model text
+  is not used.
+- **The jump host forwards to the target's public address and nowhere else.** The harness asks
+  it to dial the journaled address on the SSH port; it asks for no other destination.
+- **The pin is checked on a second path.** The first direct connection to the target through
+  the relay MUST present the key pinned from the jump host; a different key halts the session
+  (`SEC-11`).
+- **One jump host per first contact, per machine, never reused.** It is destroyed once the
+  target is pinned. One whose destroy is unresolved is not reused either, and is shown as
+  possibly still existing and billing (`ARC-22`).
+- **A reinstall through the vendor's API is a new first contact**, with a new jump host: the
+  reinstalled system has new host keys and the old pin vouches for none of them.
+- **It is in the batch.** The jump host and its cost appear on the approval that creates the
+  target (`ARC-15`).
+
+**What stays trusted, stated in full and shown.** The jump host itself for the length of the
+contact, and the jump vendor with its image and whatever else runs on that host. The whole
+Internet route between the two machines — transit networks, anyone able to hijack a route,
+both vendors' edges — which "the path between two datacentres" undersells. Whoever supplied
+the target's address. Anyone holding a host key baked into an image, on either machine. And a
+common mode: one jump vendor introducing machines at several target vendors is one party at
+the first contact of all of them. With the second-path check in force, a substitution survives
+only where one party presents one key on both paths — the target's vendor, its last-hop
+network, or the jump side together with the relay. These are `TRU-E11`'s row.
+
+**The label.** The trust display says, for the machine's life, how each machine's pin was
+obtained: retrieved, attested, or *first contact trusted through a jump host at* the named
+vendor, with the date. It never describes this route as pinned out of band, and destroying the
+jump host does not remove the line.
+
+**CHN-R4 — trust on first use. Refused through the relay.** Accepting the key on first
+connect, pinning it and alarming on any later change is what ordinary SSH clients do, and the
+harness MUST NOT do it through the relay. Every connection the browser makes to a machine runs
+through the relay, so a key accepted there is the relay's word; an impostor at that position
+would have its own key pinned and receive every secret placed afterwards. A first contact with
+no independently obtained pin is admitted only from a jump host (`CHN-R6`).
+
+What survives of this route is **continuity**, which `SEC-11` applies to every pin however it
+was obtained: a later change halts. It detects a network or relay attacker that turns hostile
+later. It does **not** detect a vendor that turns hostile: the vendor can read the host private
+key off the machine's disk and go on presenting the same fingerprint. Continuity is protection
+against the network, not against the vendor, and it assumes the pin survives, which is what
+`03-state-and-recovery.md` supplies.
+
+*What this requirement used to say* was that trust on first use stood behind every other route
+as the one always available, presented to the operator as trusted. Until 2026-10-05 a withheld
+attest post led there.
 
 ## The attest sequence
 
@@ -218,8 +310,8 @@ property. The **browser** unwraps, checks the seal's author against the sender k
 accepts the first match, pins, and **stops listening for that recipient**. Anyone able to write
 to the inbox — everyone, on a public relay — can flood it with garbage or race it: garbage fails
 the author check, and a *validly sealed* race requires the sender key, which only the vendor also
-holds. A flooded or empty inbox is a denial of service that forces the recorded fallback, nothing
-more.
+holds. A flooded or empty inbox is a denial of service that forces a recreate (`CHN-R5`),
+nothing more.
 
 **Single-use survives a restart.** Acceptance is journaled — the machine, the pins and the
 consumed state of its introduction — before the pins are used (`STA-3`), and a worker that
@@ -239,10 +331,10 @@ destroyed machine, on the one route that has no alternative.
 Nothing on the machine can expire anything: the metadata endpoint serves user-data for life,
 and a gift wrap's timestamps are deliberately randomised up to two days into the past, so they
 say nothing about when it was sent. The window is **the browser's own clock, from machine
-creation**, after which it stops listening for that recipient and presents the recorded fallback.
-The machine's deadline is housekeeping — when to give up retrying and scrub — and the browser's
-window MUST be set from a **measured** slowest first boot rather than a guess, and stated as an
-outcome with a named fallback rather than something the operator discovers.
+creation**, after which it stops listening for that recipient and offers the recreate
+(`CHN-R5`). The machine's deadline is housekeeping — when to give up retrying and scrub — and
+the browser's window MUST be set from a **measured** slowest first boot rather than a guess, and
+stated as an outcome with its named remedy rather than something the operator discovers.
 
 **The scrub is defence in depth, and MUST NOT be described as the bound.** It removes
 cloud-init's cached copy from disk; the vendor's metadata endpoint goes on serving the original
@@ -267,7 +359,9 @@ machine and not to an operator.
 re-derives it when a second use arrives: **a machine may send the harness an event, and an event
 is an observation.** It is typed untrusted, exactly as every box-plane output already is
 (`ARC-28`); it never gates a step, never triggers an action, never enters model context as
-anything but content. `ARC-1` stands because of that typing — a machine that can *tell* the
+anything but content. Attest's introduction is the one exception, and only for the step the
+browser is already waiting on: sealed by the sender key the browser planted and accepted once
+(`CHN-R5`, `CHN-5`), it gates that machine's first contact and nothing else. `ARC-1` stands because of that typing — a machine that can *tell* the
 browser something is not a machine that can *make* it do something. **The list of uses is one
 entry long**, and each addition is a stated design change rather than a use of an open door.
 Candidates exist — a job record's completion (`STA-20`), a delivery check's result (`ARC-39`) —
@@ -337,9 +431,11 @@ availability and metadata visibility remain in the trust display. Do not claim t
 self-hosted relay eliminates this dependency. If no external route is available, migration
 does not complete; never relax the self-address prohibition to make it appear successful.
 
-**Under out-of-band pinning a hostile relay is a denial of service and nothing worse. Under
-`CHN-R4` it is not**: at first contact there is nothing to check the key against, so a
-hostile relay can present its own, have it pinned, and read the session from then on.
+**Under out-of-band pinning a hostile relay is a denial of service and nothing worse. That is
+why `CHN-R4` is refused through it**: at a first contact with nothing to check the key against,
+a hostile relay could present its own, have it pinned, and read the session from then on.
+Under `CHN-R6` the relay carries the outer ciphertext of a session pinned out of band, and
+stays a denial of service.
 
 **CHN-15** Relay access is **bought, not granted**, and what is bought is recorded against a
 **relay key** the browser derives from the seed (`STA-22`), one per purchase. The model — the
@@ -433,7 +529,8 @@ federation. That is the same knowledge `TRU-E5` prices as a named trust row for 
 and calling it merely "connection metadata" understates it.
 
 It cannot read or alter a session pinned out of band, so the addition is visibility, not
-authority over content. But a party that serves the bundle *and* sees every connection is a
+authority over content. A jump-host first contact (`CHN-R6`) adds the jump host to what it
+sees, and timing ties the jump host to its target: still visibility. But a party that serves the bundle *and* sees every connection is a
 bigger observer than one that serves the bundle alone.
 
 **The Nostr relay on the same host learns the same thing by a different route**, and the product

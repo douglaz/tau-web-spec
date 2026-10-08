@@ -233,3 +233,13 @@ a different case entirely: code the harness never meant to run does not call the
 path. What stands unchanged either way: per-machine addresses never appear in `connect-src`
 at all, because the browser connects to a relay origin and the machine address is a parameter
 inside the WebSocket.
+
+## Amended 2026-10-05: route 4 is refused through the relay, and a jump host carries a first contact where no route exists
+
+This record keeps trust on first use as its last route — "route 4 is a floor rather than a
+plan" — while saying that under it the relay is trusted at first contact.
+[ADR-0036](./0036-first-contact-is-never-trusted-through-the-relay.md) withdraws it: `CHN-R4`
+says "the harness MUST NOT do it through the relay". A vendor with no route of its own is
+served by `CHN-R6`, a first contact from a jump host inside a session pinned out of band, and
+attest's keyed-rescue remedy is withdrawn with the route it was an instance of. The body above
+is unchanged and records what was decided then.

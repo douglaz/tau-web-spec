@@ -72,3 +72,11 @@ under a different domain.
 **Honest mistakes ship silently.** On a first-time setup a misconfiguration is the likely
 failure, not a hostile model, and this design has no mechanism that catches one made the same
 way by everybody. The threshold protects funds; it does not protect against uniform sloppiness.
+
+## Amended 2026-10-05: a session is bound to a set, and this record's argument is the tenant's
+
+This record opens "A session accesses exactly one machine". [ADR-0037](./0037-bound-sets.md)
+replaces that with a bound set: `SEC-1` says "One machine is the default and the best
+practice", and a larger set is a weaker mode the operator accepts by its label. The halving
+argument above is intact and is why one machine per session stays the rule wherever a profile
+declares an independence bound. The body above is unchanged and records what was decided then.

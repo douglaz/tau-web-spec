@@ -1,6 +1,6 @@
 {
-  "max_uncovered_ratcheted": 97,
-  "recorded": "2026-10-02",
-  "reason": "the relay restatement named the relay rules in CNF items and the candidate-order work cited more owners, 99 to 97; ratcheted so the coverage controls bite again",
+  "max_uncovered_ratcheted": 79,
+  "recorded": "2026-10-07",
+  "reason": "CNF-108 covers STG-9's later-session re-entry; ratchet the newly covered owner without weakening any coverage",
   "note": "Lower is better. Raise only deliberately, with a reason."
 }

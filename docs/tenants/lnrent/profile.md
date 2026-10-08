@@ -2,7 +2,8 @@
 
 Owned by [lnrent](https://github.com/douglaz/lnrent). Records:
 https://github.com/douglaz/lnrent. Briefs supplied: none yet.
-Profile revision: 1 (2026-09-10).
+Profile revision: 2 (2026-10-05). Whether lnrent is a tenant or a vendor the operator buys from
+is open (`OPN-27`); this profile stands as written until that is decided.
 
 Schema: ADR-0030. Rules that only make sense here are the tenant's; everything else is the
 harness's. Identifiers below keep their original numbers.
@@ -19,8 +20,11 @@ switches on the harness's spendable-key rule (`ARC-37`, `CNF-52`).
 
 ## Vendor products targeted
 
-Dedicated. The first stage builds one lnrent box on a dedicated server
-([ADR-0018](../../adr/0018-first-stage-is-one-lnrent-box-on-dedicated.md)).
+Dedicated. An lnrent box is stage 3's work (`06-first-stage.md`), and the dedicated path it
+needs is the construction test bed until then.
+[ADR-0018](../../adr/0018-first-stage-is-one-lnrent-box-on-dedicated.md) made this box the
+first stage, and is superseded by
+[ADR-0034](../../adr/0034-general-case-first-tenants-are-optional-skills.md).
 
 ## Machine set
 
@@ -28,7 +32,7 @@ One machine, so nothing is created as a set.
 
 ## Independence bound
 
-None. lnrent has no quorum, so no independence relation binds.
+None declared. lnrent has no quorum, so no independence relation binds.
 
 ## Delivery declaration
 
@@ -65,8 +69,9 @@ Not yet stated by the tenant. See https://github.com/douglaz/lnrent/issues/87.
 
 ## Secrets and parties
 
-The tenant's own credential for the receiving service is placed on its own machine (`SEC-5`
-row 12), and that service is an elective party (`TRU-E9`).
+The tenant's own credential for the receiving service is an application secret, placed on its
+own machine by `place_secret` (`SEC-5` row 12, `ARC-43`), and that service is an elective party
+(`TRU-E9`).
 
 ## Runtime obligations
 

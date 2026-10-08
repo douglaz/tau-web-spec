@@ -3,7 +3,9 @@
 Normative companion to `ARC-39` and ADR-0030's "Delivery declaration" slot. The structured form
 the delivery check (`CNF-49`–`CNF-53`) reads. A tenant's profile carries the prose; a v1
 document carries the values the harness measures against — today the examples below, and a
-file beside each profile once T28 lands.
+file beside each profile once T28 lands. Where no tenant applies, the declaration is the one
+the operator approved for that machine, starting from the ad-hoc minimum below (`ARC-39`), and
+"the tenant" in this document reads as whoever stated the declaration.
 
 ## Presence rule
 
@@ -38,7 +40,7 @@ JSON object, `version: 1`. Field names are fixed; values are as described.
 | `listeners.outbound` | list of `{proto, host, port}` restrictions, or `[]` for none; `host` is a DNS name, a CIDR block, or `"any"` | Each declared restriction must be in place | **none is declared** |
 | `services` | list of `{name, lifecycle: "running-at-delivery"\|"enabled-survives-reboot"}` | Demonstrated exactly as declared; nothing beyond it is asserted (`CNF-53`) | **none is declared** |
 | `key_material.spendable` | `false` on a multi-tenant machine (`ARC-37`, harness rule; a profile cannot set `true` there) | Searched for after install (`CNF-52`) | **flag** |
-| `key_material.permitted` | list of `{kind, where}` describing the **tenant's** key material expected on disk, or `[]` for none. On a multi-tenant machine only public or watch-only kinds are admissible (`ARC-37`); a single-purpose machine may list private, non-spendable material, as btc-policy's member vault keys are | Tenant material outside the list is a finding. What the harness itself places — the machine's SSH host keys and the machine's own client public key (`SEC-1`, `CHN-R1`) — is always expected and is never listed | **nothing may** |
+| `key_material.permitted` | list of `{kind, where}` describing the **tenant's** key material expected on disk, or `[]` for none; application credentials placed under `ARC-43` are classified separately by `SEC-5` row 12. On a multi-tenant machine only public or watch-only kinds are admissible (`ARC-37`); a single-purpose machine may list private, non-spendable material, as btc-policy's member vault keys are | Tenant material outside the list is a finding. What the harness itself places — the machine's SSH host keys and the machine's own client public key (`SEC-1`, `CHN-R1`) — is always expected and is never listed | **nothing may** |
 | `drift_checks` | list of `{name, command, expect}` the maintained re-check runs, or `[]` | Run by the machine's own session (`ARC-26`), not at delivery | **on re-entry** |
 | `required` | list of `{name, check: command, expect}` — software and checks that must hold at delivery, or `[]` | Run at delivery | **none is declared** |
 | `default_credentials` | `"none"` or a list of what must have been changed | Checked at delivery (`ARC-17`) | **none is declared** |
@@ -53,8 +55,14 @@ those two readings, and `TauWeb.Declaration.spendable_multi_tenant_refused` that
 `key_material.spendable` on a multi-tenant machine is refused. The concrete value grammar and the
 commands stay here.
 
-`command`/`check` strings are box-plane commands the harness composes into typed reads; their
-output never enters model context as authority (`SEC-8`).
+`command`/`check` strings come from signed-bundle entries selected under `ARC-39`, never from
+a model's proposed measuring procedure. The harness composes typed reads; their output never
+enters model context as authority (`SEC-8`). The key-material fields govern tenant key material,
+not the separately inventoried application credentials placed through `place_secret`. Thus the
+ad-hoc minimum's `key_material.permitted: []` does not forbid an application secret. This
+classification does not relax `ARC-37` for the spendable material it governs: on a
+multi-tenant machine `place_secret` refuses a value the operator has not confirmed is not
+spendable (`ARC-43`).
 
 ## ad-hoc, v1 (complete)
 
@@ -70,8 +78,9 @@ output never enters model context as authority (`SEC-8`).
 }
 ```
 
-Listeners the operator adds during a session are per-machine journal input, not profile
-content (ad-hoc profile).
+This is the signed minimum every proposal starts from. What the operator approves beyond it
+for a machine — a listener, a service, an application's outbound destinations — is that
+machine's journaled declaration, not profile content (ad-hoc profile).
 
 ## lnrent, v1 (template, every field unspecified)
 

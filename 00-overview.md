@@ -23,17 +23,17 @@ implementation's CI runs; `bundle/` holds the publisher-chosen values the build 
 |---|---|
 | [`00-overview.md`](./00-overview.md) | The problem, the audience, and the six constraints (`OVR-*`) |
 | [`01-architecture.md`](./01-architecture.md) | How the system is put together (`ARC-*`) |
-| [`02-channel.md`](./02-channel.md) | Reaching a machine: SSH, the five routes to a fingerprint, the relay (`CHN-*`) |
+| [`02-channel.md`](./02-channel.md) | Reaching a machine: SSH, the routes to a fingerprint, the relay (`CHN-*`) |
 | [`03-state-and-recovery.md`](./03-state-and-recovery.md) | Durable state, crash recovery, and what survives a lost phone (`STA-*`) |
 | [`04-security-model.md`](./04-security-model.md) | The invariants, the credential inventory, and the security claim (`SEC-*`) |
 | [`05-trust.md`](./05-trust.md) | Who must still be trusted, in three tiers (`TRU-*`) |
-| [`06-first-stage.md`](./06-first-stage.md) | What the first stage must demonstrate (`STG-*`) |
+| [`06-first-stage.md`](./06-first-stage.md) | The stages, and what the first must demonstrate (`STG-*`) |
 | [`07-conformance.md`](./07-conformance.md) | What an implementation must show before touching a real account (`CNF-*`) |
 | [`08-open-questions.md`](./08-open-questions.md) | Everything still unknown (`OPN-*`) |
 | [`CONTEXT.md`](./CONTEXT.md) | The domain glossary. Definitions only |
 | [`docs/adr/`](./docs/adr/) | The decisions, and for most of them the alternatives rejected and why |
 | [`docs/review/`](./docs/review/) | Review records, kept as history |
-| [`docs/tenants/`](./docs/tenants/) | One profile per tenant, on ADR-0030's schema |
+| [`docs/tenants/`](./docs/tenants/) | One profile per tenant, and the built-in ad-hoc profile a machine with no tenant runs under, on ADR-0030's schema |
 | [`docs/design/`](./docs/design/) | Design sessions, kept as history — and two normative companions, `credential-format-v1.md` (`STA-22a`) and `delivery-declaration-v1.md` (`ARC-39`); `relay-protocol-v1.md` is retained as history since its move to paid-tcp-relay |
 | [`bundle/`](./bundle/) | Publisher-chosen inputs the implementation compiles in: artifact pin and signers, inference target, timings, the CORS probe (ADR-0031) |
 | [`docs/briefs/`](./docs/briefs/) | Draft briefs written from real runs, not yet in any bundle |
@@ -82,10 +82,13 @@ party has been defeated by that party whatever its intentions, and the same shap
 anywhere the point is that nobody else can act for you.
 
 So: a harness that runs in the browser, provisions and operates machines the operator rents
-and controls, and makes authenticated calls on their behalf. **Tenants build on it** —
-supplying their own briefs, their own software, and their own security requirements
+and controls, and makes authenticated calls on their behalf. **It works from the operator's
+goal alone** — "launch a VPS paid in Bitcoin and install Hermes on Omarchy" — with no tenant
+and no brief keyed on any of it (`ARC-11a`, `ARC-44`). **Tenants build on it**, and are
+optional: each supplies briefs that make installing its software faster and more reliable,
+presets for the facts its machines carry, and its own security requirements
 ([ADR-0016](./docs/adr/0016-the-harness-isolates-and-counts-tenants-set-thresholds.md)).
-Two are intended, and ad hoc use is a third that needs neither of them:
+Two are intended:
 
 - **[btc-policy](https://github.com/douglaz/btc-policy)** — self-hosted Bitcoin custody:
   multisig plus Miniscript descriptors, a federation of policy co-signers that inspect
@@ -132,7 +135,8 @@ facts.**
 - **lnrent.** The arithmetic inverts. An operator is one machine, not five, and dedicated
   hardware is the best value per unit of capacity for rental — so the cost that makes a
   vault expensive makes a rental server sensible.
-- **Ad hoc use.** One machine, no threshold, no federation, and none of the above.
+- **With no tenant.** One machine by default, no threshold, no federation, and none of the
+  above: what the machine costs is what its vendor charges.
 
 ## System context
 
@@ -150,7 +154,7 @@ flowchart TD
     RLY -->|"TCP :22, ciphertext"| M1["Machine 1"]
     RLY -.->|"TCP :22, ciphertext"| M2["Machine n"]
     M1 -->|"one-time attest introduction,<br/>gift-wrapped"| NR
-    M1 <-->|"only what the tenant profile's<br/>delivery declaration opens (ARC-39)"| M2
+    M1 <-->|"only what each machine's<br/>delivery declaration opens (ARC-39)"| M2
     ART["Artifact source<br/>pinned per distribution"] -->|"pulled during install"| M1
     classDef trusted fill:#e8f0ff,stroke:#4a6fa5
     classDef untrusted fill:#fff4e8,stroke:#a5794a
@@ -163,9 +167,9 @@ The relay is **direct-first**: it carries only what the browser cannot do alone.
 
 ## Constraints
 
-Six constraints bound every decision here. `OVR-4` is satisfied only where a host key can
-be pinned out of band — the first stage's dedicated path, not yet the cloud path — and
-`OVR-6` is counted and displayed rather than enforced.
+Six constraints bound every decision here. `OVR-4` holds on every admitted route, because a
+first contact with no pin is refused through the relay, and `OVR-6` is counted and displayed
+rather than enforced.
 
 **OVR-1** The mobile browser MUST be the runtime. No install, no extension, no native
 package, no desktop, no terminal. A normal HTTPS URL on **Android Chrome, which is the only
@@ -178,7 +182,13 @@ advance. Restricting the AI's authority to keep it safe breaks the only reason i
 
 **OVR-3** Credentials MUST live only where the credential inventory (`SEC-5`) names, with
 the lifetime it states. No credential is written to storage in cleartext, sent to the
-application's own origin, included in a model request, or persisted in a log.
+application's own origin, included in a model request, or persisted in a log the harness
+keeps. Two owners
+state where this stops holding. Under an untyped vendor scope, `SEC-4` says "A token the
+vendor mints and a root password the vendor generates arrive in a response no adapter reads, so
+the model reads them". And an application secret, once placed, is within reach of every model
+with root on its machine — `SEC-5` row 12's caveat, which "MUST be stated wherever it is
+offered" — and `SEC-5`'s scan concedes "plaintext machine output".
 
 **OVR-4** Beyond the application itself, this product MUST add **one** component in every
 session's path — the relay, publisher-run by default and so a capability of an
@@ -194,30 +204,41 @@ inference path the publisher additionally selects the models — a wider role fo
 already trusted for the bundle, not a second added party — and bring-your-own inference
 removes that role.
 
-**Satisfied under any route that pins the host key out of band; violated under
-trust-on-first-use**, where the relay is trusted at first contact and can have its own key
-pinned. No out-of-band route exists on the cloud path today: `CHN-R1` is dedicated-only and
-a separate integration, **`CHN-R2` is dead**, and `CHN-R3` is **abandoned** —
-user-data stays readable from the vendor's metadata endpoint for the instance's life, so an
-injected host key would be permanently re-fetchable by anything on the machine. That is why the first stage runs on dedicated hardware
-([ADR-0018](./docs/adr/0018-first-stage-is-one-lnrent-box-on-dedicated.md)). For the cloud
-path, **`CHN-R5` — attest** — is designed to close exactly this gap: the machine introduces
-its own key over Nostr under keys the browser derives from the operator's seed
-([ADR-0029](./docs/adr/0029-the-machine-speaks-nostr-and-keys-derive-from-a-seed.md)). The
-pipeline has run; a real first boot has not, and `OPN-3` tracks it. Passing the SSH spike is necessary and does not by itself
-satisfy this; the routes are what make it sufficient.
+**The constraint is unconditional, and trust on first use through the relay would violate
+it**: there the relay is trusted at first contact and can have its own key pinned. So that
+contact is refused (`CHN-R4`), and a session is admitted only under a route the relay cannot
+alter. `CHN-R1` pins from the vendor and is dedicated-only; **`CHN-R2` is dead**; `CHN-R3` is
+**abandoned** — user-data stays readable from the vendor's metadata endpoint for the
+instance's life, so an injected host key would be permanently re-fetchable by anything on the
+machine. For the cloud path, **`CHN-R5` — attest** — has the machine introduce its own key over
+Nostr under keys the browser derives from the operator's seed
+([ADR-0029](./docs/adr/0029-the-machine-speaks-nostr-and-keys-derive-from-a-seed.md)); the
+pipeline has run, a real first boot has not, and `OPN-3` tracks it. Where a vendor has no route
+of its own, `CHN-R6` makes the first contact from a jump host inside a session pinned out of
+band: the relay sees only that session's ciphertext, and what can alter the contact instead is
+the jump host, its vendor and the path to the target — an elective party the operator accepts
+by its label (`TRU-E11`), not a component in every session's path. Passing the SSH spike is
+necessary and does not by itself satisfy this; the routes are what make it sufficient.
 
-**OVR-5** The machines of one setup MUST NOT share a cloud vendor. The vendor owns its
-machine's memory and disk and is trusted under every design considered, so two machines at one
-vendor is one party able to act on both — the correlated fault a threshold cannot absorb.
-Nothing in the design forces vendor sharing, so unlike the proxy layer this one is enforced: at
-the shipped default of one vendor per machine, relaxable by the tenant toward its profile's
-independence bound and never past it (ADR-0030). What makes it hard is the account floor
+**OVR-5** Where a profile declares an independence bound, the machines of one setup MUST NOT
+share a cloud vendor; how they are bound to sessions is `SEC-1`'s. Which model a session there may
+be configured with is not ruled here: it is `SEC-1`'s footprint rule, read against the
+profile's bound. The vendor owns its machine's memory and disk and is trusted under every
+design considered, so two machines at one vendor is one party able to act on both — the
+correlated fault a threshold cannot absorb — and one model bound to two of them is the same
+fault at the weights layer. Nothing in the design forces vendor sharing, so unlike the proxy
+layer this one is enforced: wherever a bound is declared, at one vendor per machine, relaxable
+by the tenant toward its profile's independence bound and never past it (ADR-0030). Where no bound is
+declared — a machine with no tenant, a tenant with no quorum — nothing here binds: machines may
+share a vendor, and a session may hold more than one as `SEC-1` allows. What makes it hard is the account floor
 under [`01-architecture.md`](./01-architecture.md#money) — a reason it is expensive, not a
 reason it is optional.
 
 **OVR-6** Independence between the machines of one setup MUST be counted per layer and shown,
-not enforced. Weights, proxy and requested provider are counted separately — the third
+not enforced. The machines of one bound set are one unit at every layer, and are shown as one
+(`SEC-1`); where no independence bound is declared, a configured model's footprint across sets
+is counted and shown the same way — where one is, the footprint is the exception, and its rule
+is `SEC-1`'s. Weights, proxy and requested provider are counted separately — the third
 labelled *requested*, since what a response says about the provider is the proxy's own word
 and it may override — and a
 collision at any counted layer is displayed rather than blocked
@@ -252,7 +273,7 @@ an ADR is where *why* lives.
 | [0015](./docs/adr/0015-the-browser-reaches-a-machine-over-pinned-ssh.md) | The browser reaches a machine over SSH, pinned at the application layer |
 | [0016](./docs/adr/0016-the-harness-isolates-and-counts-tenants-set-thresholds.md) | The harness isolates and counts; tenants set thresholds |
 | [0017](./docs/adr/0017-off-machine-calls-and-scope-approval.md) | Off-machine calls generalize the cloud plane; untyped ones are approved by scope |
-| [0018](./docs/adr/0018-first-stage-is-one-lnrent-box-on-dedicated.md) | The first stage is one lnrent box on a dedicated server, over the full channel |
+| [0018](./docs/adr/0018-first-stage-is-one-lnrent-box-on-dedicated.md) | The first stage is one lnrent box on a dedicated server, over the full channel. Superseded by 0034; the path is the construction test bed |
 | [0019](./docs/adr/0019-the-publisher-operates-the-default-relay.md) | The publisher operates the default relay; bring-your-own is the escape hatch |
 | [0020](./docs/adr/0020-recovery-roots-in-the-vendor-account.md) | Vendor inventory and seed credentials are separate recovery roots |
 | [0021](./docs/adr/0021-the-surface-pentest-is-outside-in.md) | The surface pentest is outside-in, and may use a specialist model |
@@ -267,3 +288,12 @@ an ADR is where *why* lives.
 | [0030](./docs/adr/0030-tenant-specific-rules-live-in-a-tenant-profile.md) | Tenant-specific rules live in a tenant profile with a fixed schema |
 | [0031](./docs/adr/0031-the-specification-and-the-implementation-are-separate-repositories.md) | The specification and the implementation are separate repositories, pinned by commit |
 | [0032](./docs/adr/0032-the-formal-companion-follows-provisiond-spec.md) | Selected clauses are carried in Lean under `tools/formal/`, on provisiond-spec's decision, by reference |
+| [0033](./docs/adr/0033-the-model-is-chosen-by-rule-at-pin-time.md) | The model is chosen by rule at pin time, and the harness falls back only on availability |
+| [0034](./docs/adr/0034-general-case-first-tenants-are-optional-skills.md) | The general case comes first: a tenant is an optional skill, and a goal is enough to act on. Supersedes 0018 |
+| [0035](./docs/adr/0035-non-waivable-rules-and-acceptable-weaker-modes.md) | Non-waivable rules, and the few weaker modes an operator may accept by name |
+| [0036](./docs/adr/0036-first-contact-is-never-trusted-through-the-relay.md) | First contact is never trusted through the relay; a jump host carries it where no route exists |
+| [0037](./docs/adr/0037-bound-sets.md) | A session is bound to a set of machines, one by default |
+| [0038](./docs/adr/0038-untyped-vendor-scopes.md) | A vendor with no adapter is reached through an untyped vendor scope, on stated conditions |
+| [0039](./docs/adr/0039-installed-agents-are-the-operators-applications.md) | An agent the operator installs is the operator's application, not the harness's AI |
+| [0040](./docs/adr/0040-stage-one-includes-restore-and-replace.md) | Stage 1 includes Restore and Replace, with manual relay retirement |
+| [0041](./docs/adr/0041-secret-scan-rearms-from-machine-reports.md) | The secret scan re-arms from a machine report, with its key kept in the browser |

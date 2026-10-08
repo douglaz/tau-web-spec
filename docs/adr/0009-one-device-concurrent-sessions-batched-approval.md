@@ -5,6 +5,15 @@ concurrently. Each session is configured with different model weights and touche
 exactly one machine. The machine creations are approved together in one screen before
 any work starts; unexpected cloud-plane actions during the run join a single queue.
 
+## Amended 2026-10-06: configured diversity is still a stage-3 gap
+
+The opening account of different configured weights is not what the procured path currently
+selects. `ARC-31b` says it "takes the highest-ranked candidate it finds there" at session
+start; that availability rule does not assign different candidates across machines. `OPN-27`
+owns the configured-diversity gap. The served-weights observability question in `OPN-4`
+stays closed. The body and the bound-set amendment below are unchanged and record their
+respective decisions.
+
 ## Why one device
 
 The separation that matters is between **models**, not between pieces of hardware. The
@@ -77,3 +86,12 @@ already rates
 mobile memory pressure as a high risk and defaults its command-worker pool to one on
 mobile; five concurrent sessions each holding a model stream and a remote session needs
 the same treatment.
+
+## Amended 2026-10-05: a session may hold a bound set, and concurrency inside one is not free
+
+This record says each session is bound to exactly one machine, and that "Concurrency costs
+nothing in security". Between sessions that still holds. [ADR-0037](./0037-bound-sets.md) lets
+one session hold a bound set of more than one machine as a weaker mode the operator accepts by
+its label, and inside such a session the machines share one model context: `SEC-1` says "A
+bound set is one unit of harm and one model context". The body above is unchanged and records
+what was decided then.

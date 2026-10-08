@@ -9,13 +9,19 @@ probe with a multi-week spike as though they were the same size.
 
 ## Gates by milestone
 
-Construction admission (`STG-2`) closed with the September 8 installation rehearsal.
-Completing the first stage still gates on `OPN-14`, integrated resume (`OPN-18`), and the
-first-stage acceptance subset in `07-conformance.md`, including `STA-23` unlock and v1
-derivation evidence (`OPN-18` is closed by design and open as that implementation). `OPN-3`
-gates recovery/cloud enablement; `OPN-5` gates the eventual phone-only acquisition experience,
-not first-stage construction. `OPN-4` closed by restating `SEC-CLAIM` around configured weights;
-the vault claim stays conditional on `TRU-E2`.
+Construction admission (`STG-2`) closed with the September 8 installation rehearsal, on the
+dedicated path that is now the construction test bed. The stages were re-drawn on 2026-10-05
+(`06-first-stage.md`). **Stage 0** is the probes, run now and in parallel with construction:
+`OPN-24`, `OPN-25`, and attest on a real first boot under `OPN-3`. **Completing stage 1** gates
+on those three, on the generic lockdown checklist of `OPN-14`, on integrated resume
+(`OPN-18`), on integrated placed-secret scanning (`OPN-28`, closed by design), and on the
+stage-1 acceptance rows in `07-conformance.md`, including local unlock, derivation and
+maintained-cloud recovery. `OPN-3`'s evidence is split by milestone below. `OPN-5`
+gates stage 2. `OPN-26` gates no route of stage 2 — the jump-host route runs on a separately
+supplied credential (`SEC-5` row 21) — and what waits on it there is the untyped vendor scope's
+best practice, a vendor identity derived per set, which is shown as missing until it closes.
+`OPN-27` gates stage 3. `OPN-4` closed by restating `SEC-CLAIM`
+around configured weights; the vault claim stays conditional on `TRU-E2`.
 
 **OPN-3 — The recovery machinery is designed and unproven.** The design is recorded across
 `03-state-and-recovery.md` and `CHN-R5`. What stays open is empirical: the attest hook has to
@@ -39,12 +45,31 @@ route's attest on a real first boot, and the sheet's re-import.
 metadata; the credential-format companion specifies the encrypted sheet. Missing/stale metadata
 is handled explicitly, including restored seeds being unavailable for new allocations.
 
-*Closes when:* `CNF-18`, `CNF-19`, `CNF-20`, `CNF-72`, `CNF-83` and `CNF-84` pass on the
-app and hardware to which each applies. The format alone does not close the recovery gate.
+*Moved to the front 2026-10-05.* Attest is stage 1's first contact, so a real first boot is
+stage-0 work and no longer second-stage work. The remedy for a post that never arrives
+narrowed with it: `CHN-R5` says "If the introduction never arrives, the machine is recreated,
+and nothing weaker is entered", so a window measured too short now costs a machine rather than
+a displayed leap.
+
+*Closure evidence by milestone (amended 2026-10-06):*
+
+- Stage 0 supplies real-first-boot attest evidence (`CNF-18`), then stage 1 integrates it.
+- Stage 1 supplies the recovery row of `07-conformance.md`, including `CNF-10`'s export
+  case, and local allocation/derivation evidence (`CNF-72`, `CNF-83`). Its relay replacement
+  is the manual route in `STA-17`.
+- The dedicated path supplies `CNF-84`'s Robot rescue case on the integrated harness; the
+  historical rehearsal is not that evidence.
+- Paid/public relay enablement supplies signed revocation (`CNF-60`).
+
+Each part closes on the app and hardware to which its applicability row applies. A format
+alone closes none of these empirical gaps.
 
 **OPN-5 — The cloud-account floor.** Cloud vendors want an account, a card, and a recurring
 relationship, several times over, and invoice relay cannot fix it. This is what makes lnrent
 structural rather than a second tenant, and what makes `OVR-5` hard.
+
+*2026-10-05.* A vendor paid in Bitcoin with no account is one such vendor if `OPN-24`'s probe
+passes; the second is stage 2's work.
 
 *Closes when:* an operator can obtain machines at two distinct vendors without opening two
 billing relationships.
@@ -65,6 +90,33 @@ base URLs, paths and assertions. The answer decides direct `fetch` versus the pi
 (`CHN-12a`), not whether the vendor is usable (ADR-0017). *Closes when:* the forked probe
 passes or fails against a named second vendor.
 
+**OPN-24 — Whether LNVPS can be the first vendor, and the jump vendor.** LNVPS (lnvps.net;
+its API is published at github.com/LNVPS/api) sells machines for Lightning, identifies a buyer
+by a Nostr key, and keeps no account: what `CHN-R6` asks of a jump vendor, and what stage 1
+wants of its only vendor (`STG-21`). Nothing about it has been measured. The probe's owning list is:
+
+- **Boot-time user-data, or published host keys** — whether `CHN-R5` or a retrieve route can
+  pin a machine there at all.
+- **Browser reachability** — whether its API answers a browser origin, or needs the pinned
+  tunnel of `CHN-12a`.
+- **Inventory and destruction** — whether it **lists a key's machines and can destroy them**.
+- **The minimum billing period** — which is what a jump host that lives for minutes costs.
+- **An Arch image** — whether stage 1's distribution can be installed from the vendor's own
+  catalogue.
+
+*Closes when:* the probe is run, its answers recorded under `docs/findings/`, and stage 1's
+failure criteria, not yet stated (T39), are defined and applied. If LNVPS passes them, it may be
+the target itself, by attest. If it fails them, stage 1 — and only stage 1 — runs on Hetzner
+Cloud with attest and a card account; what that drops is listed in `STG-21`. The jump-vendor
+half closes separately, when T39's criteria for it are applied against `CHN-R6`.
+
+**OPN-25 — Whether Omarchy has a server edition, or plain Arch stands in.** The owner's
+scenario installs Hermes on Omarchy. Whether Omarchy installs and runs on a machine with no
+display is not known. *Closes when:* an Omarchy server installation completes over the
+channel, or the scenario is restated on plain Arch. Either way the distribution has no pin in
+the bundle today (`ARC-24`), so the scenario runs under the unpinned label unless the publisher
+adds an Arch pin first; which of the two it is, is recorded when the publisher takes it.
+
 **OPN-9 — Whether the proof of concept's cloud-init boots an unreachable machine.** A code-read
 finding, not an observed failure: its user list has no default entry and sets an empty
 authorized-keys list, so the vendor's injected keys reach no account. The fix is one line and
@@ -81,8 +133,9 @@ does not* — every model-issued command is a stateless job and values have name
 (`ARC-7`). Designing a second consumer
 for an undefined format is premature until this exists. *First input 2026-09-08:*
 `docs/briefs/01-install.md`, plain prose with example commands and deliberately no format.
-A fourth brief, the relay-install brief that `CHN-14` and ADR-0019 rely on, is the harness's
-and second-stage work; nothing has been written for it.
+A fourth brief, the relay-install brief that `CHN-14` and ADR-0019 rely on, is the harness's,
+and is owed when self-host migration is offered, which no stage yet does; nothing has been
+written for it.
 *Closes when:* the three briefs named in `STG-2` are generalized into a schema.
 
 **OPN-11 — What executes brief commands locally in the browser.** Either a WASI host with
@@ -99,7 +152,8 @@ the checklist is part of the signed brief set — and it does not exist yet for 
 it does, `ARC-17`'s deliverable has no definition to be measured against.
 
 Two parts are no longer open. Who may run which check was settled by `ARC-26`. And the *shape* is
-settled by `ARC-39`: the tenant supplies a delivery declaration and the check measures against it.
+settled: a delivery declaration (`ARC-39`) — a tenant's, or with no tenant the one the operator
+approved — and the check measures against it.
 The declaration format was the missing piece and now exists (below; default credentials are a
 field of it). What remains outside any declaration is the **vendor lockdown checklist** —
 sshd posture and whatever a given vendor makes possible.
@@ -109,11 +163,58 @@ That also makes the question per-**tenant** as much as per-vendor, which the tit
 [`docs/design/delivery-declaration-v1.md`](./docs/design/delivery-declaration-v1.md), with
 every field present as a value, an explicit empty set, or `unspecified`, and the lnrent
 template shipped with every unstated field `unspecified` so the harness invents nothing.
-*Closes when:* the lnrent owner fills that template
-([douglaz/lnrent#87](https://github.com/douglaz/lnrent/issues/87)), the Robot lockdown
-checklist exists, and briefs 2–3 are authored from them and exercised. `CNF-49`–`CNF-53`
-then need integrated evidence. This is a required tenant input, not permission to invent its
-operational contract inside the harness.
+*Split 2026-10-05.* With no tenant the declaration is the one the operator approved
+(`ARC-39`), so no tenant's input gates stage 1. What stage 1 needs from this entry is a
+**generic signed lockdown checklist**: the fixed checks `ARC-17` names — default credentials
+and sshd posture — keyed on no vendor and no tenant, shipped in the bundle. It does not exist
+yet. lnrent's declaration, the Robot checklist and briefs 2–3 gate stage 3.
+
+*Owed 2026-10-06:* the harness-composed reads of `ARC-43` behind `CNF-50`, `CNF-53` and
+`CNF-103`: listeners, outbound restrictions, unit state and enablement, evidence establishing survival of a restart, and a
+service-name grammar that passes a validated name as an argument, never shell syntax.
+Neither the concrete grammar, init-specific reads nor restart-demonstration mechanism is
+selected here. Also open: whether `STG-9`'s re-entry re-check reads `services` as well as
+`drift_checks`, and whether `running-at-delivery` binds after delivery; neither changes how a
+lifecycle finding treats placement (`ARC-17`). T42 carries their implementation and stage 1
+still owes their evidence.
+
+*Closes when:* the generic checklist ships and `CNF-49`–`CNF-53`, `CNF-99` and `CNF-103` have integrated
+evidence against it — that much for stage 1; and, for stage 3, the lnrent owner fills that
+template ([douglaz/lnrent#87](https://github.com/douglaz/lnrent/issues/87)), the Robot lockdown
+checklist exists, and briefs 2–3 are authored from them and exercised. The tenant half is a
+required tenant input, not permission to invent its operational contract inside the harness.
+
+**OPN-26 — The derived vendor identity has no format, and stage 1's vendor credential no
+decided origin.** `SEC-4` names a vendor identity derived per set as the untyped vendor
+scope's best practice, and `CHN-R6` wants the jump vendor's identity separate from the
+target's. Credential format v1 defines no role for either, and `SEC-5` row 22 records that
+none is derived or used until it does. Undecided: what the identity is derived per — a bound
+set, a machine or a session; whether it takes a machine-family index or a family of its own,
+and what its allocation entry holds; and its key type, which waits on what LNVPS's Nostr
+identity requires (`OPN-24`). Undecided beside it: whether stage 1's typed LNVPS adapter runs
+on a credential the operator supplies — `SEC-5` row 1, which is what the corpus says today — or
+on a derived one. *Closes when:* the format is decided. Markdown, the Lean declarations, the
+known-answer vectors, their checker and the witness files then change together (`STA-22a`,
+ADR-0032).
+
+**OPN-27 — What shape a multi-machine tenant takes.** A tenant is skill-shaped content —
+briefs and presets (`ARC-44`). Whether btc-policy fits that shape is open: atomic creation
+across vendors, sealing and the coordinator are profile slots and harness rules today
+(`ARC-19`, `ARC-27`), and whether they stay a harness capability a tenant's presets switch on
+is undecided. So is whether lnrent is a tenant at all, or a vendor the operator buys from. And
+one known gap sits under any declared independence bound: `ARC-31b` gives every session the
+highest-ranked candidate, so a different model per machine is not deliverable on the procured
+path. *Closes when:* stage 3 is designed.
+
+**OPN-28 — Placed-secret scanning after store loss.** *Closed by design; open as
+implementation, 2026-10-06.* `SEC-5` row 23 and its scan semantics define the browser-keyed
+reference; `ARC-43` owns placement, machine re-hashing and the local paste fallback. The key
+may be held immediately under that design; evidence is a completion gate, not authority to
+construct it. T48 carries the build and the still-open numeric minimum secret length.
+
+*Closes when:* `CNF-95`'s cases pass on the integrated harness, paired with `CNF-84` for
+Restore and `CNF-42` for the retained exposure display. Construction can proceed; stage 1
+requires that evidence, including fallback and output boundaries.
 
 **OPN-15 — Reproducible builds and the watchdogs that would make them mean something.** Neither
 exists. Until they do, the bundle's integrity rests on trusting the host outright, and `TRU-A1`
@@ -201,8 +302,9 @@ output, its exit code and its liveness, on installed-system persistent disk. Res
 is machine-reported and advisory, and comparing it against the browser journal catches honest
 mistakes rather than a hostile machine.
 [ADR-0022](./docs/adr/0022-durable-state-is-an-append-only-journal.md)'s amendment carries the
-reasoning and the three rejected alternatives. *Closes when:* `CNF-40`, `CNF-55` and `CNF-86`
-pass on the integrated harness (T23).
+reasoning and the three rejected alternatives. *Closes when:* `CNF-40`, `CNF-54`–`CNF-56` pass
+on the integrated harness (T23) — the part stage 1 gates on — and `CNF-86` passes there too,
+which the dedicated row of `07-conformance.md` asks for, not stage 1.
 
 **OPN-22 — What "still alive" means in `STA-20`.** **Closed: the narrow reading binds.** `STA-20`
 tracks whether **the command** is alive, not everything the command spawned. Daemon and service
@@ -287,6 +389,11 @@ requested per machine rather than observed, and the same override caveat applies
 *What closed it:* `SEC-CLAIM` now states the condition that way — configured weights, distinct
 by construction, with service-as-requested left to `TRU-E2`. A signal confirming the served
 model would add an *observed* column; none has a candidate, and nothing waits on it.
+
+*Amended 2026-10-06.* The historical "distinct by construction" account above is not what
+the procured path currently delivers: `ARC-31b` says it "takes the highest-ranked candidate
+it finds there" at session start. The configured-diversity gap is `OPN-27`'s stage-3 question.
+This note does not reopen the served-weights observability question closed here.
 
 **OPN-1 — The SSH client.** *Closed 2026-09-08: the mechanism ran, and it ran on a phone.* An SSH implementation compiled to `wasm32-unknown-unknown` with
 its transport swapped for a WebSocket. It gates, because nothing works without one.
@@ -378,8 +485,10 @@ The installation and identity-chain rehearsal ran on a disposable dedicated serv
 `OPN-6` is closed. The Rust/WASM SSH and pinned-TLS spikes also ran, including physical
 Android evidence. Robot's browser route is the pinned TLS tunnel, not direct CORS fetch.
 
-Construct the integrated harness from those results and the v1 credential/storage contracts.
-In parallel, obtain the lnrent declaration and finish the lockdown checklist and briefs 2–3
-(`OPN-14`). The live rehearsal has not demonstrated the harness, tenant delivery, local unlock,
-or interrupted-install convergence. Complete the first-stage conformance subset before
-claiming delivery; do not repeat the already-closed identity-chain probe as a construction gate.
+Construct the integrated harness from those results and the v1 credential/storage contracts,
+using the dedicated path as the test bed. In parallel, run stage 0: the LNVPS probe (`OPN-24`),
+attest on a real first boot (`OPN-3`), and the Omarchy question (`OPN-25`); and write the
+generic lockdown checklist (`OPN-14`). The live rehearsal has not demonstrated the harness, a
+goal-driven install, local unlock, or interrupted-install convergence. Complete the stage-1
+conformance subset before claiming delivery; do not repeat the already-closed identity-chain
+probe as a construction gate.

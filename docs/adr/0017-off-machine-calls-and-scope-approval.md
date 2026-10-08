@@ -183,3 +183,14 @@ free while the relay origin was a constant, and the bring-your-own and self-host
 trajectories make it configuration. What contains a subverted session is not a
 frozen list but the scope model itself: no credential moves without an approved scope,
 every call is recorded before it is sent, and the destination rules above still bind.
+
+## Amended 2026-10-05: a vendor with no adapter is usable, through an untyped vendor scope
+
+This record says "Vendor APIs are typed operations or nothing; a vendor with no adapter is not
+yet usable, which is the cost of keeping the isolation claim true", and that a vendor's
+credential "reaches every machine on the account".
+[ADR-0038](./0038-untyped-vendor-scopes.md) amends both: a vendor API *may* reach machines
+outside a session's bound set, a typed adapter closes that per operation, and a vendor with no
+adapter is reached through an untyped vendor scope on `SEC-4`'s conditions. `SEC-4`
+says "A scope MUST NOT name an origin a vendor adapter covers", which is what remains of this
+record's ban. The body above is unchanged and records what was decided then.

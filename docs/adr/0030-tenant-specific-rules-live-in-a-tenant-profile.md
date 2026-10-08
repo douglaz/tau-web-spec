@@ -85,3 +85,15 @@ tree, so a new tenant is a new directory.
 
 Reviewed independently by two readers before adoption on 2026-09-09; both raised the first
 guard, one raised the second, and their corrections to the draft schema are folded in.
+
+## Amended 2026-10-05: a machine with no tenant runs under the ad-hoc profile, and its operator fills the slots
+
+This record is amended, not reversed, by
+[ADR-0034](./0034-general-case-first-tenants-are-optional-skills.md). Its rejection of an
+optional profile stands: every machine runs under one. What changes is the built-in profile's
+content. Its per-machine slots are no longer preset for a machine that serves nothing; the
+operator fills them by answering the harness's own questions — `ARC-36a` for machine class,
+`ARC-39` for the declaration, which starts from this record's signed minimum — and its access
+model stays fixed at maintained (`ARC-27`). Both guards above survive unchanged. The schema's "tenant secrets placed on
+machines" are application secrets, as `SEC-5` row 12 now names them. The body above is unchanged and records
+what was decided then.

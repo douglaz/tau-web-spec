@@ -6,8 +6,8 @@ operate real infrastructure, without trusting any party that could act on their 
 **That is the goal, not an achieved property.** Several parties are still trusted, and the
 specification names each of them. The harness's own claim is about isolation: a model's blast
 radius is the machines its weights have touched, plus any approved credential scope, plus any
-tenant secret placed on those machines — and no session reaches a machine it is not bound to
-through anything the harness controls. The vault claim — *no single model provisioned enough
+application secret placed on those machines — and no session reaches a machine outside its
+bound set through anything the harness controls. The vault claim — *no single model provisioned enough
 members to reach the threshold* — belongs to btc-policy, the tenant that stacks it on top.
 "Verified" is not a claim this design can make.
 
@@ -35,21 +35,28 @@ The specification is split by topic, and every requirement carries a stable iden
 | | |
 |---|---|
 | [`01-architecture.md`](./01-architecture.md) | How the system is put together |
-| [`02-channel.md`](./02-channel.md) | Reaching a machine, and the five routes to a pinned host key |
+| [`02-channel.md`](./02-channel.md) | Reaching a machine, and the routes to a pinned host key |
 | [`03-state-and-recovery.md`](./03-state-and-recovery.md) | Surviving a killed worker, and a lost phone |
 | [`04-security-model.md`](./04-security-model.md) | The invariants, the credential inventory, the claim |
 | [`05-trust.md`](./05-trust.md) | Who must still be trusted, and who chose them |
-| [`06-first-stage.md`](./06-first-stage.md) | What gets built first, and what it must show |
+| [`06-first-stage.md`](./06-first-stage.md) | The stages, and what the first must show |
 | [`07-conformance.md`](./07-conformance.md) | What an implementation must demonstrate |
 | [`08-open-questions.md`](./08-open-questions.md) | Everything still unknown, and what would close it |
 
-[`docs/tenants/`](./docs/tenants/) holds one profile per tenant (`ADR-0030`).
+[`docs/tenants/`](./docs/tenants/) holds one profile per tenant, and the built-in ad-hoc
+profile a machine with no tenant runs under (`ADR-0030`).
 
 [`executive-summary.md`](./executive-summary.md) is a shorter read for the shape without the
 detail. [`CONTEXT.md`](./CONTEXT.md) is the glossary. [`TASKS.md`](./TASKS.md) is the open
 work.
 
-## The two intended tenants
+## The general case, and the two intended tenants
+
+The harness works from an operator's goal with no tenant: "launch a VPS paid in Bitcoin and
+install Hermes on Omarchy" is the first stage's intended scenario, with plain Arch and a
+card-paid Hetzner Cloud machine as its stated alternatives (`STG-21`). A tenant is optional — briefs that make
+installing its software faster and more reliable, and presets for the facts its machines carry.
+Two are intended:
 
 - [btc-policy](https://github.com/douglaz/btc-policy) — self-hosted Bitcoin custody. Standing
   up a federation of policy co-signers means provisioning and hardening several machines at
@@ -62,9 +69,13 @@ work.
   arrangement `SEC-3` exists to forbid.
 
 The installation rehearsal ran on a disposable dedicated server on September 8, 2026; both
-pinned SSH hops closed. Harness construction can start. The integrated harness, interrupted
-resume, lockdown and tenant delivery remain unproven. The next work is construction plus the
-lnrent declaration/checklist and briefs 2–3; `07-conformance.md` defines first-stage completion.
+pinned SSH hops closed. Harness construction can start, with that dedicated path as its test
+bed. The stages and build list are in `06-first-stage.md`; the probe lists and evidence gaps
+are in `08-open-questions.md`. The October 6 recovery and secret-scan decisions are
+[ADR-0040](./docs/adr/0040-stage-one-includes-restore-and-replace.md) and
+[ADR-0041](./docs/adr/0041-secret-scan-rearms-from-machine-reports.md); model-written reports
+are clarified in ADR-0034. The integrated harness remains unproven, including recovery and
+scan re-arming; `07-conformance.md` defines each stage's completion.
 
 ## Requirement conventions
 
@@ -106,9 +117,9 @@ rendered twice, a malformed marker, and an emitted region no document renders.
 | `ARC-n` | Architecture |
 | `CHN-n` | The channel; `CHN-Rn` is one of the routes to a pinned host key |
 | `STA-n` | State and recovery |
-| `SEC-n` | Security model; `SEC-Tn` is a tenant rule now in btc-policy's profile; `SEC-CLAIM` is the claim itself |
+| `SEC-n` | Security model; `SEC-Tn` is a tenant rule in btc-policy's profile; `SEC-CLAIM` is the claim itself |
 | `TRU-Un`, `TRU-En`, `TRU-An` | Trust: unavoidable, elective, and added by this product |
-| `STG-n` | The first stage |
+| `STG-n` | The stages |
 | `CNF-n` | Conformance items |
 | `OPN-n` | Open questions |
 
