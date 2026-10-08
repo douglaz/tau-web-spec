@@ -195,11 +195,13 @@ an item that tests a mode's conditions or its label is tiered by them like any o
 - [ ] **CNF-17 · BLOCKING** An untyped response containing a harness-held credential is
       redacted before it reaches the model or the record. Exact-value scan.
 - [ ] **CNF-18 · BLOCKING** The attest introduction is **single-use**, and single-use is the
-      browser's (`CHN-5`, `CHN-7`). Verified three ways: a second validly sealed wrap from the
+      browser's (`CHN-5`, `CHN-7`). Verified four ways: a second validly sealed wrap from the
       same sender key after one is accepted is ignored; a wrap whose seal author is not the
-      planted sender key is refused even when it decrypts; and a wrap arriving after the
-      browser's window has closed is refused. No relay-side behaviour may be relied on for any
-      of the three.
+      planted sender key is refused even when it decrypts; a wrap arriving after the
+      browser's window has closed is refused; and a validly sealed wrap for a machine that
+      already holds an installed-system pin from another route is refused, before and after a
+      restart, leaving that pin and the introduction unconsumed. No relay-side behaviour may be
+      relied on for any of the four.
 - [ ] **CNF-61 · PRE-SCALE** The sender key is scrubbed from the machine's cloud-init artifacts
       on the first relay OK or at the deadline (`CHN-6`), verified by reading the machine's disk.
       This is defence in depth: the vendor's metadata endpoint still serves the original
