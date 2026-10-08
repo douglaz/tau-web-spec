@@ -941,14 +941,14 @@ refuses the repeat: the second introduction after restart changes nothing. -/
 holds the installed pin `ready_to_reset` journaled, so the introduction journals nothing and
 consumes nothing, and the connection presenting its set is checked against the job pin and
 halted as the error. -/
-@[req "ARC-43"] theorem attest_after_job_pin_refused :
+@[req "CHN-5"] theorem attest_after_job_pin_refused :
     let k := run current init afterJobPinEvents
     k.pins.map (·.source) = [.readyToReset] ∧ k.consumed = [] ∧ k.sessions = [] ∧
     k.halts.map (·.reason) = [.mismatch] := by decide +kernel
 
 /-- Without first contact only, the introduction replaces the job pin: the newest pin is the
 attest's, and the connection presenting its set is admitted against it. -/
-@[req "ARC-43"] theorem attest_after_job_pin_admitted :
+@[req "CHN-5"] theorem attest_after_job_pin_admitted :
     let k := run laterAttest init afterJobPinEvents
     k.pins.map (·.source) = [.attest (plantedSender entryA), .readyToReset] ∧
     k.consumed = [entryA] ∧ k.sessions.map (·.keys) = [attestedKeys] := by decide +kernel
@@ -1005,7 +1005,7 @@ def firstContactOnly : List Pin → Bool
 `check`, so that it decides what they read rather than agreeing with them: no pin the harness
 holds came from model text; attest pins name the planted sender, are per machine and have a
 consumed introduction, which is the one clause that reads `consumed`; an attest pin is never
-preceded by an installed-system pin for its machine, which is `ARC-43`'s first contact only and,
+preceded by an installed-system pin for its machine, which is `CHN-5`'s first contact only and,
 as `firstContactOnly` says, at most one attest pin per machine, decided from the pins and not
 from `consumed`; every session was admitted against a pin it holds for that machine, for the
 system it connected to and, in rescue, for the boot it was made in; and every halt recorded as

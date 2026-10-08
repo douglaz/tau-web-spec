@@ -468,9 +468,11 @@ qualification MUST be restated at every later irreversible act until the operato
 reapproves the relevant restored state. Whether an installation is pinned, or not yet made,
 and each pin's route are restored and shown beside it, as of export like the rest; they record
 what happened, not something the operator approves. Restore also brings back each machine's
-application/provider list beside its placement data in the trust display, explicitly labelled
-**"as of export"** until a re-check; it MUST NOT imply current installation or provider state
-before that check. This list requires no reapproval. Installation pin status and pin routes
+complete recorded application/provider list, explicitly labelled **"as of export"** until a
+re-check; it MUST NOT imply current installation or provider state before that check. This
+list requires no reapproval. A restored provider is listed beside its application only where
+that application's secret placement is restored: `TRU-E12` says "listed in the trust display
+beside the application for as long as its secret is placed". Installation pin status and pin routes
 are the history modes of `SEC-14`, and a Restore does not reapprove them — only a reinstall, a new installation, is accepted afresh; the restored conduct modes were the exporting session's, which ended, and a
 re-entering session accepts its own rather than reapproving them, while what they left live
 stays "unknown since export". The sheet carries no check result and no

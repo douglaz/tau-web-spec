@@ -762,11 +762,11 @@ def namedBy (k : Knowledge) (es : List TauWeb.Pins.Event) : List TauWeb.Pins.Ent
 `CHN-R1`'s and `ARC-43`'s vocabulary. Nothing of the companion's `Knowledge` beyond it, and never
 external state: `snapshot` is what the vendor's field showed when it was read, not what the
 machine is running, and a session's `keys` is what the far sshd presented. `planted_senders`
-covers `named` — the trace's machines — beside the projection's own. -/
-def knowledgeJson (k : Knowledge) (named : List TauWeb.Pins.Entry := []) : Json :=
+covers exactly `named`, fixed before the trace runs, in that order at every step. -/
+def knowledgeJson (k : Knowledge) (named : List TauWeb.Pins.Entry) : Json :=
   Json.mkObj [
     ("consumed_introductions", toJson k.consumed.reverse),
-    ("planted_senders", Json.arr (((entriesOf k ++ named).eraseDups).map fun m =>
+    ("planted_senders", Json.arr (named.map fun m =>
       Json.mkObj [("entry", toJson m), ("sender", toJson (plantedSender m))]).toArray),
     ("pins", Json.arr (k.pins.reverse.map pinJson).toArray),
     ("snapshot", Json.arr ((entriesOf k).filterMap fun m =>
@@ -809,7 +809,7 @@ def eventJson : TauWeb.Pins.Event → Json
 
 /-- One step: the event, what the harness did with it, and the projection after. -/
 def stepJson (p : TauWeb.Pins.Params) (k : Knowledge) (e : TauWeb.Pins.Event)
-    (named : List TauWeb.Pins.Entry := []) : Json × Knowledge :=
+    (named : List TauWeb.Pins.Entry) : Json × Knowledge :=
   let k' := TauWeb.Pins.step p k e
   let outcome := match e with
     | .reset m _ => [("boot", toJson (bootOf k' m))]
@@ -845,8 +845,8 @@ def assumptionsJson (p : TauWeb.Pins.Params) : Json :=
     ("journalAppend", "successful append atomically persists machine, pins and consumed state; restart retains it"),
     ("window", "attest observations delivered during the browser introduction window")]
 
-def Trace.json (t : Trace) : Json :=
-  let named := namedBy t.start t.events
+def Trace.json (t : Trace)
+    (named : List TauWeb.Pins.Entry := namedBy t.start t.events) : Json :=
   let steps := (t.events.foldl
     (fun (acc, k) e => let (j, k') := stepJson t.params k e named; (acc.push j, k'))
     (#[], t.start)).1
@@ -893,14 +893,17 @@ def enumeration : List Trace :=
 
 def module : Module :=
   let boundDecl := "TauWeb.Pins.bound"
+  -- The header and every enumerated trace share the start-and-alphabet machine basis,
+  -- including the empty trace. Observed authors never supply sender associations.
+  let named := namedBy TauWeb.Pins.start TauWeb.Pins.alphabet
   let bound := Json.mkObj [
     ("declaration", boundDecl), ("events", toJson TauWeb.Pins.bound),
     ("alphabet", Json.arr (TauWeb.Pins.alphabet.map eventJson).toArray),
-    ("start", knowledgeJson TauWeb.Pins.start)]
+    ("start", knowledgeJson TauWeb.Pins.start named)]
   let traces := witnesses ++ enumeration
   { name := "pins", ns := `TauWeb.Pins,
     text := fileText "pins" `TauWeb.Pins bound (witnesses.map (·.json))
-      (enumeration.map (·.json)),
+      (enumeration.map (·.json named)),
     named := traces.flatMap (·.decls),
     refs := boundDecl :: traces.filterMap fun t => t.pair.map (·.2) }
 

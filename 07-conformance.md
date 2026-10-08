@@ -703,9 +703,13 @@ Not pass/fail. Required to be recorded.
       binding a missing applications field, missing required member, duplicate object member,
       or malformed application or provider data; a machine exported with two applications of
       the same name, with the same or different providers, restores both. Confirm the restored
-      application/provider list appears beside placement
-      data in the trust display as of export until re-check, without a new approval or any
-      implication that it is current. The no-model marker and empty list never mean unapproved.
+      application/provider list is complete, including an application with a recorded provider
+      and no restored secret placement: its provider remains recorded and is not listed in the
+      trust display. Include an application whose secret placement is restored and confirm its
+      provider is listed beside it (`TRU-E12` says "listed in the trust display beside the
+      application for as long as its secret is placed"). The restored facts stay labelled as of
+      export until re-check, without a new approval or any implication of current installation
+      or provider state. The no-model marker and empty list never mean unapproved.
       An imported local-store backup's machines are shown unchecked, their findings unknown,
       and refuse a placement until a re-check, as a sheet Restore's do. A stale sheet or imported
       store cannot allocate

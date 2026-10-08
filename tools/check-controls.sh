@@ -354,7 +354,7 @@ pins_control "formal: attest admits before a durable append" \
   "sed -i 's/attestDurable : Bool := true/attestDurable : Bool := false/' $PINS && grep -q 'attestDurable : Bool := false' $PINS" \
   failed_attest_refused
 
-# Attest is a first contact only (ARC-43): with the guard removed an introduction replaces a job
+# Attest is a first contact only (CHN-5): with the guard removed an introduction replaces a job
 # pin, which its refused witness sees and bounded sees through its firstContactOnly clause -- the
 # one control that makes that clause false.
 pins_control "formal: attest after an installed pin" \
