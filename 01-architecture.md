@@ -246,10 +246,11 @@ can read, which is what an action transcript is for.
 The cost is stated: anything genuinely interactive — an installer that stops to prompt —
 MUST be handled by the brief rather than answered live.
 
-**ARC-43 Values the harness checks come from jobs the harness composed, never from model
-text.** The artifact hash (`ARC-25`, `CNF-24`) and the installed host keys (`CHN-R1`, `CNF-22`)
+**ARC-43 Values the harness checks never come from model text.** The artifact hash
+(`ARC-25`, `CNF-24`) and, on the dedicated path, the installed host keys (`CHN-R1`, `CNF-22`)
 are read by **harness-owned box-plane jobs**, requested by the model where permitted or
-initiated by the harness itself. Values come from the job record's captured output. The jobs are:
+initiated by the harness itself. These reads take their values from the job record's captured
+output. For attest (`CHN-R5`), see the pin-source clause below. The jobs are:
 
 - `fetch_artifact` — downloads the pinned URL to a harness-fixed path on the machine, hashes it,
   compares against the bundle's value and halts the install on a mismatch (`STG-6`).
