@@ -720,8 +720,8 @@ Not pass/fail. Required to be recorded.
       `name`; confirm its named application's provider is listed beside that application on its
       machine (`TRU-E12` says "listed in the trust display beside the
       application for as long as its secret is placed"). The restored facts stay labelled as of
-      export until re-check, without a new approval or any implication of current installation
-      or provider state. The no-model marker and empty list never mean unapproved.
+      export, through a machine re-check, until the harness records that application again,
+      without a new approval or any implication of current installation or provider state. The no-model marker and empty list never mean unapproved.
       An imported local-store backup's machines are shown unchecked, their findings unknown,
       and refuse a placement until a re-check, as a sheet Restore's do. A stale sheet or imported
       store cannot allocate

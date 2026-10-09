@@ -471,8 +471,10 @@ qualification MUST be restated at every later irreversible act until the operato
 reapproves the relevant restored state. Whether an installation is pinned, or not yet made,
 and each pin's route are restored and shown beside it, as of export like the rest; they record
 what happened, not something the operator approves. Restore also brings back each machine's
-complete recorded application/provider list, explicitly labelled **"as of export"** until a
-re-check; it MUST NOT imply current installation or provider state before that check. This
+complete recorded application/provider list, explicitly labelled **"as of export"** until the
+harness records that application again: no re-check reads which applications are installed or
+which provider each uses, so a re-check does not lift the label, and the list MUST NOT imply
+current installation or provider state while it stands. This
 list requires no reapproval. A restored provider is listed beside its application exactly where
 a restored placement names that application on its machine: `TRU-E12` says "listed in the trust display
 beside the application for as long as its secret is placed". Installation pin status and pin routes
