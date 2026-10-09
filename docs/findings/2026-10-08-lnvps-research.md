@@ -22,10 +22,12 @@ binary (`lnvps_api/src/api/docs.rs:10-11`). Its `/docs/endpoints.md` is byte-ide
 ## Verdict
 
 **LNVPS cannot be attested to as `CHN-R5` is written, and its HTTP API cannot be ordered from
-with a Nostr key alone.** A create request carries no user-data: the cloud-init a machine boots is composed
-by the vendor from the one SSH public key the buyer registered. What it offers instead is a
-retrieve route — each machine's status carries its SSH host keys, scanned from the hypervisor
-after boot — which is the route `CHN-R6` admits for a jump host and which nobody has measured.
+with a Nostr key alone.** `CHN-R5` plants a sender key "whose private half goes into user-data
+beside the SSH client public key", and a create request carries no user-data: the cloud-init a
+machine boots is composed by the vendor from the one SSH public key the buyer registered. What it
+offers instead is a retrieve route — each machine's status carries its SSH host keys, scanned from
+the hypervisor after boot. `CHN-R6` pins a jump host "by attest (`CHN-R5`), or by a retrieve route
+where the jump vendor offers one"; this one is unmeasured.
 The API answers any browser origin and authenticates by NIP-98 or a bearer token, so a static
 page can call it directly. A key lists its machines but cannot destroy one: there is no customer
 delete route. Ordering through the HTTP API requires a verified email address on the live server
@@ -285,5 +287,6 @@ T39 also asks whether Hetzner Cloud offers the stage's distribution as an image 
 It does not. The live `GET /v1/images?type=system` listed AlmaLinux 8–10, CentOS Stream 9–10,
 Debian 12–13, Fedora 43–44, openSUSE 16, Rocky 8–10 and Ubuntu 22.04–26.04 on both
 architectures, and no Arch Linux. A project snapshot made from an Arch installation could be
-named at creation, but it is not the vendor's catalogue. So the fallback, as `STG-21` states it,
-does not hold for Arch either.
+named at creation, but it is not the vendor's catalogue. `STG-21` says "The fallback holds only
+where Hetzner Cloud offers the stage's distribution as an image at creation", so it does not hold
+for Arch either.

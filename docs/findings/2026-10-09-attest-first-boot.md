@@ -129,9 +129,9 @@ The 18 attested fingerprints were all distinct, so the image does not ship baked
 
 The acceptance check refused nothing, because no relay delivered anything else to these
 recipients. Offline, `run.sh selftest` shows the check refuses a wrap sealed by a key other than
-the planted sender, and refuses a key line whose fingerprint does not match. Of `CNF-18`'s three
-checks, only the wrong-author one was exercised, and only offline. A second validly sealed wrap
-after acceptance, and a wrap after the window, were **not observed**.
+the planted sender, and refuses a key line whose fingerprint does not match. Of the checks
+`CNF-18` lists, only the wrong-author one was exercised, and only offline; none of its others
+was **observed**.
 
 ## The create response (`CNF-14`)
 

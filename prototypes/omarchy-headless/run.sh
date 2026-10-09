@@ -187,14 +187,15 @@ EOF
 # DEVIATION, run only after step6b failed: --first-install forces the ISO-chroot context, whose
 # mise-work.sh demands the ISO's bundled Node tarball in /opt/packages. The documented
 # runtime form (--force alone) takes Node from the network instead.
-step6r() {
+step6r() {  # only after step6b's recorded failure; a supported path that succeeded is left alone
+  grep -q 'bundled Node.js tarball missing' "$W/logs/job-step6b.log" 2>/dev/null || { echo "step6b did not fail as recorded: no deviation"; return 0; }
   job step6r user <<'EOF'
 omarchy-provision-user --force
 EOF
 }
 
 step7() {  # ufw allow ssh can print an error and still save the rule: check the saved rule itself
-  g 'sudo ufw allow ssh; sudo ufw show added | tee /dev/stderr | grep -qE "allow (ssh|22)" && grep ENABLED /etc/ufw/ufw.conf'
+  g 'sudo ufw allow ssh; sudo ufw show added | tee /dev/stderr | grep -qE "allow (ssh|22)" && grep -x ENABLED=yes /etc/ufw/ufw.conf'
 }
 
 reboot_() {  # step 8: reboot from inside (same QEMU process, same NVRAM); reconnect against the pin ONLY

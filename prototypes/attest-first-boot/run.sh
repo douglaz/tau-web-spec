@@ -126,10 +126,9 @@ boot() {  # boot LOCATION SERVER_TYPE IMAGE
     "$NAK" req -k 1059 -p "$RP" --stream "$r" </dev/null 2>"$B/sub-$n.err" > >(stamp > "$B/sub-$n.out") &
     PIDS+=($!); echo "$n $!" >> "$B/subscriber-pids"
   done
-  for t in $(seq 40); do
-    [ "$(cat "$B"/sub-*.err 2>/dev/null | grep -c '\.\.\. ok\.')" -eq 3 ] && break; sleep 0.5
-  done
-  [ "$(cat "$B"/sub-*.err | grep -c '\.\.\. ok\.')" -eq 3 ] || { echo "a subscriber did not connect"; cat "$B"/sub-*.err; exit 1; }
+  allup() { local f; for f in "$B"/sub-*.err; do grep -q '\.\.\. ok\.' "$f" || return 1; done; }  # each relay, not a total
+  for t in $(seq 40); do allup && break; sleep 0.5; done
+  allup || { echo "a subscriber did not connect"; cat "$B"/sub-*.err; exit 1; }
   sleep 2
 
   T0=$EPOCHREALTIME; : > "$B/timeline.tsv"; ev create-call
