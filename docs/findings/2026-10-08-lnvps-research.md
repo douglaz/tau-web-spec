@@ -150,7 +150,8 @@ places a custom order and replies with a Lightning invoice, with no email check
 the published image keeps the defaults (`Dockerfile:39-41`), and the worker starts it whenever a
 Nostr configuration exists (`api.rs:427-436`) — which `nip17: true` implies (`routes.rs:748`).
 Whether it listens in production, and on which relays, is unknown from the docs. Its replies are
-relay events, not TLS the browser terminates.
+relay events, not TLS the browser terminates. *Update 2026-10-09:* it listens, and its order
+path refuses every job (`2026-10-09-lnvps-nip90-probe.md`).
 
 *Left for the probe:* the `403` before verification; a `DELETE /api/v1/vm/{id}` answered `405`;
 the date a stopped, expired machine leaves the listing.
