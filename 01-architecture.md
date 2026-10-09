@@ -35,6 +35,9 @@ about one:
 
 - **Its key is an application secret** (`SEC-5` row 12), placed by `place_secret` (`ARC-43`).
   It is the operator's credential for the application, never a harness credential.
+- **The harness MUST record each installed application under a name unique on its machine.**
+  Names are compared by exact string equality; applications on different machines may have
+  the same name. The name identifies the application in its secret placement and recovery record.
 - **Its outbound destinations and its always-on service are stated in the machine's delivery
   declaration** (`ARC-39`). The harness does not constrain an installed agent's reach beyond
   what that declaration states.
@@ -246,10 +249,15 @@ can read, which is what an action transcript is for.
 The cost is stated: anything genuinely interactive — an installer that stops to prompt —
 MUST be handled by the brief rather than answered live.
 
-**ARC-43 Values the harness checks come from jobs the harness composed, never from model
-text.** The artifact hash (`ARC-25`, `CNF-24`) and the installed host keys (`CHN-R1`, `CNF-22`)
+**ARC-43 Values the harness checks MUST come from jobs the harness composed, the vendor's
+`/rescue/last` for a rescue boot's host keys (`CHN-R1`), or an attest seal for installed-system
+host keys (`CHN-R5`); never from model text.**
+For attest duties, `CHN-R5` says "accepts the fingerprints only if the seal's author is the sender key it planted"; `CHN-5` says "Single-use MUST be enforced by the browser, not by any relay".
+Apart from those rescue and attest pins, every checked value is job output. The artifact hash
+(`ARC-25`, `CNF-24`) and, on the dedicated path, the installed host keys (`CHN-R1`, `CNF-22`)
 are read by **harness-owned box-plane jobs**, requested by the model where permitted or
-initiated by the harness itself. Values come from the job record's captured output. The jobs are:
+initiated by the harness itself. These reads take their values from the job record's captured
+output. The jobs are:
 
 - `fetch_artifact` — downloads the pinned URL to a harness-fixed path on the machine, hashes it,
   compares against the bundle's value and halts the install on a mismatch (`STG-6`).
@@ -267,11 +275,11 @@ are passed as arguments, never interpolated as shell syntax. The model proposes 
 not the measuring procedure.
 
 Where a host-key pin may come from is `TauWeb.Pins.Source` and what each source may pin is
-`TauWeb.Pins.admits` (ADR-0032), with `TauWeb.Pins.installed_pin_from_job` over every trace and
-`TauWeb.Pins.installed_pin_from_model_text_refused` and
-`TauWeb.Pins.installed_pin_from_model_text_admitted` its pair. The companion carries the sources
-the dedicated path walks. A pin taken by attest (`CHN-R5`), stage 1's route, is not among them
-yet (T40), and a pin taken at a jump-host first contact (`CHN-R6`) is not among them. Only
+`TauWeb.Pins.admits` (ADR-0032), with `TauWeb.Pins.installed_pin_from_authorized_source` over
+every trace. The model-text trap remains `TauWeb.Pins.installed_pin_from_model_text_refused`
+and `TauWeb.Pins.installed_pin_from_model_text_admitted`. The companion carries the dedicated
+path and attest. A pin taken at a jump-host first contact
+(`CHN-R6`) is not among `TauWeb.Pins.Source`'s cases (T45). Only
 this pin-source clause of `ARC-43` is formalized; the rules of `place_secret` and
 `digest_secret` below are not, and this text is their home (ADR-0032, "Authority is per
 clause").
@@ -282,7 +290,8 @@ what distinguishes them is that the harness composed the command, not that the o
 it. Only the reset that `ready_to_reset` goes on to offer is a cloud-plane typed operation.
 
 **`place_secret` differs on both counts, and says so.** It takes arguments from the model —
-which machine, a path, an owner, a mode, a name and a purpose — and never the value; and each
+which machine, the application name, a path, an owner, a mode, a secret name and a purpose —
+and never the value; and each
 placement is approved by the operator on a card the harness composes, which makes it an
 operation approved on facts (`ARC-4`). The operator enters the value on that card. Every rule
 here is non-waivable:
@@ -291,13 +300,18 @@ here is non-waivable:
   record holds "the **command as received**", so a value in the command line is a value on the
   machine's disk and in the journal. It is not put in an environment variable, in shell text or
   in a diagnostic either.
+- **The application association is recorded.** `place_secret` MUST name an application recorded
+  on the named machine and MUST record that application name with the placement, separately
+  from the secret name and in the pre-transmission facts. A name recorded only on another machine
+  does not qualify.
 - **The job wrapper's duty is `STA-20`'s.** `STA-20` says "the job wrapper MUST NOT write that
   input to any file but the job's destination". The destination receives exactly the entered
   bytes: no added newline, wrapper, or `KEY=` prefix.
 - **The value never enters model context on the way in**, and never appears in cleartext in the
   journal, the transcript, the job record, a log or a request to the app's origin. What is
-  recorded before the bytes leave (`ARC-8`) is the command, the machine, the destination and the
-  approval — and that a value was sent, not the value.
+  recorded before the bytes leave (`ARC-8`) is the command, the machine, the application name,
+  the distinct secret name, the destination and the approval — and that a value was sent, not
+  the value.
 - **A value equal to a credential the harness holds is refused** (`SEC-5`). Without that, a
   steered model asks for the vendor credential or the seed to be written where it has root, and
   `CNF-12` has something to send after all.
@@ -310,7 +324,7 @@ here is non-waivable:
   placement clears none of them.
 - **The card restates every acceptable weaker mode standing on the machine's bound set**
   (`SEC-14`), states the root-shell caveat `SEC-5` attaches to row 12, and shows the name and
-  purpose as what the model asked for, not as the harness's description.
+  purpose and application name as what the model asked for, not as the harness's description.
 - **On a multi-tenant machine (`ARC-36`) the card states `ARC-37`'s rule** — no spendable key
   material on this machine — and the operator confirms the value is not spendable before it is
   sent; without that confirmation nothing is placed. The harness cannot classify a value, so the

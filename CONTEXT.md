@@ -121,10 +121,10 @@ _Avoid_: example (a witness is checked; an example is illustrated), sample, test
 **Witness file** · ADR-0032
 The companion's serialized witnesses and bounded traces for one module, one file under
 `docs/design/` — `allocation-witnesses-v1.json`, `declaration-witnesses-v1.json`,
-`relay-witnesses-v1.json`, `dispatch-witnesses-v1.json` and `pins-witnesses-v1.json`, with
-`witness-file-v1.md` as the schema — emitted by `lake exe witnesses` and held equal to the emission by
-`tools/check_witnesses.py`. Read by the implementation's tests from the pinned tree; never
-compiled into the build. It
+`relay-witnesses-v1.json`, `dispatch-witnesses-v1.json` and `pins-witnesses-v2.json`, with
+`witness-file-v1.md` describing their schemas — emitted by `lake exe witnesses` and held equal to the emission by
+`tools/check_witnesses.py`. Future implementation tests are to read them from the pinned tree;
+nothing outside this repository reads witness files today. Never compiled into the build. It
 carries harness knowledge and expected outcomes at each step, and never a claim about external
 state, a conformance identifier, a timer, or key material.
 _Avoid_: trace vector, test vector (that is `credential-vectors-v1.json`'s word for frozen
@@ -481,9 +481,11 @@ _Avoid_: audit log, history (unqualified)
 
 **Recovery sheet** · `STA-16`
 A passphrase-wrapped export of the recoverable metadata and inference credential listed in
-`STA-16`. Its placement entries identify a machine, name, path and placement time, without
-value-derived scan material. Sheet payload version 2 is distinct from the unchanged v1
-derivation and encryption-envelope formats.
+`STA-16`. Its placement entries identify a machine, application name, distinct secret name,
+path and placement time, without value-derived scan material. Application/provider facts are
+recorded per machine, with application names unique there by exact equality. The payload
+version belongs to `docs/design/credential-format-v1.md`, distinct from its v1 derivation and
+encryption-envelope formats.
 _Avoid_: backup (unqualified), export file, "the keys" (they are not in it)
 
 **Replace / Restore** · `STA-17`

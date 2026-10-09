@@ -1,16 +1,22 @@
-# Witness file v1
+# Witness files v1 and v2
 
-The schema of the files the formal companion emits, one per module, committed beside this
-document as `<module>-witnesses-v1.json` (ADR-0032, "How the implementation is compared" —
+The schemas of the files the formal companion emits, one per module, committed beside this
+document as `<module>-witnesses-v<schema>.json` (ADR-0032, "How the implementation is compared" —
 what a witness file carries, what it never carries, and how the implementation reads it are
 decided there and not restated here). `lake exe witnesses` writes them from `tools/formal/`;
 `tools/check_witnesses.py` refuses a committed file that differs from the emission, and
-`tools/check_fixtures.py` parses each as a document. So far,
+`tools/check_fixtures.py` parses each as a document. The unchanged modules use schema 1:
 [`allocation-witnesses-v1.json`](./allocation-witnesses-v1.json) from `TauWeb.Allocation`,
 [`declaration-witnesses-v1.json`](./declaration-witnesses-v1.json) from `TauWeb.Declaration`,
 [`relay-witnesses-v1.json`](./relay-witnesses-v1.json) from `TauWeb.Relay`,
-[`dispatch-witnesses-v1.json`](./dispatch-witnesses-v1.json) from `TauWeb.Dispatch`, and
-[`pins-witnesses-v1.json`](./pins-witnesses-v1.json) from `TauWeb.Pins`.
+[`dispatch-witnesses-v1.json`](./dispatch-witnesses-v1.json) from `TauWeb.Dispatch`. The pins
+module uses schema 2 in [`pins-witnesses-v2.json`](./pins-witnesses-v2.json) from `TauWeb.Pins`.
+It replaces `pins-witnesses-v1.json`: the attest and restart events, their assumptions and
+outcomes, author fields and the knowledge members below are a change of shape.
+Nothing outside this repository reads witness files today, so removing that old file requires no
+current reader
+migration. Future implementation comparisons still owe a reader for the versioned files under
+ADR-0032; no downstream migration or comparison is claimed here.
 
 ## The file
 
@@ -19,10 +25,10 @@ the trace that moved.
 
 | Member | What it holds |
 |---|---|
-| `schema` | `1`. A change to any shape below is a new version and a new file name. |
+| `schema` | `1` for allocation, declaration, relay and dispatch; `2` for pins. A change to any shape below is a new version and a new file name for that module. |
 | `module` | The inventory name, lower-case: `allocation`, `declaration`, `relay`, `dispatch`, and `pins` for the host-pin lifecycle. |
 | `namespace` | The Lean namespace the traces' declarations live in. |
-| `bound` | `declaration`, the tagged `bound` the decided property and the emitter share, and its value rendered under the module's own members. Allocation (`TauWeb.Allocation.bound`): `events`, the number, and `alphabet`, the events the enumeration draws from. Declaration (`TauWeb.Declaration.bound`): `base`, the declaration and machine every case starts from; `presences`, per field, what the field is swept through, `missing` written as that word since a list has no absent member; `observations`, what the machine is made to show for it; `tenancies`. Relay (`TauWeb.Relay.bound`): `events`, the number; `alphabet`; and `start`, the opened connection every trace of the enumeration runs from. Dispatch (`TauWeb.Dispatch.bound`): `events`, the number; `alphabet`; and `start`, the journal every trace runs from, which carries the harness's associations and nothing dispatched. Pins (`TauWeb.Pins.bound`): the same shape, and `start` is a harness that has read `/rescue/last` once and knows nothing else — the snapshot a confirmation is read against, which a trace of three events has no room to take for itself. |
+| `bound` | `declaration`, the tagged `bound` the decided property and the emitter share, and its value rendered under the module's own members. Allocation (`TauWeb.Allocation.bound`): `events`, the number, and `alphabet`, the events the enumeration draws from. Declaration (`TauWeb.Declaration.bound`): `base`, the declaration and machine every case starts from; `presences`, per field, what the field is swept through, `missing` written as that word since a list has no absent member; `observations`, what the machine is made to show for it; `tenancies`. Relay (`TauWeb.Relay.bound`): `events`, the number; `alphabet`; and `start`, the opened connection every trace of the enumeration runs from. Dispatch (`TauWeb.Dispatch.bound`): `events`, the number; `alphabet`; and `start`, the journal every trace runs from, which carries the harness's associations and nothing dispatched. Pins (`TauWeb.Pins.bound`): the same shape; `start` carries the snapshot from one `/rescue/last` read, which a trace of three events has no room to take for itself, plus the fixed `planted_senders` list defined below from that starting knowledge and the alphabet. |
 | `witnesses` | The named traces, one per decided witness, in the order the module states them. |
 | `enumeration` | The traces the module's decided property closed over. Allocation: every trace of at most `bound.events` events over `bound.alphabet` from the initial journal, shortest first (`TauWeb.Allocation.bounded_nodup`). Declaration: one full check per case of the sweep, fields in the table's order, each field through each presence, observation and tenancy (`TauWeb.Declaration.bounded`). Relay: every trace of at most `bound.events` events over `bound.alphabet` from `bound.start`, shortest first (`TauWeb.Relay.bounded`). Dispatch: the same shape, from `bound.start` (`TauWeb.Dispatch.bounded`). Pins: the same shape, from `bound.start` (`TauWeb.Pins.bounded`). |
 
@@ -31,9 +37,9 @@ Both arrays hold traces of one shape:
 | Member | What it holds |
 |---|---|
 | `declarations` | The `TauWeb.*` theorems the trace came from, resolvable against the `lake exe gate` index. Every name the file carries — here, in `bound.declaration`, in `pair.with` — is one the emitter checked against the tags (`Witnesses.lean`). |
-| `assumptions` | Each guard parameter of the module by name, with the value the trace runs under, and each hypothesis the module takes rather than owns. Allocation has one guard, `restoredAllocatesNone`; declaration has one, `emptyMeansPerField`; relay has one, `dialRequiresAuthAccepted`, beside `special`, `ownAddress` and `resolve` — the value `CHN-16a`'s pinned tables and the relay's resolver take for the trace, since the module quantifies over them. Dispatch has four, `resourceKey`, `durableBeforeApply`, `endedBelowSucceeded` and `dispositionBindsContinuation`, and nothing else: what the far side actually did is external state, which a witness never carries. Pins has one, `sourceAdmitsPin`. |
+| `assumptions` | Each guard parameter of the module by name, with the value the trace runs under, and each hypothesis the module takes rather than owns. Allocation has one guard, `restoredAllocatesNone`; declaration has one, `emptyMeansPerField`; relay has one, `dialRequiresAuthAccepted`, beside `special`, `ownAddress` and `resolve` — the value `CHN-16a`'s pinned tables and the relay's resolver take for the trace, since the module quantifies over them. Dispatch has four, `resourceKey`, `durableBeforeApply`, `endedBelowSucceeded` and `dispositionBindsContinuation`, and nothing else: what the far side actually did is external state, which a witness never carries. Pins carries `sourceAdmitsPin`, `attestAuthorMatches`, `attestSingleUse`, `attestDurable` and `attestFirstContact`, with symbolic sender associations, seal-author observations, atomic durable appends and open introduction windows as stated assumptions. |
 | `pair` | Present on a refused-and-admitted pair: `side`, `refused` or `admitted`, and `with`, the other side's declaration. What the comparison expects of each side is ADR-0032's. |
-| `start` | The state before the first event, in the projection below. Allocation: the `journal` — most traces start from the fresh seed; the exhaustion witness starts one below the index limit. Declaration: the `declaration` and the `machine` the check reads, and the empty `record`. Relay: the `challenge` as an ordinal, the `destination` the path parsed to, what the pipeline `classified` it as, the `pass` the operator's key holds, and the opened `connection`. Dispatch: the `knowledge` below, which every trace starts with the harness's associations in and nothing else. Pins: the `knowledge` below — nothing known for the witnesses, and `bound.start` for the enumeration. |
+| `start` | The state before the first event, in the projection below. Allocation: the `journal` — most traces start from the fresh seed; the exhaustion witness starts one below the index limit. Declaration: the `declaration` and the `machine` the check reads, and the empty `record`. Relay: the `challenge` as an ordinal, the `destination` the path parsed to, what the pipeline `classified` it as, the `pass` the operator's key holds, and the opened `connection`. Dispatch: the `knowledge` below, which every trace starts with the harness's associations in and nothing else. Pins: the `knowledge` below — for the witnesses, empty apart from `planted_senders`, which lists every machine the trace names; and `bound.start` for the enumeration. |
 | `steps` | One object per event, in order: `event`, the outcome members for that event kind, and the projection after the step — `journal` for allocation, `record` for declaration, `connection` for relay, `knowledge` for dispatch and for pins. |
 
 ## Events
@@ -64,6 +70,8 @@ beside them are the event's arguments.
 | `reset` | operator act | `entry`, `into` | `boot`: the rescue boot the harness counts for that entry after it |
 | `rescue_last` | adapter observation | `source`, `entry`, `keys` (`null` while the field is empty) | `pinned`: whether the read journaled a pin |
 | `ready_to_reset` | adapter observation | `source`, `entry`, `keys` | `pinned` |
+| `attest` | adapter observation | `source`, `entry`, `per` (and `boot` for rescue), `keys`, observed `author`; nested `append` with provenance `storage outcome of an append` and `durable` | `pinned`; `consumed`: whether this entry's introduction is consumed after the step |
+| `restart` | crash | — | `replayed`: durable knowledge retained, session/handshake records dropped |
 | `claim` | model request | `source`, `entry`, `per` (and `boot` with it), `keys` | `pinned` |
 | `connect` | adapter observation | `entry`, `system`, `presents` | `check`: `admitted` or `halted`, with `halt` on the second |
 
@@ -86,7 +94,7 @@ settles the call, and it stays in the barrier. Whether a `read` clears anything 
 and its `reports` together, and the step's `settled` is the answer; a read settles the calls that
 were outstanding when it was taken, never one dispatched afterwards.
 
-The `source` on the three events that offer a pin is the admission source `ARC-43` decides by,
+The `source` on the events that offer a pin is the admission source `ARC-43` decides by,
 and it is why `claim` exists at all: a set named in model text has to be writable as an event to
 be refused as one. A `reset` is one already dispatched — whether it may be is dispatch's, above —
 and `connect` carries what the far sshd presented and never what the machine is running.
@@ -178,7 +186,8 @@ with `calls` on the barrier and `permits` on the continuation.
 
 ### Pins
 
-`knowledge` is harness knowledge in `SEC-11`'s, `CHN-R1`'s and `ARC-43`'s vocabulary and never
+In schema 2, `knowledge` is harness knowledge in `SEC-11`'s, `CHN-R1`'s and `ARC-43`'s
+vocabulary and never
 the companion's state layout. External state is not in the file: `snapshot` is what the
 vendor's field showed when it was read, a session's `keys` is what the far sshd presented, and
 no member says which system the machine is actually running. An `entry` is the approved machine
@@ -188,9 +197,31 @@ which set was pinned, from which source, and which one a handshake presented.
 
 | Member | Meaning |
 |---|---|
-| `pins` | The pins journaled, oldest first: the `entry`, what the pin is held `per` — `boot`, with the `boot` beside it, or `machine` — the `keys` and the `source` that admitted it. |
+| `pins` | The pins journaled, oldest first: the `entry`, what the pin is held `per` — `boot`, with the `boot` beside it, or `machine` — the `keys` and the `source` that admitted it; attest pins also carry the observed `author`. |
+| `consumed_introductions` | Machine entries whose introductions have been accepted, in journal order; retained across restart. Pins and consumption are appended together before any connection can use them. |
+| `planted_senders` | A fixed list of machine entries and their independently configured sender ordinals, identical in `start` and every step. For a named witness, take entries from its starting knowledge, then event entries in trace order, keeping the first occurrence of each. For the enumeration, use entries from `bound.start`'s knowledge and then `bound.alphabet` in the same way; `bound.start` and every enumerated trace, including the empty trace, share that list. An event's entry is included even when the event is refused and journals nothing. The symbolic association is fixed by the assumptions, not supplied by the observed author; no private keys or key bytes are serialized. |
 | `snapshot` | Per entry, what `/rescue/last` showed when the harness read it, `null` for the empty field — the one journaled before a reset, which the confirmation is read against, and which a reading taken while that reset is outstanding does not move. Absent for an entry whose field was never read. |
 | `boot` | Per entry, the rescue boot the harness counts: `0` before the first reset into rescue, and the next one for each dispatched. Never the vendor's `boot_id`. |
 | `awaiting`, `confirmed` | The resets dispatched whose confirmation is outstanding, and those confirmed, each as the `entry` and the system it resets `into`. An outstanding one also carries what it `expects`: the pin the intent named as its expected next pin (`STA-20b`), `null` for a reset into rescue, whose next set nothing knows yet. |
 | `sessions` | The connections admitted, oldest first: the `entry`, the `system`, the `boot` it was made in, the `keys` presented, and the `pin` it was checked against. |
 | `halts` | The handshakes halted, oldest first: the `entry`, the `system`, what was `presented`, and the `reason` — `no_pin` (nothing stored to check against), `mismatch` (the error `SEC-11` halts on), or `confirms_reset` (the halt the reset explains). |
+
+The pin sources are the vocabulary of `TauWeb.Pins.Source`: `rescue_last`, `ready_to_reset`,
+`attest` and `model_text`. The event's observed author is compared with that machine's planted
+sender; the file never supplies a prevalidated introduction. A failed append records neither
+pins nor consumption under production parameters, so the next valid introduction can still
+succeed. The assumption of an atomic durable append and replay is a boundary of the proof,
+not evidence about real storage or cryptography. Restart preserves those journaled facts,
+including refusal of a second introduction; window timing is outside this file. `CHN-5` says
+"the browser MUST stop listening for that machine's introduction and MUST refuse an
+introduction that arrives later, without journaling a pin or consuming an introduction".
+Its first-contact trap projects unchanged pins and consumption after the late introduction;
+the connection presenting that introduction's set is checked against the pin already held.
+
+The bounded alphabet and event limit are emitted from the companion's declarations. Longer
+named traces additionally exercise rescue refusal, wrong-author then valid admission, repeated
+introduction across restart, failed-append then valid admission, independent machines and an
+introduction after a job pin. Each
+new guard's refused/admitted pair changes only that guard, as the assumptions record; the
+single-use pair runs with first contact only off, so that the consumed introduction is what
+its refused side shows.

@@ -139,11 +139,14 @@ structure Module where
   named : List String
   refs : List String
 
+/-- The schema version of each emitted module. Only pins changed shape. -/
+def schemaVersion (name : String) : Nat := if name == "pins" then 2 else 1
+
 /-- The header pretty, one trace per line: a diff names the trace that moved. -/
 def fileText (name : String) (ns : Name) (bound : Json) (witnesses enumeration : List Json) :
     String :=
   let lines (ts : List Json) := String.intercalate ",\n" (ts.map fun t => "    " ++ t.compress)
-  "{\n  \"schema\": 1,\n" ++
+  "{" ++ s!"\n  \"schema\": {schemaVersion name},\n" ++
   s!"  \"module\": \"{name}\",\n  \"namespace\": \"{ns}\",\n  \"bound\": {bound.compress},\n" ++
   s!"  \"witnesses\": [\n{lines witnesses}\n  ],\n" ++
   s!"  \"enumeration\": [\n{lines enumeration}\n  ]\n}\n"
@@ -699,6 +702,7 @@ def systemName : System → String
 def sourceName : Source → String
   | .rescueLast => "rescue_last"
   | .readyToReset => "ready_to_reset"
+  | .attest _ => "attest"
   | .modelText => "model_text"
 
 def haltName : Halt → String
@@ -715,7 +719,10 @@ def perJson : Per → List (String × Json)
 /-- A host-key set is the ordinal of a fingerprint set and never key material. -/
 def pinJson (pin : Pin) : Json :=
   Json.mkObj ([("entry", toJson pin.entry)] ++ perJson pin.per ++
-              [("keys", toJson pin.keys), ("source", Json.str (sourceName pin.source))])
+              [("keys", toJson pin.keys), ("source", Json.str (sourceName pin.source))] ++
+              match pin.source with
+              | .attest author => [("author", toJson author)]
+              | _ => [])
 
 /-- A reset as the harness journals it: the entry, the system it resets into, and the pin the
 intent named as its expected next pin, where it named one (`STA-20b`). -/
@@ -740,14 +747,30 @@ older entries a lookup never reaches. -/
 def entriesOf (k : Knowledge) : List TauWeb.Pins.Entry :=
   (k.pins.map (·.entry) ++ k.snapshot.map (·.1) ++ k.boot.map (·.1) ++ k.awaiting.map (·.entry) ++
     k.confirmed.map (·.1) ++ k.sessions.map (·.entry) ++
-    k.halts.map (·.entry)).reverse.eraseDups
+    k.halts.map (·.entry) ++ k.consumed).reverse.eraseDups
+
+/-- The machine an event names, if it names one. -/
+def eventEntry : TauWeb.Pins.Event → Option TauWeb.Pins.Entry
+  | .reset m _ | .rescueLast m _ | .readyToReset m _ | .attest m _ _ _ _ | .claim m _ _
+  | .connect m _ _ => some m
+  | .restart => none
+
+/-- The machines a trace names: those in the knowledge it starts from and those any of its events
+names, so that `planted_senders` lets a replayer judge an author at the step the event arrives,
+before anything about that machine is journaled. -/
+def namedBy (k : Knowledge) (es : List TauWeb.Pins.Event) : List TauWeb.Pins.Entry :=
+  (entriesOf k ++ es.filterMap eventEntry).eraseDups
 
 /-- The projection of harness knowledge: the pins and what they admitted, in `SEC-11`'s,
 `CHN-R1`'s and `ARC-43`'s vocabulary. Nothing of the companion's `Knowledge` beyond it, and never
 external state: `snapshot` is what the vendor's field showed when it was read, not what the
-machine is running, and a session's `keys` is what the far sshd presented. -/
-def knowledgeJson (k : Knowledge) : Json :=
+machine is running, and a session's `keys` is what the far sshd presented. `planted_senders`
+covers exactly `named`, fixed before the trace runs, in that order at every step. -/
+def knowledgeJson (k : Knowledge) (named : List TauWeb.Pins.Entry) : Json :=
   Json.mkObj [
+    ("consumed_introductions", toJson k.consumed.reverse),
+    ("planted_senders", Json.arr (named.map fun m =>
+      Json.mkObj [("entry", toJson m), ("sender", toJson (plantedSender m))]).toArray),
     ("pins", Json.arr (k.pins.reverse.map pinJson).toArray),
     ("snapshot", Json.arr ((entriesOf k).filterMap fun m =>
       (k.snapshot.lookup m).map fun f =>
@@ -760,7 +783,7 @@ def knowledgeJson (k : Knowledge) : Json :=
     ("sessions", Json.arr (k.sessions.reverse.map sessionJson).toArray),
     ("halts", Json.arr (k.halts.reverse.map haltedJson).toArray) ]
 
-/-- An event's provenance is ADR-0032's closed vocabulary; `source` beside it, on the three
+/-- An event's provenance is ADR-0032's closed vocabulary; `source` beside it, on the
 events that offer a pin, is `ARC-43`'s admission source, which is what `admits` reads. -/
 def eventJson : TauWeb.Pins.Event → Json
   | .reset m into => Json.mkObj [
@@ -773,6 +796,12 @@ def eventJson : TauWeb.Pins.Event → Json
   | .readyToReset m f => Json.mkObj [
       ("kind", "ready_to_reset"), ("provenance", "adapter observation"),
       ("source", "ready_to_reset"), ("entry", toJson m), ("keys", toJson f)]
+  | .attest m pr f author durable => Json.mkObj (
+      [("kind", Json.str "attest"), ("provenance", Json.str "adapter observation"), ("source", Json.str "attest"),
+       ("entry", toJson m), ("keys", toJson f), ("author", toJson author),
+       ("append", Json.mkObj [("provenance", "storage outcome of an append"),
+                              ("durable", toJson durable)])] ++ perJson pr)
+  | .restart => Json.mkObj [("kind", "restart"), ("provenance", "crash")]
   | .claim m pr f => Json.mkObj (
       [("kind", Json.str "claim"), ("provenance", Json.str "model request"),
        ("source", Json.str "model_text"), ("entry", toJson m)] ++ perJson pr ++
@@ -782,18 +811,23 @@ def eventJson : TauWeb.Pins.Event → Json
       ("system", Json.str (systemName sys)), ("presents", toJson keys)]
 
 /-- One step: the event, what the harness did with it, and the projection after. -/
-def stepJson (p : TauWeb.Pins.Params) (k : Knowledge) (e : TauWeb.Pins.Event) :
-    Json × Knowledge :=
+def stepJson (p : TauWeb.Pins.Params) (k : Knowledge) (e : TauWeb.Pins.Event)
+    (named : List TauWeb.Pins.Entry) : Json × Knowledge :=
   let k' := TauWeb.Pins.step p k e
   let outcome := match e with
     | .reset m _ => [("boot", toJson (bootOf k' m))]
+    | .restart => [("replayed", toJson true)]
+    | .attest m _ _ _ _ =>
+      [("pinned", toJson (decide (k.pins.length < k'.pins.length))),
+       ("consumed", toJson (k'.consumed.contains m))]
     | .rescueLast _ _ | .readyToReset _ _ | .claim _ _ _ =>
       [("pinned", toJson (decide (k.pins.length < k'.pins.length)))]
     | .connect m sys keys =>
       match TauWeb.Pins.check k m sys keys with
       | .admitted _ => [("check", Json.str "admitted")]
       | .halted h => [("check", Json.str "halted"), ("halt", Json.str (haltName h))]
-  (Json.mkObj ([("event", eventJson e)] ++ outcome ++ [("knowledge", knowledgeJson k')]), k')
+  (Json.mkObj ([("event", eventJson e)] ++ outcome ++ [("knowledge", knowledgeJson k' named)]),
+   k')
 
 structure Trace where
   decls : List String
@@ -805,13 +839,21 @@ structure Trace where
   pair : Option (Side × String) := none
 
 def assumptionsJson (p : TauWeb.Pins.Params) : Json :=
-  Json.mkObj [("sourceAdmitsPin", toJson p.sourceAdmitsPin)]
+  Json.mkObj [("sourceAdmitsPin", toJson p.sourceAdmitsPin),
+    ("attestAuthorMatches", toJson p.attestAuthorMatches),
+    ("attestSingleUse", toJson p.attestSingleUse), ("attestDurable", toJson p.attestDurable),
+    ("attestFirstContact", toJson p.attestFirstContact),
+    ("senderAssociation", "planted sender ordinal equals machine entry; fixed across restart"),
+    ("sealAuthor", "observed author after unwrap; cryptography assumed"),
+    ("journalAppend", "successful append atomically persists machine, pins and consumed state; restart retains it"),
+    ("window", "attest observations delivered during the browser introduction window")]
 
-def Trace.json (t : Trace) : Json :=
+def Trace.json (t : Trace)
+    (named : List TauWeb.Pins.Entry := namedBy t.start t.events) : Json :=
   let steps := (t.events.foldl
-    (fun (acc, k) e => let (j, k') := stepJson t.params k e; (acc.push j, k'))
+    (fun (acc, k) e => let (j, k') := stepJson t.params k e named; (acc.push j, k'))
     (#[], t.start)).1
-  traceJson t.decls (assumptionsJson t.params) t.pair (knowledgeJson t.start) steps
+  traceJson t.decls (assumptionsJson t.params) t.pair (knowledgeJson t.start named) steps
 
 def witnesses : List Trace := [
   { decls := ["TauWeb.Pins.pin_ceremony_trace"], events := ceremonyEvents },
@@ -824,7 +866,29 @@ def witnesses : List Trace := [
     pair := some (.admitted, "TauWeb.Pins.installed_pin_from_model_text_refused") },
   { decls := ["TauWeb.Pins.pin_halt_is_confirmation"], events := resumeProbeEvents },
   { decls := ["TauWeb.Pins.other_machine_pin_refused"], events := otherMachineEvents },
-  { decls := ["TauWeb.Pins.mismatched_key_halts"], events := mismatchEvents } ]
+  { decls := ["TauWeb.Pins.mismatched_key_halts"], events := mismatchEvents },
+  { decls := ["TauWeb.Pins.attest_admits_and_connects"], events := attestEvents },
+  { decls := ["TauWeb.Pins.wrong_author_refused"], events := wrongAuthorEvents,
+    pair := some (.refused, "TauWeb.Pins.wrong_author_admitted") },
+  { decls := ["TauWeb.Pins.wrong_author_admitted"], events := wrongAuthorEvents,
+    params := anyAuthor, pair := some (.admitted, "TauWeb.Pins.wrong_author_refused") },
+  { decls := ["TauWeb.Pins.wrong_author_then_valid"], events := wrongThenValidEvents },
+  { decls := ["TauWeb.Pins.attest_rescue_refused"], events := attestRescueEvents,
+    params := { TauWeb.Pins.current with sourceAdmitsPin := true } },
+  { decls := ["TauWeb.Pins.repeat_attest_refused"], events := repeatAttestEvents,
+    params := laterAttest, pair := some (.refused, "TauWeb.Pins.repeat_attest_admitted") },
+  { decls := ["TauWeb.Pins.repeat_attest_admitted"], events := repeatAttestEvents,
+    params := repeatAttest, pair := some (.admitted, "TauWeb.Pins.repeat_attest_refused") },
+  { decls := ["TauWeb.Pins.attest_per_machine"], events := independentAttestEvents },
+  { decls := ["TauWeb.Pins.failed_attest_refused"], events := failedAttestEvents,
+    pair := some (.refused, "TauWeb.Pins.failed_attest_admitted") },
+  { decls := ["TauWeb.Pins.failed_attest_admitted"], events := failedAttestEvents,
+    params := volatileAttest, pair := some (.admitted, "TauWeb.Pins.failed_attest_refused") },
+  { decls := ["TauWeb.Pins.failed_append_then_valid"], events := failedThenValidEvents },
+  { decls := ["TauWeb.Pins.attest_after_job_pin_refused"], events := afterJobPinEvents,
+    pair := some (.refused, "TauWeb.Pins.attest_after_job_pin_admitted") },
+  { decls := ["TauWeb.Pins.attest_after_job_pin_admitted"], events := afterJobPinEvents,
+    params := laterAttest, pair := some (.admitted, "TauWeb.Pins.attest_after_job_pin_refused") } ]
 
 def enumeration : List Trace :=
   (TauWeb.Pins.tracesUpTo TauWeb.Pins.bound).map fun es =>
@@ -832,14 +896,17 @@ def enumeration : List Trace :=
 
 def module : Module :=
   let boundDecl := "TauWeb.Pins.bound"
+  -- The header and every enumerated trace share the start-and-alphabet machine basis,
+  -- including the empty trace. Observed authors never supply sender associations.
+  let named := namedBy TauWeb.Pins.start TauWeb.Pins.alphabet
   let bound := Json.mkObj [
     ("declaration", boundDecl), ("events", toJson TauWeb.Pins.bound),
     ("alphabet", Json.arr (TauWeb.Pins.alphabet.map eventJson).toArray),
-    ("start", knowledgeJson TauWeb.Pins.start)]
+    ("start", knowledgeJson TauWeb.Pins.start named)]
   let traces := witnesses ++ enumeration
   { name := "pins", ns := `TauWeb.Pins,
     text := fileText "pins" `TauWeb.Pins bound (witnesses.map (·.json))
-      (enumeration.map (·.json)),
+      (enumeration.map (·.json named)),
     named := traces.flatMap (·.decls),
     refs := boundDecl :: traces.filterMap fun t => t.pair.map (·.2) }
 
@@ -888,7 +955,7 @@ unsafe def main (args : List String) : IO UInt32 := do
           IO.eprintln s!"FAIL  {n} is named by the file but is not a tagged declaration (module {m.name})"
           failures := failures + 1
       if failures == 0 then
-        let path := System.FilePath.mk dir / s!"{m.name}-witnesses-v1.json"
+        let path := System.FilePath.mk dir / s!"{m.name}-witnesses-v{schemaVersion m.name}.json"
         IO.FS.writeFile path m.text
         IO.println s!"witnesses: {m.name}: {m.named.eraseDups.length} witnesses reached -> {path}"
     return (if failures == 0 then 0 else 1)

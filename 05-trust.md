@@ -183,7 +183,8 @@ whoever serves that model, under a key the operator supplied as an application s
 harness neither chooses that party nor asks anything of it: the retention request of `ARC-31a`
 and the counts of `ARC-14` cover the harness's own inference and none of the application's.
 Elective — it comes with the application the operator chose — and listed in the trust display
-beside the application for as long as its secret is placed.
+beside the application for as long as its secret is placed. Recovery of that display is
+governed by `STA-16`, including its as-of-export qualification.
 
 ## Added by this product
 

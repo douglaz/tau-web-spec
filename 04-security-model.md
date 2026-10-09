@@ -428,9 +428,11 @@ nothing to check the presented key against — the one from a jump host, inside 
 session (`CHN-R6`) — and that contact is trusted, not checked against a pin, and MUST be
 presented to the operator as such. No other path may accept a key no pin was stored for.
 
-On the dedicated path's routes, where a fingerprint is always stored before contact, the check
-is `TauWeb.Pins.check` (ADR-0032). Neither attest (`CHN-R5`) nor the jump-host contact above is
-carried there yet (`ARC-43`); for the jump host, `check` has
+On the dedicated path and attest (`CHN-R5`), where a fingerprint is stored before contact,
+the check is `TauWeb.Pins.check` (ADR-0032). Attest admission includes author matching,
+durable single use and first contact only — no introduction for a machine already holding an
+installed-system pin — under the companion's stated assumptions (`ARC-43`, `CHN-5`). The jump-host
+contact above remains outside it (T45); `check` has
 no branch that admits a handshake with no pin. Its halts are three and not one: nothing stored to check against, the key that does not
 match, and the halt `STA-20b`'s resume rule explains.
 `TauWeb.Pins.mismatch_not_the_reset` is that the last two are never the same answer.

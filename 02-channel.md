@@ -163,6 +163,10 @@ it planted**. A relay cannot forge that seal, so there is no trust-on-first-use.
 holds the sender key and could forge one — but it owns the machine's disk and memory and could
 replace the host keys wholesale regardless, so attest hands it nothing it lacks.
 
+The author check is carried by `TauWeb.Pins.wrong_author_refused` and
+`TauWeb.Pins.wrong_author_admitted`; a valid introduction admits a matching installed-system
+connection in `TauWeb.Pins.attest_admits_and_connects` (ADR-0032).
+
 **A private key does ride in user-data now, and the reason `CHN-R3` died still does not apply.**
 What killed injection was what its key *authorized*: a host private key impersonates the
 machine for life, and the metadata endpoint serves user-data for life. The sender key
@@ -313,12 +317,22 @@ the author check, and a *validly sealed* race requires the sender key, which onl
 holds. A flooded or empty inbox is a denial of service that forces a recreate (`CHN-R5`),
 nothing more.
 
+**Attest is a first contact only.** Once a machine holds an installed-system pin from any
+route, the browser MUST stop listening for that machine's introduction and MUST refuse an
+introduction that arrives later, without journaling a pin or consuming an introduction.
+This applies across restart: the browser reads the installed pin before subscribing again.
+The job-pin trap is `TauWeb.Pins.attest_after_job_pin_refused` and
+`TauWeb.Pins.attest_after_job_pin_admitted` (ADR-0032).
+
 **Single-use survives a restart.** Acceptance is journaled — the machine, the pins and the
 consumed state of its introduction — before the pins are used (`STA-3`), and a worker that
 restarts and re-derives the recipient key reads that record and does not subscribe again.
 "Stop listening now" and "never accept again" are different properties, and only the journal
 supplies the second: a re-derived key is the same key, and without the record it would reopen
 the window the acceptance closed.
+
+`TauWeb.Pins.no_later_attest` preserves refusal after consumption across later traces,
+including restart, under its stated journal assumptions.
 
 **CHN-6** The first-boot hook MUST retry with backoff until at least one relay in the set
 answers OK or a deadline passes, and MUST scrub the sender key from cloud-init artifacts on

@@ -78,6 +78,8 @@ passes() {
 #   The formal gate's shape differs: no labelled finding lines, one FAIL. The gate must go
 #   red naming TOKEN, and must not name ABSENT (the neighbour the mutation leaves within
 #   policy). Runs on the scratch copy's own .lake, so the rebuild is incremental.
+FORMAL=tools/check_formal.sh
+
 formal_control() {
   local name="$1" mutate="$2" token="$3" absent="${4:-}"
   expected=$((expected + 1))
@@ -88,7 +90,7 @@ formal_control() {
     echo "::error::$name: the mutation did not apply"; fail=1; rm -rf "$tmp"; return
   fi
   local out rc
-  out="$(cd "$tmp/repo" && bash tools/check_formal.sh 2>&1)"
+  out="$(cd "$tmp/repo" && bash "$FORMAL" 2>&1)"
   rc=$?
   rm -rf "$tmp"
   if [ "$rc" -eq 0 ]; then
@@ -103,7 +105,6 @@ formal_control() {
   fi
 }
 
-FORMAL=tools/check_formal.sh
 ALLOC=tools/formal/TauWeb/Allocation.lean
 
 # `lake build` accepts a sorry with a warning; only the gate's axiom walk sees sorryAx.
@@ -273,35 +274,106 @@ formal_control "formal: a pin source added without what it may pin" \
   "sed -i 's/^  | modelText\$/  | modelText\n  | vendorNotify/' $PINS && grep -q '^  | vendorNotify\$' $PINS" \
   "Source.vendorNotify"
 
-# ARC-43's rule -- the source decides what it may pin -- is one field of TauWeb.Pins.current.
-# Collapsed, any source may pin anything. `lake build` must go red with exactly two errors: the
-# model-text witness, whose set is now journaled as the installed system's pin and admits a
-# session, and `bounded`, which closes over the same rule within the bound. A red naming the
-# ceremony would mean the flip broke something other than the property it targets, since
-# /rescue/last and the job record are admitted under both settings.
-expected=$((expected + 1))
-tmp="$(mktemp -d)"
-cp -r . "$tmp/repo"
-if ! (cd "$tmp/repo" && sed -i 's/^@\[req "ARC-43"\] def current : Params := { sourceAdmitsPin := true }$/@[req "ARC-43"] def current : Params := { sourceAdmitsPin := false }/' $PINS && grep -q '^@\[req "ARC-43"\] def current : Params := { sourceAdmitsPin := false }$' $PINS); then
-  echo "::error::formal: the source collapse did not apply"; fail=1
-else
-  out="$(cd "$tmp/repo" && bash "$FORMAL" 2>&1)"
+# Pin mutations must fail in exactly the named property declarations, once each. Checking the
+# source locations also rejects syntax/type errors, stale anchors and unrelated failed proofs.
+pins_control() {
+  local name="$1" mutate="$2"
+  shift 2
+  expected=$((expected + 1))
+  local tmp rc
+  tmp="$(mktemp -d)"
+  cp -r . "$tmp/repo"
+  if ! (cd "$tmp/repo" && eval "$mutate"); then
+    echo "::error::$name: the mutation did not apply"; fail=1; rm -rf "$tmp"; return
+  fi
+  (cd "$tmp/repo" && bash "$FORMAL") > "$tmp/output" 2>&1
   rc=$?
   if [ "$rc" -eq 0 ]; then
-    echo "::error::formal: the formal gate passed with the admission source collapsed"; echo "$out"; fail=1
-  elif [ "$(grep -c '^error: TauWeb/' <<<"$out")" -ne 2 ]; then
-    echo "::error::formal: the source collapse did not produce exactly two errors"; echo "$out"; fail=1
-  elif ! grep -qF 'init modelTextEvents' <<<"$out" \
-       || ! grep -qF 'wellPinned (run current start es)' <<<"$out"; then
-    echo "::error::formal: the reds are not the model-text witness and bounded"; echo "$out"; fail=1
-  elif grep -qF 'init ceremonyEvents' <<<"$out"; then
-    echo "::error::formal: a red also names the ceremony, which the source does not decide"; echo "$out"; fail=1
-  else
-    echo "ok: formal: the admission source collapsed -> the model-text witness and bounded"
+    echo "::error::$name: the formal gate passed"; fail=1
+  elif python3 - "$tmp/repo/$PINS" "$tmp/output" "$@" <<'PYCONTROL'
+import re
+import sys
+from pathlib import Path
+source = Path(sys.argv[1]).read_text().splitlines()
+output = Path(sys.argv[2]).read_text()
+actual = []
+for line in output.splitlines():
+    if not line.startswith("error: "):
+        continue
+    if line in ("error: Lean exited with code 1", "error: build failed"):
+        continue
+    match = re.fullmatch(r"error: TauWeb/Pins\.lean:(\d+):\d+: (.*)", line)
+    if not match or not match[2].startswith(("Tactic `decide`", "unsolved goals")):
+        print("Unexpected failure:", line)
+        sys.exit(1)
+    preceding = "\n".join(source[:int(match[1])])
+    declarations = re.findall(r"(?:^|\] )(?:theorem|def) (\w+)", preceding, re.MULTILINE)
+    actual.append(declarations[-1] if declarations else "<none>")
+if sorted(actual) != sorted(sys.argv[3:]):
+    print("Expected property failures:", sys.argv[3:])
+    print("Actual property failures:", actual)
+    sys.exit(1)
+PYCONTROL
+  then
+    echo "ok: $name -> exactly $*"
     passed=$((passed + 1))
+  else
+    echo "::error::$name: wrong property failures"; cat "$tmp/output"; fail=1
   fi
-fi
-rm -rf "$tmp"
+  rm -rf "$tmp"
+}
+
+# Collapsing source admission permits model text and bypasses author matching as well.
+# The dedicated ceremony and valid attest traces must remain green; only these refusals and
+# the independent bounded property turn red. The rescue-source witness fixes its own guard.
+pins_control "formal: the admission source collapsed" \
+  "sed -i 's/^@\[req \"ARC-43\"\] def current : Params := { sourceAdmitsPin := true }$/@[req \"ARC-43\"] def current : Params := { sourceAdmitsPin := false }/' $PINS && grep -q 'def current : Params := { sourceAdmitsPin := false }' $PINS" \
+  installed_pin_from_model_text_refused wrong_author_refused wrong_author_then_valid bounded
+
+pins_control "formal: attest admits a forbidden rescue pin" \
+  "sed -i 's/| .attest _, .boot _ => false/| .attest _, .boot _ => true/' $PINS && grep -q '| .attest _, .boot _ => true' $PINS" \
+  no_rescue_session_before_fill attest_rescue_refused
+
+# An always-refusing attest source is not safe admission. Its positive traces, including each
+# guard-removed acceptance, must fail while the universal refusal properties remain provable.
+pins_control "formal: valid attest admission disabled" \
+  "sed -i 's/| .attest author, .machine => !p.attestAuthorMatches || author == plantedSender m/| .attest author, .machine => false/' $PINS && grep -q '| .attest author, .machine => false' $PINS" \
+  attest_admits_and_connects wrong_author_admitted wrong_author_then_valid repeat_attest_refused \
+  repeat_attest_admitted attest_per_machine failed_attest_admitted failed_append_then_valid \
+  attest_after_job_pin_admitted
+
+pins_control "formal: attest author matching disabled" \
+  "sed -i 's/attestAuthorMatches : Bool := true/attestAuthorMatches : Bool := false/' $PINS && grep -q 'attestAuthorMatches : Bool := false' $PINS" \
+  wrong_author_refused wrong_author_then_valid bounded
+
+pins_control "formal: attest single use disabled" \
+  "sed -i 's/attestSingleUse : Bool := true/attestSingleUse : Bool := false/' $PINS && grep -q 'attestSingleUse : Bool := false' $PINS" \
+  repeat_attest_refused
+
+pins_control "formal: attest admits before a durable append" \
+  "sed -i 's/attestDurable : Bool := true/attestDurable : Bool := false/' $PINS && grep -q 'attestDurable : Bool := false' $PINS" \
+  failed_attest_refused
+
+# Attest is a first contact only (CHN-5): with the guard removed an introduction replaces a job
+# pin, which its refused witness sees and bounded sees through its firstContactOnly clause -- the
+# one control that makes that clause false.
+pins_control "formal: attest after an installed pin" \
+  "sed -i 's/attestFirstContact : Bool := true/attestFirstContact : Bool := false/' $PINS && grep -q 'attestFirstContact : Bool := false' $PINS" \
+  attest_after_job_pin_refused bounded
+
+# A pin journaled without its consumption recorded: bounded reds through its consumed-introduction
+# clause -- an attest pin has a consumed introduction -- on the first attest pin, beside the
+# witnesses that assert consumption. It exercises that clause alone: under current the first-contact
+# guard refuses a second attest whatever consumed holds, so this never reaches firstContactOnly.
+pins_control "formal: attest pin without a consumed introduction" \
+  "sed -i 's/consumed := if pin.source.isAttest then pin.entry :: k.consumed else k.consumed/consumed := if pin.source.isAttest \&\& false then pin.entry :: k.consumed else k.consumed/' $PINS && grep -q 'isAttest && false then' $PINS" \
+  attest_acceptance_consumes attest_admits_and_connects wrong_author_admitted wrong_author_then_valid \
+  repeat_attest_refused attest_per_machine failed_attest_admitted failed_append_then_valid \
+  attest_after_job_pin_admitted bounded
+
+pins_control "formal: restart forgets consumed introductions" \
+  "sed -i 's/| .restart => { k with sessions := \[\], halts := \[\] }/| .restart => { k with consumed := [], sessions := [], halts := [] }/' $PINS && grep -q '| .restart => { k with consumed := \[\]' $PINS" \
+  consumed_step repeat_attest_refused bounded
 
 # A missing toolchain is a red gate, not a skip.
 expected=$((expected + 1))
@@ -315,6 +387,8 @@ fi
 
 WIT=tools/check_witnesses.py
 WITFILE=docs/design/allocation-witnesses-v1.json
+PINSWIT=docs/design/pins-witnesses-v2.json
+PINSEMIT=tools/formal/.lake/witnesses/pins-witnesses-v2.json
 
 # Compared against the emission the formal gate wrote before this script ran: one expected
 # outcome flipped by hand in the committed file is red, naming the module.
@@ -331,6 +405,27 @@ control "witnesses: an emission carrying a CNF identifier" "$WIT" \
 control "witnesses: a committed file no module emits" "$WIT" \
   "cp $WITFILE docs/design/orphan-witnesses-v1.json" \
   "WITNESS DRIFT" "orphan-witnesses-v1.json is committed but no module emits it"
+
+# The renamed pins file is checked in both directions; the obsolete v1 name must be visible
+# as an orphan. Each mutation gives the witness gate exactly one finding.
+passes "witnesses: unchanged v1 modules and pins v2" "$WIT" \
+  "test -f $WITFILE && test -f $PINSWIT && test -f $PINSEMIT"
+
+control "witnesses: pins v2 committed drift" "$WIT" \
+  "sed -i 's/\"schema\": 2/\"schema\": 1/' $PINSWIT && ! cmp -s $PINSWIT $PINSEMIT" \
+  "WITNESS DRIFT" "module pins"
+
+control "witnesses: pins v2 missing committed counterpart" "$WIT" \
+  "rm $PINSWIT && test ! -e $PINSWIT" \
+  "WITNESS DRIFT" "pins-witnesses-v2.json is not committed"
+
+control "witnesses: obsolete pins v1 orphan" "$WIT" \
+  "cp $PINSWIT docs/design/pins-witnesses-v1.json" \
+  "WITNESS DRIFT" "pins-witnesses-v1.json is committed but no module emits it"
+
+control "witnesses: pins v2 emission carrying a CNF identifier" "$WIT" \
+  "sed -i 's/\"module\": \"pins\"/\"module\": \"pins\", \"exercised_by\": \"CNF-18\"/' $PINSEMIT && grep -q CNF-18 $PINSEMIT" \
+  "WITNESS DRIFT" "module pins carries a CNF identifier"
 
 REG=tools/check_regions.py
 CRED=docs/design/credential-format-v1.md

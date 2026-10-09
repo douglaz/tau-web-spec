@@ -146,15 +146,17 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       model context, the journal, the transcript, the machine's job record and job directory,
       the logs and every request to the app's origin, and present only in the destination
       file. The card states plainly that a model with root can read it afterwards, restates
-      every acceptable weaker mode standing on the machine's bound set, shows the name and
-      purpose as the model's request, and says that a key the operator minted at its service
-      with a cap, or one the operator can revoke there, is the best practice. Escaped secret.
+      every acceptable weaker mode standing on the machine's bound set, shows the application
+      name, distinct secret name and purpose as the model's request, and says that a key the
+      operator minted at its service with a cap, or one the operator can revoke there, is the
+      best practice. Escaped secret.
 - [ ] **CNF-94 · BLOCKING** `place_secret` refuses what it must (`ARC-43`): a value equal to a
       credential the harness holds — among them the vendor credential, the seed, either
       inference tier, the relay key and a machine's client key —
       a destination mode that lets another account read the file, a path that is or passes
-      through a symbolic link, an existing file not recorded as this placement, and any
-      placement on a machine where a finding other than a lifecycle finding stands
+      through a symbolic link, an existing file not recorded as this placement, an application
+      name not recorded on the named machine (including one recorded only on another machine),
+      and any placement on a machine where a finding other than a lifecycle finding stands
       (`ARC-17`), on a machine whose fixed lockdown checks have not yet passed — a machine
       never checked included — and on one restored from a sheet before its re-check (`ARC-17`),
       and on a multi-tenant machine any placement the operator has not confirmed as
@@ -195,11 +197,14 @@ an item that tests a mode's conditions or its label is tiered by them like any o
 - [ ] **CNF-17 · BLOCKING** An untyped response containing a harness-held credential is
       redacted before it reaches the model or the record. Exact-value scan.
 - [ ] **CNF-18 · BLOCKING** The attest introduction is **single-use**, and single-use is the
-      browser's (`CHN-5`, `CHN-7`). Verified three ways: a second validly sealed wrap from the
+      browser's (`CHN-5`, `CHN-7`). Verified four ways: a second validly sealed wrap from the
       same sender key after one is accepted is ignored; a wrap whose seal author is not the
-      planted sender key is refused even when it decrypts; and a wrap arriving after the
-      browser's window has closed is refused. No relay-side behaviour may be relied on for any
-      of the three.
+      planted sender key is refused even when it decrypts; a wrap arriving after the
+      browser's window has closed is refused; and a validly sealed wrap for a machine that
+      already holds an installed-system pin from another route is refused, before and after a
+      restart: the existing installed-system pin is unchanged, no pin is journaled, and no
+      introduction is consumed. No relay-side behaviour may be
+      relied on for any of the four.
 - [ ] **CNF-61 · PRE-SCALE** The sender key is scrubbed from the machine's cloud-init artifacts
       on the first relay OK or at the deadline (`CHN-6`), verified by reading the machine's disk.
       This is defence in depth: the vendor's metadata endpoint still serves the original
@@ -394,8 +399,10 @@ an item that tests a mode's conditions or its label is tiered by them like any o
 - [ ] **CNF-103 · PRE-SCALE** A machine carrying an operator's application says so (`ARC-1a`):
       the delivery card carries the application's sentence with its name, explains Delivered's
       coverage and says "It does not mean <app> works" with that name substituted; the declaration
-      states its outbound destinations and its always-on service, and the trust display lists
-      its model provider (`TRU-E12`). Where those destinations are declared as
+      states its outbound destinations and its always-on service, and, where it has its own model
+      and its secret is placed, the trust display lists its model provider beside it (`TRU-E12`
+      says "listed in the trust display beside the application for as long as its secret is placed").
+      Recovery of these facts is covered by `CNF-84` under `STA-16`. Where those destinations are declared as
       `listeners.outbound` restrictions, the delivery check finds each in place: verified by
       removing one declared restriction and confirming the check reports the difference as a
       finding. No harness credential is on that machine but the attest sender key's metadata copy
@@ -694,7 +701,30 @@ Not pass/fail. Required to be recorded.
       as unapproved, and a machine exported with
       an unpinned installation and an attested pin restores both. The sheet has `STA-16`'s placement metadata, pin routes and
       machine states; values, digests, scan keys and lengths are absent, and unsupported
-      payload versions are refused rather than read as having no placements. An imported local-store backup's machines are shown unchecked, their findings unknown, and refuse a placement until a re-check, as a sheet Restore's do. A stale sheet or imported store cannot allocate
+      payload versions, explicitly including versions 1 and 2, are refused rather than read as
+      having no placements or applications. In one recovery case export and restore machines
+      with and without applications, including an application without its own model: inspect
+      the explicit `applications: []` and `model_provider: "no_model"` representations of
+      `docs/design/credential-format-v1.md`, and each named provider object. Refuse before
+      binding a missing applications field, missing required member, duplicate object member,
+      or malformed application or provider data. Refuse before binding two applications on
+      one machine with the same exact name, both when their providers agree and when they differ;
+      the same name on different machines remains valid. Recording a second application under
+      a name already recorded on that machine is refused (`ARC-1a`), so no export can write a
+      sheet its own import refuses. Refuse a placement with missing or
+      malformed `application_name`, or one naming an application not recorded on that same
+      machine, including a name recorded nowhere and one recorded only on another machine.
+      Confirm the restored application/provider list is complete, including an application with
+      a recorded provider and no restored secret placement: its provider remains recorded and is not listed in the
+      trust display. Include a restored placement with distinct `application_name` and secret
+      `name`; confirm its named application's provider is listed beside that application on its
+      machine (`TRU-E12` says "listed in the trust display beside the
+      application for as long as its secret is placed"). The restored facts stay labelled as of
+      export, through a machine re-check, until the harness records that application again,
+      without a new approval or any implication of current installation or provider state. The no-model marker and empty list never mean unapproved.
+      An imported local-store backup's machines are shown unchecked, their findings unknown,
+      and refuse a placement until a re-check, as a sheet Restore's do. A stale sheet or imported
+      store cannot allocate
       under the restored seed; Replace with a fresh seed restores allocation. Cloud with no
       sheet exposes destroy/recreate, never an unpinned keyed-rescue login. Missing relay
       indices are reported unrecoverable, and partial Replace never reports complete revocation

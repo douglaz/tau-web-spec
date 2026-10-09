@@ -62,8 +62,10 @@ gated on it.
 - [ ] **T40 — Stage 0: attest on a real first boot** (`OPN-3`). Cloud-init timing, the static
       first-boot tool, and the browser's window against a measured slowest boot (`CHN-6`). It
       is stage 1's first contact, and a window that closes now ends in a recreate (`CHN-R5`).
-      The formal companion owes an attest pin source beside its dedicated-path ones (`ARC-43`,
-      `SEC-11`); until it lands, `TauWeb.Pins.check` covers the dedicated path only.
+      **Formal attest-source work done (2026-10-08):** `ARC-43` and `SEC-11`, with author
+      matching, durable single use across restart, checked admission/refusal traces and emitted
+      witnesses. **Empirical first-boot work remains open:** the cloud-init timing, first-boot
+      tool and measured browser window above; no live boot result is claimed.
 - [ ] **T41 — Stage 0: Omarchy's server edition, or plain Arch** (`OPN-25`). And the
       publisher's choice that follows from it: run stage 1 under the unpinned label, or add an
       Arch pin to the bundle first (`ARC-24`, `ARC-25`).
@@ -81,8 +83,10 @@ gated on it.
       the recovery, scan and report-only evidence; specification edits exercise no harness.
 - [ ] **T48 — Stage 1: build placed-secret scanning and recovery re-arm** (`OPN-28`).
       Implement `SEC-5` row 23 and scan semantics, `ARC-43`'s jobs and fallback, and `STA-16`'s
-      sheet metadata; demonstrate `CNF-95` with `CNF-42` and `CNF-84`. The design permits
-      construction now. Still open: the numeric minimum accepted secret byte length, which
+      sheet metadata, including each placement's application association and application/provider
+      facts under the credential format's
+      payload v3 and explicit refusal of payloads v1/v2; demonstrate `CNF-95` with `CNF-42` and
+      `CNF-84`. The design permits construction now. Still open: the numeric minimum accepted secret byte length, which
       stage 1's completion requires (`07-conformance.md`); any
       further changed-file detection policy after loss of the old reference; and compatibility
       policy beyond the adopted sheet-payload version bump, should it become necessary. No
@@ -105,15 +109,18 @@ gated on it.
       a derived one.
 - [ ] **T45 — Stage 2: the jump host and the untyped vendor scope** (`STG-22`, `CHN-R6`,
       `SEC-4`). Includes one thing the rules name and nothing yet carries: a jump-host source
-      for a pin in the formal companion (`ARC-43` says "a pin taken at a jump-host first
-      contact (`CHN-R6`) is not among them"). The placed secret's digest key is not here: it is
+      for a pin in the formal companion (`ARC-43` says "A pin taken at a jump-host first
+      contact (`CHN-R6`) is not among `TauWeb.Pins.Source`'s cases"). The placed secret's
+      digest key is not here: it is
       stage 1's (T48). Also owed before an untyped vendor scope is enabled: how the target's
       address is taken from a response no adapter reads without passing through model text
       (`CHN-R6`), and how an unfinished machine at a vendor with no typed destroy is abandoned
       (`ARC-22`).
 - [ ] **T46 — What the sibling repositories now owe.** Recorded here; none of them was edited.
       **tau-web-rust:** at its next spec pin bump, implement as tests the new and restated
-      cases owned by `07-conformance.md`: `CNF-91`–`CNF-108`, with `CNF-16` and `CNF-42`, and
+      cases owned by `07-conformance.md`: `CNF-91`–`CNF-108`, with `CNF-16`, `CNF-42` and
+      `CNF-84` (including `STA-16` application/provider recovery, placement association,
+      per-machine name uniqueness and old-payload refusal), and
       the untyped-scope restatements of `CNF-12`, `CNF-14` and `CNF-27`.
       This prior cross-stage handoff debt remains open alongside T43's stage-1 recovery,
       scan and report-only evidence. The applicability table in `07-conformance.md` still
@@ -304,17 +311,18 @@ gated on it.
       confirmation predicate). Landed 2026-09-20 in `tools/formal/TauWeb/Pins.lean`: what a pin
       is held per is `TauWeb.Pins.Per`, a boot for rescue and the machine for the installed
       system, and where it may come from is `TauWeb.Pins.Source`, paired with what each source
-      may pin by `TauWeb.Pins.admits`. The four theorems over every trace are
-      `TauWeb.Pins.rescue_pin_per_boot`, `TauWeb.Pins.installed_pin_from_job`,
+      may pin by `TauWeb.Pins.admits`. Over every trace: `TauWeb.Pins.rescue_pin_per_boot`,
+      `TauWeb.Pins.installed_pin_from_authorized_source`,
       `TauWeb.Pins.no_rescue_session_before_fill` and
       `TauWeb.Pins.halt_on_expected_pin_confirms`, the last with
       `TauWeb.Pins.mismatch_not_the_reset` beside it over every state: the halt the reset
-      explains and the error are two answers and never one. The one parameter is the source
-      distinction, with `TauWeb.Pins.installed_pin_from_model_text_refused` and
-      `TauWeb.Pins.installed_pin_from_model_text_admitted` its pair.
-      `docs/design/pins-witnesses-v1.json` is its file; the controls collapse the source
-      distinction, which must red on the model-text witness and on the bounded property and
-      nowhere else, and add a scope with no system.
+      explains and the error are two answers and never one. The parameters are the fields of
+      `TauWeb.Pins.Params`, each with a refused-and-admitted witness pair; the source
+      distinction's is `TauWeb.Pins.installed_pin_from_model_text_refused` and
+      `TauWeb.Pins.installed_pin_from_model_text_admitted`.
+      `docs/design/pins-witnesses-v2.json` is its file; the controls, and each one's exact red
+      set, are the `pins_control` calls in `tools/check-controls.sh`, beside the one that adds
+      a source with nothing it may pin.
 - [x] **T26 — Measure `STA-23` unlock latency on the first-stage phone.**
       `prototypes/unlock-latency/index.html` builds the v1 envelope and times one unlock.
       Done 2026-09-11: 58 ms at 600,000 iterations on the phone, 57 ms on the desktop

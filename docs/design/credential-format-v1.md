@@ -109,10 +109,11 @@ nonce and AAD `tau-web/sheet/v1/<id>/payload`; only the wrapped key persists. Th
 envelope adds `payload_nonce` and `payload` to the fields above. Never reuse a local-store
 key or envelope as a sheet. Local and sheet purposes cannot be interchanged.
 
-The authenticated UTF-8 JSON payload contains `version: 2`, `derivation_version: 1`,
+The authenticated UTF-8 JSON payload contains `version: 3`, `derivation_version: 1`,
 `seed_id`, `exported_at` (UTC RFC 3339), `journal_sequence`, `next_indices` (machine/pass/
 handoff), `allocations` (including consumed tombstones), `host_pins`, `exposure_ledger`,
-`placements: [{machine_index, name, path, placed_at}]`, `machine_states`, and optional
+`placements: [{machine_index, application_name, name, path, placed_at}]`, `machine_states`,
+and optional
 `inference_account_credential`. Each allocation has its family, index, stable
 resource identity and expected public key as required by `STA-22b`, and a jump host's entry
 carries `jump_host: true`, recording that it is in no session's bound set, and no other
@@ -121,23 +122,51 @@ have no vendor resource ID, but retains its index. No seed or derived private ke
 Each `host_pins` entry names the host-key route that produced it: `retrieve` (`CHN-R1`),
 `attest` (`CHN-R5`) or `jump_host` (`CHN-R6`). Whether the installation carries an artifact
 pin is a different fact, carried per machine below. Each `machine_states` entry is
-`{machine_index, declaration, class, access_model, installation, weaker_modes}`: the journaled
+`{machine_index, declaration, class, access_model, installation, weaker_modes, applications}`: the journaled
 declaration in force as a delivery-declaration v1 document, the class `ARC-36a` records, the
 access model of `ARC-27`, `installation` as `"pinned"`, `"unpinned"` (`ARC-25`) or
 `"not_installed"` before any installation, and the labels of the acceptable weaker modes standing
 on the machine's bound set (`SEC-14`). A field not yet approved at export carries the explicit
-marker `"unapproved"`, never an absent field; `installation` is recorded, not approved. Every
-live machine other than a jump host has exactly one entry, bound to a session or not; an
+marker `"unapproved"`, never an absent field; `installation` and `applications` are recorded,
+not approved. Every live machine other than a jump host has exactly one entry, bound to a session or not; an
 allocation marked `jump_host: true` (`STA-22b`) has none. Reject a missing, duplicate or
 malformed entry and an entry for a jump host; never interpret a missing entry or an
 `"unapproved"` field as a default.
-Each placement associates a machine-family allocation with its nonempty name, recorded path
-and UTC RFC 3339 placement time. Reject missing or ambiguous machine associations, duplicate
-placement records and malformed fields before binding. No placement value, digest, scan key,
-byte length or other value-derived reference is included. Payload version 1 and unknown
-payload versions are unsupported: refuse them explicitly, never interpret a missing placement
-list as empty. This payload-version change does not change the v1 envelope, derivation paths,
-algorithms or known-answer vectors.
+
+`applications` is a required JSON array of objects, each with exactly the required members
+`name` and `model_provider`. `name` is a nonempty string without leading or trailing
+whitespace, where whitespace is a character with Unicode's `White_Space` property.
+`model_provider` is either an object with exactly `name`, a nonempty string under the same
+whitespace rule naming the application's model provider as the machine's application records
+hold it (`TRU-E12`), or the exact
+string `"no_model"` for an application without its own model. No applications is exactly `[]`.
+For example, `[{"name":"Application A","model_provider":{"name":"Provider A"}},
+{"name":"Application B","model_provider":"no_model"}]` records both cases. The exporter uses
+the application and provider names as the machine's application records hold them. Application
+names are unique within each machine by exact string equality (`ARC-1a`); another machine
+may use the same name. Reject repeated application names on one machine before binding whether
+their providers agree or differ. Do not case-fold, normalize or generate application
+identifiers. Reject
+absent fields or required members, duplicate JSON object member names anywhere in the
+payload, extra application/provider members, nulls,
+wrong types, empty or whitespace-padded names, and any other marker, including `"unapproved"`, before binding.
+Neither absence nor malformed data is interpreted as `[]` or `"no_model"`. These records
+contain only application and provider names, never secret-derived data. Export and restored
+display are governed by `STA-16`.
+
+Each placement associates a machine-family allocation with `application_name`, the exact name
+of an application in that machine's `applications` array, and separately with `name`, the
+nonempty secret name, recorded path and UTC RFC 3339 placement time. `application_name` is a
+required nonempty string under the application-name whitespace rule above. Reject a missing or
+malformed `application_name`, one naming no application on that same machine, missing or
+ambiguous machine associations, duplicate placement records, duplicate JSON object member names
+in a placement and malformed fields before binding.
+An application recorded only on another machine cannot satisfy the reference. No placement
+value, digest, scan key, byte length or other value-derived reference is included. Payload
+versions 1 and 2 and unknown payload versions are unsupported: refuse them explicitly, with no compatibility migration
+and no interpretation of missing placement or application lists as empty. This payload-version
+change does not change the v1 envelope, derivation paths,
+algorithms, AAD or known-answer vectors.
 Reject unknown versions, duplicate identities/indices and malformed fields before binding
 anything; imported data never creates a binding without vendor reconciliation and an
 operator act. Never merge two counters and call the result proof that a backup is current.
