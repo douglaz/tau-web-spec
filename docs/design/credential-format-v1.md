@@ -145,10 +145,10 @@ For example, `[{"name":"Application A","model_provider":{"name":"Provider A"}},
 the application and provider names as the machine's application records hold them. Application
 names are unique within each machine by exact string equality (`ARC-1a`); another machine
 may use the same name. Reject repeated application names on one machine before binding whether
-their providers agree or differ. This reverses the former permission for repeated names; do not
-case-fold, normalize or generate application identifiers. Reject
-absent fields or required members, duplicate JSON object member names in machine-state
-entries or their application/provider objects, extra application/provider members, nulls,
+their providers agree or differ. Do not case-fold, normalize or generate application
+identifiers. Reject
+absent fields or required members, duplicate JSON object member names anywhere in the
+payload, extra application/provider members, nulls,
 wrong types, empty or whitespace-padded names, and any other marker, including `"unapproved"`, before binding.
 Neither absence nor malformed data is interpreted as `[]` or `"no_model"`. These records
 contain only application and provider names, never secret-derived data. Export and restored

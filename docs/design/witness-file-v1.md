@@ -11,8 +11,8 @@ decided there and not restated here). `lake exe witnesses` writes them from `too
 [`relay-witnesses-v1.json`](./relay-witnesses-v1.json) from `TauWeb.Relay`,
 [`dispatch-witnesses-v1.json`](./dispatch-witnesses-v1.json) from `TauWeb.Dispatch`. The pins
 module uses schema 2 in [`pins-witnesses-v2.json`](./pins-witnesses-v2.json) from `TauWeb.Pins`.
-It replaces `pins-witnesses-v1.json`, which had already acquired attest and restart events, their
-assumptions and outcomes, author fields and the knowledge members below without a version change.
+It replaces `pins-witnesses-v1.json`: the attest and restart events, their assumptions and
+outcomes, author fields and the knowledge members below are a change of shape.
 Nothing outside this repository reads witness files today, so removing that old file requires no
 current reader
 migration. Future implementation comparisons still owe a reader for the versioned files under

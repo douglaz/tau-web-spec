@@ -107,7 +107,7 @@ so the production rule can refuse it. -/
 
 def Source.isAttest : Source → Bool
   | .attest _ => true
-  | .rescueLast | .readyToReset | .modelText => false
+  | _ => false
 
 /-- A pin as the harness journals it. -/
 structure Pin where

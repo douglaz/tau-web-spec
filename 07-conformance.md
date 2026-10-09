@@ -709,7 +709,9 @@ Not pass/fail. Required to be recorded.
       binding a missing applications field, missing required member, duplicate object member,
       or malformed application or provider data. Refuse before binding two applications on
       one machine with the same exact name, both when their providers agree and when they differ;
-      the same name on different machines remains valid. Refuse a placement with missing or
+      the same name on different machines remains valid. Recording a second application under
+      a name already recorded on that machine is refused (`ARC-1a`), so no export can write a
+      sheet its own import refuses. Refuse a placement with missing or
       malformed `application_name`, or one naming an application not recorded on that same
       machine, including a name recorded nowhere and one recorded only on another machine.
       Confirm the restored application/provider list is complete, including an application with
