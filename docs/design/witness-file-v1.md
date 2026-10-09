@@ -1,16 +1,22 @@
-# Witness file v1
+# Witness files v1 and v2
 
-The schema of the files the formal companion emits, one per module, committed beside this
-document as `<module>-witnesses-v1.json` (ADR-0032, "How the implementation is compared" —
+The schemas of the files the formal companion emits, one per module, committed beside this
+document as `<module>-witnesses-v<schema>.json` (ADR-0032, "How the implementation is compared" —
 what a witness file carries, what it never carries, and how the implementation reads it are
 decided there and not restated here). `lake exe witnesses` writes them from `tools/formal/`;
 `tools/check_witnesses.py` refuses a committed file that differs from the emission, and
-`tools/check_fixtures.py` parses each as a document. So far,
+`tools/check_fixtures.py` parses each as a document. The unchanged modules use schema 1:
 [`allocation-witnesses-v1.json`](./allocation-witnesses-v1.json) from `TauWeb.Allocation`,
 [`declaration-witnesses-v1.json`](./declaration-witnesses-v1.json) from `TauWeb.Declaration`,
 [`relay-witnesses-v1.json`](./relay-witnesses-v1.json) from `TauWeb.Relay`,
-[`dispatch-witnesses-v1.json`](./dispatch-witnesses-v1.json) from `TauWeb.Dispatch`, and
-[`pins-witnesses-v1.json`](./pins-witnesses-v1.json) from `TauWeb.Pins`.
+[`dispatch-witnesses-v1.json`](./dispatch-witnesses-v1.json) from `TauWeb.Dispatch`. The pins
+module uses schema 2 in [`pins-witnesses-v2.json`](./pins-witnesses-v2.json) from `TauWeb.Pins`.
+It replaces `pins-witnesses-v1.json`, which had already acquired attest and restart events, their
+assumptions and outcomes, author fields and the knowledge members below without a version change.
+Nothing outside this repository reads witness files today, so removing that old file requires no
+current reader
+migration. Future implementation comparisons still owe a reader for the versioned files under
+ADR-0032; no downstream migration or comparison is claimed here.
 
 ## The file
 
@@ -19,7 +25,7 @@ the trace that moved.
 
 | Member | What it holds |
 |---|---|
-| `schema` | `1`. A change to any shape below is a new version and a new file name. |
+| `schema` | `1` for allocation, declaration, relay and dispatch; `2` for pins. A change to any shape below is a new version and a new file name for that module. |
 | `module` | The inventory name, lower-case: `allocation`, `declaration`, `relay`, `dispatch`, and `pins` for the host-pin lifecycle. |
 | `namespace` | The Lean namespace the traces' declarations live in. |
 | `bound` | `declaration`, the tagged `bound` the decided property and the emitter share, and its value rendered under the module's own members. Allocation (`TauWeb.Allocation.bound`): `events`, the number, and `alphabet`, the events the enumeration draws from. Declaration (`TauWeb.Declaration.bound`): `base`, the declaration and machine every case starts from; `presences`, per field, what the field is swept through, `missing` written as that word since a list has no absent member; `observations`, what the machine is made to show for it; `tenancies`. Relay (`TauWeb.Relay.bound`): `events`, the number; `alphabet`; and `start`, the opened connection every trace of the enumeration runs from. Dispatch (`TauWeb.Dispatch.bound`): `events`, the number; `alphabet`; and `start`, the journal every trace runs from, which carries the harness's associations and nothing dispatched. Pins (`TauWeb.Pins.bound`): the same shape; `start` carries the snapshot from one `/rescue/last` read, which a trace of three events has no room to take for itself, plus the fixed `planted_senders` list defined below from that starting knowledge and the alphabet. |
@@ -180,7 +186,8 @@ with `calls` on the barrier and `permits` on the continuation.
 
 ### Pins
 
-`knowledge` is harness knowledge in `SEC-11`'s, `CHN-R1`'s and `ARC-43`'s vocabulary and never
+In schema 2, `knowledge` is harness knowledge in `SEC-11`'s, `CHN-R1`'s and `ARC-43`'s
+vocabulary and never
 the companion's state layout. External state is not in the file: `snapshot` is what the
 vendor's field showed when it was read, a session's `keys` is what the far sshd presented, and
 no member says which system the machine is actually running. An `entry` is the approved machine

@@ -26,7 +26,7 @@ import sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 EMITTED = os.path.join(ROOT, "tools", "formal", ".lake", "witnesses")
 COMMITTED = os.path.join(ROOT, "docs", "design")
-SUFFIX = "-witnesses-v1.json"
+SUFFIX_GLOB = "*-witnesses-v*.json"
 CNF = re.compile(r"CNF-[0-9]+")
 
 
@@ -35,9 +35,10 @@ def main():
         print(f"FAIL: {EMITTED} missing -- run tools/check_formal.sh first "
               f"(check-all.sh orders it before this gate)")
         return 2
-    emitted = sorted(glob.glob(os.path.join(EMITTED, "*" + SUFFIX)))
-    committed = sorted(glob.glob(os.path.join(COMMITTED, "*" + SUFFIX)))
+    emitted = sorted(glob.glob(os.path.join(EMITTED, SUFFIX_GLOB)))
+    committed = sorted(glob.glob(os.path.join(COMMITTED, SUFFIX_GLOB)))
     if "--write" in sys.argv:
+        # Copy only current emissions; a later check still rejects obsolete committed files.
         for e in emitted:
             shutil.copyfile(e, os.path.join(COMMITTED, os.path.basename(e)))
             print(f"wrote docs/design/{os.path.basename(e)}")
@@ -45,7 +46,7 @@ def main():
     drift = []
     for e in emitted:
         name = os.path.basename(e)
-        module = name[: -len(SUFFIX)]
+        module = name.split("-witnesses-v", 1)[0]
         emission = open(e).read()
         if CNF.search(emission):
             drift.append(f"the emission for module {module} carries a CNF identifier "

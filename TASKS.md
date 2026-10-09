@@ -83,7 +83,8 @@ gated on it.
       the recovery, scan and report-only evidence; specification edits exercise no harness.
 - [ ] **T48 — Stage 1: build placed-secret scanning and recovery re-arm** (`OPN-28`).
       Implement `SEC-5` row 23 and scan semantics, `ARC-43`'s jobs and fallback, and `STA-16`'s
-      sheet metadata, including application/provider facts under the credential format's
+      sheet metadata, including each placement's application association and application/provider
+      facts under the credential format's
       payload v3 and explicit refusal of payloads v1/v2; demonstrate `CNF-95` with `CNF-42` and
       `CNF-84`. The design permits construction now. Still open: the numeric minimum accepted secret byte length, which
       stage 1's completion requires (`07-conformance.md`); any
@@ -118,7 +119,8 @@ gated on it.
 - [ ] **T46 — What the sibling repositories now owe.** Recorded here; none of them was edited.
       **tau-web-rust:** at its next spec pin bump, implement as tests the new and restated
       cases owned by `07-conformance.md`: `CNF-91`–`CNF-108`, with `CNF-16`, `CNF-42` and
-      `CNF-84` (including `STA-16` application/provider recovery and old-payload refusal), and
+      `CNF-84` (including `STA-16` application/provider recovery, placement association,
+      per-machine name uniqueness and old-payload refusal), and
       the untyped-scope restatements of `CNF-12`, `CNF-14` and `CNF-27`.
       This prior cross-stage handoff debt remains open alongside T43's stage-1 recovery,
       scan and report-only evidence. The applicability table in `07-conformance.md` still
@@ -318,7 +320,7 @@ gated on it.
       `TauWeb.Pins.Params`, each with a refused-and-admitted witness pair; the source
       distinction's is `TauWeb.Pins.installed_pin_from_model_text_refused` and
       `TauWeb.Pins.installed_pin_from_model_text_admitted`.
-      `docs/design/pins-witnesses-v1.json` is its file; the controls, and each one's exact red
+      `docs/design/pins-witnesses-v2.json` is its file; the controls, and each one's exact red
       set, are the `pins_control` calls in `tools/check-controls.sh`, beside the one that adds
       a source with nothing it may pin.
 - [x] **T26 — Measure `STA-23` unlock latency on the first-stage phone.**

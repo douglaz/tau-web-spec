@@ -438,9 +438,9 @@ check — is withdrawn with `CHN-R5`'s: it accepted a key through the relay with
 **STA-16** The recovery sheet holds the allocation metadata of `STA-22b`, host-key
 fingerprints with the route that produced each pin (`CHN-R1`, `CHN-R5` or `CHN-R6`), the
 exposure ledger, placement metadata
-(`machine_index`, name, path and placement time), each live machine's **machine state as
-approved** — its declaration in force (`ARC-39`), its class (`ARC-36a`), its access model
-(`ARC-27`) and the acceptable weaker modes standing on its bound set (`SEC-14`) — with whether
+(`machine_index`, application name, secret name, path and placement time), each live machine's
+**machine state as approved** — its declaration in force (`ARC-39`), its class (`ARC-36a`),
+its access model (`ARC-27`) and the acceptable weaker modes standing on its bound set (`SEC-14`) — with whether
 its installation is pinned (`ARC-25`) and its installed applications beside it, and, on the
 procured path, the **inference account credential**, wrapped under a passphrase the operator chooses. A jump host carries no machine
 state, and a part not yet approved when an earlier sheet is exported is marked unapproved there.
@@ -455,6 +455,9 @@ as though no placements or applications existed.
 Every machine-state entry MUST record the operator's installed applications by name and, for
 each, its model provider: the party `TRU-E12` names, recorded whether or not that
 application's secret is placed. What the trust display lists is `TRU-E12`'s own rule.
+Every placement MUST record its application's name separately from its secret name; the
+application MUST be recorded on the same machine. Import MUST refuse a placement with no such
+application before binding, as the credential format defines.
 A machine without applications has an explicit empty list; an application without a model of
 its own has an explicit no-model marker in place of a provider. Neither is an absent field.
 Applications and providers are recorded facts, not approved state, and never use the
@@ -470,8 +473,8 @@ and each pin's route are restored and shown beside it, as of export like the res
 what happened, not something the operator approves. Restore also brings back each machine's
 complete recorded application/provider list, explicitly labelled **"as of export"** until a
 re-check; it MUST NOT imply current installation or provider state before that check. This
-list requires no reapproval. A restored provider is listed beside its application only where
-that application's secret placement is restored: `TRU-E12` says "listed in the trust display
+list requires no reapproval. A restored provider is listed beside its application exactly where
+a restored placement names that application on its machine: `TRU-E12` says "listed in the trust display
 beside the application for as long as its secret is placed". Installation pin status and pin routes
 are the history modes of `SEC-14`, and a Restore does not reapprove them — only a reinstall, a new installation, is accepted afresh; the restored conduct modes were the exporting session's, which ended, and a
 re-entering session accepts its own rather than reapproving them, while what they left live

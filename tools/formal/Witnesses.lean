@@ -139,11 +139,14 @@ structure Module where
   named : List String
   refs : List String
 
+/-- The schema version of each emitted module. Only pins changed shape. -/
+def schemaVersion (name : String) : Nat := if name == "pins" then 2 else 1
+
 /-- The header pretty, one trace per line: a diff names the trace that moved. -/
 def fileText (name : String) (ns : Name) (bound : Json) (witnesses enumeration : List Json) :
     String :=
   let lines (ts : List Json) := String.intercalate ",\n" (ts.map fun t => "    " ++ t.compress)
-  "{\n  \"schema\": 1,\n" ++
+  "{" ++ s!"\n  \"schema\": {schemaVersion name},\n" ++
   s!"  \"module\": \"{name}\",\n  \"namespace\": \"{ns}\",\n  \"bound\": {bound.compress},\n" ++
   s!"  \"witnesses\": [\n{lines witnesses}\n  ],\n" ++
   s!"  \"enumeration\": [\n{lines enumeration}\n  ]\n}\n"
@@ -952,7 +955,7 @@ unsafe def main (args : List String) : IO UInt32 := do
           IO.eprintln s!"FAIL  {n} is named by the file but is not a tagged declaration (module {m.name})"
           failures := failures + 1
       if failures == 0 then
-        let path := System.FilePath.mk dir / s!"{m.name}-witnesses-v1.json"
+        let path := System.FilePath.mk dir / s!"{m.name}-witnesses-v{schemaVersion m.name}.json"
         IO.FS.writeFile path m.text
         IO.println s!"witnesses: {m.name}: {m.named.eraseDups.length} witnesses reached -> {path}"
     return (if failures == 0 then 0 else 1)

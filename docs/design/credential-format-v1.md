@@ -112,7 +112,8 @@ key or envelope as a sheet. Local and sheet purposes cannot be interchanged.
 The authenticated UTF-8 JSON payload contains `version: 3`, `derivation_version: 1`,
 `seed_id`, `exported_at` (UTC RFC 3339), `journal_sequence`, `next_indices` (machine/pass/
 handoff), `allocations` (including consumed tombstones), `host_pins`, `exposure_ledger`,
-`placements: [{machine_index, name, path, placed_at}]`, `machine_states`, and optional
+`placements: [{machine_index, application_name, name, path, placed_at}]`, `machine_states`,
+and optional
 `inference_account_credential`. Each allocation has its family, index, stable
 resource identity and expected public key as required by `STA-22b`, and a jump host's entry
 carries `jump_host: true`, recording that it is in no session's bound set, and no other
@@ -141,9 +142,11 @@ hold it (`TRU-E12`), or the exact
 string `"no_model"` for an application without its own model. No applications is exactly `[]`.
 For example, `[{"name":"Application A","model_provider":{"name":"Provider A"}},
 {"name":"Application B","model_provider":"no_model"}]` records both cases. The exporter uses
-the application and provider names as the machine's application records hold them. A repeated
-application name on one machine, with the same or different providers, is permitted and is not
-refused. Reject
+the application and provider names as the machine's application records hold them. Application
+names are unique within each machine by exact string equality (`ARC-1a`); another machine
+may use the same name. Reject repeated application names on one machine before binding whether
+their providers agree or differ. This reverses the former permission for repeated names; do not
+case-fold, normalize or generate application identifiers. Reject
 absent fields or required members, duplicate JSON object member names in machine-state
 entries or their application/provider objects, extra application/provider members, nulls,
 wrong types, empty or whitespace-padded names, and any other marker, including `"unapproved"`, before binding.
@@ -151,11 +154,16 @@ Neither absence nor malformed data is interpreted as `[]` or `"no_model"`. These
 contain only application and provider names, never secret-derived data. Export and restored
 display are governed by `STA-16`.
 
-Each placement associates a machine-family allocation with its nonempty name, recorded path
-and UTC RFC 3339 placement time. Reject missing or ambiguous machine associations, duplicate
-placement records and malformed fields before binding. No placement value, digest, scan key,
-byte length or other value-derived reference is included. Payload versions 1 and 2 and unknown
-payload versions are unsupported: refuse them explicitly, with no compatibility migration
+Each placement associates a machine-family allocation with `application_name`, the exact name
+of an application in that machine's `applications` array, and separately with `name`, the
+nonempty secret name, recorded path and UTC RFC 3339 placement time. `application_name` is a
+required nonempty string under the application-name whitespace rule above. Reject a missing or
+malformed `application_name`, one naming no application on that same machine, missing or
+ambiguous machine associations, duplicate placement records, duplicate JSON object member names
+in a placement and malformed fields before binding.
+An application recorded only on another machine cannot satisfy the reference. No placement
+value, digest, scan key, byte length or other value-derived reference is included. Payload
+versions 1 and 2 and unknown payload versions are unsupported: refuse them explicitly, with no compatibility migration
 and no interpretation of missing placement or application lists as empty. This payload-version
 change does not change the v1 envelope, derivation paths,
 algorithms, AAD or known-answer vectors.
