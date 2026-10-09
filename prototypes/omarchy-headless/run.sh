@@ -3,7 +3,7 @@
 # driven only over SSH, then a reboot that must answer with the host key pinned before the
 # install. Step list: docs/findings/2026-10-08-omarchy-headless-research.md §5. See README.md.
 set -euo pipefail
-W=${W:-/var/tmp/omarchy-proto}           # everything (image, overlay, keys, logs) lives here
+W=$(realpath -m "${W:-/var/tmp/omarchy-proto}")   # absolute, so the serial symlink resolves; everything (image, overlay, keys, logs) lives here
 PORT=${PORT:-2247}                       # host-side forward to the guest's port 22
 VARIANT=${VARIANT:-novga}                # novga (the VPS case) | virtio-vga (upstream's test)
 IMG=${IMG:-Arch-Linux-x86_64-cloudimg-20261001.604814.qcow2}
@@ -175,8 +175,9 @@ step6() {  # the ISO's two commands; the second over ssh as the user (a real ses
 omarchy-apply-system --install-user $U --first-install; rc=\$?
 grep -E 'Failed:|Completed:' /var/log/omarchy-install.log | tail -60; exit \$rc
 EOF
-  # Expected to fail (the finding's deviation): step6r follows it. Its status is reported, not fatal.
-  job step6b user <<'EOF' || echo "step6b failed as recorded; step6r is the documented recovery"
+  # Expected to fail with the recorded signature (the finding's deviation), which step6r follows;
+  # any other failure stops the run.
+  job step6b user <<'EOF' || grep -q 'bundled Node.js tarball missing' "$W/logs/job-step6b.log" || return 1
 omarchy-provision-user --force --first-install
 EOF
   g sudo cat /var/log/omarchy-install.log > "$W/logs/omarchy-install.log" || true

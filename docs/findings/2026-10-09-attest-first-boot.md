@@ -17,8 +17,9 @@ Hetzner Cloud has no Arch image. The boots were five of Debian 13 and one of Ubu
 they ran the upstream glibc release of the first-boot tool. This run measures attest on a real
 vendor's first boot: cloud-init's timing, publishing over first-boot networking, and the
 browser's window. It does not show how the tool reaches an Arch machine. The keys were random,
-so it says nothing about derivation (`STA-22`). The publisher's Nostr relay that `CHN-18` makes
-mandatory does not exist yet, so the relay set was public relays only. The "browser" was a
+so it says nothing about derivation (`STA-22`). `CHN-18` says "The publisher's Nostr relay, on
+the same host as the TCP bridge (`CHN-11`), is **mandatory**"; that relay does not exist yet, so
+the relay set was public relays only. The "browser" was a
 local script: one `nak` subscriber per relay plus an acceptance check. It was not the harness.
 
 ## Versions
@@ -199,8 +200,8 @@ Still open:
 
 - **The Arch case.** How the tool reaches an Arch machine, and the static build on Alpine.
 - **Derivation.** Determinism across a reinstall of the app (`STA-22`).
-- **The publisher's Nostr relay.** `CHN-18` makes it mandatory, it does not exist yet, and its
-  NIP-42 behaviour is untested.
+- **The publisher's Nostr relay.** It does not exist yet (see the scope above), and its NIP-42
+  behaviour is untested.
 - **Recovery after a failed publish.** No live relay failed, so this was not observed.
 - **A distribution of boot times.** That needs more boots, other vendors, and busier hours.
 - **The browser-side checks of `CNF-18`.**
