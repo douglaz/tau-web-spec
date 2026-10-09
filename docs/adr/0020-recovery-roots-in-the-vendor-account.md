@@ -6,6 +6,14 @@ plus host pins, exposure history and the inference account credential. The opera
 are `STA-14`–`STA-18` and `STA-22`–`STA-23` in
 [`03-state-and-recovery.md`](../../03-state-and-recovery.md).
 
+## Amended 2026-10-09: a vendor identity derived per machine
+
+At a vendor whose credential is derived from the seed, the two roots below are one: whoever
+holds the seed holds that vendor account. Stage 1's LNVPS adapter is the first such case.
+Replace carries each machine's vendor key forward, and inventory is found by scanning ahead
+of the sheet's counter; both are recorded in
+[ADR-0042](./0042-the-vendor-identity-is-derived-per-machine.md).
+
 ## Amended 2026-10-06: the cloud fallback and stage-1 recovery
 
 The "honestly labelled keyed-rescue fallback" below is superseded. `STA-15` says "Where a
