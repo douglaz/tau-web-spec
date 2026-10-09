@@ -170,8 +170,9 @@ Then, from the machine, `http://169.254.169.254/hetzner/v1/userdata` **still ser
 original user-data, sender key included, on all six boots**, about two to three minutes after
 the scrub. Boots 1–3 carried the key twice, because the template's header comment repeated the
 placeholder, which was fixed before boot 4; the scrub handled both copies. So the disk scrub is
-defence in depth. What bounds the exposure is single use in the browser (`CHN-5`), and this run
-does not exercise that.
+defence in depth. `CHN-R5` names the bound: "The sender key authorizes **one introduction**, and
+the browser stops listening for it the moment one is accepted (`CHN-5`)". This run does not
+exercise that.
 
 ## Relays and kind 1059
 
@@ -205,7 +206,8 @@ Still open:
 - **Recovery after a failed publish.** No live relay failed, so this was not observed.
 - **A distribution of boot times.** That needs more boots, other vendors, and busier hours.
 - **The browser-side checks of `CNF-18`.**
-- **The sheet's re-import.** `OPN-3` also lists it, and this run does not touch it.
+- **The sheet's re-import.** `OPN-3` says "the sheet format needs a demonstrated import on the
+  target device", and this run does not touch it.
 
 ## Reproduce
 

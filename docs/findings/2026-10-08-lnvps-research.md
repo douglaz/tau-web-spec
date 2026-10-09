@@ -105,7 +105,8 @@ Live: a preflight `OPTIONS /api/v1/vm` from `Origin: https://example.org` asking
 `GET /api/v1/image` returned `200` with `access-control-allow-origin: *` and
 `access-control-expose-headers: *`; an unauthenticated `GET /api/v1/vm` returned `403` "Auth
 header not found" with the same origin header. No browser was exercised; readability is inferred
-from the headers. On these headers the vendor needs no pinned tunnel (`CHN-12a`).
+from the headers. `OPN-24` asks "whether its API answers a browser origin, or needs the pinned
+tunnel of `CHN-12a`"; on these headers it answers one.
 
 The serial console is a WebSocket that takes a single-use, path-scoped, 30-second `?ticket=`
 from `POST /api/v1/auth/ticket` (`API_DOCUMENTATION.md:77-119`, `998-1002`).
@@ -274,7 +275,7 @@ operator's wallet:
     14 days after the paid month ends.
 
 Optionally, `PATCH /api/v1/vm/{id}/re-install` to time the host-key re-capture, since `CHN-R6`
-treats a reinstall as a new first contact.
+says "**A reinstall through the vendor's API is a new first contact**".
 
 **Expected cost:** one month of the smallest custom build — €5.20 before VAT, 7,025,698 msat at
 the server's rate on 2026-10-08 — plus VAT where the place of supply calls for it, plus the
