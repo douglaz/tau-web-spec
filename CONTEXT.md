@@ -373,8 +373,14 @@ _Avoid_: trustless, verified, provably secure
 
 ### The channel
 
+**Retrieve** · `CHN-R1`, `CHN-R6`
+A pin route where the vendor publishes the machine's host keys and the browser reads them over
+TLS it terminates — a direct fetch, or a pinned tunnel (`CHN-12a`). The vendor's word, and
+nothing the machine or the relay chooses.
+_Avoid_: trust on first use (the relay never chooses the key)
+
 **Attest** · `CHN-R5`
-The cloud path's introduction route: the browser plants a per-machine sender key in boot
+A cloud introduction route for a vendor that takes boot configuration: the browser plants a per-machine sender key in boot
 configuration, and the machine's first boot seals its host-key fingerprints under that key and
 gift-wraps them to a per-machine recipient key over Nostr. Both keys derive from the seed.
 _Avoid_: remote attestation, TPM attestation (the hardware senses; "attestation" for route 5
