@@ -1,0 +1,93 @@
+#cloud-config
+# PROTOTYPE - throwaway. The attest first-boot hook (CHN-R5, CHN-4, CHN-6), rendered by run.sh.
+# run.sh fills the placeholders per boot; the sender secret is a random key made for one boot.
+write_files:
+  - path: /root/attest.env
+    permissions: '0600'
+    content: |
+      SENDER_SEC=@SENDER_SEC@
+      RECIPIENT_PUB=@RECIPIENT_PUB@
+      RELAYS='@RELAYS@'
+      NAK_URL=@NAK_URL@
+      NAK_SHA256=@NAK_SHA256@
+      DEADLINE=@DEADLINE@
+  - path: /usr/local/sbin/attest-hook
+    permissions: '0700'
+    content: |
+      #!/bin/bash
+      # Runs from runcmd, after cloud-init's ssh module has written the host keys.
+      # Every line of the log starts with the machine's wall clock in epoch seconds.
+      set -u
+      exec >>/var/log/attest-hook.log 2>&1
+      export HOME=/root
+      . /root/attest.env
+      W=/run/attest; install -d -m 700 "$W"
+      NAK=/usr/local/bin/nak
+      log() { printf '%s %s\n' "$EPOCHREALTIME" "$*"; }
+      now() { printf '%s' "${EPOCHREALTIME%.*}"; }
+      DIRS='/var/lib/cloud /run /var/log /root /etc /tmp /var/tmp'
+
+      # CHN-6: remove the sender key from cloud-init's artifacts. Defence in depth: the
+      # metadata endpoint still serves it (CNF-61). The key travels in the environment only.
+      scrub() {
+        local f left
+        rm -f /root/attest.env
+        for f in $(grep -rlF -f <(printf '%s\n' "$SENDER_SEC") $DIRS 2>/dev/null); do
+          K=$SENDER_SEC perl -pi -e 's/\Q$ENV{K}\E/"X" x 64/ge' "$f" && log "scrubbed $f"
+        done
+        left=$(grep -rlF -f <(printf '%s\n' "$SENDER_SEC") $DIRS 2>/dev/null | tr '\n' ' ')
+        log "scrub-done residue=${left:-none}"
+      }
+
+      log "hook-start uptime=$(cut -d' ' -f1 /proc/uptime)"
+      for f in /etc/ssh/ssh_host_*_key; do
+        log "hostkey-file $f birth=$(stat -c %.3W "$f") mtime=$(stat -c %.3Y "$f")"
+      done
+
+      log "nak-download-start"
+      curl -fsSL --retry 10 --retry-all-errors --retry-delay 2 --connect-timeout 10 \
+          -o "$NAK.part" "$NAK_URL" </dev/null \
+        || python3 -c 'import sys,urllib.request as u; u.urlretrieve(sys.argv[1], sys.argv[2])' "$NAK_URL" "$NAK.part"
+      log "nak-download-end bytes=$(stat -c %s "$NAK.part" 2>/dev/null)"
+      if ! echo "$NAK_SHA256  $NAK.part" | sha256sum --quiet -c -; then
+        log "nak-sha256-MISMATCH"; scrub; exit 1
+      fi
+      chmod 755 "$NAK.part" && mv "$NAK.part" "$NAK"
+      log "nak-ready $("$NAK" --version </dev/null)"
+
+      # The sealed content: one line per host key, "<SHA256 fingerprint> <type> <base64 key>".
+      content=$(for p in /etc/ssh/ssh_host_*_key.pub; do
+        printf '%s %s\n' "$(ssh-keygen -lf "$p" | awk '{print $2}')" "$(cut -d' ' -f1,2 "$p")"
+      done)
+      log "fingerprints $(printf '%s\n' "$content" | awk '{printf "%s ", $1}')"
+      NOSTR_SECRET_KEY=$SENDER_SEC "$NAK" event -k 14 -c "$content" -t attest=host-keys </dev/null > "$W/rumor.json"
+      NOSTR_SECRET_KEY=$SENDER_SEC "$NAK" gift wrap -p "$RECIPIENT_PUB" \
+        --use-our-identity-key --use-their-identity-key < "$W/rumor.json" > "$W/wrap.json"
+      if [ ! -s "$W/wrap.json" ]; then log "wrap-FAILED"; scrub; exit 1; fi
+      log "wrap-built bytes=$(stat -c %s "$W/wrap.json")"
+
+      # CHN-6: each relay is retried with backoff until it answers OK or the deadline passes.
+      # The scrub fires on the first OK from any relay, or at the deadline.
+      END=$(( $(now) + DEADLINE ))
+      publish() {
+        unset SENDER_SEC
+        local r=$1 n=0 d=1 out
+        while [ "$(now)" -lt "$END" ]; do
+          n=$((n+1)); log "attempt $n $r"
+          out=$(timeout 20 "$NAK" event "$r" < "$W/wrap.json" 2>&1 >/dev/null)
+          if grep -q 'success' <<<"$out"; then log "OK $r attempt=$n"; : > "$W/ok"; return 0; fi
+          log "FAIL $r attempt=$n $(tr '\n' ' ' <<<"$out")"
+          sleep "$d"; d=$(( d*2 > 30 ? 30 : d*2 ))
+        done
+        log "GIVE-UP $r attempts=$n"
+      }
+      log "publish-start deadline=${DEADLINE}s relays=$RELAYS"
+      for r in $RELAYS; do publish "$r" & done
+      until [ -e "$W/ok" ] || [ "$(now)" -ge "$END" ]; do sleep 0.1; done
+      if [ -e "$W/ok" ]; then log "scrub-trigger first-OK"; else log "scrub-trigger deadline-no-OK"; fi
+      scrub
+      unset SENDER_SEC
+      wait
+      log "hook-end"
+runcmd:
+  - [/usr/local/sbin/attest-hook]
