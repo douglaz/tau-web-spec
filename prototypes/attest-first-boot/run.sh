@@ -167,9 +167,11 @@ boot() {  # boot LOCATION SERVER_TYPE IMAGE
   if ssh -i "$SSH_KEY" -o IdentitiesOnly=yes -o BatchMode=yes -o ConnectTimeout=5 -o StrictHostKeyChecking=yes \
        -o UserKnownHostsFile="$B/known_hosts.wrong" -o GlobalKnownHostsFile=/dev/null -o ControlPath=none \
        "root@$IP" true 2>"$B/negative-control.err"; then
-    echo "NEGATIVE CONTROL FAILED: logged in against a wrong pin" | tee "$B/negative-control"
-  else
+    echo "NEGATIVE CONTROL FAILED: logged in against a wrong pin" | tee "$B/negative-control"; exit 1
+  elif grep -qi 'host key verification failed' "$B/negative-control.err"; then
     echo "negative control refused: $(grep -m1 -i 'verification failed' "$B/negative-control.err")" | tee "$B/negative-control"
+  else  # a timeout or auth error is not a pin refusal
+    echo "NEGATIVE CONTROL INCONCLUSIVE: $(head -1 "$B/negative-control.err")" | tee "$B/negative-control"; exit 1
   fi
 
   # Clock offset machine - local, bounded by half the round trip over the open master.
@@ -207,8 +209,13 @@ boot() {  # boot LOCATION SERVER_TYPE IMAGE
 
   ssh -o ControlPath="$CM" -O exit x 2>/dev/null || true
   api DELETE "/servers/$SERVER_ID" > /dev/null; ev server-deleted; echo "$SERVER_ID" >> "$WORK/deleted-server-ids"
-  for t in $(seq 30); do api GET "/servers/$SERVER_ID" >/dev/null 2>&1 || break; sleep 2; done
-  SERVER_ID=''; cleanup
+  # Gone only on a 404; a transient error keeps SERVER_ID so the EXIT trap retries the delete.
+  for t in $(seq 30); do
+    [ "$(curl -s -o /dev/null -w '%{http_code}' -H @"$HDR" "$API/servers/$SERVER_ID")" = 404 ] && { SERVER_ID=''; break; }
+    sleep 2
+  done
+  [ -z "$SERVER_ID" ] || { echo "server $SERVER_ID not confirmed deleted"; exit 1; }
+  cleanup
   echo "boot record: $B"
 }
 

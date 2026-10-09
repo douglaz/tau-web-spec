@@ -121,7 +121,9 @@ job() {  # job <name> <root|user> <script on stdin>
     sleep 20; $run "tail -1 $log" | cut -c1-160
   done
   $run "cat $log" > "$W/logs/job-$name.log"
-  echo "job $name exit $($run "cat $ex") (full log: logs/job-$name.log)"; tail -25 "$W/logs/job-$name.log"
+  local rc; rc=$($run "cat $ex")
+  echo "job $name exit $rc (full log: logs/job-$name.log)"; tail -25 "$W/logs/job-$name.log"
+  return "$rc"
 }
 
 step3() {  # pacman at Omarchy's sources: mirrorlist-stable, and pacman-stable.conf's [omarchy] section verbatim
@@ -189,15 +191,17 @@ omarchy-provision-user --force
 EOF
 }
 
-step7() { g 'sudo ufw allow ssh; sudo ufw show added; grep ENABLED /etc/ufw/ufw.conf'; }
+step7() {  # ufw allow ssh can print an error and still save the rule: check the saved rule itself
+  g 'sudo ufw allow ssh; sudo ufw show added | tee /dev/stderr | grep -qE "allow (ssh|22)" && grep ENABLED /etc/ufw/ufw.conf'
+}
 
 reboot_() {  # step 8: reboot from inside (same QEMU process, same NVRAM); reconnect against the pin ONLY
-  local t0 i fp
+  local t0 i fp ok=0
   g 'cat /var/lib/cloud/data/instance-id' > "$W/logs/instance-id-before.txt"
   t0=$(date +%s); g 'sudo systemctl reboot' || true
   sleep 15
   for i in $(seq 90); do
-    if g true 2>"$W/logs/ssh-after-reboot.err"; then echo "SSH answered $(( $(date +%s)-t0 )) s after reboot, over the pre-install pin: SAME KEY"; break; fi
+    if g true 2>"$W/logs/ssh-after-reboot.err"; then echo "SSH answered $(( $(date +%s)-t0 )) s after reboot, over the pre-install pin: SAME KEY"; ok=1; break; fi
     grep -q 'REMOTE HOST IDENTIFICATION HAS CHANGED\|Host key verification failed' "$W/logs/ssh-after-reboot.err" && { echo "HOST KEY CHANGED"; cat "$W/logs/ssh-after-reboot.err"; break; }
     sleep 10
   done
@@ -206,6 +210,7 @@ reboot_() {  # step 8: reboot from inside (same QEMU process, same NVRAM); recon
   while read -r _ line; do fp=$(printf 'x %s\n' "$line" | ssh-keygen -lf /dev/stdin | awk '{print $2}')
     grep -qxF "$fp" "$W/logs/pin-fingerprints.txt" && echo "same  $fp" || echo "NEW   $fp"; done < "$W/logs/keyscan-after.txt"
   [ -s "$W/logs/keyscan-after.txt" ] || { echo "port 22 not answering; serial tail:"; tail -40 "$SER" | tr -d '\r'; }
+  [ "$ok" = 1 ]  # the pass condition: the pinned key answered after the reboot
 }
 
 after() {  # what came back

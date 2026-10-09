@@ -1,6 +1,7 @@
 # Findings — LNVPS as the first vendor and the jump vendor (`OPN-24`)
 
-Date: 2026-10-08. Desk research against primary sources only; no account, no machine, no payment.
+Date: 2026-10-08, with one live catalogue check on 2026-10-09 (the last section). Desk research
+against primary sources only; no account, no machine, no payment.
 Sources: the API repository `github.com/LNVPS/api` at commit `8352f11` (2026-10-05), cited as
 `path:line`; the live API at `https://api.lnvps.net`, read with unauthenticated calls only —
 `GET /api/v1/image`, `/api/v1/vm/templates`, `/api/v1/payment/methods`,
@@ -20,15 +21,16 @@ binary (`lnvps_api/src/api/docs.rs:10-11`). Its `/docs/endpoints.md` is byte-ide
 
 ## Verdict
 
-**LNVPS cannot be attested to as `CHN-R5` is written, and it cannot be ordered from with a Nostr
-key alone.** A create request carries no user-data: the cloud-init a machine boots is composed
+**LNVPS cannot be attested to as `CHN-R5` is written, and its HTTP API cannot be ordered from
+with a Nostr key alone.** A create request carries no user-data: the cloud-init a machine boots is composed
 by the vendor from the one SSH public key the buyer registered. What it offers instead is a
 retrieve route — each machine's status carries its SSH host keys, scanned from the hypervisor
 after boot — which is the route `CHN-R6` admits for a jump host and which nobody has measured.
 The API answers any browser origin and authenticates by NIP-98 or a bearer token, so a static
 page can call it directly. A key lists its machines but cannot destroy one: there is no customer
-delete route. Ordering requires a verified email address on the live server, which contradicts
-`OPN-24`'s premise that LNVPS "identifies a buyer by a Nostr key, and keeps no account". The
+delete route. Ordering through the HTTP API requires a verified email address on the live server
+(a NIP-90 job handler orders without that check, and whether it runs in production is unknown;
+see section 3), which contradicts `OPN-24`'s premise that LNVPS "identifies a buyer by a Nostr key, and keeps no account". The
 shortest period sold is one month (€5.20 before VAT for the smallest custom build), with no
 pro-rata and refunds only by email. Arch Linux is in the catalogue; custom images and ISOs are not.
 
@@ -36,7 +38,7 @@ pro-rata and refunds only by email. Arch Linux is in the catalogue; custom image
 |---|---|---|---|
 | 1 | Boot-time user-data, or published host keys | **partly** — no user-data; a retrieve route exists, unmeasured | `lnvps_api/src/api/model.rs:380-386`; `lnvps_api_common/src/model.rs:298-303` |
 | 2 | Browser reachability | **yes** — wildcard origin, `Authorization` allowed; preflight passed live | `lnvps_api/src/bin/api.rs:34-51` |
-| 3 | Inventory and destruction | **partly** — lists yes, destroy no; a verified email gates every order | `routes.rs:95-188`; `routes.rs:1309-1313` |
+| 3 | Inventory and destruction | **partly** — lists yes, destroy no; a verified email gates every HTTP order; NIP-90 ordering unresolved | `routes.rs:95-188`; `routes.rs:1309-1313` |
 | 4 | A machine paid for minutes | **no** — one month minimum, no pro-rata | `lnvps_api_common/src/pricing.rs:67-68` |
 | 5 | An Arch image | **yes** — image 11, "archlinux Cloud Latest"; no custom image or ISO | live `GET /api/v1/image` |
 
