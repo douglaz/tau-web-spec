@@ -276,3 +276,12 @@ treats a reinstall as a new first contact.
 the server's rate on 2026-10-08 — plus VAT where the place of supply calls for it, plus the
 payer's routing fee. No Lightning processing fee is listed. Under the terms, a refund may be
 requested by email within 14 days.
+
+## The fallback's image (`STG-21`), checked 2026-10-09
+
+T39 also asks whether Hetzner Cloud offers the stage's distribution as an image at creation.
+It does not. The live `GET /v1/images?type=system` listed AlmaLinux 8–10, CentOS Stream 9–10,
+Debian 12–13, Fedora 43–44, openSUSE 16, Rocky 8–10 and Ubuntu 22.04–26.04 on both
+architectures, and no Arch Linux. A project snapshot made from an Arch installation could be
+named at creation, but it is not the vendor's catalogue. So the fallback, as `STG-21` states it,
+does not hold for Arch either.
