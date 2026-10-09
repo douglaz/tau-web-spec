@@ -175,7 +175,8 @@ step6() {  # the ISO's two commands; the second over ssh as the user (a real ses
 omarchy-apply-system --install-user $U --first-install; rc=\$?
 grep -E 'Failed:|Completed:' /var/log/omarchy-install.log | tail -60; exit \$rc
 EOF
-  job step6b user <<'EOF'
+  # Expected to fail (the finding's deviation): step6r follows it. Its status is reported, not fatal.
+  job step6b user <<'EOF' || echo "step6b failed as recorded; step6r is the documented recovery"
 omarchy-provision-user --force --first-install
 EOF
   g sudo cat /var/log/omarchy-install.log > "$W/logs/omarchy-install.log" || true
@@ -246,7 +247,9 @@ EOF
       systemctl --user daemon-reload; systemctl --user restart hermes-gateway.service   # install does not restart a running one
       sleep 20; systemctl --user cat hermes-gateway.service | grep ExecStart=
       systemctl --user status hermes-gateway.service --no-pager -n 25
-      loginctl show-user '"$U"' -p Linger' 2>&1 | tee "$W/logs/hermes-gateway.txt"
+      loginctl show-user '"$U"' -p Linger
+      systemctl --user is-active hermes-gateway.service' 2>&1 | tee "$W/logs/hermes-gateway.txt"
+  # the pass condition: the gateway service is active (pipefail carries the remote status)
 }
 
 up() {  # after a relaunch (boot with an existing disk): wait for SSH over the original pin, nothing else
@@ -257,7 +260,7 @@ up() {  # after a relaunch (boot with an existing disk): wait for SSH over the o
 lockout() {  # optional, last: drop the ssh rule, reboot, port 22 should stop answering
   g 'sudo ufw delete allow ssh; sudo systemctl reboot' || true
   sleep 90; local i
-  for i in $(seq 12); do if g true 2>/dev/null; then echo "SSH ANSWERED: no lockout"; return; fi; sleep 10; done
+  for i in $(seq 12); do if g true 2>/dev/null; then echo "SSH ANSWERED: no lockout"; return 1; fi; sleep 10; done
   echo "no SSH answer 3 min after reboot without the rule: locked out"; tail -5 "$SER" | tr -d '\r'
 }
 
