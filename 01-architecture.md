@@ -1003,16 +1003,9 @@ names the approved machine entry it pays for (`ARC-15`, `STA-24`), and its amoun
 beside the cost the operator approved. The operator pays each invoice; nothing pays one for
 them.
 
-For an LNVPS machine, a NIP-90 job reply — its status, amount or invoice — counts only when it
-is signed by the service key the vendor publishes over TLS
-(`https://lnvps.net/.well-known/nostr.json`); a reply under any other key is ignored. The wallet
-invoice MUST be read **over TLS from the vendor** where its renew route serves one for the
-order, with the signed job reply's amount as a cross-check; where it does not, the signed job
-reply's invoice is the vendor's recorded response. A relay event that service key did not sign
-MUST NOT supply an invoice. The renew route's ability to serve an invoice for a job-created
-order remains owed by `OPN-24`'s phase B, not an observed result
-(`docs/findings/2026-10-09-lnvps-nip90-probe.md`). The Nostr relays the job travels through
-are `TRU-E13`.
+For an LNVPS machine, the wallet invoice MUST come over TLS from the vendor's recorded HTTP
+order or renew response. If neither response supplies an invoice, no invoice is handed to the
+wallet. `OPN-24`'s phase B has yet to observe which response supplies one.
 
 **ARC-31** Payment evidence MUST NOT be overstated. A **settled invoice** proves the
 operator funded credits at a provider and bounds which proxies are available; it does not

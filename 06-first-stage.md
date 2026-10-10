@@ -7,8 +7,8 @@ an operator with a goal and no tenant
 ([ADR-0034](./docs/adr/0034-general-case-first-tenants-are-optional-skills.md)).
 
 - **Stage 0 — the probes**, run alongside construction. The LNVPS probe follows `OPN-24`;
-  its paid phase B waits on the vendor's job-order fix. The Omarchy question closed by
-  restating stage 1 on plain Arch (`OPN-25`). The separate attest first-boot experiment
+  its paid phase B waits on the operator's email verification and payment. The Omarchy question
+  closed by restating stage 1 on plain Arch (`OPN-25`). The separate attest first-boot experiment
   (`OPN-3`) informs vendors that accept boot configuration, but does not gate stage 1.
 - **Stage 1 — the owner's scenario, with no tenant** (`STG-21`).
 - **Stage 2 — a vendor with no adapter** (`STG-22`).
@@ -41,6 +41,13 @@ in ADR-0042 and paid for by a Lightning invoice from the operator's own wallet (
 That identity is unavailable until T44's coordinated format and recovery amendment;
 `SEC-5` row 22 still says "not derivable today".
 
+Before the first order under each machine's identity, the typed LNVPS adapter MUST submit the
+operator's own email address to that account at the vendor; it submits that address nowhere
+else. The same operator address serves every machine's separate account. LNVPS sends a
+single-use verification link valid for about a day; the operator opens it. The harness MUST
+NOT create a mailbox or read the operator's mail. It MUST wait until the account reads as
+verified before submitting the machine's HTTP order through the vendor API.
+
 First contact waits on `OPN-24`'s live published-key probe: documented keys alone admit no
 route. LNVPS accepts no buyer boot configuration
 (`docs/findings/2026-10-08-lnvps-research.md` §1), so attest cannot run there. The vendor's
@@ -65,10 +72,10 @@ the channel and the journal, the stage needs:
 - **one re-entry** (`STG-9`).
 
 **If LNVPS fails `OPN-24`'s target criteria, stage 1 waits.** Probe evidence reopens the
-vendor question; no replacement vendor, card account or verified-email HTTP order is selected.
+vendor question; no replacement vendor or card account is selected.
 The live Hetzner Cloud catalogue lacks Arch (`docs/findings/2026-10-08-lnvps-research.md`,
 last section). The TCP relay and stage-1 manual enrollment and retirement keep their existing
-checks; NIP-90 vendor jobs are not machine notifications.
+checks.
 
 **STG-22 Stage 2 is a vendor with no adapter, where the browser can reach its API.** Such a
 vendor is reached through an untyped vendor scope on `SEC-4`'s conditions, and no further than

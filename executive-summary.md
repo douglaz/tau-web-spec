@@ -244,8 +244,9 @@ that makes rental structural gates the phone-only acquisition experience.
 
 The first stage is **the owner's own scenario, with no tenant**: one LNVPS machine bought by
 Lightning invoice from the operator's wallet, running catalogue plain Arch with Hermes
-installed by its own installer (`STG-21`). Its first-contact probe awaits the vendor fix and
-paid phase B (`OPN-24`). If LNVPS fails the target criteria, stage 1 waits. The path it
+installed by its own installer (`STG-21`). Its first-contact probe awaits the paid HTTP
+phase B (`OPN-24`), after the operator's email verification. If LNVPS fails the target
+criteria, stage 1 waits. The path it
 replaced as first — one machine on a dedicated server, over the full channel — was rehearsed
 **by hand, once**, on a
 disposable server on September 8, 2026: both pinned SSH hops closed, and the install brief was

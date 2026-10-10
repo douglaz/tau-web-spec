@@ -474,20 +474,16 @@ evidence is that set's test run against the relay the harness uses.
 - [ ] **CNF-104 · BLOCKING** The invoice handed to the operator's wallet for a machine is the
       one harness code read from the vendor's recorded response, names the approved machine
       entry it pays for, and shows its amount beside the approved cost (`ARC-30`, `ARC-29`);
-      on LNVPS it is read over TLS from the vendor where the renew route serves one, and is
-      otherwise the NIP-90 job reply's invoice, a reply counting only when signed by the
-      service key the vendor publishes over TLS; under an untyped vendor scope it is decoded
-      by harness code from the recorded response (`SEC-4`). Before wallet handoff,
-      demonstrate with distinct fixture invoices: a job reply signed by any other key hands
-      none to the wallet, even when its amount appears plausible; a vendor-TLS invoice whose
-      amount disagrees with the signed job reply fails the cross-check and is not handed
-      through; with a successful vendor-TLS read and matching amount, the wallet receives that
-      invoice, tied to the approved machine entry and cost, rather than a different invoice
-      offered in a reply or in model text; with no vendor-TLS invoice, the signed reply's
-      invoice is handed through, tied the same way. Also have the model present a different
-      invoice in its text and confirm the wallet is never handed it. For a machine ordered by a
-      job, the trust display lists the Nostr relays it travelled through beside the machine
-      (`TRU-E13`). The app holds no funds at any step (`SEC-13`). Money out.
+      on LNVPS it comes over TLS from the vendor's recorded HTTP order or renew response;
+      under an untyped vendor scope it is decoded by harness code from the recorded response
+      (`SEC-4`). Before wallet handoff, demonstrate with distinct fixture invoices: successful
+      vendor-TLS reads from an order response and a renew response each hand that response's
+      invoice to the wallet, associated with its approved machine entry and amount shown beside
+      the approved cost; under an untyped vendor scope, harness code decodes an invoice from
+      the recorded response and hands that invoice to the wallet with the same entry and cost
+      association; a different invoice presented in model text never reaches the wallet;
+      when neither LNVPS response supplies an invoice, none reaches the wallet. The app holds
+      no funds at any step (`SEC-13`). Money out.
 - [ ] **CNF-105 · BLOCKING** While a call under an untyped vendor scope is open or unresolved,
       no box-plane command is dispatched to any machine of the session's bound set at that
       vendor, until the call's terminal record or the operator's disposition (`STA-24`).
@@ -784,7 +780,7 @@ promotion rule above.
 
 | Applies when | CNF items | Interpretation |
 |---|---|---|
-| Stage 1: required | 1–7, 10–17, 21, 23–26, 28–30, 32, 34–35, 37, 39–44, 49–56, 66–73, 78–79, 81–83, 87–91, 93–95, 99–104 | One live LNVPS machine on catalogue plain Arch with no tenant, an initial session from the owner's goal and the later session `STG-9` requires (item 108) with a goal of its own, created through a typed adapter. First contact waits on `OPN-24`'s live presented/published key-equality result; documentation alone admits no route. Synthetic unbound identities exercise 6 and 26. Item 7's growth and subset cases, and item 91's two-machine case, use fixtures until stage 2. Item 12 is exercised with a hostile goal and a hostile fetched document; its untyped-scope restatement, and item 14's, wait for stage 2. Item 14 covers any root password the typed adapter's response carries. Item 23 covers unpinned-first-contact refusal; its attest-window case applies where attest is enabled, and its jump-host label waits for stage 2. Items 18 and 61 remain route-specific attest checks, required before enabling that route, not stage-1 requirements. Items 24 and 66 apply wherever the installation is pinned, and item 67's and item 93's unpinned cases wherever it is not; NixOS evidence is required before enabling NixOS. Interrupted resume (`STG-12`) is carried here by items 37, 39, 40 and 54–56; item 86's cases are a rescue boot's, and stay the test bed's. Item 95's cases all require integrated evidence (`OPN-28`). Item 50 covers the delivery check; its scanner half waits for scanner enablement. Item 10 covers local ledger persistence; its sheet-export half is the recovery row's. Item 72 covers local allocation; imported-state cases are 84. Item 81's migration case waits for self-host migration, which no stage yet offers. Item 32 covers the typed adapter's origin. Items 68–71, 78 and 88–90 apply to the procured inference path; bring-your-own and local inference have no aggregator to test. Item 88 uses injected list fixtures the way 17 uses an injected response. Item 42 covers placed secrets; its untyped-scope half waits for stage 2. Item 104 covers the LNVPS invoice and `ARC-30`'s TLS provenance and amount cross-check, with no exemption. |
+| Stage 1: required | 1–7, 10–17, 21, 23–26, 28–30, 32, 34–35, 37, 39–44, 49–56, 66–73, 78–79, 81–83, 87–91, 93–95, 99–104 | One live LNVPS machine on catalogue plain Arch with no tenant, an initial session from the owner's goal and the later session `STG-9` requires (item 108) with a goal of its own, created through a typed adapter. First contact waits on `OPN-24`'s live presented/published key-equality result; documentation alone admits no route. Synthetic unbound identities exercise 6 and 26. Item 7's growth and subset cases, and item 91's two-machine case, use fixtures until stage 2. Item 12 is exercised with a hostile goal and a hostile fetched document; its untyped-scope restatement, and item 14's, wait for stage 2. Item 14 covers any root password the typed adapter's response carries. Item 23 covers unpinned-first-contact refusal; its attest-window case applies where attest is enabled, and its jump-host label waits for stage 2. Items 18 and 61 remain route-specific attest checks, required before enabling that route, not stage-1 requirements. Items 24 and 66 apply wherever the installation is pinned, and item 67's and item 93's unpinned cases wherever it is not; NixOS evidence is required before enabling NixOS. Interrupted resume (`STG-12`) is carried here by items 37, 39, 40 and 54–56; item 86's cases are a rescue boot's, and stay the test bed's. Item 95's cases all require integrated evidence (`OPN-28`). Item 50 covers the delivery check; its scanner half waits for scanner enablement. Item 10 covers local ledger persistence; its sheet-export half is the recovery row's. Item 72 covers local allocation; imported-state cases are 84. Item 81's migration case waits for self-host migration, which no stage yet offers. Item 32 covers the typed adapter's origin. Items 68–71, 78 and 88–90 apply to the procured inference path; bring-your-own and local inference have no aggregator to test. Item 88 uses injected list fixtures the way 17 uses an injected response. Item 42 covers placed secrets; its untyped-scope half waits for stage 2. Item 104 covers the LNVPS invoice and `ARC-30`'s TLS provenance, with no exemption. |
 | Stage 1: record measurements | 45–47 | Require the integrated browser channel, not the rehearsal's timings. |
 | Stage 1: model-written check reports | 107 | The report label, verdict isolation and absence of automatic re-execution are required before stage 1 completes. |
 | Stage 1: re-entry | 108 | `STG-9`'s later session, re-entering over the same pin and re-running the check, is required before stage 1 completes. Item 93's re-entry case runs with it, using a placement or rotation in the re-entering session. |

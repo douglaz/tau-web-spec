@@ -56,8 +56,9 @@ gated on it.
       publisher fills it.
 - [ ] **T39 — Stage 0: complete the LNVPS probe** (`OPN-24`). Phase A ran: the
       production listener answered, but zero-address job orders were refused; see
-      `docs/findings/2026-10-09-lnvps-nip90-probe.md` and LNVPS/api#422. Wait for the vendor
-      fix, then execute `OPN-24`'s "Phase B, after the vendor fix" in its stated order and
+      `docs/findings/2026-10-09-lnvps-nip90-probe.md` and LNVPS/api#422. Execute
+      `OPN-24`'s "Phase B, after the operator's email verification" after that verification
+      and with payment by the operator's wallet; follow its stated order and
       apply that requirement's separate target criteria. `STG-21` says "If LNVPS fails
       `OPN-24`'s target criteria, stage 1 waits". If phase B shows the presented keys equal
       the published ones, this task then admits the route: a new `CHN-R*` identifier for
@@ -97,7 +98,7 @@ gated on it.
 - [ ] **T43 — Stage 1's build list**. Implement `STG-21`'s corrected LNVPS/plain-Arch
       definition and the stage-1 applicability rows in `07-conformance.md` at tau-web-rust's
       next spec pin. These include recovery, scanning, reports and re-entry; specification
-      edits exercise no harness. Completion still depends on the vendor fix and T39 phase B,
+      edits exercise no harness. Completion still depends on T39 phase B,
       T44's coordinated identity format/recovery change, the publisher's artifact-pin choice,
       and the integrated evidence those rows require.
 - [ ] **T48 — Stage 1: build placed-secret scanning and recovery re-arm** (`OPN-28`).
@@ -120,7 +121,9 @@ gated on it.
       trap `ARC-17`'s lifecycle-finding rule removed for `services`.
 - [ ] **T44 — Implement the decided derived vendor identity** (`OPN-26`, ADR-0042).
       This is a coordinated change required before stage-1 completion, not a new design
-      question. Add per-machine role 5 at the machine's index and its Nostr BIP-340 x-only
+      question. Its eventual typed adapter follows `STG-21` and `ARC-30` for the accepted
+      HTTP order, email verification and invoice path. Add per-machine role 5 at the machine's
+      index and its Nostr BIP-340 x-only
       interpretation through `STA-22a` and the role/derivation contract in
       `docs/design/credential-format-v1.md`; update `tools/formal/TauWeb/Allocation.lean`
       and its role-table rendering/emission as needed; regenerate

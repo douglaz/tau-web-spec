@@ -62,7 +62,8 @@ listener sends `processing` before provisioning and an `error` status when the h
   `send_event_builder` (the `?` after the error status), and jobs then go unanswered until the
   worker restarts. Read from the code, not observed.
 - **Not observed:** anything after an order — payment, boot, the published host keys, the
-  machine's addresses. Those wait for the vendor's fix.
+  machine's addresses. Those waited for the vendor's fix under the 2026-10-09 ordering choice.
+  The 2026-10-10 amendment to ADR-0042 instead sends phase B through HTTP (`OPN-24`).
 
 ## Reproduce
 

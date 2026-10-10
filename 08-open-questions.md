@@ -12,9 +12,9 @@ probe with a multi-week spike as though they were the same size.
 Construction admission (`STG-2`) closed with the September 8 installation rehearsal, on the
 dedicated path that is now the construction test bed. The stages were re-drawn on 2026-10-05
 (`06-first-stage.md`). **Stage 0** records probes alongside construction:
-`OPN-24`, with its paid phase B still waiting on the vendor's job-order fix. `OPN-25` is
-closed by restating stage 1 on plain Arch. The real-first-boot attest evidence under `OPN-3`
-remains relevant to vendors accepting boot configuration, but does not gate stage 1.
+`OPN-24`, with its paid phase B waiting on the operator's email verification and payment.
+`OPN-25` is closed by restating stage 1 on plain Arch. The real-first-boot attest evidence
+under `OPN-3` remains relevant to vendors accepting boot configuration, but does not gate stage 1.
 **Completing stage 1** gates on `OPN-24`, on the generic lockdown checklist of `OPN-14`,
 on integrated resume
 (`OPN-18`), on integrated placed-secret scanning (`OPN-28`, closed by design), and on the
@@ -108,7 +108,8 @@ configuration and no destroy route the operator can call. Its CORS evidence is h
 not a browser run. The NIP-90 phase-A probe
 (`docs/findings/2026-10-09-lnvps-nip90-probe.md`) found a live listener but every job order
 refused for zero address count; this was reported upstream as LNVPS/api#422. Nothing after
-an order was observed. Stage 1 waits for the vendor's fix and the paid phase B below.
+an order was observed. Stage 1 waits for the paid HTTP phase B below, under `STG-21` and
+ADR-0042's 2026-10-10 amendment.
 
 **The stage-1 target fails** if any of these is observed: in phase B, the complete published
 host-key set has not appeared three hours after the machine reaches `running` — a few of the
@@ -133,13 +134,16 @@ route conditions, with none added or relaxed here; T45 carries the still-open qu
 `ARC-15` puts any jump host "with what it costs" in the approval batch, without a new price
 or minimum-period qualification test.
 
-**Phase B, after the vendor fix:** pay for one month of the smallest machine and record, in
-order: (1) payment to running to a complete published host-key set, including fill time;
+**Phase B, after the operator's email verification:** follow `STG-21`'s per-machine account
+sequence, place an HTTP order for one month of the smallest machine, and observe whether the
+recorded order or renew response supplies its invoice (`ARC-30`). Pay from the operator's
+wallet, then record in order: (1) payment to running to a complete published host-key set,
+including fill time;
 (2) equality of presented and published keys in every family; (3) the vendor Arch image
 booting with the operator's key on its default user and answering at its static address;
 (4) listing; (5) destroy refusal and the stated deletion date after stop; (6) one reinstall,
 including whether old keys clear before new ones publish; (7) CORS from an arbitrary origin
-in a real browser; (8) whether the renew route serves an invoice for a job-created order.
+in a real browser.
 Apply the target criteria above to those results. Do not infer a route from documentation or
 set the later runs' wait before the fill time is measured. T39 records execution; this plan has not run.
 
@@ -282,8 +286,9 @@ and `ARC-25`; record it when taken.
 **OPN-26 — The derived vendor identity's design.** *Closed as decided 2026-10-09 in
 [ADR-0042](./docs/adr/0042-the-vendor-identity-is-derived-per-machine.md).* Stage 1's typed
 LNVPS adapter uses a per-machine derived identity, at role 5 of that machine's family and
-index. The Nostr key interpretation, order and HTTP paths, Replace carry-forward and bounded
-Restore discovery are recorded there. T44 owns the later coordinated format and recovery
+index. The Nostr key interpretation, Replace carry-forward and bounded Restore discovery are
+recorded there. For the accepted HTTP order and invoice path, see `STG-21` and `ARC-30`
+(ADR-0042's 2026-10-10 amendment). T44 owns the later coordinated format and recovery
 amendment. Until that change lands, `SEC-5` row 22 still says "not derivable today"; the
 closed design question gives no usable credential. `CHN-R6`'s separate-credential interim
 route remains available only on its own conditions.
@@ -522,8 +527,9 @@ Android evidence. Robot's browser route is the pinned TLS tunnel, not direct COR
 
 Construct the integrated harness from those results and the v1 credential/storage contracts,
 using the dedicated path as the test bed. The LNVPS phase-A result is recorded, and phase B
-waits for the vendor fix (`OPN-24`). The attest first-boot finding stands for applicable
-routes (`OPN-3`), and the Omarchy question closed on plain Arch (`OPN-25`). Write the
+waits for the operator's email verification and payment (`OPN-24`). The attest first-boot
+finding stands for applicable routes (`OPN-3`), and the Omarchy question closed on plain Arch
+(`OPN-25`). Write the
 generic lockdown checklist (`OPN-14`). The live rehearsal has not demonstrated the harness, a
 goal-driven install, local unlock, or interrupted-install convergence. Complete the stage-1
 conformance subset before claiming delivery; do not repeat the already-closed identity-chain

@@ -6,7 +6,23 @@ belong to `SEC-5` row 22 (the role), `STA-22a` and the credential format (its de
 `STA-17` (Replace) and `STA-18` (inventory recovery); until they are amended they keep their
 present text, and this record is what they will carry.
 
-## What was decided
+## Amended 2026-10-10: order over HTTP after email verification
+
+The unique-address premise in the original ordering paragraph below was wrong. A code read
+of LNVPS migration `20260220165223_email_verification.sql` found that it dropped the unique
+email-address index and recreated it as a plain index. The live server's acceptance of one
+operator address on separate accounts has not been checked. Stage 1 accepts that limit and
+uses the operator's same address to verify each per-machine account before ordering over HTTP.
+For the adapter sequence and invoice provenance, see `STG-21` and `ARC-30`.
+
+This accepts that the shared address links the operator's machines at the vendor, and that an
+HTTP order records the buyer's IP address and country (`TRU-E1`;
+`docs/findings/2026-10-08-lnvps-research.md` §3). It does not make the derived credential
+available: T44 still owes the coordinated format and recovery amendment; `SEC-5` row 22
+still says "not derivable today". The per-machine derivation and recovery decisions below
+remain in force.
+
+## What was decided on 2026-10-09
 
 At LNVPS the credential is a Nostr key: every call is signed with it (NIP-98), and the key is
 the account. Stage 1's adapter derives that key from the seed, **one per machine**: role 5 at
@@ -16,8 +32,9 @@ practice ("a vendor identity derived per set"), held per machine rather than per
 host has its own machine index, so its identity is separate from its target's with no further
 rule, and a later session re-derives the same key from the index.
 
-LNVPS refuses an HTTP order from an account with no verified email address, and an address
-belongs to one account only, so an account per machine would need a distinct verified address
+**The following ordering paragraph records the superseded 2026-10-09 choice; it is not a
+current stage-1 instruction.** LNVPS refuses an HTTP order from an account with no verified
+email address, and an address belongs to one account only, so an account per machine would need a distinct verified address
 per machine. **Orders therefore go through LNVPS's NIP-90 job interface**, which checks no
 email. Status, the published host keys, listing, stop and reinstall go over HTTP, signed by the
 same key; none of those checks email. A job reply counts only when signed by the service key
@@ -59,6 +76,6 @@ but it is not read-only at the vendor: each probed key leaves an empty account r
 | **One derived key per vendor account** | Rejected. One account and one address, but the key reaches every machine in the account. |
 | **Derived per bound set** | Rejected. A bound set is one session's, so a re-entry would derive another account and not see its machine. |
 | **Automating a throwaway mailbox** | Rejected. A new third party, a mailbox credential and an off-machine call, to click one link. |
-| **HTTP ordering behind one verified address, if the job interface fails** | Rejected. Stage 1 waits instead. |
+| **NIP-90 ordering for stage 1** | Rejected on 2026-10-10: the order path refuses every order (`docs/findings/2026-10-09-lnvps-nip90-probe.md`, LNVPS/api#422), and it adds Nostr relays as parties. It may return later. |
 | **Rebuild every machine at Replace** | Rejected. A month's rent per machine, and a risk to the application's data. |
 | **Keep the retired seed for vendor operations** | Rejected. Replace ends with the retired seed abandoned (`STA-17`). |

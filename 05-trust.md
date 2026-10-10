@@ -58,6 +58,9 @@ exactly the set a hosted service picks on your behalf, silently and unlisted.
 **TRU-E1 — The cloud vendor**, under every design considered. It owns the machine's memory and
 disk. Host-key pinning buys transport safety, not vendor independence; vendor independence is
 what placing machines at several vendors buys.
+At LNVPS, the operator's shared email address links the separate per-machine accounts at the
+vendor, and HTTP ordering records the buyer's IP address and country
+(`docs/findings/2026-10-08-lnvps-research.md` §3).
 
 **TRU-E2 — The inference proxy: the one the operator funds, and the aggregator it appears to
 route through.** Procured inference uses the candidate order in `ARC-31b` behind a single
@@ -185,13 +188,6 @@ and the counts of `ARC-14` cover the harness's own inference and none of the app
 Elective — it comes with the application the operator chose — and listed in the trust display
 beside the application for as long as its secret is placed. Recovery of that display is
 governed by `STA-16`, including its as-of-export qualification.
-
-**TRU-E13 — The Nostr relays an LNVPS order travels through**, where a machine is ordered by a
-NIP-90 job (ADR-0042): the relays the vendor's service key lists. They see the order — the
-machine's derived vendor identity, its SSH client public key and its size — and can withhold
-the vendor's replies, so an order can stall. They cannot forge a reply, because a reply counts
-only when signed by the service key the vendor publishes over TLS (`ARC-30`). Elective — it
-comes with the vendor — and listed in the trust display beside the machine.
 
 ## Added by this product
 
