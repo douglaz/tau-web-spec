@@ -32,8 +32,8 @@ re-drawn; the ones written for the dedicated path say so here.
 | `STG-22`, `STG-23` | Stages 2 and 3 |
 
 **STG-21 Stage 1 is the owner's scenario: one machine, no tenant.** "Launch a VPS paid in
-Bitcoin and install Hermes on Omarchy." An initial session works from that goal alone
-(`ARC-11a`), under the ad-hoc profile (`ARC-44`), and the later session `STG-9` requires
+Bitcoin on plain Arch and install Hermes with its own installer." An initial session works
+from that goal alone (`ARC-11a`), under the ad-hoc profile (`ARC-44`), and the later session `STG-9` requires
 re-enters the same machine with a goal of its own — each session carries its own, never the
 first one reused — so the placement or rotation it performs has a goal to act on. The machine
 is a VPS at LNVPS, created through a **typed adapter** using the per-machine identity decided
@@ -45,8 +45,8 @@ First contact waits on `OPN-24`'s live published-key probe: documented keys alon
 route. LNVPS accepts no buyer boot configuration
 (`docs/findings/2026-10-08-lnvps-research.md` §1), so attest cannot run there. The vendor's
 own catalogue supplies plain Arch; Hermes is installed with its own installer as the
-operator's application (`ARC-1a`). The original Omarchy goal remains valid input, but
-Omarchy installation is not a stage-1 completion condition (`OPN-25`). This machine uses no
+operator's application (`ARC-1a`). Another operator's goal may name Omarchy; this stage-1
+run uses the plain-Arch goal above (`OPN-25`). This machine uses no
 notify channel (`CHN-17`) and needs no publisher Nostr relay for attest (`CHN-18`). Beyond
 the channel and the journal, the stage needs:
 

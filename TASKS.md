@@ -134,9 +134,10 @@ gated on it.
       stage 1's (T48). Also owed before an untyped vendor scope is enabled: how the target's
       address is taken from a response no adapter reads without passing through model text
       (`CHN-R6`), and how an unfinished machine at a vendor with no typed destroy is abandoned
-      (`ARC-22`). `OPN-24` keeps LNVPS jump qualification open: the customer destroy route is
-      absent, the HTTP order has a verified-email gate, and NIP-90 ordering is currently
-      refused. Apply `CHN-R6`'s existing conditions exactly; retain the separate credential
+      (`ARC-22`). `OPN-24` says "The jump-vendor question remains separate and open"; see its
+      research and phase-A findings for the absent customer destroy route, verified-email
+      HTTP-order gate, and currently refused NIP-90 orders. Apply `CHN-R6`'s existing
+      conditions exactly; retain the separate credential
       of `SEC-5` row 21 until T44's format exists. Do not select another jump vendor here.
 - [ ] **T46 — What the sibling repositories now owe.** Recorded here; none of them was edited.
       **tau-web-rust:** at its next spec pin bump, implement as tests the new and restated
@@ -158,7 +159,9 @@ gated on it.
       against that set and not assumed.
 - [ ] **T47 — Questions the general-case decisions left open.** Each is recorded because the
       decisions are silent on it; where one touched a requirement, the requirement kept what it
-      said. None is a rule until decided.
+      said. None of the questions below is a rule until decided. The vendor-recovery root
+      question was decided by ADR-0042; T44 carries the pending coordinated format and
+      recovery work.
       - **A different model per machine is not deliverable on the procured path.** `ARC-31b`
         gives every session the highest-ranked candidate, so several one-machine sessions are
         one configured model, and `SEC-T5`'s footprint reaches quorum at once. Pre-existing;

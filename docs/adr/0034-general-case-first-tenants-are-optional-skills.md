@@ -173,12 +173,13 @@ and is recorded as the alternative for that reason.
 The preceding fallback paragraph and this record's stage-1 attest and distribution
 presuppositions are superseded; the historical goal and rejected options above remain the
 2026-10-04 decision's context. `STG-21` says "If LNVPS fails `OPN-24`'s target criteria,
-stage 1 waits" and specifies vendor-catalogue plain Arch with Hermes's own installer.
+stage 1 waits" and "The vendor's own catalogue supplies plain Arch; Hermes is installed with
+its own installer".
 LNVPS takes no buyer boot configuration (`docs/findings/2026-10-08-lnvps-research.md` §1),
 so stage 1 waits on the live published-key probe rather than attest. Hetzner Cloud's live
 catalogue has no Arch image (same finding, last section), so it is no stage-1 alternative.
 Omarchy research and the route-C prototype
 (`docs/findings/2026-10-08-omarchy-headless-research.md`,
 `docs/findings/2026-10-08-omarchy-route-c-prototype.md`) support `OPN-25`'s plain-Arch
-restatement. `CHN-R6` still allows a jump vendor pinned by any qualifying route, and
-`OPN-24` keeps LNVPS's jump qualification open.
+restatement. The jump-vendor route remains governed by `CHN-R6`; for LNVPS's still-open
+qualification, see `OPN-24` and T45.

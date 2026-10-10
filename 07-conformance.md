@@ -476,9 +476,15 @@ evidence is that set's test run against the relay the harness uses.
       entry it pays for, and shows its amount beside the approved cost (`ARC-30`, `ARC-29`);
       on LNVPS it is read over TLS from the vendor and cross-checked against the NIP-90 job
       reply's amount, never taken from a relay event alone; under an untyped vendor scope
-      it is decoded by harness code from the recorded response (`SEC-4`). Verified by having
-      the model present a different invoice in its text and
-      confirming the wallet is never handed it. The app holds no funds at any step (`SEC-13`).
+      it is decoded by harness code from the recorded response (`SEC-4`). Before wallet
+      handoff, demonstrate with distinct fixture invoices: a relay job reply offering an
+      invoice without a vendor-TLS invoice read hands none to the wallet, even when its amount
+      appears plausible; a vendor-TLS invoice whose amount disagrees with the job reply fails
+      the cross-check and is not handed through; with a successful vendor-TLS read and matching
+      amount, the wallet receives that invoice from the vendor's recorded response, tied to
+      the approved machine entry and cost, rather than a different invoice offered in the
+      relay reply or model text. Also have the model present a different invoice in its text
+      and confirm the wallet is never handed it. The app holds no funds at any step (`SEC-13`).
       Money out.
 - [ ] **CNF-105 · BLOCKING** While a call under an untyped vendor scope is open or unresolved,
       no box-plane command is dispatched to any machine of the session's bound set at that

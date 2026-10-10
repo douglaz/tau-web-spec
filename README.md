@@ -52,10 +52,10 @@ work.
 
 ## The general case, and the two intended tenants
 
-The harness works from an operator's goal with no tenant: "launch a VPS paid in Bitcoin and
-install Hermes on Omarchy" remains valid goal text. Stage 1 is one LNVPS machine on its
-catalogue plain Arch, with Hermes installed by its own installer (`STG-21`); its first-contact
-probe and integrated evidence remain open. A tenant is optional — briefs that make
+The harness works from an operator's goal with no tenant. `STG-21` gives the stage-1 goal:
+"Launch a VPS paid in Bitcoin on plain Arch and install Hermes with its own installer."
+`STG-21` also says "Another operator's goal may name Omarchy". Stage 1 uses one LNVPS machine;
+its first-contact probe and integrated evidence remain open. A tenant is optional — briefs that make
 installing its software faster and more reliable, and presets for the facts its machines carry.
 Two are intended:
 
