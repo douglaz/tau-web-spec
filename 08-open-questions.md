@@ -135,10 +135,10 @@ route conditions, with none added or relaxed here; T45 carries the still-open qu
 or minimum-period qualification test.
 
 **Phase B, after the operator's email verification:** follow `STG-21`'s per-machine account
-sequence, place an HTTP order for one month of the smallest machine, and observe whether the
-recorded order or renew response supplies its invoice (`ARC-30`). Pay from the operator's
-wallet, then record in order: (1) payment to running to a complete published host-key set,
-including fill time;
+sequence, place an HTTP order for one month of the smallest machine, and observe and record
+whether the recorded order or renew response supplies its invoice (`ARC-30`). Pay from the
+operator's wallet, then record in order: (1) payment to running to a complete published host-key
+set, including fill time;
 (2) equality of presented and published keys in every family; (3) the vendor Arch image
 booting with the operator's key on its default user and answering at its static address;
 (4) listing; (5) destroy refusal and the stated deletion date after stop; (6) one reinstall,
@@ -147,9 +147,10 @@ in a real browser.
 Apply the target criteria above to those results. Do not infer a route from documentation or
 set the later runs' wait before the fill time is measured. T39 records execution; this plan has not run.
 
-*Closes when:* phase B records the ordered observations, the stage-1 criteria have been
-applied, and the presented keys equal the published keys in every family before a first-contact
-route is accepted. The jump half closes separately only when `CHN-R6`'s conditions are met.
+*Closes when:* phase B records whether the recorded order or renew response supplied the invoice
+and the ordered observations, the stage-1 criteria have been applied, and the presented keys
+equal the published keys in every family before a first-contact route is accepted. The jump half
+closes separately only when `CHN-R6`'s conditions are met.
 
 **OPN-9 — Whether the proof of concept's cloud-init boots an unreachable machine.** A code-read
 finding, not an observed failure: its user list has no default entry and sets an empty

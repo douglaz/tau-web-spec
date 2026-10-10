@@ -42,11 +42,12 @@ That identity is unavailable until T44's coordinated format and recovery amendme
 `SEC-5` row 22 still says "not derivable today".
 
 Before the first order under each machine's identity, the typed LNVPS adapter MUST submit the
-operator's own email address to that account at the vendor; it submits that address nowhere
-else. The same operator address serves every machine's separate account. LNVPS sends a
-single-use verification link valid for about a day; the operator opens it. The harness MUST
-NOT create a mailbox or read the operator's mail. It MUST wait until the account reads as
-verified before submitting the machine's HTTP order through the vendor API.
+operator's own email address to that account at the vendor. The harness MUST NOT submit that
+address anywhere except to the vendor. The same operator address serves every machine's
+separate account. LNVPS sends a single-use verification link valid for about a day; the
+operator opens it. The harness MUST NOT create a mailbox or read the operator's mail. It MUST
+wait until the account reads as verified before submitting the machine's HTTP order through
+the vendor API.
 
 First contact waits on `OPN-24`'s live published-key probe: documented keys alone admit no
 route. LNVPS accepts no buyer boot configuration
