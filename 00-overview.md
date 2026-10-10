@@ -210,10 +210,14 @@ contact is refused (`CHN-R4`), and a session is admitted only under a route the 
 alter. `CHN-R1` pins from the vendor and is dedicated-only; **`CHN-R2` is dead**; `CHN-R3` is
 **abandoned** — user-data stays readable from the vendor's metadata endpoint for the
 instance's life, so an injected host key would be permanently re-fetchable by anything on the
-machine. For the cloud path, **`CHN-R5` — attest** — has the machine introduce its own key over
+machine. Where a vendor takes boot configuration, **`CHN-R5` — attest** — has the machine introduce its own key over
 Nostr under keys the browser derives from the operator's seed
-([ADR-0029](./docs/adr/0029-the-machine-speaks-nostr-and-keys-derive-from-a-seed.md)); the
-pipeline has run, a real first boot has not, and `OPN-3` tracks it. Where a vendor has no route
+([ADR-0029](./docs/adr/0029-the-machine-speaks-nostr-and-keys-derive-from-a-seed.md));
+the real-first-boot experiment and its limits are in
+`docs/findings/2026-10-09-attest-first-boot.md`, and `OPN-3` tracks remaining evidence.
+LNVPS takes no buyer boot configuration; its candidate published-key route waits on the live
+presented/published comparison in `OPN-24` (`docs/findings/2026-10-08-lnvps-research.md` §1).
+Where a vendor has no route
 of its own, `CHN-R6` makes the first contact from a jump host inside a session pinned out of
 band: the relay sees only that session's ciphertext, and what can alter the contact instead is
 the jump host, its vendor and the path to the target — an elective party the operator accepts

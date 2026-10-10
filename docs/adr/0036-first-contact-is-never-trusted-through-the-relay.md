@@ -109,3 +109,13 @@ neither re-pins one that already exists. Whether a later rule should allow it is
 
 **The formal companion carries none of this yet.** Its pin sources are the dedicated path's;
 a jump-host source is owed with the route (`TASKS.md`).
+
+## Amended 2026-10-09: stage-1 first contact
+
+The consequence above calling attest load-bearing for stage 1 is superseded. `STG-21` now
+says "First contact waits on `OPN-24`'s live published-key probe". LNVPS accepts no buyer
+boot configuration (`docs/findings/2026-10-08-lnvps-research.md` §1); a live comparison of
+presented and published keys is still owed before its route can be admitted. Attest remains
+available where a vendor accepts boot configuration; the first-boot experiment and its limits
+are recorded in `docs/findings/2026-10-09-attest-first-boot.md`. The jump host remains a
+stage-2 route on `CHN-R6`'s conditions, and its vendor is unqualified.

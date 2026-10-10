@@ -10,9 +10,9 @@ are `STA-14`–`STA-18` and `STA-22`–`STA-23` in
 
 At a vendor whose credential is derived from the seed, the two roots below are one: whoever
 holds the seed holds that vendor account. Stage 1's LNVPS adapter is the first such case.
-Replace carries each machine's vendor key forward, and inventory is found by scanning ahead
-of the sheet's counter; both are recorded in
-[ADR-0042](./0042-the-vendor-identity-is-derived-per-machine.md).
+The decided Replace carry-forward and bounded inventory scan are recorded in
+[ADR-0042](./0042-the-vendor-identity-is-derived-per-machine.md); T44 must amend the operative
+credential and recovery contracts before either behavior is available.
 
 ## Amended 2026-10-06: the cloud fallback and stage-1 recovery
 

@@ -780,8 +780,10 @@ product can speak, and it spends that moment on the thing that is costing money.
 Resume-or-abandon *is* the opening screen, not a badge: it shows roughly what has been
 billed so far and what it bills per month until finished or abandoned. After roughly a week
 without progress the emphasis flips and abandonment leads. Abandonment destroys every
-machine of the setup through typed operations, and the screen states plainly what stops
-billing — the machines — and what does not: the vendor accounts themselves. It names every
+machine of the setup through typed operations where a customer destroy route exists; the
+LNVPS treatment below applies where it does not. The screen states plainly what stops
+billing on confirmed destruction — the machines — and what does not: the vendor accounts
+themselves. It names every
 machine carrying an unresolved call and what that call was, and it says of an unresolved
 create that no vendor listing matches that it **cannot be destroyed from here and may still
 exist and bill**: an allocation index is not a deletion target, and destroying the known
@@ -795,6 +797,17 @@ abandoned. That follows from all-or-nothing plus exposure ending with the machin
 and needs no new mechanism. A second device shows a clean app while the first device's
 machines keep billing, which the abandonment screen's cost figures are the only defence
 against.
+
+**At LNVPS, unavailable customer destroy is unconfirmed destruction, not completion.**
+Where the harness would destroy a machine for a recreate, Replace rebuild or abandonment, it
+stops that machine, turns automatic renewal off, and shows it as **still existing and billed
+until the vendor's stated deletion date**. A stop is neither confirmed destruction nor
+confirmed billing cessation. The customer routes omit destroy, while stop, renewal control
+and reinstall are available (`docs/findings/2026-10-08-lnvps-research.md` §3). A vendor-API
+reinstall stands in for a recreate and is a **new first contact**: the old pin does not
+authorize contact with the reinstalled system, and `OPN-24`'s live key-equality condition
+must admit its new pin. The screen retains unresolved-machine and incomplete-abandonment
+truth until deletion is confirmed.
 
 ## Machine networking
 
@@ -830,14 +843,19 @@ on the channel spike (`docs/findings/2026-09-07-wasm-spikes.md`).
 
 **ARC-24** The chosen distributions are **Alpine and NixOS**: the two the bundle is designed to
 pin. Today it carries Alpine's (`bundle/artifact-alpine.toml`); NixOS is not offered until the
-bundle carries its pin and its evidence exists (`07-conformance.md`'s stage-1 row). Another distribution an operator's goal names — Arch, Omarchy — is installed
-**unpinned** under `ARC-25`'s rule until the bundle carries a pin for it (`OPN-25`). Neither
+bundle carries its pin and its evidence exists (`07-conformance.md`'s stage-1 row). When another
+distribution an operator's goal names — Arch or Omarchy — is installed, it is **unpinned**
+under `ARC-25`'s rule until the bundle carries a pin for it. Neither
 chosen distribution is offered by the
 dedicated vendor's automatic installer — verified against the live API on 2026-08-31, whose
 catalogue is AlmaLinux, Arch, CentOS Stream, Debian, openSUSE, Rocky and Ubuntu — so **custom
 image installation is mandatory on that path**, not the optimisation ADR-0011 calls it. That is one of the two reasons the install
 runs from inside a rescue session; the other is that rescue is what publishes the host key
 (`CHN-R1`).
+
+For stage 1's catalogue plain Arch (`STG-21`), the publisher has not yet chosen between the
+explicit unpinned label and adding an Arch pin. Record that choice when taken; this clause
+selects no artifact policy for Arch today.
 
 A declarative distribution also repays `ARC-10`: a system whose state is described rather
 than accumulated is one a reconnecting session can converge on rather than reconstruct. And
@@ -980,6 +998,12 @@ one harness code read from the vendor's recorded response, never one the model p
 names the approved machine entry it pays for (`ARC-15`, `STA-24`), and its amount is shown
 beside the cost the operator approved. The operator pays each invoice; nothing pays one for
 them.
+
+For an LNVPS machine, the wallet invoice MUST be read **over TLS from the vendor**, with the
+NIP-90 job reply's amount used as a cross-check; a relay event alone MUST NOT supply the
+invoice. The renew route's ability to serve an invoice for a job-created order remains owed
+by `OPN-24`'s phase B, not an observed result
+(`docs/findings/2026-10-09-lnvps-nip90-probe.md`).
 
 **ARC-31** Payment evidence MUST NOT be overstated. A **settled invoice** proves the
 operator funded credits at a provider and bounds which proxies are available; it does not

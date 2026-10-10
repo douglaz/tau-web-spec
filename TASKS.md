@@ -54,21 +54,29 @@ gated on it.
       tree as its CI gate.
       `bundle/inference.toml` has an empty model slug on purpose; the build fails until the
       publisher fills it.
-- [ ] **T39 — Stage 0: probe LNVPS**. Exercise the owning list in `OPN-24`.
-      Record it under `docs/findings/`. If it fails, stage 1 and only stage 1 runs on Hetzner
-      Cloud with attest and a card account (`STG-21`), which holds only if Hetzner Cloud offers
-      the stage's distribution as an image at creation: check that too. Still to decide: which answers count as
-      failing, for stage 1's target and, separately, for stage 2's jump vendor (`CHN-R6`).
-- [ ] **T40 — Stage 0: attest on a real first boot** (`OPN-3`). Cloud-init timing, the static
-      first-boot tool, and the browser's window against a measured slowest boot (`CHN-6`). It
-      is stage 1's first contact, and a window that closes now ends in a recreate (`CHN-R5`).
-      **Formal attest-source work done (2026-10-08):** `ARC-43` and `SEC-11`, with author
-      matching, durable single use across restart, checked admission/refusal traces and emitted
-      witnesses. **Empirical first-boot work remains open:** the cloud-init timing, first-boot
-      tool and measured browser window above; no live boot result is claimed.
-- [ ] **T41 — Stage 0: Omarchy's server edition, or plain Arch** (`OPN-25`). And the
-      publisher's choice that follows from it: run stage 1 under the unpinned label, or add an
-      Arch pin to the bundle first (`ARC-24`, `ARC-25`).
+- [ ] **T39 — Stage 0: complete the LNVPS probe** (`OPN-24`). Phase A ran: the
+      production listener answered, but zero-address job orders were refused; see
+      `docs/findings/2026-10-09-lnvps-nip90-probe.md` and LNVPS/api#422. Wait for the vendor
+      fix, then execute `OPN-24`'s "Phase B, after the vendor fix" in its stated order and
+      apply that requirement's separate target criteria. `STG-21` says "If LNVPS fails
+      `OPN-24`'s target criteria, stage 1 waits". Jump qualification
+      remains separate under `CHN-R6` and T45. Record results under `docs/findings/` without
+      committing machine identifiers, addresses or probe keys.
+- [ ] **T40 — Attest on a real first boot** (`OPN-3`). Formal attest-source work is done
+      (2026-10-08): `ARC-43` and `SEC-11`, with author matching, durable single use across
+      restart, checked admission/refusal traces and emitted witnesses. The empirical
+      first-boot finding (`docs/findings/2026-10-09-attest-first-boot.md`) records the real
+      vendor boot and its limits: it was not the harness browser, used public relays, and did
+      not prove the Arch/static-tool, derivation, or browser-side checks. Finish those checks
+      for a route using attest. Stage 1 at LNVPS does not consume attest.
+- [x] **T41 — Restate stage 1 on plain Arch** (`OPN-25`). The code research
+      (`docs/findings/2026-10-08-omarchy-headless-research.md`) and route-C prototype
+      (`docs/findings/2026-10-08-omarchy-route-c-prototype.md`) support the accepted
+      restatement. `STG-21` says "The vendor's own catalogue supplies plain Arch; Hermes is
+      installed with its own installer". Omarchy remains possible goal text, not an install
+      prerequisite. The publisher's
+      unpinned-label versus Arch-pin choice stays open under `ARC-24` / `ARC-25`, to be
+      recorded when taken.
 - [ ] **T42 — The generic signed lockdown checklist, and the harness's questions** (`OPN-14`,
       `ARC-17`, `ARC-36a`). The fixed checks, keyed on no vendor and no tenant; the machine-class
       questions, in the harness's words; and the plain-language rendering of a proposed
@@ -78,9 +86,12 @@ gated on it.
       service-name grammar for a validated argument, never shell syntax. No init-specific
       procedure or physical-restart requirement is selected by this task, nor are the two
       re-check points `OPN-14` leaves open.
-- [ ] **T43 — Stage 1's build list**. Implement `STG-21`'s owning list and the stage-1
-      applicability rows in `07-conformance.md` at tau-web-rust's next spec pin. These include
-      the recovery, scan and report-only evidence; specification edits exercise no harness.
+- [ ] **T43 — Stage 1's build list**. Implement `STG-21`'s corrected LNVPS/plain-Arch
+      definition and the stage-1 applicability rows in `07-conformance.md` at tau-web-rust's
+      next spec pin. These include recovery, scanning, reports and re-entry; specification
+      edits exercise no harness. Completion still depends on the vendor fix and T39 phase B,
+      T44's coordinated identity format/recovery change, the publisher's artifact-pin choice,
+      and the integrated evidence those rows require.
 - [ ] **T48 — Stage 1: build placed-secret scanning and recovery re-arm** (`OPN-28`).
       Implement `SEC-5` row 23 and scan semantics, `ARC-43`'s jobs and fallback, and `STA-16`'s
       sheet metadata, including each placement's application association and application/provider
@@ -99,14 +110,22 @@ gated on it.
       classes each check as refusing placement or not: a TCP/HTTP check that counts would
       otherwise refuse the key of an application that only listens once it has its key — the
       trap `ARC-17`'s lifecycle-finding rule removed for `services`.
-- [ ] **T44 — The derived vendor identity's format** (`OPN-26`). Not decided: what it is derived
-      per — a bound set, a machine or a session; its index family and what its allocation entry
-      holds; its key type, pending T39. Until it lands, `SEC-5` row 22 keeps it unavailable and
-      `CHN-R6` runs only on a separately supplied jump-vendor credential (row 21). When it
-      lands, the Markdown, the Lean declarations, the known-answer vectors, their checker and
-      the witness files change together (`STA-22a`, ADR-0032). Decide with it: whether stage 1's
-      typed LNVPS adapter uses an operator-supplied credential (`SEC-5` row 1, today's text) or
-      a derived one.
+- [ ] **T44 — Implement the decided derived vendor identity** (`OPN-26`, ADR-0042).
+      This is a coordinated change required before stage-1 completion, not a new design
+      question. Add per-machine role 5 at the machine's index and its Nostr BIP-340 x-only
+      interpretation through `STA-22a` and the role/derivation contract in
+      `docs/design/credential-format-v1.md`; update `tools/formal/TauWeb/Allocation.lean`
+      and its role-table rendering/emission as needed; regenerate
+      `docs/design/credential-vectors-v1.json`, update
+      `docs/design/check-credential-vectors.py`, and regenerate the affected
+      `docs/design/allocation-witnesses-v1.json` from its producing declarations. Update
+      tightly coupled role/derivation version metadata, index and sheet-format metadata,
+      and compatibility rules in that same change, without choosing them here. Amend
+      `SEC-5` row 22, `STA-17` for encrypted old-vendor-key carry-forward and residual
+      retired-seed account control, and `STA-18` for bounded read-only inventory scan ahead.
+      Follow `STA-22a` / ADR-0032's coordinated-change discipline. Until then row 22's
+      "not derivable today" remains operative, and no derived key is usable. Unrelated
+      witness modules need no broad edits.
 - [ ] **T45 — Stage 2: the jump host and the untyped vendor scope** (`STG-22`, `CHN-R6`,
       `SEC-4`). Includes one thing the rules name and nothing yet carries: a jump-host source
       for a pin in the formal companion (`ARC-43` says "A pin taken at a jump-host first
@@ -115,7 +134,10 @@ gated on it.
       stage 1's (T48). Also owed before an untyped vendor scope is enabled: how the target's
       address is taken from a response no adapter reads without passing through model text
       (`CHN-R6`), and how an unfinished machine at a vendor with no typed destroy is abandoned
-      (`ARC-22`).
+      (`ARC-22`). `OPN-24` keeps LNVPS jump qualification open: the customer destroy route is
+      absent, the HTTP order has a verified-email gate, and NIP-90 ordering is currently
+      refused. Apply `CHN-R6`'s existing conditions exactly; retain the separate credential
+      of `SEC-5` row 21 until T44's format exists. Do not select another jump vendor here.
 - [ ] **T46 — What the sibling repositories now owe.** Recorded here; none of them was edited.
       **tau-web-rust:** at its next spec pin bump, implement as tests the new and restated
       cases owned by `07-conformance.md`: `CNF-91`–`CNF-108`, with `CNF-16`, `CNF-42` and
@@ -165,10 +187,6 @@ gated on it.
         "shows when it happens", and a bound set is one unit of harm, shown as one (`SEC-1`).
         Whether harm crossing from one machine of a set to another meets that test, or the test
         needs wording for a set, is undecided.
-      - **The recovery root at an account-free vendor.** `STA-14` names the vendor account as
-        "the recovery root" and as "recoverable through the vendor's own processes", while
-        stage 1's vendor keeps no account and identifies the operator by a key (`OPN-24`). What
-        the recovery root is there is undecided; `STA-14` keeps its text and points here.
       - **An unpinned installation under an independence bound.** The decisions bar a goal, a
         larger set and an untyped vendor scope there, and say nothing of an unpinned OS.
       - **The untyped vendor scope's remaining edges.** `STA-24` keys an untyped call's barrier

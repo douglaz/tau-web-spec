@@ -53,8 +53,9 @@ work.
 ## The general case, and the two intended tenants
 
 The harness works from an operator's goal with no tenant: "launch a VPS paid in Bitcoin and
-install Hermes on Omarchy" is the first stage's intended scenario, with plain Arch and a
-card-paid Hetzner Cloud machine as its stated alternatives (`STG-21`). A tenant is optional — briefs that make
+install Hermes on Omarchy" remains valid goal text. Stage 1 is one LNVPS machine on its
+catalogue plain Arch, with Hermes installed by its own installer (`STG-21`); its first-contact
+probe and integrated evidence remain open. A tenant is optional — briefs that make
 installing its software faster and more reliable, and presets for the facts its machines carry.
 Two are intended:
 

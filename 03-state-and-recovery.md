@@ -291,12 +291,13 @@ machine — the conservative reading, since the unknown history could contain an
 
 ## What survives a lost phone
 
-**STA-14** The operator's **vendor account is the recovery root**. It survives because it
-lives in their head or their password manager and is recoverable through the vendor's own
-processes, and it is the one party that always knows which machines exist. At a vendor that
-keeps no account — LNVPS identifies a buyer by a Nostr key (`OPN-24`) — whether either holds is
-open: `OPN-24` probes whether it lists a key's machines, and what stands in for this root there
-is T47's.
+**STA-14** For vendors with a separate account, the operator's **vendor account is the
+recovery root**. It survives because it lives in their head or password manager and is
+recoverable through the vendor's own processes, and it is the party that knows which machines
+exist. At LNVPS, the vendor identity is to derive from the seed under the decision in ADR-0042;
+inventory and credentials therefore share a root. T44 must make that decision operative in
+the credential format and recovery rules before stage-1 completion. The table below describes
+the separate-account case and the current credential format, not an available LNVPS Restore.
 
 | Dies with the phone | Survives |
 |---|---|
@@ -338,9 +339,10 @@ implementation must not choose paths independently.
   thing to back up again.
 
 *What this reverses.* ADR-0020 rooted recovery in the vendor account and rejected a seed-shaped
-root by omission; the sheet existed because nothing re-derived the client keys. The vendor
-account still roots **inventory** — it is the one party that always knows which machines exist.
-The seed roots **credentials**. Both are stated, and neither does the other's job.
+root by omission; the sheet existed because nothing re-derived the client keys. At vendors
+with a separate account, that account still roots **inventory**, while the seed roots
+**credentials**. ADR-0042 decides that LNVPS instead shares the seed root for both, pending
+T44's coordinated implementation.
 
 **STA-22a Credential format v1 is normative.**
 [`docs/design/credential-format-v1.md`](./docs/design/credential-format-v1.md) fixes mnemonic
@@ -435,6 +437,10 @@ this section's figure once offered beside that — a rescue system whose host ke
 check — is withdrawn with `CHN-R5`'s: it accepted a key through the relay with no pin, which
 `CHN-R4` refuses.
 
+At LNVPS the unavailable-destroy treatment and reinstall's new first contact belong to
+`ARC-22`: it says "A vendor-API reinstall stands in for a recreate and is a **new first
+contact**". No old pin is reused for that system.
+
 **STA-16** The recovery sheet holds the allocation metadata of `STA-22b`, host-key
 fingerprints with the route that produced each pin (`CHN-R1`, `CHN-R5` or `CHN-R6`), the
 exposure ledger, placement metadata
@@ -522,7 +528,9 @@ the old key uses the old key; signed revocation on the paid/public path uses the
 Both derive from the seed being retired, so the operator needs its backup *during* Replace and abandons it after.
 If the old seed or an index is missing, direct re-entry and pass revocation cannot finish.
 Robot machines can still be rekeyed through vendor-authenticated rescue (`STA-15`); cloud
-machines are destroyed and recreated, as that section says. The screen names unrecovered machines
+machines are destroyed and recreated, as that section says, subject to LNVPS's `ARC-22`
+exception: "A vendor-API reinstall stands in for a recreate and is a **new first contact**".
+The screen names unrecovered machines
 and unrevocable passes, and never reports a complete Replace or complete revocation while
 either remains outstanding, including a manual relay retirement awaiting confirmation.
 
@@ -536,6 +544,10 @@ Application secrets a thief could have read require rotation at their services; 
 SSH keys or re-arming a scan does not revoke them. A thief may also have left persistence on
 a machine. Replace MUST state these limits and offer destroy/rebuild where persistence is
 suspected; a successful key replacement is no claim that the machine is clean.
+
+For LNVPS rebuilds, `ARC-22` says "A vendor-API reinstall stands in for a recreate and is a
+**new first contact**"; its unavailable-destroy treatment applies. The deferred vendor-key
+carry-forward and disclosure amendment remains T44's, not an available Replace behavior.
 
 **STA-18** Inventory recovery makes the vendor list authoritative. Listing the account is how
 a new phone learns what exists. That listing is performed by the deterministic recovery flow
