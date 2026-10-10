@@ -438,7 +438,7 @@ check — is withdrawn with `CHN-R5`'s: it accepted a key through the relay with
 `CHN-R4` refuses.
 
 At LNVPS the unavailable-destroy treatment and reinstall's new first contact belong to
-`ARC-22`: it says "A vendor-API reinstall stands in for a recreate and is a **new first
+`ARC-22`: it says "a vendor-API reinstall of the same machine stands in and is a **new first
 contact**". No old pin is reused for that system.
 
 **STA-16** The recovery sheet holds the allocation metadata of `STA-22b`, host-key
@@ -529,7 +529,7 @@ Both derive from the seed being retired, so the operator needs its backup *durin
 If the old seed or an index is missing, direct re-entry and pass revocation cannot finish.
 Robot machines can still be rekeyed through vendor-authenticated rescue (`STA-15`); cloud
 machines are destroyed and recreated, as that section says, subject to LNVPS's `ARC-22`
-exception: "A vendor-API reinstall stands in for a recreate and is a **new first contact**".
+exception: "a vendor-API reinstall of the same machine stands in and is a **new first contact**".
 The screen names unrecovered machines
 and unrevocable passes, and never reports a complete Replace or complete revocation while
 either remains outstanding, including a manual relay retirement awaiting confirmation.
@@ -545,8 +545,8 @@ SSH keys or re-arming a scan does not revoke them. A thief may also have left pe
 a machine. Replace MUST state these limits and offer destroy/rebuild where persistence is
 suspected; a successful key replacement is no claim that the machine is clean.
 
-For LNVPS rebuilds, `ARC-22` says "A vendor-API reinstall stands in for a recreate and is a
-**new first contact**"; its unavailable-destroy treatment applies. The deferred vendor-key
+For LNVPS rebuilds, `ARC-22` says "it is a new order under the new seed's key"; the old machine
+takes its unavailable-destroy treatment. The deferred vendor-key
 carry-forward and disclosure amendment remains T44's, not an available Replace behavior.
 
 **STA-18** Inventory recovery makes the vendor list authoritative. Listing the account is how

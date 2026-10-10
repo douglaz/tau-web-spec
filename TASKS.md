@@ -59,7 +59,15 @@ gated on it.
       `docs/findings/2026-10-09-lnvps-nip90-probe.md` and LNVPS/api#422. Wait for the vendor
       fix, then execute `OPN-24`'s "Phase B, after the vendor fix" in its stated order and
       apply that requirement's separate target criteria. `STG-21` says "If LNVPS fails
-      `OPN-24`'s target criteria, stage 1 waits". Jump qualification
+      `OPN-24`'s target criteria, stage 1 waits". If phase B shows the presented keys equal
+      the published ones, this task then admits the route: a new `CHN-R*` identifier for
+      LNVPS's published host keys, its `TauWeb.Pins.Source` case with re-emitted pins
+      witnesses, the sheet's route value, and `CHN-R2`'s header, which still names every
+      cloud VPS. The route waits for a non-empty capture that differs from any earlier one,
+      checks the presented key at first contact, treats a reinstall as a new first contact,
+      labels the pin as retrieved from the vendor's hypervisor scan, and states what stays
+      trusted: the vendor, and anyone able to answer on the machine's address inside the
+      vendor's network at scan time. Jump qualification
       remains separate under `CHN-R6` and T45. Record results under `docs/findings/` without
       committing machine identifiers, addresses or probe keys.
 - [ ] **T40 — Attest on a real first boot** (`OPN-3`). Formal attest-source work is done
@@ -122,7 +130,10 @@ gated on it.
       tightly coupled role/derivation version metadata, index and sheet-format metadata,
       and compatibility rules in that same change, without choosing them here. Amend
       `SEC-5` row 22, `STA-17` for encrypted old-vendor-key carry-forward and residual
-      retired-seed account control, and `STA-18` for bounded read-only inventory scan ahead.
+      retired-seed account control, and `STA-18` for the bounded inventory scan ahead (it
+      allocates nothing, but each probed key leaves an empty account row at the vendor, and an
+      index counts as used when any vendor shows a machine at it). Decide with it whether the
+      sheet carries a carried-forward key, which a second store loss otherwise loses.
       Follow `STA-22a` / ADR-0032's coordinated-change discipline. Until then row 22's
       "not derivable today" remains operative, and no derived key is usable. Unrelated
       witness modules need no broad edits.

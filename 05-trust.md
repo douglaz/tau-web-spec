@@ -186,6 +186,13 @@ Elective — it comes with the application the operator chose — and listed in 
 beside the application for as long as its secret is placed. Recovery of that display is
 governed by `STA-16`, including its as-of-export qualification.
 
+**TRU-E13 — The Nostr relays an LNVPS order travels through**, where a machine is ordered by a
+NIP-90 job (ADR-0042): the relays the vendor's service key lists. They see the order — the
+machine's derived vendor identity, its SSH client public key and its size — and can withhold
+the vendor's replies, so an order can stall. They cannot forge a reply, because a reply counts
+only when signed by the service key the vendor publishes over TLS (`ARC-30`). Elective — it
+comes with the vendor — and listed in the trust display beside the machine.
+
 ## Added by this product
 
 The only set the design controls, and therefore the only one worth an invariant. **`SEC-10`

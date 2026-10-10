@@ -474,18 +474,20 @@ evidence is that set's test run against the relay the harness uses.
 - [ ] **CNF-104 · BLOCKING** The invoice handed to the operator's wallet for a machine is the
       one harness code read from the vendor's recorded response, names the approved machine
       entry it pays for, and shows its amount beside the approved cost (`ARC-30`, `ARC-29`);
-      on LNVPS it is read over TLS from the vendor and cross-checked against the NIP-90 job
-      reply's amount, never taken from a relay event alone; under an untyped vendor scope
-      it is decoded by harness code from the recorded response (`SEC-4`). Before wallet
-      handoff, demonstrate with distinct fixture invoices: a relay job reply offering an
-      invoice without a vendor-TLS invoice read hands none to the wallet, even when its amount
-      appears plausible; a vendor-TLS invoice whose amount disagrees with the job reply fails
-      the cross-check and is not handed through; with a successful vendor-TLS read and matching
-      amount, the wallet receives that invoice from the vendor's recorded response, tied to
-      the approved machine entry and cost, rather than a different invoice offered in the
-      relay reply or model text. Also have the model present a different invoice in its text
-      and confirm the wallet is never handed it. The app holds no funds at any step (`SEC-13`).
-      Money out.
+      on LNVPS it is read over TLS from the vendor where the renew route serves one, and is
+      otherwise the NIP-90 job reply's invoice, a reply counting only when signed by the
+      service key the vendor publishes over TLS; under an untyped vendor scope it is decoded
+      by harness code from the recorded response (`SEC-4`). Before wallet handoff,
+      demonstrate with distinct fixture invoices: a job reply signed by any other key hands
+      none to the wallet, even when its amount appears plausible; a vendor-TLS invoice whose
+      amount disagrees with the signed job reply fails the cross-check and is not handed
+      through; with a successful vendor-TLS read and matching amount, the wallet receives that
+      invoice, tied to the approved machine entry and cost, rather than a different invoice
+      offered in a reply or in model text; with no vendor-TLS invoice, the signed reply's
+      invoice is handed through, tied the same way. Also have the model present a different
+      invoice in its text and confirm the wallet is never handed it. For a machine ordered by a
+      job, the trust display lists the Nostr relays it travelled through beside the machine
+      (`TRU-E13`). The app holds no funds at any step (`SEC-13`). Money out.
 - [ ] **CNF-105 · BLOCKING** While a call under an untyped vendor scope is open or unresolved,
       no box-plane command is dispatched to any machine of the session's bound set at that
       vendor, until the call's terminal record or the operator's disposition (`STA-24`).

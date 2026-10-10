@@ -110,15 +110,16 @@ not a browser run. The NIP-90 phase-A probe
 refused for zero address count; this was reported upstream as LNVPS/api#422. Nothing after
 an order was observed. Stage 1 waits for the vendor's fix and the paid phase B below.
 
-**The stage-1 target fails** if any of these is observed: the complete published host-key
-set never appears within a bound set from phase B's measured fill time; any published key
+**The stage-1 target fails** if any of these is observed: in phase B, the complete published
+host-key set has not appeared three hours after the machine reaches `running` — a few of the
+hourly re-scans the research finding reads from the vendor's code; any published key
 differs from the key presented by the machine in that family; the vendor-catalogue Arch image
 does not boot, take the operator's SSH key on its default user, or answer at its static
 address; the operator-wallet Lightning payment does not settle into a booted machine; or
-the vendor listing omits it. A delayed fill **within** the measured bound, a month minimum,
-need for `CHN-12a`'s pinned tunnel, and no customer destroy are recorded concessions, not
-target-vendor failures. A code-read retry interval or attest timing supplies no numeric
-bound. `ARC-22` owns the treatment of unavailable destroy. `STG-21` says "If LNVPS fails
+the vendor listing omits it. A delayed fill **within** that window, a month minimum, need for
+`CHN-12a`'s pinned tunnel, and no customer destroy are recorded concessions, not target-vendor
+failures. The wait later runs use is a named timing set from phase B's measured fill time;
+neither a code-read retry interval nor attest timing supplies it. `ARC-22` owns the treatment of unavailable destroy. `STG-21` says "If LNVPS fails
 `OPN-24`'s target criteria, stage 1 waits"; the probe evidence reopens vendor selection.
 
 **The jump-vendor question remains separate and open.** `CHN-R6` says "It is destroyed once
@@ -140,7 +141,7 @@ booting with the operator's key on its default user and answering at its static 
 including whether old keys clear before new ones publish; (7) CORS from an arbitrary origin
 in a real browser; (8) whether the renew route serves an invoice for a job-created order.
 Apply the target criteria above to those results. Do not infer a route from documentation or
-assign a bound before the fill time is measured. T39 records execution; this plan has not run.
+set the later runs' wait before the fill time is measured. T39 records execution; this plan has not run.
 
 *Closes when:* phase B records the ordered observations, the stage-1 criteria have been
 applied, and the presented keys equal the published keys in every family before a first-contact

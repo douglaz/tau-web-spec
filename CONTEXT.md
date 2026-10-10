@@ -373,10 +373,11 @@ _Avoid_: trustless, verified, provably secure
 
 ### The channel
 
-**Retrieve** · `CHN-R1`, `CHN-R6`
+**Retrieve** · `CHN-R1`
 A pin route where the vendor publishes the machine's host keys and the browser reads them over
 TLS it terminates — a direct fetch, or a pinned tunnel (`CHN-12a`). The vendor's word, and
-nothing the machine or the relay chooses.
+nothing the machine or the relay chooses. A jump host may be pinned by one (`CHN-R6`); the
+target that jump host introduces is trusted on first use, not retrieved.
 _Avoid_: trust on first use (the relay never chooses the key)
 
 **Attest** · `CHN-R5`

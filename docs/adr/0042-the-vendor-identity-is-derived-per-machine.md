@@ -20,8 +20,11 @@ LNVPS refuses an HTTP order from an account with no verified email address, and 
 belongs to one account only, so an account per machine would need a distinct verified address
 per machine. **Orders therefore go through LNVPS's NIP-90 job interface**, which checks no
 email. Status, the published host keys, listing, stop and reinstall go over HTTP, signed by the
-same key; none of those checks email. The invoice the operator's wallet pays is read over TLS
-from the vendor, with the job reply's amount as a cross-check. As read on 2026-10-09 the job
+same key; none of those checks email. A job reply counts only when signed by the service key
+the vendor publishes over TLS, so the Nostr relays carrying it can withhold a reply but not
+forge one. The invoice the operator's wallet pays is read over TLS from the vendor where its
+renew route serves one, with the signed reply's amount as a cross-check, and is otherwise the
+signed reply's invoice. As read on 2026-10-09 the job
 handler orders zero addresses, which the vendor's only plan refuses; stage 1 waits until that
 is fixed.
 
@@ -36,13 +39,17 @@ A lost seed loses both.
 between accounts. Replace derives each machine's old role-5 key once more and keeps that key
 alone, encrypted in the new local store, never the retired seed. It states that the retired
 seed's holder shares control of the vendor account, and offers a rebuild under the new seed:
-the treatment Replace already gives the inference credential it cannot revoke.
+the treatment Replace already gives the inference credential it cannot revoke. The rebuild is
+a new order under the new seed's key, since a reinstall leaves the machine in the account the
+retired seed controls.
 
 **Inventory is found by scanning ahead.** With an account per machine there is no single
 account to list. On Restore the harness derives role-5 keys for a bounded number of machine
 indices past the sheet's counter, as a wallet's gap limit does, and lists each; a non-empty
-listing is a machine, or a jump host, to recover. The scan reads and allocates nothing. Each
-probed key leaves an empty account row at the vendor.
+listing is a machine, or a jump host, to recover. The machine index is shared by every vendor's
+machines, so an index counts as used when any vendor shows a machine at it; only an index no
+vendor shows, such as a failed allocation's, counts toward the gap. The scan allocates nothing,
+but it is not read-only at the vendor: each probed key leaves an empty account row there.
 
 ## Alternatives considered
 

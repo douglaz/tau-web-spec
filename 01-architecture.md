@@ -799,15 +799,19 @@ machines keep billing, which the abandonment screen's cost figures are the only 
 against.
 
 **At LNVPS, unavailable customer destroy is unconfirmed destruction, not completion.**
-Where the harness would destroy a machine for a recreate, Replace rebuild or abandonment, it
-stops that machine, turns automatic renewal off, and shows it as **still existing and billed
-until the vendor's stated deletion date**. A stop is neither confirmed destruction nor
-confirmed billing cessation. The customer routes omit destroy, while stop, renewal control
-and reinstall are available (`docs/findings/2026-10-08-lnvps-research.md` §3). A vendor-API
-reinstall stands in for a recreate and is a **new first contact**: the old pin does not
-authorize contact with the reinstalled system, and `OPN-24`'s live key-equality condition
-must admit its new pin. The screen retains unresolved-machine and incomplete-abandonment
-truth until deletion is confirmed.
+Destroy and recreate take different forms there. **Where the harness would destroy a machine**
+— an abandonment, or the old machine of a Replace rebuild — it stops that machine, turns
+automatic renewal off, and shows it as **still existing and billed until the vendor's stated
+deletion date**. A stop is neither confirmed destruction nor confirmed billing cessation. The
+customer routes omit destroy, while stop, renewal control and reinstall are available
+(`docs/findings/2026-10-08-lnvps-research.md` §3). **Where the harness would recreate a
+machine** to re-run its first contact, a vendor-API reinstall of the same machine stands in
+and is a **new first contact**: the old pin does not authorize contact with the reinstalled
+system, and `OPN-24`'s live key-equality condition must admit its new pin. A Replace rebuild
+is neither: it is a new order under the new seed's key, because a reinstall leaves the machine
+in the account the retired seed controls
+([ADR-0042](./docs/adr/0042-the-vendor-identity-is-derived-per-machine.md)). The screen
+retains unresolved-machine and incomplete-abandonment truth until deletion is confirmed.
 
 ## Machine networking
 
@@ -999,11 +1003,16 @@ names the approved machine entry it pays for (`ARC-15`, `STA-24`), and its amoun
 beside the cost the operator approved. The operator pays each invoice; nothing pays one for
 them.
 
-For an LNVPS machine, the wallet invoice MUST be read **over TLS from the vendor**, with the
-NIP-90 job reply's amount used as a cross-check; a relay event alone MUST NOT supply the
-invoice. The renew route's ability to serve an invoice for a job-created order remains owed
-by `OPN-24`'s phase B, not an observed result
-(`docs/findings/2026-10-09-lnvps-nip90-probe.md`).
+For an LNVPS machine, a NIP-90 job reply — its status, amount or invoice — counts only when it
+is signed by the service key the vendor publishes over TLS
+(`https://lnvps.net/.well-known/nostr.json`); a reply under any other key is ignored. The wallet
+invoice MUST be read **over TLS from the vendor** where its renew route serves one for the
+order, with the signed job reply's amount as a cross-check; where it does not, the signed job
+reply's invoice is the vendor's recorded response. A relay event that service key did not sign
+MUST NOT supply an invoice. The renew route's ability to serve an invoice for a job-created
+order remains owed by `OPN-24`'s phase B, not an observed result
+(`docs/findings/2026-10-09-lnvps-nip90-probe.md`). The Nostr relays the job travels through
+are `TRU-E13`.
 
 **ARC-31** Payment evidence MUST NOT be overstated. A **settled invoice** proves the
 operator funded credits at a provider and bounds which proxies are available; it does not
