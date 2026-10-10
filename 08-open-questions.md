@@ -104,7 +104,7 @@ passes or fails against a named second vendor.
 **OPN-24 — Whether LNVPS can be the stage-1 machine, and separately the jump vendor.**
 The research (`docs/findings/2026-10-08-lnvps-research.md`) found a catalogue Arch image,
 published host keys, a listing, Lightning invoices, a month minimum, no buyer boot
-configuration and no customer destroy route. Its CORS evidence is headers and a preflight,
+configuration and no destroy route the operator can call. Its CORS evidence is headers and a preflight,
 not a browser run. The NIP-90 phase-A probe
 (`docs/findings/2026-10-09-lnvps-nip90-probe.md`) found a live listener but every job order
 refused for zero address count; this was reported upstream as LNVPS/api#422. Nothing after
@@ -117,13 +117,13 @@ differs from the key presented by the machine in that family; the vendor-catalog
 does not boot, take the operator's SSH key on its default user, or answer at its static
 address; the operator-wallet Lightning payment does not settle into a booted machine; or
 the vendor listing omits it. A delayed fill **within** that window, a month minimum, need for
-`CHN-12a`'s pinned tunnel, and no customer destroy are recorded concessions, not target-vendor
+`CHN-12a`'s pinned tunnel, and no destroy route the operator can call are recorded concessions, not target-vendor
 failures. The wait later runs use is a named timing set from phase B's measured fill time;
 neither a code-read retry interval nor attest timing supplies it. `ARC-22` owns the treatment of unavailable destroy. `STG-21` says "If LNVPS fails
 `OPN-24`'s target criteria, stage 1 waits"; the probe evidence reopens vendor selection.
 
 **The jump-vendor question remains separate and open.** `CHN-R6` says "It is destroyed once
-the target is pinned"; LNVPS has no customer destroy route
+the target is pinned"; LNVPS has no destroy route the operator can call
 (`docs/findings/2026-10-08-lnvps-research.md` §3). `CHN-R6` says "The jump vendor is paid in
 Bitcoin and needs no account"; the HTTP order path requires a verified email
 (same finding, §3). The NIP-90 path's account-free ordering condition is unmet today because

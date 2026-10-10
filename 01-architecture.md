@@ -780,7 +780,7 @@ product can speak, and it spends that moment on the thing that is costing money.
 Resume-or-abandon *is* the opening screen, not a badge: it shows roughly what has been
 billed so far and what it bills per month until finished or abandoned. After roughly a week
 without progress the emphasis flips and abandonment leads. Abandonment destroys every
-machine of the setup through typed operations where a customer destroy route exists; the
+machine of the setup through typed operations where the vendor offers the operator a destroy route; the
 LNVPS treatment below applies where it does not. The screen states plainly what stops
 billing on confirmed destruction — the machines — and what does not: the vendor accounts
 themselves. It names every
@@ -798,12 +798,12 @@ and needs no new mechanism. A second device shows a clean app while the first de
 machines keep billing, which the abandonment screen's cost figures are the only defence
 against.
 
-**At LNVPS, unavailable customer destroy is unconfirmed destruction, not completion.**
+**At LNVPS, which offers the operator no destroy route, destruction is unconfirmed, not complete.**
 Destroy and recreate take different forms there. **Where the harness would destroy a machine**
 — an abandonment, or the old machine of a Replace rebuild — it stops that machine, turns
 automatic renewal off, and shows it as **still existing and billed until the vendor's stated
 deletion date**. A stop is neither confirmed destruction nor confirmed billing cessation. The
-customer routes omit destroy, while stop, renewal control and reinstall are available
+routes the operator can call omit destroy, while stop, renewal control and reinstall are available
 (`docs/findings/2026-10-08-lnvps-research.md` §3). **Where the harness would recreate a
 machine** to re-run its first contact, a vendor-API reinstall of the same machine stands in
 and is a **new first contact**: the old pin does not authorize contact with the reinstalled

@@ -146,7 +146,7 @@ gated on it.
       address is taken from a response no adapter reads without passing through model text
       (`CHN-R6`), and how an unfinished machine at a vendor with no typed destroy is abandoned
       (`ARC-22`). `OPN-24` says "The jump-vendor question remains separate and open"; see its
-      research and phase-A findings for the absent customer destroy route, verified-email
+      research and phase-A findings for the absent destroy route the operator can call, verified-email
       HTTP-order gate, and currently refused NIP-90 orders. Apply `CHN-R6`'s existing
       conditions exactly; retain the separate credential
       of `SEC-5` row 21 until T44's format exists. Do not select another jump vendor here.
