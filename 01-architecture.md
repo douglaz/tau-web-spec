@@ -1091,7 +1091,8 @@ federation across distinct vendors means several of those. Without something lik
 `OVR-5` collides with the operator's willingness to open billing relationships, and vendor
 diversity quietly collapses to whatever account they already had. A vendor that sells machines
 by Lightning invoice with no account is the same escape seen from the buying side; the first
-candidate is unprobed (`OPN-24`).
+candidate has research and phase-A evidence (`OPN-24`); target-machine qualification awaits
+phase B.
 
 **ARC-31b The candidate order is chosen by rule at pin time, read for availability at session
 start, and maintained by a job that proposes and never lands its change.** `ARC-31` says "the publisher

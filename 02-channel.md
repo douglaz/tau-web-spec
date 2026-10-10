@@ -228,8 +228,8 @@ following is a condition of the route, and without any one of them the route is 
 - **The jump vendor is paid in Bitcoin and needs no account**, and it is not the publisher: a
   publisher-run jump host is the relay's own operator standing in a second place, which is the
   party this route exists to take out of the first contact. The bundle carries a jump-host
-  adapter only for a vendor that meets this condition. The first candidate is unprobed
-  (`OPN-24`).
+  adapter only for a vendor that meets this condition. `OPN-24` records LNVPS evidence;
+  jump-vendor qualification remains open.
 - **The target's address comes from the target's vendor**, read over TLS the browser
   terminates — a direct fetch, or a pinned tunnel (`CHN-12a`) — and journaled against the
   machine's approved entry before the jump. An address from relay metadata or from model text

@@ -62,7 +62,11 @@ thief. Those limits and the destroy/rebuild offer are `STA-17`'s; inference bala
 bearer and unrevocable. Re-arming a scan changes no service credential. Cloud recovery with no
 sheet still uses `STA-15`, with no revived unpinned rescue login.
 
-The account-free vendor's recovery-root design was decided by ADR-0042 on 2026-10-09;
-T44 carries its still-unimplemented format and recovery amendment. `OPN-24`'s probe and
-`ARC-22`'s unavailable-destroy treatment remain separate from that decision.
+The account-free vendor's recovery root remains open in T47. `OPN-24`'s probe list includes
+inventory and destruction; a probe is evidence about an API, not a decision about that root.
+
+*Amended 2026-10-09:* The preceding open-question statement was superseded by
+[ADR-0042](./0042-the-vendor-identity-is-derived-per-machine.md)'s accepted recovery-root decision.
+T44 carries the deferred format and recovery change. `ARC-22`'s unavailable-destroy treatment
+remains separate from that decision.
 `OPN-3` tracks the evidence at each milestone. No integrated recovery result is claimed here.
