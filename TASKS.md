@@ -62,6 +62,9 @@ gated on it.
       installed pins across sources, requires disjoint rescue fingerprints and emits pins
       witness schema 4 with the bounded lifecycle cases. Integrated no-contact and Restore
       demonstrations remain obligations of `CNF-23`, `CNF-84` and `CNF-109`.
+      The follow-up repair accepts a recorded-empty rescue baseline, validates a compact
+      group assembled from partial readings, and restores bounded rescue, job, attest and
+      reset-confirmation paths with controls on the durable restart facts.
       Jump-vendor qualification remains open under T45.
 - [ ] **T40 — Attest on a real first boot** (`OPN-3`). Formal attest-source work is done
       (2026-10-08): `ARC-43` and `SEC-11`, with author matching, durable single use across

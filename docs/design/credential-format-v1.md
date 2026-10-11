@@ -162,8 +162,14 @@ consumed; import reconstructs that consumed state even when the pin is retired. 
 binding, import MUST refuse a missing array, malformed
 group or observation, repeated family within one observation, a redundant observation,
 duplicate or skipped installation ordinal, a pin referencing a missing group, a second
-installed pin in one group, an `lnvps_retrieve` pin with no matching complete observation
-in its group, or a reference to an absent or non-machine allocation. Missing
+installed pin in one group, or a reference to an absent or non-machine allocation.
+For an `lnvps_retrieve` pin, import MUST verify that its own keys form a complete
+Ed25519/RSA/ECDSA set, share no fingerprint with any earlier installation group for
+that machine, and equal the accumulated distinct family/fingerprint facts at some
+prefix of its installation group's recorded observations. A complete candidate may
+add no fact after separate partial observations, so no complete observation is
+required in the group. Later refused observations may add facts after that prefix;
+they remain recorded and MUST NOT invalidate an already admitted pin. Missing
 or invalid history MUST NOT become empty history. `STA-16` owns what Restore does with
 these facts. These fields complete the pre-deployment version-3 payload contract; no
 deployed legacy payload is being reinterpreted and the v1 envelope and derivation are

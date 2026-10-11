@@ -241,7 +241,7 @@ structure Knowledge where
   publicationGroups : List PublicationGroup := []
   /-- Current installation number per machine, independent of whether it was published. -/
   installedGeneration : List (Entry × Nat) := []
-  /-- Reinstalled machines awaiting a new, admitted publication. -/
+  /-- Reinstalled machines awaiting a new installed pin from any source. -/
   pendingReinstall : List Entry := []
   deriving DecidableEq, Repr
 
@@ -289,8 +289,7 @@ def pinAt (k : Knowledge) (m : Entry) (pr : Per) : Option Pin :=
 
 /-- The pin a connection to that system is checked against: for that machine, and in rescue for
 the boot the machine is in. A pin from the previous boot is still in the journal and is not this;
-`CHN-R1` makes that the whole rule — "**with a set sharing no fingerprint with the one snapshotted before the
-reset**" is a new pin, not the old one reused. -/
+`CHN-R1` makes that the whole rule — "with a set sharing no fingerprint with the one snapshotted before the reset" is a new pin, not the old one reused. -/
 @[req "SEC-11"] def pinFor (k : Knowledge) (m : Entry) (sys : System) : Option Pin :=
   pinAt k m (perNow k m sys)
 
@@ -304,9 +303,7 @@ boot, and "`/rescue/last` unchanged means the same" (`STG-4`) would be lost. -/
 @[req "CHN-R1"] def confirmsRescue (k : Knowledge) (m : Entry) (keys : Option Keys) : Bool :=
   k.awaiting.any (fun a => a.entry == m && a.into == System.rescue) && keys.isSome &&
     (k.snapshot.lookup m).any (fun old =>
-      match old, keys with
-      | some prior, some fresh => fresh.all (fun key => !prior.contains key)
-      | _, _ => false)
+      keys.any (fun fresh => fresh.all (fun key => !(old.getD []).contains key)))
 
 /-- The pin the reset intent named as its expected next pin (`STA-20b`), while a reset into the
 installed system is outstanding: the installed pin `ready_to_reset` journaled before it. -/
@@ -404,8 +401,8 @@ The history contains every recorded publication, including incomplete and refuse
   (currentGroup k m).all (fun g =>
     g.observations.all (fun old => old.all keys.contains))
 
-/-- An LNVPS publication may establish the initial installed pin or a new one after an
-operator-chosen reinstall, but cannot silently replace a pin between first contacts. -/
+/-- The completeness and observation-history checks for an LNVPS publication. The common
+installed first-contact check is in `journal`. -/
 @[req "CHN-R7"] def publicationAdmissible (p : Params) (k : Knowledge) (m : Entry)
     (keys : Keys) : Bool :=
   (!p.publishedComplete || complete keys) &&
@@ -1169,6 +1166,17 @@ def rescueOverlappingEvents : List Event :=
    .rescueLast entryA none,
    .rescueLast entryA (some [10, 111, 211]), .connect entryA .rescue 10]
 
+/-- A recorded empty field is a real pre-reset baseline, disjoint from fresh keys. -/
+def recordedEmptyRescueEvents : List Event :=
+  [.rescueLast entryA none, .reset entryA .rescue,
+   .rescueLast entryA (some rescueKeys), .connect entryA .rescue rescueKey]
+
+@[req "CHN-R1"] theorem recorded_empty_rescue_admitted :
+    let k := run current init recordedEmptyRescueEvents
+    k.pins.map (·.keys) = [rescueKeys] ∧
+    k.confirmed = [(entryA, .rescue)] ∧
+    k.sessions.map (·.keys) = [rescueKey] ∧ k.halts = [] := by decide +kernel
+
 @[req "CHN-R1"] theorem reordered_rescue_refused :
     let k := run current init rescueReorderedEvents
     k.pins = [] ∧ k.confirmed = [] ∧ k.sessions = [] ∧
@@ -1212,6 +1220,19 @@ def compactHistoryEvents : List Event :=
    .published entryA .machine [51],
    .published entryA .machine publishedKeys,
    .reinstall entryA, .published entryA .machine []]
+
+/-- A complete candidate can add nothing after three distinct partial observations. Its
+admitted pin remains exportable even though no complete observation was retained. -/
+def splitPartialCompletionEvents : List Event :=
+  [.published entryA .machine [51], .published entryA .machine [151],
+   .published entryA .machine [251], .published entryA .machine publishedKeys,
+   .connect entryA .installed publishedKey]
+
+@[req "CHN-R7"] theorem split_partial_completion_admitted :
+    let k := run current init splitPartialCompletionEvents
+    k.pins.map (·.keys) = [publishedKeys] ∧
+    (currentGroup k entryA).map (·.observations) = some [[251], [151], [51]] ∧
+    k.sessions.map (·.keys) = [publishedKey] := by decide +kernel
 
 def multiPollCompletionEvents : List Event :=
   [.published entryA .machine [51],
@@ -1519,11 +1540,10 @@ trace of three events has no room to take for itself and without which no rescue
 enumeration could ever be confirmed. Nothing else is known. -/
 def start : Knowledge := step current init (.rescueLast entryA (some oldRescueKeys))
 
-/-- The bounded enumeration draws from a job pin, a model claim, valid and wrong-author attest
-introductions, restart, complete and partial publications, an overlapping complete candidate,
-a disjoint candidate, a rescue-scope publication, reinstall, and an installed connection.
-Three events reach observation/reinstall/candidate and pin/reinstall/connection. Longer named
-witnesses cover rescue confirmation, failed appends, source changes and machine independence. -/
+/-- The bounded enumeration draws from both resets, old and fresh rescue readings, rescue and
+installed connections, job and attest pins, model claims, publications, restart and reinstall.
+Three events reach rescue confirmation/session, installed-reset confirmation, job and attest
+sessions, observation/reinstall/candidate and pin/reinstall/connection. -/
 def alphabet : List Event :=
   [.readyToReset entryA installedKeys,
    .claim entryA .machine claimedKeys,
@@ -1535,6 +1555,13 @@ def alphabet : List Event :=
    .published entryA .machine [51, 152, 252],
    .published entryA .machine nextPublishedKeys,
    .reinstall entryA,
+   .reset entryA .rescue,
+   .rescueLast entryA (some oldRescueKeys),
+   .rescueLast entryA (some rescueKeys),
+   .connect entryA .rescue rescueKey,
+   .connect entryA .installed installedKey,
+   .reset entryA .installed,
+   .connect entryA .rescue installedKey,
    .connect entryA .installed publishedKey]
 
 /-- Every trace of exactly `n` events over `alphabet`. -/
@@ -1544,6 +1571,38 @@ def tracesOf : Nat → List (List Event)
 
 /-- Every trace of at most `n` events over `alphabet`, shortest first. -/
 def tracesUpTo (n : Nat) : List (List Event) := (List.range (n + 1)).flatMap tracesOf
+
+def boundedRescueEvents : List Event :=
+  [.reset entryA .rescue, .rescueLast entryA (some rescueKeys),
+   .connect entryA .rescue rescueKey]
+
+def boundedJobEvents : List Event :=
+  [.readyToReset entryA installedKeys, .connect entryA .installed installedKey]
+
+def boundedAttestEvents : List Event :=
+  [.attest entryA .machine installedKeys (plantedSender entryA) true,
+   .connect entryA .installed installedKey]
+
+def boundedInstalledResetEvents : List Event :=
+  [.readyToReset entryA installedKeys, .reset entryA .installed,
+   .connect entryA .rescue installedKey]
+
+set_option pp.maxSteps 100
+set_option maxRecDepth 10000
+
+/-- Each lifecycle path occurs inside the exhaustive enumeration and yields the intended
+session or reset confirmation from its actual starting knowledge. -/
+theorem bounded_lifecycle_reachable :
+    (tracesUpTo bound).contains boundedRescueEvents = true ∧
+    (run current start boundedRescueEvents).sessions.map (·.keys) = [rescueKey] ∧
+    (tracesUpTo bound).contains boundedJobEvents = true ∧
+    (run current start boundedJobEvents).sessions.map (·.keys) = [installedKey] ∧
+    (tracesUpTo bound).contains boundedAttestEvents = true ∧
+    (run current start boundedAttestEvents).sessions.map (·.keys) = [installedKey] ∧
+    (tracesUpTo bound).contains boundedInstalledResetEvents = true ∧
+    (run current start boundedInstalledResetEvents).halts.map (·.reason) = [.confirmsReset] ∧
+    (run current start boundedInstalledResetEvents).confirmed = [(entryA, .installed)] := by
+  decide +kernel
 
 /-- Newest first: no installed pin replaces another pin in the same installation, regardless
 of source. Pins from earlier installations remain historical records. -/
@@ -1625,9 +1684,9 @@ def traceSound (p : Params) (k : Knowledge) : List Event → Bool
 companion itself closed over. -/
 def boundedCheck : Bool := (tracesUpTo bound).all (traceSound current start)
 
+set_option pp.maxSteps 100 in
+set_option maxRecDepth 10000 in
 @[req "SEC-11"] theorem bounded : boundedCheck = true := by
-  first
-  | decide +kernel
-  | skip
+  decide +kernel
 
 end TauWeb.Pins

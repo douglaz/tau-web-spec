@@ -27,7 +27,7 @@ the trace that moved.
 
 | Member | What it holds |
 |---|---|
-| `schema` | `1` for allocation, declaration, relay and dispatch; `3` for pins. A change to any shape below is a new version and a new file name for that module. |
+| `schema` | `1` for allocation, declaration, relay and dispatch; `4` for pins. A change to any shape below is a new version and a new file name for that module. |
 | `module` | The inventory name, lower-case: `allocation`, `declaration`, `relay`, `dispatch`, and `pins` for the host-pin lifecycle. |
 | `namespace` | The Lean namespace the traces' declarations live in. |
 | `bound` | `declaration`, the tagged `bound` the decided property and the emitter share, and its value rendered under the module's own members. Allocation (`TauWeb.Allocation.bound`): `events`, the number, and `alphabet`, the events the enumeration draws from. Declaration (`TauWeb.Declaration.bound`): `base`, the declaration and machine every case starts from; `presences`, per field, what the field is swept through, `missing` written as that word since a list has no absent member; `observations`, what the machine is made to show for it; `tenancies`. Relay (`TauWeb.Relay.bound`): `events`, the number; `alphabet`; and `start`, the opened connection every trace of the enumeration runs from. Dispatch (`TauWeb.Dispatch.bound`): `events`, the number; `alphabet`; and `start`, the journal every trace runs from, which carries the harness's associations and nothing dispatched. Pins (`TauWeb.Pins.bound`): the same shape; `start` carries one earlier `/rescue/last` snapshot, plus the fixed `planted_senders` list defined below from that starting knowledge and the alphabet. |
@@ -74,7 +74,7 @@ beside them are the event's arguments.
 | `ready_to_reset` | adapter observation | `source`, `entry`, `keys` | `pinned` |
 | `attest` | adapter observation | `source`, `entry`, `per` (and `boot` for rescue), `keys`, observed `author`; nested `append` with provenance `storage outcome of an append` and `durable` | `pinned`; `consumed`: whether this entry's introduction is consumed after the step |
 | `published` | adapter observation | `source`, `entry`, `per` (and `boot` for a refused rescue-scope trap), `keys` | `pinned` |
-| `reinstall` | operator act | `entry` | `pending`: whether a new publication is awaited |
+| `reinstall` | operator act | `entry` | `pending`: whether a new installed pin from any source is awaited |
 | `restart` | crash | — | `replayed`: durable knowledge retained, session/handshake records dropped |
 | `claim` | model request | `source`, `entry`, `per` (and `boot` with it), `keys` | `pinned` |
 | `connect` | adapter observation | `entry`, `system`, `presents` | `check`: `admitted` or `halted`, with `halt` on the second |

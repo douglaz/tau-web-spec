@@ -587,7 +587,10 @@ evidence is that set's test run against the relay the harness uses.
       with no automatic retry and need not finish (`STG-4`). In the first three, reconciliation
       lets the ceremony finish without repeating the interrupted mutation. A reordered
       pre-reset set or one sharing a pre-reset fingerprint leaves the rescue reset unresolved,
-      including after an intervening empty field; a fresh disjoint set confirms it. In every case the
+      including after an intervening empty field; a fresh disjoint set confirms it. A recorded
+      empty pre-reset field is a valid baseline: a later fresh nonempty set confirms the reset
+      and admits a matching rescue session, while a field never read before reset does not.
+      In every case the
       mutation is requested again under a fresh call id before confirmation and is refused
       while the reconciliation reads stay available; an immediate `running`, a changed
       `boot_time`, or a job record claiming success does not substitute for the predicate
@@ -748,7 +751,9 @@ Not pass/fail. Required to be recorded.
       status remains independent. Restore reconnects under that existing pin, not a new
       first contact. Round-trip the recorded installation groups, including incomplete and
       refused observations, empty boundaries and the active or retired status of pins from
-      each source. After Restore, a same-installation completion can admit a pin; after a
+      each source. Export and Restore a pin admitted after separate partial observations
+      whose complete candidate adds no new fingerprint and leaves no complete observation
+      in the group. After Restore, a same-installation completion can admit a pin; after a
       later operator reinstall, a candidate sharing a fingerprint with an older group is
       refused. A separate active-pin case reconnects under its existing route, while a
       retired pin never authorizes a new contact. Refuse a missing, unknown or malformed

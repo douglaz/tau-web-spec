@@ -295,20 +295,49 @@ import re
 import sys
 from pathlib import Path
 source = Path(sys.argv[1]).read_text().splitlines()
-output = Path(sys.argv[2]).read_text()
+lines = Path(sys.argv[2]).read_text().splitlines()
 actual = []
-for line in output.splitlines():
+for i, line in enumerate(lines):
     if not line.startswith("error: "):
         continue
     if line in ("error: Lean exited with code 1", "error: build failed"):
         continue
     match = re.fullmatch(r"error: TauWeb/Pins\.lean:(\d+):\d+: (.*)", line)
-    if not match or not match[2].startswith(("Tactic `decide`", "unsolved goals")):
+    if not match:
         print("Unexpected failure:", line)
         sys.exit(1)
     preceding = "\n".join(source[:int(match[1])])
     declarations = re.findall(r"(?:^|\] )(?:theorem|def) (\w+)", preceding, re.MULTILINE)
-    actual.append(declarations[-1] if declarations else "<none>")
+    decl = declarations[-1] if declarations else "<none>"
+    tail = lines[i + 1:]
+    end = next((n for n, text in enumerate(tail) if text.startswith("error: ")), len(tail))
+    body = tail[:end]
+    if match[2] == "Tactic `decide` proved that the proposition":
+        if not body or body[-1] != "is false":
+            print("The decision did not report a false proposition:", line)
+            sys.exit(1)
+    elif match[2] == "unsolved goals":
+        # These exact residual goals are the counterexamples to universal source and
+        # durability theorems. Generic open goals, resource failures and printer errors
+        # remain unacceptable.
+        open_goals = {
+            ("no_rescue_session_before_fill", "case boot.attest",
+             "⊢ Source.attest author = Source.rescueLast"),
+            ("no_rescue_session_before_fill", "case boot.published",
+             "⊢ Source.published = Source.rescueLast"),
+            ("attest_acceptance_consumes", "case isTrue", "⊢ m ∈ k.consumed"),
+            ("consumed_step", "case restart", "⊢ m ∈ []"),
+        }
+        if not body or (decl, body[0], body[-1]) not in open_goals:
+            print("Unexpected open goal:", line, body[:2], body[-2:])
+            sys.exit(1)
+        if decl == "no_rescue_session_before_fill" and "hadm : True" not in body:
+            print("The source branch did not reach its forbidden admission:", line)
+            sys.exit(1)
+    else:
+        print("Unexpected failure:", line)
+        sys.exit(1)
+    actual.append(decl)
 if sorted(actual) != sorted(sys.argv[3:]):
     print("Expected property failures:", sys.argv[3:])
     print("Actual property failures:", actual)
@@ -334,6 +363,10 @@ pins_control "formal: attest admits a forbidden rescue pin" \
   "sed -i 's/| .attest _, .boot _ => false/| .attest _, .boot _ => true/' $PINS && grep -q '| .attest _, .boot _ => true' $PINS" \
   no_rescue_session_before_fill attest_rescue_refused
 
+pins_control "formal: recorded-empty rescue baseline refused" \
+  "sed -i 's/old.getD \[\]/old.getD fresh/' $PINS && grep -q 'old.getD fresh' $PINS" \
+  recorded_empty_rescue_admitted
+
 # An always-refusing attest source is not safe admission. Its positive traces, including each
 # guard-removed acceptance, must fail while the universal refusal properties remain provable.
 pins_control "formal: valid attest admission disabled" \
@@ -341,7 +374,7 @@ pins_control "formal: valid attest admission disabled" \
   attest_admits_and_connects wrong_author_admitted wrong_author_then_valid repeat_attest_refused \
   repeat_attest_admitted attest_per_machine failed_attest_admitted failed_append_then_valid \
   attest_after_job_pin_admitted unused_attest_after_reinstall_admitted \
-  consumed_attest_after_reinstall_refused
+  consumed_attest_after_reinstall_refused bounded_lifecycle_reachable
 
 pins_control "formal: attest author matching disabled" \
   "sed -i 's/attestAuthorMatches : Bool := true/attestAuthorMatches : Bool := false/' $PINS && grep -q 'attestAuthorMatches : Bool := false' $PINS" \
@@ -393,6 +426,7 @@ pins_control "formal: valid LNVPS publication disabled" \
   replacement_without_reinstall_refused replacement_without_reinstall_admitted_without_guard \
   cross_source_replacement_refused cross_source_replacement_admitted_without_guard \
   cross_source_after_reinstall_admitted compact_history_keeps_boundary \
+  split_partial_completion_admitted \
   partial_polls_complete_after_restart refused_observation_blocks_later_installation \
   duplicate_observation_does_not_restore_pin historic_session_survives_reinstall
 
@@ -401,7 +435,7 @@ pins_control "formal: incomplete LNVPS publication admitted" \
   incomplete_publication_refused empty_publication_refused partial_then_complete_admitted \
   complete_contradiction_after_incomplete_refused complete_contradiction_admitted_without_guard \
   incomplete_history_refuses_after_reinstall_restart older_incomplete_history_refuses \
-  compact_history_keeps_boundary bounded
+  compact_history_keeps_boundary split_partial_completion_admitted bounded
 
 pins_control "formal: overlapping LNVPS publication admitted" \
   "sed -i 's/publishedFresh : Bool := true/publishedFresh : Bool := false/' $PINS && grep -q 'publishedFresh : Bool := false' $PINS" \
@@ -420,7 +454,8 @@ pins_control "formal: incomplete LNVPS publications lost from history" \
   "sed -i 's/if pr == .machine then/if pr == .machine \&\& complete keys then/' $PINS && grep -q 'if pr == .machine && complete keys then' $PINS" \
   partial_then_complete_admitted complete_contradiction_after_incomplete_refused \
   incomplete_history_refuses_after_reinstall_restart older_incomplete_history_refuses \
-  compact_history_keeps_boundary partial_polls_complete_after_restart
+  compact_history_keeps_boundary partial_polls_complete_after_restart \
+  split_partial_completion_admitted
 
 pins_control "formal: reinstall keeps old installed pin active" \
   "sed -i 's/reinstallRetiresPin : Bool := true/reinstallRetiresPin : Bool := false/' $PINS && grep -q 'reinstallRetiresPin : Bool := false' $PINS" \
@@ -435,10 +470,16 @@ pins_control "formal: reinstall keeps old installed pin active" \
   compact_history_keeps_boundary refused_observation_blocks_later_installation \
   duplicate_observation_does_not_restore_pin historic_session_survives_reinstall
 
-pins_control "formal: restart loses pending LNVPS reinstall" \
-  "sed -i 's/| .restart => { k with sessions := \[\], halts := \[\] }/| .restart => { k with pendingReinstall := [], sessions := [], halts := [] }/' $PINS && grep -q '| .restart => { k with pendingReinstall := \[\]' $PINS" \
-  incomplete_history_refuses_after_reinstall_restart old_pin_refused_after_pending_restart \
-  pending_restart_per_machine
+pins_control "formal: restart loses installed generation" \
+  "sed -i 's/| .restart => { k with sessions := \[\], halts := \[\] }/| .restart => { k with installedGeneration := [], sessions := [], halts := [] }/' $PINS && grep -q '| .restart => { k with installedGeneration := \[\]' $PINS" \
+  job_pin_after_reinstall_admitted unused_attest_after_reinstall_admitted \
+  consumed_attest_after_reinstall_refused older_publication_still_refused_after_restart \
+  old_pin_refused_after_pending_restart pending_restart_then_fresh_admitted pending_restart_per_machine
+
+pins_control "formal: restart loses publication history" \
+  "sed -i 's/| .restart => { k with sessions := \[\], halts := \[\] }/| .restart => { k with publicationGroups := [], sessions := [], halts := [] }/' $PINS && grep -q '| .restart => { k with publicationGroups := \[\]' $PINS" \
+  partial_polls_complete_after_restart incomplete_history_refuses_after_reinstall_restart \
+  older_publication_still_refused_after_restart
 
 pins_control "formal: installed pin replaces another source without reinstall" \
   "sed -i 's/installedFirstContact : Bool := true/installedFirstContact : Bool := false/' $PINS && grep -q 'installedFirstContact : Bool := false' $PINS" \
