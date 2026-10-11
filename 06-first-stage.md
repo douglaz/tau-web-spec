@@ -7,7 +7,7 @@ an operator with a goal and no tenant
 ([ADR-0034](./docs/adr/0034-general-case-first-tenants-are-optional-skills.md)).
 
 - **Stage 0 — the probes**, run alongside construction. The LNVPS probe follows `OPN-24`;
-  its paid phase B waits on the operator's email verification and payment. The Omarchy question
+  its paid phase B ran on 2026-10-11 and LNVPS passed; admitting its route is T39's. The Omarchy question
   closed by restating stage 1 on plain Arch (`OPN-25`). The separate attest first-boot experiment
   (`OPN-3`) informs vendors that accept boot configuration, but does not gate stage 1.
 - **Stage 1 — the owner's scenario, with no tenant** (`STG-21`).
@@ -49,9 +49,13 @@ operator opens it. The harness MUST NOT create a mailbox or read the operator's 
 wait until the account reads as verified before submitting the machine's HTTP order through
 the vendor API. A link that expires unopened is requested again; the wait ends only with
 verification or with the operator abandoning the setup (`ARC-22`). After a lost local store the
-operator supplies the address again.
+operator supplies the address again. A newly ordered machine reads automatic renewal on
+(`docs/findings/2026-10-11-lnvps-phase-b.md`), and `ARC-30` says "nothing pays one for them":
+after each order the adapter MUST turn the machine's automatic renewal off and read it back as
+off before the machine is offered for delivery.
 
-First contact waits on `OPN-24`'s live published-key probe: documented keys alone admit no
+First contact waits on the route T39 admits from `OPN-24`'s live published-key probe, which
+on 2026-10-11 found the presented keys equal to the published ones; documented keys alone admit no
 route. LNVPS accepts no buyer boot configuration
 (`docs/findings/2026-10-08-lnvps-research.md` §1), so attest cannot run there. The vendor's
 own catalogue supplies plain Arch; Hermes is installed with its own installer as the

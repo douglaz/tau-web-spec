@@ -70,7 +70,12 @@ gated on it.
       trusted: the vendor, and anyone able to answer on the machine's address inside the
       vendor's network at scan time. Jump qualification
       remains separate under `CHN-R6` and T45. Record results under `docs/findings/` without
-      committing machine identifiers, addresses or probe keys.
+      committing machine identifiers, addresses or probe keys. *Phase B ran 2026-10-11*
+      (`docs/findings/2026-10-11-lnvps-phase-b.md`): the presented keys equal the published
+      ones, also after a reinstall, and LNVPS passes the target criteria. What remains is
+      admitting the route as above, with the named fill-time wait (about an hour measured) and
+      the `CONTEXT.md` Retrieve entry restated around the browser accepting only the vendor's
+      published observation, since at a scan whoever answers on the address presents the key.
 - [ ] **T40 — Attest on a real first boot** (`OPN-3`). Formal attest-source work is done
       (2026-10-08): `ARC-43` and `SEC-11`, with author matching, durable single use across
       restart, checked admission/refusal traces and emitted witnesses. The empirical
@@ -98,7 +103,7 @@ gated on it.
 - [ ] **T43 — Stage 1's build list**. Implement `STG-21`'s corrected LNVPS/plain-Arch
       definition and the stage-1 applicability rows in `07-conformance.md` at tau-web-rust's
       next spec pin. These include recovery, scanning, reports and re-entry; specification
-      edits exercise no harness. Completion still depends on T39 phase B,
+      edits exercise no harness. Completion still depends on T39's route admission (its phase B ran on 2026-10-11),
       T44's coordinated identity format/recovery change, the publisher's artifact-pin choice,
       and the integrated evidence those rows require.
 - [ ] **T48 — Stage 1: build placed-secret scanning and recovery re-arm** (`OPN-28`).
