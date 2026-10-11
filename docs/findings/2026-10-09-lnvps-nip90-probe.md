@@ -30,8 +30,12 @@ the publish.
 
 Both events verified (signature and id), were authored by the service key, and carried an `e`
 tag for the job, a `p` tag for the requester, and an `expiration` 30 seconds after their
-`created_at`. Then `GET https://api.lnvps.net/api/v1/vm`, NIP-98 signed by the requesting key —
-which has no email address — returned `200` with `{"data":[]}`.
+`created_at`. Then a `GET https://api.lnvps.net/api/v1/vm` was made to list the requester's
+machines. *Corrected 2026-10-11:* that request went through `nak curl`, which signs with nak's
+default key whatever `--sec` says, so its `200` and `{"data":[]}` were another account's listing
+and show nothing about the requesting key. That no order was created rests on the code instead:
+the order failed in `validate_custom_vm_spec`, which `provision_custom` runs before it creates
+anything. The script now signs the listing with the requesting key.
 
 ## Why
 
@@ -56,8 +60,10 @@ listener sends `processing` before provisioning and an `error` status when the h
   its `amount` tag and the same 30-second expiration, so a client must be subscribed when it
   arrives. Whether `GET /api/v1/vm/{id}/renew` returns an invoice for a job-created order is
   not observed: no such order exists.
-- **Reads need no email.** A key with no address lists its machines; only the two HTTP order
-  routes check verification (`routes.rs:1309`, `1447`).
+- **Reads need no email**, from the code only: only the two HTTP order routes check
+  verification (`routes.rs:1309`, `1447`). The listing above does not show it (see the
+  correction there); on 2026-10-11 a fresh key with no address read its account and set one
+  (`2026-10-11-lnvps-phase-b.md`).
 - **The listener stops on a failed send.** `listen_for_jobs` returns on the first error from
   `send_event_builder` (the `?` after the error status), and jobs then go unanswered until the
   worker restarts. Read from the code, not observed.

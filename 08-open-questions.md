@@ -12,7 +12,7 @@ probe with a multi-week spike as though they were the same size.
 Construction admission (`STG-2`) closed with the September 8 installation rehearsal, on the
 dedicated path that is now the construction test bed. The stages were re-drawn on 2026-10-05
 (`06-first-stage.md`). **Stage 0** records probes alongside construction:
-`OPN-24`, with its paid phase B waiting on the operator's email verification and payment.
+`OPN-24`, whose paid phase B ran on 2026-10-11, with LNVPS passing; its route is admitted under T39.
 `OPN-25` is closed by restating stage 1 on plain Arch. The real-first-boot attest evidence
 under `OPN-3` remains relevant to vendors accepting boot configuration, but does not gate stage 1.
 **Completing stage 1** gates on `OPN-24`, on the generic lockdown checklist of `OPN-14`,
@@ -117,7 +117,8 @@ host-key set has not appeared three hours after the machine reaches `running` �
 hourly re-scans the research finding reads from the vendor's code; any published key
 differs from the key presented by the machine in that family; the vendor-catalogue Arch image
 does not boot, take the operator's SSH key on its default user, or answer at its static
-address, including after one reboot; the operator-wallet Lightning payment does not settle into a booted machine; or
+address, including after one reboot; a reinstalled system presents keys other than the newly
+published ones; the operator-wallet Lightning payment does not settle into a booted machine; or
 the vendor listing omits it. A delayed fill **within** that window, a month minimum, need for
 `CHN-12a`'s pinned tunnel, and no destroy route the operator can call are recorded concessions, not target-vendor
 failures. The wait later runs use is a named timing set from phase B's measured fill time;
@@ -143,17 +144,22 @@ set, including fill time; (2) equality of presented and published keys in every 
 vendor Arch image booting with the operator's key on its default user and answering at its
 static address, with no buyer content in its cloud-init data; (4) one reboot, after which the
 machine answers again at its static address with the same host keys; (5) listing; (6) one
-reinstall, including whether old keys clear before new ones publish; (7) destroy refusal, then
+reinstall, including whether old keys clear before new ones publish and whether the reinstalled
+system presents the newly published keys; (7) destroy refusal, then
 the stated deletion date after a stop; (8) CORS from an arbitrary origin in a real browser;
 (9) a second account under another key accepting the same operator address and reading as
 verified, with no order under it — if it does not, `STG-21`'s same-address sentence is
 revisited before any second machine.
 Apply the target criteria above to those results. Do not infer a route from documentation or
-set the later runs' wait before the fill time is measured. T39 records execution; this plan has not run.
+set the later runs' wait before the fill time is measured. *Ran 2026-10-11*
+(`docs/findings/2026-10-11-lnvps-phase-b.md`): the renew response supplied the invoice and the
+order response none, every observation is recorded, and every target criterion above holds, so
+LNVPS passes as stage 1's machine. The measured fill was about an hour, after `running` and again
+after the reinstall; the named wait is set when T39 admits the route.
 
 *Closes when:* phase B records whether the recorded order or renew response supplied the invoice
 and the ordered observations, the stage-1 criteria have been applied, and the presented keys
-equal the published keys in every family before a first-contact route is accepted. The jump half
+equal the published keys in every family before a first-contact route is accepted. *The target half closed 2026-10-11* on that run. The jump half
 closes separately only when `CHN-R6`'s conditions are met.
 
 **OPN-9 — Whether the proof of concept's cloud-init boots an unreachable machine.** A code-read

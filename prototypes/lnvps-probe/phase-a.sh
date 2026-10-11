@@ -6,7 +6,7 @@
 # deleted by the vendor after an hour. Keys live outside the repository; nothing here is
 # committed but this script.
 set -eu
-NAK=${NAK:-nak}
+export NAK=${NAK:-nak}
 LNVPS=fcd818454002a6c47a980393f0549ac6e629d28d5688114bb60d831b5c1832a7  # lnvps.net/.well-known/nostr.json
 RELAYS="wss://nos.lol wss://nostr.oxtr.dev wss://relay.damus.io wss://relay.snort.social"  # its NIP-65 list
 KEYS=${KEYS:-$HOME/.config/tau-web/lnvps-probe}
@@ -33,7 +33,8 @@ echo "publish exit ${pub_rc:-0}"
 wait "$sub" || sub_rc=$?
 echo "subscription exit ${sub_rc:-0} (124 = closed by its timeout, expected)"
 
-$NAK curl --sec "$SEC" -sS --fail https://api.lnvps.net/api/v1/vm </dev/null >"$OUT/vm-list.json" 2>"$OUT/curl.err" || list_rc=$?
+# Signed by the requesting key itself: `nak curl` signs with nak's default key whatever --sec says.
+"$(dirname "$0")/lnvps-req.sh" "$KEYS/nostr.sec" GET /api/v1/vm </dev/null >"$OUT/vm-list.json" 2>"$OUT/curl.err" || list_rc=$?
 echo "list exit ${list_rc:-0}"
 
 # Evidence needs a successful publish and listing, a subscription that ran its whole window
