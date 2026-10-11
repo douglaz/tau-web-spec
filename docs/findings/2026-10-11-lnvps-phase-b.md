@@ -8,7 +8,7 @@ Two fresh Nostr keys, one per account, both verified to the same operator addres
 `phase-b-watch.sh` and `reinstall-watch.sh`. No machine identifier, address, host-key
 fingerprint, payment hash or key is recorded here.
 
-**Verdict: LNVPS passes every stage-1 target criterion `OPN-24` states.** The keys it publishes
+**Verdict: none of `OPN-24`'s target-failure conditions was observed.** The keys it publishes
 equal, byte for byte and in all three families, the keys the machine presents, before and after
 a reinstall; Arch boots, takes the operator's key on `arch`, and answers at its static address,
 also after a reboot; a Lightning payment settled into a booted machine; the listing shows it.
@@ -28,8 +28,8 @@ The recorded costs are below.
 | ≤04:12:22 | status `running`, two addresses assigned (polled every 10 s from 04:12:22) |
 | 05:12:21 | **first published host keys**, all three families (between 05:12:11 and 05:12:21) |
 
-The order response carries no invoice; the renew route serves it (`ARC-30`: the invoice comes
-over TLS from the order or renew response). Of the 24% tax, the research finding's §4 says the
+The order response carries no invoice; the renew route serves it. `ARC-30` says "the wallet
+invoice MUST come over TLS from the vendor's recorded HTTP order or renew response". Of the 24% tax, the research finding's §4 says the
 vendor sets VAT from a declared country "and/or … location evidence such as your IP address";
 none was declared here.
 
@@ -62,7 +62,8 @@ an hour. The same happened after the reinstall below.
    and a new set was published at 06:18:31, an hour later, sharing no fingerprint with the old
    one. The reinstalled system presented exactly the newly published keys in every family; the
    old pin was refused ("REMOTE HOST IDENTIFICATION HAS CHANGED") and the new one admitted a
-   login. A reinstall is therefore a new first contact, as `ARC-22` treats it.
+   login. `ARC-22` says "a vendor-API reinstall of the same machine stands in and is a **new first
+   contact**", and this is what the old and new pins showed.
 7. **Destroy and stop:** `DELETE /api/v1/vm/{id}` was refused with `405`. A stop
    (`PATCH …/stop`) left the machine `stopped` and still listed, with `deleting_on` one day after
    the expiry (the grace may lengthen with the subscription's age; it was read at day 0). The
@@ -71,7 +72,9 @@ an hour. The same happened after the reinstall below.
 8. **CORS from a real browser:** Chromium 154, headless, on the origin
    `http://127.0.0.1:18765`, read `GET /api/v1/image` (200) and a NIP-98-signed
    `GET /api/v1/vm` (200, the machine listed) from page JavaScript. The signed call carries an
-   `Authorization` header, so it was preflighted. No pinned tunnel (`CHN-12a`) is needed.
+   `Authorization` header, so it was preflighted. A cross-origin write, a no-op
+   `PATCH /api/v1/account` with `Authorization` and a JSON `Content-Type`, also returned a
+   readable 200. None of these calls went through a pinned tunnel (`CHN-12a`).
 9. **Second account, same address:** the second key's account accepted the same operator
    address and read verified 30 seconds after the first, and placed no order.
 
@@ -80,7 +83,7 @@ an hour. The same happened after the reinstall below.
 - Keys arrive an hour after `running`, and again after a reinstall.
 - One month is the shortest period; the tax was 24% on an order from this host.
 - No destroy route the operator can call: `405`.
-- Auto-renewal reads on for a new machine and must be turned off.
+- Auto-renewal reads on for a new machine; turning it off is `STG-21`'s.
 - The vendor's own user-data upgrades every package at first boot.
 - A stopped machine is deleted a day after expiry at this subscription age.
 
@@ -91,7 +94,8 @@ whatever `--sec` says. It changed the email of the account belonging to that def
 anyone can use, to the operator's address; the address and both contact settings were restored
 minutes later, and that account's verification could not be. The probe's own accounts were not
 touched by it. Every request after that, and the phase-A script's listing, now goes through
-`lnvps-req.sh`, which builds the authorization event with `nak event --sec`; each write was
+`lnvps-req.sh`, which hands the key to `nak event` through `NOSTR_SECRET_KEY`, never as an
+argument; each write was
 preceded by a read of the account it targets. Phase A's record is corrected to match
 (`2026-10-09-lnvps-nip90-probe.md`).
 
