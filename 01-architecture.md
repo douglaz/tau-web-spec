@@ -780,8 +780,10 @@ product can speak, and it spends that moment on the thing that is costing money.
 Resume-or-abandon *is* the opening screen, not a badge: it shows roughly what has been
 billed so far and what it bills per month until finished or abandoned. After roughly a week
 without progress the emphasis flips and abandonment leads. Abandonment destroys every
-machine of the setup through typed operations, and the screen states plainly what stops
-billing — the machines — and what does not: the vendor accounts themselves. It names every
+machine of the setup through typed operations where the vendor offers the operator a destroy route; the
+LNVPS treatment below applies where it does not. The screen states plainly what stops
+billing on confirmed destruction — the machines — and what does not: the vendor accounts
+themselves. It names every
 machine carrying an unresolved call and what that call was, and it says of an unresolved
 create that no vendor listing matches that it **cannot be destroyed from here and may still
 exist and bill**: an allocation index is not a deletion target, and destroying the known
@@ -795,6 +797,21 @@ abandoned. That follows from all-or-nothing plus exposure ending with the machin
 and needs no new mechanism. A second device shows a clean app while the first device's
 machines keep billing, which the abandonment screen's cost figures are the only defence
 against.
+
+**At LNVPS, which offers the operator no destroy route, destruction is unconfirmed, not complete.**
+Destroy and recreate take different forms there. **Where the harness would destroy a machine**
+— an abandonment, or the old machine of a Replace rebuild — it stops that machine, turns
+automatic renewal off, and shows it as **still existing and billed until the vendor's stated
+deletion date**. A stop is neither confirmed destruction nor confirmed billing cessation. The
+routes the operator can call omit destroy, while stop, renewal control and reinstall are available
+(`docs/findings/2026-10-08-lnvps-research.md` §3). **Where the harness would recreate a
+machine** to re-run its first contact, a vendor-API reinstall of the same machine stands in
+and is a **new first contact**: the old pin does not authorize contact with the reinstalled
+system, and `OPN-24`'s live key-equality condition must admit its new pin. A Replace rebuild
+is neither: it is a new order under the new seed's key, because a reinstall leaves the machine
+in the account the retired seed controls
+([ADR-0042](./docs/adr/0042-the-vendor-identity-is-derived-per-machine.md)). The screen
+retains unresolved-machine and incomplete-abandonment truth until deletion is confirmed.
 
 ## Machine networking
 
@@ -830,14 +847,18 @@ on the channel spike (`docs/findings/2026-09-07-wasm-spikes.md`).
 
 **ARC-24** The chosen distributions are **Alpine and NixOS**: the two the bundle is designed to
 pin. Today it carries Alpine's (`bundle/artifact-alpine.toml`); NixOS is not offered until the
-bundle carries its pin and its evidence exists (`07-conformance.md`'s stage-1 row). Another distribution an operator's goal names — Arch, Omarchy — is installed
-**unpinned** under `ARC-25`'s rule until the bundle carries a pin for it (`OPN-25`). Neither
+bundle carries its pin and its evidence exists (`07-conformance.md`'s stage-1 row). When another
+distribution an operator's goal names — Arch or Omarchy — is installed, it is **unpinned**
+under `ARC-25`'s rule until the bundle carries a pin for it. Neither
 chosen distribution is offered by the
 dedicated vendor's automatic installer — verified against the live API on 2026-08-31, whose
 catalogue is AlmaLinux, Arch, CentOS Stream, Debian, openSUSE, Rocky and Ubuntu — so **custom
 image installation is mandatory on that path**, not the optimisation ADR-0011 calls it. That is one of the two reasons the install
 runs from inside a rescue session; the other is that rescue is what publishes the host key
 (`CHN-R1`).
+
+For stage 1's catalogue plain Arch (`STG-21`), that is the unpinned label until the publisher
+adds an Arch pin, if it does; record that choice when taken.
 
 A declarative distribution also repays `ARC-10`: a system whose state is described rather
 than accumulated is one a reconnecting session can converge on rather than reconstruct. And
@@ -981,6 +1002,10 @@ names the approved machine entry it pays for (`ARC-15`, `STA-24`), and its amoun
 beside the cost the operator approved. The operator pays each invoice; nothing pays one for
 them.
 
+For an LNVPS machine, the wallet invoice MUST come over TLS from the vendor's recorded HTTP
+order or renew response. If neither response supplies an invoice, no invoice is handed to the
+wallet. `OPN-24`'s phase B has yet to observe which response supplies one.
+
 **ARC-31** Payment evidence MUST NOT be overstated. A **settled invoice** proves the
 operator funded credits at a provider and bounds which proxies are available; it does not
 prove which machine used which proxy, because one top-up buys many queries. Per-machine routing
@@ -1067,7 +1092,8 @@ federation across distinct vendors means several of those. Without something lik
 `OVR-5` collides with the operator's willingness to open billing relationships, and vendor
 diversity quietly collapses to whatever account they already had. A vendor that sells machines
 by Lightning invoice with no account is the same escape seen from the buying side; the first
-candidate is unprobed (`OPN-24`).
+candidate has research and phase-A evidence (`OPN-24`); target-machine qualification awaits
+phase B.
 
 **ARC-31b The candidate order is chosen by rule at pin time, read for availability at session
 start, and maintained by a job that proposes and never lands its change.** `ARC-31` says "the publisher

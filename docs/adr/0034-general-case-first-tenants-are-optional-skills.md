@@ -167,3 +167,19 @@ open in the same entry.
 **If the first vendor fails its probe**, the first stage — and no later one — runs on Hetzner
 Cloud with attest and a card account. That shows the harness and not the account-free purchase,
 and is recorded as the alternative for that reason.
+
+## Amended 2026-10-09: the stage-0 result
+
+The preceding fallback paragraph and this record's stage-1 attest and distribution
+presuppositions are superseded; the historical goal and rejected options above remain the
+2026-10-04 decision's context. `STG-21` says "If LNVPS fails `OPN-24`'s target criteria,
+stage 1 waits" and "The vendor's own catalogue supplies plain Arch; Hermes is installed with
+its own installer".
+LNVPS takes no buyer boot configuration (`docs/findings/2026-10-08-lnvps-research.md` §1),
+so stage 1 waits on the live published-key probe rather than attest. Hetzner Cloud's live
+catalogue has no Arch image (same finding, last section), so it is no stage-1 alternative.
+Omarchy research and the route-C prototype
+(`docs/findings/2026-10-08-omarchy-headless-research.md`,
+`docs/findings/2026-10-08-omarchy-route-c-prototype.md`) support `OPN-25`'s plain-Arch
+restatement. The jump-vendor route remains governed by `CHN-R6`; for LNVPS's still-open
+qualification, see `OPN-24` and T45.

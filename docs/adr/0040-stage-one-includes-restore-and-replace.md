@@ -64,4 +64,9 @@ sheet still uses `STA-15`, with no revived unpinned rescue login.
 
 The account-free vendor's recovery root remains open in T47. `OPN-24`'s probe list includes
 inventory and destruction; a probe is evidence about an API, not a decision about that root.
+
+*Amended 2026-10-09:* The preceding open-question statement was superseded by
+[ADR-0042](./0042-the-vendor-identity-is-derived-per-machine.md)'s accepted recovery-root decision.
+T44 carries the deferred format and recovery change. `ARC-22`'s unavailable-destroy treatment
+remains separate from that decision.
 `OPN-3` tracks the evidence at each milestone. No integrated recovery result is claimed here.

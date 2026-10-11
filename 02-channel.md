@@ -33,14 +33,14 @@ identifiers below are the list — and discussed strongest first, so the refused
 flowchart TD
     START([Need a host-key fingerprint]) --> PROD{Which product?}
     PROD -->|Dedicated / Robot| R1["CHN-R1 — retrieve<br/>rescue API publishes host_key<br/>✅ run by hand, the construction test bed"]
-    PROD -->|Cloud VPS| R2{"CHN-R2 — retrieve"}
+    PROD -->|Hetzner Cloud rescue| R2{"CHN-R2 — retrieve"}
     R2 --> R2D["☠️ DEAD, verified<br/>rescue returns an action and a<br/>root password. No host key"]
     R2D --> BOOT{"Does the harness compose<br/>the machine's boot configuration?"}
-    BOOT -->|"Yes — a typed adapter"| R5["CHN-R5 — attest<br/>per-machine derived sender key in user-data;<br/>machine gift-wraps its fingerprints to a<br/>per-machine derived recipient over Nostr<br/>🔶 designed, unproven — OPN-3"]
+    BOOT -->|"Yes — boot configuration"| R5["CHN-R5 — attest<br/>per-machine derived sender key in user-data;<br/>machine gift-wraps its fingerprints to a<br/>per-machine derived recipient over Nostr<br/>🔶 first-boot finding; browser checks open — OPN-3"]
     BOOT -->|"No — an untyped vendor scope,<br/>or a vendor with no route of its own"| R6["CHN-R6 — jump host<br/>first contact inside a session pinned<br/>to a temporary, model-free machine<br/>🔶 an acceptable weaker mode, labelled"]
     R5 -->|"if the post never arrives"| RC["Recreate the machine.<br/>No weaker route is entered"]
     R6 -.->|"the jump host itself is pinned by attest"| R5
-    R6 -.->|"or by its vendor's own retrieve route, where one exists"| RJ["a jump vendor's retrieve route<br/>none probed yet — OPN-24"]
+    R6 -.->|"or by its vendor's own retrieve route, where one exists"| RJ["a jump vendor's retrieve route<br/>LNVPS published keys unqualified — OPN-24"]
     R5 -.->|"was the only hope before attest"| R3["CHN-R3 — inject<br/>private host key rides in user-data,<br/>re-fetchable from metadata forever<br/>🚫 ABANDONED"]
     R4["CHN-R4 — trust on first use<br/>🚫 REFUSED through the relay"]
     classDef live fill:#e8f5e9,stroke:#4a7c59
@@ -50,6 +50,11 @@ flowchart TD
     class R2D,R3,R4 dead
     class R5,R6,RC,RJ pending
 ```
+
+LNVPS publishes host keys, but `OPN-24` requires "the presented keys equal the published keys
+in every family before a first-contact route is accepted". No `CHN-R1` extension or
+formal pin-source case is implied by the documented field
+(`docs/findings/2026-10-08-lnvps-research.md` §1).
 
 **CHN-R1 — retrieve, dedicated servers.** Hetzner's Robot webservice exposes `host_key` on
 `GET /boot/{server-number}/rescue/last`. **Run 2026-09-08** (`CNF-48`,
@@ -223,8 +228,8 @@ following is a condition of the route, and without any one of them the route is 
 - **The jump vendor is paid in Bitcoin and needs no account**, and it is not the publisher: a
   publisher-run jump host is the relay's own operator standing in a second place, which is the
   party this route exists to take out of the first contact. The bundle carries a jump-host
-  adapter only for a vendor that meets this condition. The first candidate is unprobed
-  (`OPN-24`).
+  adapter only for a vendor that meets this condition. `OPN-24` records LNVPS evidence;
+  jump-vendor qualification remains open.
 - **The target's address comes from the target's vendor**, read over TLS the browser
   terminates — a direct fetch, or a pinned tunnel (`CHN-12a`) — and journaled against the
   machine's approved entry before the jump. An address from relay metadata or from model text

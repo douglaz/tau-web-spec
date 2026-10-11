@@ -154,3 +154,11 @@ the witness files and the two settlements above.
 *Amended 2026-10-06:* the first stage is now first contacted by attest (`STG-21`), so it
 exercises attest single-use (`CHN-5`, `CNF-18`). The "later" row's "nothing in the first stage
 exercises them" is history for that clause; whether the companion carries it is unchanged.
+
+*Amended 2026-10-09:* the preceding stage-1 applicability claim is reversed. `STG-21` now
+states "First contact waits on `OPN-24`'s live published-key probe"; LNVPS accepts no buyer
+boot configuration (`docs/findings/2026-10-08-lnvps-research.md` §1), so stage 1 cannot use
+attest. The inventory's "later" row again describes stage-1 applicability for attest
+single-use. Its formal work and the real-first-boot finding
+(`docs/findings/2026-10-09-attest-first-boot.md`) stand for an applicable vendor; neither is
+a stage-1 acceptance result. The 2026-10-06 text remains as decision history.

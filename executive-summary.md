@@ -51,10 +51,10 @@ is the only escape from that.
 ## How it works
 
 **The harness's AI runs only in the browser, and it is a trusted party.** A machine is a target
-of the harness, never an actor for it: it holds no credential belonging to the harness but the
-single-use attest sender key, and the
-harness never asks a machine to act. Its one outbound message, the attest introduction, acts on
-nothing on its behalf. Software the operator has installed that acts on its own — an always-on
+of the harness, never an actor for it: it holds no credential belonging to the harness except
+the single-use attest sender key on a route using attest. The harness never asks a machine to
+act. Where enabled, an attest introduction acts on nothing on its behalf. Software the
+operator has installed that acts on its own — an always-on
 agent with a model of its own — is the **operator's application**: it is outside what the
 harness claims, and its machine's delivery card says so.
 
@@ -135,17 +135,20 @@ assumption a threshold cannot survive losing.
 
 **The browser reaches a machine over SSH**, verifying the host key against a fingerprint obtained
 by other means, through a relay that carries ciphertext. On dedicated hardware the vendor API
-hands over the key; on the cloud path, where retrieval is dead, a designed and not yet booted
-route — *attest*, the machine introducing its own key over Nostr under a per-machine key
-planted at creation — closes the gap without trusting first contact. A first contact with no
-pin is refused through the relay; where a vendor offers no route of its own, the first contact
+hands over the key. Where a vendor accepts boot configuration, *attest* can introduce a
+machine's key over Nostr; the real-first-boot experiment ran with the limits recorded in
+`docs/findings/2026-10-09-attest-first-boot.md`. Stage 1 at LNVPS cannot use it, because
+that vendor takes no buyer boot configuration (`docs/findings/2026-10-08-lnvps-research.md`
+§1); its published keys await live equality with presented keys under `OPN-24`. A first
+contact with no pin is refused through the relay; where a vendor offers no route of its own, the first contact
 runs from a temporary jump host no model has touched, inside a pinned session — trust on first
 use moved off the relay, and labelled as that. **Every per-machine key the
 browser needs derives from a seed the operator holds**, so a lost phone re-derives them from
 twelve words plus exported derivation indices. `STA-16` lists the recovery sheet's contents,
 including placement metadata without secret matching material. `STA-17` distinguishes
 non-revoking Restore from Replace, including stage 1's manual relay retirement and the limits
-of revocation. The account-free vendor's recovery root remains open in T47. The browser-only
+of revocation. ADR-0042 decides the LNVPS recovery-root design, with the coordinated format
+and recovery change still owed by T44. The browser-only
 secret reference and its lost-store re-arm are defined in `SEC-5` and `ARC-43`; a machine
 report is not proof of the original value.
 
@@ -239,10 +242,13 @@ that makes rental structural gates the phone-only acquisition experience.
 
 ## Status
 
-The first stage is **the owner's own scenario, with no tenant**: one machine bought by
-Lightning invoice at LNVPS — or through a card account at Hetzner Cloud if LNVPS fails its probe
-— an always-on agent installed on it, on Omarchy or plain Arch (`STG-21`). The path it replaced as first — one
-machine on a dedicated server, over the full channel — was rehearsed **by hand, once**, on a
+The first stage is **the owner's own scenario, with no tenant**: one LNVPS machine bought by
+Lightning invoice from the operator's wallet, running catalogue plain Arch with Hermes
+installed by its own installer (`STG-21`). Its first-contact probe awaits the paid HTTP
+phase B (`OPN-24`), after the operator's email verification. If LNVPS fails the target
+criteria, stage 1 waits. The path it
+replaced as first — one machine on a dedicated server, over the full channel — was rehearsed
+**by hand, once**, on a
 disposable server on September 8, 2026: both pinned SSH hops closed, and the install brief was
 written from the transcript. It is now the construction test bed. Separately, the browser SSH
 client and the pinned TLS client ran on a physical Android phone. Harness construction can

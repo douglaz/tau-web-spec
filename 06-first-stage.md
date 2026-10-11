@@ -6,19 +6,18 @@ The work is staged as the list below sets out, re-drawn on 2026-10-05 around the
 an operator with a goal and no tenant
 ([ADR-0034](./docs/adr/0034-general-case-first-tenants-are-optional-skills.md)).
 
-- **Stage 0 — the probes**, run now and in parallel with construction. The LNVPS probe
-  follows `OPN-24`'s owning list. Attest on a real first boot (`OPN-3`). And Omarchy's server edition,
-  or plain Arch in its place (`OPN-25`). They run beside construction and use what it has
-  built by then: attest evidence needs the browser's acceptance (`CNF-18`), and an Omarchy
-  server installation for `OPN-25` runs over the channel.
+- **Stage 0 — the probes**, run alongside construction. The LNVPS probe follows `OPN-24`;
+  its paid phase B waits on the operator's email verification and payment. The Omarchy question
+  closed by restating stage 1 on plain Arch (`OPN-25`). The separate attest first-boot experiment
+  (`OPN-3`) informs vendors that accept boot configuration, but does not gate stage 1.
 - **Stage 1 — the owner's scenario, with no tenant** (`STG-21`).
 - **Stage 2 — a vendor with no adapter** (`STG-22`).
 - **Stage 3 — tenants, as skills** (`STG-23`).
 
 Typed comes before untyped for a reason of order, not of preference: an untyped vendor scope
 needs the jump host for its machines' first contact (`SEC-4`), and the jump host needs a jump
-vendor whose creation the harness composes — a typed adapter — plus attest to pin it
-(`CHN-R6`).
+vendor whose creation the harness composes through a typed adapter and whose host key it can
+pin by a route `CHN-R6` admits.
 
 **What each identifier below gates.** No identifier was renumbered when the stages were
 re-drawn; the ones written for the dedicated path say so here.
@@ -33,14 +32,33 @@ re-drawn; the ones written for the dedicated path say so here.
 | `STG-22`, `STG-23` | Stages 2 and 3 |
 
 **STG-21 Stage 1 is the owner's scenario: one machine, no tenant.** "Launch a VPS paid in
-Bitcoin and install Hermes on Omarchy." An initial session works from that goal alone
-(`ARC-11a`), under the ad-hoc profile (`ARC-44`), and the later session `STG-9` requires
+Bitcoin on plain Arch and install Hermes with its own installer." An initial session works
+from that goal alone (`ARC-11a`), under the ad-hoc profile (`ARC-44`), and the later session `STG-9` requires
 re-enters the same machine with a goal of its own — each session carries its own, never the
-first one reused — so the placement or rotation it performs has a goal to act on. The machine is a VPS at LNVPS, created through
-a **typed adapter**, paid for by a Lightning invoice from the operator's own wallet (`ARC-30`),
-and first contacted by attest (`CHN-R5`). Hermes is installed on Omarchy — or on Arch, if
-`OPN-25` closes that way — as the operator's application (`ARC-1a`). Beyond the channel and the
-journal, the stage needs:
+first one reused — so the placement or rotation it performs has a goal to act on. The machine
+is a VPS at LNVPS, created through a **typed adapter** using the per-machine identity decided
+in ADR-0042 and paid for by a Lightning invoice from the operator's own wallet (`ARC-30`).
+That identity is unavailable until T44's coordinated format and recovery amendment;
+`SEC-5` row 22 still says "not derivable today".
+
+Before the first order under each machine's identity, the typed LNVPS adapter MUST submit the
+operator's own email address to that account at the vendor. The harness MUST NOT submit that
+address anywhere except to the vendor. The same operator address serves every machine's
+separate account. LNVPS sends a single-use verification link valid for about a day; the
+operator opens it. The harness MUST NOT create a mailbox or read the operator's mail. It MUST
+wait until the account reads as verified before submitting the machine's HTTP order through
+the vendor API. A link that expires unopened is requested again; the wait ends only with
+verification or with the operator abandoning the setup (`ARC-22`). After a lost local store the
+operator supplies the address again.
+
+First contact waits on `OPN-24`'s live published-key probe: documented keys alone admit no
+route. LNVPS accepts no buyer boot configuration
+(`docs/findings/2026-10-08-lnvps-research.md` §1), so attest cannot run there. The vendor's
+own catalogue supplies plain Arch; Hermes is installed with its own installer as the
+operator's application (`ARC-1a`). Another operator's goal may name Omarchy; this stage-1
+run uses the plain-Arch goal above (`OPN-25`). This machine uses no
+notify channel (`CHN-17`) and needs no publisher Nostr relay for attest (`CHN-18`). Beyond
+the channel and the journal, the stage needs:
 
 - **goal input, and the harness's own questions** for machine class and the declaration
   (`ARC-36a`, `ARC-39`);
@@ -56,13 +74,11 @@ journal, the stage needs:
 - **interrupted resume** (`STG-12`); and
 - **one re-entry** (`STG-9`).
 
-**If LNVPS fails its probe** (`OPN-24`), stage 1 — and no later stage — runs on Hetzner Cloud
-with attest and a card account. That account is billed by card, with no per-machine invoice
-for the operator's wallet, so the invoice relay above and `CNF-104` have nothing to carry there
-and wait for a vendor that issues one. The fallback holds only where Hetzner Cloud offers the
-stage's distribution as an image at creation, so attest pins its first boot: a rescue boot that
-writes an image publishes no host key (`CHN-R2`) and is not a pinned route (`CHN-R4`). Whether
-it does is checked with the probe (T39); if neither vendor qualifies, stage 1 waits.
+**If LNVPS fails `OPN-24`'s target criteria, stage 1 waits.** Probe evidence reopens the
+vendor question; no replacement vendor or card account is selected.
+The live Hetzner Cloud catalogue lacks Arch (`docs/findings/2026-10-08-lnvps-research.md`,
+last section). The TCP relay and stage-1 manual enrollment and retirement keep their existing
+checks.
 
 **STG-22 Stage 2 is a vendor with no adapter, where the browser can reach its API.** Such a
 vendor is reached through an untyped vendor scope on `SEC-4`'s conditions, and no further than
@@ -342,10 +358,9 @@ counts as touching it until that machine is destroyed".
 
 **STG-18** Stated because a passing stage would otherwise read as a working product.
 
-- **Acquisition beyond one invoice.** Stage 1 buys one machine by one invoice at one
-  account-free vendor — or, on `STG-21`'s Hetzner fallback, through one card account. It tests
-  no second vendor (`OPN-5`), and on LNVPS no account and no card; on the dedicated test bed
-  the server is already rented.
+- **Acquisition beyond one invoice.** Stage 1 buys one LNVPS machine by one invoice through
+  the per-machine identity decided in ADR-0042. It tests no second vendor (`OPN-5`); on the
+  dedicated test bed the server is already rented.
 - **Relay enrolment.** The operator's relay **public** key, derived from the seed (`CHN-15`),
   is handed to the publisher out of band and recorded by hand. Nothing secret crosses and
   nothing is pasted into the app. The publisher configures the allowed public destinations
@@ -370,8 +385,9 @@ counts as touching it until that machine is destroyed".
 test bed demonstrates the channel, the pinning chain, the box plane, the transcript and one
 re-entry. It demonstrates **none** of: attestation (`CHN-R5`), boot-time user-data,
 recovery-sheet handling, second-vendor reachability, concurrent sessions, federation formation,
-or threshold isolation. Those are orthogonal systems, not subsets of it: stage 1 walks the
-first three on its own evidence, and the rest arrive with stages 2 and 3. The honest claim is
+or threshold isolation. Those are orthogonal systems, not subsets of it: stage 1 walks
+recovery-sheet handling on its own evidence, attest remains a separate route's evidence, and
+the rest arrive with stages 2 and 3. The honest claim is
 that the test bed de-risks the channel, which is the item everything else waits on.
 
 **STG-20 A machine that does not come back is reinstalled, not diagnosed.** A dedicated server

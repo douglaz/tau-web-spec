@@ -58,6 +58,9 @@ exactly the set a hosted service picks on your behalf, silently and unlisted.
 **TRU-E1 — The cloud vendor**, under every design considered. It owns the machine's memory and
 disk. Host-key pinning buys transport safety, not vendor independence; vendor independence is
 what placing machines at several vendors buys.
+At LNVPS, the operator's shared email address links the separate per-machine accounts at the
+vendor, and HTTP ordering records the buyer's IP address and country
+(`docs/findings/2026-10-08-lnvps-research.md` §3).
 
 **TRU-E2 — The inference proxy: the one the operator funds, and the aggregator it appears to
 route through.** Procured inference uses the candidate order in `ARC-31b` behind a single
