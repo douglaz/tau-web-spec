@@ -537,8 +537,9 @@ The installation and identity-chain rehearsal ran on a disposable dedicated serv
 Android evidence. Robot's browser route is the pinned TLS tunnel, not direct CORS fetch.
 
 Construct the integrated harness from those results and the v1 credential/storage contracts,
-using the dedicated path as the test bed. The LNVPS phase-A result is recorded, and phase B
-waits for the operator's email verification and payment (`OPN-24`). The attest first-boot
+using the dedicated path as the test bed. Both LNVPS probe phases are recorded, and LNVPS
+passed its stage-1 target criteria on 2026-10-11 (`OPN-24`); what remains there is admitting its
+route under T39, not another probe. The attest first-boot
 finding stands for applicable routes (`OPN-3`), and the Omarchy question closed on plain Arch
 (`OPN-25`). Write the
 generic lockdown checklist (`OPN-14`). The live rehearsal has not demonstrated the harness, a

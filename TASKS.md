@@ -103,7 +103,7 @@ gated on it.
 - [ ] **T43 — Stage 1's build list**. Implement `STG-21`'s corrected LNVPS/plain-Arch
       definition and the stage-1 applicability rows in `07-conformance.md` at tau-web-rust's
       next spec pin. These include recovery, scanning, reports and re-entry; specification
-      edits exercise no harness. Completion still depends on T39 phase B,
+      edits exercise no harness. Completion still depends on T39's route admission (its phase B ran on 2026-10-11),
       T44's coordinated identity format/recovery change, the publisher's artifact-pin choice,
       and the integrated evidence those rows require.
 - [ ] **T48 — Stage 1: build placed-secret scanning and recovery re-arm** (`OPN-28`).
