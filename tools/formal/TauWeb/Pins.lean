@@ -1171,11 +1171,22 @@ def recordedEmptyRescueEvents : List Event :=
   [.rescueLast entryA none, .reset entryA .rescue,
    .rescueLast entryA (some rescueKeys), .connect entryA .rescue rescueKey]
 
+/-- No pre-reset read means no baseline, even when the later field shows fresh keys. -/
+def unreadRescueEvents : List Event :=
+  [.reset entryA .rescue,
+   .rescueLast entryA (some rescueKeys),
+   .connect entryA .rescue rescueKey]
+
 @[req "CHN-R1"] theorem recorded_empty_rescue_admitted :
     let k := run current init recordedEmptyRescueEvents
     k.pins.map (·.keys) = [rescueKeys] ∧
     k.confirmed = [(entryA, .rescue)] ∧
     k.sessions.map (·.keys) = [rescueKey] ∧ k.halts = [] := by decide +kernel
+
+@[req "CHN-R1"] theorem unread_rescue_baseline_refused :
+    let k := run current init unreadRescueEvents
+    k.pins = [] ∧ k.confirmed = [] ∧ k.sessions = [] ∧
+      k.halts.map (·.reason) = [.noPin] := by decide +kernel
 
 @[req "CHN-R1"] theorem reordered_rescue_refused :
     let k := run current init rescueReorderedEvents

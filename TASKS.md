@@ -65,6 +65,8 @@ gated on it.
       The follow-up repair accepts a recorded-empty rescue baseline, validates a compact
       group assembled from partial readings, and restores bounded rescue, job, attest and
       reset-confirmation paths with controls on the durable restart facts.
+      The closing repair corrects the security and witness-format explanations and emits
+      an unread rescue-baseline refusal with a mutation control.
       Jump-vendor qualification remains open under T45.
 - [ ] **T40 — Attest on a real first boot** (`OPN-3`). Formal attest-source work is done
       (2026-10-08): `ARC-43` and `SEC-11`, with author matching, durable single use across

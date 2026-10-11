@@ -203,7 +203,7 @@ between publications and membership of a presented key in a pinned set.
 | Member | Meaning |
 |---|---|
 | `pins` | The pins journaled, oldest first: the `entry`, what the pin is held `per` — `boot`, with the `boot` beside it, or `machine` — the `keys`, `source`, and installation ordinal; attest pins also carry the observed `author`. A pin from an earlier installation remains in history but is inactive. |
-| `publication_groups` | Installation groups in creation order, each with its `entry`, zero-based `installation`, and compact `observations` in recording order. Empty groups retain reinstall boundaries; a first empty reading is an observation, while repeats add nothing. |
+| `publication_groups` | Installation groups in creation order, each with its `entry`, zero-based `installation`, and compact `observations` in recording order. An empty reading is recorded when it opens a group. Reinstall opens a group with no observations, so its first empty reading adds none. Empty groups retain installation boundaries. |
 | `current_installations` | Each named machine's current installation ordinal, whether or not it has a publication or active pin. |
 | `pending_reinstall` | Machine entries whose latest reinstall has no new installed pin from any source. This is explanatory state, not the gate on an active pin. |
 | `consumed_introductions` | Machine entries whose introductions have been accepted, in journal order; retained across restart. Pins and consumption are appended together before any connection can use them. |
@@ -223,8 +223,8 @@ not evidence about real storage or cryptography. Installation groups, recorded o
 reinstall records are assumed durable too; their failed append is outside the companion.
 Restart preserves those journaled facts,
 including refusal of a second introduction and publication history; window and status-poll timing
-are outside this file. A halted handshake after an attempted connection is not proof that the
-harness made no contact before publication; `CNF-23` owns that implementation demonstration.
+are outside this file. A halted handshake after an attempted connection does not demonstrate
+`CNF-23`'s "no contact with the machine before an eligible pin is active" on the integrated harness.
 `CHN-5` says
 "the browser MUST stop listening for that installation's introduction and MUST refuse an
 introduction that arrives later, without journaling a pin or consuming an introduction".

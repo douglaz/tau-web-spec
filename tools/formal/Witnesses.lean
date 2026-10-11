@@ -894,6 +894,7 @@ def witnesses : List Trace := [
   { decls := ["TauWeb.Pins.reordered_rescue_refused"], events := rescueReorderedEvents },
   { decls := ["TauWeb.Pins.overlapping_rescue_refused"], events := rescueOverlappingEvents },
   { decls := ["TauWeb.Pins.recorded_empty_rescue_admitted"], events := recordedEmptyRescueEvents },
+  { decls := ["TauWeb.Pins.unread_rescue_baseline_refused"], events := unreadRescueEvents },
   { decls := ["TauWeb.Pins.connection_before_fill_refused"], events := beforeFillEvents },
   { decls := ["TauWeb.Pins.installed_pin_from_model_text_refused"], events := modelTextEvents,
     pair := some (.refused, "TauWeb.Pins.installed_pin_from_model_text_admitted") },

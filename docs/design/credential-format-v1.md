@@ -144,9 +144,10 @@ Each group is `{machine_index, installation, observations}`. The ordinal starts 
 per machine and increases by one only on vendor-API reinstall. `observations` is an array
 in recording order; each observation is `{keys: [...]}`, whose elements are
 `{family, fingerprint}`. `family` is exactly `ed25519`, `rsa` or `ecdsa`, at most once per
-observation; `fingerprint` uses the host-pin fingerprint format. An initial empty reading
-may appear as an empty `keys` array. A reinstall group with no newly observed fingerprint
-has `observations: []` and must remain distinct from every earlier group. Within a group,
+observation; `fingerprint` uses the host-pin fingerprint format. An empty reading that opens
+the initial group appears as an empty `keys` array. A reinstall group with no newly observed
+fingerprint has `observations: []` and must remain distinct from every earlier group; its
+first empty reading adds no observation. Within a group,
 record a subsequent observation only if it adds a fingerprint absent from that group's
 accumulated knowledge; exact, reordered, empty, and subset repeats add no record. Include
 incomplete readings and refused complete candidates that add knowledge. Do not reconstruct

@@ -432,11 +432,13 @@ On the dedicated path, attest (`CHN-R5`) and LNVPS retrieve (`CHN-R7`), where a 
 is stored before contact, the presented fingerprint's membership in the stored set is
 `TauWeb.Pins.check` (ADR-0032).
 The LNVPS first-contact, mismatch and reinstall traces are owned by `CHN-R7`; `CNF-23`
-requires the implementation to demonstrate no network contact before publication, outside
-the companion.
-Attest admission includes author matching, durable single use and first contact only — no
-introduction for a machine already holding an
-installed-system pin — under the companion's stated assumptions (`ARC-43`, `CHN-5`). The jump-host
+requires "no contact with the machine before an eligible pin is active", including after
+reinstall and restart. That implementation demonstration is outside the companion.
+`CHN-R5` says "accepts the fingerprints only if the seal's author is the sender key it planted";
+`CHN-5` says "Single-use MUST be enforced by the browser, not by any relay" and "Attest is a
+first contact only for the current installation." Its reinstall rule says "After a vendor-API
+reinstall, an unused introduction may establish the new pin only while its original browser
+window is still open." These are the companion's admission assumptions (`ARC-43`, `CHN-5`). The jump-host
 contact above remains outside it (T45); `check` has
 no branch that admits a handshake with no pin. Its halts are three and not one: nothing stored to check against, the key that does not
 match, and the halt `STA-20b`'s resume rule explains.

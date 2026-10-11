@@ -367,6 +367,10 @@ pins_control "formal: recorded-empty rescue baseline refused" \
   "sed -i 's/old.getD \[\]/old.getD fresh/' $PINS && grep -q 'old.getD fresh' $PINS" \
   recorded_empty_rescue_admitted
 
+pins_control "formal: unread rescue baseline treated as recorded empty" \
+  "sed -i 's/(k.snapshot.lookup m).any (fun old =>/(some ((k.snapshot.lookup m).getD none)).any (fun old =>/' $PINS && grep -qF '(some ((k.snapshot.lookup m).getD none)).any (fun old =>' $PINS" \
+  unread_rescue_baseline_refused
+
 # An always-refusing attest source is not safe admission. Its positive traces, including each
 # guard-removed acceptance, must fail while the universal refusal properties remain provable.
 pins_control "formal: valid attest admission disabled" \
