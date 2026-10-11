@@ -139,7 +139,8 @@ hands over the key. Where a vendor accepts boot configuration, *attest* can intr
 machine's key over Nostr; the real-first-boot experiment ran with the limits recorded in
 `docs/findings/2026-10-09-attest-first-boot.md`. Stage 1 at LNVPS cannot use it, because
 that vendor takes no buyer boot configuration (`docs/findings/2026-10-08-lnvps-research.md`
-§1); its published keys await live equality with presented keys under `OPN-24`. A first
+§1); its published keys equalled the presented keys in `OPN-24`'s phase B, and the route that
+admits them is T39's. A first
 contact with no pin is refused through the relay; where a vendor offers no route of its own, the first contact
 runs from a temporary jump host no model has touched, inside a pinned session — trust on first
 use moved off the relay, and labelled as that. **Every per-machine key the
@@ -244,9 +245,8 @@ that makes rental structural gates the phone-only acquisition experience.
 
 The first stage is **the owner's own scenario, with no tenant**: one LNVPS machine bought by
 Lightning invoice from the operator's wallet, running catalogue plain Arch with Hermes
-installed by its own installer (`STG-21`). Its first-contact probe awaits the paid HTTP
-phase B (`OPN-24`), after the operator's email verification. If LNVPS fails the target
-criteria, stage 1 waits. The path it
+installed by its own installer (`STG-21`). Its paid HTTP probe (`OPN-24`'s phase B) ran on
+2026-10-11 and LNVPS passed the target criteria; admitting its first-contact route is T39's. The path it
 replaced as first — one machine on a dedicated server, over the full channel — was rehearsed
 **by hand, once**, on a
 disposable server on September 8, 2026: both pinned SSH hops closed, and the install brief was

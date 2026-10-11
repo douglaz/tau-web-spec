@@ -1004,7 +1004,8 @@ them.
 
 For an LNVPS machine, the wallet invoice MUST come over TLS from the vendor's recorded HTTP
 order or renew response. If neither response supplies an invoice, no invoice is handed to the
-wallet. `OPN-24`'s phase B has yet to observe which response supplies one.
+wallet. In `OPN-24`'s phase B the order response carried none and the renew response supplied
+it (`docs/findings/2026-10-11-lnvps-phase-b.md`).
 
 **ARC-31** Payment evidence MUST NOT be overstated. A **settled invoice** proves the
 operator funded credits at a provider and bounds which proxies are available; it does not
@@ -1092,8 +1093,8 @@ federation across distinct vendors means several of those. Without something lik
 `OVR-5` collides with the operator's willingness to open billing relationships, and vendor
 diversity quietly collapses to whatever account they already had. A vendor that sells machines
 by Lightning invoice with no account is the same escape seen from the buying side; the first
-candidate has research and phase-A evidence (`OPN-24`); target-machine qualification awaits
-phase B.
+candidate passed `OPN-24`'s stage-1 target criteria in its phase B; as a jump vendor it is still
+open.
 
 **ARC-31b The candidate order is chosen by rule at pin time, read for availability at session
 start, and maintained by a job that proposes and never lands its change.** `ARC-31` says "the publisher

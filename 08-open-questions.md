@@ -109,8 +109,8 @@ configuration and no destroy route the operator can call. Its CORS evidence is h
 not a browser run. The NIP-90 phase-A probe
 (`docs/findings/2026-10-09-lnvps-nip90-probe.md`) found a live listener but every job order
 refused for zero address count; this was reported upstream as LNVPS/api#422. Nothing after
-an order was observed. Stage 1 waits for the paid HTTP phase B below, under `STG-21` and
-ADR-0042's 2026-10-10 amendment.
+an order was observed there. The paid HTTP phase B below, under `STG-21` and ADR-0042's
+2026-10-10 amendment, ran on 2026-10-11.
 
 **The stage-1 target fails** if any of these is observed: in phase B, the complete published
 host-key set has not appeared three hours after the machine reaches `running` — a few of the

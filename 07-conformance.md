@@ -821,8 +821,8 @@ construction. T48's minimum secret byte length is set and item 94 refuses a shor
 before completion: `SEC-5` requires one and leaves its number open. On LNVPS, completion also
 waits for T44's coordinated implementation of ADR-0042's decided vendor identity and recovery
 behavior: Restore and Replace are demonstrated with that identity after its format is available,
-never with one supplied ad hoc for the test. Completion also waits for `OPN-24`'s phase B and
-accepted first-contact route. The recovery row, the
+never with one supplied ad hoc for the test. Completion also waits for the first-contact route T39 admits from `OPN-24`'s phase B, which ran
+on 2026-10-11. The recovery row, the
 model-written check reports row and the re-entry row also pass.
 No tenant's artifact gates this stage: lnrent's delivery declaration and briefs 2–3 gate the
 third. Rehearsal/prototype results do not automatically check harness items. This is the
