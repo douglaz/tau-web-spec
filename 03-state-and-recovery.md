@@ -442,7 +442,7 @@ At LNVPS the unavailable-destroy treatment and reinstall's new first contact bel
 contact**". No old pin is reused for that system.
 
 **STA-16** The recovery sheet holds the allocation metadata of `STA-22b`, host-key
-fingerprints with the route that produced each pin (`CHN-R1`, `CHN-R5` or `CHN-R6`), the
+fingerprints with the route that produced each pin (`CHN-R1`, `CHN-R5`, `CHN-R6` or `CHN-R7`), the
 exposure ledger, placement metadata
 (`machine_index`, application name, secret name, path and placement time), each live machine's
 **machine state as approved** — its declaration in force (`ARC-39`), its class (`ARC-36a`),

@@ -55,7 +55,7 @@ work.
 The harness works from an operator's goal with no tenant. `STG-21` gives the stage-1 goal:
 "Launch a VPS paid in Bitcoin on plain Arch and install Hermes with its own installer."
 `STG-21` also says "Another operator's goal may name Omarchy". Stage 1 uses one LNVPS machine;
-its first-contact probe and integrated evidence remain open. A tenant is optional — briefs that make
+its published-key pin route is `CHN-R7`; integrated evidence remains open. A tenant is optional — briefs that make
 installing its software faster and more reliable, and presets for the facts its machines carry.
 Two are intended:
 

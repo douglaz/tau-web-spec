@@ -65,9 +65,10 @@ service among it.
 
 The minimum: no tenant key material. The scope of `key_material` is defined in
 [`delivery-declaration-v1.md`](../../design/delivery-declaration-v1.md); the separately
-classified application secrets in `SEC-5` row 12 use `place_secret`. What the harness itself
-places is expected: the machine's own SSH host keys, generated at install (`CHN-R1`), and the machine's own client
-public key in `authorized_keys` (`SEC-1`). No proposal and no amendment declares spendable key
+classified application secrets in `SEC-5` row 12 use `place_secret`. The machine's own SSH
+host keys, including those published from a stock image under `CHN-R7`, and its own client
+public key in `authorized_keys` (`SEC-1`) are expected machine material outside that list.
+No proposal and no amendment declares spendable key
 material on a machine whose class is multi-tenant (`ARC-37`).
 
 ### Drift checks

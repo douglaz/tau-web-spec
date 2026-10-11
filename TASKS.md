@@ -54,28 +54,11 @@ gated on it.
       tree as its CI gate.
       `bundle/inference.toml` has an empty model slug on purpose; the build fails until the
       publisher fills it.
-- [ ] **T39 — Stage 0: complete the LNVPS probe** (`OPN-24`). Phase A ran: the
-      production listener answered, but zero-address job orders were refused; see
-      `docs/findings/2026-10-09-lnvps-nip90-probe.md` and LNVPS/api#422. Execute
-      `OPN-24`'s "Phase B, after the operator's email verification" after that verification
-      and with payment by the operator's wallet; follow its stated order and
-      apply that requirement's separate target criteria. `STG-21` says "If LNVPS fails
-      `OPN-24`'s target criteria, stage 1 waits". If phase B shows the presented keys equal
-      the published ones, this task then admits the route: a new `CHN-R*` identifier for
-      LNVPS's published host keys, its `TauWeb.Pins.Source` case with re-emitted pins
-      witnesses, the sheet's route value, and `CHN-R2`'s header, which still names every
-      cloud VPS. The route waits for a non-empty capture that differs from any earlier one,
-      checks the presented key at first contact, treats a reinstall as a new first contact,
-      labels the pin as retrieved from the vendor's hypervisor scan, and states what stays
-      trusted: the vendor, and anyone able to answer on the machine's address inside the
-      vendor's network at scan time. Jump qualification
-      remains separate under `CHN-R6` and T45. Record results under `docs/findings/` without
-      committing machine identifiers, addresses or probe keys. *Phase B ran 2026-10-11*
-      (`docs/findings/2026-10-11-lnvps-phase-b.md`): the presented keys equal the published
-      ones, also after a reinstall, and LNVPS passes the target criteria. What remains is
-      admitting the route as above, with the named fill-time wait (about an hour measured) and
-      the `CONTEXT.md` Retrieve entry restated around the browser accepting only the vendor's
-      published observation, since at a scan whoever answers on the address presents the key.
+- [x] **T39 — Admit LNVPS published host keys.** The paid phase-B finding
+      (`docs/findings/2026-10-11-lnvps-phase-b.md`) met `OPN-24`'s stage-1 target criteria.
+      `CHN-R7` owns the admitted route and wait; its formal companion, witnesses, sheet
+      provenance and integrated conformance owners are recorded there and in `07-conformance.md`.
+      Jump-vendor qualification remains open under T45.
 - [ ] **T40 — Attest on a real first boot** (`OPN-3`). Formal attest-source work is done
       (2026-10-08): `ARC-43` and `SEC-11`, with author matching, durable single use across
       restart, checked admission/refusal traces and emitted witnesses. The empirical
@@ -103,8 +86,8 @@ gated on it.
 - [ ] **T43 — Stage 1's build list**. Implement `STG-21`'s corrected LNVPS/plain-Arch
       definition and the stage-1 applicability rows in `07-conformance.md` at tau-web-rust's
       next spec pin. These include recovery, scanning, reports and re-entry; specification
-      edits exercise no harness. Completion still depends on T39's route admission (its phase B ran on 2026-10-11),
-      T44's coordinated identity format/recovery change, the publisher's artifact-pin choice,
+      edits exercise no harness. The route is admitted in `CHN-R7`; completion still depends on its integrated
+      conformance, T44's coordinated identity format/recovery change, the publisher's artifact-pin choice,
       and the integrated evidence those rows require.
 - [ ] **T48 — Stage 1: build placed-secret scanning and recovery re-arm** (`OPN-28`).
       Implement `SEC-5` row 23 and scan semantics, `ARC-43`'s jobs and fallback, and `STA-16`'s
@@ -360,7 +343,7 @@ gated on it.
       `TauWeb.Pins.Params`, each with a refused-and-admitted witness pair; the source
       distinction's is `TauWeb.Pins.installed_pin_from_model_text_refused` and
       `TauWeb.Pins.installed_pin_from_model_text_admitted`.
-      `docs/design/pins-witnesses-v2.json` is its file; the controls, and each one's exact red
+      `CONTEXT.md` lists the current pins witness file; the controls, and each one's exact red
       set, are the `pins_control` calls in `tools/check-controls.sh`, beside the one that adds
       a source with nothing it may pin.
 - [x] **T26 — Measure `STA-23` unlock latency on the first-stage phone.**

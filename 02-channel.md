@@ -34,27 +34,27 @@ flowchart TD
     START([Need a host-key fingerprint]) --> PROD{Which product?}
     PROD -->|Dedicated / Robot| R1["CHN-R1 — retrieve<br/>rescue API publishes host_key<br/>✅ run by hand, the construction test bed"]
     PROD -->|Hetzner Cloud rescue| R2{"CHN-R2 — retrieve"}
+    PROD -->|LNVPS installed system| R7["CHN-R7 — retrieve<br/>published hypervisor scan<br/>✅ admitted for stage 1"]
     R2 --> R2D["☠️ DEAD, verified<br/>rescue returns an action and a<br/>root password. No host key"]
     R2D --> BOOT{"Does the harness compose<br/>the machine's boot configuration?"}
     BOOT -->|"Yes — boot configuration"| R5["CHN-R5 — attest<br/>per-machine derived sender key in user-data;<br/>machine gift-wraps its fingerprints to a<br/>per-machine derived recipient over Nostr<br/>🔶 first-boot finding; browser checks open — OPN-3"]
     BOOT -->|"No — an untyped vendor scope,<br/>or a vendor with no route of its own"| R6["CHN-R6 — jump host<br/>first contact inside a session pinned<br/>to a temporary, model-free machine<br/>🔶 an acceptable weaker mode, labelled"]
     R5 -->|"if the post never arrives"| RC["Recreate the machine.<br/>No weaker route is entered"]
     R6 -.->|"the jump host itself is pinned by attest"| R5
-    R6 -.->|"or by its vendor's own retrieve route, where one exists"| RJ["a jump vendor's retrieve route<br/>LNVPS published keys unqualified — OPN-24"]
+    R6 -.->|"or by a qualified jump vendor's retrieve route"| RJ["Jump-vendor qualification<br/>remains open — OPN-24"]
     R5 -.->|"was the only hope before attest"| R3["CHN-R3 — inject<br/>private host key rides in user-data,<br/>re-fetchable from metadata forever<br/>🚫 ABANDONED"]
     R4["CHN-R4 — trust on first use<br/>🚫 REFUSED through the relay"]
     classDef live fill:#e8f5e9,stroke:#4a7c59
     classDef dead fill:#ffebee,stroke:#a54a4a
     classDef pending fill:#fff8e1,stroke:#a5934a
-    class R1 live
+    class R1,R7 live
     class R2D,R3,R4 dead
     class R5,R6,RC,RJ pending
 ```
 
-LNVPS publishes host keys, but `OPN-24` requires "the presented keys equal the published keys
-in every family before a first-contact route is accepted". No `CHN-R1` extension or
-formal pin-source case is implied by the documented field
-(`docs/findings/2026-10-08-lnvps-research.md` §1).
+LNVPS's published host keys are admitted by `CHN-R7`, on the phase-B observations
+([finding](./docs/findings/2026-10-11-lnvps-phase-b.md)); `OPN-24` retains the probe's
+historical criteria and the separate jump-vendor qualification.
 
 **CHN-R1 — retrieve, dedicated servers.** Hetzner's Robot webservice exposes `host_key` on
 `GET /boot/{server-number}/rescue/last`. **Run 2026-09-08** (`CNF-48`,
@@ -116,7 +116,7 @@ machine *and pass the fingerprint check*, because the fingerprint is genuinely t
 was pinned. Reusing an image for the operating system is fine and is the point; reusing it
 for identity is not.
 
-**CHN-R2 — retrieve, cloud VPS. Dead, and verified dead.** Hetzner Cloud's rescue action
+**CHN-R2 — retrieve, Hetzner Cloud rescue. Dead, and verified dead.** Hetzner Cloud's rescue action
 returns an action and a root password and no host key, checked against the API client. The
 cloud path's identity problem is `CHN-R5`'s, designed for exactly it; `CHN-R6` serves a
 vendor with no route of its own, `CHN-R3` is abandoned and `CHN-R4` is refused.
@@ -261,6 +261,52 @@ network, or the jump side together with the relay. These are `TRU-E11`'s row.
 obtained: retrieved, attested, or *first contact trusted through a jump host at* the named
 vendor, with the date. It never describes this route as pinned out of band, and destroying the
 jump host does not remove the line.
+
+**CHN-R7 — retrieve, LNVPS.** For the installed-system host-key pin, the browser MUST read
+the published host keys from the machine's recorded vendor status response by direct fetch
+over TLS terminating in the browser. This is a direct path under `CHN-10`; `CHN-12a` remains
+the pinned-tunnel rule for a vendor that refuses browser fetch. The publication is the
+vendor's hypervisor scan of whatever answers on the machine's address, served over TLS
+([research](./docs/findings/2026-10-08-lnvps-research.md) §1); the phase-B finding records
+matching presented and published keys in every family before and after reinstall
+([finding](./docs/findings/2026-10-11-lnvps-phase-b.md)).
+
+Before any connection to the machine, the harness MUST wait for a complete, non-empty
+published set containing all three scanned families: Ed25519, RSA and ECDSA. An absent,
+empty or partial set admits no contact. A candidate MUST share no fingerprint with **any**
+earlier published set recorded for that machine, including a set older than the immediately
+preceding one. A changed set retaining even one earlier fingerprint is refused. This
+history includes complete recorded sets refused for overlap, and is kept per machine across
+restart and reinstall; incomplete readings during a fill are not earlier complete sets. A
+vendor-API reinstall is a new first contact under this route: the old pin authorizes no
+contact during the wait, even if
+the old publication or key is still observable. A complete, disjoint publication admits a
+new installed-system pin only for that machine.
+
+The first connection MUST present a key in that admitted set; a key outside it MUST halt
+under `SEC-11`, whose rule is "An SSH session MUST check the host key against the stored
+fingerprint, and a key that does not match MUST halt the session." Later contacts keep that
+check. Status polling during the wait uses `bundle/timing.toml`'s
+`lnvps.published_key_poll_interval`; the wait ends at
+`lnvps.published_key_wait_max`. Past that maximum, first contact is unresolved: the harness
+MUST offer only operator-chosen vendor reinstall, which starts a new first contact, or
+abandonment under `ARC-22`. It MUST NOT log in, retry the unresolved contact on a timer,
+automatically reinstall, fall back to an unpinned login, or trust on first use. Abandonment
+stops the machine with renewal off while it remains existing and billed until the vendor's
+stated deletion date (`ARC-22`). Polling during the allowed wait is not a retry after its
+deadline.
+
+The trust display MUST identify the pin as **retrieved from the vendor's hypervisor scan**,
+never attested, and MUST state the residual in full: **the vendor, and anyone able to
+answer on the machine's address inside the vendor's network at scan time**. This is a
+vendor-published observation, not an attestation.
+
+`TauWeb.Pins.complete` and `TauWeb.Pins.fresh` state the symbolic publication guards;
+`TauWeb.Pins.pending_reinstall_has_no_pin` states what the previous pin admits during a
+reinstall wait. The named refused and admitted traces in the pins witness file exercise
+partial overlap, older history, machine isolation and membership. These properties concern
+harness knowledge and attempted handshakes; `CNF-23` requires absence of contact on the
+integrated harness.
 
 **CHN-R4 — trust on first use. Refused through the relay.** Accepting the key on first
 connect, pinning it and alarming on any later change is what ordinary SSH clients do, and the

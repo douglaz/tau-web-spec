@@ -107,15 +107,21 @@ maintained cloud machine whose pin is lost with no sheet is destroyed and recrea
 (`STA-15`). Attest's introduction and a jump host's first contact each introduce a machine, so
 neither re-pins one that already exists. Whether a later rule should allow it is not decided.
 
-**The formal companion carries none of this yet.** Its pin sources are the dedicated path's;
-a jump-host source is owed with the route (`TASKS.md`).
+**At this decision's date the formal companion did not carry the jump-host contact.**
+`CHN-R6` remains outside its pin sources (T45); the later `CHN-R7` source does not model a
+jump-host introduction.
 
 ## Amended 2026-10-09: stage-1 first contact
 
-The consequence above calling attest load-bearing for stage 1 is superseded. `STG-21` now
-says "First contact waits on `OPN-24`'s live published-key probe". LNVPS accepts no buyer
-boot configuration (`docs/findings/2026-10-08-lnvps-research.md` §1); a live comparison of
-presented and published keys is still owed before its route can be admitted. Attest remains
+The consequence above calling attest load-bearing for stage 1 is superseded. At this
+amendment's date LNVPS's live published-key comparison was pending. LNVPS accepts no buyer
+boot configuration (`docs/findings/2026-10-08-lnvps-research.md` §1). Attest remains
 available where a vendor accepts boot configuration; the first-boot experiment and its limits
 are recorded in `docs/findings/2026-10-09-attest-first-boot.md`. The jump host remains a
 stage-2 route on `CHN-R6`'s conditions, and its vendor is unqualified.
+
+## Amended 2026-10-11: published-key route admitted
+
+The phase-B comparison is recorded in `docs/findings/2026-10-11-lnvps-phase-b.md` and
+`CHN-R7` now admits the LNVPS installed-system pin. The through-relay first-contact refusal
+above still applies when no pin has been admitted; the jump-vendor question remains open.

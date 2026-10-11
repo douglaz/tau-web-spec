@@ -120,7 +120,12 @@ carries `jump_host: true`, recording that it is in no session's bound set, and n
 allocation carries the field; a failed allocation may
 have no vendor resource ID, but retains its index. No seed or derived private key is included.
 Each `host_pins` entry names the host-key route that produced it: `retrieve` (`CHN-R1`),
-`attest` (`CHN-R5`) or `jump_host` (`CHN-R6`). Whether the installation carries an artifact
+`attest` (`CHN-R5`), `jump_host` (`CHN-R6`) or `lnvps_retrieve` (`CHN-R7`). The last
+value records the retrieved LNVPS hypervisor-scan provenance and is restored with the pin;
+it does not authorize a new first contact. Import MUST refuse a missing, unknown or malformed
+route value before binding, as it does other malformed payload fields. This adds a value to
+the existing version-3 payload; it changes no payload shape or version, and there is no
+deployed legacy format to migrate. Whether the installation carries an artifact
 pin is a different fact, carried per machine below. Each `machine_states` entry is
 `{machine_index, declaration, class, access_model, installation, weaker_modes, applications}`: the journaled
 declaration in force as a delivery-declaration v1 document, the class `ARC-36a` records, the

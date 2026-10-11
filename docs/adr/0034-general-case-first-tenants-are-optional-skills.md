@@ -176,10 +176,14 @@ presuppositions are superseded; the historical goal and rejected options above r
 stage 1 waits" and "The vendor's own catalogue supplies plain Arch; Hermes is installed with
 its own installer".
 LNVPS takes no buyer boot configuration (`docs/findings/2026-10-08-lnvps-research.md` §1),
-so stage 1 waits on the live published-key probe rather than attest. Hetzner Cloud's live
+so at this amendment's date stage 1 awaited the live published-key probe rather than attest. Hetzner Cloud's live
 catalogue has no Arch image (same finding, last section), so it is no stage-1 alternative.
 Omarchy research and the route-C prototype
 (`docs/findings/2026-10-08-omarchy-headless-research.md`,
 `docs/findings/2026-10-08-omarchy-route-c-prototype.md`) support `OPN-25`'s plain-Arch
 restatement. The jump-vendor route remains governed by `CHN-R6`; for LNVPS's still-open
 qualification, see `OPN-24` and T45.
+
+*Amended 2026-10-11:* The paid phase-B finding met the stage-1 target criteria and
+`CHN-R7` now admits LNVPS's published host keys. The jump-vendor qualification remains
+separate under `CHN-R6` and T45. Integrated stage-1 conformance remains open.

@@ -328,7 +328,7 @@ PYCONTROL
 # the independent bounded property turn red. The rescue-source witness fixes its own guard.
 pins_control "formal: the admission source collapsed" \
   "sed -i 's/^@\[req \"ARC-43\"\] def current : Params := { sourceAdmitsPin := true }$/@[req \"ARC-43\"] def current : Params := { sourceAdmitsPin := false }/' $PINS && grep -q 'def current : Params := { sourceAdmitsPin := false }' $PINS" \
-  installed_pin_from_model_text_refused wrong_author_refused wrong_author_then_valid bounded
+  installed_pin_from_model_text_refused published_rescue_refused wrong_author_refused wrong_author_then_valid bounded
 
 pins_control "formal: attest admits a forbidden rescue pin" \
   "sed -i 's/| .attest _, .boot _ => false/| .attest _, .boot _ => true/' $PINS && grep -q '| .attest _, .boot _ => true' $PINS" \
@@ -375,6 +375,39 @@ pins_control "formal: restart forgets consumed introductions" \
   "sed -i 's/| .restart => { k with sessions := \[\], halts := \[\] }/| .restart => { k with consumed := [], sessions := [], halts := [] }/' $PINS && grep -q '| .restart => { k with consumed := \[\]' $PINS" \
   consumed_step repeat_attest_refused bounded
 
+# Both directions of the new source branch: admitting a rescue pin violates source scope,
+# while an always-refusing installed branch fails successful publication evidence.
+pins_control "formal: LNVPS publication admits a rescue pin" \
+  "sed -i 's/| .published, .boot _ => false/| .published, .boot _ => true/' $PINS && grep -q '| .published, .boot _ => true' $PINS" \
+  no_rescue_session_before_fill published_rescue_refused bounded
+
+pins_control "formal: valid LNVPS publication disabled" \
+  "sed -i 's/| .published, .machine => true/| .published, .machine => false/' $PINS && grep -q '| .published, .machine => false' $PINS" \
+  published_source_admitted partial_then_complete_admitted incomplete_publication_admitted_without_guard \
+  overlapping_publication_admitted_without_guard old_pin_admitted_without_reinstall_guard \
+  fresh_reinstall_admitted publication_history_per_machine replacement_without_reinstall_refused \
+  replacement_without_reinstall_admitted_without_guard
+
+pins_control "formal: incomplete LNVPS publication admitted" \
+  "sed -i 's/publishedComplete : Bool := true/publishedComplete : Bool := false/' $PINS && grep -q 'publishedComplete : Bool := false' $PINS" \
+  incomplete_publication_refused empty_publication_refused bounded
+
+pins_control "formal: overlapping LNVPS publication admitted" \
+  "sed -i 's/publishedFresh : Bool := true/publishedFresh : Bool := false/' $PINS && grep -q 'publishedFresh : Bool := false' $PINS" \
+  overlapping_publication_refused older_publication_still_refused_after_restart \
+  refused_complete_publication_remains_history
+
+pins_control "formal: reinstall keeps old installed pin active" \
+  "sed -i 's/reinstallRetiresPin : Bool := true/reinstallRetiresPin : Bool := false/' $PINS && grep -q 'reinstallRetiresPin : Bool := false' $PINS" \
+  overlapping_publication_refused overlapping_publication_admitted_without_guard \
+  older_publication_still_refused_after_restart refused_complete_publication_remains_history \
+  old_pin_refused_pending_reinstall \
+  fresh_reinstall_admitted publication_history_per_machine
+
+pins_control "formal: publication replaces pin without reinstall" \
+  "sed -i 's/publishedFirstContact : Bool := true/publishedFirstContact : Bool := false/' $PINS && grep -q 'publishedFirstContact : Bool := false' $PINS" \
+  replacement_without_reinstall_refused
+
 # A missing toolchain is a red gate, not a skip.
 expected=$((expected + 1))
 if out="$(env PATH=/nonexistent "$(command -v bash)" "$FORMAL" 2>&1)"; then
@@ -387,8 +420,8 @@ fi
 
 WIT=tools/check_witnesses.py
 WITFILE=docs/design/allocation-witnesses-v1.json
-PINSWIT=docs/design/pins-witnesses-v2.json
-PINSEMIT=tools/formal/.lake/witnesses/pins-witnesses-v2.json
+PINSWIT=docs/design/pins-witnesses-v3.json
+PINSEMIT=tools/formal/.lake/witnesses/pins-witnesses-v3.json
 
 # Compared against the emission the formal gate wrote before this script ran: one expected
 # outcome flipped by hand in the committed file is red, naming the module.
@@ -406,24 +439,24 @@ control "witnesses: a committed file no module emits" "$WIT" \
   "cp $WITFILE docs/design/orphan-witnesses-v1.json" \
   "WITNESS DRIFT" "orphan-witnesses-v1.json is committed but no module emits it"
 
-# The renamed pins file is checked in both directions; the obsolete v1 name must be visible
+# The renamed pins file is checked in both directions; the obsolete v2 name must be visible
 # as an orphan. Each mutation gives the witness gate exactly one finding.
-passes "witnesses: unchanged v1 modules and pins v2" "$WIT" \
+passes "witnesses: unchanged v1 modules and pins v3" "$WIT" \
   "test -f $WITFILE && test -f $PINSWIT && test -f $PINSEMIT"
 
-control "witnesses: pins v2 committed drift" "$WIT" \
-  "sed -i 's/\"schema\": 2/\"schema\": 1/' $PINSWIT && ! cmp -s $PINSWIT $PINSEMIT" \
+control "witnesses: pins v3 committed drift" "$WIT" \
+  "sed -i 's/\"schema\": 3/\"schema\": 1/' $PINSWIT && ! cmp -s $PINSWIT $PINSEMIT" \
   "WITNESS DRIFT" "module pins"
 
-control "witnesses: pins v2 missing committed counterpart" "$WIT" \
+control "witnesses: pins v3 missing committed counterpart" "$WIT" \
   "rm $PINSWIT && test ! -e $PINSWIT" \
-  "WITNESS DRIFT" "pins-witnesses-v2.json is not committed"
+  "WITNESS DRIFT" "pins-witnesses-v3.json is not committed"
 
-control "witnesses: obsolete pins v1 orphan" "$WIT" \
-  "cp $PINSWIT docs/design/pins-witnesses-v1.json" \
-  "WITNESS DRIFT" "pins-witnesses-v1.json is committed but no module emits it"
+control "witnesses: obsolete pins v2 orphan" "$WIT" \
+  "cp $PINSWIT docs/design/pins-witnesses-v2.json" \
+  "WITNESS DRIFT" "pins-witnesses-v2.json is committed but no module emits it"
 
-control "witnesses: pins v2 emission carrying a CNF identifier" "$WIT" \
+control "witnesses: pins v3 emission carrying a CNF identifier" "$WIT" \
   "sed -i 's/\"module\": \"pins\"/\"module\": \"pins\", \"exercised_by\": \"CNF-18\"/' $PINSEMIT && grep -q CNF-18 $PINSEMIT" \
   "WITNESS DRIFT" "module pins carries a CNF identifier"
 

@@ -1,5 +1,5 @@
 import TauWeb.Req
-/-! Module 5, the host-pin lifecycle (ADR-0032's inventory): `SEC-11`, `CHN-R1`, `CHN-R5`, `CHN-5` and `ARC-43`.
+/-! Module 5, the host-pin lifecycle (ADR-0032's inventory): `SEC-11`, `CHN-R1`, `CHN-R5`, `CHN-R7`, `CHN-5` and `ARC-43`.
 
 **What a pin is held per is a type.** `CHN-R1`: "Every rescue boot has fresh host keys, so the
 pin is per boot, not per machine", and the installed system's keys are "generated there, per
@@ -7,24 +7,30 @@ machine, and read before reboot". `Per` is those two cases and has no third, so 
 held without saying which it is, and the boot case carries the boot that published it.
 
 **A pin's admission source is a type.** `Source` distinguishes the vendor's `/rescue/last`,
-the harness's `ready_to_reset` output, the author observed on an attest seal, and model text.
+the harness's `ready_to_reset` output, the author observed on an attest seal, LNVPS's published
+hypervisor scan, and model text.
 `admits` pairs sources with what they may pin and checks an attest author against the sender
-planted for that machine. `journal` enforces single use, durable acceptance before use, and
-first contact only: an introduction for a machine already holding an installed-system pin from
-any source is refused. Each guard has a refused-and-admitted witness pair; model text remains
-the source guard's pair.
+planted for that machine. `journal` enforces attest single use, durable acceptance before use,
+and first contact only. LNVPS publications have separate completeness, per-machine freshness,
+reinstall retirement and first-contact guards, each with refused-and-admitted witnesses.
+Model text remains the original source guard's pair.
 
-**Assumptions, not cryptographic or storage proofs.** Sender and host-key sets are opaque
-ordinals. `plantedSender` represents the browser's fixed per-machine sender association, not
+**Assumptions, not cryptographic or storage proofs.** Fingerprints are symbolic ordinals; a
+host-key set is an ordered list representing Ed25519, RSA and ECDSA. A publication event is
+an observed vendor response, not proof of its origin, TLS, scan honesty or absence of contact.
+`plantedSender` represents the browser's fixed per-machine sender association, not
 an author supplied by the introduction. An attest event reports the seal author after unwrap
 and the storage outcome if appending the machine, keys and consumed state together is attempted.
 A successful append is assumed durable and atomic; a failed append writes none of them. `restart` retains
-that journal and drops session/handshake records. This proves the acceptance rule across such
+that journal, the complete-publication history and pending reinstall state, and drops
+session/handshake records. Durability of status observations and reinstall records is assumed;
+their failed append is not an event here. This proves the acceptance rule across such
 restarts, not real browser durability, signature verification, first-boot timing, or window expiry.
 Attest events are delivered while the browser's introduction window is open; timing remains T40.
 
 **A connection is checked against the pin for that machine, that system and — in rescue — that
-boot.** `pinFor` looks the pin up at `perNow`, what the machine's pins are held per now, so a pin
+boot.** `pinFor` looks the pin up at `perNow`, what the machine's pins are held per now, unless
+a reinstall is pending, when the old installed pin admits nothing. A pin
 from the previous rescue boot is in the journal and admits nothing: the reset into rescue begins
 the next boot as far as the harness is concerned, and until `/rescue/last` publishes that boot's
 set there is no pin to check against and the client "MUST wait" (`CHN-R1`). That is the whole of
@@ -38,9 +44,8 @@ separates `mismatch`, the error, from `confirmsReset`, which is `STG-4`'s
 "The reset into the installed system is confirmed when sshd answers with the installed pin" met
 while the probe was reading the old pin. Neither is a session: a halt admits nothing either way.
 
-What the module omits: the fingerprints. A host-key set is an ordinal and never SHA-256 bytes or
-key material, the vendor's `authorized_key[]` input side is another rule's, and the poll that
-waits some eighty seconds for `/rescue/last` is a timer, which never enters a witness file
+What the module omits: fingerprint bytes and key material. The vendor's `authorized_key[]` input
+side is another rule's, and all polling and deadlines are timers, which never enter a witness file
 (ADR-0032, "What it never carries"). The dispatch of a reset is module 4's — whether the
 operation may be dispatched at all is `TauWeb.Dispatch.admit`, and whether a planned reset may be
 offered is `TauWeb.Dispatch.offersReset` — so a `reset` here is one already dispatched, and this
@@ -64,10 +69,11 @@ abbrev Entry := Nat
 next one for each reset dispatched. Never the vendor's `boot_id` and never a clock. -/
 abbrev Boot := Nat
 
-/-- A host-key set, opaque. `CHN-R1`: the field "holds **SHA-256 fingerprints, one per host-key
-algorithm, and no public key material**"; an ordinal here, so that what is compared is which set
-was presented and never its bytes. -/
-abbrev Keys := Nat
+/-- Symbolic fingerprints, never SHA-256 bytes or public keys. A set is an ordered list: on
+the LNVPS route its three places represent Ed25519, RSA and ECDSA, and a shorter list is
+incomplete. Membership and partial overlap remain expressible. -/
+abbrev Fingerprint := Nat
+abbrev Keys := List Fingerprint
 
 /-- Symbolic public sender identity, never key bytes. -/
 abbrev Sender := Nat
@@ -102,6 +108,7 @@ so the production rule can refuse it. -/
   | rescueLast
   | readyToReset
   | attest (author : Sender)
+  | published
   | modelText
   deriving DecidableEq, Repr
 
@@ -131,6 +138,10 @@ pair. -/
   attestSingleUse : Bool := true
   attestDurable : Bool := true
   attestFirstContact : Bool := true
+  publishedComplete : Bool := true
+  publishedFresh : Bool := true
+  reinstallRetiresPin : Bool := true
+  publishedFirstContact : Bool := true
   deriving DecidableEq, Repr
 
 /-- The rule as it stands. -/
@@ -149,6 +160,8 @@ without what it may pin admits nothing rather than everything. -/
     | .readyToReset, .boot _ => false
     | .attest author, .machine => !p.attestAuthorMatches || author == plantedSender m
     | .attest _, .boot _ => false
+    | .published, .machine => true
+    | .published, .boot _ => false
     | .modelText, _ => false
 
 /-! ## What the harness knows -/
@@ -159,8 +172,8 @@ structure Session where
   system : System
   /-- The rescue boot the machine was in when the connection was made. -/
   boot : Boot
-  /-- The set the far sshd presented, which the pin's is. -/
-  keys : Keys
+  /-- The symbolic fingerprint the far sshd presented, a member of the pin's set. -/
+  keys : Fingerprint
   /-- The pin it was admitted against. -/
   pin : Pin
   deriving DecidableEq, Repr
@@ -178,7 +191,7 @@ inductive Halt
 structure Halted where
   entry : Entry
   system : System
-  keys : Keys
+  keys : Fingerprint
   reason : Halt
   deriving DecidableEq, Repr
 
@@ -215,6 +228,11 @@ structure Knowledge where
   sessions : List Session
   /-- The handshakes halted, newest first. -/
   halts : List Halted
+  /-- Earlier complete LNVPS publications observed for this machine, including refused ones,
+  retained across reinstall and restart. Incomplete readings cannot poison a filling set. -/
+  publishedHistory : List (Entry × Keys) := []
+  /-- Reinstalled machines awaiting a new, admitted publication. -/
+  pendingReinstall : List Entry := []
   deriving DecidableEq, Repr
 
 /-- Nothing known: no pin, no boot counted, nothing outstanding. -/
@@ -240,7 +258,8 @@ the boot the machine is in. A pin from the previous boot is still in the journal
 `CHN-R1` makes that the whole rule — "**with a set different from the one snapshotted before the
 reset**" is a new pin, not the old one reused. -/
 @[req "SEC-11"] def pinFor (k : Knowledge) (m : Entry) (sys : System) : Option Pin :=
-  pinAt k m (perNow k m sys)
+  if sys == .installed && k.pendingReinstall.contains m then none
+  else pinAt k m (perNow k m sys)
 
 /-- `CHN-R1`'s confirmation of the reset into rescue: the field fills "with a set different from
 the one snapshotted before the reset". Three halves and not one — the reset is outstanding, the
@@ -261,8 +280,9 @@ installed system is outstanding: the installed pin `ready_to_reset` journaled be
 /-- `STG-4`: "The reset into the installed system is confirmed when sshd answers with the
 installed pin." Read of the handshake and not of the probe: which pin the harness was checking
 against does not change what the far side presented. -/
-@[req "STA-20b"] def confirmsInstalled (k : Knowledge) (m : Entry) (keys : Keys) : Bool :=
-  (expectedNext k m).any (· == keys)
+@[req "STA-20b"] def confirmsInstalled (k : Knowledge) (m : Entry)
+    (key : Fingerprint) : Bool :=
+  (expectedNext k m).any (·.contains key)
 
 /-- What a handshake comes to. -/
 inductive Check
@@ -275,10 +295,11 @@ not match MUST halt the session"; with no pin stored there is nothing to check a
 `CHN-R1` makes a wait and never a first-use acceptance. A halt the reset explains — the presented
 set is the pin the reset intent named — is `STA-20b`'s confirmation and not the error. Total, and
 the order is the function's, so no halt can be answered out of its place. -/
-@[req "SEC-11"] def check (k : Knowledge) (m : Entry) (sys : System) (keys : Keys) : Check :=
+@[req "SEC-11"] def check (k : Knowledge) (m : Entry) (sys : System)
+    (keys : Fingerprint) : Check :=
   match pinFor k m sys with
   | some pin =>
-    if keys == pin.keys then .admitted pin
+    if pin.keys.contains keys then .admitted pin
     else if confirmsInstalled k m keys then .halted .confirmsReset
     else .halted .mismatch
   | none => if confirmsInstalled k m keys then .halted .confirmsReset else .halted .noPin
@@ -298,12 +319,17 @@ inductive Event
   /-- First-boot observation and the outcome if its atomic journal append is attempted. The author is
   untrusted input; the planted sender is read independently through `plantedSender`. -/
   | attest (entry : Entry) (per : Per) (keys : Keys) (author : Sender) (durable : Bool)
+  /-- A recorded LNVPS status response, ordered by Ed25519, RSA and ECDSA. A missing
+  family shortens the list. No network or timer behavior is proved here. -/
+  | published (entry : Entry) (per : Per) (keys : Keys)
+  /-- A vendor-API reinstall starts a new first contact for this machine. -/
+  | reinstall (entry : Entry)
   /-- Restart from the durable journal, without volatile session/handshake records. -/
   | restart
   /-- A host-key set named in model text, held per what the model says. -/
   | claim (entry : Entry) (per : Per) (keys : Keys)
   /-- A connection attempt: the system it is made to, and the set the far sshd presents. -/
-  | connect (entry : Entry) (system : System) (keys : Keys)
+  | connect (entry : Entry) (system : System) (key : Fingerprint)
   deriving DecidableEq, Repr
 
 /-- The one place a pin enters the journal, so that the source decides in one place. An attest
@@ -319,10 +345,32 @@ installed-system pin already held for that machine. -/
              consumed := if pin.source.isAttest then pin.entry :: k.consumed else k.consumed }
   else k
 
+/-- A published set has one fingerprint in each scanned family, in their fixed order. -/
+@[req "CHN-R7"] def complete (keys : Keys) : Bool :=
+  keys.length == 3
+
+/-- Every fingerprint must be new for this machine, including against older-than-last sets.
+The history contains complete recorded publications, including refused candidates, but not
+intermediate incomplete status readings. -/
+@[req "CHN-R7"] def fresh (k : Knowledge) (m : Entry) (keys : Keys) : Bool :=
+  k.publishedHistory.all fun (entry, old) =>
+    entry != m || keys.all (fun key => !old.contains key)
+
+/-- An LNVPS publication may establish the initial installed pin or a new one after an
+operator-chosen reinstall, but cannot silently replace a pin between first contacts. -/
+@[req "CHN-R7"] def publicationAdmissible (p : Params) (k : Knowledge) (m : Entry)
+    (pr : Per) (keys : Keys) : Bool :=
+  admits p .published pr m &&
+  (!p.publishedComplete || complete keys) &&
+  (!p.publishedFresh || fresh k m keys) &&
+  (!p.publishedFirstContact || k.pendingReinstall.contains m ||
+    (pinAt k m .machine).isNone)
+
 /-- The reset into the installed system, recorded confirmed where the handshake confirmed it
 (`STG-4`) — which is read of the presented set and not of the pin the probe was checking
 against, so an admitted session and a halt against the old pin record it alike. -/
-@[req "STA-20b"] def confirmIfReset (k : Knowledge) (m : Entry) (keys : Keys) : Knowledge :=
+@[req "STA-20b"] def confirmIfReset (k : Knowledge) (m : Entry)
+    (keys : Fingerprint) : Knowledge :=
   if confirmsInstalled k m keys then
     { k with awaiting := k.awaiting.filter (fun a => !(a.entry == m && a.into == System.installed)),
              confirmed := (m, System.installed) :: k.confirmed }
@@ -351,6 +399,19 @@ the presented set is the reset's confirmation or is not, whichever pin the probe
       else { k with snapshot := (m, keys) :: k.snapshot }
   | .readyToReset m f => journal p k ⟨m, .machine, f, .readyToReset⟩
   | .attest m pr f author durable => journal p k ⟨m, pr, f, .attest author⟩ durable
+  | .published m pr keys =>
+    let mayAdmit := publicationAdmissible p k m pr keys
+    let k := if pr == .machine && complete keys then
+      { k with publishedHistory := (m, keys) :: k.publishedHistory }
+      else k
+    if mayAdmit then
+      let k := journal p k ⟨m, pr, keys, .published⟩
+      { k with pendingReinstall := k.pendingReinstall.filter (· != m) }
+    else k
+  | .reinstall m =>
+    if p.reinstallRetiresPin then
+      { k with pendingReinstall := m :: k.pendingReinstall }
+    else k
   | .restart => { k with sessions := [], halts := [] }
   | .claim m pr f => journal p k ⟨m, pr, f, .modelText⟩
   | .connect m sys keys =>
@@ -385,6 +446,9 @@ force now. -/
 theorem pinFor_sound {k : Knowledge} {m : Entry} {sys : System} {pin : Pin}
     (h : pinFor k m sys = some pin) :
     pin ∈ k.pins ∧ pin.entry = m ∧ pin.per = perNow k m sys := by
+  unfold pinFor at h
+  split at h
+  · exact nomatch h
   obtain ⟨hmem, hpred⟩ := find?_sound h
   simp only [Bool.and_eq_true, beq_iff_eq] at hpred
   exact ⟨hmem, hpred.1, hpred.2⟩
@@ -392,7 +456,7 @@ theorem pinFor_sound {k : Knowledge} {m : Entry} {sys : System} {pin : Pin}
 /-- A halt the reset explains is one the presented set earned: `check` answers `confirmsReset`
 only where the set is the pin the reset intent named. -/
 @[req "STA-20b"] theorem confirmsReset_earned {k : Knowledge} {m : Entry} {sys : System}
-    {keys : Keys} (h : check k m sys keys = .halted .confirmsReset) :
+    {keys : Fingerprint} (h : check k m sys keys = .halted .confirmsReset) :
     confirmsInstalled k m keys = true := by
   unfold check at h
   split at h
@@ -409,7 +473,7 @@ only where the set is the pin the reset intent named. -/
 harness: where the presented set is the pin the reset intent named, the halt `SEC-11` requires is
 `STA-20b`'s confirmation, and `mismatch` — the error — is answered only where it is not. -/
 @[req "STA-20b"] theorem mismatch_not_the_reset {k : Knowledge} {m : Entry} {sys : System}
-    {keys : Keys} (h : check k m sys keys = .halted .mismatch) :
+    {keys : Fingerprint} (h : check k m sys keys = .halted .mismatch) :
     confirmsInstalled k m keys = false := by
   unfold check at h
   split at h
@@ -427,7 +491,7 @@ the harness holds, for that machine, for the system it connected to and — in t
 for the boot it was made in; every pin the harness holds was admitted by its source; and every
 halt the reset explains was recorded as its confirmation. -/
 def Inv (p : Params) (k : Knowledge) : Prop :=
-  (∀ s ∈ k.sessions, s.pin ∈ k.pins ∧ s.pin.entry = s.entry ∧ s.pin.keys = s.keys ∧
+  (∀ s ∈ k.sessions, s.pin ∈ k.pins ∧ s.pin.entry = s.entry ∧ s.pin.keys.contains s.keys ∧
       s.pin.per.system = s.system ∧ ∀ b, s.pin.per = .boot b → b = s.boot) ∧
   (∀ pin ∈ k.pins, admits p pin.source pin.per pin.entry = true) ∧
   (∀ h ∈ k.halts, h.reason = .confirmsReset → (h.entry, System.installed) ∈ k.confirmed)
@@ -462,8 +526,10 @@ theorem inv_journal (p : Params) (k : Knowledge) (pin : Pin) (h : Inv p k)
 
 /-- What `check` established when it admitted the handshake: the pin it read is the one stored
 for that machine and system, and the presented set is that pin's. -/
-theorem check_admitted {k : Knowledge} {m : Entry} {sys : System} {keys : Keys} {pin : Pin}
-    (h : check k m sys keys = .admitted pin) : pinFor k m sys = some pin ∧ pin.keys = keys := by
+theorem check_admitted {k : Knowledge} {m : Entry} {sys : System}
+    {keys : Fingerprint} {pin : Pin}
+    (h : check k m sys keys = .admitted pin) :
+    pinFor k m sys = some pin ∧ pin.keys.contains keys = true := by
   unfold check at h
   split at h
   · rename_i q hq
@@ -471,13 +537,13 @@ theorem check_admitted {k : Knowledge} {m : Entry} {sys : System} {keys : Keys} 
     · rename_i heq
       injection h with h
       subst h
-      exact ⟨hq, (beq_iff_eq.mp heq).symm⟩
+      exact ⟨hq, heq⟩
     · split at h <;> exact nomatch h
   · split at h <;> exact nomatch h
 
 /-- Recording the confirmation touches the pins, the sessions and the halts not at all, and the
 resets confirmed only by growing. -/
-theorem confirmIfReset_parts (k : Knowledge) (m : Entry) (keys : Keys) :
+theorem confirmIfReset_parts (k : Knowledge) (m : Entry) (keys : Fingerprint) :
     (confirmIfReset k m keys).pins = k.pins ∧
     (confirmIfReset k m keys).sessions = k.sessions ∧
     (confirmIfReset k m keys).halts = k.halts ∧
@@ -510,6 +576,15 @@ theorem inv_step (p : Params) (k : Knowledge) (hk : Inv p k) (e : Event) : Inv p
   | readyToReset m f => exact inv_journal p k ⟨m, .machine, f, .readyToReset⟩ ⟨hs, hp, hh⟩
   | attest m pr f author durable =>
     exact inv_journal p k ⟨m, pr, f, .attest author⟩ ⟨hs, hp, hh⟩ durable
+  | published m pr keys =>
+    simp only [step]
+    split
+    · apply inv_journal
+      split <;> exact ⟨hs, hp, hh⟩
+    · split <;> exact ⟨hs, hp, hh⟩
+  | reinstall m =>
+    simp only [step]
+    split <;> exact ⟨hs, hp, hh⟩
   | restart => exact ⟨by simp [step], hp, by simp [step]⟩
   | claim m pr f => exact inv_journal p k ⟨m, pr, f, .modelText⟩ ⟨hs, hp, hh⟩
   | connect m sys keys =>
@@ -561,22 +636,24 @@ and admits nothing, because the reset that ended that boot began the next one. -
     ∀ s ∈ (run p init es).sessions, ∀ b, s.pin.per = .boot b → b = s.boot :=
   fun s hs b hb => ((inv p es).1 s hs).2.2.2.2 b hb
 
-/-- Every installed pin has an authorized source: job output or an attest seal by this
-machine's planted sender. Model text and rescue publication remain excluded. Single use and
+/-- Every installed pin has an authorized source: job output, an attest seal by this
+machine's planted sender, or LNVPS's published scan. Model text and rescue publication remain excluded. Single use and
 durability are enforced by `journal`, independently of this source proposition. -/
 @[req "ARC-43"] theorem installed_pin_from_authorized_source (p : Params)
     (hp : p.sourceAdmitsPin = true) (ha : p.attestAuthorMatches = true) (es : List Event) :
     ∀ pin ∈ (run p init es).pins, pin.per = .machine →
-      pin.source = .readyToReset ∨ pin.source = .attest (plantedSender pin.entry) := by
+      pin.source = .readyToReset ∨ pin.source = .attest (plantedSender pin.entry) ∨
+        pin.source = .published := by
   intro pin hmem hsc
   have hadm := (inv p es).2.1 pin hmem
   cases hsrc : pin.source with
   | readyToReset => exact Or.inl rfl
+  | published => exact Or.inr (Or.inr rfl)
   | rescueLast => simp [admits, hp, hsrc, hsc] at hadm
   | modelText => simp [admits, hp, hsrc, hsc] at hadm
   | attest author =>
     simp [admits, hp, ha, hsrc, hsc] at hadm
-    all_goals exact Or.inr (congrArg Source.attest hadm)
+    all_goals exact Or.inr (Or.inl (congrArg Source.attest hadm))
 
 /-- **No connection before `/rescue/last` fills.** Over every trace, under `ARC-43`'s rule: a
 session in the rescue system was admitted against a pin the harness holds for that machine and
@@ -587,7 +664,7 @@ and MUST wait". -/
     (es : List Event) :
     ∀ s ∈ (run p init es).sessions, s.system = .rescue →
       ∃ pin ∈ (run p init es).pins, pin.entry = s.entry ∧ pin.per = .boot s.boot ∧
-        pin.keys = s.keys ∧ pin.source = .rescueLast := by
+        pin.keys.contains s.keys ∧ pin.source = .rescueLast := by
   intro s hs hsysEq
   obtain ⟨hmem, hmach, hkeys, hsys, hboot⟩ := (inv p es).1 s hs
   rw [hsysEq] at hsys
@@ -602,6 +679,7 @@ and MUST wait". -/
     cases hsrc : s.pin.source with
     | rescueLast => rfl
     | readyToReset => rw [hsrc, hsc] at hadm; exact nomatch hadm
+    | published => simp [hsrc, hsc] at hadm
     | modelText => rw [hsrc, hsc] at hadm; exact nomatch hadm
     | attest author => simp [hsrc, hsc] at hadm
 
@@ -656,6 +734,13 @@ theorem consumed_step (p : Params) (k : Knowledge) (m : Entry) (hm : m ∈ k.con
     · split <;> exact hm
   | readyToReset n keys => exact journal_consumed _ _ _ _ _ hm
   | attest n pr keys author durable => exact journal_consumed _ _ _ _ _ hm
+  | published n pr keys =>
+    simp only [step]
+    split
+    · apply journal_consumed
+      split <;> exact hm
+    · split <;> exact hm
+  | reinstall n => simp only [step]; split <;> exact hm
   | claim n pr keys => exact journal_consumed _ _ _ _ _ hm
   | restart => simp_all only [step]
   | connect n sys keys =>
@@ -684,11 +769,16 @@ def entryB : Entry := 2
 /-- Five host-key sets, opaque: the set the rescue endpoint showed before the reset, the one the
 new rescue boot published, the installed system's as `ready_to_reset` read them, a set a model
 named, and a set an attest introduction carries. -/
-def oldRescueKeys : Keys := 10
-def rescueKeys : Keys := 11
-def installedKeys : Keys := 21
-def claimedKeys : Keys := 31
-def attestedKeys : Keys := 41
+def oldRescueKeys : Keys := [10, 110, 210]
+def rescueKeys : Keys := [11, 111, 211]
+def installedKeys : Keys := [21, 121, 221]
+def claimedKeys : Keys := [31, 131, 231]
+def attestedKeys : Keys := [41, 141, 241]
+def oldRescueKey : Fingerprint := 10
+def rescueKey : Fingerprint := 11
+def installedKey : Fingerprint := 21
+def claimedKey : Fingerprint := 31
+def attestedKey : Fingerprint := 41
 
 /-! Each witness's events are one named list, so that the theorem and the emitter
 (`Witnesses.lean`) run the same trace. -/
@@ -703,10 +793,10 @@ def ceremonyEvents : List Event :=
    .reset entryA .rescue,
    .rescueLast entryA (some oldRescueKeys),
    .rescueLast entryA (some rescueKeys),
-   .connect entryA .rescue rescueKeys,
+   .connect entryA .rescue rescueKey,
    .readyToReset entryA installedKeys,
    .reset entryA .installed,
-   .connect entryA .installed installedKeys]
+   .connect entryA .installed installedKey]
 
 /-- The ceremony to the rescue session, then a second reset into rescue and a connection
 presenting the set the last boot published. -/
@@ -714,9 +804,9 @@ def reuseEvents : List Event :=
   [.rescueLast entryA (some oldRescueKeys),
    .reset entryA .rescue,
    .rescueLast entryA (some rescueKeys),
-   .connect entryA .rescue rescueKeys,
+   .connect entryA .rescue rescueKey,
    .reset entryA .rescue,
-   .connect entryA .rescue rescueKeys]
+   .connect entryA .rescue rescueKey]
 
 /-- The reset dispatched, the field empty, then the field showing the set journaled before the
 reset — and a connection made to the rescue system anyway. -/
@@ -725,13 +815,13 @@ def beforeFillEvents : List Event :=
    .reset entryA .rescue,
    .rescueLast entryA none,
    .rescueLast entryA (some oldRescueKeys),
-   .connect entryA .rescue oldRescueKeys]
+   .connect entryA .rescue oldRescueKey]
 
 /-- A host-key set for the installed system named in model text, and a connection presenting
 it. -/
 def modelTextEvents : List Event :=
   [.claim entryA .machine claimedKeys,
-   .connect entryA .installed claimedKeys]
+   .connect entryA .installed claimedKey]
 
 /-- The ceremony to the reset into the installed system, and then the probe that reads the old
 pin: the rescue pin is what it checks against, and sshd answers with the installed keys. -/
@@ -741,21 +831,21 @@ def resumeProbeEvents : List Event :=
    .rescueLast entryA (some rescueKeys),
    .readyToReset entryA installedKeys,
    .reset entryA .installed,
-   .connect entryA .rescue installedKeys]
+   .connect entryA .rescue installedKey]
 
 /-- Entry A pinned, and a connection to machine B presenting A's set. -/
 def otherMachineEvents : List Event :=
   [.rescueLast entryA (some oldRescueKeys),
    .reset entryA .rescue,
    .rescueLast entryA (some rescueKeys),
-   .connect entryB .rescue rescueKeys]
+   .connect entryB .rescue rescueKey]
 
 /-- Entry A pinned, and a handshake presenting a set that is no pin of its. -/
 def mismatchEvents : List Event :=
   [.rescueLast entryA (some oldRescueKeys),
    .reset entryA .rescue,
    .rescueLast entryA (some rescueKeys),
-   .connect entryA .rescue claimedKeys]
+   .connect entryA .rescue claimedKey]
 
 /-- `ARC-43`'s rule removed: any source may pin anything. -/
 def anySource : Params := { current with sourceAdmitsPin := false }
@@ -767,7 +857,7 @@ field pinned nothing, and no handshake halted. -/
 @[req "CHN-R1"] theorem pin_ceremony_trace :
     let k := run current init ceremonyEvents
     k.pins.map (·.source) = [.readyToReset, .rescueLast] ∧
-    k.sessions.map (·.keys) = [installedKeys, rescueKeys] ∧
+    k.sessions.map (·.keys) = [installedKey, rescueKey] ∧
     k.confirmed = [(entryA, .installed), (entryA, .rescue)] ∧ k.halts = [] := by
   decide +kernel
 
@@ -801,7 +891,7 @@ installed system's and admits the session, which is a host key pinned from model
 machine identified by whatever said it was. -/
 @[req "ARC-43"] theorem installed_pin_from_model_text_admitted :
     let k := run anySource init modelTextEvents
-    k.pins.map (·.source) = [.modelText] ∧ k.sessions.map (·.keys) = [claimedKeys] := by
+    k.pins.map (·.source) = [.modelText] ∧ k.sessions.map (·.keys) = [claimedKey] := by
   decide +kernel
 
 /-- **The pin halt is the reset's confirmation.** The probe on resume reads the rescue pin while
@@ -833,36 +923,36 @@ The same bad traces are admitted only with their own guard removed. -/
 
 def attestEvents : List Event :=
   [.attest entryA .machine installedKeys (plantedSender entryA) true,
-   .connect entryA .installed installedKeys,
-   .connect entryA .installed claimedKeys,
-   .connect entryB .installed installedKeys]
+   .connect entryA .installed installedKey,
+   .connect entryA .installed claimedKey,
+   .connect entryB .installed installedKey]
 
 def wrongAuthorEvents : List Event :=
   [.attest entryA .machine claimedKeys (plantedSender entryB) true,
-   .connect entryA .installed claimedKeys]
+   .connect entryA .installed claimedKey]
 
 def wrongThenValidEvents : List Event := wrongAuthorEvents ++ attestEvents
 
 def attestRescueEvents : List Event :=
   [.attest entryA (.boot 0) rescueKeys (plantedSender entryA) true,
-   .connect entryA .rescue rescueKeys]
+   .connect entryA .rescue rescueKey]
 
 def repeatAttestEvents : List Event :=
   [.attest entryA .machine installedKeys (plantedSender entryA) true,
    .restart,
    .attest entryA .machine claimedKeys (plantedSender entryA) true,
-   .connect entryA .installed claimedKeys,
-   .connect entryA .installed installedKeys]
+   .connect entryA .installed claimedKey,
+   .connect entryA .installed installedKey]
 
 def independentAttestEvents : List Event :=
   [.attest entryA .machine installedKeys (plantedSender entryA) true,
    .attest entryB .machine rescueKeys (plantedSender entryB) true,
-   .connect entryA .installed installedKeys,
-   .connect entryB .installed rescueKeys]
+   .connect entryA .installed installedKey,
+   .connect entryB .installed rescueKey]
 
 def failedAttestEvents : List Event :=
   [.attest entryA .machine installedKeys (plantedSender entryA) false,
-   .connect entryA .installed installedKeys]
+   .connect entryA .installed installedKey]
 
 def failedThenValidEvents : List Event := failedAttestEvents ++ [.restart] ++ attestEvents
 
@@ -871,7 +961,7 @@ set, and a connection presenting the introduction's set. -/
 def afterJobPinEvents : List Event :=
   [.readyToReset entryA installedKeys,
    .attest entryA .machine attestedKeys (plantedSender entryA) true,
-   .connect entryA .installed attestedKeys]
+   .connect entryA .installed attestedKey]
 
 def anyAuthor : Params := { current with attestAuthorMatches := false }
 /-- First contact only removed: an attest may follow an installed pin. Single use stands, so
@@ -880,10 +970,188 @@ def laterAttest : Params := { current with attestFirstContact := false }
 def repeatAttest : Params := { laterAttest with attestSingleUse := false }
 def volatileAttest : Params := { current with attestDurable := false }
 
+/-- The previous installed pin cannot authorize an installed-system contact while a
+reinstall is pending, regardless of what the far side presents. This says nothing about
+whether a harness implementation attempted a network connection; that is a conformance duty. -/
+@[req "CHN-R7"] theorem pending_reinstall_has_no_pin (k : Knowledge) (m : Entry)
+    (h : m ∈ k.pendingReinstall) : pinFor k m .installed = none := by
+  simp [pinFor, h]
+
+def publishedKeys : Keys := [51, 151, 251]
+def nextPublishedKeys : Keys := [52, 152, 252]
+def overlappingKeys : Keys := [53, 151, 253]
+def olderOverlappingKeys : Keys := [54, 151, 254]
+def rejectedOverlapKeys : Keys := [54, 154, 253]
+def publishedKey : Fingerprint := 51
+def nextPublishedKey : Fingerprint := 52
+def overlappingKey : Fingerprint := 53
+def outsidePublishedKey : Fingerprint := 99
+
+def publishedEvents : List Event :=
+  [.published entryA .machine publishedKeys,
+   .connect entryA .installed publishedKey,
+   .connect entryA .installed 151,
+   .connect entryA .installed outsidePublishedKey]
+
+def publishedRescueEvents : List Event :=
+  [.published entryA (.boot 0) publishedKeys,
+   .connect entryA .rescue publishedKey]
+
+def incompletePublishedEvents : List Event :=
+  [.published entryA .machine [],
+   .published entryA .machine [51, 151],
+   .connect entryA .installed publishedKey]
+
+def partialPublishedEvents : List Event :=
+  [.published entryA .machine [51, 151],
+   .connect entryA .installed publishedKey]
+
+def partialThenCompleteEvents : List Event :=
+  [.published entryA .machine [51, 151],
+   .published entryA .machine publishedKeys,
+   .connect entryA .installed publishedKey]
+
+def stalePublishedEvents : List Event :=
+  [.published entryA .machine publishedKeys,
+   .reinstall entryA,
+   .published entryA .machine overlappingKeys,
+   .connect entryA .installed overlappingKey]
+
+def olderHistoryEvents : List Event :=
+  [.published entryA .machine publishedKeys,
+   .reinstall entryA,
+   .published entryA .machine nextPublishedKeys,
+   .restart,
+   .reinstall entryA,
+   .published entryA .machine olderOverlappingKeys,
+   .connect entryA .installed 54]
+
+def refusedHistoryEvents : List Event :=
+  [.published entryA .machine publishedKeys,
+   .reinstall entryA,
+   .published entryA .machine overlappingKeys,
+   .published entryA .machine rejectedOverlapKeys,
+   .connect entryA .installed 54]
+
+def reinstallPendingEvents : List Event :=
+  [.published entryA .machine publishedKeys,
+   .reinstall entryA,
+   .connect entryA .installed publishedKey]
+
+def reinstallFreshEvents : List Event :=
+  [.published entryA .machine publishedKeys,
+   .reinstall entryA,
+   .published entryA .machine nextPublishedKeys,
+   .connect entryA .installed nextPublishedKey,
+   .connect entryA .installed publishedKey]
+
+def independentPublishedEvents : List Event :=
+  [.published entryA .machine publishedKeys,
+   .published entryB .machine publishedKeys,
+   .reinstall entryA,
+   .connect entryB .installed publishedKey,
+   .published entryA .machine nextPublishedKeys,
+   .connect entryA .installed nextPublishedKey]
+
+def replacedWithoutReinstallEvents : List Event :=
+  [.published entryA .machine publishedKeys,
+   .published entryA .machine nextPublishedKeys,
+   .connect entryA .installed nextPublishedKey]
+
+def incompleteAllowed : Params := { current with publishedComplete := false }
+def staleAllowed : Params := { current with publishedFresh := false }
+def oldPinRetained : Params := { current with reinstallRetiresPin := false }
+def replaceWithoutReinstall : Params := { current with publishedFirstContact := false }
+
+@[req "ARC-43"] theorem published_source_admitted :
+    let k := run current init publishedEvents
+    k.pins.map (·.source) = [.published] ∧
+    k.sessions.map (·.keys) = [151, publishedKey] ∧
+    k.halts.map (·.reason) = [.mismatch] := by decide +kernel
+
+@[req "ARC-43"] theorem published_rescue_refused :
+    let k := run current init publishedRescueEvents
+    k.pins = [] ∧ k.sessions = [] ∧ k.halts.map (·.reason) = [.noPin] := by
+  decide +kernel
+
+@[req "ARC-43"] theorem published_rescue_admitted_without_source_guard :
+    let k := run anySource init publishedRescueEvents
+    k.pins.map (·.source) = [.published] ∧ k.sessions.map (·.keys) = [publishedKey] := by
+  decide +kernel
+
+@[req "CHN-R7"] theorem incomplete_publication_refused :
+    let k := run current init partialPublishedEvents
+    k.pins = [] ∧ k.sessions = [] ∧ k.halts.map (·.reason) = [.noPin] := by
+  decide +kernel
+
+@[req "CHN-R7"] theorem empty_publication_refused :
+    let k := run current init incompletePublishedEvents
+    k.pins = [] ∧ k.sessions = [] ∧ k.halts.map (·.reason) = [.noPin] := by
+  decide +kernel
+
+@[req "CHN-R7"] theorem partial_then_complete_admitted :
+    let k := run current init partialThenCompleteEvents
+    k.publishedHistory.map (·.2) = [publishedKeys] ∧
+    k.sessions.map (·.keys) = [publishedKey] := by decide +kernel
+
+@[req "CHN-R7"] theorem incomplete_publication_admitted_without_guard :
+    let k := run incompleteAllowed init partialPublishedEvents
+    k.pins.map (·.source) = [.published] ∧ k.sessions.map (·.keys) = [publishedKey] := by
+  decide +kernel
+
+@[req "CHN-R7"] theorem overlapping_publication_refused :
+    let k := run current init stalePublishedEvents
+    k.publishedHistory.map (·.2) = [overlappingKeys, publishedKeys] ∧ k.sessions = [] ∧
+    k.halts.map (·.reason) = [.noPin] := by decide +kernel
+
+@[req "CHN-R7"] theorem overlapping_publication_admitted_without_guard :
+    let k := run staleAllowed init stalePublishedEvents
+    k.publishedHistory.map (·.2) = [overlappingKeys, publishedKeys] ∧
+    k.sessions.map (·.keys) = [overlappingKey] := by decide +kernel
+
+@[req "CHN-R7"] theorem older_publication_still_refused_after_restart :
+    let k := run current init olderHistoryEvents
+    k.publishedHistory.map (·.2) = [olderOverlappingKeys, nextPublishedKeys, publishedKeys] ∧
+    k.sessions = [] ∧ k.halts.map (·.reason) = [.noPin] := by decide +kernel
+
+@[req "CHN-R7"] theorem refused_complete_publication_remains_history :
+    let k := run current init refusedHistoryEvents
+    k.publishedHistory.map (·.2) = [rejectedOverlapKeys, overlappingKeys, publishedKeys] ∧
+    k.sessions = [] ∧ k.halts.map (·.reason) = [.noPin] := by decide +kernel
+
+@[req "CHN-R7"] theorem old_pin_refused_pending_reinstall :
+    let k := run current init reinstallPendingEvents
+    k.pendingReinstall = [entryA] ∧ k.sessions = [] ∧
+    k.halts.map (·.reason) = [.noPin] := by decide +kernel
+
+@[req "CHN-R7"] theorem old_pin_admitted_without_reinstall_guard :
+    let k := run oldPinRetained init reinstallPendingEvents
+    k.sessions.map (·.keys) = [publishedKey] := by decide +kernel
+
+@[req "CHN-R7"] theorem fresh_reinstall_admitted :
+    let k := run current init reinstallFreshEvents
+    k.publishedHistory.map (·.2) = [nextPublishedKeys, publishedKeys] ∧
+    k.sessions.map (·.keys) = [nextPublishedKey] ∧
+    k.halts.map (·.reason) = [.mismatch] := by decide +kernel
+
+@[req "CHN-R7"] theorem publication_history_per_machine :
+    let k := run current init independentPublishedEvents
+    k.publishedHistory.map (·.1) = [entryA, entryB, entryA] ∧
+    k.sessions.map (·.entry) = [entryA, entryB] := by decide +kernel
+
+@[req "CHN-R7"] theorem replacement_without_reinstall_refused :
+    let k := run current init replacedWithoutReinstallEvents
+    k.pins.map (·.keys) = [publishedKeys] ∧ k.sessions = [] := by decide +kernel
+
+@[req "CHN-R7"] theorem replacement_without_reinstall_admitted_without_guard :
+    let k := run replaceWithoutReinstall init replacedWithoutReinstallEvents
+    k.pins.map (·.keys) = [nextPublishedKeys, publishedKeys] ∧
+    k.sessions.map (·.keys) = [nextPublishedKey] := by decide +kernel
+
 @[req "CHN-R5"] theorem attest_admits_and_connects :
     let k := run current init attestEvents
     k.pins.map (·.source) = [.attest (plantedSender entryA)] ∧
-    k.consumed = [entryA] ∧ k.sessions.map (·.keys) = [installedKeys] ∧
+    k.consumed = [entryA] ∧ k.sessions.map (·.keys) = [installedKey] ∧
     k.halts.map (·.reason) = [.noPin, .mismatch] := by decide +kernel
 
 @[req "CHN-R5"] theorem wrong_author_refused :
@@ -893,12 +1161,12 @@ def volatileAttest : Params := { current with attestDurable := false }
 
 @[req "CHN-R5"] theorem wrong_author_admitted :
     let k := run anyAuthor init wrongAuthorEvents
-    k.consumed = [entryA] ∧ k.sessions.map (·.keys) = [claimedKeys] := by decide +kernel
+    k.consumed = [entryA] ∧ k.sessions.map (·.keys) = [claimedKey] := by decide +kernel
 
 @[req "CHN-R5"] theorem wrong_author_then_valid :
     let k := run current init wrongThenValidEvents
     k.pins.map (·.keys) = [installedKeys] ∧ k.consumed = [entryA] ∧
-    k.sessions.map (·.keys) = [installedKeys] := by decide +kernel
+    k.sessions.map (·.keys) = [installedKey] := by decide +kernel
 
 /-- Source-specific refusal, independent of the production parameter value. -/
 @[req "CHN-R5"] theorem attest_rescue_refused :
@@ -911,13 +1179,13 @@ refuses the repeat: the second introduction after restart changes nothing. -/
 @[req "CHN-5"] theorem repeat_attest_refused :
     let k := run laterAttest init repeatAttestEvents
     k.pins.map (·.keys) = [installedKeys] ∧ k.consumed = [entryA] ∧
-    k.sessions.map (·.keys) = [installedKeys] ∧
+    k.sessions.map (·.keys) = [installedKey] ∧
     k.halts.map (·.reason) = [.mismatch] := by decide +kernel
 
 @[req "CHN-5"] theorem repeat_attest_admitted :
     let k := run repeatAttest init repeatAttestEvents
     k.pins.map (·.keys) = [claimedKeys, installedKeys] ∧
-    k.sessions.map (·.keys) = [claimedKeys] := by decide +kernel
+    k.sessions.map (·.keys) = [claimedKey] := by decide +kernel
 
 @[req "CHN-5"] theorem attest_per_machine :
     let k := run current init independentAttestEvents
@@ -930,12 +1198,12 @@ refuses the repeat: the second introduction after restart changes nothing. -/
 
 @[req "CHN-5"] theorem failed_attest_admitted :
     let k := run volatileAttest init failedAttestEvents
-    k.consumed = [entryA] ∧ k.sessions.map (·.keys) = [installedKeys] := by decide +kernel
+    k.consumed = [entryA] ∧ k.sessions.map (·.keys) = [installedKey] := by decide +kernel
 
 @[req "CHN-5"] theorem failed_append_then_valid :
     let k := run current init failedThenValidEvents
     k.pins.map (·.keys) = [installedKeys] ∧ k.consumed = [entryA] ∧
-    k.sessions.map (·.keys) = [installedKeys] := by decide +kernel
+    k.sessions.map (·.keys) = [installedKey] := by decide +kernel
 
 /-- **An attest after a job pin, refused.** Attest is a first contact only: the machine already
 holds the installed pin `ready_to_reset` journaled, so the introduction journals nothing and
@@ -951,7 +1219,7 @@ attest's, and the connection presenting its set is admitted against it. -/
 @[req "CHN-5"] theorem attest_after_job_pin_admitted :
     let k := run laterAttest init afterJobPinEvents
     k.pins.map (·.source) = [.attest (plantedSender entryA), .readyToReset] ∧
-    k.consumed = [entryA] ∧ k.sessions.map (·.keys) = [attestedKeys] := by decide +kernel
+    k.consumed = [entryA] ∧ k.sessions.map (·.keys) = [attestedKey] := by decide +kernel
 
 /-! ## The bound -/
 
@@ -977,10 +1245,14 @@ def alphabet : List Event :=
   [.reset entryA .rescue, .reset entryA .installed,
    .rescueLast entryA (some oldRescueKeys), .rescueLast entryA (some rescueKeys),
    .readyToReset entryA installedKeys,
-   .claim entryA .machine claimedKeys, .connect entryA .rescue rescueKeys,
-   .connect entryA .installed installedKeys, .connect entryA .rescue installedKeys,
+   .claim entryA .machine claimedKeys, .connect entryA .rescue rescueKey,
+   .connect entryA .installed installedKey, .connect entryA .rescue installedKey,
    .attest entryA .machine installedKeys (plantedSender entryA) true,
-   .attest entryA .machine claimedKeys (plantedSender entryB) true, .restart]
+   .attest entryA .machine claimedKeys (plantedSender entryB) true, .restart,
+   .published entryA .machine publishedKeys,
+   .published entryA (.boot 0) publishedKeys,
+   .published entryA .machine [51, 151],
+   .connect entryA .installed publishedKey]
 
 /-- Every trace of exactly `n` events over `alphabet`. -/
 def tracesOf : Nat → List (List Event)
@@ -1001,6 +1273,19 @@ def firstContactOnly : List Pin → Bool
     (!pin.source.isAttest || older.all fun q => !(q.entry == pin.entry && q.per == Per.machine)) &&
       firstContactOnly older
 
+/-- A separate check of the resulting pin journal: a published pin is complete, held per
+machine, and disjoint from every older published pin for that machine. This reads the pins,
+not `publicationAdmissible` or its history lookup, so the bounded property can catch a broken
+admission guard rather than agreeing with it. -/
+def publishedWellFormed : List Pin → Bool
+  | [] => true
+  | pin :: older =>
+    (if pin.source == .published then
+      pin.per == .machine && complete pin.keys &&
+        older.all (fun q => q.source != .published || q.entry != pin.entry ||
+          pin.keys.all (fun key => !q.keys.contains key))
+     else true) && publishedWellFormed older
+
 /-- The lifecycle in the requirements' own terms, and stated without `admits`, `pinFor` or
 `check`, so that it decides what they read rather than agreeing with them: no pin the harness
 holds came from model text; attest pins name the planted sender, are per machine and have a
@@ -1016,9 +1301,9 @@ the reset's confirmation is a reset confirmed. -/
     | .attest author => pin.per == Per.machine && author == plantedSender pin.entry &&
         k.consumed.contains pin.entry
     | _ => true) &&
-  firstContactOnly k.pins &&
+  firstContactOnly k.pins && publishedWellFormed k.pins &&
   k.sessions.all (fun s =>
-    k.pins.contains s.pin && s.pin.entry == s.entry && s.pin.keys == s.keys &&
+    k.pins.contains s.pin && s.pin.entry == s.entry && s.pin.keys.contains s.keys &&
     s.pin.per == (if s.system == System.rescue then Per.boot s.boot else Per.machine)) &&
   k.halts.all (fun h =>
     h.reason != Halt.confirmsReset || k.confirmed.contains (h.entry, System.installed))

@@ -266,7 +266,7 @@ outgrown, because adding a credential means adding a row.
 | 2 | Inference **session** key | Minted from row 14 (procured); supplied by the operator (BYO) | Browser memory only | One session | Inference spend, **up to its own cap** | Revoked at session end (procured); session ends (BYO) |
 | 3 | **SSH client private key, one per machine** | **Derived** from row 15 at that machine's index (`STA-22`) | Re-derived on demand; nothing to export. Given to the machine's bound session and no other; a jump host's, at the jump host's own index, is given to no session (`CHN-R6`); during Replace, the machine's old and new keys are held by the harness's model-free Replace flow and given to no session (`STA-17`) | Machine lifetime | Login to **that one machine** | Removed from the machine on Replace (`STA-17`), which is a new seed; a jump host's dies with the jump host |
 | 4 | **Relay key**, one per pass | Derived from row 15 (`STA-22`); its public half is what the relay binds a bought pass to (`CHN-15`), and what the first stage hands the publisher out of band | Re-derived on demand; nothing to store | Until the pass expires or is revoked | Reaching the destinations recorded against its pass, on any port; recording destinations; revoking (`CHN-16`) | Pass expires or replacement is confirmed under `STA-17`, by signed revocation or stage 1's manual retirement |
-| 5 | Host-key pins | Vendor API, rescue, attest, or a first contact from a jump host (`CHN-R6`), recorded with which | Encrypted at rest; exported in the sheet | Installed system: machine lifetime. Rescue: one boot (`CHN-R1`). A jump host's: one first contact | Nothing — integrity reference | Machine destroyed; rescue pin discarded at the reset; a jump host's pin discarded with the jump host, the route label (`CHN-R6`) being what the display keeps |
+| 5 | Host-key pins | Vendor publication (`CHN-R7`), rescue (`CHN-R1`), attest (`CHN-R5`), or a first contact from a jump host (`CHN-R6`), recorded with which | Encrypted at rest; exported in the sheet | Installed system: machine lifetime. Rescue: one boot (`CHN-R1`). A jump host's: one first contact | Nothing — integrity reference | Machine destroyed; rescue pin discarded at the reset; a jump host's pin discarded with the jump host, the route label (`CHN-R6`) being what the display keeps |
 | 6 | Exposure ledger | Harness-derived | Encrypted at rest; exported in the sheet | Machine lifetime | Nothing — record | Machine destroyed |
 | 7 | **Attest sender key**, one per machine — a jump host pinned by attest included, at its own index | Derived from row 15 (`STA-22`) | Boot user-data; **never stored in the browser**, re-derived to check the seal | Until the browser accepts one introduction, or its window closes | **One** host-key introduction (`CHN-7`) | **The browser stops listening (`CHN-5`)** — that is the bound; scrubbed from disk as defence in depth (`CHN-6`); the metadata copy is permanent and worthless |
 | 8 | ~~Drop-box collection token~~ | — | — | — | — | **Row retired.** The drop-box is gone (`CHN-4`); the attest post is a gift-wrapped event to an inbox any Nostr relay provides. |
@@ -428,9 +428,14 @@ nothing to check the presented key against — the one from a jump host, inside 
 session (`CHN-R6`) — and that contact is trusted, not checked against a pin, and MUST be
 presented to the operator as such. No other path may accept a key no pin was stored for.
 
-On the dedicated path and attest (`CHN-R5`), where a fingerprint is stored before contact,
-the check is `TauWeb.Pins.check` (ADR-0032). Attest admission includes author matching,
-durable single use and first contact only — no introduction for a machine already holding an
+On the dedicated path, attest (`CHN-R5`) and LNVPS retrieve (`CHN-R7`), where a fingerprint
+is stored before contact, the presented fingerprint's membership in the stored set is
+`TauWeb.Pins.check` (ADR-0032).
+The LNVPS first-contact, mismatch and reinstall traces are owned by `CHN-R7`; `CNF-23`
+requires the implementation to demonstrate no network contact before publication, outside
+the companion.
+Attest admission includes author matching, durable single use and first contact only — no
+introduction for a machine already holding an
 installed-system pin — under the companion's stated assumptions (`ARC-43`, `CHN-5`). The jump-host
 contact above remains outside it (T45); `check` has
 no branch that admits a handshake with no pin. Its halts are three and not one: nothing stored to check against, the key that does not
