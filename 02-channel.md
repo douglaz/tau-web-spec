@@ -61,13 +61,16 @@ historical criteria and the separate jump-vendor qualification.
 [findings](./docs/findings/2026-09-08-first-stage-rehearsal.md)): the harness activates rescue
 over HTTPS (`POST /boot/{n}/rescue`, which publishes **nothing** — its `host_key` is empty),
 triggers the hardware reset, then polls `GET /boot/{n}/rescue/last` until `host_key` fills
-**with a set different from the one snapshotted before the reset** (`STG-4`: the previous
+**with a set sharing no fingerprint with the one snapshotted before the reset**
+(`STG-4`: the previous
 boot's keys are still there until the new boot publishes), which happens about **80 s after
 the reset and some 10 s before the rescue's sshd answers**,
 together with a `boot_time`. The field holds **SHA-256 fingerprints, one per host-key
 algorithm, and no public key material**; the browser derives the presented key's fingerprint
-at first contact and compares. **Every rescue boot has fresh host keys**, so the pin is per
-boot, not per machine, and the plain rescue endpoint reports inactive and empty once the boot
+at first contact and compares. **Every rescue boot has fresh host keys**: confirmation
+requires no fingerprint shared with the pre-reset snapshot, including a reordered set.
+The pin is per boot, not per machine, and the plain rescue endpoint reports inactive and empty
+once the boot
 has consumed the activation — only `/rescue/last` knows. Never trust-on-first-use: a client
 that connects before `/rescue/last` fills has nothing to check against and MUST wait. The
 input side, `authorized_key[]`, takes MD5 colon fingerprints of keys registered at Robot.
@@ -271,17 +274,28 @@ vendor's hypervisor scan of whatever answers on the machine's address, served ov
 matching presented and published keys in every family before and after reinstall
 ([finding](./docs/findings/2026-10-11-lnvps-phase-b.md)).
 
-Before any connection to the machine, the harness MUST wait for a complete, non-empty
-published set containing all three scanned families: Ed25519, RSA and ECDSA. An absent,
-empty or partial set admits no contact. A candidate MUST share no fingerprint with **any**
-earlier published set recorded for that machine, including a set older than the immediately
-preceding one. A changed set retaining even one earlier fingerprint is refused. This
-history includes incomplete readings and complete recorded sets refused for overlap, and is
-kept per machine across restart and reinstall. The candidate is compared with earlier
-recorded observations before it is added to that history. A vendor-API reinstall is a new
-first contact under this route: the old pin authorizes no contact during the wait, even if
-the old publication or key is still observable. A complete, disjoint publication admits a
-new installed-system pin only for that machine.
+When establishing a pin through this route, before any connection to the machine the harness
+MUST wait for a complete, non-empty published set containing all three scanned families:
+Ed25519, RSA and ECDSA. An absent, empty or partial set admits no contact through this route.
+The machine's publication history MUST be grouped
+by installation. A vendor-API reinstall closes the current group and opens another, even
+if neither group contains a fingerprint; restart and Restore do not. A complete candidate
+for the current installation MUST share no fingerprint with any observation in any earlier
+installation of that machine, including incomplete observations, refused complete
+candidates, and groups older than the last one. Within the current installation, a complete
+candidate MUST contain every fingerprint previously observed there: a partial reading can
+become complete, but no observation can be contradicted or forgotten. Compare against the
+prior knowledge before retaining newly observed fingerprints, even when a candidate is
+refused. Record an observation only when it adds a fingerprint to that installation's
+accumulated knowledge or opens its group; repeated empty, exact, reordered, and wholly
+contained readings do not extend history. Keep every installation boundary.
+
+A vendor-API reinstall is a new first contact: the old installed pin authorizes no new
+contact. A valid source may establish the next pin under its own rules; a complete
+publication satisfying these comparisons can do so here. Without a reinstall, no
+installed-system pin from any source replaces an active pin on that machine, even if its
+keys or source differ. A refused or repeated observation cannot rewrite the active pin or
+its provenance.
 
 The first connection MUST present a key in that admitted set; a key outside it MUST halt
 under `SEC-11`, whose rule is "An SSH session MUST check the host key against the stored
@@ -301,8 +315,9 @@ never attested, and MUST state the residual in full: **the vendor, and anyone ab
 answer on the machine's address inside the vendor's network at scan time**. This is a
 vendor-published observation, not an attestation.
 
-`TauWeb.Pins.complete` and `TauWeb.Pins.fresh` state the symbolic publication guards;
-`TauWeb.Pins.pending_reinstall_has_no_pin` states what the previous pin admits during a
+`TauWeb.Pins.complete`, `TauWeb.Pins.fresh` and `TauWeb.Pins.withinInstallation` state the
+symbolic publication guards;
+`TauWeb.Pins.retired_pin_not_active` states what the previous pin admits during a
 reinstall wait. The named refused and admitted traces in the pins witness file exercise
 incomplete and complete overlap, older history, pending reinstall across restart, machine
 isolation and membership. These properties concern
@@ -369,10 +384,13 @@ the author check, and a *validly sealed* race requires the sender key, which onl
 holds. A flooded or empty inbox is a denial of service that forces a recreate (`CHN-R5`),
 nothing more.
 
-**Attest is a first contact only.** Once a machine holds an installed-system pin from any
-route, the browser MUST stop listening for that machine's introduction and MUST refuse an
-introduction that arrives later, without journaling a pin or consuming an introduction.
-This applies across restart: the browser reads the installed pin before subscribing again.
+**Attest is a first contact only for the current installation.** Once a machine holds an
+active installed-system pin from any route, the browser MUST stop listening for that
+installation's introduction and MUST refuse an introduction that arrives later, without
+journaling a pin or consuming an introduction. This applies across restart: the browser
+reads the active pin before subscribing again. After a vendor-API reinstall, an unused
+introduction may establish the new pin only while its original browser window is still
+open. Reinstall neither renews a consumed introduction nor reopens an expired window.
 The job-pin trap is `TauWeb.Pins.attest_after_job_pin_refused` and
 `TauWeb.Pins.attest_after_job_pin_admitted` (ADR-0032).
 

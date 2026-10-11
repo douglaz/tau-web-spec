@@ -242,8 +242,9 @@ zone-less local time, so neither can be compared to the browser's intent. The pr
 - **Activation** is confirmed when `GET /boot/{n}/rescue` reports `active: true` **and** its
   `authorized_key` echoes exactly the fingerprint of the machine's registered client key and the requested OS.
   Active with another key is a stale activation, not this one.
-- **The reset into rescue** is confirmed when `/rescue/last` shows a host-key set **different
-  from the one journaled before the reset** — every rescue boot has fresh keys (`CHN-R1`).
+- **The reset into rescue** is confirmed when `/rescue/last` shows a host-key set **sharing
+  no fingerprint with the one journaled before the reset** — every rescue boot has fresh keys
+  (`CHN-R1`).
 - **The reset into the installed system** is confirmed when sshd answers with the installed
   pin.
 - **Key registration** is confirmed when the account's key listing carries the machine's client

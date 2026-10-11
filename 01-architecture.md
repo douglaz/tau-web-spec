@@ -812,7 +812,8 @@ routes the operator can call omit destroy, while stop, renewal control and reins
 (`docs/findings/2026-10-08-lnvps-research.md` §3). **Where the harness would recreate a
 machine** to re-run its first contact, a vendor-API reinstall of the same machine stands in
 and is a **new first contact**: the old pin does not authorize contact with the reinstalled
-system; `CHN-R7` governs admission of its new pin. A Replace rebuild
+system; `CHN-R7` governs the publication route and installed-pin retirement, while a
+different eligible source follows its own admission rule. A Replace rebuild
 is neither: it is a new order under the new seed's key, because a reinstall leaves the machine
 in the account the retired seed controls
 ([ADR-0042](./docs/adr/0042-the-vendor-identity-is-derived-per-machine.md)). The screen

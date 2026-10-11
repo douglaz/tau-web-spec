@@ -58,6 +58,10 @@ gated on it.
       (`docs/findings/2026-10-11-lnvps-phase-b.md`) met `OPN-24`'s stage-1 target criteria.
       `CHN-R7` owns the admitted route and wait; its formal companion, witnesses, sheet
       provenance and integrated conformance owners are recorded there and in `07-conformance.md`.
+      The 2026-10-11 repair groups compact publication knowledge by installation, retires
+      installed pins across sources, requires disjoint rescue fingerprints and emits pins
+      witness schema 4 with the bounded lifecycle cases. Integrated no-contact and Restore
+      demonstrations remain obligations of `CNF-23`, `CNF-84` and `CNF-109`.
       Jump-vendor qualification remains open under T45.
 - [ ] **T40 — Attest on a real first boot** (`OPN-3`). Formal attest-source work is done
       (2026-10-08): `ARC-43` and `SEC-11`, with author matching, durable single use across

@@ -112,7 +112,7 @@ key or envelope as a sheet. Local and sheet purposes cannot be interchanged.
 The authenticated UTF-8 JSON payload contains `version: 3`, `derivation_version: 1`,
 `seed_id`, `exported_at` (UTC RFC 3339), `journal_sequence`, `next_indices` (machine/pass/
 handoff), `allocations` (including consumed tombstones), `host_pins`,
-`lnvps_publications`, `lnvps_pending_reinstall`, `exposure_ledger`,
+`host_pin_installations`, `exposure_ledger`,
 `placements: [{machine_index, application_name, name, path, placed_at}]`, `machine_states`,
 and optional
 `inference_account_credential`. Each allocation has its family, index, stable
@@ -124,7 +124,9 @@ Each `host_pins` entry names the host-key route that produced it: `retrieve` (`C
 `attest` (`CHN-R5`), `jump_host` (`CHN-R6`) or `lnvps_retrieve` (`CHN-R7`). The last
 value records the retrieved LNVPS hypervisor-scan provenance and is restored with the pin;
 it does not authorize a new first contact. Import MUST refuse a missing, unknown or malformed
-route value before binding, as it does other malformed payload fields. Whether the installation
+route value before binding, as it does other malformed payload fields. Each installed-system
+pin also carries its `installation` ordinal, starting at zero for that machine; a rescue
+pin remains scoped by its rescue boot. Whether the installation
 carries an artifact pin is a different fact, carried per machine below. Each `machine_states` entry is
 `{machine_index, declaration, class, access_model, installation, weaker_modes, applications}`: the journaled
 declaration in force as a delivery-declaration v1 document, the class `ARC-36a` records, the
@@ -137,25 +139,35 @@ allocation marked `jump_host: true` (`STA-22b`) has none. Reject a missing, dupl
 malformed entry and an entry for a jump host; never interpret a missing entry or an
 `"unapproved"` field as a default.
 
-`lnvps_publications` is a required array in observation order, oldest first. Each entry is
-`{machine_index, keys}`, with `keys` an array of `{family, fingerprint}` objects. `family` is
-exactly `ed25519`, `rsa` or `ecdsa`, at most once per observation; `fingerprint` uses the
-host-pin fingerprint format. An empty array records an observed empty publication; a shorter
-array records an incomplete one. Keep every recorded observation for that machine, including
-an incomplete reading and a complete candidate refused for overlap. Do not reconstruct this
-array from admitted `host_pins`: refused observations contain freshness knowledge but no pin.
-`lnvps_pending_reinstall` is a required array of distinct machine indices. A member means a
-recorded reinstall retired that machine's installed pin and no fresh complete publication has
-been admitted; Restore must retain that state before any connection can use the old pin.
-The pending marker and the pin's `lnvps_retrieve` provenance are separate facts. An active
-pin remains usable after Restore under its recorded route; a pending pin admits nothing.
-Both arrays are explicitly `[]` when empty. Import MUST refuse missing arrays, malformed
-entries, repeated families within an observation, duplicate pending indices, and references
-to absent or non-machine allocations before binding. It MUST NOT treat missing or invalid
-freshness knowledge as empty history. These required fields complete the pre-deployment
-version-3 payload contract; no deployed legacy payload is being reinterpreted and the v1
-envelope and derivation are unchanged. A restored sheet carries knowledge only as of export
-(`STA-16`), and cannot assert anything about later vendor publications.
+`host_pin_installations` is a required array of installation groups in creation order.
+Each group is `{machine_index, installation, observations}`. The ordinal starts at zero
+per machine and increases by one only on vendor-API reinstall. `observations` is an array
+in recording order; each observation is `{keys: [...]}`, whose elements are
+`{family, fingerprint}`. `family` is exactly `ed25519`, `rsa` or `ecdsa`, at most once per
+observation; `fingerprint` uses the host-pin fingerprint format. An initial empty reading
+may appear as an empty `keys` array. A reinstall group with no newly observed fingerprint
+has `observations: []` and must remain distinct from every earlier group. Within a group,
+record a subsequent observation only if it adds a fingerprint absent from that group's
+accumulated knowledge; exact, reordered, empty, and subset repeats add no record. Include
+incomplete readings and refused complete candidates that add knowledge. Do not reconstruct
+observations from admitted `host_pins`.
+
+The latest group for a machine is its current installation. An installed pin with that
+group's ordinal is active; pins from earlier groups are retired. At most one installed pin
+may be recorded per machine and installation. A group may have no installed pin, including
+immediately after reinstall. Route provenance remains the `host_pins` route field and is
+independent of the installation's artifact-pin status in `machine_states`.
+`host_pin_installations` and `host_pins` are explicitly `[]` when empty. A historical attest pin records that its introduction was
+consumed; import reconstructs that consumed state even when the pin is retired. Before
+binding, import MUST refuse a missing array, malformed
+group or observation, repeated family within one observation, a redundant observation,
+duplicate or skipped installation ordinal, a pin referencing a missing group, a second
+installed pin in one group, an `lnvps_retrieve` pin with no matching complete observation
+in its group, or a reference to an absent or non-machine allocation. Missing
+or invalid history MUST NOT become empty history. `STA-16` owns what Restore does with
+these facts. These fields complete the pre-deployment version-3 payload contract; no
+deployed legacy payload is being reinterpreted and the v1 envelope and derivation are
+unchanged.
 
 `applications` is a required JSON array of objects, each with exactly the required members
 `name` and `model_provider`. `name` is a nonempty string without leading or trailing

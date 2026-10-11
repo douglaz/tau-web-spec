@@ -340,7 +340,8 @@ pins_control "formal: valid attest admission disabled" \
   "sed -i 's/| .attest author, .machine => !p.attestAuthorMatches || author == plantedSender m/| .attest author, .machine => false/' $PINS && grep -q '| .attest author, .machine => false' $PINS" \
   attest_admits_and_connects wrong_author_admitted wrong_author_then_valid repeat_attest_refused \
   repeat_attest_admitted attest_per_machine failed_attest_admitted failed_append_then_valid \
-  attest_after_job_pin_admitted
+  attest_after_job_pin_admitted unused_attest_after_reinstall_admitted \
+  consumed_attest_after_reinstall_refused
 
 pins_control "formal: attest author matching disabled" \
   "sed -i 's/attestAuthorMatches : Bool := true/attestAuthorMatches : Bool := false/' $PINS && grep -q 'attestAuthorMatches : Bool := false' $PINS" \
@@ -348,7 +349,7 @@ pins_control "formal: attest author matching disabled" \
 
 pins_control "formal: attest single use disabled" \
   "sed -i 's/attestSingleUse : Bool := true/attestSingleUse : Bool := false/' $PINS && grep -q 'attestSingleUse : Bool := false' $PINS" \
-  repeat_attest_refused
+  repeat_attest_refused consumed_attest_after_reinstall_refused
 
 pins_control "formal: attest admits before a durable append" \
   "sed -i 's/attestDurable : Bool := true/attestDurable : Bool := false/' $PINS && grep -q 'attestDurable : Bool := false' $PINS" \
@@ -369,11 +370,12 @@ pins_control "formal: attest pin without a consumed introduction" \
   "sed -i 's/consumed := if pin.source.isAttest then pin.entry :: k.consumed else k.consumed/consumed := if pin.source.isAttest \&\& false then pin.entry :: k.consumed else k.consumed/' $PINS && grep -q 'isAttest && false then' $PINS" \
   attest_acceptance_consumes attest_admits_and_connects wrong_author_admitted wrong_author_then_valid \
   repeat_attest_refused attest_per_machine failed_attest_admitted failed_append_then_valid \
-  attest_after_job_pin_admitted bounded
+  attest_after_job_pin_admitted unused_attest_after_reinstall_admitted \
+  consumed_attest_after_reinstall_refused bounded
 
 pins_control "formal: restart forgets consumed introductions" \
   "sed -i 's/| .restart => { k with sessions := \[\], halts := \[\] }/| .restart => { k with consumed := [], sessions := [], halts := [] }/' $PINS && grep -q '| .restart => { k with consumed := \[\]' $PINS" \
-  consumed_step repeat_attest_refused bounded
+  consumed_step consumed_attest_after_reinstall_refused repeat_attest_refused bounded
 
 # Both directions of the new source branch: admitting a rescue pin violates source scope,
 # while an always-refusing installed branch fails successful publication evidence.
@@ -383,49 +385,64 @@ pins_control "formal: LNVPS publication admits a rescue pin" \
 
 pins_control "formal: valid LNVPS publication disabled" \
   "sed -i 's/| .published, .machine => true/| .published, .machine => false/' $PINS && grep -q '| .published, .machine => false' $PINS" \
-  published_source_admitted complete_disjoint_after_incomplete_admitted \
-  older_incomplete_history_refuses incomplete_publication_admitted_without_guard \
+  published_source_admitted partial_then_complete_admitted \
+  complete_contradiction_admitted_without_guard incomplete_publication_admitted_without_guard \
   overlapping_publication_admitted_without_guard old_pin_admitted_without_reinstall_guard \
   old_pin_admitted_after_restart_without_reinstall_guard pending_restart_then_fresh_admitted \
   pending_restart_per_machine fresh_reinstall_admitted publication_history_per_machine \
-  replacement_without_reinstall_refused \
-  replacement_without_reinstall_admitted_without_guard
+  replacement_without_reinstall_refused replacement_without_reinstall_admitted_without_guard \
+  cross_source_replacement_refused cross_source_replacement_admitted_without_guard \
+  cross_source_after_reinstall_admitted compact_history_keeps_boundary \
+  partial_polls_complete_after_restart refused_observation_blocks_later_installation \
+  duplicate_observation_does_not_restore_pin historic_session_survives_reinstall
 
 pins_control "formal: incomplete LNVPS publication admitted" \
   "sed -i 's/publishedComplete : Bool := true/publishedComplete : Bool := false/' $PINS && grep -q 'publishedComplete : Bool := false' $PINS" \
-  incomplete_publication_refused empty_publication_refused partial_then_complete_refused \
-  complete_disjoint_after_incomplete_admitted \
-  incomplete_history_refuses_after_reinstall_restart older_incomplete_history_refuses bounded
+  incomplete_publication_refused empty_publication_refused partial_then_complete_admitted \
+  complete_contradiction_after_incomplete_refused complete_contradiction_admitted_without_guard \
+  incomplete_history_refuses_after_reinstall_restart older_incomplete_history_refuses \
+  compact_history_keeps_boundary bounded
 
 pins_control "formal: overlapping LNVPS publication admitted" \
   "sed -i 's/publishedFresh : Bool := true/publishedFresh : Bool := false/' $PINS && grep -q 'publishedFresh : Bool := false' $PINS" \
-  partial_then_complete_refused incomplete_history_refuses_after_reinstall_restart \
+  incomplete_history_refuses_after_reinstall_restart \
   older_incomplete_history_refuses overlapping_publication_refused \
   older_publication_still_refused_after_restart \
-  refused_complete_publication_remains_history
+  refused_complete_publication_remains_history \
+  refused_observation_blocks_later_installation duplicate_observation_does_not_restore_pin bounded
+
+pins_control "formal: current installation contradicts an observation" \
+  "sed -i 's/publishedWithin : Bool := true/publishedWithin : Bool := false/' $PINS && grep -q 'publishedWithin : Bool := false' $PINS" \
+  complete_contradiction_after_incomplete_refused older_incomplete_history_refuses \
+  refused_complete_publication_remains_history bounded
 
 pins_control "formal: incomplete LNVPS publications lost from history" \
   "sed -i 's/if pr == .machine then/if pr == .machine \&\& complete keys then/' $PINS && grep -q 'if pr == .machine && complete keys then' $PINS" \
-  partial_then_complete_refused complete_disjoint_after_incomplete_admitted \
-  incomplete_history_refuses_after_reinstall_restart older_incomplete_history_refuses
+  partial_then_complete_admitted complete_contradiction_after_incomplete_refused \
+  incomplete_history_refuses_after_reinstall_restart older_incomplete_history_refuses \
+  compact_history_keeps_boundary partial_polls_complete_after_restart
 
 pins_control "formal: reinstall keeps old installed pin active" \
   "sed -i 's/reinstallRetiresPin : Bool := true/reinstallRetiresPin : Bool := false/' $PINS && grep -q 'reinstallRetiresPin : Bool := false' $PINS" \
-  incomplete_history_refuses_after_reinstall_restart older_incomplete_history_refuses \
+  incomplete_history_refuses_after_reinstall_restart \
   overlapping_publication_refused overlapping_publication_admitted_without_guard \
   older_publication_still_refused_after_restart refused_complete_publication_remains_history \
   old_pin_refused_pending_reinstall old_pin_refused_after_pending_restart \
   pending_restart_then_fresh_admitted pending_restart_per_machine \
-  fresh_reinstall_admitted publication_history_per_machine
+  fresh_reinstall_admitted publication_history_per_machine bounded \
+  job_pin_after_reinstall_admitted unused_attest_after_reinstall_admitted \
+  consumed_attest_after_reinstall_refused cross_source_after_reinstall_admitted \
+  compact_history_keeps_boundary refused_observation_blocks_later_installation \
+  duplicate_observation_does_not_restore_pin historic_session_survives_reinstall
 
 pins_control "formal: restart loses pending LNVPS reinstall" \
   "sed -i 's/| .restart => { k with sessions := \[\], halts := \[\] }/| .restart => { k with pendingReinstall := [], sessions := [], halts := [] }/' $PINS && grep -q '| .restart => { k with pendingReinstall := \[\]' $PINS" \
   incomplete_history_refuses_after_reinstall_restart old_pin_refused_after_pending_restart \
-  pending_restart_then_fresh_admitted pending_restart_per_machine
+  pending_restart_per_machine
 
-pins_control "formal: publication replaces pin without reinstall" \
-  "sed -i 's/publishedFirstContact : Bool := true/publishedFirstContact : Bool := false/' $PINS && grep -q 'publishedFirstContact : Bool := false' $PINS" \
-  replacement_without_reinstall_refused
+pins_control "formal: installed pin replaces another source without reinstall" \
+  "sed -i 's/installedFirstContact : Bool := true/installedFirstContact : Bool := false/' $PINS && grep -q 'installedFirstContact : Bool := false' $PINS" \
+  cross_source_replacement_refused bounded
 
 # A missing toolchain is a red gate, not a skip.
 expected=$((expected + 1))
@@ -439,8 +456,8 @@ fi
 
 WIT=tools/check_witnesses.py
 WITFILE=docs/design/allocation-witnesses-v1.json
-PINSWIT=docs/design/pins-witnesses-v3.json
-PINSEMIT=tools/formal/.lake/witnesses/pins-witnesses-v3.json
+PINSWIT=docs/design/pins-witnesses-v4.json
+PINSEMIT=tools/formal/.lake/witnesses/pins-witnesses-v4.json
 
 # Compared against the emission the formal gate wrote before this script ran: one expected
 # outcome flipped by hand in the committed file is red, naming the module.
@@ -458,24 +475,24 @@ control "witnesses: a committed file no module emits" "$WIT" \
   "cp $WITFILE docs/design/orphan-witnesses-v1.json" \
   "WITNESS DRIFT" "orphan-witnesses-v1.json is committed but no module emits it"
 
-# The renamed pins file is checked in both directions; the obsolete v2 name must be visible
+# The renamed pins file is checked in both directions; the obsolete v3 name must be visible
 # as an orphan. Each mutation gives the witness gate exactly one finding.
-passes "witnesses: unchanged v1 modules and pins v3" "$WIT" \
+passes "witnesses: unchanged v1 modules and pins v4" "$WIT" \
   "test -f $WITFILE && test -f $PINSWIT && test -f $PINSEMIT"
 
-control "witnesses: pins v3 committed drift" "$WIT" \
-  "sed -i 's/\"schema\": 3/\"schema\": 1/' $PINSWIT && ! cmp -s $PINSWIT $PINSEMIT" \
+control "witnesses: pins v4 committed drift" "$WIT" \
+  "sed -i 's/\"schema\": 4/\"schema\": 1/' $PINSWIT && ! cmp -s $PINSWIT $PINSEMIT" \
   "WITNESS DRIFT" "module pins"
 
-control "witnesses: pins v3 missing committed counterpart" "$WIT" \
+control "witnesses: pins v4 missing committed counterpart" "$WIT" \
   "rm $PINSWIT && test ! -e $PINSWIT" \
-  "WITNESS DRIFT" "pins-witnesses-v3.json is not committed"
+  "WITNESS DRIFT" "pins-witnesses-v4.json is not committed"
 
-control "witnesses: obsolete pins v2 orphan" "$WIT" \
-  "cp $PINSWIT docs/design/pins-witnesses-v2.json" \
-  "WITNESS DRIFT" "pins-witnesses-v2.json is committed but no module emits it"
+control "witnesses: obsolete pins v3 orphan" "$WIT" \
+  "cp $PINSWIT docs/design/pins-witnesses-v3.json" \
+  "WITNESS DRIFT" "pins-witnesses-v3.json is committed but no module emits it"
 
-control "witnesses: pins v3 emission carrying a CNF identifier" "$WIT" \
+control "witnesses: pins v4 emission carrying a CNF identifier" "$WIT" \
   "sed -i 's/\"module\": \"pins\"/\"module\": \"pins\", \"exercised_by\": \"CNF-18\"/' $PINSEMIT && grep -q CNF-18 $PINSEMIT" \
   "WITNESS DRIFT" "module pins carries a CNF identifier"
 

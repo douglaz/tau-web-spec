@@ -10,9 +10,10 @@ decided there and not restated here). `lake exe witnesses` writes them from `too
 [`declaration-witnesses-v1.json`](./declaration-witnesses-v1.json) from `TauWeb.Declaration`,
 [`relay-witnesses-v1.json`](./relay-witnesses-v1.json) from `TauWeb.Relay`,
 [`dispatch-witnesses-v1.json`](./dispatch-witnesses-v1.json) from `TauWeb.Dispatch`. The pins
-module uses schema 3 in [`pins-witnesses-v3.json`](./pins-witnesses-v3.json) from `TauWeb.Pins`.
-It replaces schema 2: LNVPS publication and reinstall events, per-fingerprint sets and
-presented keys, history and pending state change the shape. Schema 2 replaced schema 1 when
+module uses schema 4 in [`pins-witnesses-v4.json`](./pins-witnesses-v4.json) from `TauWeb.Pins`.
+It replaces schema 3: installation groups, pin installation ordinals and compact observations
+change the shape. Schema 3 added LNVPS publication and reinstall events, per-fingerprint sets
+and presented keys. Schema 2 replaced schema 1 when
 attest and restart were added.
 Nothing outside this repository reads witness files today, so removing that old file requires no
 current reader
@@ -29,7 +30,7 @@ the trace that moved.
 | `schema` | `1` for allocation, declaration, relay and dispatch; `3` for pins. A change to any shape below is a new version and a new file name for that module. |
 | `module` | The inventory name, lower-case: `allocation`, `declaration`, `relay`, `dispatch`, and `pins` for the host-pin lifecycle. |
 | `namespace` | The Lean namespace the traces' declarations live in. |
-| `bound` | `declaration`, the tagged `bound` the decided property and the emitter share, and its value rendered under the module's own members. Allocation (`TauWeb.Allocation.bound`): `events`, the number, and `alphabet`, the events the enumeration draws from. Declaration (`TauWeb.Declaration.bound`): `base`, the declaration and machine every case starts from; `presences`, per field, what the field is swept through, `missing` written as that word since a list has no absent member; `observations`, what the machine is made to show for it; `tenancies`. Relay (`TauWeb.Relay.bound`): `events`, the number; `alphabet`; and `start`, the opened connection every trace of the enumeration runs from. Dispatch (`TauWeb.Dispatch.bound`): `events`, the number; `alphabet`; and `start`, the journal every trace runs from, which carries the harness's associations and nothing dispatched. Pins (`TauWeb.Pins.bound`): the same shape; `start` carries the snapshot from one `/rescue/last` read, which a trace of three events has no room to take for itself, plus the fixed `planted_senders` list defined below from that starting knowledge and the alphabet. |
+| `bound` | `declaration`, the tagged `bound` the decided property and the emitter share, and its value rendered under the module's own members. Allocation (`TauWeb.Allocation.bound`): `events`, the number, and `alphabet`, the events the enumeration draws from. Declaration (`TauWeb.Declaration.bound`): `base`, the declaration and machine every case starts from; `presences`, per field, what the field is swept through, `missing` written as that word since a list has no absent member; `observations`, what the machine is made to show for it; `tenancies`. Relay (`TauWeb.Relay.bound`): `events`, the number; `alphabet`; and `start`, the opened connection every trace of the enumeration runs from. Dispatch (`TauWeb.Dispatch.bound`): `events`, the number; `alphabet`; and `start`, the journal every trace runs from, which carries the harness's associations and nothing dispatched. Pins (`TauWeb.Pins.bound`): the same shape; `start` carries one earlier `/rescue/last` snapshot, plus the fixed `planted_senders` list defined below from that starting knowledge and the alphabet. |
 | `witnesses` | The named traces, one per decided witness, in the order the module states them. |
 | `enumeration` | The traces the module's decided property closed over. Allocation: every trace of at most `bound.events` events over `bound.alphabet` from the initial journal, shortest first (`TauWeb.Allocation.bounded_nodup`). Declaration: one full check per case of the sweep, fields in the table's order, each field through each presence, observation and tenancy (`TauWeb.Declaration.bounded`). Relay: every trace of at most `bound.events` events over `bound.alphabet` from `bound.start`, shortest first (`TauWeb.Relay.bounded`). Dispatch: the same shape, from `bound.start` (`TauWeb.Dispatch.bounded`). Pins: the same shape, from `bound.start` (`TauWeb.Pins.bounded`). |
 
@@ -38,7 +39,7 @@ Both arrays hold traces of one shape:
 | Member | What it holds |
 |---|---|
 | `declarations` | The `TauWeb.*` theorems the trace came from, resolvable against the `lake exe gate` index. Every name the file carries — here, in `bound.declaration`, in `pair.with` — is one the emitter checked against the tags (`Witnesses.lean`). |
-| `assumptions` | Each guard parameter of the module by name, with the value the trace runs under, and each hypothesis the module takes rather than owns. Allocation has one guard, `restoredAllocatesNone`; declaration has one, `emptyMeansPerField`; relay has one, `dialRequiresAuthAccepted`, beside `special`, `ownAddress` and `resolve` — the value `CHN-16a`'s pinned tables and the relay's resolver take for the trace, since the module quantifies over them. Dispatch has four, `resourceKey`, `durableBeforeApply`, `endedBelowSucceeded` and `dispositionBindsContinuation`, and nothing else: what the far side actually did is external state, which a witness never carries. Pins carries `sourceAdmitsPin`, `attestAuthorMatches`, `attestSingleUse`, `attestDurable`, `attestFirstContact`, `publishedComplete`, `publishedFresh`, `reinstallRetiresPin` and `publishedFirstContact`, with symbolic sender associations, seal-author observations, atomic durable appends, open introduction windows and vendor-status observations as stated assumptions. |
+| `assumptions` | Each guard parameter of the module by name, with the value the trace runs under, and each hypothesis the module takes rather than owns. Allocation has one guard, `restoredAllocatesNone`; declaration has one, `emptyMeansPerField`; relay has one, `dialRequiresAuthAccepted`, beside `special`, `ownAddress` and `resolve` — the value `CHN-16a`'s pinned tables and the relay's resolver take for the trace, since the module quantifies over them. Dispatch has four, `resourceKey`, `durableBeforeApply`, `endedBelowSucceeded` and `dispositionBindsContinuation`, and nothing else: what the far side actually did is external state, which a witness never carries. Pins carries `sourceAdmitsPin`, `attestAuthorMatches`, `attestSingleUse`, `attestDurable`, `attestFirstContact`, `publishedComplete`, `publishedFresh`, `publishedWithin`, `reinstallRetiresPin` and `installedFirstContact`, with symbolic sender associations, seal-author observations, atomic durable appends, open introduction windows and vendor-status observations as stated assumptions. |
 | `pair` | Present on a refused-and-admitted pair: `side`, `refused` or `admitted`, and `with`, the other side's declaration. What the comparison expects of each side is ADR-0032's. |
 | `start` | The state before the first event, in the projection below. Allocation: the `journal` — most traces start from the fresh seed; the exhaustion witness starts one below the index limit. Declaration: the `declaration` and the `machine` the check reads, and the empty `record`. Relay: the `challenge` as an ordinal, the `destination` the path parsed to, what the pipeline `classified` it as, the `pass` the operator's key holds, and the opened `connection`. Dispatch: the `knowledge` below, which every trace starts with the harness's associations in and nothing else. Pins: the `knowledge` below — for the witnesses, empty apart from `planted_senders`, which lists every machine the trace names; and `bound.start` for the enumeration. |
 | `steps` | One object per event, in order: `event`, the outcome members for that event kind, and the projection after the step — `journal` for allocation, `record` for declaration, `connection` for relay, `knowledge` for dispatch and for pins. |
@@ -189,7 +190,7 @@ with `calls` on the barrier and `permits` on the continuation.
 
 ### Pins
 
-In schema 3, `knowledge` is harness knowledge in `SEC-11`'s, `CHN-R1`'s, `CHN-R7`'s and `ARC-43`'s
+In schema 4, `knowledge` is harness knowledge in `SEC-11`'s, `CHN-R1`'s, `CHN-R7`'s and `ARC-43`'s
 vocabulary and never
 the companion's state layout. External state is not in the file: `snapshot` is what the
 vendor's field showed when it was read, a session's `presented` is what the far sshd presented, and
@@ -201,15 +202,16 @@ between publications and membership of a presented key in a pinned set.
 
 | Member | Meaning |
 |---|---|
-| `pins` | The pins journaled, oldest first: the `entry`, what the pin is held `per` — `boot`, with the `boot` beside it, or `machine` — the `keys` and the `source` that admitted it; attest pins also carry the observed `author`. |
-| `published_history` | Every recorded LNVPS publication, oldest first, as `entry` and `keys`, including incomplete observations and refused complete candidates; preserved across reinstall and restart. A candidate is compared with earlier records before it is appended. |
-| `pending_reinstall` | Machine entries for which a vendor reinstall began a new first contact and no complete fresh publication has yet been admitted. |
+| `pins` | The pins journaled, oldest first: the `entry`, what the pin is held `per` — `boot`, with the `boot` beside it, or `machine` — the `keys`, `source`, and installation ordinal; attest pins also carry the observed `author`. A pin from an earlier installation remains in history but is inactive. |
+| `publication_groups` | Installation groups in creation order, each with its `entry`, zero-based `installation`, and compact `observations` in recording order. Empty groups retain reinstall boundaries; a first empty reading is an observation, while repeats add nothing. |
+| `current_installations` | Each named machine's current installation ordinal, whether or not it has a publication or active pin. |
+| `pending_reinstall` | Machine entries whose latest reinstall has no new installed pin from any source. This is explanatory state, not the gate on an active pin. |
 | `consumed_introductions` | Machine entries whose introductions have been accepted, in journal order; retained across restart. Pins and consumption are appended together before any connection can use them. |
 | `planted_senders` | A fixed list of machine entries and their independently configured sender ordinals, identical in `start` and every step. For a named witness, take entries from its starting knowledge, then event entries in trace order, keeping the first occurrence of each. For the enumeration, use entries from `bound.start`'s knowledge and then `bound.alphabet` in the same way; `bound.start` and every enumerated trace, including the empty trace, share that list. An event's entry is included even when the event is refused and journals nothing. The symbolic association is fixed by the assumptions, not supplied by the observed author; no private keys or key bytes are serialized. |
 | `snapshot` | Per entry, what `/rescue/last` showed when the harness read it, `null` for the empty field — the one journaled before a reset, which the confirmation is read against, and which a reading taken while that reset is outstanding does not move. Absent for an entry whose field was never read. |
 | `boot` | Per entry, the rescue boot the harness counts: `0` before the first reset into rescue, and the next one for each dispatched. Never the vendor's `boot_id`. |
 | `awaiting`, `confirmed` | The resets dispatched whose confirmation is outstanding, and those confirmed, each as the `entry` and the system it resets `into`. An outstanding one also carries what it `expects`: the pin the intent named as its expected next pin (`STA-20b`), `null` for a reset into rescue, whose next set nothing knows yet. |
-| `sessions` | The connections admitted, oldest first: the `entry`, the `system`, the `boot` it was made in, the single fingerprint ordinal `presented`, and the `pin` it was checked against. |
+| `sessions` | The connections admitted, oldest first: the `entry`, the `system`, the `boot` and installation ordinal it was made in, the single fingerprint ordinal `presented`, and the `pin` it was checked against. Historical sessions remain intelligible after reinstall. |
 | `halts` | The handshakes halted, oldest first: the `entry`, the `system`, what was `presented`, and the `reason` — `no_pin` (nothing stored to check against), `mismatch` (the error `SEC-11` halts on), or `confirms_reset` (the halt the reset explains). |
 
 The pin sources are the vocabulary of `TauWeb.Pins.Source`: `rescue_last`, `ready_to_reset`,
@@ -217,14 +219,14 @@ The pin sources are the vocabulary of `TauWeb.Pins.Source`: `rescue_last`, `read
 sender; the file never supplies a prevalidated introduction. A failed append records neither
 pins nor consumption under production parameters, so the next valid introduction can still
 succeed. The assumption of an atomic durable pin append and replay is a boundary of the proof,
-not evidence about real storage or cryptography. All recorded publication observations and pending
+not evidence about real storage or cryptography. Installation groups, recorded observations and
 reinstall records are assumed durable too; their failed append is outside the companion.
 Restart preserves those journaled facts,
 including refusal of a second introduction and publication history; window and status-poll timing
 are outside this file. A halted handshake after an attempted connection is not proof that the
 harness made no contact before publication; `CNF-23` owns that implementation demonstration.
 `CHN-5` says
-"the browser MUST stop listening for that machine's introduction and MUST refuse an
+"the browser MUST stop listening for that installation's introduction and MUST refuse an
 introduction that arrives later, without journaling a pin or consuming an introduction".
 Its first-contact trap projects unchanged pins and consumption after the late introduction;
 the connection presenting that introduction's set is checked against the pin already held.
@@ -234,6 +236,8 @@ named traces additionally exercise rescue refusal, wrong-author then valid admis
 introduction across restart, failed-append then valid admission, independent machines and an
 introduction after a job pin, and LNVPS source, completeness, incomplete history, freshness,
 pending reinstall across restart and machine-isolation cases. Each
-new guard's refused/admitted pair changes only that guard, as the assumptions record; the
-single-use pair runs with first contact only off, so that the consumed introduction is what
+new guard's refused/admitted pair changes only that guard, as the assumptions record, except
+the publication-to-publication replacement pair: its admitted side also disables the
+within-installation comparison so a complete but changed set can reach the replacement guard.
+The single-use pair runs with first contact only off, so that the consumed introduction is what
 its refused side shows.

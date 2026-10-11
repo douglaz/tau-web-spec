@@ -279,8 +279,9 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       to a system whose key nothing can check (`CHN-R5`). Under `CHN-R6` only, the first
       contact is presented to the operator as trusted through a jump host at the named vendor,
       never as pinned out of band, and that label stays in the trust display for the machine's
-      life. At LNVPS (`CHN-R7`), absent, empty, incomplete or stale/overlapping publication
-      causes **no contact with the machine**, including after reinstall with a previous pin
+      life. On the LNVPS publication route (`CHN-R7`), absent, empty, incomplete,
+      cross-installation overlapping or within-installation contradictory publication
+      causes **no contact with the machine before an eligible pin is active**, including after reinstall with a previous pin
       stored and after restart during that wait. Status polling is permitted within
       `lnvps.published_key_wait_max`; after its
       deadline, first contact is unresolved, with no login or timer-driven retry. The harness
@@ -293,24 +294,26 @@ an item that tests a mode's conditions or its label is tiered by them like any o
 - [ ] **CNF-109 · BLOCKING** The LNVPS retrieved pin route (`CHN-R7`, `ARC-43`) reads only
       the recorded machine status response by direct browser fetch over browser-terminated
       TLS, and takes only its published host-key field as an installed-system pin. With a
-      complete Ed25519, RSA and ECDSA set disjoint from all earlier recorded publications
-      for that machine, first contact presenting any member is admitted against that pin;
+      complete Ed25519, RSA and ECDSA set containing all fingerprints observed in the
+      current installation and disjoint from every observation of earlier installations
+      of that machine, first contact presenting any member is admitted against that pin;
       a presented key outside the set halts without an accepted session (`SEC-11`), on first
-      and later contact. A different whole set sharing one fingerprint with the last set is
-      refused, as is one sharing a fingerprint with an older-than-last set after another
-      disjoint publication. A complete recorded publication refused for overlap remains in
-      that machine's comparison history, as does every incomplete observation. Exercise a
-      complete candidate overlapping an earlier incomplete observation, including after
-      reinstall and restart, and an older-than-last incomplete observation; a complete
-      genuinely disjoint candidate admits. Reinstall retires the old pin before a new
-      publication, preserves per-machine history and pending retirement across restart, and
-      permits a new first contact only after a complete disjoint set arrives; another machine's
-      history neither blocks nor admits this one.
+      and later contact. Exercise a partial reading completed in the same installation,
+      a contradictory complete candidate there, and overlap with an earlier installation's
+      incomplete, refused, or older-than-last observation. Refused observations that add
+      fingerprints remain in comparison history. Repeated empty, exact, reordered, and
+      subset readings do not grow that history; a reinstall opens a distinct group even
+      when its first reading is empty. Reinstall retires every source's installed pin and
+      preserves groups across restart; a new valid published, job-read, or unused eligible
+      attest introduction can pin under its own rules. A consumed attest introduction stays
+      consumed. Without reinstall, no source replaces an active installed pin, including
+      a job-read attempt after a published pin. Another machine's history neither blocks nor
+      admits this one.
       Inspect the trust display: the pin is labelled **retrieved from the vendor's hypervisor
       scan**, never attested, and the residual is stated as **the vendor, and anyone able to
       answer on the machine's address inside the vendor's network at scan time** (`TRU-E1`,
       `TRU-E13`). The disclosure and every refusal block this route. Export and Restore keep
-      `lnvps_retrieve` provenance and recorded publication history with the pin (`CNF-84`); they do not start
+      `lnvps_retrieve` provenance and installation groups with the pin (`CNF-84`); they do not start
       a new first contact.
 - [ ] **CNF-24 · BLOCKING** The install artifact is verified against a value the browser supplies
       from the signed bundle, and a mismatch halts the install (`ARC-25`, `STG-6`). Verified by
@@ -578,11 +581,13 @@ evidence is that set's test run against the relay the harness uses.
       then resumed, results in exactly one rescue session and one install (`STG-11`). Four
       cases, each interrupted between intent and confirmation and resumed: the activation
       (confirmed only by `active` plus the machine's echoed key fingerprint and the requested OS); the reset into rescue
-      (confirmed only by a host-key set on `/rescue/last` different from the durably recorded
+      (confirmed only by a host-key set on `/rescue/last` sharing no fingerprint with the durably recorded
       pre-reset set); the reset into the installed system (confirmed only by sshd answering
       with the installed pin); and a case where none of those holds, which stays unresolved
       with no automatic retry and need not finish (`STG-4`). In the first three, reconciliation
-      lets the ceremony finish without repeating the interrupted mutation. In every case the
+      lets the ceremony finish without repeating the interrupted mutation. A reordered
+      pre-reset set or one sharing a pre-reset fingerprint leaves the rescue reset unresolved,
+      including after an intervening empty field; a fresh disjoint set confirms it. In every case the
       mutation is requested again under a fresh call id before confirmation and is refused
       while the reconciliation reads stay available; an immediate `running`, a changed
       `boot_time`, or a job record claiming success does not substitute for the predicate
@@ -741,13 +746,13 @@ Not pass/fail. Required to be recorded.
       `CHN-R7` installed-system pin too: the distinct `lnvps_retrieve` route survives with
       the stored pin and its retrieval disclosure, while the installation's artifact-pin
       status remains independent. Restore reconnects under that existing pin, not a new
-      first contact. Round-trip the recorded `CHN-R7` publication history, including an
-      incomplete reading and a complete refused candidate that produced no pin. After Restore,
-      an operator reinstall and a candidate sharing a fingerprint with either earlier
-      observation must be refused; a complete disjoint candidate can be admitted. Also
-      round-trip a recorded reinstall with its pin retired: Restore cannot reactivate that
-      pin, while a separate active-pin case reconnects under its existing route. Refuse a
-      missing, unknown or malformed route, publication history or pending-reinstall state
+      first contact. Round-trip the recorded installation groups, including incomplete and
+      refused observations, empty boundaries and the active or retired status of pins from
+      each source. After Restore, a same-installation completion can admit a pin; after a
+      later operator reinstall, a candidate sharing a fingerprint with an older group is
+      refused. A separate active-pin case reconnects under its existing route, while a
+      retired pin never authorizes a new contact. Refuse a missing, unknown or malformed
+      route, group, observation or installed-pin installation reference
       before binding; absent required data never becomes empty history. The sheet
       has `STA-16`'s placement metadata, pin routes and
       machine states; values, digests, scan keys and lengths are absent, and unsupported
