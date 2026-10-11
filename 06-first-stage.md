@@ -81,7 +81,7 @@ the channel and the journal, the stage needs:
 
 LNVPS met `OPN-24`'s stage-1 target criteria in the phase-B finding, and `CHN-R7` admits the
 route. Stage 1 still waits for the integrated conformance in `07-conformance.md`; a failure
-there reopens the vendor question. No replacement vendor or card account is selected.
+there blocks stage completion. No replacement vendor or card account is selected.
 At the 2026-10-09 amendment this criterion read "If LNVPS fails `OPN-24`'s target criteria,
 stage 1 waits"; the phase-B result satisfied it.
 The live Hetzner Cloud catalogue lacks Arch (`docs/findings/2026-10-08-lnvps-research.md`,

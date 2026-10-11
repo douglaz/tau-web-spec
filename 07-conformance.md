@@ -281,11 +281,12 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       never as pinned out of band, and that label stays in the trust display for the machine's
       life. At LNVPS (`CHN-R7`), absent, empty, incomplete or stale/overlapping publication
       causes **no contact with the machine**, including after reinstall with a previous pin
-      stored. Status polling is permitted within `lnvps.published_key_wait_max`; after its
+      stored and after restart during that wait. Status polling is permitted within
+      `lnvps.published_key_wait_max`; after its
       deadline, first contact is unresolved, with no login or timer-driven retry. The harness
       offers operator-chosen reinstall or abandonment, never automatic reinstall, fallback
-      login or trust on first use. Abandonment stops renewal and leaves the machine shown as
-      existing and billed until the vendor's stated deletion date (`ARC-22`). Exercise each
+      login or trust on first use. Abandonment stops the machine, turns renewal off and leaves
+      it shown as existing and billed until the vendor's stated deletion date (`ARC-22`). Exercise each
       refusal and deadline against the integrated harness, including a status response that
       still shows the old publication after reinstall. Boundary crossed: a key taken on trust
       through the relay hands the relay the session.
@@ -298,15 +299,19 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       and later contact. A different whole set sharing one fingerprint with the last set is
       refused, as is one sharing a fingerprint with an older-than-last set after another
       disjoint publication. A complete recorded publication refused for overlap remains in
-      that machine's comparison history; an incomplete reading can fill without poisoning it.
-      Reinstall retires the old pin before a new publication, preserves
-      per-machine history across restart, and permits a new first contact only after a complete
-      disjoint set arrives; another machine's history neither blocks nor admits this one.
+      that machine's comparison history, as does every incomplete observation. Exercise a
+      complete candidate overlapping an earlier incomplete observation, including after
+      reinstall and restart, and an older-than-last incomplete observation; a complete
+      genuinely disjoint candidate admits. Reinstall retires the old pin before a new
+      publication, preserves per-machine history and pending retirement across restart, and
+      permits a new first contact only after a complete disjoint set arrives; another machine's
+      history neither blocks nor admits this one.
       Inspect the trust display: the pin is labelled **retrieved from the vendor's hypervisor
       scan**, never attested, and the residual is stated as **the vendor, and anyone able to
-      answer on the machine's address inside the vendor's network at scan time**. The
-      disclosure and every refusal block this route. Export and Restore keep `lnvps_retrieve`
-      provenance with the pin (`CNF-84`); they do not start a new first contact.
+      answer on the machine's address inside the vendor's network at scan time** (`TRU-E1`,
+      `TRU-E13`). The disclosure and every refusal block this route. Export and Restore keep
+      `lnvps_retrieve` provenance and recorded publication history with the pin (`CNF-84`); they do not start
+      a new first contact.
 - [ ] **CNF-24 · BLOCKING** The install artifact is verified against a value the browser supplies
       from the signed bundle, and a mismatch halts the install (`ARC-25`, `STG-6`). Verified by
       serving an artifact that does not match and confirming the install stops rather than
@@ -736,7 +741,14 @@ Not pass/fail. Required to be recorded.
       `CHN-R7` installed-system pin too: the distinct `lnvps_retrieve` route survives with
       the stored pin and its retrieval disclosure, while the installation's artifact-pin
       status remains independent. Restore reconnects under that existing pin, not a new
-      first contact. Refuse a missing, unknown or malformed route before binding. The sheet
+      first contact. Round-trip the recorded `CHN-R7` publication history, including an
+      incomplete reading and a complete refused candidate that produced no pin. After Restore,
+      an operator reinstall and a candidate sharing a fingerprint with either earlier
+      observation must be refused; a complete disjoint candidate can be admitted. Also
+      round-trip a recorded reinstall with its pin retired: Restore cannot reactivate that
+      pin, while a separate active-pin case reconnects under its existing route. Refuse a
+      missing, unknown or malformed route, publication history or pending-reinstall state
+      before binding; absent required data never becomes empty history. The sheet
       has `STA-16`'s placement metadata, pin routes and
       machine states; values, digests, scan keys and lengths are absent, and unsupported
       payload versions, explicitly including versions 1 and 2, are refused rather than read as
@@ -817,7 +829,7 @@ promotion rule above.
 | Stage 1: record measurements | 45–47 | Require the integrated browser channel, not the rehearsal's timings. |
 | Stage 1: model-written check reports | 107 | The report label, verdict isolation and absence of automatic re-execution are required before stage 1 completes. |
 | Stage 1: re-entry | 108 | `STG-9`'s later session, re-entering over the same pin and re-running the check, is required before stage 1 completes. Item 93's re-entry case runs with it, using a placement or rotation in the re-entering session. |
-| Stage 1: recovery export/import and Replace | 19–20, 84 | Before maintained cloud delivery: export, Restore, allocation refusal, cloud destroy/recreate and partial-Replace cases pass, with item 10's export case. At LNVPS, `ARC-22` owns both forms: a destroy is a stop with renewal off, and a recreate is a reinstall that is a new first contact and cannot reuse the old pin. Item 84 also checks `CHN-R7` provenance through sheet export and Restore, while item 109 checks fresh admission after reinstall. Item 20 uses the manual publisher-confirmed pass retirement/enrollment route. Only item 84's Robot rescue case waits for the dedicated row; signed pass revocation waits for the paid/public row. |
+| Stage 1: recovery export/import and Replace | 19–20, 84 | Before maintained cloud delivery: export, Restore, allocation refusal, cloud destroy/recreate and partial-Replace cases pass, with item 10's export case. At LNVPS, `ARC-22` owns both forms: a destroy is a stop with renewal off, and a recreate is a reinstall that is a new first contact and cannot reuse the old pin. Item 84 checks `CHN-R7` provenance, earlier and refused publication knowledge, and pending pin retirement through sheet export and Restore; item 109 checks fresh admission after reinstall. Item 20 uses the manual publisher-confirmed pass retirement/enrollment route. Only item 84's Robot rescue case waits for the dedicated row; signed pass revocation waits for the paid/public row. |
 | Attest first-contact route | 18, 23 (attest-window case), 61, 74–75 | Before enabling attest at any vendor that accepts boot configuration, including one used for a jump host. This row does not gate LNVPS stage 1. |
 | The dedicated path: the construction test bed | 22, 38, 48, 62–64, 80, 84, 85–86 | The Robot dedicated path's own checks, including only item 84's Robot rescue case. Their by-hand evidence stands (48 is recorded), construction exercises them on the test bed, and they pass on the integrated harness before a dedicated-server path is offered to an operator, which no stage before the third does. Items 62–64 also apply to any typed adapter that rides the pinned tunnel, stage 1's included if its vendor refuses a browser origin. |
 | Stage 2: a vendor with no adapter whose API the browser can reach (`CHN-12b`), the jump host, sets above one | 7, 12, 14, 23, 27, 29, 31, 33, 42, 91–93, 96–98, 104–106 | Before enabling an untyped scope, an untyped vendor scope, the jump-host route or a bound set of more than one machine. Items 7 and 91 cover set growth, subsets and two-machine sets; items 12, 14 and 29 their untyped-scope cases; item 23 the jump-host label; item 42 the untyped-scope half of the trust display; item 93 the jump-host, untyped-scope and larger-set modes, each accepted at the act it governs and restated, with their re-entry and reinstall cases; item 104 an invoice decoded from an untyped response, where the vendor invoices. Item 92's multi-tenant case gates sets above one; its independence-bound case gates the first profile that declares a bound. Repeat item 17 against real untyped responses. |

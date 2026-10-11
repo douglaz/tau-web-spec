@@ -22,7 +22,7 @@ an observed vendor response, not proof of its origin, TLS, scan honesty or absen
 an author supplied by the introduction. An attest event reports the seal author after unwrap
 and the storage outcome if appending the machine, keys and consumed state together is attempted.
 A successful append is assumed durable and atomic; a failed append writes none of them. `restart` retains
-that journal, the complete-publication history and pending reinstall state, and drops
+that journal, the recorded-publication history and pending reinstall state, and drops
 session/handshake records. Durability of status observations and reinstall records is assumed;
 their failed append is not an event here. This proves the acceptance rule across such
 restarts, not real browser durability, signature verification, first-boot timing, or window expiry.
@@ -228,8 +228,8 @@ structure Knowledge where
   sessions : List Session
   /-- The handshakes halted, newest first. -/
   halts : List Halted
-  /-- Earlier complete LNVPS publications observed for this machine, including refused ones,
-  retained across reinstall and restart. Incomplete readings cannot poison a filling set. -/
+  /-- Earlier LNVPS publications observed for this machine, including incomplete and refused
+  ones, retained across reinstall and restart. -/
   publishedHistory : List (Entry × Keys) := []
   /-- Reinstalled machines awaiting a new, admitted publication. -/
   pendingReinstall : List Entry := []
@@ -350,8 +350,7 @@ installed-system pin already held for that machine. -/
   keys.length == 3
 
 /-- Every fingerprint must be new for this machine, including against older-than-last sets.
-The history contains complete recorded publications, including refused candidates, but not
-intermediate incomplete status readings. -/
+The history contains every recorded publication, including incomplete and refused candidates. -/
 @[req "CHN-R7"] def fresh (k : Knowledge) (m : Entry) (keys : Keys) : Bool :=
   k.publishedHistory.all fun (entry, old) =>
     entry != m || keys.all (fun key => !old.contains key)
@@ -401,7 +400,7 @@ the presented set is the reset's confirmation or is not, whichever pin the probe
   | .attest m pr f author durable => journal p k ⟨m, pr, f, .attest author⟩ durable
   | .published m pr keys =>
     let mayAdmit := publicationAdmissible p k m pr keys
-    let k := if pr == .machine && complete keys then
+    let k := if pr == .machine then
       { k with publishedHistory := (m, keys) :: k.publishedHistory }
       else k
     if mayAdmit then
@@ -1011,6 +1010,23 @@ def partialThenCompleteEvents : List Event :=
    .published entryA .machine publishedKeys,
    .connect entryA .installed publishedKey]
 
+def partialThenDisjointEvents : List Event :=
+  [.published entryA .machine [51, 151],
+   .published entryA .machine nextPublishedKeys,
+   .connect entryA .installed nextPublishedKey]
+
+def incompleteReinstallRestartEvents : List Event :=
+  [.published entryA .machine [51, 151], .reinstall entryA, .restart,
+   .published entryA .machine [51, 152, 252],
+   .connect entryA .installed publishedKey]
+
+def olderIncompleteEvents : List Event :=
+  [.published entryA .machine [51, 151],
+   .published entryA .machine nextPublishedKeys,
+   .reinstall entryA,
+   .published entryA .machine overlappingKeys,
+   .connect entryA .installed overlappingKey]
+
 def stalePublishedEvents : List Event :=
   [.published entryA .machine publishedKeys,
    .reinstall entryA,
@@ -1036,6 +1052,24 @@ def refusedHistoryEvents : List Event :=
 def reinstallPendingEvents : List Event :=
   [.published entryA .machine publishedKeys,
    .reinstall entryA,
+   .connect entryA .installed publishedKey]
+
+def reinstallPendingRestartEvents : List Event :=
+  [.published entryA .machine publishedKeys,
+   .reinstall entryA, .restart,
+   .connect entryA .installed publishedKey]
+
+def reinstallRestartFreshEvents : List Event :=
+  [.published entryA .machine publishedKeys,
+   .reinstall entryA, .restart,
+   .published entryA .machine nextPublishedKeys,
+   .connect entryA .installed nextPublishedKey]
+
+def reinstallRestartOtherMachineEvents : List Event :=
+  [.published entryA .machine publishedKeys,
+   .published entryB .machine publishedKeys,
+   .reinstall entryA, .restart,
+   .connect entryB .installed publishedKey,
    .connect entryA .installed publishedKey]
 
 def reinstallFreshEvents : List Event :=
@@ -1089,10 +1123,27 @@ def replaceWithoutReinstall : Params := { current with publishedFirstContact := 
     k.pins = [] ∧ k.sessions = [] ∧ k.halts.map (·.reason) = [.noPin] := by
   decide +kernel
 
-@[req "CHN-R7"] theorem partial_then_complete_admitted :
+@[req "CHN-R7"] theorem partial_then_complete_refused :
     let k := run current init partialThenCompleteEvents
-    k.publishedHistory.map (·.2) = [publishedKeys] ∧
-    k.sessions.map (·.keys) = [publishedKey] := by decide +kernel
+    k.publishedHistory.map (·.2) = [publishedKeys, [51, 151]] ∧
+    k.pins = [] ∧ k.sessions = [] ∧ k.halts.map (·.reason) = [.noPin] := by decide +kernel
+
+@[req "CHN-R7"] theorem complete_disjoint_after_incomplete_admitted :
+    let k := run current init partialThenDisjointEvents
+    k.publishedHistory.map (·.2) = [nextPublishedKeys, [51, 151]] ∧
+    k.sessions.map (·.keys) = [nextPublishedKey] := by decide +kernel
+
+@[req "CHN-R7"] theorem incomplete_history_refuses_after_reinstall_restart :
+    let k := run current init incompleteReinstallRestartEvents
+    k.publishedHistory.map (·.2) = [[51, 152, 252], [51, 151]] ∧
+    k.pendingReinstall = [entryA] ∧ k.pins = [] ∧ k.sessions = [] ∧
+    k.halts.map (·.reason) = [.noPin] := by decide +kernel
+
+@[req "CHN-R7"] theorem older_incomplete_history_refuses :
+    let k := run current init olderIncompleteEvents
+    k.publishedHistory.map (·.2) = [overlappingKeys, nextPublishedKeys, [51, 151]] ∧
+    k.pins.map (·.keys) = [nextPublishedKeys] ∧ k.sessions = [] ∧
+    k.halts.map (·.reason) = [.noPin] := by decide +kernel
 
 @[req "CHN-R7"] theorem incomplete_publication_admitted_without_guard :
     let k := run incompleteAllowed init partialPublishedEvents
@@ -1127,6 +1178,29 @@ def replaceWithoutReinstall : Params := { current with publishedFirstContact := 
 @[req "CHN-R7"] theorem old_pin_admitted_without_reinstall_guard :
     let k := run oldPinRetained init reinstallPendingEvents
     k.sessions.map (·.keys) = [publishedKey] := by decide +kernel
+
+@[req "CHN-R7"] theorem old_pin_refused_after_pending_restart :
+    let k := run current init reinstallPendingRestartEvents
+    k.pendingReinstall = [entryA] ∧ pinFor k entryA .installed = none ∧
+    k.sessions = [] ∧ k.halts.map (·.reason) = [.noPin] := by decide +kernel
+
+@[req "CHN-R7"] theorem old_pin_admitted_after_restart_without_reinstall_guard :
+    let k := run oldPinRetained init reinstallPendingRestartEvents
+    k.sessions.map (·.keys) = [publishedKey] := by decide +kernel
+
+@[req "CHN-R7"] theorem pending_restart_then_fresh_admitted :
+    let k := run current init reinstallRestartFreshEvents
+    k.pendingReinstall = [] ∧
+    (pinFor k entryA .installed).map (·.keys) = some nextPublishedKeys ∧
+    k.sessions.map (·.keys) = [nextPublishedKey] := by decide +kernel
+
+@[req "CHN-R7"] theorem pending_restart_per_machine :
+    let k := run current init reinstallRestartOtherMachineEvents
+    k.pendingReinstall = [entryA] ∧
+    (pinFor k entryA .installed) = none ∧
+    (pinFor k entryB .installed).map (·.keys) = some publishedKeys ∧
+    k.sessions.map (·.entry) = [entryB] ∧
+    k.halts.map (·.entry) = [entryA] := by decide +kernel
 
 @[req "CHN-R7"] theorem fresh_reinstall_admitted :
     let k := run current init reinstallFreshEvents

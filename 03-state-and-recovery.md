@@ -443,6 +443,9 @@ contact**". No old pin is reused for that system.
 
 **STA-16** The recovery sheet holds the allocation metadata of `STA-22b`, host-key
 fingerprints with the route that produced each pin (`CHN-R1`, `CHN-R5`, `CHN-R6` or `CHN-R7`), the
+per-machine recorded LNVPS publication fingerprints (including incomplete observations and
+complete candidates refused for overlap) and whether a reinstall has retired an installed
+pin pending a fresh publication (`CHN-R7`), the
 exposure ledger, placement metadata
 (`machine_index`, application name, secret name, path and placement time), each live machine's
 **machine state as approved** — its declaration in force (`ARC-39`), its class (`ARC-36a`),
@@ -493,6 +496,12 @@ unknown, until a re-check runs, and no secret is placed on it before that re-che
 is reapproval of a declaration or weaker mode. The missing-placement question and re-arm
 procedure belong to `ARC-43`; reapproval cannot establish an inventory of forgotten secrets.
 These knowledge limits are additional to the allocation restriction in `STA-22b`.
+
+Restore MUST retain the recorded LNVPS publication fingerprints and pending-reinstall state
+from the sheet. A pin recorded as retired by a reinstall admits no contact after Restore;
+an active `lnvps_retrieve` pin remains usable under its recorded route. Future candidates
+are compared with all earlier observations in that restored knowledge (`CHN-R7`), including
+ones that produced no pin. The sheet says nothing about publications after export.
 
 **The balance is in the sheet because the alternative is worse, not because it is comfortable.**
 The account credential is bearer and unrevocable (`SEC-5` row 14), so exporting it raises the

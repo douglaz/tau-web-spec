@@ -202,7 +202,7 @@ between publications and membership of a presented key in a pinned set.
 | Member | Meaning |
 |---|---|
 | `pins` | The pins journaled, oldest first: the `entry`, what the pin is held `per` — `boot`, with the `boot` beside it, or `machine` — the `keys` and the `source` that admitted it; attest pins also carry the observed `author`. |
-| `published_history` | Earlier complete recorded LNVPS publications, oldest first, as `entry` and `keys`, including refused complete candidates; preserved across reinstall and restart. Intermediate incomplete status readings do not enter it. |
+| `published_history` | Every recorded LNVPS publication, oldest first, as `entry` and `keys`, including incomplete observations and refused complete candidates; preserved across reinstall and restart. A candidate is compared with earlier records before it is appended. |
 | `pending_reinstall` | Machine entries for which a vendor reinstall began a new first contact and no complete fresh publication has yet been admitted. |
 | `consumed_introductions` | Machine entries whose introductions have been accepted, in journal order; retained across restart. Pins and consumption are appended together before any connection can use them. |
 | `planted_senders` | A fixed list of machine entries and their independently configured sender ordinals, identical in `start` and every step. For a named witness, take entries from its starting knowledge, then event entries in trace order, keeping the first occurrence of each. For the enumeration, use entries from `bound.start`'s knowledge and then `bound.alphabet` in the same way; `bound.start` and every enumerated trace, including the empty trace, share that list. An event's entry is included even when the event is refused and journals nothing. The symbolic association is fixed by the assumptions, not supplied by the observed author; no private keys or key bytes are serialized. |
@@ -217,7 +217,7 @@ The pin sources are the vocabulary of `TauWeb.Pins.Source`: `rescue_last`, `read
 sender; the file never supplies a prevalidated introduction. A failed append records neither
 pins nor consumption under production parameters, so the next valid introduction can still
 succeed. The assumption of an atomic durable pin append and replay is a boundary of the proof,
-not evidence about real storage or cryptography. Complete-publication observations and pending
+not evidence about real storage or cryptography. All recorded publication observations and pending
 reinstall records are assumed durable too; their failed append is outside the companion.
 Restart preserves those journaled facts,
 including refusal of a second introduction and publication history; window and status-poll timing
@@ -232,8 +232,8 @@ the connection presenting that introduction's set is checked against the pin alr
 The bounded alphabet and event limit are emitted from the companion's declarations. Longer
 named traces additionally exercise rescue refusal, wrong-author then valid admission, repeated
 introduction across restart, failed-append then valid admission, independent machines and an
-introduction after a job pin, and LNVPS source, completeness, freshness, reinstall and
-machine-isolation cases. Each
+introduction after a job pin, and LNVPS source, completeness, incomplete history, freshness,
+pending reinstall across restart and machine-isolation cases. Each
 new guard's refused/admitted pair changes only that guard, as the assumptions record; the
 single-use pair runs with first contact only off, so that the consumed introduction is what
 its refused side shows.

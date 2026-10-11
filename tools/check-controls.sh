@@ -383,26 +383,45 @@ pins_control "formal: LNVPS publication admits a rescue pin" \
 
 pins_control "formal: valid LNVPS publication disabled" \
   "sed -i 's/| .published, .machine => true/| .published, .machine => false/' $PINS && grep -q '| .published, .machine => false' $PINS" \
-  published_source_admitted partial_then_complete_admitted incomplete_publication_admitted_without_guard \
+  published_source_admitted complete_disjoint_after_incomplete_admitted \
+  older_incomplete_history_refuses incomplete_publication_admitted_without_guard \
   overlapping_publication_admitted_without_guard old_pin_admitted_without_reinstall_guard \
-  fresh_reinstall_admitted publication_history_per_machine replacement_without_reinstall_refused \
+  old_pin_admitted_after_restart_without_reinstall_guard pending_restart_then_fresh_admitted \
+  pending_restart_per_machine fresh_reinstall_admitted publication_history_per_machine \
+  replacement_without_reinstall_refused \
   replacement_without_reinstall_admitted_without_guard
 
 pins_control "formal: incomplete LNVPS publication admitted" \
   "sed -i 's/publishedComplete : Bool := true/publishedComplete : Bool := false/' $PINS && grep -q 'publishedComplete : Bool := false' $PINS" \
-  incomplete_publication_refused empty_publication_refused bounded
+  incomplete_publication_refused empty_publication_refused partial_then_complete_refused \
+  complete_disjoint_after_incomplete_admitted \
+  incomplete_history_refuses_after_reinstall_restart older_incomplete_history_refuses bounded
 
 pins_control "formal: overlapping LNVPS publication admitted" \
   "sed -i 's/publishedFresh : Bool := true/publishedFresh : Bool := false/' $PINS && grep -q 'publishedFresh : Bool := false' $PINS" \
-  overlapping_publication_refused older_publication_still_refused_after_restart \
+  partial_then_complete_refused incomplete_history_refuses_after_reinstall_restart \
+  older_incomplete_history_refuses overlapping_publication_refused \
+  older_publication_still_refused_after_restart \
   refused_complete_publication_remains_history
+
+pins_control "formal: incomplete LNVPS publications lost from history" \
+  "sed -i 's/if pr == .machine then/if pr == .machine \&\& complete keys then/' $PINS && grep -q 'if pr == .machine && complete keys then' $PINS" \
+  partial_then_complete_refused complete_disjoint_after_incomplete_admitted \
+  incomplete_history_refuses_after_reinstall_restart older_incomplete_history_refuses
 
 pins_control "formal: reinstall keeps old installed pin active" \
   "sed -i 's/reinstallRetiresPin : Bool := true/reinstallRetiresPin : Bool := false/' $PINS && grep -q 'reinstallRetiresPin : Bool := false' $PINS" \
+  incomplete_history_refuses_after_reinstall_restart older_incomplete_history_refuses \
   overlapping_publication_refused overlapping_publication_admitted_without_guard \
   older_publication_still_refused_after_restart refused_complete_publication_remains_history \
-  old_pin_refused_pending_reinstall \
+  old_pin_refused_pending_reinstall old_pin_refused_after_pending_restart \
+  pending_restart_then_fresh_admitted pending_restart_per_machine \
   fresh_reinstall_admitted publication_history_per_machine
+
+pins_control "formal: restart loses pending LNVPS reinstall" \
+  "sed -i 's/| .restart => { k with sessions := \[\], halts := \[\] }/| .restart => { k with pendingReinstall := [], sessions := [], halts := [] }/' $PINS && grep -q '| .restart => { k with pendingReinstall := \[\]' $PINS" \
+  incomplete_history_refuses_after_reinstall_restart old_pin_refused_after_pending_restart \
+  pending_restart_then_fresh_admitted pending_restart_per_machine
 
 pins_control "formal: publication replaces pin without reinstall" \
   "sed -i 's/publishedFirstContact : Bool := true/publishedFirstContact : Bool := false/' $PINS && grep -q 'publishedFirstContact : Bool := false' $PINS" \

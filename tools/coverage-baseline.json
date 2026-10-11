@@ -1,6 +1,6 @@
 {
-  "max_uncovered_ratcheted": 78,
+  "max_uncovered_ratcheted": 77,
   "recorded": "2026-10-11",
-  "reason": "CNF-109 covers CHN-R7's published-key route",
+  "reason": "CNF-109 covers the scan-time answerer in TRU-E13",
   "note": "Lower is better. Raise only deliberately, with a reason."
 }

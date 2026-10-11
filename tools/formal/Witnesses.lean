@@ -863,7 +863,7 @@ def assumptionsJson (p : TauWeb.Pins.Params) : Json :=
     ("sealAuthor", "observed author after unwrap; cryptography assumed"),
     ("journalAppend", "successful append atomically persists machine, pins and consumed state; restart retains them"),
     ("window", "attest observations delivered during the browser introduction window"),
-    ("publication", "observed vendor status response; complete observations and pending reinstall records persist across restart; their failed append is outside this companion, as are TLS, scan honesty, timing and no-contact behavior")]
+    ("publication", "observed vendor status response; all recorded observations, including incomplete and refused publications, and pending reinstall records persist across restart; their failed append is outside this companion, as are TLS, scan honesty, timing and no-contact behavior")]
 
 def Trace.json (t : Trace)
     (named : List TauWeb.Pins.Entry := namedBy t.start t.events) : Json :=
@@ -918,7 +918,13 @@ def witnesses : List Trace := [
     events := partialPublishedEvents, params := incompleteAllowed,
     pair := some (.admitted, "TauWeb.Pins.incomplete_publication_refused") },
   { decls := ["TauWeb.Pins.empty_publication_refused"], events := incompletePublishedEvents },
-  { decls := ["TauWeb.Pins.partial_then_complete_admitted"], events := partialThenCompleteEvents },
+  { decls := ["TauWeb.Pins.partial_then_complete_refused"], events := partialThenCompleteEvents },
+  { decls := ["TauWeb.Pins.complete_disjoint_after_incomplete_admitted"],
+    events := partialThenDisjointEvents },
+  { decls := ["TauWeb.Pins.incomplete_history_refuses_after_reinstall_restart"],
+    events := incompleteReinstallRestartEvents },
+  { decls := ["TauWeb.Pins.older_incomplete_history_refuses"],
+    events := olderIncompleteEvents },
   { decls := ["TauWeb.Pins.overlapping_publication_refused"], events := stalePublishedEvents,
     pair := some (.refused, "TauWeb.Pins.overlapping_publication_admitted_without_guard") },
   { decls := ["TauWeb.Pins.overlapping_publication_admitted_without_guard"],
@@ -933,6 +939,16 @@ def witnesses : List Trace := [
   { decls := ["TauWeb.Pins.old_pin_admitted_without_reinstall_guard"],
     events := reinstallPendingEvents, params := oldPinRetained,
     pair := some (.admitted, "TauWeb.Pins.old_pin_refused_pending_reinstall") },
+  { decls := ["TauWeb.Pins.old_pin_refused_after_pending_restart"],
+    events := reinstallPendingRestartEvents,
+    pair := some (.refused, "TauWeb.Pins.old_pin_admitted_after_restart_without_reinstall_guard") },
+  { decls := ["TauWeb.Pins.old_pin_admitted_after_restart_without_reinstall_guard"],
+    events := reinstallPendingRestartEvents, params := oldPinRetained,
+    pair := some (.admitted, "TauWeb.Pins.old_pin_refused_after_pending_restart") },
+  { decls := ["TauWeb.Pins.pending_restart_then_fresh_admitted"],
+    events := reinstallRestartFreshEvents },
+  { decls := ["TauWeb.Pins.pending_restart_per_machine"],
+    events := reinstallRestartOtherMachineEvents },
   { decls := ["TauWeb.Pins.fresh_reinstall_admitted"], events := reinstallFreshEvents },
   { decls := ["TauWeb.Pins.publication_history_per_machine"], events := independentPublishedEvents },
   { decls := ["TauWeb.Pins.replacement_without_reinstall_refused"],

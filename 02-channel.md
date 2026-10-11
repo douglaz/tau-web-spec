@@ -276,10 +276,10 @@ published set containing all three scanned families: Ed25519, RSA and ECDSA. An 
 empty or partial set admits no contact. A candidate MUST share no fingerprint with **any**
 earlier published set recorded for that machine, including a set older than the immediately
 preceding one. A changed set retaining even one earlier fingerprint is refused. This
-history includes complete recorded sets refused for overlap, and is kept per machine across
-restart and reinstall; incomplete readings during a fill are not earlier complete sets. A
-vendor-API reinstall is a new first contact under this route: the old pin authorizes no
-contact during the wait, even if
+history includes incomplete readings and complete recorded sets refused for overlap, and is
+kept per machine across restart and reinstall. The candidate is compared with earlier
+recorded observations before it is added to that history. A vendor-API reinstall is a new
+first contact under this route: the old pin authorizes no contact during the wait, even if
 the old publication or key is still observable. A complete, disjoint publication admits a
 new installed-system pin only for that machine.
 
@@ -304,7 +304,8 @@ vendor-published observation, not an attestation.
 `TauWeb.Pins.complete` and `TauWeb.Pins.fresh` state the symbolic publication guards;
 `TauWeb.Pins.pending_reinstall_has_no_pin` states what the previous pin admits during a
 reinstall wait. The named refused and admitted traces in the pins witness file exercise
-partial overlap, older history, machine isolation and membership. These properties concern
+incomplete and complete overlap, older history, pending reinstall across restart, machine
+isolation and membership. These properties concern
 harness knowledge and attempted handshakes; `CNF-23` requires absence of contact on the
 integrated harness.
 

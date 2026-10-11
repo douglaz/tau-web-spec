@@ -172,7 +172,7 @@ and is recorded as the alternative for that reason.
 
 The preceding fallback paragraph and this record's stage-1 attest and distribution
 presuppositions are superseded; the historical goal and rejected options above remain the
-2026-10-04 decision's context. `STG-21` says "If LNVPS fails `OPN-24`'s target criteria,
+2026-10-04 decision's context. At that amendment `STG-21` said "If LNVPS fails `OPN-24`'s target criteria,
 stage 1 waits" and "The vendor's own catalogue supplies plain Arch; Hermes is installed with
 its own installer".
 LNVPS takes no buyer boot configuration (`docs/findings/2026-10-08-lnvps-research.md` §1),
