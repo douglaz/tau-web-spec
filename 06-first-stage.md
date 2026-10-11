@@ -49,7 +49,10 @@ operator opens it. The harness MUST NOT create a mailbox or read the operator's 
 wait until the account reads as verified before submitting the machine's HTTP order through
 the vendor API. A link that expires unopened is requested again; the wait ends only with
 verification or with the operator abandoning the setup (`ARC-22`). After a lost local store the
-operator supplies the address again.
+operator supplies the address again. A newly ordered machine reads automatic renewal on
+(`docs/findings/2026-10-11-lnvps-phase-b.md`), and `ARC-30` says "nothing pays one for them":
+after each order the adapter MUST turn the machine's automatic renewal off and read it back as
+off before the machine is offered for delivery.
 
 First contact waits on the route T39 admits from `OPN-24`'s live published-key probe, which
 on 2026-10-11 found the presented keys equal to the published ones; documented keys alone admit no

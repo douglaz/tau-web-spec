@@ -482,8 +482,10 @@ evidence is that set's test run against the relay the harness uses.
       the approved cost; under an untyped vendor scope, harness code decodes an invoice from
       the recorded response and hands that invoice to the wallet with the same entry and cost
       association; a different invoice presented in model text never reaches the wallet;
-      when neither LNVPS response supplies an invoice, none reaches the wallet. The app holds
-      no funds at any step (`SEC-13`). Money out.
+      when neither LNVPS response supplies an invoice, none reaches the wallet. After an LNVPS
+      order, a fixture vendor that reports automatic renewal on is set off and read back off
+      before the machine is offered for delivery (`STG-21`). The app holds no funds at any step
+      (`SEC-13`). Money out.
 - [ ] **CNF-105 · BLOCKING** While a call under an untyped vendor scope is open or unresolved,
       no box-plane command is dispatched to any machine of the session's bound set at that
       vendor, until the call's terminal record or the operator's disposition (`STA-24`).
