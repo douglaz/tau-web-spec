@@ -528,8 +528,10 @@ the old key uses the old key; signed revocation on the paid/public path uses the
 Both derive from the seed being retired, so the operator needs its backup *during* Replace and abandons it after.
 If the old seed or an index is missing, direct re-entry and pass revocation cannot finish.
 Robot machines can still be rekeyed through vendor-authenticated rescue (`STA-15`); cloud
-machines are destroyed and recreated, as that section says, subject to LNVPS's `ARC-22`
-exception: "a vendor-API reinstall of the same machine stands in and is a **new first contact**".
+machines are destroyed and recreated, as that section says. At LNVPS a missing old seed or index
+also loses that machine's vendor key, so the harness can neither reinstall nor stop it; the
+machine is shown as existing and billed until the vendor deletes it after expiry, as `ARC-22`
+shows a destroy that is not confirmed.
 The screen names unrecovered machines
 and unrevocable passes, and never reports a complete Replace or complete revocation while
 either remains outstanding, including a manual relay retirement awaiting confirmation.

@@ -47,7 +47,9 @@ address anywhere except to the vendor. The same operator address serves every ma
 separate account. LNVPS sends a single-use verification link valid for about a day; the
 operator opens it. The harness MUST NOT create a mailbox or read the operator's mail. It MUST
 wait until the account reads as verified before submitting the machine's HTTP order through
-the vendor API.
+the vendor API. A link that expires unopened is requested again; the wait ends only with
+verification or with the operator abandoning the setup (`ARC-22`). After a lost local store the
+operator supplies the address again.
 
 First contact waits on `OPN-24`'s live published-key probe: documented keys alone admit no
 route. LNVPS accepts no buyer boot configuration

@@ -857,9 +857,8 @@ image installation is mandatory on that path**, not the optimisation ADR-0011 ca
 runs from inside a rescue session; the other is that rescue is what publishes the host key
 (`CHN-R1`).
 
-For stage 1's catalogue plain Arch (`STG-21`), the publisher has not yet chosen between the
-explicit unpinned label and adding an Arch pin. Record that choice when taken; this clause
-selects no artifact policy for Arch today.
+For stage 1's catalogue plain Arch (`STG-21`), that is the unpinned label until the publisher
+adds an Arch pin, if it does; record that choice when taken.
 
 A declarative distribution also repays `ARC-10`: a system whose state is described rather
 than accumulated is one a reconnecting session can converge on rather than reconstruct. And

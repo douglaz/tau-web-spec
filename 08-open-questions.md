@@ -19,7 +19,8 @@ under `OPN-3` remains relevant to vendors accepting boot configuration, but does
 on integrated resume
 (`OPN-18`), on integrated placed-secret scanning (`OPN-28`, closed by design), and on the
 stage-1 acceptance rows in `07-conformance.md`, including local unlock, derivation and
-maintained-cloud recovery. `OPN-3`'s evidence is split by milestone below. `OPN-5`
+maintained-cloud recovery, on T44's coordinated identity format and recovery change, and on the
+publisher's recorded Arch artifact choice (`ARC-24`). `OPN-3`'s evidence is split by milestone below. `OPN-5`
 gates stage 2. `OPN-26` is decided in ADR-0042, but T44's coordinated format change is still
 required before the derived identity is usable. The jump-host route can use the separate
 credential in `SEC-5` row 21 while the format remains unavailable.
@@ -116,7 +117,7 @@ host-key set has not appeared three hours after the machine reaches `running` â€
 hourly re-scans the research finding reads from the vendor's code; any published key
 differs from the key presented by the machine in that family; the vendor-catalogue Arch image
 does not boot, take the operator's SSH key on its default user, or answer at its static
-address; the operator-wallet Lightning payment does not settle into a booted machine; or
+address, including after one reboot; the operator-wallet Lightning payment does not settle into a booted machine; or
 the vendor listing omits it. A delayed fill **within** that window, a month minimum, need for
 `CHN-12a`'s pinned tunnel, and no destroy route the operator can call are recorded concessions, not target-vendor
 failures. The wait later runs use is a named timing set from phase B's measured fill time;
@@ -138,12 +139,15 @@ or minimum-period qualification test.
 sequence, place an HTTP order for one month of the smallest machine, and observe and record
 whether the recorded order or renew response supplies its invoice (`ARC-30`). Pay from the
 operator's wallet, then record in order: (1) payment to running to a complete published host-key
-set, including fill time;
-(2) equality of presented and published keys in every family; (3) the vendor Arch image
-booting with the operator's key on its default user and answering at its static address;
-(4) listing; (5) destroy refusal and the stated deletion date after stop; (6) one reinstall,
-including whether old keys clear before new ones publish; (7) CORS from an arbitrary origin
-in a real browser.
+set, including fill time; (2) equality of presented and published keys in every family; (3) the
+vendor Arch image booting with the operator's key on its default user and answering at its
+static address, with no buyer content in its cloud-init data; (4) one reboot, after which the
+machine answers again at its static address with the same host keys; (5) listing; (6) one
+reinstall, including whether old keys clear before new ones publish; (7) destroy refusal, then
+the stated deletion date after a stop; (8) CORS from an arbitrary origin in a real browser;
+(9) a second account under another key accepting the same operator address and reading as
+verified, with no order under it â€” if it does not, `STG-21`'s same-address sentence is
+revisited before any second machine.
 Apply the target criteria above to those results. Do not infer a route from documentation or
 set the later runs' wait before the fill time is measured. T39 records execution; this plan has not run.
 
