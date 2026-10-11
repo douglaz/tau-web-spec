@@ -7,13 +7,15 @@ set -eu
 here=$(dirname "$0")
 key=$1; vm=$2; old=$3; deadline=${4:-14400}
 OUT=${OUT:-/var/tmp/lnvps-probe-b}
+[ -r "$old" ] && [ -s "$old" ] \
+  || { echo "old fingerprints file missing or empty: $old" >&2; exit 2; }
 start=$(date +%s); prev=""
 while [ $(( $(date +%s) - start )) -lt "$deadline" ]; do
   now=$(date -u +%FT%TZ)
   if r=$("$here/lnvps-req.sh" "$key" GET "/api/v1/vm/$vm" 2>/dev/null); then
     printf '{"t":"%s","r":%s}\n' "$now" "$r" >>"$OUT/reinstall-watch.jsonl"
-    fps=$(printf %s "$r" | jq -r '[.data.host_ssh_keys[]?.fingerprint_sha256] | sort | join(" ")')
-    st=$(printf %s "$r" | jq -r '.data.status.state')
+    fps=$(printf %s "$r" | jq -r '[.data.host_ssh_keys[]?.fingerprint_sha256] | sort | join(" ")') || fps=""
+    st=$(printf %s "$r" | jq -r '.data.status.state') || st="unknown"
     cur="state=$st keys=[${fps}]"
   else
     cur="request failed"; fps=""

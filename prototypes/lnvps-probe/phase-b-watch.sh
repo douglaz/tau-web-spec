@@ -13,7 +13,8 @@ while [ $(( $(date +%s) - start )) -lt "$deadline" ]; do
   now=$(date -u +%FT%TZ)
   if r=$("$here/lnvps-req.sh" "$key" GET "/api/v1/vm/$vm" 2>/dev/null); then
     printf '{"t":"%s","r":%s}\n' "$now" "$r" >>"$OUT/watch.jsonl"
-    cur=$(printf %s "$r" | jq -r '.data | "state=\(.status.state) ips=\(.ip_assignments|length) keys=\([.host_ssh_keys[]?.key_type]|sort|join(","))"')
+    cur=$(printf %s "$r" | jq -r '.data | "state=\(.status.state) ips=\(.ip_assignments|length) keys=\([.host_ssh_keys[]?.key_type]|sort|join(","))"') \
+      || cur="parse failed"
   else
     cur="request failed"
   fi

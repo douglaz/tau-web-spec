@@ -12,7 +12,7 @@ probe with a multi-week spike as though they were the same size.
 Construction admission (`STG-2`) closed with the September 8 installation rehearsal, on the
 dedicated path that is now the construction test bed. The stages were re-drawn on 2026-10-05
 (`06-first-stage.md`). **Stage 0** records probes alongside construction:
-`OPN-24`, whose paid phase B ran on 2026-10-11, with LNVPS passing; its route is admitted under T39.
+`OPN-24`, whose paid phase B ran on 2026-10-11, with LNVPS passing its target criteria; admitting its route is still owed under T39.
 `OPN-25` is closed by restating stage 1 on plain Arch. The real-first-boot attest evidence
 under `OPN-3` remains relevant to vendors accepting boot configuration, but does not gate stage 1.
 **Completing stage 1** gates on `OPN-24`, on the generic lockdown checklist of `OPN-14`,

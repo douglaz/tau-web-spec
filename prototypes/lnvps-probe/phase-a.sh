@@ -15,7 +15,7 @@ mkdir -p "$KEYS" "$OUT" && chmod 700 "$KEYS"
 [ -s "$KEYS/nostr.sec" ] || { (umask 077; $NAK key generate </dev/null >"$KEYS/nostr.sec"); }
 [ -s "$KEYS/ssh.pub" ] || ssh-keygen -q -t ed25519 -N '' -C lnvps-probe -f "$KEYS/ssh" </dev/null
 SEC=$(cat "$KEYS/nostr.sec")
-PUB=$($NAK key public "$SEC" </dev/null)
+PUB=$(printf %s "$SEC" | $NAK key public)
 SSH_PUB=$(cat "$KEYS/ssh.pub")
 
 timeout 150 $NAK req --stream -k 7000 -a "$LNVPS" -p "$PUB" $RELAYS \
@@ -25,7 +25,7 @@ sleep 8
 grep -q 'ok\.' "$OUT/req.err" \
   || { echo "subscription not connected to any relay; not publishing" >&2; kill "$sub"; exit 1; }
 date -u +%FT%TZ >"$OUT/published-at"
-$NAK event --sec "$SEC" -k 5999 -c '' -p "$LNVPS" \
+NOSTR_SECRET_KEY="$SEC" $NAK event -k 5999 -c '' -p "$LNVPS" \
   -t "param=cpu;1" -t "param=memory;1024" -t "param=disk;10" \
   -t "param=ssh_key;$SSH_PUB" -t "param=os;archlinux" -t "param=os_version;Latest" \
   $RELAYS </dev/null >"$OUT/job.json" 2>"$OUT/event.err" || pub_rc=$?
