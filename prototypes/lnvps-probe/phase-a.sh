@@ -22,6 +22,8 @@ timeout 150 $NAK req --stream -k 7000 -a "$LNVPS" -p "$PUB" $RELAYS \
   </dev/null >"$OUT/feedback.jsonl" 2>"$OUT/req.err" &
 sub=$!
 sleep 8
+grep -q 'ok\.' "$OUT/req.err" \
+  || { echo "subscription not connected to any relay; not publishing" >&2; kill "$sub"; exit 1; }
 date -u +%FT%TZ >"$OUT/published-at"
 $NAK event --sec "$SEC" -k 5999 -c '' -p "$LNVPS" \
   -t "param=cpu;1" -t "param=memory;1024" -t "param=disk;10" \
@@ -34,7 +36,11 @@ echo "subscription exit ${sub_rc:-0} (124 = closed by its timeout, expected)"
 $NAK curl --sec "$SEC" -sS --fail https://api.lnvps.net/api/v1/vm </dev/null >"$OUT/vm-list.json" 2>"$OUT/curl.err" || list_rc=$?
 echo "list exit ${list_rc:-0}"
 
-# A run whose publish or listing failed, or whose subscription ended other than by its
-# timeout, is not evidence.
-[ "${pub_rc:-0}" -eq 0 ] && [ "${list_rc:-0}" -eq 0 ] && { [ "${sub_rc:-0}" -eq 0 ] || [ "${sub_rc:-0}" -eq 124 ]; } \
-  || { echo "probe incomplete: publish ${pub_rc:-0}, subscription ${sub_rc:-0}, list ${list_rc:-0}" >&2; exit 1; }
+# Evidence needs a successful publish and listing, a subscription that ran its whole window
+# (timeout's 124; any other status means it ended early), and feedback from the vendor's key
+# naming the published job.
+JOB=$(sed -n 's/.*"id":"\([0-9a-f]\{64\}\)".*/\1/p' "$OUT/job.json" | head -n 1)
+fb=0
+[ -n "$JOB" ] && grep "\"pubkey\":\"$LNVPS\"" "$OUT/feedback.jsonl" | grep -q "\"$JOB\"" && fb=1
+[ "${pub_rc:-0}" -eq 0 ] && [ "${list_rc:-0}" -eq 0 ] && [ "${sub_rc:-0}" -eq 124 ] && [ "$fb" -eq 1 ] \
+  || { echo "probe incomplete: publish ${pub_rc:-0}, subscription ${sub_rc:-0}, list ${list_rc:-0}, vendor feedback $fb" >&2; exit 1; }
