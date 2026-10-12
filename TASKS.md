@@ -150,6 +150,14 @@ gated on it.
       HTTP-order gate, and currently refused NIP-90 orders. Apply `CHN-R6`'s existing
       conditions exactly; retain the separate credential
       of `SEC-5` row 21 until T44's format exists. Do not select another jump vendor here.
+      Also owed once a bound set holds more than one machine (`SEC-1`): a host key shared
+      between managed machines. `CHN-R7` compares a candidate with its own machine's history
+      only, so two machines presenting one key — a stock image with a baked-in private key —
+      would let a compromise of either impersonate the other while each passes `SEC-11`.
+      Decide whether a first contact refuses a key already pinned, or published, for another
+      managed machine, keeping unrelated machines' histories otherwise separate. `CHN-R1`
+      already says "Host keys MUST NEVER be baked into a reusable image"; stage 1 has one
+      machine.
 - [ ] **T46 — What the sibling repositories now owe.** Recorded here; none of them was edited.
       **tau-web-rust:** at its next spec pin bump, implement as tests the new and restated
       cases owned by `07-conformance.md`: `CNF-91`–`CNF-108`, with `CNF-16`, `CNF-42` and
