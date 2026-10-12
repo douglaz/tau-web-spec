@@ -506,7 +506,12 @@ installation, a complete candidate MUST contain every fingerprint previously obs
 Restore supplies those comparisons with the recorded incomplete and refused observations.
 Restore does not open an installation group, renew a consumed attest introduction, or
 authorize a new first contact under an old pin. The sheet says nothing about vendor
-observations or reinstalls after export.
+observations or reinstalls after export, so before an active `lnvps_retrieve` pin restored
+from it admits a contact, the harness MUST read the machine's current published set by
+`CHN-R7`'s direct fetch. Only a complete set equal to the pin keeps it active. An empty,
+partial or different set is treated as a reinstall after export: the restored pin is retired,
+and the next first contact runs under `CHN-R7` against the recorded history. Until that read
+succeeds, the restored pin admits no contact.
 
 **The balance is in the sheet because the alternative is worse, not because it is comfortable.**
 The account credential is bearer and unrevocable (`SEC-5` row 14), so exporting it raises the
