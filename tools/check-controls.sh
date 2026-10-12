@@ -33,9 +33,9 @@ copy_tree() {
   fi
   mkdir "$destination/repo" || exit 2
   while IFS= read -r -d '' entry; do
-    case "${entry#./}" in
-      .git|.rloop|.context|.control-scratch.*) continue ;;
-    esac
+    # Copy only top-level entries that hold tracked files: the gates read the tree git
+    # tracks (plus build caches inside it), never local records, scratch or .git itself.
+    [ -n "$(git ls-files -- "${entry#./}" | head -n 1)" ] || continue
     cp -a --reflink=auto -- "$entry" "$destination/repo/" || exit 2
   done < <(find . -mindepth 1 -maxdepth 1 -print0)
 }
