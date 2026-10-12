@@ -334,12 +334,13 @@ for i, line in enumerate(lines):
     # A warning or Lake progress line is outside this error's diagnostic. Keep the
     # proposition or residual goal complete; only recognized diagnostic boundaries end it.
     boundaries = ("error: ", "warning: ", "info: ", "trace: ", "✔ ", "✖ ",
+                  "⚠ ", "ℹ ",
                   "Build completed", "Some required targets logged failures:",
                   "- TauWeb.", "LEAN_PATH=")
     end = next((n for n, text in enumerate(tail) if text.startswith(boundaries)), len(tail))
     body = tail[:end]
     if match[2] == "Tactic `decide` proved that the proposition":
-        if not body or body[-1] != "is false":
+        if len(body) < 2 or not any(text.strip() for text in body[:-1]) or body[-1] != "is false":
             print("The decision did not report a false proposition:", line)
             sys.exit(1)
     elif match[2] == "unsolved goals":
@@ -354,7 +355,9 @@ for i, line in enumerate(lines):
             ("attest_acceptance_consumes", "case isTrue", "⊢ m ∈ k.consumed"),
             ("consumed_step", "case restart", "⊢ m ∈ []"),
         }
-        if not body or (decl, body[0], body[-1]) not in open_goals:
+        if (not body or (decl, body[0], body[-1]) not in open_goals or
+                sum(text.lstrip().startswith("case ") for text in body) != 1 or
+                sum(text.lstrip().startswith("⊢ ") for text in body) != 1):
             print("Unexpected open goal:", line, body[:2], body[-2:])
             sys.exit(1)
         if decl == "no_rescue_session_before_fill" and "hadm : True" not in body:

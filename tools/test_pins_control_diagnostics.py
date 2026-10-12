@@ -19,7 +19,8 @@ source = source_path.read_text().splitlines()
 
 def location(name):
     return next(i for i, line in enumerate(source, 1)
-                if line.startswith("@[req ") and f"theorem {name} " in line)
+                if f"theorem {name} " in line and
+                (line.startswith("@[req ") or line.startswith("theorem ")))
 
 
 decided = "overlapping_publication_refused"
@@ -30,19 +31,59 @@ goal = (f"error: TauWeb/Pins.lean:{location(open_goal)}:1: unsolved goals\n"
         "case boot.published\nhadm : True\n⊢ Source.published = Source.rescueLast\n")
 noise = ("warning: unrelated warning\n✔ Built TauWeb.Pins\n"
          "Some required targets logged failures:\n- TauWeb.Pins\n")
+progress = (
+    ("warning", "⚠ [5/27] Built TauWeb.Other\n"
+     "warning: TauWeb/Other.lean:1:1: declaration uses sorry\n"),
+    ("info", "ℹ [5/27] Built TauWeb.Other\n"
+     "info: TauWeb/Other.lean:1:1: 1\n"),
+)
 cases = [
     ("decided clean", proposition, decided, True),
     ("decided with warning and build output", proposition + noise, decided, True),
+    ("multiline proposition", proposition.replace("True\nis false", "False ∧\n  True\nis false"),
+     decided, True),
     ("open goal clean", goal, open_goal, True),
     ("open goal with warning and build output", goal + noise, open_goal, True),
+    ("multiline context", goal.replace("hadm : True", "h : ∀ x,\n  x = x\nhadm : True"),
+     open_goal, True),
+    ("attest source goal", goal.replace("boot.published", "boot.attest")
+     .replace("Source.published", "Source.attest author"), open_goal, True),
+    ("attest consumption goal",
+     f"error: TauWeb/Pins.lean:{location('attest_acceptance_consumes')}:1: unsolved goals\n"
+     "case isTrue\n⊢ m ∈ k.consumed\n", "attest_acceptance_consumes", True),
+    ("restart durability goal",
+     f"error: TauWeb/Pins.lean:{location('consumed_step')}:1: unsolved goals\n"
+     "case restart\n⊢ m ∈ []\n", "consumed_step", True),
     ("truncated proposition", proposition.removesuffix("is false\n") + noise, decided, False),
+    ("missing proposition", proposition.replace("True\n", ""), decided, False),
+    ("blank proposition", proposition.replace("True\n", "  \n"), decided, False),
     ("unrelated error", proposition + "error: TauWeb/Other.lean:1:1: failed\n", decided, False),
     ("syntax failure", f"error: TauWeb/Pins.lean:{location(decided)}:1: unexpected token\n", decided, False),
+    ("type failure", f"error: TauWeb/Pins.lean:{location(decided)}:1: type mismatch\n", decided, False),
+    ("resource failure", proposition +
+     f"error: TauWeb/Pins.lean:{location(decided)}:1: maximum recursion depth has been reached\n",
+     decided, False),
+    ("printer failure", proposition +
+     f"error: TauWeb/Pins.lean:{location(decided)}:1: failed to pretty print expression\n",
+     decided, False),
     ("arbitrary open goal", goal.replace("⊢ Source.published = Source.rescueLast", "⊢ False"),
      open_goal, False),
+    ("additional case", goal.replace("⊢ Source.published = Source.rescueLast",
+      "⊢ False\ncase unexpected\n⊢ Source.published = Source.rescueLast"), open_goal, False),
+    ("additional goal without case", goal.replace("⊢ Source.published = Source.rescueLast",
+      "⊢ False\n⊢ Source.published = Source.rescueLast"), open_goal, False),
+    ("source goal without admission", goal.replace("hadm : True\n", ""), open_goal, False),
+    ("incomplete open goal", goal.removesuffix("⊢ Source.published = Source.rescueLast\n"),
+     open_goal, False),
+    ("generic open goal",
+     f"error: TauWeb/Pins.lean:{location(open_goal)}:1: unsolved goals\n"
+     "case unexpected\n⊢ False\n", open_goal, False),
     ("missing property", "warning: only a warning\n", decided, False),
     ("duplicate property", proposition + proposition, decided, False),
 ]
+for name, header in progress:
+    cases.extend(((f"decided with {name} progress", proposition + header, decided, True),
+                  (f"open goal with {name} progress", goal + header, open_goal, True)))
 
 for name, diagnostic, expected, allowed in cases:
     log = scratch / "diagnostic.log"
