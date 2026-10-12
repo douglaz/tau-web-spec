@@ -189,6 +189,13 @@ Elective — it comes with the application the operator chose — and listed in 
 beside the application for as long as its secret is placed. Recovery of that display is
 governed by `STA-16`, including its as-of-export qualification.
 
+**TRU-E13 — The scan-time answerer on the machine's address inside the vendor's network**,
+for the LNVPS published-key route (`CHN-R7`). The vendor's hypervisor scans whatever
+answers there and publishes the observed keys over TLS
+([research](./docs/findings/2026-10-08-lnvps-research.md) §1). This party can influence
+which key the vendor publishes at first contact. It is the route's accepted residual,
+alongside the vendor in `TRU-E1`; `CHN-R7` owns its rule and display wording.
+
 ## Added by this product
 
 The only set the design controls, and therefore the only one worth an invariant. **`SEC-10`

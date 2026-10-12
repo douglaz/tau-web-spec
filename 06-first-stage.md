@@ -7,7 +7,7 @@ an operator with a goal and no tenant
 ([ADR-0034](./docs/adr/0034-general-case-first-tenants-are-optional-skills.md)).
 
 - **Stage 0 — the probes**, run alongside construction. The LNVPS probe follows `OPN-24`;
-  its paid phase B ran on 2026-10-11 and LNVPS passed; admitting its route is T39's. The Omarchy question
+  its paid phase B ran on 2026-10-11 and LNVPS passed; `CHN-R7` admits its route. The Omarchy question
   closed by restating stage 1 on plain Arch (`OPN-25`). The separate attest first-boot experiment
   (`OPN-3`) informs vendors that accept boot configuration, but does not gate stage 1.
 - **Stage 1 — the owner's scenario, with no tenant** (`STG-21`).
@@ -54,9 +54,10 @@ operator supplies the address again. A newly ordered machine reads automatic ren
 after each order the adapter MUST turn the machine's automatic renewal off and read it back as
 off before the machine is offered for delivery.
 
-First contact waits on the route T39 admits from `OPN-24`'s live published-key probe, which
-on 2026-10-11 found the presented keys equal to the published ones; documented keys alone admit no
-route. LNVPS accepts no buyer boot configuration
+First contact follows `CHN-R7`, admitted from `OPN-24`'s live published-key probe.
+The phase-B finding records matching presented and published keys before and after reinstall
+(`docs/findings/2026-10-11-lnvps-phase-b.md`); the integrated harness still owes the route's
+conformance cases. LNVPS accepts no buyer boot configuration
 (`docs/findings/2026-10-08-lnvps-research.md` §1), so attest cannot run there. The vendor's
 own catalogue supplies plain Arch; Hermes is installed with its own installer as the
 operator's application (`ARC-1a`). Another operator's goal may name Omarchy; this stage-1
@@ -78,8 +79,11 @@ the channel and the journal, the stage needs:
 - **interrupted resume** (`STG-12`); and
 - **one re-entry** (`STG-9`).
 
-**If LNVPS fails `OPN-24`'s target criteria, stage 1 waits.** Probe evidence reopens the
-vendor question; no replacement vendor or card account is selected.
+LNVPS met `OPN-24`'s stage-1 target criteria in the phase-B finding, and `CHN-R7` admits the
+route. Stage 1 still waits for the integrated conformance in `07-conformance.md`; a failure
+there blocks stage completion. No replacement vendor or card account is selected.
+At the 2026-10-09 amendment this criterion read "If LNVPS fails `OPN-24`'s target criteria,
+stage 1 waits"; the phase-B result satisfied it.
 The live Hetzner Cloud catalogue lacks Arch (`docs/findings/2026-10-08-lnvps-research.md`,
 last section). The TCP relay and stage-1 manual enrollment and retirement keep their existing
 checks.
@@ -156,8 +160,8 @@ completion of any stage.
 
 1. **The rescue endpoint is what publishes the host key** — precisely, `/boot/{n}/rescue/last`
    publishes the booted rescue system's fingerprints about 80 s after the reset (`CHN-R1`,
-   run 2026-09-08). It is the only route on any product today that pins out of band without
-   putting a private key in user-data.
+   run 2026-09-08). On the dedicated path it pins out of band without
+   putting a private key in user-data; LNVPS has its own installed-system route (`CHN-R7`).
 2. **The chosen distributions are not on offer.** Robot's automatic Linux installation takes a
    fixed catalog, and neither Alpine nor NixOS is in it (`ARC-24`). Custom image installation
    is therefore mandatory on this path rather than the optimisation ADR-0011 calls it.
@@ -238,8 +242,9 @@ zone-less local time, so neither can be compared to the browser's intent. The pr
 - **Activation** is confirmed when `GET /boot/{n}/rescue` reports `active: true` **and** its
   `authorized_key` echoes exactly the fingerprint of the machine's registered client key and the requested OS.
   Active with another key is a stale activation, not this one.
-- **The reset into rescue** is confirmed when `/rescue/last` shows a host-key set **different
-  from the one journaled before the reset** — every rescue boot has fresh keys (`CHN-R1`).
+- **The reset into rescue** is confirmed when `/rescue/last` shows a host-key set **sharing
+  no fingerprint with the one journaled before the reset** — every rescue boot has fresh keys
+  (`CHN-R1`).
 - **The reset into the installed system** is confirmed when sshd answers with the installed
   pin.
 - **Key registration** is confirmed when the account's key listing carries the machine's client
@@ -411,7 +416,11 @@ as an unbootable machine.
 Unreachability is not proof of boot failure: a relay or network outage can look the same.
 The timeout does not clear an unresolved action or authorize a wipe. The operator must choose
 the destructive reinstall, with the selected disks shown; normal typed approvals and journal
-ordering apply. Resume first follows `STA-20b`. The harness does not reach for the vendor's console.
+ordering apply. Resume first follows `STA-20b`. Once that separately approved destructive
+reinstall from rescue is recorded, it opens a new installation: the old installed-system pin
+retires and the new `ready_to_reset` job read can establish its pin before the reset into the
+installed system. A rescue reset, reboot, restart, Restore or non-destructive key recovery
+does not open that boundary. The harness does not reach for the vendor's console.
 
 That console exists — Hetzner's vKVM rescue boots the installed disk inside a virtual machine
 with a screen — and it is **the operator's own tool, by hand, outside the harness**, for a

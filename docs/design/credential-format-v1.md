@@ -111,7 +111,8 @@ key or envelope as a sheet. Local and sheet purposes cannot be interchanged.
 
 The authenticated UTF-8 JSON payload contains `version: 3`, `derivation_version: 1`,
 `seed_id`, `exported_at` (UTC RFC 3339), `journal_sequence`, `next_indices` (machine/pass/
-handoff), `allocations` (including consumed tombstones), `host_pins`, `exposure_ledger`,
+handoff), `allocations` (including consumed tombstones), `host_pins`,
+`host_pin_installations`, `exposure_ledger`,
 `placements: [{machine_index, application_name, name, path, placed_at}]`, `machine_states`,
 and optional
 `inference_account_credential`. Each allocation has its family, index, stable
@@ -120,8 +121,13 @@ carries `jump_host: true`, recording that it is in no session's bound set, and n
 allocation carries the field; a failed allocation may
 have no vendor resource ID, but retains its index. No seed or derived private key is included.
 Each `host_pins` entry names the host-key route that produced it: `retrieve` (`CHN-R1`),
-`attest` (`CHN-R5`) or `jump_host` (`CHN-R6`). Whether the installation carries an artifact
-pin is a different fact, carried per machine below. Each `machine_states` entry is
+`attest` (`CHN-R5`), `jump_host` (`CHN-R6`) or `lnvps_retrieve` (`CHN-R7`). The last
+value records the retrieved LNVPS hypervisor-scan provenance and is restored with the pin;
+it does not authorize a new first contact. Import MUST refuse a missing, unknown or malformed
+route value before binding, as it does other malformed payload fields. Each installed-system
+pin also carries its `installation` ordinal, starting at zero for that machine; a rescue
+pin remains scoped by its rescue boot. Whether the installation
+carries an artifact pin is a different fact, carried per machine below. Each `machine_states` entry is
 `{machine_index, declaration, class, access_model, installation, weaker_modes, applications}`: the journaled
 declaration in force as a delivery-declaration v1 document, the class `ARC-36a` records, the
 access model of `ARC-27`, `installation` as `"pinned"`, `"unpinned"` (`ARC-25`) or
@@ -132,6 +138,47 @@ not approved. Every live machine other than a jump host has exactly one entry, b
 allocation marked `jump_host: true` (`STA-22b`) has none. Reject a missing, duplicate or
 malformed entry and an entry for a jump host; never interpret a missing entry or an
 `"unapproved"` field as a default.
+
+`host_pin_installations` is a required array of installation groups in creation order.
+Each group is `{machine_index, installation, observations}`. The ordinal starts at zero
+per machine and increases by one only on an operator-chosen destructive reinstall, through
+the vendor API or from rescue. `observations` is an array
+in recording order; each observation is `{keys: [...]}`, whose elements are
+`{family, fingerprint}`. `family` is exactly `ed25519`, `rsa` or `ecdsa`, at most once per
+observation; `fingerprint` uses the host-pin fingerprint format. An empty reading that opens
+the initial group appears as an empty `keys` array. Any installation's group may have
+`observations: []`, including the initial group opened by a job-read or attest pin without a
+publication. A reinstall group with no newly observed fingerprint also has
+`observations: []` and must remain distinct from every earlier group; its
+first empty reading adds no observation. Within a group,
+record a subsequent observation only if it adds a fingerprint absent from that group's
+accumulated knowledge; exact, reordered, empty, and subset repeats add no record. Include
+incomplete readings and refused complete candidates that add knowledge. Do not reconstruct
+observations from admitted `host_pins`.
+
+The latest group for a machine is its current installation. An installed pin with that
+group's ordinal is active; pins from earlier groups are retired. At most one installed pin
+may be recorded per machine and installation. A group may have no installed pin, including
+immediately after reinstall. Route provenance remains the `host_pins` route field and is
+independent of the installation's artifact-pin status in `machine_states`.
+`host_pin_installations` and `host_pins` are explicitly `[]` when empty. A historical attest pin records that its introduction was
+consumed; import reconstructs that consumed state even when the pin is retired. Before
+binding, import MUST refuse a missing array, malformed
+group or observation, repeated family within one observation, a redundant observation,
+duplicate or skipped installation ordinal, a pin referencing a missing group, a second
+installed pin in one group, or a reference to an absent or non-machine allocation.
+For an `lnvps_retrieve` pin, import MUST verify that its own keys form a complete
+Ed25519/RSA/ECDSA set, share no fingerprint with any earlier installation group's
+observations or installed-system pin of any source for that machine, and equal the
+accumulated distinct family/fingerprint facts at some
+prefix of its installation group's recorded observations. A complete candidate may
+add no fact after separate partial observations, so no complete observation is
+required in the group. Later refused observations may add facts after that prefix;
+they remain recorded and MUST NOT invalidate an already admitted pin. Missing
+or invalid history MUST NOT become empty history. `STA-16` owns what Restore does with
+these facts. These fields complete the pre-deployment version-3 payload contract; no
+deployed legacy payload is being reinterpreted and the v1 envelope and derivation are
+unchanged.
 
 `applications` is a required JSON array of objects, each with exactly the required members
 `name` and `model_provider`. `name` is a nonempty string without leading or trailing

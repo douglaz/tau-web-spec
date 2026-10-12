@@ -121,7 +121,7 @@ _Avoid_: example (a witness is checked; an example is illustrated), sample, test
 **Witness file** · ADR-0032
 The companion's serialized witnesses and bounded traces for one module, one file under
 `docs/design/` — `allocation-witnesses-v1.json`, `declaration-witnesses-v1.json`,
-`relay-witnesses-v1.json`, `dispatch-witnesses-v1.json` and `pins-witnesses-v2.json`, with
+`relay-witnesses-v1.json`, `dispatch-witnesses-v1.json` and `pins-witnesses-v4.json`, with
 `witness-file-v1.md` describing their schemas — emitted by `lake exe witnesses` and held equal to the emission by
 `tools/check_witnesses.py`. Future implementation tests are to read them from the pinned tree;
 nothing outside this repository reads witness files today. Never compiled into the build. It
@@ -373,11 +373,14 @@ _Avoid_: trustless, verified, provably secure
 
 ### The channel
 
-**Retrieve** · `CHN-R1`
-A pin route where the vendor publishes the machine's host keys and the browser reads them over
-TLS it terminates — a direct fetch, or a pinned tunnel (`CHN-12a`). The vendor's word, and
-nothing the machine or the relay chooses. A jump host may be pinned by one (`CHN-R6`); the
-target that jump host introduces is trusted on first use, not retrieved.
+**Retrieve** · `CHN-R1`, `CHN-R7`
+A pin route where the browser accepts a vendor-published observation of host keys over TLS
+it terminates. For Robot, `CHN-R1` says "A TLS session terminated *inside* the browser and
+carried over the relay is not a `fetch`"; that is the pinned tunnel (`CHN-12a`). For LNVPS,
+`CHN-R7` says "by direct fetch over TLS terminating in the browser". At the scan the machine, or
+whoever answers on its address, presents the key; the relay chooses nothing. The owning routes
+state their distinct sources and trust boundaries. A jump host may be pinned by one (`CHN-R6`);
+the target that jump host introduces is trusted on first use, not retrieved.
 _Avoid_: trust on first use (the relay never chooses the key)
 
 **Attest** · `CHN-R5`

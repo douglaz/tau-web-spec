@@ -250,10 +250,13 @@ The cost is stated: anything genuinely interactive — an installer that stops t
 MUST be handled by the brief rather than answered live.
 
 **ARC-43 Values the harness checks MUST come from jobs the harness composed, the vendor's
-`/rescue/last` for a rescue boot's host keys (`CHN-R1`), or an attest seal for installed-system
-host keys (`CHN-R5`); never from model text.**
+`/rescue/last` for a rescue boot's host keys (`CHN-R1`), an attest seal for installed-system
+host keys (`CHN-R5`), or LNVPS published host keys only as an installed-system pin (`CHN-R7`),
+read by direct fetch from the recorded vendor status response over browser-terminated TLS;
+never from model text.**
 For attest duties, `CHN-R5` says "accepts the fingerprints only if the seal's author is the sender key it planted"; `CHN-5` says "Single-use MUST be enforced by the browser, not by any relay".
-Apart from those rescue and attest pins, every checked value is job output. The artifact hash
+The LNVPS exception grants no authority to other status fields or arbitrary vendor output.
+Apart from those rescue, attest and LNVPS pins, every checked value is job output. The artifact hash
 (`ARC-25`, `CNF-24`) and, on the dedicated path, the installed host keys (`CHN-R1`, `CNF-22`)
 are read by **harness-owned box-plane jobs**, requested by the model where permitted or
 initiated by the harness itself. These reads take their values from the job record's captured
@@ -278,7 +281,9 @@ Where a host-key pin may come from is `TauWeb.Pins.Source` and what each source 
 `TauWeb.Pins.admits` (ADR-0032), with `TauWeb.Pins.installed_pin_from_authorized_source` over
 every trace. The model-text trap remains `TauWeb.Pins.installed_pin_from_model_text_refused`
 and `TauWeb.Pins.installed_pin_from_model_text_admitted`. The companion carries the dedicated
-path and attest. A pin taken at a jump-host first contact
+path, attest and `CHN-R7`, with `TauWeb.Pins.published_source_admitted` and
+`TauWeb.Pins.published_rescue_refused` exercising the new source boundary. A pin taken at a
+jump-host first contact
 (`CHN-R6`) is not among `TauWeb.Pins.Source`'s cases (T45). Only
 this pin-source clause of `ARC-43` is formalized; the rules of `place_secret` and
 `digest_secret` below are not, and this text is their home (ADR-0032, "Authority is per
@@ -807,7 +812,8 @@ routes the operator can call omit destroy, while stop, renewal control and reins
 (`docs/findings/2026-10-08-lnvps-research.md` §3). **Where the harness would recreate a
 machine** to re-run its first contact, a vendor-API reinstall of the same machine stands in
 and is a **new first contact**: the old pin does not authorize contact with the reinstalled
-system, and `OPN-24`'s live key-equality condition must admit its new pin. A Replace rebuild
+system; `CHN-R7` governs the publication route and installed-pin retirement, while a
+different eligible source follows its own admission rule. A Replace rebuild
 is neither: it is a new order under the new seed's key, because a reinstall leaves the machine
 in the account the retired seed controls
 ([ADR-0042](./docs/adr/0042-the-vendor-identity-is-derived-per-machine.md)). The screen

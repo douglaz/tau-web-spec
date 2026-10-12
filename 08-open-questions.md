@@ -12,10 +12,10 @@ probe with a multi-week spike as though they were the same size.
 Construction admission (`STG-2`) closed with the September 8 installation rehearsal, on the
 dedicated path that is now the construction test bed. The stages were re-drawn on 2026-10-05
 (`06-first-stage.md`). **Stage 0** records probes alongside construction:
-`OPN-24`, whose paid phase B ran on 2026-10-11, with LNVPS passing its target criteria; admitting its route is still owed under T39.
+`OPN-24`, whose paid phase B ran on 2026-10-11, with LNVPS passing its target criteria; `CHN-R7` now admits its stage-1 route.
 `OPN-25` is closed by restating stage 1 on plain Arch. The real-first-boot attest evidence
 under `OPN-3` remains relevant to vendors accepting boot configuration, but does not gate stage 1.
-**Completing stage 1** gates on `OPN-24`, on the generic lockdown checklist of `OPN-14`,
+**Completing stage 1** gates on `CHN-R7`'s integrated conformance, on the generic lockdown checklist of `OPN-14`,
 on integrated resume
 (`OPN-18`), on integrated placed-secret scanning (`OPN-28`, closed by design), and on the
 stage-1 acceptance rows in `07-conformance.md`, including local unlock, derivation and
@@ -538,8 +538,8 @@ Android evidence. Robot's browser route is the pinned TLS tunnel, not direct COR
 
 Construct the integrated harness from those results and the v1 credential/storage contracts,
 using the dedicated path as the test bed. Both LNVPS probe phases are recorded, and LNVPS
-passed its stage-1 target criteria on 2026-10-11 (`OPN-24`); what remains there is admitting its
-route under T39, not another probe. The attest first-boot
+passed its stage-1 target criteria on 2026-10-11 (`OPN-24`); `CHN-R7` admits the route,
+and its integrated conformance remains open. No further probe is needed for admission. The attest first-boot
 finding stands for applicable routes (`OPN-3`), and the Omarchy question closed on plain Arch
 (`OPN-25`). Write the
 generic lockdown checklist (`OPN-14`). The live rehearsal has not demonstrated the harness, a

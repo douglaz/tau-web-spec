@@ -215,8 +215,9 @@ Nostr under keys the browser derives from the operator's seed
 ([ADR-0029](./docs/adr/0029-the-machine-speaks-nostr-and-keys-derive-from-a-seed.md));
 the real-first-boot experiment and its limits are in
 `docs/findings/2026-10-09-attest-first-boot.md`, and `OPN-3` tracks remaining evidence.
-LNVPS takes no buyer boot configuration; its candidate published-key route waits on the live
-presented/published comparison in `OPN-24` (`docs/findings/2026-10-08-lnvps-research.md` §1).
+LNVPS takes no buyer boot configuration; `CHN-R7` admits its published host keys as an
+installed-system pin on the phase-B comparison
+(`docs/findings/2026-10-11-lnvps-phase-b.md`).
 Where a vendor has no route
 of its own, `CHN-R6` makes the first contact from a jump host inside a session pinned out of
 band: the relay sees only that session's ciphertext, and what can alter the contact instead is
@@ -301,3 +302,5 @@ an ADR is where *why* lives.
 | [0039](./docs/adr/0039-installed-agents-are-the-operators-applications.md) | An agent the operator installs is the operator's application, not the harness's AI |
 | [0040](./docs/adr/0040-stage-one-includes-restore-and-replace.md) | Stage 1 includes Restore and Replace, with manual relay retirement |
 | [0041](./docs/adr/0041-secret-scan-rearms-from-machine-reports.md) | The secret scan re-arms from a machine report, with its key kept in the browser |
+| [0042](./docs/adr/0042-the-vendor-identity-is-derived-per-machine.md) | The vendor identity is derived per machine |
+| [0043](./docs/adr/0043-lnvps-published-host-keys-admit-installed-system-pins.md) | LNVPS published host keys admit installed-system pins |

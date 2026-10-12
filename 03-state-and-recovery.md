@@ -442,7 +442,10 @@ At LNVPS the unavailable-destroy treatment and reinstall's new first contact bel
 contact**". No old pin is reused for that system.
 
 **STA-16** The recovery sheet holds the allocation metadata of `STA-22b`, host-key
-fingerprints with the route that produced each pin (`CHN-R1`, `CHN-R5` or `CHN-R6`), the
+fingerprints with the route that produced each pin (`CHN-R1`, `CHN-R5`, `CHN-R6` or `CHN-R7`), the
+per-machine installation groups and their compact recorded LNVPS publication fingerprints
+(including incomplete observations and complete candidates refused for overlap), and the
+installation to which each installed pin belongs, which marks it active or retired (`CHN-R7`), the
 exposure ledger, placement metadata
 (`machine_index`, application name, secret name, path and placement time), each live machine's
 **machine state as approved** — its declaration in force (`ARC-39`), its class (`ARC-36a`),
@@ -493,6 +496,23 @@ unknown, until a re-check runs, and no secret is placed on it before that re-che
 is reapproval of a declaration or weaker mode. The missing-placement question and re-arm
 procedure belong to `ARC-43`; reapproval cannot establish an inventory of forgotten secrets.
 These knowledge limits are additional to the allocation restriction in `STA-22b`.
+
+Restore MUST retain every recorded installation boundary, its publication observations,
+and each installed pin's active or retired status from the sheet. An active pin remains
+usable under its recorded route; a retired pin admits no new contact. `CHN-R7` says
+"A complete candidate for the current installation MUST share no fingerprint with any observation or installed-system
+pin from any source in any earlier installation of that machine" and "Within the current
+installation, a complete candidate MUST contain every fingerprint previously observed there".
+Restore supplies those comparisons with the recorded incomplete and refused observations.
+Restore does not open an installation group, renew a consumed attest introduction, or
+authorize a new first contact under an old pin. The sheet says nothing about vendor
+observations or reinstalls after export, so before an active `lnvps_retrieve` pin restored
+from it admits a contact, the harness MUST read the machine's current published set by
+`CHN-R7`'s direct fetch. Only a complete set equal to the pin keeps it active. Otherwise —
+an empty, partial or different set, or a failed read — the restored pin admits no contact and
+the machine's first contact is unresolved, as past `CHN-R7`'s maximum wait: no new first contact
+opens and no pin is retired on that reading alone; the operator chooses a destructive reinstall
+(`ARC-22`), which opens a new installation, or abandonment.
 
 **The balance is in the sheet because the alternative is worse, not because it is comfortable.**
 The account credential is bearer and unrevocable (`SEC-5` row 14), so exporting it raises the

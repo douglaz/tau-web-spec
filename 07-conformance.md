@@ -279,8 +279,47 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       to a system whose key nothing can check (`CHN-R5`). Under `CHN-R6` only, the first
       contact is presented to the operator as trusted through a jump host at the named vendor,
       never as pinned out of band, and that label stays in the trust display for the machine's
-      life. Boundary crossed: a key taken on trust through the relay hands the relay the
-      session.
+      life. On the LNVPS publication route (`CHN-R7`), absent, empty, incomplete,
+      cross-installation overlapping or within-installation contradictory publication
+      causes **no contact with the machine before an eligible pin is active**, including after reinstall with a previous pin
+      stored and after restart during that wait. Include overlap with an earlier installed
+      pin from any source whose group has no publication. Status polling is permitted within
+      `lnvps.published_key_wait_max`; after its
+      deadline, first contact is unresolved, with no login or timer-driven retry. The harness
+      offers operator-chosen reinstall or abandonment, never automatic reinstall, fallback
+      login or trust on first use. Abandonment stops the machine, turns renewal off and leaves
+      it shown as existing and billed until the vendor's stated deletion date (`ARC-22`). Exercise each
+      refusal and deadline against the integrated harness, including a status response that
+      still shows the old publication after reinstall. Boundary crossed: a key taken on trust
+      through the relay hands the relay the session.
+- [ ] **CNF-109 · BLOCKING** The LNVPS retrieved pin route (`CHN-R7`, `ARC-43`) reads only
+      the recorded machine status response by direct browser fetch over browser-terminated
+      TLS, and takes only its published host-key field as an installed-system pin. With a
+      complete Ed25519, RSA and ECDSA set containing all fingerprints observed in the
+      current installation and disjoint from every observation and installed-system pin of
+      any source in earlier installations of that machine, first contact presenting any
+      member is admitted against that pin;
+      a presented key outside the set halts without an accepted session (`SEC-11`), on first
+      and later contact. Exercise a partial reading completed in the same installation,
+      a contradictory complete candidate there, and overlap with an earlier installation's
+      incomplete, refused, or older-than-last observation, and with earlier job-read and attest
+      pins. Also exercise an exact old job-pin repeat, a disjoint publication after a job pin,
+      and another machine whose history shares a fingerprint. Refused observations that add
+      fingerprints remain in comparison history. Repeated empty, exact, reordered, and
+      subset readings do not grow that history; a reinstall opens a distinct group even
+      when its first reading is empty. A job read or attest can open an initial group with
+      no observation. Vendor-API reinstall retires every source's installed pin and
+      preserves groups across restart; a new valid published, job-read, or unused eligible
+      attest introduction can pin under its own rules. A consumed attest introduction stays
+      consumed. Without reinstall, no source replaces an active installed pin, including
+      a job-read attempt after a published pin. Another machine's history neither blocks nor
+      admits this one.
+      Inspect the trust display: the pin is labelled **retrieved from the vendor's hypervisor
+      scan**, never attested, and the residual is stated as **the vendor, and anyone able to
+      answer on the machine's address inside the vendor's network at scan time** (`TRU-E1`,
+      `TRU-E13`). The disclosure and every refusal block this route. Export and Restore keep
+      `lnvps_retrieve` provenance and installation groups with the pin (`CNF-84`); they do not start
+      a new first contact.
 - [ ] **CNF-24 · BLOCKING** The install artifact is verified against a value the browser supplies
       from the signed bundle, and a mismatch halts the install (`ARC-25`, `STG-6`). Verified by
       serving an artifact that does not match and confirming the install stops rather than
@@ -547,11 +586,16 @@ evidence is that set's test run against the relay the harness uses.
       then resumed, results in exactly one rescue session and one install (`STG-11`). Four
       cases, each interrupted between intent and confirmation and resumed: the activation
       (confirmed only by `active` plus the machine's echoed key fingerprint and the requested OS); the reset into rescue
-      (confirmed only by a host-key set on `/rescue/last` different from the durably recorded
+      (confirmed only by a host-key set on `/rescue/last` sharing no fingerprint with the durably recorded
       pre-reset set); the reset into the installed system (confirmed only by sshd answering
       with the installed pin); and a case where none of those holds, which stays unresolved
       with no automatic retry and need not finish (`STG-4`). In the first three, reconciliation
-      lets the ceremony finish without repeating the interrupted mutation. In every case the
+      lets the ceremony finish without repeating the interrupted mutation. A reordered
+      pre-reset set or one sharing a pre-reset fingerprint leaves the rescue reset unresolved,
+      including after an intervening empty field; a fresh disjoint set confirms it. A recorded
+      empty pre-reset field is a valid baseline: a later fresh nonempty set confirms the reset
+      and admits a matching rescue session, while a field never read before reset does not.
+      In every case the
       mutation is requested again under a fresh call id before confirmation and is refused
       while the reconciliation reads stay available; an immediate `running`, a changed
       `boot_time`, or a job record claiming success does not substitute for the predicate
@@ -575,6 +619,9 @@ evidence is that set's test run against the relay the harness uses.
       `installed.wait_max` (`bundle/timing.toml`) of its boot reset is declared failed, the operator is told, and a separately approved destructive reinstall
       returns to rescue from the brief (`STG-20`). Test a missing bootloader and a relay outage: neither a timeout nor
       unreachability clears unresolved operations or triggers a wipe without that decision.
+      After that decision, the old installed pin is retired, the next job read can establish
+      a new one, and the installed contact uses that new pin. A second job read without the
+      destructive reinstall cannot replace an active pin.
       Each probe is a pinned SSH attempt; verified by counting sshd's preauth log lines during
       the wait and finding none from a connect-and-close.
 
@@ -706,7 +753,27 @@ Not pass/fail. Required to be recorded.
       missing, duplicate or malformed machine state, bound or not; a jump host's allocation
       carries none and one carrying a machine state is refused, an unapproved field restores
       as unapproved, and a machine exported with
-      an unpinned installation and an attested pin restores both. The sheet has `STA-16`'s placement metadata, pin routes and
+      an unpinned installation and an attested pin restores both. Export and Restore a
+      `CHN-R7` installed-system pin too: the distinct `lnvps_retrieve` route survives with
+      the stored pin and its retrieval disclosure, while the installation's artifact-pin
+      status remains independent. Restore reconnects under that existing pin, not a new
+      first contact, only after the vendor's current published set reads complete and equal
+      to it; with a fixture vendor reporting an empty or different set, or the status read
+      failing, no contact is made, no pin is retired and no new first contact opens on that
+      reading: the machine is unresolved until the operator chooses a reinstall or
+      abandonment. Round-trip the recorded installation groups, including incomplete and
+      refused observations, an initial empty group opened by a job read or attest, empty
+      reinstall boundaries and the active or retired status of pins from
+      each source. Export and Restore a pin admitted after separate partial observations
+      whose complete candidate adds no new fingerprint and leaves no complete observation
+      in the group. After Restore, a same-installation completion can admit a pin; after a
+      later operator reinstall, a candidate sharing a fingerprint with an older group's
+      observation or installed pin of any source is
+      refused. A separate active-pin case reconnects under its existing route, while a
+      retired pin never authorizes a new contact. Refuse a missing, unknown or malformed
+      route, group, observation or installed-pin installation reference
+      before binding; absent required data never becomes empty history. The sheet
+      has `STA-16`'s placement metadata, pin routes and
       machine states; values, digests, scan keys and lengths are absent, and unsupported
       payload versions, explicitly including versions 1 and 2, are refused rather than read as
       having no placements or applications. In one recovery case export and restore machines
@@ -782,11 +849,11 @@ promotion rule above.
 
 | Applies when | CNF items | Interpretation |
 |---|---|---|
-| Stage 1: required | 1–7, 10–17, 21, 23–26, 28–30, 32, 34–35, 37, 39–44, 49–56, 66–73, 78–79, 81–83, 87–91, 93–95, 99–104 | One live LNVPS machine on catalogue plain Arch with no tenant, an initial session from the owner's goal and the later session `STG-9` requires (item 108) with a goal of its own, created through a typed adapter. First contact waits on the route T39 admits from `OPN-24`'s live presented/published key-equality result; documentation alone admits no route. Synthetic unbound identities exercise 6 and 26. Item 7's growth and subset cases, and item 91's two-machine case, use fixtures until stage 2. Item 12 is exercised with a hostile goal and a hostile fetched document; its untyped-scope restatement, and item 14's, wait for stage 2. Item 14 covers any root password the typed adapter's response carries. Item 23 covers unpinned-first-contact refusal; its attest-window case applies where attest is enabled, and its jump-host label waits for stage 2. Items 18 and 61 remain route-specific attest checks, required before enabling that route, not stage-1 requirements. Items 24 and 66 apply wherever the installation is pinned, and item 67's and item 93's unpinned cases wherever it is not; NixOS evidence is required before enabling NixOS. Interrupted resume (`STG-12`) is carried here by items 37, 39, 40 and 54–56; item 86's cases are a rescue boot's, and stay the test bed's. Item 95's cases all require integrated evidence (`OPN-28`). Item 50 covers the delivery check; its scanner half waits for scanner enablement. Item 10 covers local ledger persistence; its sheet-export half is the recovery row's. Item 72 covers local allocation; imported-state cases are 84. Item 81's migration case waits for self-host migration, which no stage yet offers. Item 32 covers the typed adapter's origin. Items 68–71, 78 and 88–90 apply to the procured inference path; bring-your-own and local inference have no aggregator to test. Item 88 uses injected list fixtures the way 17 uses an injected response. Item 42 covers placed secrets; its untyped-scope half waits for stage 2. Item 104 covers the LNVPS invoice and `ARC-30`'s TLS provenance, with no exemption; its untyped-scope case belongs to the stage-2 row. |
+| Stage 1: required | 1–7, 10–17, 21, 23–26, 28–30, 32, 34–35, 37, 39–44, 49–56, 66–73, 78–79, 81–83, 87–91, 93–95, 99–104, 109 | One live LNVPS machine on catalogue plain Arch with no tenant, an initial session from the owner's goal and the later session `STG-9` requires (item 108) with a goal of its own, created through a typed adapter. First contact uses `CHN-R7`'s published-key route; item 23 requires no contact during its wait and item 109 requires admission, freshness, pin checking and disclosure on the integrated harness. Synthetic unbound identities exercise 6 and 26. Item 7's growth and subset cases, and item 91's two-machine case, use fixtures until stage 2. Item 12 is exercised with a hostile goal and a hostile fetched document; its untyped-scope restatement, and item 14's, wait for stage 2. Item 14 covers any root password the typed adapter's response carries. Item 23 covers unpinned-first-contact refusal; its attest-window case applies where attest is enabled, and its jump-host label waits for stage 2. Items 18 and 61 remain route-specific attest checks, required before enabling that route, not stage-1 requirements. Items 24 and 66 apply wherever the installation is pinned, and item 67's and item 93's unpinned cases wherever it is not; NixOS evidence is required before enabling NixOS. Interrupted resume (`STG-12`) is carried here by items 37, 39, 40 and 54–56; item 86's cases are a rescue boot's, and stay the test bed's. Item 95's cases all require integrated evidence (`OPN-28`). Item 50 covers the delivery check; its scanner half waits for scanner enablement. Item 10 covers local ledger persistence; its sheet-export half is the recovery row's. Item 72 covers local allocation; imported-state cases are 84. Item 81's migration case waits for self-host migration, which no stage yet offers. Item 32 covers the typed adapter's origin. Items 68–71, 78 and 88–90 apply to the procured inference path; bring-your-own and local inference have no aggregator to test. Item 88 uses injected list fixtures the way 17 uses an injected response. Item 42 covers placed secrets; its untyped-scope half waits for stage 2. Item 104 covers the LNVPS invoice and `ARC-30`'s TLS provenance, with no exemption; its untyped-scope case belongs to the stage-2 row. |
 | Stage 1: record measurements | 45–47 | Require the integrated browser channel, not the rehearsal's timings. |
 | Stage 1: model-written check reports | 107 | The report label, verdict isolation and absence of automatic re-execution are required before stage 1 completes. |
 | Stage 1: re-entry | 108 | `STG-9`'s later session, re-entering over the same pin and re-running the check, is required before stage 1 completes. Item 93's re-entry case runs with it, using a placement or rotation in the re-entering session. |
-| Stage 1: recovery export/import and Replace | 19–20, 84 | Before maintained cloud delivery: export, Restore, allocation refusal, cloud destroy/recreate and partial-Replace cases pass, with item 10's export case. At LNVPS, `ARC-22` owns both forms: a destroy is a stop with renewal off, and a recreate is a reinstall that is a new first contact and cannot reuse the old pin. Item 20 uses the manual publisher-confirmed pass retirement/enrollment route. Only item 84's Robot rescue case waits for the dedicated row; signed pass revocation waits for the paid/public row. |
+| Stage 1: recovery export/import and Replace | 19–20, 84 | Before maintained cloud delivery: export, Restore, allocation refusal, cloud destroy/recreate and partial-Replace cases pass, with item 10's export case. At LNVPS, `ARC-22` owns both forms: a destroy is a stop with renewal off, and a recreate is a reinstall that is a new first contact and cannot reuse the old pin. Item 84 checks `CHN-R7` provenance, earlier and refused publication knowledge, and pending pin retirement through sheet export and Restore; item 109 checks fresh admission after reinstall. Item 20 uses the manual publisher-confirmed pass retirement/enrollment route. Only item 84's Robot rescue case waits for the dedicated row; signed pass revocation waits for the paid/public row. |
 | Attest first-contact route | 18, 23 (attest-window case), 61, 74–75 | Before enabling attest at any vendor that accepts boot configuration, including one used for a jump host. This row does not gate LNVPS stage 1. |
 | The dedicated path: the construction test bed | 22, 38, 48, 62–64, 80, 84, 85–86 | The Robot dedicated path's own checks, including only item 84's Robot rescue case. Their by-hand evidence stands (48 is recorded), construction exercises them on the test bed, and they pass on the integrated harness before a dedicated-server path is offered to an operator, which no stage before the third does. Items 62–64 also apply to any typed adapter that rides the pinned tunnel, stage 1's included if its vendor refuses a browser origin. |
 | Stage 2: a vendor with no adapter whose API the browser can reach (`CHN-12b`), the jump host, sets above one | 7, 12, 14, 23, 27, 29, 31, 33, 42, 91–93, 96–98, 104–106 | Before enabling an untyped scope, an untyped vendor scope, the jump-host route or a bound set of more than one machine. Items 7 and 91 cover set growth, subsets and two-machine sets; items 12, 14 and 29 their untyped-scope cases; item 23 the jump-host label; item 42 the untyped-scope half of the trust display; item 93 the jump-host, untyped-scope and larger-set modes, each accepted at the act it governs and restated, with their re-entry and reinstall cases; item 104 an invoice decoded from an untyped response, where the vendor invoices. Item 92's multi-tenant case gates sets above one; its independence-bound case gates the first profile that declares a bound. Repeat item 17 against real untyped responses. |
@@ -823,8 +890,7 @@ construction. T48's minimum secret byte length is set and item 94 refuses a shor
 before completion: `SEC-5` requires one and leaves its number open. On LNVPS, completion also
 waits for T44's coordinated implementation of ADR-0042's decided vendor identity and recovery
 behavior: Restore and Replace are demonstrated with that identity after its format is available,
-never with one supplied ad hoc for the test. Completion also waits for the first-contact route T39 admits from `OPN-24`'s phase B, which ran
-on 2026-10-11. The recovery row, the
+never with one supplied ad hoc for the test. The accepted first-contact route is `CHN-R7`; its integrated checks in items 23 and 109 still gate completion. The recovery row, the
 model-written check reports row and the re-entry row also pass.
 No tenant's artifact gates this stage: lnrent's delivery declaration and briefs 2–3 gate the
 third. Rehearsal/prototype results do not automatically check harness items. This is the
