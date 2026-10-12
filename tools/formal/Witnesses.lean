@@ -892,6 +892,7 @@ def witnesses : List Trace := [
   { decls := ["TauWeb.Pins.pin_ceremony_trace"], events := ceremonyEvents },
   { decls := ["TauWeb.Pins.rescue_pin_not_reused_across_boots"], events := reuseEvents },
   { decls := ["TauWeb.Pins.reordered_rescue_refused"], events := rescueReorderedEvents },
+  { decls := ["TauWeb.Pins.empty_fresh_rescue_refused"], events := rescueEmptyFreshEvents },
   { decls := ["TauWeb.Pins.overlapping_rescue_refused"], events := rescueOverlappingEvents },
   { decls := ["TauWeb.Pins.recorded_empty_rescue_admitted"], events := recordedEmptyRescueEvents },
   { decls := ["TauWeb.Pins.unread_rescue_baseline_refused"], events := unreadRescueEvents },

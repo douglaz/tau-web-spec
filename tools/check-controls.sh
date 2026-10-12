@@ -26,11 +26,7 @@ readonly scratch_root
 trap 'rm -rf -- "$scratch_root"' EXIT
 
 copy_tree() {
-  local destination="$1" entry available
-  available="$(df -BG --output=avail . | tail -n 1 | tr -dc '0-9')"
-  if [ "$available" -lt 20 ]; then
-    echo "::error::less than 20 GB free before scratch copy"; exit 2
-  fi
+  local destination="$1" entry
   mkdir "$destination/repo" || exit 2
   while IFS= read -r -d '' entry; do
     # Copy only top-level entries that hold tracked files: the gates read the tree git

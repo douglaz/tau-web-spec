@@ -303,7 +303,7 @@ boot, and "`/rescue/last` unchanged means the same" (`STG-4`) would be lost. -/
 @[req "CHN-R1"] def confirmsRescue (k : Knowledge) (m : Entry) (keys : Option Keys) : Bool :=
   k.awaiting.any (fun a => a.entry == m && a.into == System.rescue) && keys.isSome &&
     (k.snapshot.lookup m).any (fun old =>
-      keys.any (fun fresh => fresh.all (fun key => !(old.getD []).contains key)))
+      keys.any (fun fresh => !fresh.isEmpty && fresh.all (fun key => !(old.getD []).contains key)))
 
 /-- The pin the reset intent named as its expected next pin (`STA-20b`), while a reset into the
 installed system is outstanding: the installed pin `ready_to_reset` journaled before it. -/
@@ -1171,6 +1171,13 @@ def rescueReorderedEvents : List Event :=
    .rescueLast entryA none,
    .rescueLast entryA (some [210, 110, 10]), .connect entryA .rescue 10]
 
+/-- An empty published field after the reset is no fresh set: `CHN-R1` polls "until `host_key` fills
+**with a set sharing no fingerprint with the one snapshotted before the reset**", and an
+empty field has not filled. -/
+def rescueEmptyFreshEvents : List Event :=
+  [.rescueLast entryA (some oldRescueKeys), .reset entryA .rescue,
+   .rescueLast entryA (some []), .connect entryA .rescue 10]
+
 def rescueOverlappingEvents : List Event :=
   [.rescueLast entryA (some oldRescueKeys), .reset entryA .rescue,
    .rescueLast entryA none,
@@ -1200,6 +1207,11 @@ def unreadRescueEvents : List Event :=
 
 @[req "CHN-R1"] theorem reordered_rescue_refused :
     let k := run current init rescueReorderedEvents
+    k.pins = [] ∧ k.confirmed = [] ∧ k.sessions = [] ∧
+      k.halts.map (·.reason) = [.noPin] := by decide +kernel
+
+@[req "CHN-R1"] theorem empty_fresh_rescue_refused :
+    let k := run current init rescueEmptyFreshEvents
     k.pins = [] ∧ k.confirmed = [] ∧ k.sessions = [] ∧
       k.halts.map (·.reason) = [.noPin] := by decide +kernel
 
