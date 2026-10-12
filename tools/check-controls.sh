@@ -400,6 +400,10 @@ pins_control "formal: recorded-empty rescue baseline refused" \
   "sed -i 's/old.getD \[\]/old.getD fresh/' $PINS && grep -q 'old.getD fresh' $PINS" \
   recorded_empty_rescue_admitted
 
+pins_control "formal: rescue confirmation weakened to inequality" \
+  "sed -i 's/!fresh.isEmpty \&\& fresh.all (fun key => !(old.getD \[\]).contains key)/!fresh.isEmpty \&\& fresh != old.getD []/' $PINS && grep -qF 'fresh != old.getD []' $PINS" \
+  reordered_rescue_refused overlapping_rescue_refused
+
 pins_control "formal: unread rescue baseline treated as recorded empty" \
   "sed -i 's/(k.snapshot.lookup m).any (fun old =>/(some ((k.snapshot.lookup m).getD none)).any (fun old =>/' $PINS && grep -qF '(some ((k.snapshot.lookup m).getD none)).any (fun old =>' $PINS" \
   unread_rescue_baseline_refused

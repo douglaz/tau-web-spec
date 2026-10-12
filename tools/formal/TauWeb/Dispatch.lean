@@ -841,8 +841,8 @@ def dispositionEvents : List Event :=
 
 /-- `STG-4`'s four confirmation predicates in order, each mutation dispatched once its
 predecessor is confirmed: the key registered and confirmed by the account's key listing, the
-activation by `GET /boot/{n}/rescue`, the reset into rescue by a host-key set different from the
-journaled one, the install run as box-plane work and settled by its own job record (`STA-20`,
+activation by `GET /boot/{n}/rescue`, the reset into rescue by a host-key set sharing no fingerprint with the
+journaled one (`CHN-R1`), the install run as box-plane work and settled by its own job record (`STA-20`,
 advisory under `STA-21`), the reset into the installed system by sshd answering with the pin, and
 only then ordinary work. -/
 def ceremonyEvents : List Event :=

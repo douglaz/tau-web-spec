@@ -758,9 +758,10 @@ Not pass/fail. Required to be recorded.
       the stored pin and its retrieval disclosure, while the installation's artifact-pin
       status remains independent. Restore reconnects under that existing pin, not a new
       first contact, only after the vendor's current published set reads complete and equal
-      to it; with a fixture vendor reporting an empty or different set (a reinstall after
-      export), the restored pin is retired before any contact and first contact runs under
-      `CHN-R7`, and with the status read failing, no contact is made. Round-trip the recorded installation groups, including incomplete and
+      to it; with a fixture vendor reporting an empty or different set, or the status read
+      failing, no contact is made, no pin is retired and no new first contact opens on that
+      reading: the machine is unresolved until the operator chooses a reinstall or
+      abandonment. Round-trip the recorded installation groups, including incomplete and
       refused observations, an initial empty group opened by a job read or attest, empty
       reinstall boundaries and the active or retired status of pins from
       each source. Export and Restore a pin admitted after separate partial observations
