@@ -416,7 +416,11 @@ as an unbootable machine.
 Unreachability is not proof of boot failure: a relay or network outage can look the same.
 The timeout does not clear an unresolved action or authorize a wipe. The operator must choose
 the destructive reinstall, with the selected disks shown; normal typed approvals and journal
-ordering apply. Resume first follows `STA-20b`. The harness does not reach for the vendor's console.
+ordering apply. Resume first follows `STA-20b`. Once that separately approved destructive
+reinstall from rescue is recorded, it opens a new installation: the old installed-system pin
+retires and the new `ready_to_reset` job read can establish its pin before the reset into the
+installed system. A rescue reset, reboot, restart, Restore or non-destructive key recovery
+does not open that boundary. The harness does not reach for the vendor's console.
 
 That console exists — Hetzner's vKVM rescue boots the installed disk inside a virtual machine
 with a screen — and it is **the operator's own tool, by hand, outside the harness**, for a

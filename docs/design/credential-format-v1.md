@@ -141,12 +141,15 @@ malformed entry and an entry for a jump host; never interpret a missing entry or
 
 `host_pin_installations` is a required array of installation groups in creation order.
 Each group is `{machine_index, installation, observations}`. The ordinal starts at zero
-per machine and increases by one only on vendor-API reinstall. `observations` is an array
+per machine and increases by one only on an operator-chosen destructive reinstall, through
+the vendor API or from rescue. `observations` is an array
 in recording order; each observation is `{keys: [...]}`, whose elements are
 `{family, fingerprint}`. `family` is exactly `ed25519`, `rsa` or `ecdsa`, at most once per
 observation; `fingerprint` uses the host-pin fingerprint format. An empty reading that opens
-the initial group appears as an empty `keys` array. A reinstall group with no newly observed
-fingerprint has `observations: []` and must remain distinct from every earlier group; its
+the initial group appears as an empty `keys` array. Any installation's group may have
+`observations: []`, including the initial group opened by a job-read or attest pin without a
+publication. A reinstall group with no newly observed fingerprint also has
+`observations: []` and must remain distinct from every earlier group; its
 first empty reading adds no observation. Within a group,
 record a subsequent observation only if it adds a fingerprint absent from that group's
 accumulated knowledge; exact, reordered, empty, and subset repeats add no record. Include
@@ -165,8 +168,9 @@ group or observation, repeated family within one observation, a redundant observ
 duplicate or skipped installation ordinal, a pin referencing a missing group, a second
 installed pin in one group, or a reference to an absent or non-machine allocation.
 For an `lnvps_retrieve` pin, import MUST verify that its own keys form a complete
-Ed25519/RSA/ECDSA set, share no fingerprint with any earlier installation group for
-that machine, and equal the accumulated distinct family/fingerprint facts at some
+Ed25519/RSA/ECDSA set, share no fingerprint with any earlier installation group's
+observations or installed-system pin of any source for that machine, and equal the
+accumulated distinct family/fingerprint facts at some
 prefix of its installation group's recorded observations. A complete candidate may
 add no fact after separate partial observations, so no complete observation is
 required in the group. Later refused observations may add facts after that prefix;

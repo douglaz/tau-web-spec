@@ -278,11 +278,13 @@ When establishing a pin through this route, before any connection to the machine
 MUST wait for a complete, non-empty published set containing all three scanned families:
 Ed25519, RSA and ECDSA. An absent, empty or partial set admits no contact through this route.
 The machine's publication history MUST be grouped
-by installation. A vendor-API reinstall closes the current group and opens another, even
+by installation. An operator-chosen destructive reinstall, whether through the vendor API or
+from rescue, closes the current group and opens another, even
 if neither group contains a fingerprint; restart and Restore do not. A complete candidate
-for the current installation MUST share no fingerprint with any observation in any earlier
-installation of that machine, including incomplete observations, refused complete
-candidates, and groups older than the last one. Within the current installation, a complete
+for the current installation MUST share no fingerprint with any observation or installed-system
+pin from any source in any earlier installation of that machine, including incomplete
+observations, refused complete candidates, and groups older than the last one. Within the
+current installation, a complete
 candidate MUST contain every fingerprint previously observed there: a partial reading can
 become complete, but no observation can be contradicted or forgotten. Compare against the
 prior knowledge before retaining newly observed fingerprints, even when a candidate is
@@ -290,8 +292,10 @@ refused. Record an observation only when it adds a fingerprint to that installat
 accumulated knowledge or opens its group; repeated empty, exact, reordered, and wholly
 contained readings do not extend history. Keep every installation boundary.
 
-A vendor-API reinstall is a new first contact: the old installed pin authorizes no new
-contact. A valid source may establish the next pin under its own rules; a complete
+An operator-chosen destructive reinstall through the vendor API or from rescue is a new first
+contact: the old installed pin authorizes no new contact. A reset, reboot, restart, Restore or
+non-destructive recovery does not open an installation or permit replacement. A valid source
+may establish the next pin under its own rules; a complete
 publication satisfying these comparisons can do so here. Without a reinstall, no
 installed-system pin from any source replaces an active pin on that machine, even if its
 keys or source differ. A refused or repeated observation cannot rewrite the active pin or

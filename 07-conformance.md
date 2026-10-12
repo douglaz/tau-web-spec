@@ -282,7 +282,8 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       life. On the LNVPS publication route (`CHN-R7`), absent, empty, incomplete,
       cross-installation overlapping or within-installation contradictory publication
       causes **no contact with the machine before an eligible pin is active**, including after reinstall with a previous pin
-      stored and after restart during that wait. Status polling is permitted within
+      stored and after restart during that wait. Include overlap with an earlier installed
+      pin from any source whose group has no publication. Status polling is permitted within
       `lnvps.published_key_wait_max`; after its
       deadline, first contact is unresolved, with no login or timer-driven retry. The harness
       offers operator-chosen reinstall or abandonment, never automatic reinstall, fallback
@@ -295,15 +296,19 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       the recorded machine status response by direct browser fetch over browser-terminated
       TLS, and takes only its published host-key field as an installed-system pin. With a
       complete Ed25519, RSA and ECDSA set containing all fingerprints observed in the
-      current installation and disjoint from every observation of earlier installations
-      of that machine, first contact presenting any member is admitted against that pin;
+      current installation and disjoint from every observation and installed-system pin of
+      any source in earlier installations of that machine, first contact presenting any
+      member is admitted against that pin;
       a presented key outside the set halts without an accepted session (`SEC-11`), on first
       and later contact. Exercise a partial reading completed in the same installation,
       a contradictory complete candidate there, and overlap with an earlier installation's
-      incomplete, refused, or older-than-last observation. Refused observations that add
+      incomplete, refused, or older-than-last observation, and with earlier job-read and attest
+      pins. Also exercise an exact old job-pin repeat, a disjoint publication after a job pin,
+      and another machine whose history shares a fingerprint. Refused observations that add
       fingerprints remain in comparison history. Repeated empty, exact, reordered, and
       subset readings do not grow that history; a reinstall opens a distinct group even
-      when its first reading is empty. Reinstall retires every source's installed pin and
+      when its first reading is empty. A job read or attest can open an initial group with
+      no observation. Vendor-API reinstall retires every source's installed pin and
       preserves groups across restart; a new valid published, job-read, or unused eligible
       attest introduction can pin under its own rules. A consumed attest introduction stays
       consumed. Without reinstall, no source replaces an active installed pin, including
@@ -614,6 +619,9 @@ evidence is that set's test run against the relay the harness uses.
       `installed.wait_max` (`bundle/timing.toml`) of its boot reset is declared failed, the operator is told, and a separately approved destructive reinstall
       returns to rescue from the brief (`STG-20`). Test a missing bootloader and a relay outage: neither a timeout nor
       unreachability clears unresolved operations or triggers a wipe without that decision.
+      After that decision, the old installed pin is retired, the next job read can establish
+      a new one, and the installed contact uses that new pin. A second job read without the
+      destructive reinstall cannot replace an active pin.
       Each probe is a pinned SSH attempt; verified by counting sshd's preauth log lines during
       the wait and finding none from a connect-and-close.
 
@@ -750,11 +758,13 @@ Not pass/fail. Required to be recorded.
       the stored pin and its retrieval disclosure, while the installation's artifact-pin
       status remains independent. Restore reconnects under that existing pin, not a new
       first contact. Round-trip the recorded installation groups, including incomplete and
-      refused observations, empty boundaries and the active or retired status of pins from
+      refused observations, an initial empty group opened by a job read or attest, empty
+      reinstall boundaries and the active or retired status of pins from
       each source. Export and Restore a pin admitted after separate partial observations
       whose complete candidate adds no new fingerprint and leaves no complete observation
       in the group. After Restore, a same-installation completion can admit a pin; after a
-      later operator reinstall, a candidate sharing a fingerprint with an older group is
+      later operator reinstall, a candidate sharing a fingerprint with an older group's
+      observation or installed pin of any source is
       refused. A separate active-pin case reconnects under its existing route, while a
       retired pin never authorizes a new contact. Refuse a missing, unknown or malformed
       route, group, observation or installed-pin installation reference

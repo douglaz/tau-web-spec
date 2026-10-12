@@ -500,8 +500,8 @@ These knowledge limits are additional to the allocation restriction in `STA-22b`
 Restore MUST retain every recorded installation boundary, its publication observations,
 and each installed pin's active or retired status from the sheet. An active pin remains
 usable under its recorded route; a retired pin admits no new contact. `CHN-R7` says
-"A complete candidate for the current installation MUST share no fingerprint with any
-observation in any earlier installation of that machine" and "Within the current
+"A complete candidate for the current installation MUST share no fingerprint with any observation or installed-system
+pin from any source in any earlier installation of that machine" and "Within the current
 installation, a complete candidate MUST contain every fingerprint previously observed there".
 Restore supplies those comparisons with the recorded incomplete and refused observations.
 Restore does not open an installation group, renew a consumed attest introduction, or

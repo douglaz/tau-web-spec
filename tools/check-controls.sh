@@ -19,6 +19,27 @@ fail=0
 passed=0
 expected=0
 
+# Keep one copy at a time inside this repository. Exclude private run material and the
+# scratch root itself; the source tree may contain other runs' scratch too.
+scratch_root="$(mktemp -d "$PWD/.control-scratch.XXXXXXXX")" || exit 2
+readonly scratch_root
+trap 'rm -rf -- "$scratch_root"' EXIT
+
+copy_tree() {
+  local destination="$1" entry available
+  available="$(df -BG --output=avail . | tail -n 1 | tr -dc '0-9')"
+  if [ "$available" -lt 20 ]; then
+    echo "::error::less than 20 GB free before scratch copy"; exit 2
+  fi
+  mkdir "$destination/repo" || exit 2
+  while IFS= read -r -d '' entry; do
+    case "${entry#./}" in
+      .git|.rloop|.context|.control-scratch.*) continue ;;
+    esac
+    cp -a --reflink=auto -- "$entry" "$destination/repo/" || exit 2
+  done < <(find . -mindepth 1 -maxdepth 1 -print0)
+}
+
 # control NAME GATE MUTATION LABEL TOKEN
 #   MUTATION is evaluated inside the scratch copy; it must exit 0 or the control
 #   fails as "did not apply". LABEL is the gate's finding line that must carry
@@ -27,8 +48,8 @@ control() {
   local name="$1" gate="$2" mutate="$3" label="$4" token="$5"
   expected=$((expected + 1))
   local tmp
-  tmp="$(mktemp -d)"
-  cp -r . "$tmp/repo"
+  tmp="$(mktemp -d -p "$scratch_root")"
+  copy_tree "$tmp"
   if ! (cd "$tmp/repo" && eval "$mutate"); then
     echo "::error::$name: the mutation did not apply"; fail=1; rm -rf "$tmp"; return
   fi
@@ -57,8 +78,8 @@ passes() {
   local name="$1" gate="$2" mutate="$3"
   expected=$((expected + 1))
   local tmp
-  tmp="$(mktemp -d)"
-  cp -r . "$tmp/repo"
+  tmp="$(mktemp -d -p "$scratch_root")"
+  copy_tree "$tmp"
   if ! (cd "$tmp/repo" && eval "$mutate"); then
     echo "::error::$name: the mutation did not apply"; fail=1; rm -rf "$tmp"; return
   fi
@@ -84,8 +105,8 @@ formal_control() {
   local name="$1" mutate="$2" token="$3" absent="${4:-}"
   expected=$((expected + 1))
   local tmp
-  tmp="$(mktemp -d)"
-  cp -r . "$tmp/repo"
+  tmp="$(mktemp -d -p "$scratch_root")"
+  copy_tree "$tmp"
   if ! (cd "$tmp/repo" && eval "$mutate"); then
     echo "::error::$name: the mutation did not apply"; fail=1; rm -rf "$tmp"; return
   fi
@@ -133,8 +154,8 @@ formal_control "formal: a CNF identifier in the formal tree" \
 # mean a neighbouring witness asserts what this guard decides, and a red elsewhere would
 # mean the mutation broke something other than the property it targets.
 expected=$((expected + 1))
-tmp="$(mktemp -d)"
-cp -r . "$tmp/repo"
+tmp="$(mktemp -d -p "$scratch_root")"
+copy_tree "$tmp"
 if ! (cd "$tmp/repo" && sed -i 's/^@\[req "STA-22b"\] def current : Params := { restoredAllocatesNone := true }$/@[req "STA-22b"] def current : Params := { restoredAllocatesNone := false }/' $ALLOC && grep -q 'def current : Params := { restoredAllocatesNone := false }$' $ALLOC); then
   echo "::error::formal: the guard flip did not apply"; fail=1
 else
@@ -187,8 +208,8 @@ RELAY=tools/formal/TauWeb/Relay.lean
 # keeps, and which needs no guard -- would mean the flip broke something other than the property
 # it targets.
 expected=$((expected + 1))
-tmp="$(mktemp -d)"
-cp -r . "$tmp/repo"
+tmp="$(mktemp -d -p "$scratch_root")"
+copy_tree "$tmp"
 if ! (cd "$tmp/repo" && sed -i 's/^@\[req "CHN-15"\] def current : Params := { dialRequiresAuthAccepted := true }$/@[req "CHN-15"] def current : Params := { dialRequiresAuthAccepted := false }/' $RELAY && grep -q 'def current : Params := { dialRequiresAuthAccepted := false }$' $RELAY); then
   echo "::error::formal: the ordering flip did not apply"; fail=1
 else
@@ -242,8 +263,8 @@ formal_control "formal: an unresolved box-plane command barring nothing" \
 # witness, which is the durability rule's and not the key's, would mean the flip broke something
 # other than the property it targets.
 expected=$((expected + 1))
-tmp="$(mktemp -d)"
-cp -r . "$tmp/repo"
+tmp="$(mktemp -d -p "$scratch_root")"
+copy_tree "$tmp"
 if ! (cd "$tmp/repo" && sed -i 's/{ resourceKey := .entry,/{ resourceKey := .call,/' $DISP && grep -q '{ resourceKey := .call,' $DISP); then
   echo "::error::formal: the resource key switch did not apply"; fail=1
 else
@@ -281,8 +302,8 @@ pins_control() {
   shift 2
   expected=$((expected + 1))
   local tmp rc
-  tmp="$(mktemp -d)"
-  cp -r . "$tmp/repo"
+  tmp="$(mktemp -d -p "$scratch_root")"
+  copy_tree "$tmp"
   if ! (cd "$tmp/repo" && eval "$mutate"); then
     echo "::error::$name: the mutation did not apply"; fail=1; rm -rf "$tmp"; return
   fi
@@ -310,7 +331,12 @@ for i, line in enumerate(lines):
     declarations = re.findall(r"(?:^|\] )(?:theorem|def) (\w+)", preceding, re.MULTILINE)
     decl = declarations[-1] if declarations else "<none>"
     tail = lines[i + 1:]
-    end = next((n for n, text in enumerate(tail) if text.startswith("error: ")), len(tail))
+    # A warning or Lake progress line is outside this error's diagnostic. Keep the
+    # proposition or residual goal complete; only recognized diagnostic boundaries end it.
+    boundaries = ("error: ", "warning: ", "info: ", "trace: ", "✔ ", "✖ ",
+                  "Build completed", "Some required targets logged failures:",
+                  "- TauWeb.", "LEAN_PATH=")
+    end = next((n for n, text in enumerate(tail) if text.startswith(boundaries)), len(tail))
     body = tail[:end]
     if match[2] == "Tactic `decide` proved that the proposition":
         if not body or body[-1] != "is false":
@@ -352,6 +378,14 @@ PYCONTROL
   rm -rf "$tmp"
 }
 
+expected=$((expected + 1))
+if python3 tools/test_pins_control_diagnostics.py "$scratch_root"; then
+  echo "ok: formal: pin diagnostic parser regressions"
+  passed=$((passed + 1))
+else
+  echo "::error::formal: pin diagnostic parser regressions"; fail=1
+fi
+
 # Collapsing source admission permits model text and bypasses author matching as well.
 # The dedicated ceremony and valid attest traces must remain green; only these refusals and
 # the independent bounded property turn red. The rescue-source witness fixes its own guard.
@@ -373,12 +407,13 @@ pins_control "formal: unread rescue baseline treated as recorded empty" \
 
 # An always-refusing attest source is not safe admission. Its positive traces, including each
 # guard-removed acceptance, must fail while the universal refusal properties remain provable.
+# The earlier-attest-pin refusal also changes because its initial pin is no longer admitted.
 pins_control "formal: valid attest admission disabled" \
   "sed -i 's/| .attest author, .machine => !p.attestAuthorMatches || author == plantedSender m/| .attest author, .machine => false/' $PINS && grep -q '| .attest author, .machine => false' $PINS" \
   attest_admits_and_connects wrong_author_admitted wrong_author_then_valid repeat_attest_refused \
   repeat_attest_admitted attest_per_machine failed_attest_admitted failed_append_then_valid \
   attest_after_job_pin_admitted unused_attest_after_reinstall_admitted \
-  consumed_attest_after_reinstall_refused bounded_lifecycle_reachable
+  consumed_attest_after_reinstall_refused earlier_attest_overlap_refused bounded_lifecycle_reachable
 
 pins_control "formal: attest author matching disabled" \
   "sed -i 's/attestAuthorMatches : Bool := true/attestAuthorMatches : Bool := false/' $PINS && grep -q 'attestAuthorMatches : Bool := false' $PINS" \
@@ -415,7 +450,9 @@ pins_control "formal: restart forgets consumed introductions" \
   consumed_step consumed_attest_after_reinstall_refused repeat_attest_refused bounded
 
 # Both directions of the new source branch: admitting a rescue pin violates source scope,
-# while an always-refusing installed branch fails successful publication evidence.
+# while an always-refusing installed branch fails successful publication evidence. The new
+# older-job trace needs its intermediate publication, and the machine-isolation and disjoint
+# traces need their positive publication contacts.
 pins_control "formal: LNVPS publication admits a rescue pin" \
   "sed -i 's/| .published, .boot _ => false/| .published, .boot _ => true/' $PINS && grep -q '| .published, .boot _ => true' $PINS" \
   no_rescue_session_before_fill published_rescue_refused bounded
@@ -432,7 +469,8 @@ pins_control "formal: valid LNVPS publication disabled" \
   cross_source_after_reinstall_admitted compact_history_keeps_boundary \
   split_partial_completion_admitted \
   partial_polls_complete_after_restart refused_observation_blocks_later_installation \
-  duplicate_observation_does_not_restore_pin historic_session_survives_reinstall
+  duplicate_observation_does_not_restore_pin historic_session_survives_reinstall \
+  older_job_after_restart_refused other_machine_job_history_admitted disjoint_after_job_admitted
 
 pins_control "formal: incomplete LNVPS publication admitted" \
   "sed -i 's/publishedComplete : Bool := true/publishedComplete : Bool := false/' $PINS && grep -q 'publishedComplete : Bool := false' $PINS" \
@@ -441,13 +479,23 @@ pins_control "formal: incomplete LNVPS publication admitted" \
   incomplete_history_refuses_after_reinstall_restart older_incomplete_history_refuses \
   compact_history_keeps_boundary split_partial_completion_admitted bounded
 
+# Removing the whole freshness guard also admits the new earlier job/attest overlaps.
 pins_control "formal: overlapping LNVPS publication admitted" \
   "sed -i 's/publishedFresh : Bool := true/publishedFresh : Bool := false/' $PINS && grep -q 'publishedFresh : Bool := false' $PINS" \
   incomplete_history_refuses_after_reinstall_restart \
   older_incomplete_history_refuses overlapping_publication_refused \
   older_publication_still_refused_after_restart \
   refused_complete_publication_remains_history \
-  refused_observation_blocks_later_installation duplicate_observation_does_not_restore_pin bounded
+  refused_observation_blocks_later_installation duplicate_observation_does_not_restore_pin bounded \
+  earlier_job_exact_refused earlier_job_overlap_refused earlier_attest_overlap_refused \
+  older_job_after_restart_refused
+
+# This removes only the earlier installed-pin comparison. Earlier publication groups stay
+# checked, so the job/attest refusals and the independent bounded property isolate the gap.
+pins_control "formal: earlier installed pins omitted from publication freshness" \
+  "sed -i 's/^  freshAgainstPriorPins k m keys$/  true/' $PINS && grep -q '^  true$' $PINS" \
+  earlier_job_exact_refused earlier_job_overlap_refused earlier_attest_overlap_refused \
+  older_job_after_restart_refused bounded
 
 pins_control "formal: current installation contradicts an observation" \
   "sed -i 's/publishedWithin : Bool := true/publishedWithin : Bool := false/' $PINS && grep -q 'publishedWithin : Bool := false' $PINS" \
@@ -461,6 +509,8 @@ pins_control "formal: incomplete LNVPS publications lost from history" \
   compact_history_keeps_boundary partial_polls_complete_after_restart \
   split_partial_completion_admitted
 
+# The dedicated second ceremony and all new cross-installation traces need a boundary;
+# without it, their installation ordinals, pin admissions or contacts change.
 pins_control "formal: reinstall keeps old installed pin active" \
   "sed -i 's/reinstallRetiresPin : Bool := true/reinstallRetiresPin : Bool := false/' $PINS && grep -q 'reinstallRetiresPin : Bool := false' $PINS" \
   incomplete_history_refuses_after_reinstall_restart \
@@ -472,22 +522,27 @@ pins_control "formal: reinstall keeps old installed pin active" \
   job_pin_after_reinstall_admitted unused_attest_after_reinstall_admitted \
   consumed_attest_after_reinstall_refused cross_source_after_reinstall_admitted \
   compact_history_keeps_boundary refused_observation_blocks_later_installation \
-  duplicate_observation_does_not_restore_pin historic_session_survives_reinstall
+  duplicate_observation_does_not_restore_pin historic_session_survives_reinstall \
+  dedicated_reinstall_admitted earlier_job_exact_refused earlier_job_overlap_refused \
+  earlier_attest_overlap_refused older_job_after_restart_refused disjoint_after_job_admitted
 
+# The older job-read pin remains earlier only if restart keeps the ordinal.
 pins_control "formal: restart loses installed generation" \
   "sed -i 's/| .restart => { k with sessions := \[\], halts := \[\] }/| .restart => { k with installedGeneration := [], sessions := [], halts := [] }/' $PINS && grep -q '| .restart => { k with installedGeneration := \[\]' $PINS" \
   job_pin_after_reinstall_admitted unused_attest_after_reinstall_admitted \
   consumed_attest_after_reinstall_refused older_publication_still_refused_after_restart \
-  old_pin_refused_after_pending_restart pending_restart_then_fresh_admitted pending_restart_per_machine
+  old_pin_refused_after_pending_restart pending_restart_then_fresh_admitted pending_restart_per_machine \
+  older_job_after_restart_refused
 
 pins_control "formal: restart loses publication history" \
   "sed -i 's/| .restart => { k with sessions := \[\], halts := \[\] }/| .restart => { k with publicationGroups := [], sessions := [], halts := [] }/' $PINS && grep -q '| .restart => { k with publicationGroups := \[\]' $PINS" \
   partial_polls_complete_after_restart incomplete_history_refuses_after_reinstall_restart \
   older_publication_still_refused_after_restart
 
+# The second dedicated job read without a reinstall is an additional same-installation trap.
 pins_control "formal: installed pin replaces another source without reinstall" \
   "sed -i 's/installedFirstContact : Bool := true/installedFirstContact : Bool := false/' $PINS && grep -q 'installedFirstContact : Bool := false' $PINS" \
-  cross_source_replacement_refused bounded
+  cross_source_replacement_refused second_job_without_reinstall_refused bounded
 
 # A missing toolchain is a red gate, not a skip.
 expected=$((expected + 1))
@@ -520,7 +575,7 @@ control "witnesses: a committed file no module emits" "$WIT" \
   "cp $WITFILE docs/design/orphan-witnesses-v1.json" \
   "WITNESS DRIFT" "orphan-witnesses-v1.json is committed but no module emits it"
 
-# The renamed pins file is checked in both directions; the obsolete v3 name must be visible
+# The renamed pins file is checked in both directions; each obsolete name must be visible
 # as an orphan. Each mutation gives the witness gate exactly one finding.
 passes "witnesses: unchanged v1 modules and pins v4" "$WIT" \
   "test -f $WITFILE && test -f $PINSWIT && test -f $PINSEMIT"
@@ -532,6 +587,10 @@ control "witnesses: pins v4 committed drift" "$WIT" \
 control "witnesses: pins v4 missing committed counterpart" "$WIT" \
   "rm $PINSWIT && test ! -e $PINSWIT" \
   "WITNESS DRIFT" "pins-witnesses-v4.json is not committed"
+
+control "witnesses: obsolete pins v2 orphan" "$WIT" \
+  "cp $PINSWIT docs/design/pins-witnesses-v2.json" \
+  "WITNESS DRIFT" "pins-witnesses-v2.json is committed but no module emits it"
 
 control "witnesses: obsolete pins v3 orphan" "$WIT" \
   "cp $PINSWIT docs/design/pins-witnesses-v3.json" \

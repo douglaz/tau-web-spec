@@ -1,4 +1,4 @@
-# Witness files v1 and v3
+# Witness files v1 and v4
 
 The schemas of the files the formal companion emits, one per module, committed beside this
 document as `<module>-witnesses-v<schema>.json` (ADR-0032, "How the implementation is compared" —
@@ -74,7 +74,7 @@ beside them are the event's arguments.
 | `ready_to_reset` | adapter observation | `source`, `entry`, `keys` | `pinned` |
 | `attest` | adapter observation | `source`, `entry`, `per` (and `boot` for rescue), `keys`, observed `author`; nested `append` with provenance `storage outcome of an append` and `durable` | `pinned`; `consumed`: whether this entry's introduction is consumed after the step |
 | `published` | adapter observation | `source`, `entry`, `per` (and `boot` for a refused rescue-scope trap), `keys` | `pinned` |
-| `reinstall` | operator act | `entry` | `pending`: whether a new installed pin from any source is awaited |
+| `reinstall` | operator act | `entry`; a separately chosen destructive reinstall through the vendor API or from rescue | `pending`: whether a new installed pin from any source is awaited |
 | `restart` | crash | — | `replayed`: durable knowledge retained, session/handshake records dropped |
 | `claim` | model request | `source`, `entry`, `per` (and `boot` with it), `keys` | `pinned` |
 | `connect` | adapter observation | `entry`, `system`, `presents` | `check`: `admitted` or `halted`, with `halt` on the second |
@@ -203,9 +203,9 @@ between publications and membership of a presented key in a pinned set.
 | Member | Meaning |
 |---|---|
 | `pins` | The pins journaled, oldest first: the `entry`, what the pin is held `per` — `boot`, with the `boot` beside it, or `machine` — the `keys`, `source`, and installation ordinal; attest pins also carry the observed `author`. A pin from an earlier installation remains in history but is inactive. |
-| `publication_groups` | Installation groups in creation order, each with its `entry`, zero-based `installation`, and compact `observations` in recording order. An empty reading is recorded when it opens a group. Reinstall opens a group with no observations, so its first empty reading adds none. Empty groups retain installation boundaries. |
+| `publication_groups` | Installation groups in creation order, each with its `entry`, zero-based `installation`, and compact `observations` in recording order. An empty reading is recorded when it opens a group. Any group may have no observations, including the initial one opened by a job read or attest; reinstall also opens a group with no observations, so its first empty reading adds none. Empty groups retain installation boundaries. |
 | `current_installations` | Each named machine's current installation ordinal, whether or not it has a publication or active pin. |
-| `pending_reinstall` | Machine entries whose latest reinstall has no new installed pin from any source. This is explanatory state, not the gate on an active pin. |
+| `pending_reinstall` | Machine entries whose latest operator-chosen destructive reinstall, through the vendor API or from rescue, has no new installed pin from any source. This is explanatory state, not the gate on an active pin. |
 | `consumed_introductions` | Machine entries whose introductions have been accepted, in journal order; retained across restart. Pins and consumption are appended together before any connection can use them. |
 | `planted_senders` | A fixed list of machine entries and their independently configured sender ordinals, identical in `start` and every step. For a named witness, take entries from its starting knowledge, then event entries in trace order, keeping the first occurrence of each. For the enumeration, use entries from `bound.start`'s knowledge and then `bound.alphabet` in the same way; `bound.start` and every enumerated trace, including the empty trace, share that list. An event's entry is included even when the event is refused and journals nothing. The symbolic association is fixed by the assumptions, not supplied by the observed author; no private keys or key bytes are serialized. |
 | `snapshot` | Per entry, what `/rescue/last` showed when the harness read it, `null` for the empty field — the one journaled before a reset, which the confirmation is read against, and which a reading taken while that reset is outstanding does not move. Absent for an entry whose field was never read. |
@@ -235,7 +235,8 @@ The bounded alphabet and event limit are emitted from the companion's declaratio
 named traces additionally exercise rescue refusal, wrong-author then valid admission, repeated
 introduction across restart, failed-append then valid admission, independent machines and an
 introduction after a job pin, and LNVPS source, completeness, incomplete history, freshness,
-pending reinstall across restart and machine-isolation cases. Each
+pending reinstall across restart and machine-isolation cases. The named traces also include
+the second dedicated ceremony and earlier job-read or attest pin overlap. Each
 new guard's refused/admitted pair changes only that guard, as the assumptions record, except
 the publication-to-publication replacement pair: its admitted side also disables the
 within-installation comparison so a complete but changed set can reach the replacement guard.

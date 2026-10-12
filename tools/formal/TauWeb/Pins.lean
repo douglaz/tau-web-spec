@@ -355,7 +355,9 @@ inductive Event
   /-- A recorded LNVPS status response, ordered by Ed25519, RSA and ECDSA. A missing
   family shortens the list. No network or timer behavior is proved here. -/
   | published (entry : Entry) (per : Per) (keys : Keys)
-  /-- A vendor-API reinstall starts a new first contact for this machine. -/
+  /-- A separately chosen destructive reinstall, through the vendor API or from rescue,
+  starts a new installation and first contact for this machine. An ordinary rescue reset,
+  recovery, reboot or Restore is not this event. -/
   | reinstall (entry : Entry)
   /-- Restart from the durable journal, without volatile session/handshake records. -/
   | restart
@@ -390,12 +392,20 @@ def firstContactRequired (p : Params) (src : Source) : Bool :=
 @[req "CHN-R7"] def complete (keys : Keys) : Bool :=
   keys.length == 3
 
+def freshAgainstPriorPins (k : Knowledge) (m : Entry) (keys : Keys) : Bool :=
+  k.pins.all (fun pin =>
+    pin.entry != m || pin.per != .machine ||
+    pin.installation >= installationOf k m ||
+    keys.all (fun key => !pin.keys.contains key))
+
 /-- Every fingerprint must be new for this machine, including against older-than-last sets.
-The history contains every recorded publication, including incomplete and refused candidates. -/
+The history contains every recorded publication, including incomplete and refused candidates,
+and installed pins from every source in earlier installations. -/
 @[req "CHN-R7"] def fresh (k : Knowledge) (m : Entry) (keys : Keys) : Bool :=
   let groups := k.publicationGroups.filter (·.entry == m)
   (groups.drop 1).all (fun g =>
-    g.observations.all (fun old => keys.all (fun key => !old.contains key)))
+    g.observations.all (fun old => keys.all (fun key => !old.contains key))) &&
+  freshAgainstPriorPins k m keys
 
 @[req "CHN-R7"] def withinInstallation (k : Knowledge) (m : Entry) (keys : Keys) : Bool :=
   (currentGroup k m).all (fun g =>
@@ -1272,6 +1282,99 @@ def historicSessionEvents : List Event :=
    .reinstall entryA,
    .connect entryA .installed publishedKey]
 
+/-- The second dedicated rescue ceremony is a separate destructive reinstall. The old
+installed pin becomes historical before the new job read; an ordinary reset alone does not. -/
+def dedicatedSecondRescueEvents : List Event :=
+  [.reset entryA .rescue, .rescueLast entryA (some oldRescueKeys),
+   .connect entryA .rescue oldRescueKey]
+
+def dedicatedReinstallEvents : List Event := ceremonyEvents ++ dedicatedSecondRescueEvents ++
+  [.reinstall entryA, .readyToReset entryA claimedKeys,
+   .reset entryA .installed, .connect entryA .installed claimedKey]
+
+def secondJobWithoutReinstallEvents : List Event := ceremonyEvents ++ dedicatedSecondRescueEvents ++
+  [.readyToReset entryA claimedKeys, .reset entryA .installed,
+   .connect entryA .installed claimedKey]
+
+def earlierJobExactEvents : List Event :=
+  [.readyToReset entryA publishedKeys, .reinstall entryA,
+   .published entryA .machine publishedKeys,
+   .connect entryA .installed publishedKey]
+
+def earlierJobOverlapEvents : List Event :=
+  [.readyToReset entryA installedKeys, .reinstall entryA,
+   .published entryA .machine [21, 152, 252],
+   .connect entryA .installed installedKey]
+
+def earlierAttestOverlapEvents : List Event :=
+  [.attest entryA .machine installedKeys (plantedSender entryA) true,
+   .reinstall entryA, .published entryA .machine [21, 152, 252],
+   .connect entryA .installed installedKey]
+
+def olderJobRestartEvents : List Event :=
+  [.readyToReset entryA installedKeys, .reinstall entryA,
+   .published entryA .machine nextPublishedKeys,
+   .reinstall entryA, .restart,
+   .published entryA .machine [21, 153, 253],
+   .connect entryA .installed installedKey]
+
+def otherMachineJobHistoryEvents : List Event :=
+  [.readyToReset entryA installedKeys,
+   .published entryB .machine [21, 152, 252],
+   .connect entryB .installed installedKey]
+
+def disjointAfterJobEvents : List Event :=
+  [.readyToReset entryA installedKeys, .reinstall entryA,
+   .published entryA .machine nextPublishedKeys,
+   .connect entryA .installed nextPublishedKey]
+
+@[req "CHN-R7"] theorem dedicated_reinstall_admitted :
+    let boundary := run current init (ceremonyEvents ++ dedicatedSecondRescueEvents ++
+      [.reinstall entryA])
+    let k := run current init dedicatedReinstallEvents
+    pinFor boundary entryA .installed = none ∧
+    installationOf boundary entryA = 1 ∧
+    k.pins.map (fun pin => (pin.installation, pin.keys)) =
+      [(1, claimedKeys), (0, oldRescueKeys), (0, installedKeys), (0, rescueKeys)] ∧
+    k.sessions.map (·.keys) = [claimedKey, oldRescueKey, installedKey, rescueKey] ∧
+    k.halts = [] := by decide +kernel
+
+@[req "CHN-R7"] theorem second_job_without_reinstall_refused :
+    let k := run current init secondJobWithoutReinstallEvents
+    installationOf k entryA = 0 ∧
+    k.pins.map (·.keys) = [oldRescueKeys, installedKeys, rescueKeys] ∧
+    k.halts.map (·.reason) = [.mismatch] := by decide +kernel
+
+@[req "CHN-R7"] theorem earlier_job_exact_refused :
+    let k := run current init earlierJobExactEvents
+    k.pins.map (·.source) = [.readyToReset] ∧
+    k.sessions = [] ∧ k.halts.map (·.reason) = [.noPin] := by decide +kernel
+
+@[req "CHN-R7"] theorem earlier_job_overlap_refused :
+    let k := run current init earlierJobOverlapEvents
+    k.pins.map (·.source) = [.readyToReset] ∧
+    k.sessions = [] ∧ k.halts.map (·.reason) = [.noPin] := by decide +kernel
+
+@[req "CHN-R7"] theorem earlier_attest_overlap_refused :
+    let k := run current init earlierAttestOverlapEvents
+    k.pins.map (·.source) = [.attest (plantedSender entryA)] ∧
+    k.sessions = [] ∧ k.halts.map (·.reason) = [.noPin] := by decide +kernel
+
+@[req "CHN-R7"] theorem older_job_after_restart_refused :
+    let k := run current init olderJobRestartEvents
+    k.pins.map (·.source) = [.published, .readyToReset] ∧
+    k.sessions = [] ∧ k.halts.map (·.reason) = [.noPin] := by decide +kernel
+
+@[req "CHN-R7"] theorem other_machine_job_history_admitted :
+    let k := run current init otherMachineJobHistoryEvents
+    k.sessions.map (·.entry) = [entryB] ∧
+    k.sessions.map (·.keys) = [installedKey] := by decide +kernel
+
+@[req "CHN-R7"] theorem disjoint_after_job_admitted :
+    let k := run current init disjointAfterJobEvents
+    k.sessions.map (·.keys) = [nextPublishedKey] ∧
+    k.halts = [] := by decide +kernel
+
 
 @[req "CHN-R7"] theorem job_pin_after_reinstall_admitted :
     let k := run current init jobAfterReinstallEvents
@@ -1557,6 +1660,7 @@ Three events reach rescue confirmation/session, installed-reset confirmation, jo
 sessions, observation/reinstall/candidate and pin/reinstall/connection. -/
 def alphabet : List Event :=
   [.readyToReset entryA installedKeys,
+   .readyToReset entryA publishedKeys,
    .claim entryA .machine claimedKeys,
    .attest entryA .machine installedKeys (plantedSender entryA) true,
    .attest entryA .machine claimedKeys (plantedSender entryB) true, .restart,
@@ -1598,9 +1702,8 @@ def boundedInstalledResetEvents : List Event :=
   [.readyToReset entryA installedKeys, .reset entryA .installed,
    .connect entryA .rescue installedKey]
 
-set_option pp.maxSteps 100
-set_option maxRecDepth 10000
-
+set_option pp.maxSteps 100 in
+set_option maxRecDepth 10000 in
 /-- Each lifecycle path occurs inside the exhaustive enumeration and yields the intended
 session or reset confirmation from its actual starting knowledge. -/
 theorem bounded_lifecycle_reachable :
@@ -1641,6 +1744,9 @@ def publicationSoundBefore (k : Knowledge) (m : Entry) (keys : Keys) : Bool :=
   keys.length == 3 &&
     (groups.drop 1).all (fun g =>
       g.observations.all (fun old => keys.all (fun key => !old.contains key))) &&
+    k.pins.all (fun pin => pin.entry != m || pin.per != .machine ||
+      pin.installation >= installationOf k m ||
+      keys.all (fun key => !pin.keys.contains key)) &&
     (groups.head?).all (fun g =>
       g.observations.all (fun old => old.all keys.contains))
 

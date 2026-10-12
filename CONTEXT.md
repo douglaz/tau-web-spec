@@ -375,7 +375,9 @@ _Avoid_: trustless, verified, provably secure
 
 **Retrieve** · `CHN-R1`, `CHN-R7`
 A pin route where the browser accepts a vendor-published observation of host keys over TLS
-it terminates — a direct fetch or a pinned tunnel (`CHN-12a`). At the scan the machine, or
+it terminates. For Robot, `CHN-R1` says "A TLS session terminated *inside* the browser and
+carried over the relay is not a `fetch`"; that is the pinned tunnel (`CHN-12a`). For LNVPS,
+`CHN-R7` says "by direct fetch over TLS terminating in the browser". At the scan the machine, or
 whoever answers on its address, presents the key; the relay chooses nothing. The owning routes
 state their distinct sources and trust boundaries. A jump host may be pinned by one (`CHN-R6`);
 the target that jump host introduces is trusted on first use, not retrieved.
