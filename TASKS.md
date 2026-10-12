@@ -151,8 +151,10 @@ gated on it.
       conditions exactly; retain the separate credential
       of `SEC-5` row 21 until T44's format exists. Do not select another jump vendor here.
       Also owed once a bound set holds more than one machine (`SEC-1`): a host key shared
-      between managed machines. `CHN-R7` compares a candidate with its own machine's history
-      only, so two machines presenting one key — a stock image with a baked-in private key —
+      between managed machines. `CHN-R7` says a complete candidate "MUST share no fingerprint
+      with any observation or installed-system pin from any source in any earlier installation
+      of that machine", which names no other machine, so two machines presenting one key — a
+      stock image with a baked-in private key —
       would let a compromise of either impersonate the other while each passes `SEC-11`.
       Decide whether a first contact refuses a key already pinned, or published, for another
       managed machine, keeping unrelated machines' histories otherwise separate. `CHN-R1`
