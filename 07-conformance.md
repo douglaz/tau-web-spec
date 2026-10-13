@@ -566,7 +566,9 @@ evidence is that set's test run against the relay the harness uses.
       purchase. Stage 1: the create, box-plane and inference cases; the Robot cases run on the
       dedicated test bed; the untyped-scope cases pass before that capability is enabled.
 - [ ] **CNF-110 · BLOCKING** A standing operator disposition restricts what the calls it names
-      barred, and nothing else (`STA-24`). With a call that changes what the machine is running
+      barred and, under a destructive continuation, the model's box-plane commands to the
+      machine, and apart from the untyped-scope hold (`CNF-105`) nothing else (`STA-24`).
+      With a call that changes what the machine is running
       left unresolved and disposed: a box-plane command to that machine is refused under a
       destructive reinstall and under abandonment, and so is every cloud-plane operation the
       continuation does not permit; under either continuation that continues the command is
@@ -577,8 +579,9 @@ evidence is that set's test run against the relay the harness uses.
       command is dispatched; with any call disposed toward a destructive reinstall or
       abandonment, an unresolved box-plane command or activation included, the model's command
       is refused. In every case a status read, a pinned SSH attempt, the collection of job
-      records and the inference request are dispatched and do not end the restriction: a request
-      made after one is answered as it was before it. The restriction ends at the dispatch of
+      records and the inference request are dispatched and do not end the restriction: the
+      model's command that the disposition refused before one is refused after it.
+      The restriction ends at the dispatch of
       the continuation and not before: from that intent the call's own barrier refuses, and
       nothing is refused under the disposition. A disposition naming no call, a call already
       settled, or a call on another resource is refused, journals nothing, and shows the
