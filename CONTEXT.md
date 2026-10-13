@@ -310,10 +310,21 @@ _Avoid_: target (that is a scan's word), machine where the entry is meant, "reso
 vendor's sense of one API object
 
 **Disposition** · `STA-24`
-The operator's record that permits one named continuation past an unresolved call while the
-call's outcome stays unknown. Distinct from evidence, which resolves; a disposition resolves
-nothing.
+The operator's record that ends the unresolved state of the calls it names while their outcome
+stays unknown, and names the one **continuation** it permits. It limits what those calls
+barred, and stands until that continuation is dispatched or the operator replaces it. Distinct
+from evidence, which resolves; a disposition resolves nothing, and evidence arriving later does
+not remove one.
 _Avoid_: override, resolution, "mark as done" (a disposition marks nothing done)
+
+**Continuation** · `STA-24`
+What a disposition permits, chosen by the operator from four: a destructive reinstall,
+abandonment, continuing as if done, continuing as if not done. The first two are
+**destructive** and permit only themselves. The two that continue record what the operator
+assumed and restrict nothing.
+_Avoid_: next step, retry (a re-issue under "as if not done" is the operator's choice and never
+automatic), recovery flow (a continuation names a choice; its steps belong to the operation's
+owner)
 
 **Job record** · `STA-20`, `STA-21`
 What the machine keeps about one box-plane command: the command **as received**, its output, its
