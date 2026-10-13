@@ -167,3 +167,11 @@ a stage-1 acceptance result. The 2026-10-06 text remains as decision history.
 `CHN-R7`; module 5 now carries its source, freshness, reinstall and key-membership cases.
 The attest work above remains applicable to other vendors, and neither companion result is
 integrated harness evidence.
+
+*Amended 2026-10-13:* `STA-24` gained its disposition rule (ADR-0044), and module 4 carries it.
+The inventory row's last trap, "a disposition read as unrestricted dispatch", is now one of
+several: a disposition's reach taken from the resource, applied to every dispatch or read from
+the calls still unresolved; its restriction ended at any later intent or at a reinstall's first
+operation; a destructive continuation that leaves the model's commands running; any reset taken
+for the reinstall; and a disposition matched to a call by call id alone. Each is a parameter
+with its pair. The module's witness file is schema 2.

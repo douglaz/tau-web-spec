@@ -22,8 +22,10 @@ disposes naming abandonment, and the model then asks to run a command on that ma
 
 **The limit follows the calls, not the resource.** A disposition restricts, to its
 continuation, what the calls it names barred while they were unresolved. A disposed reinstall
-therefore keeps the box plane stopped; a disposed activation, which barred nothing on the box,
-still bars nothing there. A permission never forbids more than the unresolved state did. Reads
+therefore keeps the box plane stopped except as the continuation permits; a disposed
+activation, which barred nothing on the box, bars nothing there by this limit. With the one
+exception of the next paragraph, a disposition never forbids more than the unresolved state
+did. Reads
 and the inference request were never barred, so they are never limited, and an operation
 outside the limit does not end it either: otherwise a status read, which is how a barrier
 clears, would lift an abandonment.
@@ -34,12 +36,14 @@ disposed call was. This is the one place the limit exceeds what the disposed cal
 the reason is the choice, not the call: `STA-20b` already stops dispatch before a planned reset,
 and a command admitted between the choice and the reinstall would be open when the reinstall
 is requested and would bar it. The reads that show whether a reinstall landed stay permitted,
-the pinned SSH attempt among them, because that is how the operator learns the outcome.
+the pinned SSH attempt and the collection of job records among them, because that is how the
+operator learns the outcome.
 
 **The two continuations that continue restrict nothing.** They record what the operator
 assumed and let everything through that the disposed calls barred, a re-issue of the same
-operation included. The corpus forbids an *automatic* retry; a retry the operator chose with
-the uncertainty stated is the purpose of the record.
+operation included. The corpus forbids an *automatic* retry; a re-issue the operator chose with
+the uncertainty stated is the purpose of the record. A continuation that continues has no
+operation to be dispatched at, so it stands, restricting nothing, until it is replaced.
 
 **It stands until its continuation is dispatched, or the operator replaces it.** From the
 continuation's own intent that call's barrier governs, which for a reinstall already holds the
@@ -47,7 +51,8 @@ box plane until confirmation. Evidence arriving afterwards is recorded and shown
 nothing: the operator decided, and nothing but the operator undoes it. Replacement exists so
 that a change of mind is possible; without it a machine disposed toward a reinstall could be
 taken nowhere else. A replacement names the calls the standing disposition disposed, which is
-the one exception to naming only unresolved calls.
+the one exception to naming only unresolved calls. One disposition stands per resource, the
+latest, and its continuation is the one in force.
 
 **A continuation is its owner's flow, dispatched at one operation.** A reinstall or an
 abandonment can take several operations. The limit admits, without ending, those that touch no
@@ -64,14 +69,18 @@ still waited for.
 **Where the harness cannot recognise the continuation, a destructive choice is a hold.** Under
 an untyped vendor scope no call can be told from another, so none counts as the reinstall or
 the abandonment. The disposition then refuses every further call under the scope and keeps the
-model's commands to the session's machines at that vendor stopped until the operator replaces
-it. The operator acts at the vendor by hand and is told so before choosing. This is the one
-place a limit ends only by a new decision, and it is confined to where nothing else could end
-it.
+model's commands to the machines of the session's bound set at that vendor stopped until the
+operator replaces it. The operator acts at the vendor by hand and is told so before choosing.
+This is the one place a limit that holds anything back ends only by a new decision, and it is
+confined to where nothing else could end it.
 
-**It names unresolved calls on its own resource, or it is not recorded.** The same test reads a
-journal on replay, where a record that fails it means nothing and is shown. One test at both
-moments keeps the journal's meaning independent of which build wrote it.
+**It names unresolved calls on its own resource, or it is not recorded.** It names at least
+one, and for an untyped call the resource is the scope. The replacement above is the one
+exception: its calls are the ones the standing disposition disposed. A disposition that is
+refused shows the operator that it was refused, the record that settled the call if one did,
+and what is unresolved now. The same test, the exception included, reads a journal on replay,
+where a record that fails it means nothing and is shown. One test at both moments keeps the
+journal's meaning independent of which build wrote it.
 
 ## Alternatives considered
 
@@ -116,5 +125,11 @@ The companion's dispatch module changes with the text: the continuation becomes 
 four choices, the limit is consulted only for a request a disposed call barred or a destructive
 choice stops, a reinstall's preparation is admitted without ending it, and its theorem that every dispatch under a standing disposition is the named
 continuation is restated over that reach. That is a change of statement, made deliberately.
-The witness file is regenerated; its enumerated traces that disposed a call that was never
-unresolved now record the disposition refused.
+The witness file is regenerated as schema 2 under a new name; its enumerated traces that
+disposed a call that was never unresolved now record the disposition refused.
+
+The same amendment corrects a sentence beside the rule. `STA-24` said the worker admits at most
+one outstanding effect per resource, and the companion's bounded property said the same of
+every resource whose unresolved calls are not all box-plane. An activation unresolved beside a
+box-plane command, which the carve-outs admit, refutes both; the enumeration had not reached
+it because its alphabet held no activation. Both now state what may be unresolved together.

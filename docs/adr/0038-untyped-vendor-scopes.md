@@ -103,6 +103,13 @@ vendor with no adapter that refuses a browser origin cannot be reached until an 
 destination can be tunnelled; and the target's address arrives in a response the model reads,
 where the jump-host route wants it read by harness code.
 
+*Amended 2026-10-13:* one of those edges moved. Abandonment still has no typed destroy to run at
+such a vendor, and `ARC-21` and `ARC-22` now hand the act to the operator; while a disposition
+naming abandonment or a destructive reinstall stands on the scope, `STA-24` holds every further
+call under it and the model's box-plane commands to the set's machines at that vendor until the
+operator replaces the disposition (ADR-0044). How the operator carries the act out by hand
+stays open.
+
 **The trust display gains a kind of entry.** A vendor reached this way is both the machine's
 vendor and a service holding a key the harness cannot bound, for as long as that key lives.
 
