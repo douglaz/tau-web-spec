@@ -569,8 +569,8 @@ evidence is that set's test run against the relay the harness uses.
       barred and, under a destructive continuation, the model's box-plane commands to the
       machine, and apart from the untyped-scope hold (`CNF-105`) nothing else (`STA-24`).
       With a call that changes what the machine is running
-      left unresolved and disposed: a box-plane command to that machine is refused under a
-      destructive reinstall and under abandonment, and so is every cloud-plane operation the
+      left unresolved and disposed: a box-plane command to that machine, a harness-owned job the
+      model requests included, is refused under a destructive reinstall and under abandonment, and so is every cloud-plane operation the
       continuation does not permit; under either continuation that continues the command is
       dispatched, and so is the same operation requested again under a fresh call id where no
       other call is unresolved, and the operator's recorded assumption is shown and never

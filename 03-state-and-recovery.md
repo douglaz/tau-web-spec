@@ -273,8 +273,10 @@ dispatch requirement, the approval and the binding (`SEC-4`) among them, and for
 
 **A destructive continuation stops the model's commands.** When the continuation is a
 destructive reinstall or abandonment, the harness worker MUST refuse the model's box-plane
-commands to that machine, whatever the disposed call was. This is the one case where the
-restriction exceeds what the disposed calls barred. Reads stay permitted throughout, the pinned
+commands to that machine, whatever the disposed call was. A harness-owned job the model
+requests (`ARC-43`) is one of them: it runs on the machine like any command, and that the
+harness composed it changes nothing here. This is the one case where the restriction exceeds
+what the disposed calls barred. Reads stay permitted throughout, the pinned
 SSH attempt that is `STG-4`'s third predicate and the collection of job records among them: they
 are how the operator learns whether a reinstall landed.
 
