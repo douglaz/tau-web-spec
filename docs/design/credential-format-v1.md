@@ -91,7 +91,9 @@ addressing; store that exact serialization instead of reconstructing it on read.
 Never perform 2^32 encryptions under one data key; re-encrypt under a fresh key before that
 bound. A passphrase change uses a fresh salt and nonce to rewrap the data key and commits the
 replacement atomically. It does not revoke a previously copied envelope. Corruption or
-authentication failure stops replay; never skip a record. This detects modification and
+authentication failure stops replay; never skip a record. A disposition that `STA-24`'s test
+refuses is not a skipped record: it stays in the journal and is replayed, ends no call,
+restricts nothing and is shown. This detects modification and
 mixing, **not rollback of the entire store** by a compromised device. Importing a backup
 therefore invokes the allocation restrictions in `STA-22b`.
 

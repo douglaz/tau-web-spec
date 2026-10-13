@@ -19,6 +19,14 @@ crash could fail to write" (`STA-24`) — which is why it survives replay and se
 A disposition is a terminal record of its own kind whose outcome stays unknown, so a disposed
 call is not an open one and the barrier stays one derivation.
 
+**A disposition is read through one test.** What a disposition may name is `acceptable`, decided
+against the journal before it. `step` refuses a disposition that fails it and records nothing,
+and `inEffect` reads a journal that already holds one "as if it had never been recorded"
+(`STA-24`), so recording and replay cannot disagree. What a standing disposition restricts is
+`restricted`: the reach, computed from the calls it disposed through `bars`, and beside it the
+stop a destructive continuation puts on `exec`. It stands until its continuation is dispatched
+(`standingIn`) or a later one replaces it.
+
 **In memory and in the journal.** `World` carries both, because `STA-3` — "A canonical event
 MUST be durably appended **before** it is applied to in-memory state. If the append fails, the
 transition does not occur" — is exactly the statement that they never diverge. Dispatch reads
@@ -36,15 +44,16 @@ here only where an approval was checked, so "an intent with no journaled approva
 never dispatched" (`STA-4`) has no counterpart, and what is carried is that replay reads back the
 barrier it had; the untyped call, whose resource is the scope (`SEC-12`, `STA-24`) and whose rules
 are its own — nothing under a scope counts as a read, and only the operator's disposition clears
-it — since no witness of this module's inventory row exercises one; the spend cap an unresolved
+it — since no witness of this module's inventory row exercises one, and with it the pause and
+the hold `STA-24` states for an untyped vendor scope; the spend cap an unresolved
 inference intent is shown against (`ARC-31a`), a number and not a gate; the screens `ARC-22`
 requires, which state what the journal already holds. Robot's predicates have no negative
 transition (`STG-4`: "None of these has a negative form"), so there is no observation meaning
 *it did not happen*: that reading arrives only as a disposition.
 
 ponytail: `openIntents` rescans the journal for every intent it reads, which is quadratic in the
-trace; the bound is three events, and an index from call id to terminal record arrives when a
-longer enumeration needs one. -/
+trace, and `inEffect` reads the journal again for every disposition; the bound is three events,
+and an index from call id to terminal record arrives when a longer enumeration needs one. -/
 
 namespace TauWeb.Dispatch
 
@@ -88,13 +97,18 @@ inductive Resource
   | inference
   deriving DecidableEq, Repr
 
-/-- What a call does. The first five are cloud-plane typed operations (`STG-4`); `exec` is
-box-plane work (`ARC-8`); `read` is what `STA-24` keeps permitted — "the adapter's status
-queries, the pinned SSH attempt that is `STG-4`'s third predicate, the collection of job
-records"; `inference` is `ARC-31a`'s own off-machine call. -/
+/-- What a call does. The first six are cloud-plane typed operations (`STG-4`, `ARC-22`).
+`reinstall` is the vendor's own reinstall call, where the vendor has one (`ARC-22`: "stop,
+renewal control and reinstall are available"). `destroy` is the abandonment flow's operation
+naming the machine: "the destroy, or the stop that stands in for it" (`STA-24`), since where the
+vendor offers no destroy route the harness "stops that machine, turns automatic renewal off"
+(`ARC-22`). `exec` is box-plane work (`ARC-8`) as a whole; `read` is what `STA-24` keeps
+permitted — "the adapter's status queries, the pinned SSH attempt that is `STG-4`'s third
+predicate, the collection of job records"; `inference` is `ARC-31a`'s own off-machine call. -/
 inductive Kind
   | create
   | reset
+  | reinstall
   | destroy
   | activate
   | registerKey
@@ -105,22 +119,23 @@ inductive Kind
 
 /-- The two planes of ADR-0002. No wildcard: a kind added without a plane does not build. -/
 def cloudPlane : Kind → Bool
-  | .create | .reset | .destroy | .activate | .registerKey => true
+  | .create | .reset | .reinstall | .destroy | .activate | .registerKey => true
   | .exec | .read | .inference => false
 
 /-- `STA-24`'s one exception for the box plane: "a cloud-plane operation that **changes what the
-machine is running** — a reset, a reinstall, a destroy — stops box-plane dispatch to that machine
-from its intent until its confirmation or disposition". A destructive reinstall (`STG-20`) is a
-reset of an installed system and is that case. -/
+machine is running** — a reset, a reinstall, a destroy, or the stop that stands in for a destroy
+(`ARC-22`) — stops box-plane dispatch to that machine from its intent until its confirmation".
+The stop is carried by `destroy`. These are also the operations a destructive continuation is
+dispatched at (`dispatchesContinuation`). -/
 @[req "STA-24"] def changesRunning : Kind → Bool
-  | .reset | .destroy => true
+  | .reset | .reinstall | .destroy => true
   | .create | .activate | .registerKey | .exec | .read | .inference => false
 
 /-- A read "has no effect": it is permitted whatever the barrier says, and it never becomes an
 unresolved call of its own. Everything else is side-effecting and carries `SEC-12`'s record. -/
 @[req "SEC-12"] def sideEffecting : Kind → Bool
   | .read => false
-  | .create | .reset | .destroy | .activate | .registerKey | .exec | .inference => true
+  | .create | .reset | .reinstall | .destroy | .activate | .registerKey | .exec | .inference => true
 
 /-! ## The two kinds of state -/
 
@@ -189,13 +204,30 @@ structure Intent where
   approval : Approval
   deriving DecidableEq, Repr
 
-/-- The operator's disposition (`STA-24`): "a record of its own kind naming the outstanding
-calls, the one continuation it permits — a destructive reinstall (`STG-20`), abandonment
+/-- The continuation a disposition names, the operator's four choices (`STA-24`): "a destructive
+reinstall (`STG-20`), abandonment (`ARC-21`), continuing as if done, continuing as if not done".
+A choice and never an operation: what a destructive one is dispatched at is
+`dispatchesContinuation`. The two that continue differ only in the assumption the operator
+recorded, which no function here reads. -/
+@[req "STA-24"] inductive Continuation
+  | reinstall
+  | abandon
+  | asIfDone
+  | asIfNotDone
+  deriving DecidableEq, Repr
+
+/-- The two destructive choices. No wildcard: a choice added without this does not build. -/
+@[req "STA-24"] def destructive : Continuation → Bool
+  | .reinstall | .abandon => true
+  | .asIfDone | .asIfNotDone => false
+
+/-- The operator's disposition (`STA-24`): "a record of its own kind naming the unresolved calls
+it ends, the continuation the operator chose — a destructive reinstall (`STG-20`), abandonment
 (`ARC-21`), continuing as if done, continuing as if not done — and the uncertainty accepted". -/
 structure Disposition where
   resource : Resource
   calls : List CallId
-  continuation : Kind
+  continuation : Continuation
   deriving DecidableEq, Repr
 
 /-- One journal record. `STA-2`: canonical state is "an **append-only event journal** with
@@ -227,6 +259,31 @@ inductive Key
   | call
   deriving DecidableEq, Repr
 
+/-- Where a standing disposition's reach is taken from. `disposed` is the rule: `STA-24` says "A
+standing disposition restricts, to its continuation, what the calls it names barred while they
+were unresolved". The others are the readings it retains as traps. `resource` restricts every
+side-effecting operation naming the resource, so a disposed activation begins to bar the box
+plane. `everyDispatch` restricts every request, a read included, which is what this module did
+until 2026-10-13. `stillUnresolved` reads the calls still unresolved, and a disposed call is not
+one, so nothing is in reach. -/
+inductive Reach
+  | disposed
+  | resource
+  | everyDispatch
+  | stillUnresolved
+  deriving DecidableEq, Repr
+
+/-- Where a standing disposition's restriction ends. `continuation` is the rule: `STA-24` says
+"The restriction ends when the continuation it names is dispatched". `anyIntent` ends it at any
+later intent naming the resource, a read's included, which is what this module did until
+2026-10-13: a status read lifted an abandonment. `firstOperation` ends it at the first operation
+of the continuation's flow, so a command is admitted between a rescue activation and the reset. -/
+inductive Lapse
+  | continuation
+  | anyIntent
+  | firstOperation
+  deriving DecidableEq, Repr
+
 /-- The parameters this module's decisions turn on, each one field so that changing one is a
 one-token change, and each with its refused-and-admitted pair (ADR-0032, "Every guard a dated
 amendment added is a parameter"). The tag is the requirement the module is for; each field's own
@@ -247,10 +304,37 @@ authority is per clause and this structure is not one. -/
   /-- The observation lattice, `ended` below `succeeded`. Its pair is
   `boot_id_change_not_success_refused` / `_admitted`. -/
   endedBelowSucceeded : Bool
-  /-- `STA-24`: a disposition "permits only the continuation it names, and a new unresolved call
-  stops that continuation again". Its pair is `disposition_one_continuation_refused` /
-  `_admitted`. -/
+  /-- `STA-24`: "A standing disposition restricts, to its continuation, what the calls it names
+  barred while they were unresolved". Without the rule a disposition ends the calls it names and
+  restricts nothing, whatever the operator chose. Its pair is
+  `disposition_one_continuation_refused` / `disposition_unrestricted_admitted`. -/
   dispositionBindsContinuation : Bool
+  /-- Where the restriction's reach is taken from (`STA-24`, 2026-10-13). Its pairs are
+  `continuing_permits_what_was_barred` / `disposed_activation_bars_commands_without_guard` for
+  `resource`, `read_and_inference_never_restricted` / `read_and_inference_restricted_without_guard`
+  for `everyDispatch`, and `replacement_in_force` / `replaced_continuation_dispatched_without_guard`
+  for `stillUnresolved`. -/
+  reach : Reach := .disposed
+  /-- `STA-24`: when the continuation is destructive "the harness worker MUST refuse the model's
+  box-plane commands to that machine, whatever the disposed call was". Its pair is
+  `destructive_choice_stops_commands` / `command_preempts_reinstall_without_guard`. -/
+  destructiveStops : Bool := true
+  /-- Where the restriction ends (`STA-24`, 2026-10-13). Its pairs are
+  `read_does_not_lift_abandonment` / `read_lifts_abandonment_without_guard` for `anyIntent` and
+  `preparation_keeps_restriction` / `preparation_lifts_restriction_without_guard` for
+  `firstOperation`. -/
+  lapse : Lapse := .continuation
+  /-- `STA-24`: the reset a destructive reinstall is dispatched at is "a reset dispatched after
+  that rescue activation is confirmed", and "Any other reset is refused while the disposition
+  stands". Without it any reset is the reinstall. Its pair is `reset_without_rescue_refused` /
+  `reset_without_rescue_admitted`. -/
+  resetIntoRescueOnly : Bool := true
+  /-- `STA-24`: "every call it names MUST be unresolved, on the disposition's own resource, in
+  the journal as it stands before the disposition". Without the resource a disposition is matched
+  to a call by call id alone, and one recorded against a machine ends a call on another. Its
+  pair is `disposition_names_own_unresolved_calls` /
+  `disposition_ends_call_elsewhere_without_guard`. -/
+  dispositionOwnResource : Bool := true
   deriving DecidableEq, Repr
 
 /-- The rules as they stand. -/
@@ -297,14 +381,17 @@ clears nothing either. -/
   | .notifyEvent | .modelText => false
 
 /-- Whether a record is a terminal record for an intent. An admissible observation for that
-resource and operation whose standing confirms it, or a disposition naming the call — `STA-24`:
-"**A disposition is a terminal record of its own kind**: it ends the call's unresolved state with
-the outcome recorded as unknown, so the barrier stays one derivation — an intent with no terminal
-record — and a disposed call is not an open one." -/
+resource and operation whose standing confirms it, or a disposition on the intent's resource
+naming the call — `STA-24`: "**A disposition is a terminal record of its own kind**: it ends the
+call's unresolved state with the outcome recorded as unknown, so the barrier stays one derivation
+— an intent with no terminal record — and a disposed call is not an open one." This reads one
+record; whether a disposition counts at all is not decided from the record alone, and every
+reader below takes a journal `inEffect` has already read. -/
 @[req "STA-8"] def settles (p : Params) (i : Intent) : Rec → Bool
   | .observation o =>
     admissible o && o.resource == i.resource && o.kind == i.kind && confirms p o.standing
-  | .disposition d => d.calls.contains i.call
+  | .disposition d =>
+    (d.resource == i.resource || !p.dispositionOwnResource) && d.calls.contains i.call
   | .intent _ => false
   | .association _ _ => false
   | .resetPrereqs _ => false
@@ -322,16 +409,12 @@ def openFrom (p : Params) (r : Resource) (later : Journal) : Journal → List In
       else tail
     | _ => tail
 
-/-- `STA-8`'s unresolved calls naming a resource, as their intents and newest first. Derived —
-"The barrier is a fact of the journal — an intent with no terminal record" (`STA-24`) — so it
-survives replay and session succession "without an event of its own". A read is not among them:
-it has no effect to be unresolved about. -/
-@[req "STA-8"] def openIntents (p : Params) (j : Journal) (r : Resource) : List Intent :=
-  openFrom p r [] j
+/-- The unresolved intents naming a resource, in a journal `inEffect` has read. -/
+def openIn (p : Params) (e : Journal) (r : Resource) : List Intent := openFrom p r [] e
 
-/-- The barrier set: the call ids `STA-24` shows in a refused request's place. -/
-@[req "STA-8"] def unresolved (p : Params) (j : Journal) (r : Resource) : List CallId :=
-  (openIntents p j r).map (·.call)
+/-- Whether a call is unresolved on a resource, in a journal `inEffect` has read. -/
+def unresolvedIn (p : Params) (e : Journal) (r : Resource) (c : CallId) : Bool :=
+  (openIn p e r).any (·.call == c)
 
 /-- Every intent the journal holds, newest first. -/
 def intentsOf (j : Journal) : List Intent :=
@@ -339,6 +422,132 @@ def intentsOf (j : Journal) : List Intent :=
 
 /-- The resources the journal names. -/
 def resourcesOf (j : Journal) : List Resource := ((intentsOf j).map Intent.resource).eraseDups
+
+/-- Whether a record is a disposition on a resource. -/
+def disposes (r : Resource) : Rec → Bool
+  | .disposition d => d.resource == r
+  | .intent _ => false
+  | .observation _ => false
+  | .association _ _ => false
+  | .resetPrereqs _ => false
+
+/-- Whether the machine's return to rescue is ready for its reset, read in the journal before
+that reset. `STA-24`: while a destructive reinstall's disposition stands "the operations of that
+machine's return to rescue that touch no running system — the rescue activation, and a key
+registration where one is owed — are admitted and do not end the restriction", and the reset the
+reinstall is dispatched at is "a reset dispatched after that rescue activation is confirmed".
+*That* rescue activation is one admitted while this disposition stands: an activation naming the
+machine whose intent is newer than the standing disposition's record, that is confirmed, and that
+no reset intent on the machine follows. An activation confirmed before the disposition, or
+dispatched under a disposition since replaced, does not count: the scan stops at the newest
+disposition on the resource, which is the standing one, so the reset is refused and a new
+activation is admitted. -/
+@[req "STA-24"] def rescueConfirmed (p : Params) (e : Journal) (r : Resource) : Bool :=
+  go (e.takeWhile fun rec => !disposes r rec)
+where
+  go : Journal → Bool
+    | [] => false
+    | .intent i :: rest =>
+      if i.resource == r && i.kind == .reset then false
+      else if i.resource == r && i.kind == .activate && !unresolvedIn p e r i.call then true
+      else go rest
+    | .observation _ :: rest => go rest
+    | .disposition _ :: rest => go rest
+    | .association _ _ :: rest => go rest
+    | .resetPrereqs _ :: rest => go rest
+
+/-- Whether an operation is the one a continuation is dispatched at, read in the journal before
+it. `STA-24`: a continuation "is dispatched at the one that changes what the machine is running".
+For a destructive reinstall that is the vendor's reinstall call or the reset into rescue
+(`rescueConfirmed`); without `resetIntoRescueOnly` any reset is. For abandonment it is "the
+destroy, or the stop that stands in for it", both carried by `destroy`. A continuation that
+continues has no operation to be dispatched at. No wildcard over the choices.
+
+Who sends the request is not carried: `Request` is what a model sends, and `ARC-21` runs
+abandonment "never through a session". So an answer here that a `destroy` is abandonment's
+dispatch says only that the disposition does not refuse that operation and ends at it. It does
+not say a model's request for it is admissible, which `SEC-4` bounds, and no trace of this
+module dispatches one as the abandonment. -/
+@[req "STA-24"] def dispatchesContinuation (p : Params) (e : Journal) (r : Resource) :
+    Continuation → Kind → Bool
+  | .reinstall, k =>
+    k == .reinstall || (k == .reset && (!p.resetIntoRescueOnly || rescueConfirmed p e r))
+  | .abandon, k => k == .destroy
+  | .asIfDone, _ => false
+  | .asIfNotDone, _ => false
+
+/-- The operations of a continuation's flow that are admitted and do not end the restriction:
+under a destructive reinstall, "the rescue activation, and a key registration where one is owed"
+(`STA-24`). Neither changes what the machine is running. -/
+@[req "STA-24"] def prepares (c : Continuation) (k : Kind) : Bool :=
+  c == .reinstall && (k == .activate || k == .registerKey)
+
+/-- Whether an intent of kind `k` on the resource, appended to the journal `e`, ends the
+restriction of a standing disposition whose continuation is `c`. -/
+@[req "STA-24"] def lapsesAt (p : Params) (e : Journal) (r : Resource) (c : Continuation)
+    (k : Kind) : Bool :=
+  match p.lapse with
+  | .continuation => dispatchesContinuation p e r c k
+  | .firstOperation => dispatchesContinuation p e r c k || prepares c k
+  | .anyIntent => true
+
+/-- The disposition standing over a resource, with the journal as it stood before it, in a
+journal `inEffect` has read. `STA-24`: "One disposition stands per resource, the latest", and
+"The restriction ends when the continuation it names is dispatched" — at that intent and at no
+other record: "An operation outside that reach is neither restricted by it nor ends it", and
+evidence arriving afterwards "neither reopens the call nor removes the disposition". -/
+def standingIn (p : Params) (r : Resource) : Journal → Option (Disposition × Journal)
+  | [] => none
+  | .disposition d :: rest => if d.resource == r then some (d, rest) else standingIn p r rest
+  | .intent i :: rest =>
+    match standingIn p r rest with
+    | none => none
+    | some s =>
+      if i.resource == r && lapsesAt p rest r s.1.continuation i.kind then none else some s
+  | .observation _ :: rest => standingIn p r rest
+  | .association _ _ :: rest => standingIn p r rest
+  | .resetPrereqs _ :: rest => standingIn p r rest
+
+/-- What a disposition may name, against the journal before it (`STA-24`): it "names at least one
+call, and every call it names MUST be unresolved, on the disposition's own resource, in the
+journal as it stands before the disposition", with one exception — "a new disposition may name
+the calls the standing one disposed". Each named call is one or the other. The test for `step`
+and for `inEffect` alike: "The same test decides at recording and at replay". -/
+@[req "STA-24"] def acceptable (p : Params) (e : Journal) (d : Disposition) : Bool :=
+  !d.calls.isEmpty && d.calls.all fun c =>
+    (if p.dispositionOwnResource then unresolvedIn p e d.resource c
+     else (resourcesOf e).any fun r => unresolvedIn p e r c)
+    || (standingIn p d.resource e).any fun s => s.1.calls.contains c
+
+/-- The journal as it is read. `STA-24`: a disposition in a replayed journal that the test would
+have refused "is read as if it had never been recorded: it ends no call and restricts nothing".
+The record stays in the journal; it is dropped from the reading, oldest first, so that each
+disposition is tested against the reading of what came before it. -/
+@[req "STA-24"] def inEffect (p : Params) : Journal → Journal
+  | [] => []
+  | .disposition d :: rest =>
+    if acceptable p (inEffect p rest) d then .disposition d :: inEffect p rest
+    else inEffect p rest
+  | .intent i :: rest => .intent i :: inEffect p rest
+  | .observation o :: rest => .observation o :: inEffect p rest
+  | .association t e :: rest => .association t e :: inEffect p rest
+  | .resetPrereqs e :: rest => .resetPrereqs e :: inEffect p rest
+
+/-- Whether the harness records a disposition the operator offers (`acceptable`, against the
+journal as it is read). Where it does not, "it is refused and nothing is recorded" (`STA-24`). -/
+@[req "STA-24"] def accepts (p : Params) (j : Journal) (d : Disposition) : Bool :=
+  acceptable p (inEffect p j) d
+
+/-- `STA-8`'s unresolved calls naming a resource, as their intents and newest first. Derived —
+"The barrier is a fact of the journal — an intent with no terminal record" (`STA-24`) — so it
+survives replay and session succession "without an event of its own". A read is not among them:
+it has no effect to be unresolved about. -/
+@[req "STA-8"] def openIntents (p : Params) (j : Journal) (r : Resource) : List Intent :=
+  openIn p (inEffect p j) r
+
+/-- The barrier set: the call ids `STA-24` shows in a refused request's place. -/
+@[req "STA-8"] def unresolved (p : Params) (j : Journal) (r : Resource) : List CallId :=
+  (openIntents p j r).map (·.call)
 
 /-- Whether an unresolved call of kind `k` bars a new operation of kind `k'` on the same
 resource. `STA-24`'s rule is that a side-effecting operation naming the resource is refused
@@ -373,22 +582,67 @@ only a call with the same id bars, and every request carries a fresh one. -/
    | .index => (barring p j i).filter fun o => o.target == i.target
    | .call => (barring p j i).filter fun o => o.call == i.call).map Intent.call
 
-/-- The disposition standing over a resource: the most recent one, unless a later intent on that
-resource has been journaled since — "a new unresolved call stops that continuation again"
-(`STA-24`). -/
-def latestDisposition (r : Resource) : Journal → Option Disposition
-  | [] => none
-  | .intent i :: rest => if i.resource == r then none else latestDisposition r rest
-  | .disposition d :: rest => if d.resource == r then some d else latestDisposition r rest
-  | .observation _ :: rest => latestDisposition r rest
-  | .association _ _ :: rest => latestDisposition r rest
-  | .resetPrereqs _ :: rest => latestDisposition r rest
+/-- The disposition standing over a resource, with the journal as it stood before it. -/
+@[req "STA-24"] def standing (p : Params) (j : Journal) (r : Resource) :
+    Option (Disposition × Journal) :=
+  standingIn p r (inEffect p j)
 
-/-- What a standing disposition permits: `STA-24`'s "it permits only the continuation it names".
-Without the rule a disposition clears the barrier and restricts nothing, which is the disposition
-read as unrestricted dispatch. -/
-@[req "STA-24"] def restriction (p : Params) (j : Journal) (r : Resource) : Option Kind :=
-  if p.dispositionBindsContinuation then (latestDisposition r j).map (·.continuation) else none
+/-- The calls a standing disposition disposed, as their intents: those it names on its resource
+in the journal as it stood before it. A replacement names "the calls the standing one disposed"
+(`STA-24`), which are there too. -/
+def disposed (s : Disposition × Journal) : List Intent :=
+  (intentsOf s.2).filter fun i => i.resource == s.1.resource && s.1.calls.contains i.call
+
+/-- The reach of a standing disposition, for an operation of kind `k`: "what the calls it names
+barred while they were unresolved" (`STA-24`), which is `bars` read over the disposed calls and
+neither the resource, the continuation nor the calls still unresolved. `bars` already answers no
+for a read and for the inference request, so "A read and the inference request are never
+restricted". The other cases of `Reach` are the readings retained as traps. -/
+@[req "STA-24"] def reaches (p : Params) (e : Journal) (s : Disposition × Journal) (k : Kind) :
+    Bool :=
+  match p.reach with
+  | .disposed => (disposed s).any fun o => bars o.kind k
+  | .resource => sideEffecting k
+  | .everyDispatch => true
+  | .stillUnresolved =>
+    ((disposed s).filter fun o => unresolvedIn p e o.resource o.call).any fun o => bars o.kind k
+
+/-- What a continuation permits within the reach (`STA-24`). "A destructive reinstall permits
+only the reinstall, abandonment only the abandonment flow": the operation the continuation is
+dispatched at, and the preparation admitted before it. The two that continue restrict nothing,
+and by rule rather than outright: "everything the disposed calls barred is permitted again, a
+re-issue of the same operation included", which is the reach itself. A permission is not a
+dispatch: `admit` has checked the binding, the approved record and the barrier before it reads
+this. -/
+@[req "STA-24"] def permits (p : Params) (e : Journal) (s : Disposition × Journal) (k : Kind) :
+    Bool :=
+  if destructive s.1.continuation then
+    dispatchesContinuation p e s.1.resource s.1.continuation k || prepares s.1.continuation k
+  else (disposed s).any fun o => bars o.kind k
+
+/-- The stop a destructive continuation adds beside the reach (`STA-24`): "the harness worker
+MUST refuse the model's box-plane commands to that machine, whatever the disposed call was". It
+is `exec` and nothing else, so reads stay permitted throughout. -/
+@[req "STA-24"] def stops (p : Params) (c : Continuation) (k : Kind) : Bool :=
+  p.destructiveStops && destructive c && k == .exec
+
+/-- Whether a standing disposition refuses an operation of kind `k` on the resource, and under
+which continuation: the destructive stop, or an operation within the reach that the continuation
+does not permit. Without `dispositionBindsContinuation` a disposition ends the calls it names and
+restricts nothing, which is the disposition read as unrestricted dispatch. -/
+@[req "STA-24"] def restricted (p : Params) (j : Journal) (r : Resource) (k : Kind) :
+    Option Continuation :=
+  if !p.dispositionBindsContinuation then none
+  else match standing p j r with
+    | none => none
+    | some s =>
+      if stops p s.1.continuation k
+         || (reaches p (inEffect p j) s k && !permits p (inEffect p j) s k)
+      then some s.1.continuation else none
+
+/-- The continuation in force over a resource: the standing disposition's, where one stands. -/
+@[req "STA-24"] def restriction (p : Params) (j : Journal) (r : Resource) : Option Continuation :=
+  if p.dispositionBindsContinuation then (standing p j r).map (·.1.continuation) else none
 
 /-- `STA-20b`: before a planned reset the harness "durably records installed host-key pins and
 the reset intent. If collection or the durable append fails, it does not reset — and it does not
@@ -414,8 +668,9 @@ inductive Refusal
   | append
   /-- `STA-24`: the unresolved calls the barrier stands on. -/
   | barrier (calls : List CallId)
-  /-- `STA-24`: a disposition stands over the resource and permits only the kind it names. -/
-  | continuation (permitted : Kind)
+  /-- `STA-24`: a disposition stands over the resource, and its continuation, shown here, does
+  not permit this operation. -/
+  | continuation (inForce : Continuation)
   deriving DecidableEq, Repr
 
 inductive Verdict
@@ -443,8 +698,8 @@ def intentOf (rq : Request) (r : Resource) (ap : Approval) : Intent :=
 /-- The dispatch check, in the order the requirements put it: the harness resolves what the model
 named (`STA-24`), `SEC-4`'s binding and approved record are checked, and only then `STA-24`'s
 barrier — "An approval already rendered does not clear the barrier; it is checked again at
-dispatch." Total, and the order is the function's, so no refusal can be answered out of its
-place. -/
+dispatch" — and after it what a standing disposition restricts. Total, and the order is the
+function's, so no refusal can be answered out of its place. -/
 @[req "STA-4"] def admit (p : Params) (j : Journal) (rq : Request) (ap : Approval) : Verdict :=
   match resolve j rq.target with
   | none => .refused .unmapped
@@ -454,9 +709,8 @@ place. -/
     else match blocking p j (intentOf rq r ap) with
       | c :: cs => .refused (.barrier (c :: cs))
       | [] =>
-        match restriction p j r with
-        | some k =>
-          if k == rq.kind then .dispatched (intentOf rq r ap) else .refused (.continuation k)
+        match restricted p j r rq.kind with
+        | some c => .refused (.continuation c)
         | none => .dispatched (intentOf rq r ap)
 
 /-! ## The trace -/
@@ -486,7 +740,7 @@ inductive Event
   /-- A read of the far side: its provenance, the resource and the operation it is a predicate
   for, and the storage outcome of its append. What it reports is external state's. -/
   | observe (provenance : Provenance) (resource : Resource) (kind : Kind) (appended : Bool)
-  /-- The operator disposes (`STA-24`). -/
+  /-- The operator disposes (`STA-24`), with the storage outcome of the record's own append. -/
   | dispose (d : Disposition) (appended : Bool)
   /-- The harness associates what a model may name with the approved entry. -/
   | associate (t : Target) (e : Entry)
@@ -498,8 +752,9 @@ inductive Event
 
 /-- One event. A request that `admit` accepts is journaled "immediately before the bytes leave"
 (`STA-4`) and dispatched; if that append fails the transition does not occur and nothing leaves
-(`STA-3`). A read's standing is what the far side reports and never this module's. A replay
-throws in-memory state away and rebuilds it from the journal (`STA-2`, `STA-7`). -/
+(`STA-3`). A read's standing is what the far side reports and never this module's. A disposition
+that `accepts` refuses is not recorded. A replay throws in-memory state away and rebuilds it from
+the journal (`STA-2`, `STA-7`). -/
 @[req "STA-4"] def step (p : Params) (x : External) (w : World) : Event → World
   | .request rq ap ok =>
     match admit p w.memory rq ap with
@@ -511,7 +766,9 @@ throws in-memory state away and rebuilds it from the journal (`STA-2`, `STA-7`).
       else { w with verdict := some (.refused .append) }
   | .observe prov r k ok =>
     { append p w (.observation ⟨prov, r, k, x.reports r k⟩) ok with verdict := none }
-  | .dispose d ok => { append p w (.disposition d) ok with verdict := none }
+  | .dispose d ok =>
+    if accepts p w.memory d then { append p w (.disposition d) ok with verdict := none }
+    else { w with verdict := none }
   | .associate t e => { append p w (.association t e) true with verdict := none }
   | .resetPrereqs e ok => { append p w (.resetPrereqs e) ok with verdict := none }
   | .replay => { w with memory := w.journal, verdict := none }
@@ -538,12 +795,11 @@ theorem append_memory_eq (p : Params) (hp : p.durableBeforeApply = true) (w : Wo
 
 /-- What `admit` established when it dispatched: the intent it built is the request under the
 approval, the binding holds, the approved facts are the requested ones, no unresolved call bars
-it, and a standing disposition, if any, named this continuation. -/
+it, and no standing disposition restricts it. -/
 theorem admit_dispatched (p : Params) (j : Journal) (rq : Request) (ap : Approval) (i : Intent)
     (h : admit p j rq ap = .dispatched i) :
     i.call = rq.call ∧ i.kind = rq.kind ∧ i.approval = ap ∧ i.session = ap.session ∧
-    ap.facts = rq.facts ∧ blocking p j i = [] ∧
-    ∀ k, restriction p j i.resource = some k → k = i.kind := by
+    ap.facts = rq.facts ∧ blocking p j i = [] ∧ restricted p j i.resource i.kind = none := by
   unfold admit at h
   split at h
   · exact nomatch h
@@ -557,38 +813,47 @@ theorem admit_dispatched (p : Params) (j : Journal) (rq : Request) (ap : Approva
         · exact nomatch h
         · rename_i hblock
           split at h
-          · rename_i k hk
-            split at h
-            · rename_i hkind
-              injection h with h
-              subst h
-              refine ⟨rfl, rfl, rfl, hses.symm, hfacts, hblock, ?_⟩
-              intro k' hk'
-              simp only [intentOf] at hk' ⊢
-              rw [hk] at hk'
-              injection hk' with hk'
-              subst hk'
-              simpa only [beq_iff_eq] using hkind
-            · exact nomatch h
+          · exact nomatch h
           · rename_i hnone
             injection h with h
             subst h
-            exact ⟨rfl, rfl, rfl, hses.symm, hfacts, hblock,
-                   fun k' hk' => by
-                     simp only [intentOf] at hk'; rw [hnone] at hk'; exact nomatch hk'⟩
+            exact ⟨rfl, rfl, rfl, hses.symm, hfacts, hblock, hnone⟩
+
+/-- What it is for a standing disposition not to restrict an operation: the destructive stop does
+not apply to it, and if it is within the reach the continuation permits it. -/
+theorem restricted_none (p : Params) (j : Journal) (r : Resource) (k : Kind)
+    (s : Disposition × Journal) (hb : p.dispositionBindsContinuation = true)
+    (hs : standing p j r = some s) (h : restricted p j r k = none) :
+    stops p s.1.continuation k = false ∧
+    (reaches p (inEffect p j) s k = true → permits p (inEffect p j) s k = true) := by
+  simp only [restricted, hb, hs, Bool.not_true, Bool.false_eq_true, if_false] at h
+  split at h
+  · exact nomatch h
+  · rename_i hc
+    simp only [Bool.or_eq_true, Bool.and_eq_true, Bool.not_eq_true', not_or, not_and,
+      Bool.not_eq_true, Bool.not_eq_false] at hc
+    exact ⟨hc.1, hc.2⟩
 
 /-- **The principal theorem.** Over every journal, every request, every approval and every
 external state: an effect is dispatched only if its intent and approval are durable — the intent
 record, carrying the approval, is in the journal the step appended — the binding still holds, the
-approved facts are what is dispatched, and no unresolved call names its resource except under a
-durable disposition naming that continuation. -/
+approved facts are what is dispatched, no unresolved call bars it, and under a standing
+disposition it is not one of the model's commands a destructive continuation stops and, where it
+is within the disposition's reach, the continuation permits it.
+
+Restated 2026-10-13. Until then the last clause read that every dispatch under a standing
+disposition is the continuation it names, whatever the operation: a read was refused, and so was
+a command a disposed activation never barred. The clause is now over the reach. -/
 @[req "STA-4"] theorem dispatched_only_if (p : Params) (hp : p.durableBeforeApply = true)
     (x : External) (w : World) (rq : Request) (ap : Approval) (ok : Bool) (i : Intent)
     (hi : i ∈ (step p x w (.request rq ap ok)).dispatched) (hnew : i ∉ w.dispatched) :
     Rec.intent i ∈ (step p x w (.request rq ap ok)).journal ∧
     i.approval = ap ∧ i.session = ap.session ∧ ap.facts = rq.facts ∧
     blocking p w.memory i = [] ∧
-    ∀ k, restriction p w.memory i.resource = some k → k = i.kind := by
+    ∀ s, p.dispositionBindsContinuation = true → standing p w.memory i.resource = some s →
+      stops p s.1.continuation i.kind = false ∧
+      (reaches p (inEffect p w.memory) s i.kind = true →
+        permits p (inEffect p w.memory) s i.kind = true) := by
   simp only [step] at hi ⊢
   split at hi
   · exact absurd hi hnew
@@ -601,9 +866,26 @@ durable disposition naming that continuation. -/
       simp only [append] at hi ⊢
       rcases List.mem_cons.mp hi with rfl | hi
       · obtain ⟨_, _, ha, hs, hf, hb, hc⟩ := admit_dispatched p w.memory rq ap i hadm
-        exact ⟨List.mem_cons_self .., ha, hs, hf, hb, hc⟩
+        exact ⟨List.mem_cons_self .., ha, hs, hf, hb,
+          fun s hbind hst => restricted_none p w.memory i.resource i.kind s hbind hst hc⟩
       · exact absurd hi hnew
     · exact absurd hi hnew
+
+/-- **A read and the inference request are never restricted**, over every journal, every resource
+and every standing disposition, under the rule's reach: `bars` answers no for both, so neither is
+within any disposition's reach, and the destructive stop is on `exec` alone. -/
+@[req "STA-24"] theorem read_and_inference_unrestricted (p : Params) (hp : p.reach = .disposed)
+    (j : Journal) (r : Resource) :
+    restricted p j r .read = none ∧ restricted p j r .inference = none := by
+  have hread : ∀ k, bars k .read = false := fun k => by cases k <;> rfl
+  have hinf : ∀ k, bars k .inference = false := fun k => by cases k <;> rfl
+  constructor <;>
+  · unfold restricted
+    split
+    · rfl
+    · split
+      · rfl
+      · simp [stops, reaches, hp, hread, hinf]
 
 /-- **A failed append leaves the barrier standing.** `STA-24`: evidence is "durably appended
 before dispatch resumes (`STA-3`): a status read followed by a failed append leaves the barrier
@@ -661,7 +943,11 @@ theorem step_memory_eq (p : Params) (hp : p.durableBeforeApply = true) (x : Exte
       · exact append_memory_eq p hp w hw _ ok
       · exact hw
   | observe prov r k ok => exact append_memory_eq p hp w hw _ ok
-  | dispose d ok => exact append_memory_eq p hp w hw _ ok
+  | dispose d ok =>
+    simp only [step]
+    split
+    · exact append_memory_eq p hp w hw _ ok
+    · exact hw
   | associate t e => exact append_memory_eq p hp w hw _ true
   | resetPrereqs e ok => exact append_memory_eq p hp w hw _ ok
   | replay => exact rfl
@@ -731,6 +1017,9 @@ def factsRegister : Facts := 4
 def factsActivate : Facts := 5
 def factsDestroy : Facts := 6
 def factsCreateB : Facts := 7
+def factsReinstall : Facts := 8
+def factsRead : Facts := 9
+def factsInference : Facts := 10
 
 /-- The associations the harness journaled: the reserved allocation indices and the immutable
 vendor machine id, each against the approved entry. The mapping is the harness's — `STA-24`: the
@@ -748,7 +1037,8 @@ def init : World :=
 sibling's create did too. -/
 def farDone : Far :=
   { succeeded := [(machineA, .reset), (machineA, .create), (machineA, .registerKey),
-                  (machineA, .activate), (machineA, .exec), (machineB, .create)],
+                  (machineA, .activate), (machineA, .exec), (machineA, .reinstall),
+                  (machineB, .create)],
     ended := [] }
 
 /-- The far side after an unexpected rescue reboot: the reset's boot ID changed, which "proves
@@ -767,6 +1057,10 @@ def approvalExec : Approval := { session := sessionA, facts := factsExec }
 def approvalRegister : Approval := { session := sessionA, facts := factsRegister }
 def approvalActivate : Approval := { session := sessionA, facts := factsActivate }
 def approvalDestroy : Approval := { session := sessionA, facts := factsDestroy }
+/-- The vendor's reinstall call approved for the successor session. -/
+def approvalReinstallB : Approval := { session := sessionB, facts := factsReinstall }
+def approvalRead : Approval := { session := sessionA, facts := factsRead }
+def approvalInference : Approval := { session := sessionA, facts := factsInference }
 
 /-- The destructive call: a reset of the machine the vendor id names. Its second request is the
 same action under a fresh call id, which is what a model sends when no confirmation arrives. -/
@@ -774,12 +1068,18 @@ def resetRequest1 : Request :=
   { call := 1, target := .vendor vendorA, kind := .reset, session := sessionA,
     facts := factsReset }
 def resetRequest2 : Request := { resetRequest1 with call := 2 }
-/-- The named continuation of the disposition below, requested by the successor session: the
-barrier holds "whichever session or model requests it" (`STA-24`), and so does the permission. -/
-def resetRequest3 : Request := { resetRequest1 with call := 3, session := sessionB }
+/-- The vendor's reinstall call, which the disposition below names, requested by the successor
+session: the barrier holds "whichever session or model requests it" (`STA-24`), and so does what
+a disposition permits. -/
+def reinstallRequest : Request :=
+  { call := 3, target := .vendor vendorA, kind := .reinstall, session := sessionB,
+    facts := factsReinstall }
 /-- The ceremony's second reset, into the installed system, whose predicate is sshd answering
 with the installed pin (`STG-4`). -/
 def resetRequest4 : Request := { resetRequest1 with call := 11 }
+/-- Two further requests for a reset during a return to rescue, each under a fresh call id. -/
+def resetRequest5 : Request := { resetRequest1 with call := 18 }
+def resetRequest6 : Request := { resetRequest1 with call := 19 }
 
 /-- The create at the first reserved index, and a second attempt at the same approved entry,
 which would reserve another. -/
@@ -791,14 +1091,18 @@ def createRequest1 : Request := { createRequest0 with call := 5, target := .inde
 def createRequestB : Request :=
   { createRequest0 with call := 6, target := .index index2, facts := factsCreateB }
 
-/-- Box-plane work on the machine, which a planned reset stops "from its intent until its
-confirmation or disposition" (`STA-24`). -/
+/-- Box-plane work on the machine, which a reset stops "from its intent until its confirmation"
+(`STA-24`). -/
 def execRequest : Request :=
   { call := 7, target := .vendor vendorA, kind := .exec, session := sessionA, facts := factsExec }
 /-- Ordinary work on the installed system, after the second reset is confirmed. -/
 def execRequest2 : Request := { execRequest with call := 12 }
+/-- Further commands, each under a fresh call id. -/
+def execRequest3 : Request := { execRequest with call := 17 }
+def execRequest4 : Request := { execRequest with call := 20 }
 
-/-- Abandonment (`ARC-21`), which the disposition below does not name. -/
+/-- A destroy of the machine, which a disposition naming a destructive reinstall does not
+permit. -/
 def destroyRequest : Request :=
   { call := 8, target := .vendor vendorA, kind := .destroy, session := sessionA,
     facts := factsDestroy }
@@ -810,10 +1114,54 @@ def activateRequest : Request :=
   { call := 10, target := .entry entryA, kind := .activate, session := sessionA,
     facts := factsActivate }
 
-/-- The operator's disposition of the outstanding reset: it names the call and permits one
-continuation, a destructive reinstall (`STG-20`), which here is the reset again. -/
+/-- The same activation requested again under a fresh call id: a re-issue, which under a
+continuation that continues is the operator's explicit choice. -/
+def activateRequest2 : Request := { activateRequest with call := 16 }
+
+/-- A read naming the machine: a status query, the pinned SSH attempt or the collection of job
+records (`STA-24`). -/
+def readRequest : Request :=
+  { call := 13, target := .vendor vendorA, kind := .read, session := sessionA, facts := factsRead }
+
+/-- The inference request (`ARC-31a`), and the next one. -/
+def inferenceRequest1 : Request :=
+  { call := 14, target := .inferenceCap, kind := .inference, session := sessionA,
+    facts := factsInference }
+def inferenceRequest2 : Request := { inferenceRequest1 with call := 15 }
+
+/-- The operator's disposition of the unresolved reset: it names the call and a destructive
+reinstall (`STG-20`). -/
 def dispositionA : Disposition :=
-  { resource := machineA, calls := [resetRequest1.call], continuation := .reset }
+  { resource := machineA, calls := [resetRequest1.call], continuation := .reinstall }
+
+/-- The same call disposed toward abandonment (`ARC-21`). After `dispositionA` it is a
+replacement: it names the call the standing disposition disposed. -/
+def abandonA : Disposition := { dispositionA with continuation := .abandon }
+
+/-- An unresolved activation disposed to continue as if not done. -/
+def continueAfterActivation : Disposition :=
+  { resource := machineA, calls := [activateRequest.call], continuation := .asIfNotDone }
+
+/-- An unresolved activation disposed toward a destructive reinstall. -/
+def reinstallAfterActivation : Disposition :=
+  { resource := machineA, calls := [activateRequest.call], continuation := .reinstall }
+
+/-- An unresolved box-plane command disposed toward a destructive reinstall. -/
+def reinstallAfterCommand : Disposition :=
+  { resource := machineA, calls := [execRequest.call], continuation := .reinstall }
+
+/-- An unresolved inference request disposed on its own resource, with a destructive choice so
+that the request after it is made under one. -/
+def abandonInference : Disposition :=
+  { resource := .inference, calls := [inferenceRequest1.call], continuation := .abandon }
+
+/-- A disposition naming a call that was never dispatched. -/
+def namesNoUnresolvedCall : Disposition :=
+  { resource := machineA, calls := [resetRequest2.call], continuation := .abandon }
+
+/-- A disposition recorded against the sibling entry and naming the first entry's call. -/
+def onAnotherResource : Disposition :=
+  { resource := machineB, calls := [resetRequest1.call], continuation := .abandon }
 
 /-! Each witness's events are one named list, so that the theorem and the emitter
 (`Witnesses.lean`) run the same trace. -/
@@ -837,7 +1185,100 @@ def appendFailedEvents : List Event :=
 
 def dispositionEvents : List Event :=
   [.request resetRequest1 approvalReset true, .dispose dispositionA true,
-   .request destroyRequest approvalDestroy true, .request resetRequest3 approvalResetB true]
+   .request destroyRequest approvalDestroy true, .request reinstallRequest approvalReinstallB true]
+
+/-- The dispositions a journal holds, newest first, whether or not they are in effect. -/
+def dispositionsOf (j : Journal) : List Disposition :=
+  j.filterMap fun rec => match rec with | .disposition d => some d | _ => none
+
+/-- An unresolved reset, a disposition naming abandonment, a read, a command. -/
+def abandonReadEvents : List Event :=
+  [.request resetRequest1 approvalReset true, .dispose abandonA true,
+   .request readRequest approvalRead true, .request execRequest approvalExec true]
+
+/-- An unresolved activation, a disposition that continues, the activation re-issued, a
+command. -/
+def continueEvents : List Event :=
+  [.request activateRequest approvalActivate true, .dispose continueAfterActivation true,
+   .request activateRequest2 approvalActivate true, .request execRequest approvalExec true]
+
+/-- An unresolved activation, a disposition naming a destructive reinstall, a command. -/
+def activationReinstallEvents : List Event :=
+  [.request activateRequest approvalActivate true, .dispose reinstallAfterActivation true,
+   .request execRequest approvalExec true]
+
+/-- An unresolved command, a disposition naming a destructive reinstall, a second command, the
+vendor's reinstall call, a third command, the reinstall's confirmation, a fourth command. -/
+def commandReinstallEvents : List Event :=
+  [.request execRequest approvalExec true, .dispose reinstallAfterCommand true,
+   .request execRequest2 approvalExec true, .request reinstallRequest approvalReinstallB true,
+   .request execRequest3 approvalExec true, .observe .adapterRead machineA .reinstall true,
+   .request execRequest4 approvalExec true]
+
+/-- An unresolved reset and an unresolved inference request, each disposed with a destructive
+choice on its own resource, then a read and the next inference request. -/
+def readInferenceEvents : List Event :=
+  [.request resetRequest1 approvalReset true, .request inferenceRequest1 approvalInference true,
+   .dispose abandonA true, .dispose abandonInference true,
+   .request readRequest approvalRead true, .request inferenceRequest2 approvalInference true]
+
+/-- An unresolved reset, a disposition naming a call never dispatched, one recorded against
+another resource, and the same reset under a fresh call id. -/
+def otherResourceEvents : List Event :=
+  [.request resetRequest1 approvalReset true, .dispose namesNoUnresolvedCall true,
+   .dispose onAnotherResource true, .request resetRequest2 approvalReset true]
+
+/-- An unresolved reset, a disposition naming a destructive reinstall, its replacement naming
+abandonment, a replay, and the vendor's reinstall call. -/
+def replacementEvents : List Event :=
+  [.request resetRequest1 approvalReset true, .dispose dispositionA true, .dispose abandonA true,
+   .replay, .request reinstallRequest approvalReinstallB true]
+
+/-- A killed worker replays, and a command is requested. Run from `replayStart`. -/
+def replayEvents : List Event := [.replay, .request execRequest approvalExec true]
+
+/-- An unresolved reset, a disposition naming abandonment, evidence that the reset succeeded, a
+command. -/
+def evidenceAfterEvents : List Event :=
+  [.request resetRequest1 approvalReset true, .dispose abandonA true,
+   .observe .adapterRead machineA .reset true, .request execRequest approvalExec true]
+
+/-- An unresolved reset, a disposition naming a destructive reinstall, and a reset with no rescue
+activation dispatched since. -/
+def strayResetEvents : List Event :=
+  [.request resetRequest1 approvalReset true, .dispose dispositionA true,
+   .request resetRequest2 approvalReset true]
+
+/-- An unresolved reset, a disposition naming a destructive reinstall, the rescue activation, a
+command. -/
+def preparationEvents : List Event :=
+  [.request resetRequest1 approvalReset true, .dispose dispositionA true,
+   .request activateRequest approvalActivate true, .request execRequest approvalExec true]
+
+/-- A dedicated server's return to rescue under a disposition naming a destructive reinstall: a
+reset before any rescue activation, the activation, a command, a reset before the activation is
+confirmed, the confirmation, the reset into rescue, a command. -/
+def returnToRescueEvents : List Event :=
+  [.request resetRequest1 approvalReset true, .dispose dispositionA true,
+   .request resetRequest2 approvalReset true,
+   .request activateRequest approvalActivate true,
+   .request execRequest approvalExec true,
+   .request resetRequest5 approvalReset true,
+   .observe .adapterRead machineA .activate true,
+   .request resetRequest6 approvalReset true,
+   .request execRequest2 approvalExec true]
+
+/-- A server already in rescue: two commands unresolved, a disposition naming the first and a
+destructive reinstall, the rescue activation requested while the second still runs, the second's
+job record, the activation again, its confirmation, the reset into rescue. -/
+def rescueCommandEvents : List Event :=
+  [.request execRequest approvalExec true, .request execRequest2 approvalExec true,
+   .dispose reinstallAfterCommand true,
+   .request activateRequest approvalActivate true,
+   .observe .jobRecord machineA .exec true,
+   .request activateRequest2 approvalActivate true,
+   .observe .adapterRead machineA .activate true,
+   .request resetRequest2 approvalReset true]
 
 /-- `STG-4`'s four confirmation predicates in order, each mutation dispatched once its
 predecessor is confirmed: the key registered and confirmed by the account's key listing, the
@@ -863,6 +1304,26 @@ def onIndex : Params := { current with resourceKey := .index }
 def noDurability : Params := { current with durableBeforeApply := false }
 def flatLattice : Params := { current with endedBelowSucceeded := false }
 def unboundDisposition : Params := { current with dispositionBindsContinuation := false }
+def reachFromResource : Params := { current with reach := .resource }
+def reachEveryDispatch : Params := { current with reach := .everyDispatch }
+def reachStillUnresolved : Params := { current with reach := .stillUnresolved }
+def noDestructiveStop : Params := { current with destructiveStops := false }
+def lapseAnyIntent : Params := { current with lapse := .anyIntent }
+def lapseFirstOperation : Params := { current with lapse := .firstOperation }
+def anyResetReinstalls : Params := { current with resetIntoRescueOnly := false }
+def dispositionByCallId : Params := { current with dispositionOwnResource := false }
+
+/-- A journal a replay finds, which no trace of `step` under the rules in force can write: the
+reset's intent, unresolved, and a disposition recorded against the sibling entry that names it.
+`acceptable` refuses that disposition, so `step` would have recorded nothing. -/
+def replayJournal : Journal :=
+  .disposition onAnotherResource ::
+  .intent (intentOf resetRequest1 machineA approvalReset) :: associations
+
+/-- The worker over that journal, the reset dispatched. -/
+def replayStart : World :=
+  { journal := replayJournal, memory := replayJournal,
+    dispatched := [intentOf resetRequest1 machineA approvalReset], verdict := none }
 
 /-- **The same destructive action under a new call id, refused.** The reset's response is lost,
 so nothing settles it; the model asks again and its request carries a fresh call id. The barrier
@@ -943,22 +1404,229 @@ with the command already sent. -/
     w.dispatched.map (·.call) = [7, 1] ∧ unresolved noDurability w.memory machineA = [7, 1] := by
   decide +kernel
 
-/-- **A disposition permits only the continuation it names.** The operator disposes of the
-outstanding reset: the call is terminal with its outcome unknown, so it is no longer an open one,
-and abandonment — which the disposition does not name — is refused with the permitted
-continuation shown. The reinstall it does name is dispatched, by the successor session. -/
+/-- **A destructive continuation permits only itself.** The operator disposes of the unresolved
+reset naming a destructive reinstall: the call is terminal with its outcome unknown, so it is no
+longer an open one, and a destroy — which the reset barred and the reinstall is not — is refused
+with the continuation in force shown. The vendor's reinstall call is dispatched, by the successor
+session; from its intent the restriction is gone and its own barrier stands. -/
 @[req "STA-24"] theorem disposition_one_continuation_refused :
     let w := run current farDone.external init dispositionEvents
     w.dispatched.map (·.call) = [3, 1] ∧ unresolved current w.memory machineA = [3] ∧
     restriction current w.memory machineA = none := by decide +kernel
 
-/-- Without the rule the disposition restricts nothing: abandonment is dispatched against a
+/-- Without the rule the disposition restricts nothing: the destroy is dispatched against a
 machine whose reset may have landed, and the continuation the operator did name is then barred by
 it. -/
 @[req "STA-24"] theorem disposition_unrestricted_admitted :
     let w := run unboundDisposition farDone.external init dispositionEvents
     w.dispatched.map (·.call) = [8, 1] ∧
     unresolved unboundDisposition w.memory machineA = [8] := by decide +kernel
+
+/-- **A read does not lift an abandonment.** The reset is disposed naming abandonment. The read
+that follows is outside the reach: it is dispatched, and it does not end the restriction, so the
+command after it is still refused and the disposition still stands. -/
+@[req "STA-24"] theorem read_does_not_lift_abandonment :
+    let w := run current farDone.external init abandonReadEvents
+    w.dispatched.map (·.call) = [13, 1] ∧
+    w.verdict = some (.refused (.continuation .abandon)) ∧
+    restriction current w.memory machineA = some .abandon := by decide +kernel
+
+/-- With the restriction ended at any later intent, the read's own intent ends it: the command
+goes out to a machine the operator chose to abandon. -/
+@[req "STA-24"] theorem read_lifts_abandonment_without_guard :
+    let w := run lapseAnyIntent farDone.external init abandonReadEvents
+    w.dispatched.map (·.call) = [7, 13, 1] ∧
+    restriction lapseAnyIntent w.memory machineA = none := by decide +kernel
+
+/-- **A continuation that continues restricts nothing.** An unresolved activation is disposed to
+continue as if not done. What it barred is permitted again: the activation is re-issued, under a
+fresh call id and by the operator's choice. A command, which the activation never barred, was
+never in reach and is dispatched too. The disposition still stands, restricting nothing. -/
+@[req "STA-24"] theorem continuing_permits_what_was_barred :
+    let w := run current farDone.external init continueEvents
+    w.dispatched.map (·.call) = [7, 16, 10] ∧ unresolved current w.memory machineA = [7, 16] ∧
+    restriction current w.memory machineA = some .asIfNotDone := by decide +kernel
+
+/-- With the reach taken from the resource, the disposed activation begins to bar the box plane,
+which the unresolved activation never did: the command is refused. -/
+@[req "STA-24"] theorem disposed_activation_bars_commands_without_guard :
+    let w := run reachFromResource farDone.external init continueEvents
+    w.dispatched.map (·.call) = [16, 10] ∧
+    w.verdict = some (.refused (.continuation .asIfNotDone)) := by decide +kernel
+
+/-- **A destructive continuation stops the model's commands, whatever was disposed.** The disposed
+call is an activation, which bars nothing on the box, and the command is refused all the same: the
+continuation is a destructive reinstall. -/
+@[req "STA-24"] theorem destructive_choice_stops_commands_after_activation :
+    let w := run current farDone.external init activationReinstallEvents
+    w.dispatched.map (·.call) = [10] ∧
+    w.verdict = some (.refused (.continuation .reinstall)) ∧
+    unresolved current w.memory machineA = [] := by decide +kernel
+
+/-- **A destructive continuation stops the model's commands, and ends at its dispatch.** A command
+is unresolved and disposed naming a destructive reinstall. A second command is refused by the
+disposition, though an unresolved command bars no other. The vendor's reinstall call is
+dispatched. From its intent the restriction is gone and the reinstall's own barrier holds the box
+plane: a third command is refused by that barrier, and after the reinstall's confirmation a
+fourth is dispatched. -/
+@[req "STA-24"] theorem destructive_choice_stops_commands :
+    let w := run current farDone.external init commandReinstallEvents
+    let afterThird := run current farDone.external init (commandReinstallEvents.take 5)
+    w.dispatched.map (·.call) = [20, 3, 7] ∧
+    (run current farDone.external init (commandReinstallEvents.take 3)).verdict =
+      some (.refused (.continuation .reinstall)) ∧
+    afterThird.verdict = some (.refused (.barrier [3])) ∧
+    restriction current afterThird.memory machineA = none ∧
+    unresolved current w.memory machineA = [20] := by decide +kernel
+
+/-- Without the stop the second command is dispatched between the choice and the reinstall, is
+unresolved when the reinstall is requested, and bars it. -/
+@[req "STA-24"] theorem command_preempts_reinstall_without_guard :
+    let w := run noDestructiveStop farDone.external init commandReinstallEvents
+    w.dispatched.map (·.call) = [20, 17, 12, 7] ∧
+    (run noDestructiveStop farDone.external init (commandReinstallEvents.take 4)).verdict =
+      some (.refused (.barrier [12])) := by decide +kernel
+
+/-- **A read and the inference request are never restricted.** A destructive disposition stands
+over the machine and another over the inference account. The read naming the machine and the next
+inference request are both dispatched, and both dispositions still stand. -/
+@[req "STA-24"] theorem read_and_inference_never_restricted :
+    let w := run current farDone.external init readInferenceEvents
+    w.dispatched.map (·.call) = [15, 13, 14, 1] ∧
+    restriction current w.memory machineA = some .abandon ∧
+    restriction current w.memory .inference = some .abandon := by decide +kernel
+
+/-- With the restriction applied to every dispatch both are refused: the read that is how the
+operator learns what happened, and the request that is the session's only way to continue. -/
+@[req "STA-24"] theorem read_and_inference_restricted_without_guard :
+    let w := run reachEveryDispatch farDone.external init readInferenceEvents
+    w.dispatched.map (·.call) = [14, 1] ∧
+    w.verdict = some (.refused (.continuation .abandon)) := by decide +kernel
+
+/-- **A disposition names unresolved calls on its own resource, or it is not recorded.** One names
+a call that was never dispatched and one is recorded against the sibling entry while naming this
+entry's reset. Both are refused and the journal holds neither, so the reset is still unresolved
+and the same action under a fresh call id is still refused. -/
+@[req "STA-24"] theorem disposition_names_own_unresolved_calls :
+    let w := run current farDone.external init otherResourceEvents
+    w.dispatched.map (·.call) = [1] ∧ w.verdict = some (.refused (.barrier [1])) ∧
+    dispositionsOf w.journal = [] ∧ unresolved current w.memory machineA = [1] := by
+  decide +kernel
+
+/-- Matched to a call by call id alone, the disposition recorded against the sibling entry ends
+this entry's reset and restricts nothing here: the second reset lands. -/
+@[req "STA-24"] theorem disposition_ends_call_elsewhere_without_guard :
+    let w := run dispositionByCallId farDone.external init otherResourceEvents
+    w.dispatched.map (·.call) = [2, 1] ∧ dispositionsOf w.journal = [onAnotherResource] ∧
+    unresolved dispositionByCallId w.memory machineA = [2] := by decide +kernel
+
+/-- **A replacement is the disposition in force.** The standing disposition names a destructive
+reinstall; the operator replaces it, naming the call it disposed and abandonment. The replacement
+is recorded, and after a replay it is still the one in force: the vendor's reinstall call, the
+former continuation, is refused under it. -/
+@[req "STA-24"] theorem replacement_in_force :
+    let w := run current farDone.external init replacementEvents
+    w.dispatched.map (·.call) = [1] ∧
+    w.verdict = some (.refused (.continuation .abandon)) ∧
+    dispositionsOf w.journal = [abandonA, dispositionA] ∧
+    restriction current w.memory machineA = some .abandon := by decide +kernel
+
+/-- With the reach read from the calls still unresolved, nothing is in reach — a disposed call is
+not unresolved — and the continuation the operator replaced is dispatched. -/
+@[req "STA-24"] theorem replaced_continuation_dispatched_without_guard :
+    let w := run reachStillUnresolved farDone.external init replacementEvents
+    w.dispatched.map (·.call) = [3, 1] ∧
+    unresolved reachStillUnresolved w.memory machineA = [3] := by decide +kernel
+
+/-- **A disposition the test refuses, found on replay, means nothing.** The journal already holds
+a disposition recorded against the sibling entry and naming this entry's reset. The record stays
+in the journal and is not in the reading: the reset is still unresolved, nothing is restricted on
+either entry, and the command is refused by the reset's barrier. -/
+@[req "STA-24"] theorem replayed_invalid_disposition_means_nothing :
+    let w := run current farDone.external replayStart replayEvents
+    dispositionsOf w.journal = [onAnotherResource] ∧
+    dispositionsOf (inEffect current w.memory) = [] ∧
+    unresolved current w.memory machineA = [1] ∧
+    restriction current w.memory machineA = none ∧
+    restriction current w.memory machineB = none ∧
+    w.verdict = some (.refused (.barrier [1])) := by decide +kernel
+
+/-- **Evidence after a disposition changes nothing else.** The reset is disposed naming
+abandonment, and a vendor read then reports that it succeeded. The read is journaled; the call
+was terminal already, the disposition still stands, and the command is still refused under it. -/
+@[req "STA-24"] theorem evidence_after_disposition_changes_nothing :
+    let w := run current farDone.external init evidenceAfterEvents
+    w.dispatched.map (·.call) = [1] ∧
+    w.verdict = some (.refused (.continuation .abandon)) ∧
+    restriction current w.memory machineA = some .abandon ∧
+    unresolved current w.memory machineA = [] := by decide +kernel
+
+/-- **A reset with no rescue activation, refused.** Under a disposition naming a destructive
+reinstall, a reset with no rescue activation dispatched since is not the reset into rescue. It is
+refused by the disposition itself, which still stands. -/
+@[req "STA-24"] theorem reset_without_rescue_refused :
+    let w := run current farDone.external init strayResetEvents
+    w.dispatched.map (·.call) = [1] ∧
+    w.verdict = some (.refused (.continuation .reinstall)) ∧
+    restriction current w.memory machineA = some .reinstall := by decide +kernel
+
+/-- With any reset taken for the reinstall, it is dispatched and ends the restriction: it boots
+the installed system and hands back the machine the operator chose to wipe. -/
+@[req "STA-24"] theorem reset_without_rescue_admitted :
+    let w := run anyResetReinstalls farDone.external init strayResetEvents
+    w.dispatched.map (·.call) = [2, 1] ∧
+    restriction anyResetReinstalls w.memory machineA = none := by decide +kernel
+
+/-- **The preparation is admitted and does not end the restriction.** Under a disposition naming
+a destructive reinstall the rescue activation is dispatched, the disposition still stands, and
+the command after it is refused. -/
+@[req "STA-24"] theorem preparation_keeps_restriction :
+    let w := run current farDone.external init preparationEvents
+    w.dispatched.map (·.call) = [10, 1] ∧
+    w.verdict = some (.refused (.continuation .reinstall)) ∧
+    restriction current w.memory machineA = some .reinstall := by decide +kernel
+
+/-- With the restriction ended at the reinstall's first operation, the activation ends it. An
+activation holds nothing on the box, so the command is dispatched before the reset and bars
+it. -/
+@[req "STA-24"] theorem preparation_lifts_restriction_without_guard :
+    let w := run lapseFirstOperation farDone.external init preparationEvents
+    w.dispatched.map (·.call) = [7, 10, 1] ∧
+    restriction lapseFirstOperation w.memory machineA = none := by decide +kernel
+
+/-- **The return to rescue, whole.** A disposed reset and a disposition naming a destructive
+reinstall. A reset with no rescue activation dispatched is refused by the disposition. The rescue
+activation is dispatched and the disposition still stands: a command is refused by it. A reset
+requested before the activation is confirmed is refused too, by the activation's own barrier and
+not by the disposition. Once the activation is confirmed the reset into rescue is dispatched: the
+restriction is gone, and that reset's barrier refuses the command after it. -/
+@[req "STA-24"] theorem return_to_rescue_trace :
+    let w := run current farDone.external init returnToRescueEvents
+    let afterCommand := run current farDone.external init (returnToRescueEvents.take 5)
+    w.dispatched.map (·.call) = [19, 10, 1] ∧
+    (run current farDone.external init (returnToRescueEvents.take 3)).verdict =
+      some (.refused (.continuation .reinstall)) ∧
+    afterCommand.verdict = some (.refused (.continuation .reinstall)) ∧
+    restriction current afterCommand.memory machineA = some .reinstall ∧
+    (run current farDone.external init (returnToRescueEvents.take 6)).verdict =
+      some (.refused (.barrier [10])) ∧
+    w.verdict = some (.refused (.barrier [19])) ∧
+    restriction current w.memory machineA = none ∧
+    unresolved current w.memory machineA = [19] := by decide +kernel
+
+/-- **The reset waits for the other command and not for the disposed one.** Two commands are
+unresolved in rescue; the disposition names the first and a destructive reinstall. The rescue
+activation is refused while the second still runs, by the second's barrier alone: the first is
+disposed and bars nothing. Once the second's job record is collected the activation is
+dispatched and confirmed, and the reset into rescue goes out with no record of the first — which
+`STA-20b` calls the uncertainty the operator accepted. -/
+@[req "STA-20b"] theorem reset_waits_for_other_commands :
+    let w := run current farDone.external init rescueCommandEvents
+    w.dispatched.map (·.call) = [2, 16, 12, 7] ∧
+    (run current farDone.external init (rescueCommandEvents.take 4)).verdict =
+      some (.refused (.barrier [12])) ∧
+    restriction current w.memory machineA = none ∧
+    unresolved current w.memory machineA = [2] := by decide +kernel
 
 /-- **The ceremony, whole** — `STG-4`'s four predicates in order, each mutation "confirmed by
 observable state, never by its own response and never by a clock". The barrier is not safe by
@@ -981,11 +1649,12 @@ statements, not the file's. -/
 
 /-- The events the bounded enumeration draws from: the destructive call and the same action under
 a fresh call id, box-plane work on the same machine, the vendor read that settles the reset, the
-operator's disposition, and a replay. -/
+operator's disposition, a replay, and a rescue activation, which an unresolved command may stand
+beside. -/
 def alphabet : List Event :=
   [.request resetRequest1 approvalReset true, .request resetRequest2 approvalReset true,
    .request execRequest approvalExec true, .observe .adapterRead machineA .reset true,
-   .dispose dispositionA true, .replay]
+   .dispose dispositionA true, .replay, .request activateRequest approvalActivate true]
 
 /-- Every trace of exactly `n` events over `alphabet`. -/
 def tracesOf : Nat → List (List Event)
@@ -995,23 +1664,25 @@ def tracesOf : Nat → List (List Event)
 /-- Every trace of at most `n` events over `alphabet`, shortest first. -/
 def tracesUpTo (n : Nat) : List (List Event) := (List.range (n + 1)).flatMap tracesOf
 
-/-- `STA-24`: "The worker admits at most one outstanding effect per resource: admission,
-reservation and the dispatch check are serialized by the single writer (`STA-1`), so two requests
-cannot both pass before either is unresolved." Stated without `bars`, so that it decides what
-`bars` reads rather than agreeing with it: one resource carries a second outstanding call only
-where every outstanding call on it is box-plane, which is `STA-20`'s tracked jobs, plural by
-design — "waits for all tracked commands to end". No cloud-plane call is ever outstanding beside
-another call of any kind. -/
-@[req "STA-24"] def atMostOneOutstanding (p : Params) (j : Journal) : Bool :=
+/-- What may be unresolved together on one resource. `STA-24`: "On one machine at most one
+cloud-plane call is unresolved at a time, it is older than every box-plane command unresolved
+beside it, and a call that changes what the machine is running is unresolved alone". Stated
+without `bars`, so that it decides what `bars` reads rather than agreeing with it. Box-plane
+commands are `STA-20`'s tracked jobs, plural by design — "waits for all tracked commands to end"
+— and an unresolved activation or key registration "blocks nothing on the box", so a command may
+be unresolved beside one. Until 2026-10-13 this said that a second unresolved call needs every
+unresolved call to be box-plane, which an activation beside a command refutes. -/
+@[req "STA-24"] def unresolvedTogether (p : Params) (j : Journal) : Bool :=
   (resourcesOf j).all fun r =>
     let open_ := openIntents p j r
-    decide (open_.length ≤ 1) || open_.all fun i => !cloudPlane i.kind
+    (open_.dropLast.all fun i => !cloudPlane i.kind) &&
+    (decide (open_.length ≤ 1) || open_.all fun i => !changesRunning i.kind)
 
-/-- At most one outstanding effect per resource, decided within the bound: the enumeration the
-witness file carries is one the companion itself closed over. -/
+/-- What may be unresolved together, decided within the bound: the enumeration the witness file
+carries is one the companion itself closed over. -/
 @[req "STA-24"] theorem bounded :
     (tracesUpTo bound).all (fun es =>
-      atMostOneOutstanding current (run current farDone.external init es).memory) = true := by
+      unresolvedTogether current (run current farDone.external init es).memory) = true := by
   decide +kernel
 
 end TauWeb.Dispatch

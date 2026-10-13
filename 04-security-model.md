@@ -458,7 +458,8 @@ and for an untyped call no adapter exists to find out. So the record MUST carry 
 unresolved state, the harness MUST NOT retry the call on its own or report it as failed, and
 reconciliation belongs to the operator, at the service. `STA-8` is the same rule at the state
 layer, and `STA-24` says what the unresolved state blocks: for an untyped call, every further
-call under that scope until the operator disposes. Under an untyped vendor scope the record is
+call under that scope until the operator disposes, and after a destructive disposition until
+the operator replaces it. Under an untyped vendor scope the record is
 also what the money rule reads: `SEC-4` says "An invoice is decoded by harness code from the
 recorded response".
 

@@ -54,10 +54,11 @@ unresolved set it had. Cancelling the calls that were never dispatched is not ca
 enter an unresolved state requiring evidence or operator inspection to leave. It MUST NOT be
 retried automatically and no timer may clear it. Establishing *what happened* by a status
 query is permitted and required where a tool supports one; doing it *again* is not. What the
-unresolved state **blocks**, and for which resource, is `STA-24`; an operator disposition may
-permit the continuation it names without establishing the earlier call's outcome. The state is
-derived and never journaled as its own event: `TauWeb.Dispatch.unresolved` over
-`TauWeb.Dispatch.openIntents` and `TauWeb.Dispatch.settles` (ADR-0032).
+unresolved state **blocks**, and for which resource, is `STA-24`; an operator disposition ends
+that state without establishing the earlier call's outcome, and what it restricts afterwards is
+`STA-24`'s too. The state is derived and never journaled as its own event:
+`TauWeb.Dispatch.unresolved` over `TauWeb.Dispatch.openIntents` and `TauWeb.Dispatch.settles`,
+read through `TauWeb.Dispatch.inEffect` (ADR-0032).
 
 **STA-9 The journal records what was sent, not what the machine did with it.** This is the
 honest limit of `STA-2` across the channel. A phone that locks mid-install kills the worker
@@ -144,15 +145,32 @@ journaled at that point and a halt against the old one means the reset landed. O
 installed-system entry it creates the persistent job directory before ordinary work. Rescue
 records are not claimed to survive this transition.
 
+**A planned reset that is a standing disposition's reinstall is the one exception to that wait**
+(`STA-24`; amended 2026-10-13, ADR-0044). It does not wait for a command that disposition names
+and does not require that command's record: the missing evidence is the uncertainty the operator
+accepted, and the reset ends the job. Every other tracked command is still waited for and its
+record collected, as above; if one of those hangs, the operator replaces the disposition to name
+it too. The reset's own intent is durably recorded first, as always. A reinstall chosen while
+the server is already in rescue starts from a fresh rescue boot — a new rescue activation and
+reset, then the install — and does so after an unexpected rescue reboot too: one rule
+everywhere, and the second reset there is accepted. Recording installed host-key pins is a
+prerequisite of a reset into the installed system, not of a reset into rescue. Keeping the
+current rescue boot and running the install again is not a destructive reinstall; it is
+continuing as if not done, under which the wait above for a job the harness can see still
+running still applies.
+
 After an unexpected rescue reboot, a changed boot ID proves the old command cannot still be
 running; it does **not** prove its effects or exit status. Missing output, a missing job record,
 or a record from the old boot leaves the operation unresolved under `STA-8` until inspection
 supports convergence or the operator explicitly chooses a new destructive reinstall. The
 browser's record of what was sent remains authoritative throughout (`STA-21`).
 
-The offer's precondition is `TauWeb.Dispatch.offersReset` (ADR-0032), read against what was
-durably appended, with `TauWeb.Dispatch.reset_offered_after_failed_append_refused` and
-`TauWeb.Dispatch.reset_offered_after_failed_append_admitted` its pair. What a changed boot ID
+The offer's precondition is `TauWeb.Dispatch.offersReset` (ADR-0032), which reads whether
+`ready_to_reset`'s record of the installed pins and the reset intent was durably appended, with
+`TauWeb.Dispatch.reset_offered_after_failed_append_refused` and
+`TauWeb.Dispatch.reset_offered_after_failed_append_admitted` its pair. That a reset into rescue
+under a disposition waits for the command the disposition does not name, and not for the one it
+names, is `TauWeb.Dispatch.reset_waits_for_other_commands`, decided. What a changed boot ID
 establishes is `TauWeb.Dispatch.confirms`, whose lattice keeps *ended* below *succeeded*, with
 `TauWeb.Dispatch.boot_id_change_not_success_refused` and
 `TauWeb.Dispatch.boot_id_change_not_success_admitted` its pair. That the halt against the old
@@ -184,23 +202,26 @@ reserve another index. A different approved entry is independent, and creating i
 sibling is unresolved is permitted under its own approval, whose card shows the unresolved
 sibling and that it may be billing. For an untyped call it is the **scope** itself, since no
 adapter can say what the call touched (`SEC-4`): no further call under that scope is dispatched
-until the operator disposes of it, and nothing under a scope counts as a read, because nothing
-types it. A scope re-approved for the same origin and credential inherits the outstanding call.
+while it is unresolved, and once the operator disposes of it only as the disposition permits
+(below); nothing under a scope counts as a read, because nothing types it. A scope re-approved for the same origin and credential inherits the outstanding call.
 An untyped vendor scope (`SEC-4`) is a scope like any other here.
 
 **What stays permitted.** Reads naming the resource — the adapter's status queries, the pinned
 SSH attempt that is `STG-4`'s third predicate, the collection of job records — are permitted
 and are how the barrier clears. Box-plane dispatch to the machine is governed by `STA-20` and
 `STA-20b`, not by this rule, with one exception stated here: a cloud-plane operation that
-**changes what the machine is running** — a reset, a reinstall, a destroy — stops box-plane
-dispatch to that machine from its intent until its confirmation or disposition. An unresolved
-activation or key registration touches no running system and blocks nothing on the box. Under
+**changes what the machine is running** — a reset, a reinstall, a destroy, or the stop that
+stands in for a destroy (`ARC-22`) — stops box-plane dispatch to that machine from its intent
+until its confirmation. Where the operator disposes of it instead, the stop lifts only as the
+disposition permits (*What a disposition reaches*, below). An unresolved activation or key
+registration touches no running system and blocks nothing on the box. Under
 an untyped vendor scope no adapter can say which call changes what a machine is running, so the
 same exception is taken wider there: while a call under that scope is open — sent, and not yet
 answered — or unresolved, the harness worker MUST NOT dispatch a box-plane command to any
 machine of the session's bound set at that vendor. The pause ends with the call's terminal
-record or the operator's disposition. This pause is not carried by `TauWeb.Dispatch` below. The
-inference request (`ARC-31a`) keeps its unresolved intent under `STA-8`, shown as unaccounted
+record: where that record is the operator's disposition, a continuation that continues ends
+the pause and a destructive one does not (*the hold*, below). This pause is not carried by
+`TauWeb.Dispatch` below. The inference request (`ARC-31a`) keeps its unresolved intent under `STA-8`, shown as unaccounted
 spend against the session key's cap, and does **not** bar the next request: its only effect is
 bounded spend, and the next request is the session's only way to continue.
 
@@ -210,21 +231,101 @@ admits — for Robot, `STG-4`'s predicates, read from the vendor or from a pin-c
 leaves the barrier standing. A job record can settle the box-plane command it records, as
 `STA-20` says and with the standing `STA-21` gives it; it cannot clear a cloud-plane barrier,
 and neither can model text (`SEC-8`). Otherwise the operator **disposes**: a record of its own
-kind naming the outstanding calls, the one continuation it permits — a destructive reinstall
-(`STG-20`), abandonment (`ARC-21`), continuing as if done, continuing as if not done — and the
-uncertainty accepted. A disposition keeps the outcome *unknown*; it is never written as
-success, failure, zero spend or non-execution, it permits only the continuation it names, and a
-new unresolved call stops that continuation again. Neither a timer nor the model supplies one.
+kind naming the unresolved calls it ends, the continuation the operator chose — a destructive
+reinstall (`STG-20`), abandonment (`ARC-21`), continuing as if done, continuing as if not done —
+and the uncertainty accepted. A disposition keeps the outcome *unknown*; it is never written as
+success, failure, zero spend or non-execution. Neither a timer nor the model supplies one.
 **A disposition is a terminal record of its own kind**: it ends the call's unresolved state
 with the outcome recorded as unknown, so the barrier stays one derivation — an intent with no
 terminal record — and a disposed call is not an open one.
 
+**What a disposition may name.** A disposition names at least one call, and every call it names
+MUST be unresolved, on the disposition's own resource, in the journal as it stands before the
+disposition. Otherwise it is refused and nothing is recorded, and the operator is shown that it
+was refused, the record that settled the call if one did, and what is unresolved now. Naming
+some of several unresolved calls is permitted; the unnamed ones stay unresolved and keep their
+barrier. For an untyped call the resource is the scope. The operator MAY replace a standing
+disposition: a new disposition may name the calls the standing one disposed, which is the one
+exception to naming unresolved calls, since those calls already carry the standing disposition
+as their terminal record. One disposition stands per resource, the latest, and its continuation
+is the one in force; the operator is shown what it replaces. Neither a timer nor the model
+replaces one.
+
+**What a disposition reaches.** A standing disposition restricts, to its continuation, what the
+calls it names barred while they were unresolved. An operation outside that reach is neither
+restricted by it nor ends it. A read and the inference request are never restricted. So a
+disposed reset, reinstall or destroy keeps box-plane dispatch to that machine stopped except as
+the continuation permits; a disposed create, activation or key registration bars nothing on the
+box plane; and a disposed box-plane command restricts only what an unresolved box-plane command
+bars. Within the reach the harness worker MUST NOT dispatch an operation the continuation does
+not permit. A destructive reinstall permits only the reinstall, abandonment only the
+abandonment flow. Continuing as if done and continuing as if not done restrict nothing:
+everything the disposed calls barred is permitted again, a re-issue of the same operation
+included. The two differ only in the assumption the operator recorded, which is shown and
+never written as success, failure, zero spend or non-execution. A re-issue under either is the
+operator's explicit choice, and `STA-8`'s prohibition of an automatic one is untouched. A
+permission is not a dispatch: an operation the continuation permits still meets every other
+dispatch requirement, the approval and the binding (`SEC-4`) among them, and for a reinstall
+`STA-20b`'s prerequisites.
+
+**A destructive continuation stops the model's commands.** When the continuation is a
+destructive reinstall or abandonment, the harness worker MUST refuse the model's box-plane
+commands to that machine, whatever the disposed call was. This is the one case where the
+restriction exceeds what the disposed calls barred. Reads stay permitted throughout, the pinned
+SSH attempt that is `STG-4`'s third predicate and the collection of job records among them: they
+are how the operator learns whether a reinstall landed.
+
+**When the restriction ends.** The restriction ends when the continuation it names is
+dispatched, its intent durably appended (`STA-3`); from then on that call's own barrier governs,
+and if it goes unresolved the barrier stands again. A continuation is its owner's flow and can
+take several operations: it is dispatched at the one that changes what the machine is running.
+For a destructive reinstall that is the vendor's reinstall call where the vendor has one
+(`ARC-22`), and on a dedicated server the **reset into rescue**. While its disposition stands,
+the operations of that machine's return to rescue that touch no running system — the rescue
+activation, and a key registration where one is owed — are admitted and do not end the
+restriction, and the reset into rescue is a reset dispatched after that rescue activation is
+confirmed. Any other reset is refused while the disposition stands: with no confirmed rescue
+activation it boots the installed system and would hand the machine back. If the activation
+itself goes unresolved, its own barrier refuses the reset, the disposition still stands and the
+box plane stays stopped until evidence or a further disposition. The model's install commands
+follow the reset's confirmation: `STA-20b` says "Dispatch resumes on the reset's confirmation".
+For abandonment it is that flow's operation naming the machine: the destroy, or the stop that
+stands in for it (`ARC-22`), whose own barrier then holds the box plane as the exception above
+says. A model's request for either is not made admissible by this: what a session may request
+is `SEC-4`'s to bound. The restriction covers a machine with a disposed call and nothing else;
+what an abandoned setup permits afterwards, and that the flow runs outside any session, are
+`ARC-21`'s, `ARC-22`'s and `STA-18`'s. A continuation that continues has no operation to be
+dispatched at: it stands, restricting nothing, until the operator replaces it. Evidence that
+arrives after a disposition is journaled and shown and changes nothing else: it neither reopens
+the call nor removes the disposition, which stands until its continuation is dispatched or the
+operator replaces it.
+
+**On replay.** A disposition found in a replayed journal (`STA-7`) that the test above — what a
+disposition may name, the replacement's exception included — would have refused is read as if
+it had never been recorded: it ends no call and restricts nothing, every call it named that is
+unresolved stays unresolved and keeps its barrier, and the operator is shown the record. The
+same test decides at recording and at replay: a replacement that was valid when recorded is
+valid on replay, and the continuation in force after a restart is the latest valid one.
+
+**Under an untyped vendor scope a destructive continuation is a hold.** Nothing under a scope
+can be recognised as the reinstall or the abandonment, so no call there counts as the
+continuation. A destructive disposition on a scope refuses every further call under the scope
+and keeps the model's box-plane commands to the machines of the session's bound set at that
+vendor stopped until the operator replaces it. Before either destructive choice the screen
+MUST say that the harness cannot carry it out there and that the operator acts at the vendor by
+hand; doing so releases nothing by itself, and the replacement does. Machines outside the bound
+set, or at another vendor, are not held by this (`SEC-4`, ADR-0038). How a reinstall or an
+abandonment is carried out at an untyped vendor is undecided (`TASKS.md` T47). Like the pause,
+the hold is stated here only and is not carried by `TauWeb.Dispatch` below.
+
 The barrier is a fact of the journal — an intent with no terminal record — and survives
 replay (`STA-7`) and session succession without an event of its own, because an event
-recording "became unresolved" is exactly what a crash could fail to write. The worker admits
-at most one outstanding effect per resource: admission, reservation and the dispatch check are
-serialized by the single writer (`STA-1`), so two requests cannot both pass before either is
-unresolved. What this rule cannot reach is a journal that is lost with the phone: `STA-14`
+recording "became unresolved" is exactly what a crash could fail to write. On one machine at
+most one cloud-plane call is unresolved at a time, it is older than every box-plane command
+unresolved beside it, and a call that changes what the machine is running is unresolved alone;
+box-plane commands may be unresolved together, as `STA-20`'s tracked jobs are. Admission,
+reservation and the dispatch check are serialized by the single writer (`STA-1`), so two
+requests cannot both pass before either is unresolved. What this rule cannot reach is a journal that is lost with the phone: `STA-14`
 states that transcripts are gone, and a recovery sheet is not an outstanding-call record.
 
 *The trap.* `STA-8` speaks of a call, and a model does not retry a call: it requests the action
@@ -239,6 +340,18 @@ re-entering or successor session would start clean on a machine that is not. Add
 from `lean-01.md` §2B, after two independent readers of one brief
 (`docs/review/2026-09-16-barrier-panel.md`).
 
+*What this requirement used to say about a disposition.* Until 2026-10-13 a disposition
+"permits only the continuation it names, and a new unresolved call stops that continuation
+again", and nothing said which operations that applied to. Read as every operation naming the
+resource, a disposed activation began to bar the box plane and a read was refused; read as
+nothing on the box plane, disposing of an unresolved reinstall lifted the stop on every command
+at the moment the operator chose to abandon the machine. Three traps came with it: a status
+read, being a later intent, ended an abandonment; a disposition was matched to a call by call
+id alone, so one recorded against a machine ended a call on another; and nothing refused a
+disposition that named no unresolved call. This requirement also said the worker admits at
+most one outstanding effect per resource, which an activation unresolved beside a box-plane
+command refutes. The reasons for the shape above, and what was rejected to reach it, are ADR-0044's.
+
 This rule is carried in Lean under `TauWeb.Dispatch` (ADR-0032). The barrier is
 `TauWeb.Dispatch.blocking` over `TauWeb.Dispatch.bars`, which holds the carve-outs above —
 reads, the box plane, and `TauWeb.Dispatch.changesRunning`'s exception — and the resource is
@@ -246,15 +359,58 @@ reads, the box plane, and `TauWeb.Dispatch.changesRunning`'s exception — and t
 pairs are `TauWeb.Dispatch.same_action_new_call_id_refused` and
 `TauWeb.Dispatch.same_action_new_call_id_admitted` for the trap above and
 `TauWeb.Dispatch.second_index_same_entry_refused` and
-`TauWeb.Dispatch.second_index_same_entry_admitted` for the index one level up.
-`TauWeb.Dispatch.restriction` is what a standing disposition permits, with
-`TauWeb.Dispatch.disposition_one_continuation_refused` and
-`TauWeb.Dispatch.disposition_unrestricted_admitted` its pair;
+`TauWeb.Dispatch.second_index_same_entry_admitted` for the index one level up. What may be
+unresolved together is `TauWeb.Dispatch.unresolvedTogether`, decided over the bound by
+`TauWeb.Dispatch.bounded`.
+
+A disposition's four choices are `TauWeb.Dispatch.Continuation`. What it may name is
+`TauWeb.Dispatch.acceptable`: `TauWeb.Dispatch.step` refuses one that fails it, and
+`TauWeb.Dispatch.inEffect` reads a journal that already holds one without it. Its reach is
+`TauWeb.Dispatch.reaches`, computed from the disposed calls through `TauWeb.Dispatch.bars`; what
+a continuation permits within it is `TauWeb.Dispatch.permits`, the destructive stop is
+`TauWeb.Dispatch.stops`, and `TauWeb.Dispatch.restricted` is the three together. The operation
+a continuation is dispatched at is `TauWeb.Dispatch.dispatchesContinuation`, with
+`TauWeb.Dispatch.rescueConfirmed` for the reset into rescue and `TauWeb.Dispatch.prepares` for
+what is admitted before it; the disposition standing is `TauWeb.Dispatch.standing`. Over every
+journal, `TauWeb.Dispatch.read_and_inference_unrestricted` is that neither a read nor the
+inference request is restricted, and `TauWeb.Dispatch.dispatched_only_if` carries the reach in
+its last clause. Each guard is a parameter with its pair:
+
+- that a disposition restricts at all, `TauWeb.Dispatch.disposition_one_continuation_refused`
+  and `TauWeb.Dispatch.disposition_unrestricted_admitted`;
+- the reach taken from the disposed calls and not from the resource,
+  `TauWeb.Dispatch.continuing_permits_what_was_barred` and
+  `TauWeb.Dispatch.disposed_activation_bars_commands_without_guard`; not applied to every
+  dispatch, `TauWeb.Dispatch.read_and_inference_never_restricted` and
+  `TauWeb.Dispatch.read_and_inference_restricted_without_guard`; and not from the calls still
+  unresolved, `TauWeb.Dispatch.replacement_in_force` and
+  `TauWeb.Dispatch.replaced_continuation_dispatched_without_guard`;
+- the destructive stop, `TauWeb.Dispatch.destructive_choice_stops_commands` and
+  `TauWeb.Dispatch.command_preempts_reinstall_without_guard`, with
+  `TauWeb.Dispatch.destructive_choice_stops_commands_after_activation` for a disposed call that
+  barred nothing on the box;
+- the end at the continuation's dispatch and not at any later intent,
+  `TauWeb.Dispatch.read_does_not_lift_abandonment` and
+  `TauWeb.Dispatch.read_lifts_abandonment_without_guard`, nor at the reinstall's first
+  operation, `TauWeb.Dispatch.preparation_keeps_restriction` and
+  `TauWeb.Dispatch.preparation_lifts_restriction_without_guard`;
+- the reset into rescue, `TauWeb.Dispatch.reset_without_rescue_refused` and
+  `TauWeb.Dispatch.reset_without_rescue_admitted`, with `TauWeb.Dispatch.return_to_rescue_trace`
+  the return whole;
+- the disposition's own resource, `TauWeb.Dispatch.disposition_names_own_unresolved_calls` and
+  `TauWeb.Dispatch.disposition_ends_call_elsewhere_without_guard`.
+
+`TauWeb.Dispatch.replayed_invalid_disposition_means_nothing` is the replay, and
+`TauWeb.Dispatch.evidence_after_disposition_changes_nothing` the evidence that arrives
+afterwards. The companion's `exec` is box-plane work as a whole, and a request there carries
+nothing of who sends it: that abandonment's destroy is the operator flow's and never a
+session's is `ARC-21`'s, and no trace dispatches one.
+`TauWeb.Dispatch.restriction` is the continuation in force over a resource;
 `TauWeb.Dispatch.admissible` is what clears a barrier and
-`TauWeb.Dispatch.cloud_confirmed_by_read_only` that nothing else does;
-`TauWeb.Dispatch.inference_unbarred` is the inference request's exemption; and
-`TauWeb.Dispatch.bounded` decides `TauWeb.Dispatch.atMostOneOutstanding` within its bound. The
-untyped call's scope is not among the resources it carries.
+`TauWeb.Dispatch.cloud_confirmed_by_read_only` that nothing else does; and
+`TauWeb.Dispatch.inference_unbarred` is the inference request's exemption. The
+untyped call's scope is not among the resources it carries, so neither the pause nor the hold
+is carried.
 
 ## The exposure ledger
 
