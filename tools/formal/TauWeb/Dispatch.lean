@@ -233,7 +233,8 @@ structure Disposition where
 /-- One journal record. `STA-2`: canonical state is "an **append-only event journal** with
 replayable transitions". An association is the harness's own mapping of what a model may name to
 the approved entry; the reset prerequisites are `ready_to_reset`'s (`ARC-43`) installed pins and
-reset intent, which `STA-20b` requires durable before a planned reset. -/
+reset intent, which `STA-20b` requires durable before a planned reset into the installed
+system. -/
 inductive Rec
   | intent (i : Intent)
   | observation (o : Observation)
@@ -648,7 +649,10 @@ restricts nothing, which is the disposition read as unrestricted dispatch. -/
 the reset intent. If collection or the durable append fails, it does not reset — and it does not
 *offer* the reset either: the offer is checked against those durable prerequisites at the moment
 it is made". The prerequisites are `ready_to_reset`'s record (`ARC-43`), and the offer reads what
-the running worker holds — which `STA-3` makes exactly what was appended. -/
+the running worker holds — which `STA-3` makes exactly what was appended. This is the offer of a
+reset into the installed system and of no other: `STA-20b` makes installed host-key pins "a
+prerequisite of a reset into the installed system, not of a reset into rescue", and `admit` does
+not read it. -/
 @[req "STA-20b"] def offersReset (j : Journal) (e : Entry) : Bool :=
   j.contains (.resetPrereqs e)
 
@@ -699,7 +703,13 @@ def intentOf (rq : Request) (r : Resource) (ap : Approval) : Intent :=
 named (`STA-24`), `SEC-4`'s binding and approved record are checked, and only then `STA-24`'s
 barrier — "An approval already rendered does not clear the barrier; it is checked again at
 dispatch" — and after it what a standing disposition restricts. Total, and the order is the
-function's, so no refusal can be answered out of its place. -/
+function's, so no refusal can be answered out of its place.
+
+A request here is what a model sends, and nothing says who sent it. Its answer for a `destroy`
+under a disposition naming abandonment therefore claims only what `dispatchesContinuation`
+does: that the disposition does not refuse that operation and ends at it. It does not claim
+that a model's request for one is admissible — `ARC-21` runs abandonment "never through a
+session", and `SEC-4` bounds what a session may request — and no trace of this module asks. -/
 @[req "STA-4"] def admit (p : Params) (j : Journal) (rq : Request) (ap : Approval) : Verdict :=
   match resolve j rq.target with
   | none => .refused .unmapped

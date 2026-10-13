@@ -559,8 +559,8 @@ evidence is that set's test run against the relay the harness uses.
       A second allocation index for the same approved machine entry does not evade the
       refusal; a different approved entry remains permitted. A status read whose journal
       append fails leaves the barrier standing; an operator disposition ends the unresolved
-      state of the calls it names and keeps their outcome unknown, and what it restricts
-      afterwards is `CNF-110`. Verified with a lost response to a
+      state of the calls it names and keeps their outcome unknown; what it restricts afterwards
+      is `STA-24`'s, and `CNF-110` tests it. Verified with a lost response to a
       Robot reset followed by the model requesting the reset again. Money out and destroyed
       data: an autonomous caller must not turn a lost response into another wipe or another
       purchase. Stage 1: the create, box-plane and inference cases; the Robot cases run on the

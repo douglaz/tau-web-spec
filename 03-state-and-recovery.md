@@ -165,8 +165,9 @@ or a record from the old boot leaves the operation unresolved under `STA-8` unti
 supports convergence or the operator explicitly chooses a new destructive reinstall. The
 browser's record of what was sent remains authoritative throughout (`STA-21`).
 
-The offer's precondition is `TauWeb.Dispatch.offersReset` (ADR-0032), which reads whether
-`ready_to_reset`'s record of the installed pins and the reset intent was durably appended, with
+The precondition of the offer of a reset into the installed system is
+`TauWeb.Dispatch.offersReset` (ADR-0032), which reads whether `ready_to_reset`'s record of the
+installed pins and the reset intent was durably appended, with
 `TauWeb.Dispatch.reset_offered_after_failed_append_refused` and
 `TauWeb.Dispatch.reset_offered_after_failed_append_admitted` its pair. That a reset into rescue
 under a disposition waits for the command the disposition does not name, and not for the one it
