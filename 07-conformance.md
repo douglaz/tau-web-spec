@@ -577,24 +577,26 @@ evidence is that set's test run against the relay the harness uses.
       command is dispatched; with any call disposed toward a destructive reinstall or
       abandonment, an unresolved box-plane command or activation included, the model's command
       is refused. In every case a status read, a pinned SSH attempt, the collection of job
-      records and the inference request are dispatched and do not end the restriction, and a
-      later request is refused as before. The restriction ends at the dispatch of the
-      continuation and not before: from that intent the call's own barrier refuses, and nothing
-      is refused under the disposition. A disposition naming no call, a call already settled, or
-      a call on another resource is refused, journals nothing, and shows the operator the
-      refusal, the record that settled the call if one did, and what is unresolved now; one
-      naming some of several unresolved calls leaves the others barring. A replacement naming
-      the calls the standing disposition disposed is accepted, the operator is shown what it
-      replaces, and the former continuation is then refused. A replayed journal that already
-      holds a disposition this test refuses ends no call and restricts nothing, and the record
-      is shown; a valid replacement is still the one in force after a restart (`STA-7`).
-      Evidence appended after a disposition changes no refusal. Destroyed data and money out: a
-      command writes the disks of a machine the operator chose to wipe or abandon, or a status
-      read hands that machine back to the session. Stage 1: the cases a vendor reinstall call,
-      a create, a box-plane command and the inference request reach; the reset into rescue —
-      the rescue activation and a key registration admitted without ending the restriction, a
-      reset with no confirmed rescue activation refused, the reset after it dispatched — runs on
-      the dedicated test bed; the untyped-scope hold is `CNF-105`.
+      records and the inference request are dispatched and do not end the restriction: a request
+      made after one is answered as it was before it. The restriction ends at the dispatch of
+      the continuation and not before: from that intent the call's own barrier refuses, and
+      nothing is refused under the disposition. A disposition naming no call, a call already
+      settled, or a call on another resource is refused, journals nothing, and shows the
+      operator the refusal, the record that settled the call if one did, and what is unresolved
+      now; one naming some of several unresolved calls leaves the others barring. A replacement
+      naming the calls the standing disposition disposed is accepted, the operator is shown what
+      it replaces, and the continuation in force is then the replacement's: with a destructive
+      reinstall replaced by abandonment, the reinstall is refused. A replayed journal that
+      already holds a disposition this test refuses ends no call and restricts nothing, and the
+      record is shown; a valid replacement is still the one in force after a restart (`STA-7`).
+      Evidence appended after a disposition about a call it disposed neither reopens that call
+      nor removes the disposition, so what the disposition refuses is still refused. Destroyed
+      data and money out: a command writes the disks of a machine the operator chose to wipe or
+      abandon, or a status read hands that machine back to the session. Stage 1: the cases a
+      vendor reinstall call, a create, a box-plane command and the inference request reach; the
+      reset into rescue — the rescue activation and a key registration admitted without ending
+      the restriction, a reset with no confirmed rescue activation refused, the reset after it
+      dispatched — runs on the dedicated test bed; the untyped-scope hold is `CNF-105`.
 - [ ] **CNF-30 · BLOCKING** Box-plane commands are recorded per command before transmission,
       and the transcript reconciles against what was sent (`ARC-8`).
 - [ ] **CNF-31 · PRE-SCALE** A scoped call is sent with redirect following disabled, and a

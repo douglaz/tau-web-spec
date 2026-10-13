@@ -116,8 +116,8 @@ machine could end a call on another.
 
 A first attempt to write the rule down stopped before changing anything, on what the reinstall
 is where it is not one call: a dedicated server's return to rescue, a server already in rescue,
-and a vendor with no adapter. The last two paragraphs of the shape answer it, after a further
-round of readers.
+and a vendor with no adapter. The shape's paragraphs on a continuation as its owner's flow and
+on the hold answer it, after a further round of readers.
 
 ## Consequences
 

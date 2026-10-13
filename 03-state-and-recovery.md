@@ -145,19 +145,19 @@ journaled at that point and a halt against the old one means the reset landed. O
 installed-system entry it creates the persistent job directory before ordinary work. Rescue
 records are not claimed to survive this transition.
 
-**A planned reset that is a standing disposition's reinstall is the one exception to that wait**
-(`STA-24`; amended 2026-10-13, ADR-0044). It does not wait for a command that disposition names
-and does not require that command's record: the missing evidence is the uncertainty the operator
-accepted, and the reset ends the job. Every other tracked command is still waited for and its
-record collected, as above; if one of those hangs, the operator replaces the disposition to name
-it too. The reset's own intent is durably recorded first, as always. A reinstall chosen while
-the server is already in rescue starts from a fresh rescue boot — a new rescue activation and
-reset, then the install — and does so after an unexpected rescue reboot too: one rule
-everywhere, and the second reset there is accepted. Recording installed host-key pins is a
-prerequisite of a reset into the installed system, not of a reset into rescue. Keeping the
-current rescue boot and running the install again is not a destructive reinstall; it is
-continuing as if not done, under which the wait above for a job the harness can see still
-running still applies.
+**The reset into rescue at which a standing disposition's reinstall is dispatched is the one
+exception to that wait** (`STA-24`; amended 2026-10-13, ADR-0044). It does not wait for a
+command that disposition names and does not require that command's record: the missing evidence
+is the uncertainty the operator accepted, and the reset ends the job. Every other tracked
+command is still waited for and its record collected, as above; if one of those hangs, the
+operator replaces the disposition to name it too. The reset's own intent is durably recorded
+first, as always. A reinstall chosen while the server is already in rescue starts from a fresh
+rescue boot — a new rescue activation and reset, then the install — and does so after an
+unexpected rescue reboot too: one rule everywhere, and the second reset there is accepted.
+Recording installed host-key pins is a prerequisite of a reset into the installed system, not of
+a reset into rescue. Keeping the current rescue boot and running the install again is not a
+destructive reinstall; it is continuing as if not done, under which the wait above for a job the
+harness can see still running still applies.
 
 After an unexpected rescue reboot, a changed boot ID proves the old command cannot still be
 running; it does **not** prove its effects or exit status. Missing output, a missing job record,
@@ -204,8 +204,9 @@ sibling is unresolved is permitted under its own approval, whose card shows the 
 sibling and that it may be billing. For an untyped call it is the **scope** itself, since no
 adapter can say what the call touched (`SEC-4`): no further call under that scope is dispatched
 while it is unresolved, and once the operator disposes of it only as the disposition permits
-(below); nothing under a scope counts as a read, because nothing types it. A scope re-approved for the same origin and credential inherits the outstanding call.
-An untyped vendor scope (`SEC-4`) is a scope like any other here.
+(below); nothing under a scope counts as a read, because nothing types it. A scope re-approved
+for the same origin and credential inherits the outstanding call. An untyped vendor scope
+(`SEC-4`) is a scope like any other here.
 
 **What stays permitted.** Reads naming the resource — the adapter's status queries, the pinned
 SSH attempt that is `STG-4`'s third predicate, the collection of job records — are permitted
@@ -222,9 +223,10 @@ answered — or unresolved, the harness worker MUST NOT dispatch a box-plane com
 machine of the session's bound set at that vendor. The pause ends with the call's terminal
 record: where that record is the operator's disposition, a continuation that continues ends
 the pause and a destructive one does not (*the hold*, below). This pause is not carried by
-`TauWeb.Dispatch` below. The inference request (`ARC-31a`) keeps its unresolved intent under `STA-8`, shown as unaccounted
-spend against the session key's cap, and does **not** bar the next request: its only effect is
-bounded spend, and the next request is the session's only way to continue.
+`TauWeb.Dispatch` below. The inference request (`ARC-31a`) keeps its unresolved intent under
+`STA-8`, shown as unaccounted spend against the session key's cap, and does **not** bar the next
+request: its only effect is bounded spend, and the next request is the session's only way to
+continue.
 
 **What clears it.** Evidence is the observation the operation's own reconciliation contract
 admits — for Robot, `STG-4`'s predicates, read from the vendor or from a pin-checked handshake
@@ -280,7 +282,7 @@ are how the operator learns whether a reinstall landed.
 dispatched, its intent durably appended (`STA-3`); from then on that call's own barrier governs,
 and if it goes unresolved the barrier stands again. A continuation is its owner's flow and can
 take several operations: it is dispatched at the one that changes what the machine is running.
-For a destructive reinstall that is the vendor's reinstall call where the vendor has one
+For a destructive reinstall that is at LNVPS the vendor's reinstall call
 (`ARC-22`), and on a dedicated server the **reset into rescue**. While its disposition stands,
 the operations of that machine's return to rescue that touch no running system — the rescue
 activation, and a key registration where one is owed — are admitted and do not end the
@@ -293,13 +295,14 @@ follow the reset's confirmation: `STA-20b` says "Dispatch resumes on the reset's
 For abandonment it is that flow's operation naming the machine: the destroy, or the stop that
 stands in for it (`ARC-22`), whose own barrier then holds the box plane as the exception above
 says. A model's request for either is not made admissible by this: what a session may request
-is `SEC-4`'s to bound. The restriction covers a machine with a disposed call and nothing else;
-what an abandoned setup permits afterwards, and that the flow runs outside any session, are
-`ARC-21`'s, `ARC-22`'s and `STA-18`'s. A continuation that continues has no operation to be
-dispatched at: it stands, restricting nothing, until the operator replaces it. Evidence that
-arrives after a disposition is journaled and shown and changes nothing else: it neither reopens
-the call nor removes the disposition, which stands until its continuation is dispatched or the
-operator replaces it.
+is `SEC-4`'s to bound. Abandonment is setup-wide (`ARC-22`) and the restriction is not: apart
+from the hold below, it covers a machine with a disposed call and nothing else; what an
+abandoned setup permits afterwards, and that the flow runs outside any session, are `ARC-21`'s,
+`ARC-22`'s and `STA-18`'s. A continuation that continues has no operation to be dispatched at:
+it stands, restricting nothing, until the operator replaces it. Evidence that arrives after a
+disposition is journaled and shown and changes nothing else: it neither reopens the call nor
+removes the disposition, which stands until its continuation is dispatched or the operator
+replaces it.
 
 **On replay.** A disposition found in a replayed journal (`STA-7`) that the test above — what a
 disposition may name, the replacement's exception included — would have refused is read as if
@@ -326,8 +329,9 @@ most one cloud-plane call is unresolved at a time, it is older than every box-pl
 unresolved beside it, and a call that changes what the machine is running is unresolved alone;
 box-plane commands may be unresolved together, as `STA-20`'s tracked jobs are. Admission,
 reservation and the dispatch check are serialized by the single writer (`STA-1`), so two
-requests cannot both pass before either is unresolved. What this rule cannot reach is a journal that is lost with the phone: `STA-14`
-states that transcripts are gone, and a recovery sheet is not an outstanding-call record.
+requests cannot both pass before either is unresolved. What this rule cannot reach is a journal
+that is lost with the phone: `STA-14` states that transcripts are gone, and a recovery sheet is
+not an outstanding-call record.
 
 *The trap.* `STA-8` speaks of a call, and a model does not retry a call: it requests the action
 again, and every request carries a fresh call id. `POST /reset` returns `running` with no
@@ -403,7 +407,15 @@ its last clause. Each guard is a parameter with its pair:
 
 `TauWeb.Dispatch.replayed_invalid_disposition_means_nothing` is the replay, and
 `TauWeb.Dispatch.evidence_after_disposition_changes_nothing` the evidence that arrives
-afterwards. The companion's `exec` is box-plane work as a whole, and a request there carries
+afterwards. Decided beside them, with no parameter of their own, are
+`TauWeb.Dispatch.disposition_names_at_least_one_call` and
+`TauWeb.Dispatch.disposition_names_every_call_unresolved` for what a disposition may name;
+`TauWeb.Dispatch.activation_before_disposition_not_counted` and
+`TauWeb.Dispatch.activation_under_replaced_disposition_not_counted` for which rescue activation
+the reset into rescue follows; and `TauWeb.Dispatch.reinstall_does_not_refuse_key_registration`,
+that the restriction does not refuse a key registration and still stands after one. The
+companion carries nothing of whether a registration is owed, so no trace requests one under a
+disposition. The companion's `exec` is box-plane work as a whole, and a request there carries
 nothing of who sends it: that abandonment's destroy is the operator flow's and never a
 session's is `ARC-21`'s, and no trace dispatches one.
 `TauWeb.Dispatch.restriction` is the continuation in force over a resource;

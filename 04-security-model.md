@@ -458,10 +458,10 @@ and for an untyped call no adapter exists to find out. So the record MUST carry 
 unresolved state, the harness MUST NOT retry the call on its own or report it as failed, and
 reconciliation belongs to the operator, at the service. `STA-8` is the same rule at the state
 layer, and `STA-24` says what the unresolved state blocks: for an untyped call, every further
-call under that scope until the operator disposes, and after a destructive disposition until
-the operator replaces it. Under an untyped vendor scope the record is
-also what the money rule reads: `SEC-4` says "An invoice is decoded by harness code from the
-recorded response".
+call under that scope until the operator disposes, and under an untyped vendor scope, after a
+destructive disposition, until the operator replaces it. Under an untyped vendor scope the
+record is also what the money rule reads: `SEC-4` says "An invoice is decoded by harness code
+from the recorded response".
 
 The CORS sent-but-unreadable case is engineered away: an origin's route is chosen by a
 dedicated harmless probe before any side-effecting call exists, every untyped call carries a

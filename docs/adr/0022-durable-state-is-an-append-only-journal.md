@@ -149,10 +149,10 @@ unresolved until inspection or explicit operator disposition. No storage directo
 being repartitioned can satisfy the old unconditional persistence requirement.
 
 *Amended 2026-10-13:* "collects terminal records and installed host pins … before permitting a
-planned reset" now has one exception, for a planned reset that is a standing disposition's
-reinstall: `STA-20b` says "It does not wait for a command that disposition names and does not
-require that command's record". Installed host pins are a prerequisite of a reset into the
-installed system and not of a reset into rescue (ADR-0044).
+planned reset" now has one exception, for the reset into rescue at which a standing
+disposition's reinstall is dispatched: `STA-20b` says "It does not wait for a command that
+disposition names and does not require that command's record". Installed host pins are a
+prerequisite of a reset into the installed system and not of a reset into rescue (ADR-0044).
 
 `STA-23` fixes the local-store unlock boundary: a passphrase wraps an independent random data
 key, only the harness worker unwraps it, and lock/restart clears runtime authority. The v1
