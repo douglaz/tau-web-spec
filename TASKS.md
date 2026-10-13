@@ -372,7 +372,13 @@ gated on it.
       declaration it decided before was false of an activation unresolved beside a box-plane
       command, a journal the enumeration reaches now that its alphabet holds an activation.
       The parameters added are `reach`, `lapse`, `destructiveStops`, `resetIntoRescueOnly` and
-      `dispositionOwnResource`, each with the pair `STA-24` cites.
+      `dispositionOwnResource`, each with the pair `STA-24` cites. Decided with no parameter of
+      their own, each red when its clause is removed, are
+      `TauWeb.Dispatch.disposition_names_at_least_one_call`,
+      `TauWeb.Dispatch.disposition_names_every_call_unresolved`,
+      `TauWeb.Dispatch.reinstall_does_not_refuse_key_registration`,
+      `TauWeb.Dispatch.activation_before_disposition_not_counted` and
+      `TauWeb.Dispatch.activation_under_replaced_disposition_not_counted`.
       `docs/design/dispatch-witnesses-v2.json` replaces the v1 file, as schema 2; the controls
       are the `dispatch_control` calls in `tools/check-controls.sh`, each with its exact red
       set. The untyped scope, its pause and its hold stay outside the module.

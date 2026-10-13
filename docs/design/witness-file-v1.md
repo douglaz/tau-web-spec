@@ -69,9 +69,9 @@ beside them are the event's arguments.
 | `app_frame` | operator act | — | `forwarded` |
 | `request` | model request | `call`, `target`, `operation` (`create`, `reset`, `reinstall`, `destroy`, `activate`, `register_key`, `exec`, `read` or `inference`), `session`, `facts`, `approved`, `appended` | `dispatch`: `dispatched` or `refused`, with `refusal` on the second |
 | `read` | adapter observation | `source`, `resource`, `operation`, `reports`, `appended` | `settled`: the call ids the read took out of the barrier |
-| `dispose` | disposition | `resource`, `calls`, `continuation` (`destructive_reinstall`, `abandonment`, `as_if_done` or `as_if_not_done`), `appended` | `disposition`: `recorded`; `refused`, where it names no call, a call that is not unresolved on its own resource, or a call the standing disposition did not dispose; or `not_appended` |
+| `dispose` | disposition | `resource`, `calls`, `continuation` (`destructive_reinstall`, `abandonment`, `as_if_done` or `as_if_not_done`), `appended` | `disposition`: `recorded`; `refused`, where it names no call, or names a call that is neither unresolved on the disposition's own resource nor one the standing disposition disposed; or `not_appended` |
 | `associate` | operator act | `target`, `entry` | — |
-| `reset_prereqs` | adapter observation | `entry`, `appended` | `offer`: whether the planned reset may be offered |
+| `reset_prereqs` | adapter observation | `entry`, `appended` | `offer`: whether the planned reset into the installed system may be offered |
 | `replay` | replay | — | — |
 | `reset` | operator act | `entry`, `into` | `boot`: the rescue boot the harness counts for that entry after it |
 | `rescue_last` | adapter observation | `source`, `entry`, `keys` (`null` while the field is empty) | `pinned`: whether the read journaled a pin |
@@ -105,7 +105,10 @@ were outstanding when it was taken, never one dispatched afterwards.
 Every `request` is labelled a model request, and the module carries nothing of who sends one.
 `ARC-21` runs abandonment "never through a session", so the file holds no trace in which a
 `destroy` is dispatched under a disposition naming abandonment: that a model's request for one
-is admissible is nothing a comparison may read from it. `destroy` stands for the destroy or the
+is admissible is nothing a comparison may read from it. Nor does it hold one in which a
+`register_key` is requested under a standing disposition: the journal holds nothing that says a
+key registration is owed, and `TauWeb.Dispatch.reinstall_does_not_refuse_key_registration` is
+decided over a trace that requests none. `destroy` stands for the destroy or the
 stop that stands in for it, and `reinstall` for the vendor's own reinstall call (`ARC-22`). A
 refused `dispose` changes nothing: the projection after it is the projection before it.
 
@@ -193,7 +196,7 @@ resolution, the barrier and the approval checks and nothing about arguments or c
 | `unresolved` | Per resource the journal names, the call ids the barrier stands on. |
 | `dispositions` | Every disposition record the journal holds, oldest first: its `resource`, `calls` and `continuation`, and `valid` — whether `STA-24`'s test accepts it against the journal before it. One that is not valid is read as if it had never been recorded, and is here because the operator is shown the record. A valid one may have been replaced or have ended since. |
 | `standing` | Per resource, the disposition standing over it: the `calls` it disposed and the `continuation` in force. Absent where none stands — none recorded, or the continuation dispatched — and in the trace that runs without `dispositionBindsContinuation`, where a disposition restricts nothing. |
-| `reset_offer` | The approved entries whose planned reset may be offered (`STA-20b`). |
+| `reset_offer` | The approved entries whose planned reset into the installed system may be offered (`STA-20b`). |
 | `dispatched` | The calls whose effect went out, oldest first. |
 
 A refusal is `reason` — `unmapped`, `binding`, `facts`, `append`, `barrier` or `continuation` —

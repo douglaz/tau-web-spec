@@ -572,8 +572,8 @@ def recorded (p : TauWeb.Dispatch.Params) : TauWeb.Dispatch.Journal → List (Di
 /-- The projection of harness knowledge: the journal in `STA-24`'s vocabulary — the harness's own
 mapping of what a model may name to the approved entry, the calls it holds, the barrier per
 resource, every disposition the journal holds and whether it is valid, the disposition standing
-per resource, the entries whose planned reset may be offered (`STA-20b`), and what was
-dispatched. `durable` is whether in-memory state is also what was
+per resource, the entries whose planned reset into the installed system may be offered
+(`STA-20b`), and what was dispatched. `durable` is whether in-memory state is also what was
 appended, which `STA-3` makes always true. Nothing of the companion's `World` beyond that, and
 never external state. -/
 def knowledgeJson (p : TauWeb.Dispatch.Params) (w : TauWeb.Dispatch.World) : Json :=
@@ -741,6 +741,9 @@ def witnesses : List Trace := [
   { decls := ["TauWeb.Dispatch.disposition_ends_call_elsewhere_without_guard"],
     events := otherResourceEvents, params := dispositionByCallId,
     pair := some (.admitted, "TauWeb.Dispatch.disposition_names_own_unresolved_calls") },
+  { decls := ["TauWeb.Dispatch.disposition_names_at_least_one_call"], events := noCallEvents },
+  { decls := ["TauWeb.Dispatch.disposition_names_every_call_unresolved"],
+    events := settledCallEvents },
   { decls := ["TauWeb.Dispatch.replacement_in_force"], events := replacementEvents,
     pair := some (.refused, "TauWeb.Dispatch.replaced_continuation_dispatched_without_guard") },
   { decls := ["TauWeb.Dispatch.replaced_continuation_dispatched_without_guard"],
@@ -760,6 +763,12 @@ def witnesses : List Trace := [
   { decls := ["TauWeb.Dispatch.preparation_lifts_restriction_without_guard"],
     events := preparationEvents, params := lapseFirstOperation,
     pair := some (.admitted, "TauWeb.Dispatch.preparation_keeps_restriction") },
+  { decls := ["TauWeb.Dispatch.reinstall_does_not_refuse_key_registration"],
+    events := reinstallStandingEvents },
+  { decls := ["TauWeb.Dispatch.activation_before_disposition_not_counted"],
+    events := earlierActivationEvents },
+  { decls := ["TauWeb.Dispatch.activation_under_replaced_disposition_not_counted"],
+    events := replacedActivationEvents },
   { decls := ["TauWeb.Dispatch.return_to_rescue_trace"], events := returnToRescueEvents },
   { decls := ["TauWeb.Dispatch.reset_waits_for_other_commands"], events := rescueCommandEvents },
   { decls := ["TauWeb.Dispatch.ceremony_trace"], events := ceremonyEvents } ]

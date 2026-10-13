@@ -131,8 +131,8 @@ dispatched at (`dispatchesContinuation`). -/
   | .reset | .reinstall | .destroy => true
   | .create | .activate | .registerKey | .exec | .read | .inference => false
 
-/-- A read "has no effect": it is permitted whatever the barrier says, and it never becomes an
-unresolved call of its own. Everything else is side-effecting and carries `SEC-12`'s record. -/
+/-- A read is not side-effecting: it is permitted whatever the barrier says, and it never becomes
+an unresolved call of its own. Everything else is side-effecting and carries `SEC-12`'s record. -/
 @[req "SEC-12"] def sideEffecting : Kind → Bool
   | .read => false
   | .create | .reset | .reinstall | .destroy | .activate | .registerKey | .exec | .inference => true
@@ -479,7 +479,8 @@ module dispatches one as the abandonment. -/
 
 /-- The operations of a continuation's flow that are admitted and do not end the restriction:
 under a destructive reinstall, "the rescue activation, and a key registration where one is owed"
-(`STA-24`). Neither changes what the machine is running. -/
+(`STA-24`). Neither changes what the machine is running. Whether a registration is owed is not
+carried: the journal holds nothing that says so, and this answers for the operation alone. -/
 @[req "STA-24"] def prepares (c : Continuation) (k : Kind) : Bool :=
   c == .reinstall && (k == .activate || k == .registerKey)
 
@@ -1169,6 +1170,15 @@ def abandonInference : Disposition :=
 def namesNoUnresolvedCall : Disposition :=
   { resource := machineA, calls := [resetRequest2.call], continuation := .abandon }
 
+/-- A disposition naming no call at all. -/
+def namesNoCall : Disposition := { resource := machineA, calls := [], continuation := .abandon }
+
+/-- A disposition naming an unresolved activation and, beside it, a key registration a read has
+already settled. -/
+def namesSettledCallToo : Disposition :=
+  { resource := machineA, calls := [activateRequest.call, registerRequest.call],
+    continuation := .abandon }
+
 /-- A disposition recorded against the sibling entry and naming the first entry's call. -/
 def onAnotherResource : Disposition :=
   { resource := machineB, calls := [resetRequest1.call], continuation := .abandon }
@@ -1238,6 +1248,18 @@ def otherResourceEvents : List Event :=
   [.request resetRequest1 approvalReset true, .dispose namesNoUnresolvedCall true,
    .dispose onAnotherResource true, .request resetRequest2 approvalReset true]
 
+/-- An unresolved reset and a disposition naming no call. -/
+def noCallEvents : List Event :=
+  [.request resetRequest1 approvalReset true, .dispose namesNoCall true]
+
+/-- A key registration and its confirmation, an unresolved activation, a disposition naming both
+calls, and the activation under a fresh call id. -/
+def settledCallEvents : List Event :=
+  [.request registerRequest approvalRegister true,
+   .observe .adapterRead machineA .registerKey true,
+   .request activateRequest approvalActivate true, .dispose namesSettledCallToo true,
+   .request activateRequest2 approvalActivate true]
+
 /-- An unresolved reset, a disposition naming a destructive reinstall, its replacement naming
 abandonment, a replay, and the vendor's reinstall call. -/
 def replacementEvents : List Event :=
@@ -1265,6 +1287,11 @@ def preparationEvents : List Event :=
   [.request resetRequest1 approvalReset true, .dispose dispositionA true,
    .request activateRequest approvalActivate true, .request execRequest approvalExec true]
 
+/-- An unresolved reset and a disposition naming a destructive reinstall, with nothing requested
+under it. -/
+def reinstallStandingEvents : List Event :=
+  [.request resetRequest1 approvalReset true, .dispose dispositionA true]
+
 /-- A dedicated server's return to rescue under a disposition naming a destructive reinstall: a
 reset before any rescue activation, the activation, a command, a reset before the activation is
 confirmed, the confirmation, the reset into rescue, a command. -/
@@ -1277,6 +1304,26 @@ def returnToRescueEvents : List Event :=
    .observe .adapterRead machineA .activate true,
    .request resetRequest6 approvalReset true,
    .request execRequest2 approvalExec true]
+
+/-- A rescue activation and its confirmation with no reset after it, a command left unresolved,
+a disposition naming that command and a destructive reinstall, a reset, a rescue activation. -/
+def earlierActivationEvents : List Event :=
+  [.request activateRequest approvalActivate true,
+   .observe .adapterRead machineA .activate true,
+   .request execRequest approvalExec true, .dispose reinstallAfterCommand true,
+   .request resetRequest1 approvalReset true,
+   .request activateRequest2 approvalActivate true]
+
+/-- An unresolved reset, a disposition naming a destructive reinstall, the rescue activation and
+its confirmation, that disposition replaced by one naming abandonment and that one by a
+destructive reinstall again, a reset, a rescue activation. -/
+def replacedActivationEvents : List Event :=
+  [.request resetRequest1 approvalReset true, .dispose dispositionA true,
+   .request activateRequest approvalActivate true,
+   .observe .adapterRead machineA .activate true,
+   .dispose abandonA true, .dispose dispositionA true,
+   .request resetRequest2 approvalReset true,
+   .request activateRequest2 approvalActivate true]
 
 /-- A server already in rescue: two commands unresolved, a disposition naming the first and a
 destructive reinstall, the rescue activation requested while the second still runs, the second's
@@ -1530,6 +1577,25 @@ this entry's reset and restricts nothing here: the second reset lands. -/
     w.dispatched.map (·.call) = [2, 1] ∧ dispositionsOf w.journal = [onAnotherResource] ∧
     unresolved dispositionByCallId w.memory machineA = [2] := by decide +kernel
 
+/-- **A disposition names at least one call, or it is not recorded.** The reset is unresolved and
+the disposition offered names no call at all. It is refused and the journal does not hold it:
+nothing stands over the machine, and the reset is still unresolved. -/
+@[req "STA-24"] theorem disposition_names_at_least_one_call :
+    let w := run current farDone.external init noCallEvents
+    dispositionsOf w.journal = [] ∧ restriction current w.memory machineA = none ∧
+    unresolved current w.memory machineA = [1] := by decide +kernel
+
+/-- **Every call a disposition names is unresolved, or it is not recorded.** The key registration
+is confirmed and the activation after it is unresolved; the disposition offered names both. One
+unresolved call among those it names is not enough: it is refused and the journal does not hold
+it, so the activation is still unresolved and the same activation under a fresh call id is
+refused by its barrier. -/
+@[req "STA-24"] theorem disposition_names_every_call_unresolved :
+    let w := run current farDone.external init settledCallEvents
+    w.dispatched.map (·.call) = [10, 9] ∧ w.verdict = some (.refused (.barrier [10])) ∧
+    dispositionsOf w.journal = [] ∧ unresolved current w.memory machineA = [10] := by
+  decide +kernel
+
 /-- **A replacement is the disposition in force.** The standing disposition names a destructive
 reinstall; the operator replaces it, naming the call it disposed and abandonment. The replacement
 is recorded, and after a replay it is still the one in force: the vendor's reinstall call, the
@@ -1603,6 +1669,41 @@ it. -/
     let w := run lapseFirstOperation farDone.external init preparationEvents
     w.dispatched.map (·.call) = [7, 10, 1] ∧
     restriction lapseFirstOperation w.memory machineA = none := by decide +kernel
+
+/-- **A destructive reinstall does not refuse a key registration.** A disposition naming a
+destructive reinstall stands over the machine. Its restriction does not refuse a key
+registration, which the disposed reset barred, and it still stands over the journal with a
+registration's intent appended. That is the whole of the claim. `STA-24` admits "a key
+registration where one is owed", and the companion does not carry *owed*: the journal holds
+nothing that says a registration is. So the trace requests none, and no trace of this module
+dispatches one under a disposition. -/
+@[req "STA-24"] theorem reinstall_does_not_refuse_key_registration :
+    let w := run current farDone.external init reinstallStandingEvents
+    restricted current w.memory machineA .registerKey = none ∧
+    restriction current
+      (.intent (intentOf registerRequest machineA approvalRegister) :: w.memory) machineA =
+      some .reinstall := by decide +kernel
+
+/-- **A rescue activation confirmed before the disposition does not count.** The activation is
+confirmed and no reset follows it; a command is then left unresolved and disposed naming a
+destructive reinstall. That activation is older than the disposition, so a reset is not the reset
+into rescue: it is refused by the disposition, and a new rescue activation is dispatched. -/
+@[req "STA-24"] theorem activation_before_disposition_not_counted :
+    let w := run current farDone.external init earlierActivationEvents
+    w.dispatched.map (·.call) = [16, 7, 10] ∧
+    (run current farDone.external init (earlierActivationEvents.take 5)).verdict =
+      some (.refused (.continuation .reinstall)) := by decide +kernel
+
+/-- **Nor does one dispatched under a disposition since replaced.** The rescue activation is
+dispatched and confirmed under a disposition naming a destructive reinstall. The operator
+replaces that disposition with one naming abandonment, and that one with a destructive reinstall
+again. The activation is older than the disposition now standing: a reset is refused by it, and a
+new rescue activation is dispatched. -/
+@[req "STA-24"] theorem activation_under_replaced_disposition_not_counted :
+    let w := run current farDone.external init replacedActivationEvents
+    w.dispatched.map (·.call) = [16, 10, 1] ∧
+    (run current farDone.external init (replacedActivationEvents.take 7)).verdict =
+      some (.refused (.continuation .reinstall)) := by decide +kernel
 
 /-- **The return to rescue, whole.** A disposed reset and a disposition naming a destructive
 reinstall. A reset with no rescue activation dispatched is refused by the disposition. The rescue
