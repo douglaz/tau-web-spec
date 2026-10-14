@@ -593,7 +593,8 @@ evidence is that set's test run against the relay the harness uses.
       already holds a disposition this test refuses ends no call and restricts nothing, and the
       record is shown; a valid replacement is still the one in force after a restart (`STA-7`).
       Evidence appended after a disposition about a call it disposed neither reopens that call
-      nor removes the disposition, so what the disposition refuses is still refused. Destroyed
+      nor removes the disposition; a read of the rescue activation decides which reset counts
+      (`STA-24`). Destroyed
       data and money out: a command writes the disks of a machine the operator chose to wipe or
       abandon, or a status read hands that machine back to the session. Stage 1: the cases a
       vendor reinstall call, a create, a box-plane command and the inference request reach; the

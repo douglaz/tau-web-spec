@@ -429,7 +429,7 @@ its last clause. Each guard is a parameter with its pair:
   `TauWeb.Dispatch.disposition_ends_call_elsewhere_without_guard`.
 
 `TauWeb.Dispatch.replayed_invalid_disposition_means_nothing` is the replay, and
-`TauWeb.Dispatch.evidence_after_disposition_changes_nothing` that later evidence neither reopens
+`TauWeb.Dispatch.evidence_after_disposition_changes_nothing` is that later evidence neither reopens
 a disposed reset nor removes its disposition. Decided beside them, with no parameter of their own, are
 `TauWeb.Dispatch.disposition_names_at_least_one_call` and
 `TauWeb.Dispatch.disposition_names_every_call_unresolved` for what a disposition may name;
