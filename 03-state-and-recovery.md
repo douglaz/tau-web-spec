@@ -289,10 +289,24 @@ For a destructive reinstall that is at LNVPS the vendor's reinstall call
 the operations of that machine's return to rescue that touch no running system — the rescue
 activation, and a key registration where one is owed — are admitted and do not end the
 restriction, and the reset into rescue is a reset dispatched after that rescue activation is
-confirmed. Any other reset is refused while the disposition stands: with no confirmed rescue
-activation it boots the installed system and would hand the machine back. If the activation
-itself goes unresolved, its own barrier refuses the reset, the disposition still stands and the
-box plane stays stopped until evidence or a further disposition. The model's install commands
+confirmed and while the newest read of that activation still confirms it. `CHN-R1` says the
+plain rescue endpoint "reports inactive and empty once the boot has consumed the activation":
+a confirmation already given can be stale. The newest read is the read of the activation
+predicate (`STG-4`), `GET /boot/{n}/rescue`, journaled before the reset's intent at its dispatch
+check, not a read of `/rescue/last`. A read whose append failed is not in the journal (`STA-3`)
+and cannot be the newest read; reads after the reset's intent are irrelevant, since from that
+intent the restriction has ended. A read that does not confirm the activation, inactive or one
+that tells nothing, leaves it not counted: it settles nothing and reopens nothing, and the
+activation call stays terminal. It only means the activation is not the one the reset into
+rescue follows. Any other reset is refused while the disposition stands: with no confirmed rescue
+activation it boots the installed system and would hand the machine back. A later read that
+confirms it, or a fresh activation confirmed, admits the reset. A reboot between that read and
+the reset is bounded by the pin check, and this window is not closed: the reset's own
+confirmation never holds if `/rescue/last` still has the pre-reset snapshot's keys. If the
+unrequested boot publishes fresh keys after that snapshot but before the harness's reset lands,
+those keys can satisfy the disjoint-key predicate; the pinned SSH attempt remains the bound.
+If the activation itself goes unresolved, its own barrier refuses the reset, the disposition
+still stands and the box plane stays stopped until evidence or a further disposition. The model's install commands
 follow the reset's confirmation: `STA-20b` says "Dispatch resumes on the reset's confirmation".
 For abandonment it is that flow's operation naming the machine: the destroy, or the stop that
 stands in for it (`ARC-22`), whose own barrier then holds the box plane as the exception above
@@ -301,10 +315,10 @@ is `SEC-4`'s to bound. Abandonment is setup-wide (`ARC-22`) and the restriction 
 from the hold below, it covers a machine with a disposed call and nothing else; what an
 abandoned setup permits afterwards, and that the flow runs outside any session, are `ARC-21`'s,
 `ARC-22`'s and `STA-18`'s. A continuation that continues has no operation to be dispatched at:
-it stands, restricting nothing, until the operator replaces it. Evidence that arrives after a
-disposition is journaled and shown and changes nothing else: it neither reopens the call nor
-removes the disposition, which stands until its continuation is dispatched or the operator
-replaces it.
+it stands, restricting nothing, until the operator replaces it. Evidence about the calls the
+disposition names that arrives after it is journaled and shown and changes nothing else: it
+neither reopens the call nor removes the disposition, which stands until its continuation is
+dispatched or the operator replaces it.
 
 **On replay.** A disposition found in a replayed journal (`STA-7`) that the test above — what a
 disposition may name, the replacement's exception included — would have refused is read as if
@@ -400,10 +414,14 @@ its last clause. Each guard is a parameter with its pair:
   `TauWeb.Dispatch.read_does_not_lift_abandonment` and
   `TauWeb.Dispatch.read_lifts_abandonment_without_guard`, nor at the reinstall's first
   operation, `TauWeb.Dispatch.preparation_keeps_restriction` and
-  `TauWeb.Dispatch.preparation_lifts_restriction_without_guard`;
+  `TauWeb.Dispatch.preparation_lifts_restriction_without_guard`, with
+  `TauWeb.Dispatch.abandonment_ends_at_its_destroy_alone` for the abandonment's end among
+  operation kinds;
 - the reset into rescue, `TauWeb.Dispatch.reset_without_rescue_refused` and
-  `TauWeb.Dispatch.reset_without_rescue_admitted`, with `TauWeb.Dispatch.return_to_rescue_trace`
-  the return whole;
+  `TauWeb.Dispatch.reset_without_rescue_admitted`, and
+  `TauWeb.Dispatch.spent_activation_not_counted` and
+  `TauWeb.Dispatch.spent_activation_counted_without_guard` for the newest activation read,
+  with `TauWeb.Dispatch.return_to_rescue_trace` the return whole;
 - the disposition's own resource, `TauWeb.Dispatch.disposition_names_own_unresolved_calls` and
   `TauWeb.Dispatch.disposition_ends_call_elsewhere_without_guard`.
 

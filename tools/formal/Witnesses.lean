@@ -655,6 +655,9 @@ structure Trace where
   /-- What the far side reports for this trace; never in the file, since a witness carries no
   claim about external state (ADR-0032). What a read reported is on the read's own event. -/
   far : Far := farDone
+  /-- Optional segments for changing reports. Each read emits its own report; segment far
+  sides are internal to emission and add no member to the witness file. -/
+  segments : List (Far × List TauWeb.Dispatch.Event) := []
   /-- The worker the trace starts from: the associations alone, except for the one witness whose
   journal a replay finds already written. -/
   start : TauWeb.Dispatch.World := TauWeb.Dispatch.init
@@ -669,12 +672,15 @@ def assumptionsJson (p : TauWeb.Dispatch.Params) : Json :=
               ("destructiveStops", toJson p.destructiveStops),
               ("lapse", Json.str (lapseName p.lapse)),
               ("resetIntoRescueOnly", toJson p.resetIntoRescueOnly),
+              ("newestActivationRead", toJson p.newestActivationRead),
               ("dispositionOwnResource", toJson p.dispositionOwnResource)]
 
 def Trace.json (t : Trace) : Json :=
-  let x := t.far.external
-  let steps := (t.events.foldl
-    (fun (acc, w) e => let (j, w') := stepJson t.params x w e; (acc.push j, w'))
+  let segments := if t.segments.isEmpty then [(t.far, t.events)] else t.segments
+  let steps := (segments.foldl
+    (fun acc seg => seg.2.foldl
+      (fun (js, w) e => let (j, w') := stepJson t.params seg.1.external w e; (js.push j, w'))
+      acc)
     (#[], t.start)).1
   traceJson t.decls (assumptionsJson t.params) t.pair (knowledgeJson t.params t.start) steps
 
@@ -758,6 +764,15 @@ def witnesses : List Trace := [
   { decls := ["TauWeb.Dispatch.reset_without_rescue_admitted"], events := strayResetEvents,
     params := anyResetReinstalls,
     pair := some (.admitted, "TauWeb.Dispatch.reset_without_rescue_refused") },
+  { decls := ["TauWeb.Dispatch.spent_activation_not_counted"], events := [],
+    segments := [(farDone, spentActivationStartEvents),
+                 (activationNotConfirmed, spentActivationReadEvents), (farDone, freshActivationEvents)],
+    pair := some (.refused, "TauWeb.Dispatch.spent_activation_counted_without_guard") },
+  { decls := ["TauWeb.Dispatch.spent_activation_counted_without_guard"], events := [],
+    params := staleActivationCounts,
+    segments := [(farDone, spentActivationStartEvents),
+                 (activationNotConfirmed, spentActivationReadEvents), (farDone, freshActivationEvents)],
+    pair := some (.admitted, "TauWeb.Dispatch.spent_activation_not_counted") },
   { decls := ["TauWeb.Dispatch.preparation_keeps_restriction"], events := preparationEvents,
     pair := some (.refused, "TauWeb.Dispatch.preparation_lifts_restriction_without_guard") },
   { decls := ["TauWeb.Dispatch.preparation_lifts_restriction_without_guard"],

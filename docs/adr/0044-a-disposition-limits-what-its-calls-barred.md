@@ -47,9 +47,9 @@ operation to be dispatched at, so it stands, restricting nothing, until it is re
 
 **It stands until its continuation is dispatched, or the operator replaces it.** From the
 continuation's own intent that call's barrier governs, which for a reinstall already holds the
-box plane until confirmation. Evidence arriving afterwards is recorded and shown and removes
-nothing: the operator decided, and nothing but the operator undoes it. Replacement exists so
-that a change of mind is possible; without it a machine disposed toward a reinstall could be
+box plane until confirmation. Evidence about the calls the disposition names arriving
+afterwards is recorded and shown and removes nothing: the operator decided, and nothing but
+the operator undoes it. Replacement exists so that a change of mind is possible; without it a machine disposed toward a reinstall could be
 taken nowhere else. A replacement names the calls the standing disposition disposed, which is
 the one exception to naming only unresolved calls. One disposition stands per resource, the
 latest, and its continuation is the one in force.
@@ -59,7 +59,8 @@ abandonment can take several operations. The limit admits, without ending, those
 running system, and ends at the one that changes what the machine is running: the vendor's
 reinstall call where the vendor offers one, the reset into rescue on a dedicated server, the
 destroy, or the stop that stands in for a destroy where the vendor offers none. On a dedicated
-server that reset is one dispatched after the rescue activation is confirmed. Any other reset is
+server that reset is the one `STA-24` calls "a reset dispatched after that rescue activation is
+confirmed and while the newest read of that activation still confirms it". Any other reset is
 refused, because it would boot the installed system again and hand back the machine the operator
 chose to wipe. A reinstall chosen while the machine is already in rescue returns to rescue the
 same way, so the limit always has an operation to end at, and that reset does not wait for a
@@ -97,6 +98,7 @@ journal's meaning independent of which build wrote it.
 | **A separate reinstall-from-rescue operation with a hold of its own** | Rejected. It is a second mechanism beside the reset into rescue, and it still needs a rule for a command that never ends. |
 | **Under an untyped scope, the next call counts as the continuation** | Rejected. It asserts what an untyped call does, and a status query would end the limit. |
 | **Under an untyped scope, the destructive choices are not offered** | Rejected. Abandonment would stop being available exactly where the harness can do least, and the operator would have no way to hold the scope while acting by hand. |
+| **Spending the activation on later evidence** | Rejected. No read is required in that window; `active: false` has no positive meaning; a reboot report has no baseline. |
 | **Evidence arriving later lifts the disposition** | Rejected. A status read would hand a machine the operator chose to abandon back to the session. |
 | **A disposition naming no unresolved call is accepted and limits nothing** | Rejected. The operator would be shown a standing abandonment that holds nothing, and a disposition recorded against one machine could end a call on another. |
 | **A record that fails the test on replay stops dispatch until a recovery step** | Rejected. It needs a procedure nobody has specified, for a record a conforming harness cannot write; read as nothing, every call it failed to dispose still bars. |

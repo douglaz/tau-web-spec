@@ -533,8 +533,9 @@ dispatch_control "formal: an unresolved box-plane command barring nothing" \
 # under another id -- the reinstall's and the reset's own barrier after a disposition ends, the
 # command that pre-empts a reinstall, the reset behind a disposition that was refused or is read
 # as never recorded, the activation behind a disposition refused for naming a settled call beside
-# it, and the activation behind a command still running. The reset offer's witness, which is the
-# durability rule's and not the key's, stays green.
+# it, and the activation behind a command still running. The newest-read pair's without-guard
+# side also sees it: the reset's barrier must refuse the later requests in that trace.
+# The reset offer's witness, which is the durability rule's and not the key's, stays green.
 dispatch_control "formal: the barrier keyed on the call id" \
   "sed -i 's/{ resourceKey := .entry,/{ resourceKey := .call,/' $DISP && grep -q '{ resourceKey := .call,' $DISP" \
   same_action_new_call_id_refused second_index_same_entry_refused \
@@ -542,7 +543,8 @@ dispatch_control "formal: the barrier keyed on the call id" \
   disposition_unrestricted_admitted destructive_choice_stops_commands \
   command_preempts_reinstall_without_guard disposition_names_own_unresolved_calls \
   disposition_names_every_call_unresolved replayed_invalid_disposition_means_nothing \
-  return_to_rescue_trace reset_waits_for_other_commands bounded
+  return_to_rescue_trace reset_waits_for_other_commands bounded \
+  spent_activation_counted_without_guard
 
 # A disposition's reach, its end and what it may name (STA-24, 2026-10-13) are fields of
 # TauWeb.Dispatch.Params, each control one bad edit of one field's rule value. A red set also
@@ -571,23 +573,28 @@ dispatch_control "formal: a disposition's reach applied to every dispatch" \
 # to no restriction but the destructive stop, so every cloud-plane operation a disposition
 # refused by its reach goes out -- the replaced continuation, the destroy under a reinstall, and
 # the reset with no rescue activation, or with none that counts: one confirmed before the
-# disposition, or dispatched under a disposition since replaced.
+# disposition, dispatched under a disposition since replaced, or no longer confirmed by the
+# newest activation read.
 dispatch_control "formal: a disposition's reach computed from calls still unresolved" \
   "sed -i 's/reach : Reach := .disposed/reach : Reach := .stillUnresolved/' $DISP && grep -q 'reach : Reach := .stillUnresolved' $DISP" \
   disposition_one_continuation_refused replacement_in_force reset_without_rescue_refused \
   activation_before_disposition_not_counted activation_under_replaced_disposition_not_counted \
-  return_to_rescue_trace
+  return_to_rescue_trace \
+  spent_activation_not_counted
 
 # The lapse taken at any later intent: reset, disposition, read, command must end refused, and
 # the read's own intent ends the restriction. Every trace that states a disposition still
 # standing after a later intent sees it, a key registration's included, and so does the trace
-# that replaces a disposition after its rescue activation: nothing stands to be replaced.
+# that replaces a disposition after its rescue activation: nothing stands to be replaced. The
+# operation-kinds theorem loses the restriction at a non-destroy intent; the newest-read trace
+# loses it at the activation intent, so its later reset goes out.
 dispatch_control "formal: a disposition's restriction ended at any later intent" \
   "sed -i 's/lapse : Lapse := .continuation/lapse : Lapse := .anyIntent/' $DISP && grep -q 'lapse : Lapse := .anyIntent' $DISP" \
   read_does_not_lift_abandonment continuing_permits_what_was_barred \
   disposed_activation_bars_commands_without_guard read_and_inference_never_restricted \
   preparation_keeps_restriction reinstall_does_not_refuse_key_registration \
-  activation_under_replaced_disposition_not_counted return_to_rescue_trace
+  activation_under_replaced_disposition_not_counted return_to_rescue_trace \
+  abandonment_ends_at_its_destroy_alone spent_activation_not_counted
 
 # The destructive stop dropped: a command after a disposed command with a destructive
 # continuation must be refused, and so must one after a disposed activation. Neither disposed
@@ -604,22 +611,44 @@ dispatch_control "formal: a disposition matched to a call by call id alone" \
 
 # The lapse taken at the reinstall's first operation: a command after the rescue activation must
 # be refused, and the activation ends the restriction instead. A key registration's intent ends
-# it too, and after the activation nothing stands for the operator to replace.
+# it too, and after the activation nothing stands for the operator to replace. The newest-read
+# trace loses the restriction there too, so the reset after a non-confirming read goes out.
 dispatch_control "formal: a disposition's restriction ended at the reinstall's first operation" \
   "sed -i 's/lapse : Lapse := .continuation/lapse : Lapse := .firstOperation/' $DISP && grep -q 'lapse : Lapse := .firstOperation' $DISP" \
   preparation_keeps_restriction reinstall_does_not_refuse_key_registration \
-  activation_under_replaced_disposition_not_counted return_to_rescue_trace
+  activation_under_replaced_disposition_not_counted return_to_rescue_trace \
+  spent_activation_not_counted
 
 # Any reset ending the restriction: a reset with no rescue activation dispatched since the
 # disposition must be refused by the disposition itself. The reset the return-to-rescue trace
 # requests before the activation is confirmed is refused by the activation's barrier with or
 # without this edit; what that trace loses is its first reset, the one with no activation at all.
 # The resets behind an activation that does not count -- confirmed before the disposition, or
-# dispatched under one since replaced -- go out the same way.
+# dispatched under one since replaced, or no longer confirmed by its newest read -- go out
+# the same way.
 dispatch_control "formal: any reset taken for the reinstall" \
   "sed -i 's/resetIntoRescueOnly : Bool := true/resetIntoRescueOnly : Bool := false/' $DISP && grep -q 'resetIntoRescueOnly : Bool := false' $DISP" \
   reset_without_rescue_refused activation_before_disposition_not_counted \
-  activation_under_replaced_disposition_not_counted return_to_rescue_trace
+  activation_under_replaced_disposition_not_counted return_to_rescue_trace \
+  spent_activation_not_counted
+
+# The abandonment case removed: the destroy intent must end the restriction, and does not.
+# Exactly the operation-kinds theorem fails; kinds_total still exhausts every kind.
+dispatch_control "formal: abandonment never ends at destroy" \
+  "sed -i 's/| .abandon, k => k == .destroy$/| .abandon, _ => false/' $DISP && grep -q '| .abandon, _ => false' $DISP" \
+  abandonment_ends_at_its_destroy_alone
+
+# The abandonment case widened: a reset intent must leave abandonment standing, and ends it.
+# Exactly the operation-kinds theorem fails; kinds_total stays green.
+dispatch_control "formal: abandonment also ends at reset" \
+  "sed -i 's/| .abandon, k => k == .destroy$/| .abandon, k => k == .destroy || k == .reset/' $DISP && grep -q '| .abandon, k => k == .destroy || k == .reset' $DISP" \
+  abandonment_ends_at_its_destroy_alone
+
+# A confirmed activation counted despite its newest read no longer confirming it: the reset
+# must be refused under the reinstall disposition, and instead goes out as its continuation.
+dispatch_control "formal: spent activation still counts for the reset" \
+  "sed -i 's/newestActivationRead : Bool := true/newestActivationRead : Bool := false/' $DISP && grep -q 'newestActivationRead : Bool := false' $DISP" \
+  spent_activation_not_counted
 
 # A missing toolchain is a red gate, not a skip.
 expected=$((expected + 1))

@@ -598,8 +598,10 @@ evidence is that set's test run against the relay the harness uses.
       abandon, or a status read hands that machine back to the session. Stage 1: the cases a
       vendor reinstall call, a create, a box-plane command and the inference request reach; the
       reset into rescue — the rescue activation and a key registration admitted without ending
-      the restriction, a reset with no confirmed rescue activation refused, the reset after it
-      dispatched — runs on the dedicated test bed; the untyped-scope hold is `CNF-105`.
+      the restriction; a reset with no confirmed rescue activation refused; after confirmation,
+      a reset whose newest journaled activation read reports it inactive refused with the
+      disposition still standing; and a reset after a re-read that confirms it admitted and
+      ending the restriction — runs on the dedicated test bed; the untyped-scope hold is `CNF-105`.
 - [ ] **CNF-30 · BLOCKING** Box-plane commands are recorded per command before transmission,
       and the transcript reconciles against what was sent (`ARC-8`).
 - [ ] **CNF-31 · PRE-SCALE** A scoped call is sent with redirect following disabled, and a

@@ -330,6 +330,11 @@ authority is per clause and this structure is not one. -/
   stands". Without it any reset is the reinstall. Its pair is `reset_without_rescue_refused` /
   `reset_without_rescue_admitted`. -/
   resetIntoRescueOnly : Bool := true
+  /-- `STA-24`: "while the newest read of that activation still confirms it". The companion
+  reads which admissible activation observation is newest in the journal before the reset's
+  intent; it does not carry the duty to read again, which is `STG-4`'s. Its pair is
+  `spent_activation_not_counted` / `spent_activation_counted_without_guard`. -/
+  newestActivationRead : Bool := true
   /-- `STA-24`: "every call it names MUST be unresolved, on the disposition's own resource, in
   the journal as it stands before the disposition". Without the resource a disposition is matched
   to a call by call id alone, and one recorded against a machine ends a call on another. Its
@@ -439,23 +444,31 @@ registration where one is owed — are admitted and do not end the restriction",
 reinstall is dispatched at is "a reset dispatched after that rescue activation is confirmed".
 *That* rescue activation is one admitted while this disposition stands: an activation naming the
 machine whose intent is newer than the standing disposition's record, that is confirmed, and that
-no reset intent on the machine follows. An activation confirmed before the disposition, or
+no reset intent on the machine follows. It counts only while the newest admissible `.activate`
+observation on the resource, journaled before the reset's intent at its dispatch check, still
+confirms it. This is a read of the activation predicate, not the reset's `/rescue/last` predicate.
+A read whose append failed is absent; a later read after the reset's intent cannot change where
+`standingIn` ended the restriction. The companion reads which read is newest, and does not carry
+the duty to read again, which is `STG-4`'s. An activation confirmed before the disposition, or
 dispatched under a disposition since replaced, does not count: the scan stops at the newest
 disposition on the resource, which is the standing one, so the reset is refused and a new
 activation is admitted. -/
 @[req "STA-24"] def rescueConfirmed (p : Params) (e : Journal) (r : Resource) : Bool :=
-  go (e.takeWhile fun rec => !disposes r rec)
+  go none (e.takeWhile fun rec => !disposes r rec)
 where
-  go : Journal → Bool
+  go (read : Option Standing) : Journal → Bool
     | [] => false
     | .intent i :: rest =>
       if i.resource == r && i.kind == .reset then false
-      else if i.resource == r && i.kind == .activate && !unresolvedIn p e r i.call then true
-      else go rest
-    | .observation _ :: rest => go rest
-    | .disposition _ :: rest => go rest
-    | .association _ _ :: rest => go rest
-    | .resetPrereqs _ :: rest => go rest
+      else if i.resource == r && i.kind == .activate && !unresolvedIn p e r i.call then
+        !p.newestActivationRead || (match read with | some s => confirms p s | none => false)
+      else go read rest
+    | .observation o :: rest =>
+      go (if read.isNone && admissible o && o.resource == r && o.kind == .activate
+          then some o.standing else read) rest
+    | .disposition _ :: rest => go read rest
+    | .association _ _ :: rest => go read rest
+    | .resetPrereqs _ :: rest => go read rest
 
 /-- Whether an operation is the one a continuation is dispatched at, read in the journal before
 it. `STA-24`: a continuation "is dispatched at the one that changes what the machine is running".
@@ -497,7 +510,9 @@ restriction of a standing disposition whose continuation is `c`. -/
 journal `inEffect` has read. `STA-24`: "One disposition stands per resource, the latest", and
 "The restriction ends when the continuation it names is dispatched" — at that intent and at no
 other record: "An operation outside that reach is neither restricted by it nor ends it", and
-evidence arriving afterwards "neither reopens the call nor removes the disposition". -/
+evidence about the calls the disposition names arriving afterwards "neither reopens the call nor
+removes the disposition". Activation reads before a reset's intent determine which reset counts
+in `lapsesAt`; observations after that intent do not change its lapse. -/
 def standingIn (p : Params) (r : Resource) : Journal → Option (Disposition × Journal)
   | [] => none
   | .disposition d :: rest => if d.resource == r then some (d, rest) else standingIn p r rest
@@ -1356,6 +1371,25 @@ def ceremonyEvents : List Event :=
    .observe .pinCheckedHandshake machineA .reset true,
    .request execRequest2 approvalExec true]
 
+/-- The activation confirmed under the reinstall disposition. -/
+def spentActivationStartEvents : List Event :=
+  reinstallStandingEvents ++ [.request activateRequest approvalActivate true,
+    .observe .adapterRead machineA .activate true]
+
+/-- A later read that does not confirm the activation, then the reset attempted under it. -/
+def spentActivationReadEvents : List Event :=
+  [.observe .adapterRead machineA .activate true, .request resetRequest2 approvalReset true]
+
+/-- A fresh activation confirmed, followed by the reset into rescue. -/
+def freshActivationEvents : List Event :=
+  [.request activateRequest2 approvalActivate true, .observe .adapterRead machineA .activate true,
+   .request resetRequest5 approvalReset true]
+
+/-- Reports nothing about the activation. `nothing` asserts no negative outcome; the earlier
+confirmation keeps the activation call terminal. -/
+def activationNotConfirmed : Far :=
+  { farDone with succeeded := farDone.succeeded.filter fun rk => rk != (machineA, .activate) }
+
 def onCall : Params := { current with resourceKey := .call }
 def onIndex : Params := { current with resourceKey := .index }
 def noDurability : Params := { current with durableBeforeApply := false }
@@ -1368,6 +1402,7 @@ def noDestructiveStop : Params := { current with destructiveStops := false }
 def lapseAnyIntent : Params := { current with lapse := .anyIntent }
 def lapseFirstOperation : Params := { current with lapse := .firstOperation }
 def anyResetReinstalls : Params := { current with resetIntoRescueOnly := false }
+def staleActivationCounts : Params := { current with newestActivationRead := false }
 def dispositionByCallId : Params := { current with dispositionOwnResource := false }
 
 /-- A journal a replay finds, which no trace of `step` under the rules in force can write: the
@@ -1487,6 +1522,27 @@ command after it is still refused and the disposition still stands. -/
     w.dispatched.map (·.call) = [13, 1] ∧
     w.verdict = some (.refused (.continuation .abandon)) ∧
     restriction current w.memory machineA = some .abandon := by decide +kernel
+
+/-- The operation kinds an intent may carry, exhausted by `kinds_total`. -/
+def kinds : List Kind :=
+  [.create, .reset, .reinstall, .destroy, .activate, .registerKey, .exec, .read, .inference]
+
+@[req "STA-24"] theorem kinds_total : ∀ k, k ∈ kinds := by intro k; cases k <;> decide
+
+/-- **Abandonment ends at its destroy alone among operation kinds.** Read `restriction` over the
+journal with an intent appended: the appended destroy is the abandonment flow's destroy as the
+journal holds it, and only its resource and kind are read. This runs no request through `admit`
+or `step` and admits no model's request for a destroy: `ARC-21` runs abandonment "never through a
+session", and `STA-24` says "A model's request for either is not made admissible by this". The
+other intent fields are inert here and carry nothing of who sends a request. A replacement
+can still end the abandonment: it is a disposition, not an operation kind. -/
+@[req "STA-24"] theorem abandonment_ends_at_its_destroy_alone : ∀ k ∈ kinds,
+    let w := run current farDone.external init (abandonReadEvents.take 2)
+    (k = .destroy → restricted current w.memory machineA k = none) ∧
+    restriction current
+      (.intent { call := 0, target := .entry entryA, resource := machineA, kind := k,
+                 session := 0, approval := ⟨0, 0⟩ } :: w.memory) machineA =
+      (if k = .destroy then none else some .abandon) := by decide +kernel
 
 /-- With the restriction ended at any later intent, the read's own intent ends it: the command
 goes out to a machine the operator chose to abandon. -/
@@ -1627,7 +1683,7 @@ either entry, and the command is refused by the reset's barrier. -/
     restriction current w.memory machineB = none ∧
     w.verdict = some (.refused (.barrier [1])) := by decide +kernel
 
-/-- **Evidence after a disposition changes nothing else.** The reset is disposed naming
+/-- **Evidence about a disposed call changes nothing else.** The reset is disposed naming
 abandonment, and a vendor read then reports that it succeeded. The read is journaled; the call
 was terminal already, the disposition still stands, and the command is still refused under it. -/
 @[req "STA-24"] theorem evidence_after_disposition_changes_nothing :
@@ -1652,6 +1708,35 @@ the installed system and hands back the machine the operator chose to wipe. -/
     let w := run anyResetReinstalls farDone.external init strayResetEvents
     w.dispatched.map (·.call) = [2, 1] ∧
     restriction anyResetReinstalls w.memory machineA = none := by decide +kernel
+
+/-- **An activation whose newest read does not confirm it is not counted.** Chained runs use
+per-segment far sides because `External.reports` is fixed within one run; each read journals only
+its own report. The middle segment reports `nothing`, asserting no external event or negative
+outcome. The activation remains terminal, but the reset is refused by the standing reinstall
+disposition. A fresh activation confirmed admits the later reset and ends the restriction. -/
+@[req "STA-24"] theorem spent_activation_not_counted :
+    let activated := run current farDone.external init spentActivationStartEvents
+    let refused := run current activationNotConfirmed.external activated spentActivationReadEvents
+    let fresh := run current farDone.external refused freshActivationEvents
+    refused.dispatched.map (·.call) = [10, 1] ∧
+    refused.verdict = some (.refused (.continuation .reinstall)) ∧
+    restriction current refused.memory machineA = some .reinstall ∧
+    !unresolvedIn current (inEffect current refused.memory) machineA activateRequest.call = true ∧
+    fresh.dispatched.map (·.call) = [18, 16, 10, 1] ∧
+    (fresh.verdict matches some (.dispatched _)) ∧
+    restriction current fresh.memory machineA = none := by decide +kernel
+
+/-- With the newest-read guard off, the same chained trace dispatches the reset as the
+continuation despite a newest activation read reporting `nothing`. Chained runs keep the changing
+reports on reads alone, as in `spent_activation_not_counted`; they claim no external outcome. -/
+@[req "STA-24"] theorem spent_activation_counted_without_guard :
+    let activated := run staleActivationCounts farDone.external init spentActivationStartEvents
+    let w := run staleActivationCounts activationNotConfirmed.external activated spentActivationReadEvents
+    let fresh := run staleActivationCounts farDone.external w freshActivationEvents
+    w.dispatched.map (·.call) = [2, 10, 1] ∧
+    (w.verdict matches some (.dispatched _)) ∧
+    restriction staleActivationCounts w.memory machineA = none ∧
+    fresh.dispatched.map (·.call) = [2, 10, 1] := by decide +kernel
 
 /-- **The preparation is admitted and does not end the restriction.** Under a disposition naming
 a destructive reinstall the rescue activation is dispatched, the disposition still stands, and
