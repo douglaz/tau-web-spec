@@ -293,7 +293,8 @@ confirmed and while the newest read of that activation still confirms it. `CHN-R
 plain rescue endpoint "reports inactive and empty once the boot has consumed the activation":
 a confirmation already given can be stale. The newest read is the read of the activation
 predicate (`STG-4`), `GET /boot/{n}/rescue`, journaled before the reset's intent at its dispatch
-check, not a read of `/rescue/last`. A read whose append failed is not in the journal (`STA-3`)
+check, not a read of `/rescue/last`. The duty to read the activation again is `STG-4`'s.
+A read whose append failed is not in the journal (`STA-3`)
 and cannot be the newest read; reads after the reset's intent are irrelevant, since from that
 intent the restriction has ended. A read that does not confirm the activation, inactive or one
 that tells nothing, leaves it not counted: it settles nothing and reopens nothing, and the
@@ -302,7 +303,8 @@ rescue follows. Any other reset is refused while the disposition stands: with no
 activation it boots the installed system and would hand the machine back. A later read that
 confirms it, or a fresh activation confirmed, admits the reset. A reboot between that read and
 the reset is bounded by the pin check, and this window is not closed: the reset's own
-confirmation never holds if `/rescue/last` still has the pre-reset snapshot's keys. If the
+confirmation never holds, and its barrier stands, if `/rescue/last` still has the pre-reset
+snapshot's keys. If the
 unrequested boot publishes fresh keys after that snapshot but before the harness's reset lands,
 those keys can satisfy the disjoint-key predicate; the pinned SSH attempt remains the bound.
 If the activation itself goes unresolved, its own barrier refuses the reset, the disposition
@@ -316,9 +318,10 @@ from the hold below, it covers a machine with a disposed call and nothing else; 
 abandoned setup permits afterwards, and that the flow runs outside any session, are `ARC-21`'s,
 `ARC-22`'s and `STA-18`'s. A continuation that continues has no operation to be dispatched at:
 it stands, restricting nothing, until the operator replaces it. Evidence about the calls the
-disposition names that arrives after it is journaled and shown and changes nothing else: it
+disposition names that arrives after it is journaled and shown: it
 neither reopens the call nor removes the disposition, which stands until its continuation is
-dispatched or the operator replaces it.
+dispatched or the operator replaces it. A read of the activation now decides which reset counts
+(above), whatever call it also bears on; it still reopens nothing and removes nothing.
 
 **On replay.** A disposition found in a replayed journal (`STA-7`) that the test above — what a
 disposition may name, the replacement's exception included — would have refused is read as if
@@ -426,8 +429,8 @@ its last clause. Each guard is a parameter with its pair:
   `TauWeb.Dispatch.disposition_ends_call_elsewhere_without_guard`.
 
 `TauWeb.Dispatch.replayed_invalid_disposition_means_nothing` is the replay, and
-`TauWeb.Dispatch.evidence_after_disposition_changes_nothing` the evidence that arrives
-afterwards. Decided beside them, with no parameter of their own, are
+`TauWeb.Dispatch.evidence_after_disposition_changes_nothing` that later evidence neither reopens
+a disposed reset nor removes its disposition. Decided beside them, with no parameter of their own, are
 `TauWeb.Dispatch.disposition_names_at_least_one_call` and
 `TauWeb.Dispatch.disposition_names_every_call_unresolved` for what a disposition may name;
 `TauWeb.Dispatch.activation_before_disposition_not_counted` and

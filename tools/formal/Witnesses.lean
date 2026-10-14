@@ -653,7 +653,8 @@ structure Trace where
   events : List TauWeb.Dispatch.Event
   params : TauWeb.Dispatch.Params := TauWeb.Dispatch.current
   /-- What the far side reports for this trace; never in the file, since a witness carries no
-  claim about external state (ADR-0032). What a read reported is on the read's own event. -/
+  claim about external state (ADR-0032). What a read reported is on the read's own event.
+  Ignored when `segments` is non-empty. -/
   far : Far := farDone
   /-- Optional segments for changing reports. Each read emits its own report; segment far
   sides are internal to emission and add no member to the witness file. -/

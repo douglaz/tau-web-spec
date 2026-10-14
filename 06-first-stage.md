@@ -252,16 +252,16 @@ zone-less local time, so neither can be compared to the browser's intent. The pr
   (`STA-24`), and an unresolved registration blocks the activation that would name the
   fingerprint.
 
-Immediately before the reset into rescue at which a standing disposition's destructive
-reinstall is dispatched (`STA-24`), the harness MUST read the activation predicate again and
-durably journal the read (`STA-3`); only a re-read the journal holds discharges this duty. This
-duty does not extend to the ordinary install ceremony's reset into rescue with no disposition.
-
 **None of these has a negative form.** A rescue sshd still answering after the reset call shows
 the reset has not landed, not that it will not; `/rescue/last` unchanged means the same. "It
 did not happen" is therefore always the operator's disposition (`STA-24`) and never evidence,
 and whether a Robot reset can be delayed or dropped is not known: the rehearsal's three cycles
 at about eighty seconds are the only data.
+
+Immediately before the reset into rescue at which a standing disposition's destructive
+reinstall is dispatched (`STA-24`), the harness MUST read the activation predicate again and
+durably journal the read (`STA-3`); only a re-read the journal holds discharges this duty. This
+duty does not extend to the ordinary install ceremony's reset into rescue with no disposition.
 
 Anything not confirmed stays unresolved under `STA-8` and the operator decides; the adapter is
 reconcile-before-retry (`STA-5`), and a second request for the same mutation under a new call

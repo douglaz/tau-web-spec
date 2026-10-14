@@ -1385,7 +1385,7 @@ def freshActivationEvents : List Event :=
   [.request activateRequest2 approvalActivate true, .observe .adapterRead machineA .activate true,
    .request resetRequest5 approvalReset true]
 
-/-- Reports nothing about the activation. `nothing` asserts no negative outcome; the earlier
+/-- Reports nothing about the activation. `unknown` asserts no negative outcome; the earlier
 confirmation keeps the activation call terminal. -/
 def activationNotConfirmed : Far :=
   { farDone with succeeded := farDone.succeeded.filter fun rk => rk != (machineA, .activate) }
@@ -1531,8 +1531,8 @@ def kinds : List Kind :=
 
 /-- **Abandonment ends at its destroy alone among operation kinds.** Read `restriction` over the
 journal with an intent appended: the appended destroy is the abandonment flow's destroy as the
-journal holds it, and only its resource and kind are read. This runs no request through `admit`
-or `step` and admits no model's request for a destroy: `ARC-21` runs abandonment "never through a
+journal holds it, and only its resource and kind are read. The appended intent goes through neither
+`admit` nor `step`; no model's request for a destroy is admitted: `ARC-21` runs abandonment "never through a
 session", and `STA-24` says "A model's request for either is not made admissible by this". The
 other intent fields are inert here and carry nothing of who sends a request. A replacement
 can still end the abandonment: it is a disposition, not an operation kind. -/
@@ -1683,7 +1683,7 @@ either entry, and the command is refused by the reset's barrier. -/
     restriction current w.memory machineB = none ∧
     w.verdict = some (.refused (.barrier [1])) := by decide +kernel
 
-/-- **Evidence about a disposed call changes nothing else.** The reset is disposed naming
+/-- **Evidence about a disposed reset neither reopens it nor removes its disposition.** The reset is disposed naming
 abandonment, and a vendor read then reports that it succeeded. The read is journaled; the call
 was terminal already, the disposition still stands, and the command is still refused under it. -/
 @[req "STA-24"] theorem evidence_after_disposition_changes_nothing :
@@ -1711,7 +1711,7 @@ the installed system and hands back the machine the operator chose to wipe. -/
 
 /-- **An activation whose newest read does not confirm it is not counted.** Chained runs use
 per-segment far sides because `External.reports` is fixed within one run; each read journals only
-its own report. The middle segment reports `nothing`, asserting no external event or negative
+its own report. The middle segment reports `unknown`, asserting no external event or negative
 outcome. The activation remains terminal, but the reset is refused by the standing reinstall
 disposition. A fresh activation confirmed admits the later reset and ends the restriction. -/
 @[req "STA-24"] theorem spent_activation_not_counted :
@@ -1727,7 +1727,7 @@ disposition. A fresh activation confirmed admits the later reset and ends the re
     restriction current fresh.memory machineA = none := by decide +kernel
 
 /-- With the newest-read guard off, the same chained trace dispatches the reset as the
-continuation despite a newest activation read reporting `nothing`. Chained runs keep the changing
+continuation despite a newest activation read reporting `unknown`. Chained runs keep the changing
 reports on reads alone, as in `spent_activation_not_counted`; they claim no external outcome. -/
 @[req "STA-24"] theorem spent_activation_counted_without_guard :
     let activated := run staleActivationCounts farDone.external init spentActivationStartEvents
