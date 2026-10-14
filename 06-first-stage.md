@@ -258,6 +258,11 @@ did not happen" is therefore always the operator's disposition (`STA-24`) and ne
 and whether a Robot reset can be delayed or dropped is not known: the rehearsal's three cycles
 at about eighty seconds are the only data.
 
+Immediately before the reset into rescue at which a standing disposition's destructive
+reinstall is dispatched (`STA-24`), the harness MUST read the activation predicate again and
+durably journal the read (`STA-3`); only a re-read the journal holds discharges this duty. This
+duty does not extend to the ordinary install ceremony's reset into rescue with no disposition.
+
 Anything not confirmed stays unresolved under `STA-8` and the operator decides; the adapter is
 reconcile-before-retry (`STA-5`), and a second request for the same mutation under a new call
 id is refused while the first is unresolved (`STA-24`). `STG-11` is the test, and `CNF-38` lists its cases. The host

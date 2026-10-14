@@ -777,7 +777,9 @@ flow** `STA-18` already defines, before or outside any session, never through a 
 session's typed operations reach the machines of its own bound set and nothing else (`SEC-4`,
 `CNF-26`), so no session can destroy a machine outside its set, and borrowing one to do so would
 be reach `SEC-1` does not grant. Against a machine with an unresolved call it is an operator disposition (`STA-24`),
-recorded as one and never as evidence of what the call did.
+recorded as one and never as evidence of what the call did. Under an untyped vendor scope the
+harness has no cloud-plane operation to carry it out with and hands the act to the operator, at
+the vendor by hand; what holds meanwhile is `STA-24`'s.
 
 **ARC-22** An unfinished setup MUST own the first screen. Nothing runs while the app is
 closed and no push channel exists, so the moment the app opens is the only moment the
@@ -786,7 +788,8 @@ Resume-or-abandon *is* the opening screen, not a badge: it shows roughly what ha
 billed so far and what it bills per month until finished or abandoned. After roughly a week
 without progress the emphasis flips and abandonment leads. Abandonment destroys every
 machine of the setup through typed operations where the vendor offers the operator a destroy route; the
-LNVPS treatment below applies where it does not. The screen states plainly what stops
+LNVPS treatment below applies where it does not, and under an untyped vendor scope, which has no
+typed operation, the harness hands the destruction to the operator (`STA-24`). The screen states plainly what stops
 billing on confirmed destruction — the machines — and what does not: the vendor accounts
 themselves. It names every
 machine carrying an unresolved call and what that call was, and it says of an unresolved

@@ -121,7 +121,7 @@ _Avoid_: example (a witness is checked; an example is illustrated), sample, test
 **Witness file** · ADR-0032
 The companion's serialized witnesses and bounded traces for one module, one file under
 `docs/design/` — `allocation-witnesses-v1.json`, `declaration-witnesses-v1.json`,
-`relay-witnesses-v1.json`, `dispatch-witnesses-v1.json` and `pins-witnesses-v4.json`, with
+`relay-witnesses-v1.json`, `dispatch-witnesses-v2.json` and `pins-witnesses-v4.json`, with
 `witness-file-v1.md` describing their schemas — emitted by `lake exe witnesses` and held equal to the emission by
 `tools/check_witnesses.py`. Future implementation tests are to read them from the pinned tree;
 nothing outside this repository reads witness files today. Never compiled into the build. It
@@ -310,10 +310,24 @@ _Avoid_: target (that is a scan's word), machine where the entry is meant, "reso
 vendor's sense of one API object
 
 **Disposition** · `STA-24`
-The operator's record that permits one named continuation past an unresolved call while the
-call's outcome stays unknown. Distinct from evidence, which resolves; a disposition resolves
-nothing.
+The operator's record that ends the unresolved state of the calls it names while their outcome
+stays unknown, and names the **continuation** the operator chose. It restricts what those calls
+barred — its **reach** — and stands until that continuation is dispatched or the operator
+replaces it; one stands per resource, the latest. Distinct from evidence, which resolves; a
+disposition resolves nothing, and evidence arriving later does not remove one.
 _Avoid_: override, resolution, "mark as done" (a disposition marks nothing done)
+
+**Continuation** · `STA-24`
+What a disposition names, chosen by the operator from four: a destructive reinstall,
+abandonment, continuing as if done, continuing as if not done. The first two are
+**destructive**: each permits only its own flow, which can take several operations and is
+dispatched at the one that changes what the machine is running, and each stops the model's
+box-plane commands. The two that continue record what the operator assumed and restrict
+nothing.
+_Avoid_: next step, retry (a re-issue under a continuation that continues is the operator's
+choice and never automatic), recovery flow (the operator names a choice; the flow it stands for,
+and that flow's steps, belong to its owner), scope for how far a disposition goes (that is its
+reach; *scope* is the credential's)
 
 **Job record** · `STA-20`, `STA-21`
 What the machine keeps about one box-plane command: the command **as received**, its output, its

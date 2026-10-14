@@ -216,7 +216,15 @@ gated on it.
       - **The untyped vendor scope's remaining edges.** `STA-24` keys an untyped call's barrier
         on "the same origin and credential", so a rotated token at the same origin starts with
         none. `ARC-22`'s abandonment destroys "through typed operations", which an untyped
-        vendor has none of. A vendor with no adapter that refuses a browser origin is out of
+        vendor has none of. *Decided 2026-10-13 (`STA-24`, ADR-0044), the hold and nothing
+        more:* a disposition on such a scope naming a destructive reinstall or abandonment
+        refuses every further call under the scope and keeps the model's box-plane commands to
+        the machines of the session's bound set at that vendor stopped until the operator
+        replaces it; the screen says beforehand that the harness cannot carry the choice out
+        there and that the operator acts at the vendor by hand; and `ARC-21` and `ARC-22` hand
+        the act to the operator. Still open: how a reinstall or an abandonment is carried out
+        by hand at such a vendor and what records it, the hold across a re-approved scope or a
+        rotated token, and a scope that is not a vendor's. A vendor with no adapter that refuses a browser origin is out of
         reach until `CHN-12b` exists. And under such a scope the target's address arrives in a
         response the model reads, while `CHN-R6` wants it read by harness code.
       - **Host keys baked into a stock image.** `CHN-R6` lists them as a residual. Whether a
@@ -348,6 +356,32 @@ gated on it.
       lattice, which keeps a changed boot ID below success; and the disposition's binding to the
       one continuation it names. `docs/design/dispatch-witnesses-v1.json` is its file; the
       controls switch the key to the call id and add an operation with no plane.
+      *Amended 2026-10-13 with `STA-24`'s disposition rule (ADR-0044).* The continuation is
+      `TauWeb.Dispatch.Continuation`, the operator's four choices, and no longer an operation.
+      A disposition is recorded only where `TauWeb.Dispatch.acceptable` accepts it against the
+      journal before it, and `TauWeb.Dispatch.inEffect` reads a journal by the same test, so a
+      disposition matched to a call by call id alone is gone. What a standing one restricts is
+      `TauWeb.Dispatch.restricted`: `TauWeb.Dispatch.reaches` over the disposed calls,
+      `TauWeb.Dispatch.permits` and `TauWeb.Dispatch.stops`. It stands, as
+      `TauWeb.Dispatch.standing`, until `TauWeb.Dispatch.dispatchesContinuation`, and no longer
+      until any later intent. Two statements changed deliberately:
+      `TauWeb.Dispatch.dispatched_only_if`'s last clause, which concluded that every dispatch
+      under a standing disposition is the continuation it names, is restated over the reach,
+      with `TauWeb.Dispatch.read_and_inference_unrestricted` new beside it; and
+      `TauWeb.Dispatch.bounded` decides `TauWeb.Dispatch.unresolvedTogether`, since the
+      declaration it decided before was false of an activation unresolved beside a box-plane
+      command, a journal the enumeration reaches now that its alphabet holds an activation.
+      The parameters added are `reach`, `lapse`, `destructiveStops`, `resetIntoRescueOnly` and
+      `dispositionOwnResource`, each with the pair `STA-24` cites. Decided with no parameter of
+      their own, each red when its clause is removed, are
+      `TauWeb.Dispatch.disposition_names_at_least_one_call`,
+      `TauWeb.Dispatch.disposition_names_every_call_unresolved`,
+      `TauWeb.Dispatch.reinstall_does_not_refuse_key_registration`,
+      `TauWeb.Dispatch.activation_before_disposition_not_counted` and
+      `TauWeb.Dispatch.activation_under_replaced_disposition_not_counted`.
+      `docs/design/dispatch-witnesses-v2.json` replaces the v1 file, as schema 2; the controls
+      are the `dispatch_control` calls in `tools/check-controls.sh`, each with its exact red
+      set. The untyped scope, its pause and its hold stay outside the module.
 - [x] **T36 — Formal companion, module 5: the host-pin lifecycle** (ADR-0032's inventory;
       `SEC-11`, `CHN-R1`, `ARC-43`, with `STA-20b`'s resume rule and `STG-4`'s third
       confirmation predicate). Landed 2026-09-20 in `tools/formal/TauWeb/Pins.lean`: what a pin

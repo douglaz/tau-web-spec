@@ -527,8 +527,14 @@ evidence is that set's test run against the relay the harness uses.
       (`SEC-13`). Money out.
 - [ ] **CNF-105 · BLOCKING** While a call under an untyped vendor scope is open or unresolved,
       no box-plane command is dispatched to any machine of the session's bound set at that
-      vendor, until the call's terminal record or the operator's disposition (`STA-24`).
-      Verified by withholding a vendor response and requesting a disk-writing command.
+      vendor, until the call's terminal record (`STA-24`). Where that record is a disposition
+      that continues, the pause ends. Where it names a destructive reinstall or abandonment,
+      every further call under the scope is refused and the model's box-plane commands to those
+      machines stay stopped until the operator replaces the disposition; acting at the vendor
+      by hand releases nothing; and before either destructive choice the screen says that the
+      harness cannot carry it out there and that the operator acts at the vendor by hand.
+      Verified by withholding a vendor response and requesting a disk-writing command, then
+      disposing each way and requesting a further call and the command again.
       Destroyed data: no adapter says which call reinstalls the machine being written.
 - [ ] **CNF-106 · BLOCKING** The untyped vendor scope's card asks the operator's questions
       in `SEC-4`'s words, once, when the key is supplied, with nothing preselected. "Not sure"
@@ -552,12 +558,51 @@ evidence is that set's test run against the relay the harness uses.
       dedicated path's case; a read against the resource is not (`STA-24`).
       A second allocation index for the same approved machine entry does not evade the
       refusal; a different approved entry remains permitted. A status read whose journal
-      append fails leaves the barrier standing; an operator disposition permits only the
-      continuation it names and keeps the outcome unknown. Verified with a lost response to a
+      append fails leaves the barrier standing; an operator disposition ends the unresolved
+      state of the calls it names and keeps their outcome unknown; what it restricts afterwards
+      is `STA-24`'s, and `CNF-110` tests it. Verified with a lost response to a
       Robot reset followed by the model requesting the reset again. Money out and destroyed
       data: an autonomous caller must not turn a lost response into another wipe or another
       purchase. Stage 1: the create, box-plane and inference cases; the Robot cases run on the
       dedicated test bed; the untyped-scope cases pass before that capability is enabled.
+- [ ] **CNF-110 · BLOCKING** A standing operator disposition restricts what the calls it names
+      barred and, under a destructive continuation, the model's box-plane commands to the
+      machine, and apart from the untyped-scope hold (`CNF-105`) nothing else (`STA-24`).
+      With a call that changes what the machine is running
+      left unresolved and disposed: a box-plane command to that machine, a harness-owned job the
+      model requests included, is refused under a destructive reinstall and under abandonment, and so is every cloud-plane operation the
+      continuation does not permit; under either continuation that continues the command is
+      dispatched, and so is the same operation requested again under a fresh call id where no
+      other call is unresolved, and the operator's recorded assumption is shown and never
+      written as an outcome. With an
+      unresolved activation, key registration or create disposed to continue, a box-plane
+      command is dispatched; with any call disposed toward a destructive reinstall or
+      abandonment, an unresolved box-plane command or activation included, the model's command
+      is refused. In every case a status read, a pinned SSH attempt, the collection of job
+      records and the inference request are dispatched and do not end the restriction: the
+      model's command that the disposition refused before one is refused after it.
+      The restriction ends at the dispatch of
+      the continuation and not before: from that intent the call's own barrier refuses, and
+      nothing is refused under the disposition. A disposition naming no call, a call already
+      settled, or a call on another resource is refused, journals nothing, and shows the
+      operator the refusal, the record that settled the call if one did, and what is unresolved
+      now; one naming some of several unresolved calls leaves the others barring. A replacement
+      naming the calls the standing disposition disposed is accepted, the operator is shown what
+      it replaces, and the continuation in force is then the replacement's: with a destructive
+      reinstall replaced by abandonment, the reinstall is refused. A replayed journal that
+      already holds a disposition this test refuses ends no call and restricts nothing, and the
+      record is shown; a valid replacement is still the one in force after a restart (`STA-7`).
+      Evidence appended after a disposition about a call it disposed neither reopens that call
+      nor removes the disposition; a read of the rescue activation decides which reset counts
+      (`STA-24`). Destroyed
+      data and money out: a command writes the disks of a machine the operator chose to wipe or
+      abandon, or a status read hands that machine back to the session. Stage 1: the cases a
+      vendor reinstall call, a create, a box-plane command and the inference request reach; the
+      reset into rescue — the rescue activation and a key registration admitted without ending
+      the restriction; a reset with no confirmed rescue activation refused; after confirmation,
+      a reset whose newest journaled activation read reports it inactive refused with the
+      disposition still standing; and a reset after a re-read that confirms it admitted and
+      ending the restriction — runs on the dedicated test bed; the untyped-scope hold is `CNF-105`.
 - [ ] **CNF-30 · BLOCKING** Box-plane commands are recorded per command before transmission,
       and the transcript reconciles against what was sent (`ARC-8`).
 - [ ] **CNF-31 · PRE-SCALE** A scoped call is sent with redirect following disabled, and a
@@ -828,6 +873,10 @@ Not pass/fail. Required to be recorded.
       not on reconnection. Force an unexpected rescue reboot: a changed boot ID establishes
       that the old command ended while its effects and exit status remain unresolved, until
       inspection or explicit disposition, never automatic re-execution (`STA-20b`, `STA-24`).
+      With one command of two left unresolved in rescue and disposed toward a destructive
+      reinstall, the return to rescue waits for the other command and collects its record, and
+      does not wait for the disposed one or require its record; the reset into rescue is
+      dispatched with its intent recorded and no installed pins.
       Destroyed-data.
 - [ ] **CNF-87 · BLOCKING** The first-stage relay is a paid-tcp-relay relay with a hand-recorded
       pass (its `PAS-6`): it passes that set's handshake items — fresh challenge, unknown key and
@@ -849,13 +898,13 @@ promotion rule above.
 
 | Applies when | CNF items | Interpretation |
 |---|---|---|
-| Stage 1: required | 1–7, 10–17, 21, 23–26, 28–30, 32, 34–35, 37, 39–44, 49–56, 66–73, 78–79, 81–83, 87–91, 93–95, 99–104, 109 | One live LNVPS machine on catalogue plain Arch with no tenant, an initial session from the owner's goal and the later session `STG-9` requires (item 108) with a goal of its own, created through a typed adapter. First contact uses `CHN-R7`'s published-key route; item 23 requires no contact during its wait and item 109 requires admission, freshness, pin checking and disclosure on the integrated harness. Synthetic unbound identities exercise 6 and 26. Item 7's growth and subset cases, and item 91's two-machine case, use fixtures until stage 2. Item 12 is exercised with a hostile goal and a hostile fetched document; its untyped-scope restatement, and item 14's, wait for stage 2. Item 14 covers any root password the typed adapter's response carries. Item 23 covers unpinned-first-contact refusal; its attest-window case applies where attest is enabled, and its jump-host label waits for stage 2. Items 18 and 61 remain route-specific attest checks, required before enabling that route, not stage-1 requirements. Items 24 and 66 apply wherever the installation is pinned, and item 67's and item 93's unpinned cases wherever it is not; NixOS evidence is required before enabling NixOS. Interrupted resume (`STG-12`) is carried here by items 37, 39, 40 and 54–56; item 86's cases are a rescue boot's, and stay the test bed's. Item 95's cases all require integrated evidence (`OPN-28`). Item 50 covers the delivery check; its scanner half waits for scanner enablement. Item 10 covers local ledger persistence; its sheet-export half is the recovery row's. Item 72 covers local allocation; imported-state cases are 84. Item 81's migration case waits for self-host migration, which no stage yet offers. Item 32 covers the typed adapter's origin. Items 68–71, 78 and 88–90 apply to the procured inference path; bring-your-own and local inference have no aggregator to test. Item 88 uses injected list fixtures the way 17 uses an injected response. Item 42 covers placed secrets; its untyped-scope half waits for stage 2. Item 104 covers the LNVPS invoice and `ARC-30`'s TLS provenance, with no exemption; its untyped-scope case belongs to the stage-2 row. |
+| Stage 1: required | 1–7, 10–17, 21, 23–26, 28–30, 32, 34–35, 37, 39–44, 49–56, 66–73, 78–79, 81–83, 87–91, 93–95, 99–104, 109–110 | One live LNVPS machine on catalogue plain Arch with no tenant, an initial session from the owner's goal and the later session `STG-9` requires (item 108) with a goal of its own, created through a typed adapter. First contact uses `CHN-R7`'s published-key route; item 23 requires no contact during its wait and item 109 requires admission, freshness, pin checking and disclosure on the integrated harness. Synthetic unbound identities exercise 6 and 26. Item 7's growth and subset cases, and item 91's two-machine case, use fixtures until stage 2. Item 110 runs here the cases its own text assigns to stage 1. Item 12 is exercised with a hostile goal and a hostile fetched document; its untyped-scope restatement, and item 14's, wait for stage 2. Item 14 covers any root password the typed adapter's response carries. Item 23 covers unpinned-first-contact refusal; its attest-window case applies where attest is enabled, and its jump-host label waits for stage 2. Items 18 and 61 remain route-specific attest checks, required before enabling that route, not stage-1 requirements. Items 24 and 66 apply wherever the installation is pinned, and item 67's and item 93's unpinned cases wherever it is not; NixOS evidence is required before enabling NixOS. Interrupted resume (`STG-12`) is carried here by items 37, 39, 40 and 54–56; item 86's cases are a rescue boot's, and stay the test bed's. Item 95's cases all require integrated evidence (`OPN-28`). Item 50 covers the delivery check; its scanner half waits for scanner enablement. Item 10 covers local ledger persistence; its sheet-export half is the recovery row's. Item 72 covers local allocation; imported-state cases are 84. Item 81's migration case waits for self-host migration, which no stage yet offers. Item 32 covers the typed adapter's origin. Items 68–71, 78 and 88–90 apply to the procured inference path; bring-your-own and local inference have no aggregator to test. Item 88 uses injected list fixtures the way 17 uses an injected response. Item 42 covers placed secrets; its untyped-scope half waits for stage 2. Item 104 covers the LNVPS invoice and `ARC-30`'s TLS provenance, with no exemption; its untyped-scope case belongs to the stage-2 row. |
 | Stage 1: record measurements | 45–47 | Require the integrated browser channel, not the rehearsal's timings. |
 | Stage 1: model-written check reports | 107 | The report label, verdict isolation and absence of automatic re-execution are required before stage 1 completes. |
 | Stage 1: re-entry | 108 | `STG-9`'s later session, re-entering over the same pin and re-running the check, is required before stage 1 completes. Item 93's re-entry case runs with it, using a placement or rotation in the re-entering session. |
 | Stage 1: recovery export/import and Replace | 19–20, 84 | Before maintained cloud delivery: export, Restore, allocation refusal, cloud destroy/recreate and partial-Replace cases pass, with item 10's export case. At LNVPS, `ARC-22` owns both forms: a destroy is a stop with renewal off, and a recreate is a reinstall that is a new first contact and cannot reuse the old pin. Item 84 checks `CHN-R7` provenance, earlier and refused publication knowledge, and pending pin retirement through sheet export and Restore; item 109 checks fresh admission after reinstall. Item 20 uses the manual publisher-confirmed pass retirement/enrollment route. Only item 84's Robot rescue case waits for the dedicated row; signed pass revocation waits for the paid/public row. |
 | Attest first-contact route | 18, 23 (attest-window case), 61, 74–75 | Before enabling attest at any vendor that accepts boot configuration, including one used for a jump host. This row does not gate LNVPS stage 1. |
-| The dedicated path: the construction test bed | 22, 38, 48, 62–64, 80, 84, 85–86 | The Robot dedicated path's own checks, including only item 84's Robot rescue case. Their by-hand evidence stands (48 is recorded), construction exercises them on the test bed, and they pass on the integrated harness before a dedicated-server path is offered to an operator, which no stage before the third does. Items 62–64 also apply to any typed adapter that rides the pinned tunnel, stage 1's included if its vendor refuses a browser origin. |
+| The dedicated path: the construction test bed | 22, 38, 48, 62–64, 80, 84, 85–86, 110 | The Robot dedicated path's own checks, including only item 84's Robot rescue case and item 110's reset-into-rescue cases. Their by-hand evidence stands (48 is recorded), construction exercises them on the test bed, and they pass on the integrated harness before a dedicated-server path is offered to an operator, which no stage before the third does. Items 62–64 also apply to any typed adapter that rides the pinned tunnel, stage 1's included if its vendor refuses a browser origin. |
 | Stage 2: a vendor with no adapter whose API the browser can reach (`CHN-12b`), the jump host, sets above one | 7, 12, 14, 23, 27, 29, 31, 33, 42, 91–93, 96–98, 104–106 | Before enabling an untyped scope, an untyped vendor scope, the jump-host route or a bound set of more than one machine. Items 7 and 91 cover set growth, subsets and two-machine sets; items 12, 14 and 29 their untyped-scope cases; item 23 the jump-host label; item 42 the untyped-scope half of the trust display; item 93 the jump-host, untyped-scope and larger-set modes, each accepted at the act it governs and restated, with their re-entry and reinstall cases; item 104 an invoice decoded from an untyped response, where the vendor invoices. Item 92's multi-tenant case gates sets above one; its independence-bound case gates the first profile that declares a bound. Repeat item 17 against real untyped responses. |
 | Post-harness handoff | 8, 77 | Before enabling any profile that declares one; none exists before stage 3. |
 | Scanner and advisory monitoring | 9, 36 | Also complete item 50's scanner case before exposing scanner results. |

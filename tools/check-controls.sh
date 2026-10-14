@@ -241,47 +241,6 @@ formal_control "formal: a dispatch operation added without a plane" \
   "sed -i 's/^  | create$/  | added\n  | create/' $DISP && grep -q '^  | added$' $DISP" \
   "Kind.added"
 
-# The barrier's carve-out is what is dispatched, not what is outstanding: an unresolved box-plane
-# command still bars a cloud-plane operation (STA-24's general rule; STA-20b "waits for all
-# tracked commands to end"). Narrowed to cloud-plane callers, the bounded property -- which is
-# stated without `bars`, so it decides what `bars` reads -- must go red, and must not name the
-# resource key's own witness, which this mutation does not touch.
-formal_control "formal: an unresolved box-plane command barring nothing" \
-  "sed -i \"s/^  else if cloudPlane k' then true\$/  else if cloudPlane k' then cloudPlane k/\" $DISP && grep -q \"else if cloudPlane k' then cloudPlane k\" $DISP" \
-  "atMostOneOutstanding current" \
-  "init sameActionEvents"
-
-# STA-24's resource key is one field of TauWeb.Dispatch.current. Switched to the call id -- STA-8
-# alone, which "speaks of a call", and every request carries a fresh one -- the barrier refuses
-# nothing across call ids. `lake build` must go red with exactly six errors: the two witnesses the
-# key is for, the two other refusals it holds up, the disposition's admitted side, which the key
-# changes too, and `bounded`, which closes over the barrier. A red naming the reset offer's
-# witness, which is the durability rule's and not the key's, would mean the flip broke something
-# other than the property it targets.
-expected=$((expected + 1))
-tmp="$(mktemp -d -p "$scratch_root")"
-copy_tree "$tmp"
-if ! (cd "$tmp/repo" && sed -i 's/{ resourceKey := .entry,/{ resourceKey := .call,/' $DISP && grep -q '{ resourceKey := .call,' $DISP); then
-  echo "::error::formal: the resource key switch did not apply"; fail=1
-else
-  out="$(cd "$tmp/repo" && bash "$FORMAL" 2>&1)"
-  rc=$?
-  if [ "$rc" -eq 0 ]; then
-    echo "::error::formal: the formal gate passed with the barrier keyed on the call id"; echo "$out"; fail=1
-  elif [ "$(grep -c '^error: TauWeb/' <<<"$out")" -ne 6 ]; then
-    echo "::error::formal: the resource key switch did not produce exactly six errors"; echo "$out"; fail=1
-  elif ! grep -qF 'init sameActionEvents' <<<"$out" || ! grep -qF 'init secondIndexEvents' <<<"$out" \
-       || ! grep -qF 'atMostOneOutstanding current' <<<"$out"; then
-    echo "::error::formal: the reds are not the two key witnesses and bounded"; echo "$out"; fail=1
-  elif grep -qF 'init resetOfferEvents' <<<"$out"; then
-    echo "::error::formal: a red also names the reset offer, which the key does not decide"; echo "$out"; fail=1
-  else
-    echo "ok: formal: the barrier keyed on the call id -> the barrier witnesses and bounded"
-    passed=$((passed + 1))
-  fi
-fi
-rm -rf "$tmp"
-
 PINS=tools/formal/TauWeb/Pins.lean
 
 # The admission source is a type, and a source added without the scopes it may pin is a missing
@@ -291,11 +250,12 @@ formal_control "formal: a pin source added without what it may pin" \
   "sed -i 's/^  | modelText\$/  | modelText\n  | vendorNotify/' $PINS && grep -q '^  | vendorNotify\$' $PINS" \
   "Source.vendorNotify"
 
-# Pin mutations must fail in exactly the named property declarations, once each. Checking the
-# source locations also rejects syntax/type errors, stale anchors and unrelated failed proofs.
-pins_control() {
-  local name="$1" mutate="$2"
-  shift 2
+# A mutation must fail in exactly the named property declarations of one module, once each.
+# Checking the source locations also rejects syntax/type errors, stale anchors and unrelated
+# failed proofs. decl_control FILE NAME MUTATION DECLARATION...
+decl_control() {
+  local source="$1" name="$2" mutate="$3"
+  shift 3
   expected=$((expected + 1))
   local tmp rc
   tmp="$(mktemp -d -p "$scratch_root")"
@@ -307,7 +267,7 @@ pins_control() {
   rc=$?
   if [ "$rc" -eq 0 ]; then
     echo "::error::$name: the formal gate passed"; fail=1
-  elif python3 - "$tmp/repo/$PINS" "$tmp/output" "$@" <<'PYCONTROL'
+  elif python3 - "$tmp/repo/$source" "$tmp/output" "$@" <<'PYCONTROL'
 import re
 import sys
 from pathlib import Path
@@ -319,7 +279,8 @@ for i, line in enumerate(lines):
         continue
     if line in ("error: Lean exited with code 1", "error: build failed"):
         continue
-    match = re.fullmatch(r"error: TauWeb/Pins\.lean:(\d+):\d+: (.*)", line)
+    match = re.fullmatch(r"error: TauWeb/%s:(\d+):\d+: (.*)" % re.escape(Path(sys.argv[1]).name),
+                         line)
     if not match:
         print("Unexpected failure:", line)
         sys.exit(1)
@@ -376,6 +337,9 @@ PYCONTROL
   fi
   rm -rf "$tmp"
 }
+
+pins_control() { decl_control "$PINS" "$@"; }
+dispatch_control() { decl_control "$DISP" "$@"; }
 
 expected=$((expected + 1))
 if python3 tools/test_pins_control_diagnostics.py "$scratch_root"; then
@@ -547,6 +511,145 @@ pins_control "formal: installed pin replaces another source without reinstall" \
   "sed -i 's/installedFirstContact : Bool := true/installedFirstContact : Bool := false/' $PINS && grep -q 'installedFirstContact : Bool := false' $PINS" \
   cross_source_replacement_refused second_job_without_reinstall_refused bounded
 
+# The barrier's carve-out is what is dispatched, not what is outstanding: an unresolved box-plane
+# command still bars a cloud-plane operation (STA-24's general rule; STA-20b "waits for all
+# tracked commands to end"). Narrowed to cloud-plane callers, the bounded property -- which is
+# stated without `bars`, so it decides what `bars` reads -- must go red, beside the two traces in
+# which a command's barrier is what refuses a cloud-plane operation: the reinstall a stray command
+# pre-empts, and the rescue activation that waits for the command still running. A disposed
+# command's reach is read through `bars` too, so the reset it must keep refused goes out: the one
+# after an activation confirmed before the disposition. The resource key's own witnesses, which
+# this mutation does not touch, stay green.
+dispatch_control "formal: an unresolved box-plane command barring nothing" \
+  "sed -i \"s/^  else if cloudPlane k' then true\$/  else if cloudPlane k' then cloudPlane k/\" $DISP && grep -q \"else if cloudPlane k' then cloudPlane k\" $DISP" \
+  command_preempts_reinstall_without_guard reset_waits_for_other_commands \
+  activation_before_disposition_not_counted bounded
+
+# STA-24's resource key is one field of TauWeb.Dispatch.current. Switched to the call id -- STA-8
+# alone, which "speaks of a call", and every request carries a fresh one -- the barrier refuses
+# nothing across call ids. Exactly these go red: the two witnesses the key is for; the two other
+# refusals it holds up; the disposition's admitted side, which the key changes too; `bounded`,
+# which closes over the barrier; and every trace that states a refusal by the barrier of a call
+# under another id -- the reinstall's and the reset's own barrier after a disposition ends, the
+# command that pre-empts a reinstall, the reset behind a disposition that was refused or is read
+# as never recorded, the activation behind a disposition refused for naming a settled call beside
+# it, and the activation behind a command still running. The newest-read pair's without-guard
+# side also sees it: the reset's barrier must refuse the later requests in that trace.
+# The reset offer's witness, which is the durability rule's and not the key's, stays green.
+dispatch_control "formal: the barrier keyed on the call id" \
+  "sed -i 's/{ resourceKey := .entry,/{ resourceKey := .call,/' $DISP && grep -q '{ resourceKey := .call,' $DISP" \
+  same_action_new_call_id_refused second_index_same_entry_refused \
+  boot_id_change_not_success_refused resolution_append_failed_refused \
+  disposition_unrestricted_admitted destructive_choice_stops_commands \
+  command_preempts_reinstall_without_guard disposition_names_own_unresolved_calls \
+  disposition_names_every_call_unresolved replayed_invalid_disposition_means_nothing \
+  return_to_rescue_trace reset_waits_for_other_commands bounded \
+  spent_activation_counted_without_guard
+
+# A disposition's reach, its end and what it may name (STA-24, 2026-10-13) are fields of
+# TauWeb.Dispatch.Params, each control one bad edit of one field's rule value. A red set also
+# holds another guard's without-guard side where the edit changes what that trace was built to
+# show; each comment names the trace the edit is for.
+
+# The reach taken from the resource instead of from the disposed calls: a command after a
+# disposed activation that continues must dispatch, and is refused. Two more see it: the
+# inference request under a disposition on its own resource, and the command the stop's
+# without-guard side expected to go out.
+dispatch_control "formal: a disposition's reach taken from the resource" \
+  "sed -i 's/reach : Reach := .disposed/reach : Reach := .resource/' $DISP && grep -q 'reach : Reach := .resource' $DISP" \
+  continuing_permits_what_was_barred command_preempts_reinstall_without_guard \
+  read_and_inference_never_restricted
+
+# The reach applied to every dispatch, the read exemption dropped: a read under a standing
+# destructive disposition must dispatch, and is refused -- in the trace that is for it and in the
+# abandonment trace, on both of that one's sides.
+dispatch_control "formal: a disposition's reach applied to every dispatch" \
+  "sed -i 's/reach : Reach := .disposed/reach : Reach := .everyDispatch/' $DISP && grep -q 'reach : Reach := .everyDispatch' $DISP" \
+  read_does_not_lift_abandonment read_lifts_abandonment_without_guard \
+  continuing_permits_what_was_barred command_preempts_reinstall_without_guard \
+  read_and_inference_never_restricted
+
+# The reach computed from the calls still unresolved instead of the disposed ones: it collapses
+# to no restriction but the destructive stop, so every cloud-plane operation a disposition
+# refused by its reach goes out -- the replaced continuation, the destroy under a reinstall, and
+# the reset with no rescue activation, or with none that counts: one confirmed before the
+# disposition, dispatched under a disposition since replaced, or no longer confirmed by the
+# newest activation read.
+dispatch_control "formal: a disposition's reach computed from calls still unresolved" \
+  "sed -i 's/reach : Reach := .disposed/reach : Reach := .stillUnresolved/' $DISP && grep -q 'reach : Reach := .stillUnresolved' $DISP" \
+  disposition_one_continuation_refused replacement_in_force reset_without_rescue_refused \
+  activation_before_disposition_not_counted activation_under_replaced_disposition_not_counted \
+  return_to_rescue_trace \
+  spent_activation_not_counted
+
+# The lapse taken at any later intent: reset, disposition, read, command must end refused, and
+# the read's own intent ends the restriction. Every trace that states a disposition still
+# standing after a later intent sees it, a key registration's included, and so does the trace
+# that replaces a disposition after its rescue activation: nothing stands to be replaced. The
+# operation-kinds theorem loses the restriction at a non-destroy intent; the newest-read trace
+# loses it at the activation intent, so its later reset goes out.
+dispatch_control "formal: a disposition's restriction ended at any later intent" \
+  "sed -i 's/lapse : Lapse := .continuation/lapse : Lapse := .anyIntent/' $DISP && grep -q 'lapse : Lapse := .anyIntent' $DISP" \
+  read_does_not_lift_abandonment continuing_permits_what_was_barred \
+  disposed_activation_bars_commands_without_guard read_and_inference_never_restricted \
+  preparation_keeps_restriction reinstall_does_not_refuse_key_registration \
+  activation_under_replaced_disposition_not_counted return_to_rescue_trace \
+  abandonment_ends_at_its_destroy_alone spent_activation_not_counted
+
+# The destructive stop dropped: a command after a disposed command with a destructive
+# continuation must be refused, and so must one after a disposed activation. Neither disposed
+# call bars a command, so the stop is all that refuses either.
+dispatch_control "formal: the destructive stop dropped" \
+  "sed -i 's/destructiveStops : Bool := true/destructiveStops : Bool := false/' $DISP && grep -q 'destructiveStops : Bool := false' $DISP" \
+  destructive_choice_stops_commands_after_activation destructive_choice_stops_commands
+
+# The resource check on a disposition's named calls dropped: one recorded against the sibling
+# entry is accepted and ends this entry's call, at recording and on replay alike.
+dispatch_control "formal: a disposition matched to a call by call id alone" \
+  "sed -i 's/dispositionOwnResource : Bool := true/dispositionOwnResource : Bool := false/' $DISP && grep -q 'dispositionOwnResource : Bool := false' $DISP" \
+  disposition_names_own_unresolved_calls replayed_invalid_disposition_means_nothing
+
+# The lapse taken at the reinstall's first operation: a command after the rescue activation must
+# be refused, and the activation ends the restriction instead. A key registration's intent ends
+# it too, and after the activation nothing stands for the operator to replace. The newest-read
+# trace loses the restriction there too, so the reset after a non-confirming read goes out.
+dispatch_control "formal: a disposition's restriction ended at the reinstall's first operation" \
+  "sed -i 's/lapse : Lapse := .continuation/lapse : Lapse := .firstOperation/' $DISP && grep -q 'lapse : Lapse := .firstOperation' $DISP" \
+  preparation_keeps_restriction reinstall_does_not_refuse_key_registration \
+  activation_under_replaced_disposition_not_counted return_to_rescue_trace \
+  spent_activation_not_counted
+
+# Any reset ending the restriction: a reset with no rescue activation dispatched since the
+# disposition must be refused by the disposition itself. The reset the return-to-rescue trace
+# requests before the activation is confirmed is refused by the activation's barrier with or
+# without this edit; what that trace loses is its first reset, the one with no activation at all.
+# The resets behind an activation that does not count -- confirmed before the disposition, or
+# dispatched under one since replaced, or no longer confirmed by its newest read -- go out
+# the same way.
+dispatch_control "formal: any reset taken for the reinstall" \
+  "sed -i 's/resetIntoRescueOnly : Bool := true/resetIntoRescueOnly : Bool := false/' $DISP && grep -q 'resetIntoRescueOnly : Bool := false' $DISP" \
+  reset_without_rescue_refused activation_before_disposition_not_counted \
+  activation_under_replaced_disposition_not_counted return_to_rescue_trace \
+  spent_activation_not_counted
+
+# The abandonment case removed: the destroy intent must end the restriction, and does not.
+# Exactly the operation-kinds theorem fails; kinds_total still exhausts every kind.
+dispatch_control "formal: abandonment never ends at destroy" \
+  "sed -i 's/| .abandon, k => k == .destroy$/| .abandon, _ => false/' $DISP && grep -q '| .abandon, _ => false' $DISP" \
+  abandonment_ends_at_its_destroy_alone
+
+# The abandonment case widened: a reset intent must leave abandonment standing, and ends it.
+# Exactly the operation-kinds theorem fails; kinds_total stays green.
+dispatch_control "formal: abandonment also ends at reset" \
+  "sed -i 's/| .abandon, k => k == .destroy$/| .abandon, k => k == .destroy || k == .reset/' $DISP && grep -q '| .abandon, k => k == .destroy || k == .reset' $DISP" \
+  abandonment_ends_at_its_destroy_alone
+
+# A confirmed activation counted despite its newest read no longer confirming it: the reset
+# must be refused under the reinstall disposition, and instead goes out as its continuation.
+dispatch_control "formal: spent activation still counts for the reset" \
+  "sed -i 's/newestActivationRead : Bool := true/newestActivationRead : Bool := false/' $DISP && grep -q 'newestActivationRead : Bool := false' $DISP" \
+  spent_activation_not_counted
+
 # A missing toolchain is a red gate, not a skip.
 expected=$((expected + 1))
 if out="$(env PATH=/nonexistent "$(command -v bash)" "$FORMAL" 2>&1)"; then
@@ -598,6 +701,11 @@ control "witnesses: obsolete pins v2 orphan" "$WIT" \
 control "witnesses: obsolete pins v3 orphan" "$WIT" \
   "cp $PINSWIT docs/design/pins-witnesses-v3.json" \
   "WITNESS DRIFT" "pins-witnesses-v3.json is committed but no module emits it"
+
+# The dispatch file was renamed with its schema too: its old name is an orphan.
+control "witnesses: obsolete dispatch v1 orphan" "$WIT" \
+  "cp docs/design/dispatch-witnesses-v2.json docs/design/dispatch-witnesses-v1.json" \
+  "WITNESS DRIFT" "dispatch-witnesses-v1.json is committed but no module emits it"
 
 control "witnesses: pins v4 emission carrying a CNF identifier" "$WIT" \
   "sed -i 's/\"module\": \"pins\"/\"module\": \"pins\", \"exercised_by\": \"CNF-18\"/' $PINSEMIT && grep -q CNF-18 $PINSEMIT" \
