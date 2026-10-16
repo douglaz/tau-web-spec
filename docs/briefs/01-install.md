@@ -103,7 +103,7 @@ An installed-system pin already recorded means continuing keeps that root and it
 those keys requires a separately approved destructive reinstall (`STA-20b`). An unreadable label
 or two roots carrying the current id means stop and surface, never erase.
 
-With only a predecessor on the approved disks, partition and format as approved below. Write
+With only a predecessor, or no root, on the approved disks, partition and format as approved below. Write
 the shown id as the root label in the **same** `mkfs.ext4` command: no gap between formatting
 and marking. It is readable without mounting and fits ext4's 16-byte label (`STG-20`).
 
