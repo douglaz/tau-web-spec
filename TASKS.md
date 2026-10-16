@@ -354,7 +354,7 @@ gated on it.
       at the approved entry rather than the allocation index or the call id; `STA-3`'s
       append-before-apply, which is also `STA-20b`'s reset-offer precondition; the observation
       lattice, which keeps a changed boot ID below success; and the disposition's binding to the
-      one continuation it names. `docs/design/dispatch-witnesses-v1.json` is its file; the
+      one continuation it names. Its first witness file used schema 1; the
       controls switch the key to the call id and add an operation with no plane.
       *Amended 2026-10-13 with `STA-24`'s disposition rule (ADR-0044).* The continuation is
       `TauWeb.Dispatch.Continuation`, the operator's four choices, and no longer an operation.
@@ -379,9 +379,30 @@ gated on it.
       `TauWeb.Dispatch.reinstall_does_not_refuse_key_registration`,
       `TauWeb.Dispatch.activation_before_disposition_not_counted` and
       `TauWeb.Dispatch.activation_under_replaced_disposition_not_counted`.
-      `docs/design/dispatch-witnesses-v2.json` replaces the v1 file, as schema 2; the controls
+      `CONTEXT.md` lists the current dispatch witness file; the controls
       are the `dispatch_control` calls in `tools/check-controls.sh`, each with its exact red
       set. The untyped scope, its pause and its hold stay outside the module.
+      *Amended 2026-10-16:* `sessionDestroyRefused` carries
+      `TauWeb.Dispatch.session_destroy_under_abandonment_refused` /
+      `TauWeb.Dispatch.session_destroy_lifts_abandonment_without_guard`.
+      `TauWeb.Dispatch.abandonment_ends_at_its_destroy_alone` now refuses the session request
+      while preserving the appended flow intent's lapse. `resetOfferCurrentInstallation` carries
+      `TauWeb.Dispatch.predecessor_reset_offer_refused` /
+      `TauWeb.Dispatch.predecessor_reset_offer_admitted_without_guard` and
+      `TauWeb.Dispatch.changed_keys_reset_offer_refused` /
+      `TauWeb.Dispatch.changed_keys_reset_offer_admitted_without_guard`.
+      The offer derives installation boundaries at dispatch and compares the current
+      installation's newest prerequisite keys against its first durable read.
+      `TauWeb.Dispatch.tracesUpTo` filters repeated request call ids; the narrowed
+      `TauWeb.Dispatch.bounded` also checks their freshness. Intent projection reads by position.
+      `docs/design/dispatch-witnesses-v3.json` is the regenerated schema 3 file.
+      Pins adds `readyAfterReinstallFresh`, with
+      `TauWeb.Pins.kept_root_keys_after_reinstall_refused` /
+      `TauWeb.Pins.kept_root_keys_pinned_without_guard` and
+      `TauWeb.Pins.observed_keys_after_reinstall_refused` /
+      `TauWeb.Pins.observed_keys_pinned_without_guard`; `TauWeb.Pins.transitionSound`
+      independently checks that admission. Its dedicated reinstall event follows the rescue
+      reset at dispatch; `docs/design/pins-witnesses-v5.json` is its schema 5 file.
 - [x] **T36 — Formal companion, module 5: the host-pin lifecycle** (ADR-0032's inventory;
       `SEC-11`, `CHN-R1`, `ARC-43`, with `STA-20b`'s resume rule and `STG-4`'s third
       confirmation predicate). Landed 2026-09-20 in `tools/formal/TauWeb/Pins.lean`: what a pin

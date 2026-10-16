@@ -22,6 +22,8 @@ named source:
   commands that need them;
 - **the harness, per session** — the bound session's SSH client public key, shown to you for
   the one command that installs it (step 6);
+- **the harness, per machine** — the current installation id `<machine>-<n>` (`STG-20`),
+  always shown as `<installation-id>` below;
 - **you**, from what you read in step 1 — the root disk, the additional disk set, the address,
   gateway and hostname; you compose them into the command you issue, and the harness journals
   that command as sent (`ARC-8`);
@@ -65,7 +67,16 @@ lsblk -dno NAME,SIZE,MODEL,SERIAL,WWN; ls -l /dev/disk/by-id/ | grep -v part; [ 
   the same disk under UEFI. Install both bootloaders regardless of what you see here.
 - **Addressing is static.** Take the address, prefix and gateway from what the rescue kernel
   is using; there is no DHCP for the installed system to rely on.
-- If the disk already holds a partial install, read the **Resume** section before wiping.
+- Probe root filesystem labels directly from the disks, without mounting and never from a
+  cache. For each candidate partition, for example `blkid -p -s LABEL -o value <partition>`.
+  Distinguish a successful probe showing no label from an unreadable label: the latter means
+  stop and surface, never erase. Compare with the harness's shown `<installation-id>`.
+  Only a matching root is this installation and eligible for **Resume** or "found complete,
+  do not wipe". Two roots with that id mean stop and surface, never erase.
+- An unmarked root, another installation's id or another machine's id is the predecessor,
+  including a hand-installed root. It is erased on the selected disks as approved for this
+  install; never resume it merely because it looks complete. The label steers you; nothing
+  checks it. Read **Resume** before wiping a matching root.
 - Decide the complete installation disk set by WWN before any write, and state it in your
   next command: the root disk, and the explicitly selected additional disks (or none). Never
   the whole disk list. Every disk you name will be erased. Re-read identities in the rescue
@@ -85,12 +96,23 @@ the bundle's value binds.
 
 ## Step 3 — partition, format, mount
 
+First inspect the labels probed in step 1. A single root whose label equals the shown
+`<installation-id>` is yours: if partial, follow **Resume** without formatting; if complete,
+**found complete, do not wipe** — inspect it and request `ready_to_reset`, preserving its keys.
+An installed-system pin already recorded means continuing keeps that root and its keys; changing
+those keys requires a separately approved destructive reinstall (`STA-20b`). An unreadable label
+or two roots carrying the current id means stop and surface, never erase.
+
+With only a predecessor on the approved disks, partition and format as approved below. Write
+the shown id as the root label in the **same** `mkfs.ext4` command: no gap between formatting
+and marking. It is readable without mounting and fits ext4's 16-byte label (`STG-20`).
+
 GPT with a 1 MiB BIOS-boot partition, a 512 MiB EFI system partition, and the rest as root.
 The same layout boots both firmware modes. One block, so the partition paths it computes
 are used where they were computed:
 
 ```sh
-D=<root-wwn>; sgdisk --zap-all "$D" && sgdisk -n1:0:+1M -t1:ef02 -n2:0:+512M -t2:ef00 -n3:0:0 -t3:8300 "$D" && partprobe "$D" && sleep 2 && ESP=$(lsblk -nrpo NAME "$D" | sed -n 3p) && ROOT=$(lsblk -nrpo NAME "$D" | sed -n 4p) && mkfs.vfat -F32 "$ESP" && mkfs.ext4 -F "$ROOT" && mount "$ROOT" /mnt && mkdir -p /mnt/boot/efi && mount "$ESP" /mnt/boot/efi
+D=<root-wwn>; sgdisk --zap-all "$D" && sgdisk -n1:0:+1M -t1:ef02 -n2:0:+512M -t2:ef00 -n3:0:0 -t3:8300 "$D" && partprobe "$D" && sleep 2 && ESP=$(lsblk -nrpo NAME "$D" | sed -n 3p) && ROOT=$(lsblk -nrpo NAME "$D" | sed -n 4p) && mkfs.vfat -F32 "$ESP" && mkfs.ext4 -F -L '<installation-id>' "$ROOT" && mount "$ROOT" /mnt && mkdir -p /mnt/boot/efi && mount "$ESP" /mnt/boot/efi
 ```
 
 Mounts persist on the machine; shell variables do not. Software RAID across the two disks was
@@ -233,10 +255,12 @@ rehearsal never resumed; it only ever wiped. What a resume should look like, unt
   wait; a missing record means unresolved, not permission to retry or wipe.
 - Re-identify disks by WWN and inspect partitions and mount state before changing them.
   Because every block is stateless, a block can be re-issued on its own: if `/mnt` is
-  mounted and holds a partial Alpine root, inspect the package, network and boot state and
+  mounted and its disk-probed label equals the shown id, inspect the package, network and boot state and
   re-issue only the blocks whose work is missing. Steps 5–7 as a whole are **not** declared
-  idempotent: step 7's additional-disk block erases. Preserve existing host keys; if step 6
-  already ran, do not run `ssh-keygen -A` again.
+  idempotent: step 7's additional-disk block erases. Resume only this installation's matching
+  root and preserve its host keys. If it is complete, do not wipe: inspect it and request
+  `ready_to_reset`. An unmarked or foreign-id root is the approved predecessor, not a resume;
+  two matching roots or an unreadable label mean stop and surface, never erase.
 - If evidence cannot establish a safe continuation, stop and surface the unresolved action.
   A reinstall under `STG-20` is a separately recorded operator decision to discard this
   disposable install, with its disk set shown again. A timer or missing file never authorizes it.

@@ -1,6 +1,6 @@
 {
-  "max_uncovered_ratcheted": 77,
-  "recorded": "2026-10-11",
-  "reason": "CNF-109 covers the scan-time answerer in TRU-E13",
+  "max_uncovered_ratcheted": 76,
+  "recorded": "2026-10-16",
+  "reason": "CNF-26 now covers ARC-21 abandonment authorization",
   "note": "Lower is better. Raise only deliberately, with a reason."
 }

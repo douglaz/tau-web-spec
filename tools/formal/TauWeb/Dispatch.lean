@@ -240,7 +240,7 @@ inductive Rec
   | observation (o : Observation)
   | disposition (d : Disposition)
   | association (t : Target) (e : Entry)
-  | resetPrereqs (e : Entry)
+  | resetPrereqs (e : Entry) (installation : Nat) (keys : Nat)
   deriving DecidableEq, Repr
 
 /-- **Harness knowledge**: the journal, newest first. Nothing else is knowledge here — what a
@@ -341,6 +341,12 @@ authority is per clause and this structure is not one. -/
   pair is `disposition_names_own_unresolved_calls` /
   `disposition_ends_call_elsewhere_without_guard`. -/
   dispositionOwnResource : Bool := true
+  /-- A session cannot send the abandonment flow's destroy. Its pair is
+  `session_destroy_under_abandonment_refused` / `session_destroy_lifts_abandonment_without_guard`. -/
+  sessionDestroyRefused : Bool := true
+  /-- The reset offer reads the current installation and compares the newest prerequisite keys
+  with its first durable prerequisite keys. Its pairs cover a predecessor record and a changed key. -/
+  resetOfferCurrentInstallation : Bool := true
   deriving DecidableEq, Repr
 
 /-- The rules as they stand. -/
@@ -400,7 +406,7 @@ reader below takes a journal `inEffect` has already read. -/
     (d.resource == i.resource || !p.dispositionOwnResource) && d.calls.contains i.call
   | .intent _ => false
   | .association _ _ => false
-  | .resetPrereqs _ => false
+  | .resetPrereqs _ _ _ => false
 
 /-- The unresolved intents of a journal's tail, given `later`, the records appended after it. An
 intent is unresolved while nothing appended **after** it settles it: a read settles the calls that
@@ -435,7 +441,7 @@ def disposes (r : Resource) : Rec → Bool
   | .intent _ => false
   | .observation _ => false
   | .association _ _ => false
-  | .resetPrereqs _ => false
+  | .resetPrereqs _ _ _ => false
 
 /-- Whether the machine's return to rescue is ready for its reset, read in the journal before
 that reset. `STA-24`: while a destructive reinstall's disposition stands "the operations of that
@@ -468,7 +474,7 @@ where
           then some o.standing else read) rest
     | .disposition _ :: rest => go read rest
     | .association _ _ :: rest => go read rest
-    | .resetPrereqs _ :: rest => go read rest
+    | .resetPrereqs _ _ _ :: rest => go read rest
 
 /-- Whether an operation is the one a continuation is dispatched at, read in the journal before
 it. `STA-24`: a continuation "is dispatched at the one that changes what the machine is running".
@@ -477,11 +483,9 @@ For a destructive reinstall that is the vendor's reinstall call or the reset int
 destroy, or the stop that stands in for it", both carried by `destroy`. A continuation that
 continues has no operation to be dispatched at. No wildcard over the choices.
 
-Who sends the request is not carried: `Request` is what a model sends, and `ARC-21` runs
-abandonment "never through a session". So an answer here that a `destroy` is abandonment's
-dispatch says only that the disposition does not refuse that operation and ends at it. It does
-not say a model's request for it is admissible, which `SEC-4` bounds, and no trace of this
-module dispatches one as the abandonment. -/
+`Request` is a session request. This function also reads an intent appended by the
+abandonment flow outside `admit` and `step`: its destroy ends the restriction, while `permits`
+refuses that operation to a session under abandonment. No sender type is carried. -/
 @[req "STA-24"] def dispatchesContinuation (p : Params) (e : Journal) (r : Resource) :
     Continuation → Kind → Bool
   | .reinstall, k =>
@@ -523,7 +527,7 @@ def standingIn (p : Params) (r : Resource) : Journal → Option (Disposition × 
       if i.resource == r && lapsesAt p rest r s.1.continuation i.kind then none else some s
   | .observation _ :: rest => standingIn p r rest
   | .association _ _ :: rest => standingIn p r rest
-  | .resetPrereqs _ :: rest => standingIn p r rest
+  | .resetPrereqs _ _ _ :: rest => standingIn p r rest
 
 /-- What a disposition may name, against the journal before it (`STA-24`): it "names at least one
 call, and every call it names MUST be unresolved, on the disposition's own resource, in the
@@ -548,7 +552,7 @@ disposition is tested against the reading of what came before it. -/
   | .intent i :: rest => .intent i :: inEffect p rest
   | .observation o :: rest => .observation o :: inEffect p rest
   | .association t e :: rest => .association t e :: inEffect p rest
-  | .resetPrereqs e :: rest => .resetPrereqs e :: inEffect p rest
+  | .resetPrereqs e n keys :: rest => .resetPrereqs e n keys :: inEffect p rest
 
 /-- Whether the harness records a disposition the operator offers (`acceptable`, against the
 journal as it is read). Where it does not, "it is refused and nothing is recorded" (`STA-24`). -/
@@ -633,7 +637,8 @@ dispatch: `admit` has checked the binding, the approved record and the barrier b
 this. -/
 @[req "STA-24"] def permits (p : Params) (e : Journal) (s : Disposition × Journal) (k : Kind) :
     Bool :=
-  if destructive s.1.continuation then
+  if p.sessionDestroyRefused && s.1.continuation == .abandon then false
+  else if destructive s.1.continuation then
     dispatchesContinuation p e s.1.resource s.1.continuation k || prepares s.1.continuation k
   else (disposed s).any fun o => bars o.kind k
 
@@ -661,16 +666,40 @@ restricts nothing, which is the disposition read as unrestricted dispatch. -/
 @[req "STA-24"] def restriction (p : Params) (j : Journal) (r : Resource) : Option Continuation :=
   if p.dispositionBindsContinuation then (standing p j r).map (·.1.continuation) else none
 
-/-- `STA-20b`: before a planned reset the harness "durably records installed host-key pins and
-the reset intent. If collection or the durable append fails, it does not reset — and it does not
-*offer* the reset either: the offer is checked against those durable prerequisites at the moment
-it is made". The prerequisites are `ready_to_reset`'s record (`ARC-43`), and the offer reads what
-the running worker holds — which `STA-3` makes exactly what was appended. This is the offer of a
-reset into the installed system and of no other: `STA-20b` makes installed host-key pins "a
-prerequisite of a reset into the installed system, not of a reset into rescue", and `admit` does
-not read it. -/
-@[req "STA-20b"] def offersReset (j : Journal) (e : Entry) : Bool :=
-  j.contains (.resetPrereqs e)
+/-- The installation boundary is derived from dispatched intents, never from a choice or
+from an event-supplied verdict. The reset that dispatches a standing reinstall counts too. -/
+@[req "STG-20"] def installationOf (p : Params) (j : Journal) (e : Entry) : Nat :=
+  go (inEffect p j)
+where
+  go : Journal → Nat
+    | [] => 0
+    | .intent i :: rest =>
+      go rest + (if i.resource == .machine e &&
+        (i.kind == .reinstall || (i.kind == .reset &&
+          (standingIn p (.machine e) rest).any fun s =>
+            s.1.continuation == .reinstall &&
+              dispatchesContinuation p rest (.machine e) .reinstall .reset)) then 1 else 0)
+    | _ :: rest => go rest
+
+/-- The durable prerequisite reads of this installation, newest first. The first one, read
+oldest first, is the active installed pin; the newest must still match it. Keys are opaque
+ordinals, never a trace-supplied comparison verdict. -/
+@[req "STA-20b"] def prerequisiteKeys (p : Params) (j : Journal) (e : Entry) : List Nat :=
+  j.filterMap fun rec => match rec with
+    | .resetPrereqs m n keys =>
+      if m == e && n == installationOf p j e then some keys else none
+    | _ => none
+
+/-- The installed-system reset offer reads durable prerequisites in the current installation,
+with the newest keys equal to that installation's first durable read. A changed key or a
+predecessor's record withholds it before reboot. The running memory is the durable journal
+under the append guard. This is not a dispatch check for the single `reset` kind: the
+immediate activation re-read before every reset into rescue is `STG-4`'s and is not carried here. -/
+@[req "STA-20b"] def offersReset (p : Params) (j : Journal) (e : Entry) : Bool :=
+  if p.resetOfferCurrentInstallation then
+    let keys := prerequisiteKeys p j e
+    !keys.isEmpty && keys.head? == keys.getLast?
+  else j.any fun rec => match rec with | .resetPrereqs m _ _ => m == e | _ => false
 
 /-! ## The dispatch decision -/
 
@@ -721,11 +750,9 @@ barrier — "An approval already rendered does not clear the barrier; it is chec
 dispatch" — and after it what a standing disposition restricts. Total, and the order is the
 function's, so no refusal can be answered out of its place.
 
-A request here is what a model sends, and nothing says who sent it. Its answer for a `destroy`
-under a disposition naming abandonment therefore claims only what `dispatchesContinuation`
-does: that the disposition does not refuse that operation and ends at it. It does not claim
-that a model's request for one is admissible — `ARC-21` runs abandonment "never through a
-session", and `SEC-4` bounds what a session may request — and no trace of this module asks. -/
+A request here is a session's. Under a standing abandonment `permits` refuses its destroy;
+the operator flow's destroy intent may end the restriction when appended outside this function.
+The flow's authorization is `SEC-4`'s and is not carried here. -/
 @[req "STA-4"] def admit (p : Params) (j : Journal) (rq : Request) (ap : Approval) : Verdict :=
   match resolve j rq.target with
   | none => .refused .unmapped
@@ -771,7 +798,7 @@ inductive Event
   /-- The harness associates what a model may name with the approved entry. -/
   | associate (t : Target) (e : Entry)
   /-- `ready_to_reset` (`ARC-43`) records the installed pins and the reset intent (`STA-20b`). -/
-  | resetPrereqs (e : Entry) (appended : Bool)
+  | resetPrereqs (e : Entry) (keys : Nat) (appended : Bool)
   /-- The worker is killed and replays the journal (`STA-7`). -/
   | replay
   deriving DecidableEq, Repr
@@ -796,7 +823,8 @@ the journal (`STA-2`, `STA-7`). -/
     if accepts p w.memory d then { append p w (.disposition d) ok with verdict := none }
     else { w with verdict := none }
   | .associate t e => { append p w (.association t e) true with verdict := none }
-  | .resetPrereqs e ok => { append p w (.resetPrereqs e) ok with verdict := none }
+  | .resetPrereqs e keys ok =>
+    { append p w (.resetPrereqs e (installationOf p w.memory e) keys) ok with verdict := none }
   | .replay => { w with memory := w.journal, verdict := none }
 
 def run (p : Params) (x : External) (w : World) : List Event → World
@@ -975,7 +1003,7 @@ theorem step_memory_eq (p : Params) (hp : p.durableBeforeApply = true) (x : Exte
     · exact append_memory_eq p hp w hw _ ok
     · exact hw
   | associate t e => exact append_memory_eq p hp w hw _ true
-  | resetPrereqs e ok => exact append_memory_eq p hp w hw _ ok
+  | resetPrereqs e keys ok => exact append_memory_eq p hp w hw _ ok
   | replay => exact rfl
 
 theorem run_memory_eq (p : Params) (hp : p.durableBeforeApply = true) (x : External)
@@ -1208,7 +1236,7 @@ def secondIndexEvents : List Event :=
   [.request createRequest0 approvalCreate true, .request createRequestB approvalCreateB true,
    .request createRequest1 approvalCreate true]
 
-def resetOfferEvents : List Event := [.resetPrereqs entryA false]
+def resetOfferEvents : List Event := [.resetPrereqs entryA 101 false]
 
 def bootIdEvents : List Event :=
   [.request resetRequest1 approvalReset true, .observe .adapterRead machineA .reset true,
@@ -1455,7 +1483,7 @@ and the append failed, so the transition did not occur: neither the journal nor 
 worker holds the prerequisites, and the reset is not offered. -/
 @[req "STA-20b"] theorem reset_offered_after_failed_append_refused :
     let w := run current farDone.external init resetOfferEvents
-    offersReset w.memory entryA = false ∧ offersReset w.journal entryA = false ∧
+    offersReset current w.memory entryA = false ∧ offersReset current w.journal entryA = false ∧
     w.memory = w.journal := by decide +kernel
 
 /-- Without `STA-3`'s rule the record reaches in-memory state alone, and the offer — "checked
@@ -1463,7 +1491,7 @@ against those durable prerequisites at the moment it is made" — is made agains
 journal does not hold. -/
 @[req "STA-20b"] theorem reset_offered_after_failed_append_admitted :
     let w := run noDurability farDone.external init resetOfferEvents
-    offersReset w.memory entryA = true ∧ offersReset w.journal entryA = false := by decide +kernel
+    offersReset current w.memory entryA = true ∧ offersReset current w.journal entryA = false := by decide +kernel
 
 /-- **A `boot_id` change read as success, refused.** The reset is unresolved and the vendor read
 reports that the old command ended and nothing more. Under the lattice that does not confirm it,
@@ -1532,13 +1560,13 @@ def kinds : List Kind :=
 /-- **Abandonment ends at its destroy alone among operation kinds.** Read `restriction` over the
 journal with an intent appended: the appended destroy is the abandonment flow's destroy as the
 journal holds it, and only its resource and kind are read. The appended intent goes through neither
-`admit` nor `step`; no model's request for a destroy is admitted: `ARC-21` runs abandonment "never through a
-session", and `STA-24` says "A model's request for either is not made admissible by this". The
-other intent fields are inert here and carry nothing of who sends a request. A replacement
-can still end the abandonment: it is a disposition, not an operation kind. -/
+`admit` nor `step`; a session's destroy is restricted under abandonment: `ARC-21` runs abandonment "never through a
+session", and `STA-24` says "abandonment only the abandonment flow". The
+other intent fields are inert here and carry nothing of who sends a request. Restated 2026-10-16: the first conjunct refuses a destroy request; the appended flow intent
+still ends the restriction. A replacement can still end the abandonment: it is a disposition, not an operation kind. -/
 @[req "STA-24"] theorem abandonment_ends_at_its_destroy_alone : ∀ k ∈ kinds,
     let w := run current farDone.external init (abandonReadEvents.take 2)
-    (k = .destroy → restricted current w.memory machineA k = none) ∧
+    (k = .destroy → restricted current w.memory machineA k = some .abandon) ∧
     restriction current
       (.intent { call := 0, target := .entry entryA, resource := machineA, kind := k,
                  session := 0, approval := ⟨0, 0⟩ } :: w.memory) machineA =
@@ -1836,10 +1864,100 @@ Only the last call is still open when the trace ends. -/
     unresolved current w.memory machineA = [12] ∧ (intentsOf w.memory).length = 6 := by
   decide +kernel
 
+/-- A session's destroy under a standing abandonment, with no other barrier. -/
+def sessionDestroyEvents : List Event :=
+  [.request resetRequest1 approvalReset true, .dispose abandonA true,
+   .request destroyRequest approvalDestroy true]
+
+def sessionDestroyAllowed : Params := { current with sessionDestroyRefused := false }
+
+@[req "STA-24"] theorem session_destroy_under_abandonment_refused :
+    let w := run current farDone.external init sessionDestroyEvents
+    w.dispatched.map (·.call) = [1] ∧
+    w.verdict = some (.refused (.continuation .abandon)) ∧
+    restriction current w.memory machineA = some .abandon := by decide +kernel
+
+@[req "STA-24"] theorem session_destroy_lifts_abandonment_without_guard :
+    let w := run sessionDestroyAllowed farDone.external init sessionDestroyEvents
+    w.dispatched.map (·.call) = [8, 1] ∧
+    restriction sessionDestroyAllowed w.memory machineA = none := by decide +kernel
+
+/-- Disposing only one of two commands cannot free the flow's destroy intent. -/
+def partialAbandonEvents : List Event :=
+  [.request execRequest approvalExec true, .request execRequest2 approvalExec true,
+   .dispose { reinstallAfterCommand with continuation := .abandon } true]
+
+@[req "STA-24"] theorem undisposed_command_bars_flow_destroy :
+    let w := run current farDone.external init partialAbandonEvents
+    blocking current w.memory (intentOf destroyRequest machineA approvalDestroy) = [12] := by
+  decide +kernel
+
+/-- Replacing a disposition with a narrower continuing choice does not unsettle omitted calls. -/
+def omittedCallEvents : List Event :=
+  [.request execRequest approvalExec true, .request execRequest2 approvalExec true,
+   .dispose { reinstallAfterCommand with calls := [7, 12] } true,
+   .dispose { reinstallAfterCommand with calls := [12], continuation := .asIfNotDone } true,
+   .dispose { reinstallAfterCommand with continuation := .asIfDone } true]
+
+@[req "STA-24"] theorem omitted_call_stays_settled :
+    let w := run current farDone.external init omittedCallEvents
+    unresolved current w.memory machineA = [] ∧
+    (dispositionsOf w.memory).length = 2 ∧
+    restriction current w.memory machineA = some .asIfNotDone ∧
+    restricted current w.memory machineA .exec = none := by decide +kernel
+
+/-- A predecessor's prerequisites are not the successor installation's. -/
+def predecessorOfferEvents : List Event :=
+  [.resetPrereqs entryA 101 true, .request reinstallRequest approvalReinstallB true, .replay]
+
+/-- A second read in one installation reports keys different from its active pin. -/
+def changedKeysOfferEvents : List Event :=
+  [.resetPrereqs entryA 101 true, .resetPrereqs entryA 102 true, .replay]
+
+def oldResetOffer : Params := { current with resetOfferCurrentInstallation := false }
+
+@[req "STA-20b"] theorem predecessor_reset_offer_refused :
+    let w := run current farDone.external init predecessorOfferEvents
+    offersReset current w.memory entryA = false := by decide +kernel
+
+@[req "STA-20b"] theorem predecessor_reset_offer_admitted_without_guard :
+    let w := run oldResetOffer farDone.external init predecessorOfferEvents
+    offersReset oldResetOffer w.memory entryA = true := by decide +kernel
+
+@[req "STA-20b"] theorem changed_keys_reset_offer_refused :
+    let w := run current farDone.external init changedKeysOfferEvents
+    offersReset current w.memory entryA = false := by decide +kernel
+
+@[req "STA-20b"] theorem changed_keys_reset_offer_admitted_without_guard :
+    let w := run oldResetOffer farDone.external init changedKeysOfferEvents
+    offersReset oldResetOffer w.memory entryA = true := by decide +kernel
+
+/-- Fresh matching prerequisites after dispatch restore the offer; another entry is independent. -/
+def currentOfferEvents : List Event := predecessorOfferEvents ++
+  [.resetPrereqs entryA 102 true, .resetPrereqs entryA 102 true,
+   .resetPrereqs entryB 103 true, .replay]
+
+@[req "STA-20b"] theorem current_installation_reset_offered :
+    let w := run current farDone.external init currentOfferEvents
+    installationOf current w.memory entryA = 1 ∧
+    offersReset current w.memory entryA = true ∧ offersReset current w.memory entryB = true := by
+  decide +kernel
+
+/-- The dedicated reinstall boundary is its rescue reset, not its choice or activation. -/
+def dedicatedOfferEvents : List Event := [.resetPrereqs entryA 101 true] ++
+  spentActivationStartEvents ++ [.request resetRequest2 approvalReset true]
+
+@[req "STA-20b"] theorem dedicated_reset_retires_prerequisites :
+    let before := run current farDone.external init (dedicatedOfferEvents.dropLast)
+    let after := run current farDone.external init dedicatedOfferEvents
+    installationOf current before.memory entryA = 0 ∧ offersReset current before.memory entryA = true ∧
+    installationOf current after.memory entryA = 1 ∧ offersReset current after.memory entryA = false := by
+  decide +kernel
+
 /-! ## The bound -/
 
 /-- The bound (`CONTEXT.md`): every trace of at most this many events over `alphabet`, from
-`init`. Stated once, here, for `bounded` and for the witness file; beyond it is the theorems'
+`init`, filtered to distinct request call ids. Stated once, here, for `bounded` and for the witness file; beyond it is the theorems'
 statements, not the file's. -/
 @[req "STA-24"] def bound : Nat := 3
 
@@ -1857,8 +1975,15 @@ def tracesOf : Nat → List (List Event)
   | 0 => [[]]
   | n + 1 => (tracesOf n).flatMap fun es => alphabet.map (es ++ [·])
 
-/-- Every trace of at most `n` events over `alphabet`, shortest first. -/
-def tracesUpTo (n : Nat) : List (List Event) := (List.range (n + 1)).flatMap tracesOf
+/-- Fresh request identities, including requests refused before dispatch. -/
+def freshRequests (es : List Event) : Bool :=
+  let calls := es.filterMap fun e => match e with | .request rq _ _ => some rq.call | _ => none
+  calls.eraseDups.length == calls.length
+
+/-- Every trace of at most `n` events over `alphabet` with distinct request call ids,
+shortest first. Both the decided property and the emitter read this filter. -/
+@[req "STA-24"] def tracesUpTo (n : Nat) : List (List Event) :=
+  ((List.range (n + 1)).flatMap tracesOf).filter freshRequests
 
 /-- What may be unresolved together on one resource. `STA-24`: "On one machine at most one
 cloud-plane call is unresolved at a time, it is older than every box-plane command unresolved
@@ -1874,11 +1999,12 @@ unresolved call to be box-plane, which an activation beside a command refutes. -
     (open_.dropLast.all fun i => !cloudPlane i.kind) &&
     (decide (open_.length ≤ 1) || open_.all fun i => !changesRunning i.kind)
 
-/-- What may be unresolved together, decided within the bound: the enumeration the witness file
-carries is one the companion itself closed over. -/
+/-- What may be unresolved together, decided within the bound, with distinct request call ids
+checked independently of the filter. Narrowed 2026-10-16 to reachable request identities: the
+enumeration the witness file carries is one the companion itself closed over. -/
 @[req "STA-24"] theorem bounded :
     (tracesUpTo bound).all (fun es =>
-      unresolvedTogether current (run current farDone.external init es).memory) = true := by
+      freshRequests es && unresolvedTogether current (run current farDone.external init es).memory) = true := by
   decide +kernel
 
 end TauWeb.Dispatch

@@ -121,7 +121,7 @@ _Avoid_: example (a witness is checked; an example is illustrated), sample, test
 **Witness file** · ADR-0032
 The companion's serialized witnesses and bounded traces for one module, one file under
 `docs/design/` — `allocation-witnesses-v1.json`, `declaration-witnesses-v1.json`,
-`relay-witnesses-v1.json`, `dispatch-witnesses-v2.json` and `pins-witnesses-v4.json`, with
+`relay-witnesses-v1.json`, `dispatch-witnesses-v3.json` and `pins-witnesses-v5.json`, with
 `witness-file-v1.md` describing their schemas — emitted by `lake exe witnesses` and held equal to the emission by
 `tools/check_witnesses.py`. Future implementation tests are to read them from the pinned tree;
 nothing outside this repository reads witness files today. Never compiled into the build. It

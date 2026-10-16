@@ -200,6 +200,14 @@ session's binding**, enforced by the adapter rather than left to the approval sc
 naming a machine outside the calling session's bound set is refused. A session's vendor
 operations reach the machines of its own set and account-level creation, nothing else.
 
+**The abandonment flow is authorized outside any session.** It MUST act only on machines of
+the unfinished setup whose vendor machine id reached the approved entry through **this setup's
+own** create response, or through evidence tied to the seed-derived key. This authorization is
+checked at dispatch. A mapping imported from a recovery sheet is never enough by itself. A lost
+create with no admissible evidence remains subject to `ARC-22`'s "cannot be destroyed from here
+and may still exist and bill". The calling-session binding above governs session operations;
+this paragraph governs only the deterministic abandonment flow (`ARC-21`).
+
 **What is dispatched is the approved record.** The adapter executes the structured facts as
 they were approved and journaled — the resource (`STA-24`), the arguments, the declared cost
 bound, the bundle commit — never a request rebuilt at dispatch from session state or from
@@ -262,7 +270,7 @@ outgrown, because adding a credential means adding a row.
 
 | # | Credential | Origin | Where it lives | Lifetime | What it authorizes | How it dies |
 |---|---|---|---|---|---|---|
-| 1 | Vendor API credential, used through a typed adapter | Operator | Browser memory only | The sessions it is supplied to, or one deterministic harness flow (`STA-18`, `ARC-21`) | Whatever the vendor grants it, up to full account authority; the adapter authorizes each operation against the calling session's bound set (`SEC-4`), so one credential may serve several sessions | Session or flow ends |
+| 1 | Vendor API credential, used through a typed adapter | Operator | Browser memory only | The sessions it is supplied to, or one deterministic harness flow (`STA-18`, `ARC-21`) | Whatever the vendor grants it, up to full account authority; the adapter authorizes session operations against the calling session's bound set and the abandonment flow against this setup's own create response or evidence tied to the seed-derived key (`SEC-4`) | Session or flow ends |
 | 2 | Inference **session** key | Minted from row 14 (procured); supplied by the operator (BYO) | Browser memory only | One session | Inference spend, **up to its own cap** | Revoked at session end (procured); session ends (BYO) |
 | 3 | **SSH client private key, one per machine** | **Derived** from row 15 at that machine's index (`STA-22`) | Re-derived on demand; nothing to export. Given to the machine's bound session and no other; a jump host's, at the jump host's own index, is given to no session (`CHN-R6`); during Replace, the machine's old and new keys are held by the harness's model-free Replace flow and given to no session (`STA-17`) | Machine lifetime | Login to **that one machine** | Removed from the machine on Replace (`STA-17`), which is a new seed; a jump host's dies with the jump host |
 | 4 | **Relay key**, one per pass | Derived from row 15 (`STA-22`); its public half is what the relay binds a bought pass to (`CHN-15`), and what the first stage hands the publisher out of band | Re-derived on demand; nothing to store | Until the pass expires or is revoked | Reaching the destinations recorded against its pass, on any port; recording destinations; revoking (`CHN-16`) | Pass expires or replacement is confirmed under `STA-17`, by signed revocation or stage 1's manual retirement |

@@ -229,7 +229,8 @@ state — working directory, variables, an entered chroot — survives from one 
 A brief is therefore authored so that each example block is self-contained: a block that needs
 the installed root wraps its own `chroot /mnt sh -c '…'`, and a value one step needs from
 another has a named source rather than a variable — the bundle (`bundle/`), a per-session value
-the harness shows the model (a bound machine's client public key), a decision the model made
+the harness shows the model (a bound machine's client public key), a per-machine value
+the harness always shows the model (the current installation id `<machine>-<n>`, `STG-20`), a decision the model made
 and composed into the command it issues (which `ARC-8` journals as sent), or a machine-derived
 value recomputed inside the consuming command. Nothing is carried.
 
@@ -777,7 +778,8 @@ flow** `STA-18` already defines, before or outside any session, never through a 
 session's typed operations reach the machines of its own bound set and nothing else (`SEC-4`,
 `CNF-26`), so no session can destroy a machine outside its set, and borrowing one to do so would
 be reach `SEC-1` does not grant. Against a machine with an unresolved call it is an operator disposition (`STA-24`),
-recorded as one and never as evidence of what the call did. Under an untyped vendor scope the
+recorded as one and never as evidence of what the call did. The flow's authorization is
+`SEC-4`'s abandonment paragraph, checked at dispatch. Under an untyped vendor scope the
 harness has no cloud-plane operation to carry it out with and hands the act to the operator, at
 the vendor by hand; what holds meanwhile is `STA-24`'s.
 

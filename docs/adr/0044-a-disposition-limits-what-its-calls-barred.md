@@ -135,3 +135,15 @@ one outstanding effect per resource, and the companion's bounded property said t
 every resource whose unresolved calls are not all box-plane. An activation unresolved beside a
 box-plane command, which the carve-outs admit, refutes both; the enumeration had not reached
 it because its alphabet held no activation. Both now state what may be unresolved together.
+
+*Amended 2026-10-16:* A session's destroy under abandonment is refused: the continuation is
+the operator flow, not a request a session can send to lift its restriction. The flow still
+meets the barrier on every undisposed call. Its authorization is `SEC-4`'s new paragraph: a sheet
+mapping alone is insufficient because it establishes no connection between this unfinished
+setup's create and the vendor machine the flow would destroy. A replacement omitting calls
+leaves them settled, unknown, and never named again. Widening the replacement exception to the
+whole chain was rejected: it changes nothing refused, and a settled call is not waited for.
+Only an activation dispatched under the standing choice counts for its reinstall. "A fresh
+call is cheap" was rejected as the reason: the counted activation is the one approved under
+the choice in force, with one boundary scoping both activation and read. These are the reasons
+for the clauses in `STA-24` and `SEC-4`, not additional rules.

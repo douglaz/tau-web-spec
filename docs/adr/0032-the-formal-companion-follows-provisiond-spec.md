@@ -175,3 +175,9 @@ the calls still unresolved; its restriction ended at any later intent or at a re
 operation; a destructive continuation that leaves the model's commands running; any reset taken
 for the reinstall; and a disposition matched to a call by call id alone. Each is a parameter
 with its pair. The module's witness file is schema 2.
+
+*Amended 2026-10-16:* Dispatch adds the session-destroy refusal pair and the per-installation
+reset-offer pairs for predecessor prerequisites and changed keys; pins adds the post-reinstall
+ready-to-reset freshness pairs for earlier pins and observations. Dispatch's shared trace
+enumeration filters repeated request call ids, checked again by its bounded property; intent
+projection is positional. The witness schemas become dispatch 3 and pins 5.

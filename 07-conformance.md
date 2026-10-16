@@ -502,7 +502,11 @@ evidence is that set's test run against the relay the harness uses.
 - [ ] **CNF-26 · BLOCKING** A typed operation naming a machine outside the calling session's
       bound set is **refused by the adapter**, before any approval screen renders. One vendor
       credential supplied to two sessions changes nothing: each is refused the other's
-      machines.
+      machines. The deterministic abandonment flow (`SEC-4`, `ARC-21`) is refused on a machine
+      whose vendor id this setup's own create response never mapped and for which no evidence
+      tied to the seed-derived key exists, even if a sheet imported that mapping. The same id
+      with this setup's create response or admissible key-tied evidence is permitted subject
+      to the other checks. Boundary crossed.
 - [ ] **CNF-27 · BLOCKING** A scope naming an origin a vendor adapter covers is refused. A
       scope at a vendor with no adapter is admitted only as `SEC-4`'s untyped vendor scope, and
       is refused while the journal shows any undestroyed machine provisioned through that
@@ -589,7 +593,17 @@ evidence is that set's test run against the relay the harness uses.
       now; one naming some of several unresolved calls leaves the others barring. A replacement
       naming the calls the standing disposition disposed is accepted, the operator is shown what
       it replaces, and the continuation in force is then the replacement's: with a destructive
-      reinstall replaced by abandonment, the reinstall is refused. A replayed journal that
+      reinstall replaced by abandonment, the reinstall is refused. A session's destroy under
+      abandonment is refused too; the flow's destroy stays barred when its disposition names only
+      some unresolved calls, and is permitted once none remain, subject to authorization and approval. At LNVPS renewal-off waits for
+      confirmation of the stop. A replacement that omits calls lists them, leaves their outcome
+      unknown and settled under the replaced record, adds no restriction through them, and
+      refuses ever naming them again, including at LNVPS. These are stage-1 cases.
+      On the dedicated test bed, replace a reinstall by a continuing disposition naming only
+      its unresolved activation: the screen says the reinstall is cancelled, commands resume,
+      and any reset is admitted subject to other checks, possibly booting the installed system
+      while the activation's state is unknown; it offers "retry the activation, keep the
+      reinstall" with the activation and reinstall continuation. A replayed journal that
       already holds a disposition this test refuses ends no call and restricts nothing, and the
       record is shown; a valid replacement is still the one in force after a restart (`STA-7`).
       Evidence appended after a disposition about a call it disposed neither reopens that call
@@ -602,7 +616,12 @@ evidence is that set's test run against the relay the harness uses.
       the restriction; a reset with no confirmed rescue activation refused; after confirmation,
       a reset whose newest journaled activation read reports it inactive refused with the
       disposition still standing; and a reset after a re-read that confirms it admitted and
-      ending the restriction — runs on the dedicated test bed; the untyped-scope hold is `CNF-105`.
+      ending the restriction — runs on the dedicated test bed. There, an activation confirmed
+      before the standing disposition, or dispatched under a disposition since replaced, does
+      not count; a fresh activation confirmed under the standing choice does. Include the vendor
+      refusing a second activation while rescue remains armed and the predicate read still
+      confirming it: the earlier activation still does not count, the reset stays refused and
+      the disposition stands. The untyped-scope hold is `CNF-105`.
 - [ ] **CNF-30 · BLOCKING** Box-plane commands are recorded per command before transmission,
       and the transcript reconciles against what was sent (`ARC-8`).
 - [ ] **CNF-31 · PRE-SCALE** A scoped call is sent with redirect following disabled, and a
@@ -644,7 +663,11 @@ evidence is that set's test run against the relay the harness uses.
       mutation is requested again under a fresh call id before confirmation and is refused
       while the reconciliation reads stay available; an immediate `running`, a changed
       `boot_time`, or a job record claiming success does not substitute for the predicate
-      (`STA-24`).
+      (`STA-24`). Every reset into rescue, ordinary ceremony and disposition's return included,
+      has an immediately preceding durably journaled activation read (`STG-4`). A confirming
+      read admits it; a non-confirming read and a failed read append each refuse it visibly,
+      with no reset dispatched. A late reset after first contact remains the residual described
+      in `STA-24`; pin matching before contact does not assert protection after contact.
 - [ ] **CNF-39 · PRE-SCALE** After a killed worker, replay classifies incomplete calls, cancels
       those that cannot still exist, and surfaces uncertain ones without resuming them
       (`STA-7`).
@@ -664,7 +687,8 @@ evidence is that set's test run against the relay the harness uses.
       `installed.wait_max` (`bundle/timing.toml`) of its boot reset is declared failed, the operator is told, and a separately approved destructive reinstall
       returns to rescue from the brief (`STG-20`). Test a missing bootloader and a relay outage: neither a timeout nor
       unreachability clears unresolved operations or triggers a wipe without that decision.
-      After that decision, the old installed pin is retired, the next job read can establish
+      At the destructive reinstall's dispatch, the reset into rescue on this path, the old
+      installed pin is retired; the choice alone retires nothing. The next job read can establish
       a new one, and the installed contact uses that new pin. A second job read without the
       destructive reinstall cannot replace an active pin.
       Each probe is a pinned SSH attempt; verified by counting sshd's preauth log lines during
@@ -877,7 +901,19 @@ Not pass/fail. Required to be recorded.
       reinstall, the return to rescue waits for the other command and collects its record, and
       does not wait for the disposed one or require its record; the reset into rescue is
       dispatched with its intent recorded and no installed pins.
-      Destroyed-data.
+      The installation id (`STG-20`) stays the same across restart and Restore, differs between
+      machines and fits the root label. It moves at destructive reinstall dispatch, never at
+      its choice: replace the reinstall before its reset and confirm the kept root still has
+      the shown id. A fresh reinstall erases the approved predecessor, including an unmarked,
+      foreign-id or hand-installed root, and labels the successor at formatting. Interrupt that
+      successor and resume it under the same id without formatting again; a complete matching
+      root is kept. Two matching roots or an unreadable label stop and surface without erasure.
+      Continuing as if not done with an installed pin keeps the matching root and its keys
+      (`STA-20b`). A changed-key `ready_to_reset` read withholds the offer and tells the operator
+      before reboot. After reinstall, predecessor prerequisites cannot offer a reset; kept old
+      keys are refused by the freshness backstop, including overlap with earlier observations.
+      Disjoint successor keys can establish the new pin and offer the reset. `STG-20` says
+      "The label steers the model; nothing checks it". Destroyed-data.
 - [ ] **CNF-87 · BLOCKING** The first-stage relay is a paid-tcp-relay relay with a hand-recorded
       pass (its `PAS-6`): it passes that set's handshake items — fresh challenge, unknown key and
       replayed signature refused, only the recorded destination set reachable, its

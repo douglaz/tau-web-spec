@@ -258,10 +258,13 @@ did not happen" is therefore always the operator's disposition (`STA-24`) and ne
 and whether a Robot reset can be delayed or dropped is not known: the rehearsal's three cycles
 at about eighty seconds are the only data.
 
-Immediately before the reset into rescue at which a standing disposition's destructive
-reinstall is dispatched (`STA-24`), the harness MUST read the activation predicate again and
-durably journal the read (`STA-3`); only a re-read the journal holds discharges this duty. This
-duty does not extend to the ordinary install ceremony's reset into rescue with no disposition.
+Immediately before **every** reset into rescue, including the ordinary install ceremony's
+reset with no disposition, the harness MUST read the activation predicate again and durably
+journal the read (`STA-3`). It MUST dispatch the reset only if that immediately preceding read
+still confirms the activation; a non-confirming read or a failed append is shown as the refusal.
+The residual window and its bounds are `STA-24`'s paragraph beginning "A reboot between that read
+and the reset leaves a window". The companion carries only one reset kind, so this universal
+re-read duty is not carried there.
 
 Anything not confirmed stays unresolved under `STA-8` and the operator decides; the adapter is
 reconcile-before-retry (`STA-5`), and a second request for the same mutation under a new call
@@ -421,11 +424,30 @@ as an unbootable machine.
 Unreachability is not proof of boot failure: a relay or network outage can look the same.
 The timeout does not clear an unresolved action or authorize a wipe. The operator must choose
 the destructive reinstall, with the selected disks shown; normal typed approvals and journal
-ordering apply. Resume first follows `STA-20b`. Once that separately approved destructive
-reinstall from rescue is recorded, it opens a new installation: the old installed-system pin
-retires and the new `ready_to_reset` job read can establish its pin before the reset into the
-installed system. A rescue reset, reboot, restart, Restore or non-destructive key recovery
-does not open that boundary. The harness does not reach for the vendor's console.
+ordering apply. Resume first follows `STA-20b`. That separately approved destructive reinstall
+opens a new installation when it is **dispatched**: the reset into rescue on a dedicated server,
+or the vendor's reinstall call at LNVPS. Choosing it or recording its disposition does not move
+that boundary. At dispatch the old installed-system pin retires and the new `ready_to_reset` job
+read can establish its pin before the reset into the installed system. Any other rescue reset,
+reboot, restart, Restore or non-destructive key recovery does not open that boundary.
+
+The harness MUST always show the model the current installation id `<machine>-<n>`, with `n`
+the journal's installation generation. It is derived from the journal with no new journal field,
+unchanged across restart and Restore, distinct between the journal's machines, and at most
+16 bytes, so it fits an ext4 filesystem label. Its machine component's encoding is unspecified.
+The install brief uses that label to distinguish its own root from a predecessor (ADR-0045).
+The label steers the model; nothing checks it.
+
+As a backstop, a `ready_to_reset` pin after a dispatched reinstall MUST share no fingerprint
+with any observation or installed-system pin of that machine in any earlier installation.
+`TauWeb.Pins.fresh` supplies this comparison, including observations; its guard's pairs are
+`TauWeb.Pins.kept_root_keys_after_reinstall_refused` /
+`TauWeb.Pins.kept_root_keys_pinned_without_guard` and
+`TauWeb.Pins.observed_keys_after_reinstall_refused` /
+`TauWeb.Pins.observed_keys_pinned_without_guard`. `TauWeb.Pins.transitionSound` checks that
+admission within the bound. This enforces "no pinned key survives a reinstall", never "erased
+as approved", and is vacuous for a predecessor that never reached `ready_to_reset` and left no
+matching observation. The harness does not reach for the vendor's console.
 
 That console exists — Hetzner's vKVM rescue boots the installed disk inside a virtual machine
 with a screen — and it is **the operator's own tool, by hand, outside the harness**, for a

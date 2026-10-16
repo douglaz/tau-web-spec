@@ -1,4 +1,4 @@
-# Witness files v1, v2 and v4
+# Witness files v1, v3 and v5
 
 The schemas of the files the formal companion emits, one per module, committed beside this
 document as `<module>-witnesses-v<schema>.json` (ADR-0032, "How the implementation is compared" —
@@ -9,16 +9,17 @@ decided there and not restated here). `lake exe witnesses` writes them from `too
 [`allocation-witnesses-v1.json`](./allocation-witnesses-v1.json) from `TauWeb.Allocation`,
 [`declaration-witnesses-v1.json`](./declaration-witnesses-v1.json) from `TauWeb.Declaration`,
 [`relay-witnesses-v1.json`](./relay-witnesses-v1.json) from `TauWeb.Relay`. The dispatch
-module uses schema 2 in [`dispatch-witnesses-v2.json`](./dispatch-witnesses-v2.json) from
-`TauWeb.Dispatch`. It replaces schema 1: a `dispose` step that can be refused, a continuation
-that is one of the operator's four choices instead of an operation, the `reinstall` operation,
-six further assumptions, the `dispositions` and `standing` members of the projection and a
-witness that starts from a journal already written change the shape. The pins
-module uses schema 4 in [`pins-witnesses-v4.json`](./pins-witnesses-v4.json) from `TauWeb.Pins`.
-It replaces schema 3: installation groups, pin installation ordinals and compact observations
-change the shape. Schema 3 added LNVPS publication and reinstall events, per-fingerprint sets
-and presented keys. Schema 2 replaced schema 1 when
-attest and restart were added.
+module uses schema 3 in [`dispatch-witnesses-v3.json`](./dispatch-witnesses-v3.json) from
+`TauWeb.Dispatch`. It replaces schema 2: the session-destroy and per-installation reset-offer
+guards, and the key-set ordinal on `reset_prereqs`, change the shape. The installation boundary
+is computed from journaled dispatches, never supplied by an event. Schema 2 added refused
+dispositions, the four continuations, the reinstall operation, assumptions, disposition and
+standing projections, and the witness starting from a journal already written. The pins
+module uses schema 5 in [`pins-witnesses-v5.json`](./pins-witnesses-v5.json) from `TauWeb.Pins`.
+It replaces schema 4: the post-reinstall `ready_to_reset` freshness guard changes assumptions.
+Schema 4 added installation groups, pin installation ordinals and compact observations.
+Schema 3 added LNVPS publication and reinstall events, per-fingerprint sets and presented keys.
+Schema 2 replaced schema 1 when attest and restart were added.
 Nothing outside this repository reads witness files today, so removing an old file requires no
 current reader
 migration. Future implementation comparisons still owe a reader for the versioned files under
@@ -31,19 +32,19 @@ the trace that moved.
 
 | Member | What it holds |
 |---|---|
-| `schema` | `1` for allocation, declaration and relay; `2` for dispatch; `4` for pins. A change to any shape below is a new version and a new file name for that module. |
+| `schema` | `1` for allocation, declaration and relay; `3` for dispatch; `5` for pins. A change to any shape below is a new version and a new file name for that module. |
 | `module` | The inventory name, lower-case: `allocation`, `declaration`, `relay`, `dispatch`, and `pins` for the host-pin lifecycle. |
 | `namespace` | The Lean namespace the traces' declarations live in. |
 | `bound` | `declaration`, the tagged `bound` the decided property and the emitter share, and its value rendered under the module's own members. Allocation (`TauWeb.Allocation.bound`): `events`, the number, and `alphabet`, the events the enumeration draws from. Declaration (`TauWeb.Declaration.bound`): `base`, the declaration and machine every case starts from; `presences`, per field, what the field is swept through, `missing` written as that word since a list has no absent member; `observations`, what the machine is made to show for it; `tenancies`. Relay (`TauWeb.Relay.bound`): `events`, the number; `alphabet`; and `start`, the opened connection every trace of the enumeration runs from. Dispatch (`TauWeb.Dispatch.bound`): `events`, the number; `alphabet`; and `start`, the journal every trace runs from, which carries the harness's associations and nothing dispatched. Pins (`TauWeb.Pins.bound`): the same shape; `start` carries one earlier `/rescue/last` snapshot, plus the fixed `planted_senders` list defined below from that starting knowledge and the alphabet. |
 | `witnesses` | The named traces, one per decided witness, in the order the module states them. |
-| `enumeration` | The traces the module's decided property closed over. Allocation: every trace of at most `bound.events` events over `bound.alphabet` from the initial journal, shortest first (`TauWeb.Allocation.bounded_nodup`). Declaration: one full check per case of the sweep, fields in the table's order, each field through each presence, observation and tenancy (`TauWeb.Declaration.bounded`). Relay: every trace of at most `bound.events` events over `bound.alphabet` from `bound.start`, shortest first (`TauWeb.Relay.bounded`). Dispatch: the same shape, from `bound.start` (`TauWeb.Dispatch.bounded`). Pins: the same shape, from `bound.start` (`TauWeb.Pins.bounded`). |
+| `enumeration` | The traces the module's decided property closed over. Allocation: every trace of at most `bound.events` events over `bound.alphabet` from the initial journal, shortest first (`TauWeb.Allocation.bounded_nodup`). Declaration: one full check per case of the sweep, fields in the table's order, each field through each presence, observation and tenancy (`TauWeb.Declaration.bounded`). Relay: every trace of at most `bound.events` events over `bound.alphabet` from `bound.start`, shortest first (`TauWeb.Relay.bounded`). Dispatch: every trace of at most the bound over the alphabet from `bound.start`, shortest first, **filtered to distinct request call ids** (`TauWeb.Dispatch.bounded`). Pins: the same shape, from `bound.start` (`TauWeb.Pins.bounded`). |
 
 Both arrays hold traces of one shape:
 
 | Member | What it holds |
 |---|---|
 | `declarations` | The `TauWeb.*` theorems the trace came from, resolvable against the `lake exe gate` index. Every name the file carries — here, in `bound.declaration`, in `pair.with` — is one the emitter checked against the tags (`Witnesses.lean`). |
-| `assumptions` | Each guard parameter of the module by name, with the value the trace runs under, and each hypothesis the module takes rather than owns. Allocation has one guard, `restoredAllocatesNone`; declaration has one, `emptyMeansPerField`; relay has one, `dialRequiresAuthAccepted`, beside `special`, `ownAddress` and `resolve` — the value `CHN-16a`'s pinned tables and the relay's resolver take for the trace, since the module quantifies over them. Dispatch has ten and nothing else: `resourceKey`, `durableBeforeApply`, `endedBelowSucceeded`, `dispositionBindsContinuation`, `reach` (`disposed`, or one of the retained traps `resource`, `every_dispatch` and `still_unresolved`), `destructiveStops`, `lapse` (`continuation`, or `any_intent` or `first_operation`), `resetIntoRescueOnly`, `newestActivationRead` and `dispositionOwnResource`. What the far side actually did is external state, which a witness never carries. Pins carries `sourceAdmitsPin`, `attestAuthorMatches`, `attestSingleUse`, `attestDurable`, `attestFirstContact`, `publishedComplete`, `publishedFresh`, `publishedWithin`, `reinstallRetiresPin` and `installedFirstContact`, with symbolic sender associations, seal-author observations, atomic durable appends, open introduction windows and vendor-status observations as stated assumptions. |
+| `assumptions` | Each guard parameter of the module by name, with the value the trace runs under, and each hypothesis the module takes rather than owns. Allocation has one guard, `restoredAllocatesNone`; declaration has one, `emptyMeansPerField`; relay has one, `dialRequiresAuthAccepted`, beside `special`, `ownAddress` and `resolve` — the value `CHN-16a`'s pinned tables and the relay's resolver take for the trace, since the module quantifies over them. Dispatch carries `resourceKey`, `durableBeforeApply`, `endedBelowSucceeded`, `dispositionBindsContinuation`, `reach` (`disposed`, or one of the retained traps `resource`, `every_dispatch` and `still_unresolved`), `destructiveStops`, `lapse` (`continuation`, or `any_intent` or `first_operation`), `resetIntoRescueOnly`, `newestActivationRead` `dispositionOwnResource`, `sessionDestroyRefused` and `resetOfferCurrentInstallation`. What the far side actually did is external state, which a witness never carries. Pins carries `sourceAdmitsPin`, `attestAuthorMatches`, `attestSingleUse`, `attestDurable`, `attestFirstContact`, `publishedComplete`, `publishedFresh`, `publishedWithin`, `reinstallRetiresPin`, `installedFirstContact` and `readyAfterReinstallFresh`, with symbolic sender associations, seal-author observations, atomic durable appends, open introduction windows and vendor-status observations as stated assumptions. |
 | `pair` | Present on a refused-and-admitted pair: `side`, `refused` or `admitted`, and `with`, the other side's declaration. What the comparison expects of each side is ADR-0032's. |
 | `start` | The state before the first event, in the projection below. Allocation: the `journal` — most traces start from the fresh seed; the exhaustion witness starts one below the index limit. Declaration: the `declaration` and the `machine` the check reads, and the empty `record`. Relay: the `challenge` as an ordinal, the `destination` the path parsed to, what the pipeline `classified` it as, the `pass` the operator's key holds, and the opened `connection`. Dispatch: the `knowledge` below, which every trace starts with the harness's associations in and nothing else, but for one witness: `TauWeb.Dispatch.replayed_invalid_disposition_means_nothing` starts from a journal a replay finds already written, holding an unresolved call and a disposition recorded against another resource, which no trace under the rules in force can write since such a disposition is refused. Pins: the `knowledge` below — for the witnesses, empty apart from `planted_senders`, which lists every machine the trace names; and `bound.start` for the enumeration. |
 | `steps` | One object per event, in order: `event`, the outcome members for that event kind, and the projection after the step — `journal` for allocation, `record` for declaration, `connection` for relay, `knowledge` for dispatch and for pins. |
@@ -71,14 +72,14 @@ beside them are the event's arguments.
 | `read` | adapter observation | `source`, `resource`, `operation`, `reports`, `appended` | `settled`: the call ids the read took out of the barrier |
 | `dispose` | disposition | `resource`, `calls`, `continuation` (`destructive_reinstall`, `abandonment`, `as_if_done` or `as_if_not_done`), `appended` | `disposition`: `recorded`; `refused`, where it names no call, or names a call that is neither unresolved on the disposition's own resource nor one the standing disposition disposed; or `not_appended` |
 | `associate` | operator act | `target`, `entry` | — |
-| `reset_prereqs` | adapter observation | `entry`, `appended` | `offer`: whether the planned reset into the installed system may be offered |
+| `reset_prereqs` | adapter observation | `entry`, `keys` (opaque key-set ordinal), `appended` | `offer`: whether the planned reset into the installed system may be offered |
 | `replay` | replay | — | — |
 | `reset` | operator act | `entry`, `into` | `boot`: the rescue boot the harness counts for that entry after it |
 | `rescue_last` | adapter observation | `source`, `entry`, `keys` (`null` while the field is empty) | `pinned`: whether the read journaled a pin |
 | `ready_to_reset` | adapter observation | `source`, `entry`, `keys` | `pinned` |
 | `attest` | adapter observation | `source`, `entry`, `per` (and `boot` for rescue), `keys`, observed `author`; nested `append` with provenance `storage outcome of an append` and `durable` | `pinned`; `consumed`: whether this entry's introduction is consumed after the step |
 | `published` | adapter observation | `source`, `entry`, `per` (and `boot` for a refused rescue-scope trap), `keys` | `pinned` |
-| `reinstall` | operator act | `entry`; a separately chosen destructive reinstall through the vendor API or from rescue | `pending`: whether a new installed pin from any source is awaited |
+| `reinstall` | operator act | `entry`; a destructive reinstall dispatched at the vendor reinstall call or the dedicated reset into rescue | `pending`: whether a new installed pin from any source is awaited |
 | `restart` | crash | — | `replayed`: durable knowledge retained, session/handshake records dropped |
 | `claim` | model request | `source`, `entry`, `per` (and `boot` with it), `keys` | `pinned` |
 | `connect` | adapter observation | `entry`, `system`, `presents` | `check`: `admitted` or `halted`, with `halt` on the second |
@@ -102,11 +103,12 @@ settles the call, and it stays in the barrier. Whether a `read` clears anything 
 and its `reports` together, and the step's `settled` is the answer; a read settles the calls that
 were outstanding when it was taken, never one dispatched afterwards.
 
-Every `request` is labelled a model request, and the module carries nothing of who sends one.
-`ARC-21` runs abandonment "never through a session", so the file holds no trace in which a
-`destroy` is dispatched under a disposition naming abandonment: that a model's request for one
-is admissible is nothing a comparison may read from it. Nor does it hold one in which a
-`register_key` is requested under a standing disposition: the journal holds nothing that says a
+Every `request` is labelled a model request and is a session's. Under a standing abandonment
+its destroy is refused; the paired trace without `sessionDestroyRefused` retains the former
+admission as a trap, not a permission a comparison can infer. `ARC-21` runs abandonment
+"never through a session"; the flow's destroy intent is read outside request admission by
+`TauWeb.Dispatch.abandonment_ends_at_its_destroy_alone`.
+The file holds no trace in which a `register_key` is requested under a standing disposition: the journal holds nothing that says a
 key registration is owed, and `TauWeb.Dispatch.reinstall_does_not_refuse_key_registration` is
 decided over a trace that requests none. `destroy` stands for the destroy or the
 stop that stands in for it, and `reinstall` for the vendor's own reinstall call (`ARC-22`). A
@@ -192,11 +194,11 @@ resolution, the barrier and the approval checks and nothing about arguments or c
 |---|---|
 | `durable` | Whether in-memory state is also what was appended. `STA-3` makes it always true; the traces without that rule are where it is false. |
 | `associations` | The harness's own mapping of what a model may name — an allocation index, a vendor machine id — to the approved machine entry, oldest first. Never taken from a request. |
-| `calls` | One entry per intent the journal holds, oldest first: the `call`, the `target` the model named, the `resource` the harness assigned, the `operation`, the `session`, the `approved` session and facts, and `state` — `unresolved`, `terminal` (an admissible confirming read, or a valid disposition), or `no_effect` for a read. |
+| `calls` | One entry per intent the journal holds, oldest first, with its state read from later records at that intent's position, never looked up by call id: the `call`, the `target` the model named, the `resource` the harness assigned, the `operation`, the `session`, the `approved` session and facts, and `state` — `unresolved`, `terminal` (an admissible confirming read, or a valid disposition), or `no_effect` for a read. |
 | `unresolved` | Per resource the journal names, the call ids the barrier stands on. |
 | `dispositions` | Every disposition record the journal holds, oldest first: its `resource`, `calls` and `continuation`, and `valid` — whether `STA-24`'s test accepts it against the journal before it. One that is not valid is read as if it had never been recorded, and is here because the operator is shown the record. A valid one may have been replaced or have ended since. |
 | `standing` | Per resource, the disposition standing over it: the `calls` it disposed and the `continuation` in force. Absent where none stands — none recorded, or the continuation dispatched — and in the trace that runs without `dispositionBindsContinuation`, where a disposition restricts nothing. |
-| `reset_offer` | The approved entries whose planned reset into the installed system may be offered (`STA-20b`). |
+| `reset_offer` | The approved entries whose planned reset into the installed system may be offered (`STA-20b`): prerequisites belong to the current installation and the newest read matches its first durable prerequisite keys, the active installed pin. |
 | `dispatched` | The calls whose effect went out, oldest first. |
 
 A refusal is `reason` — `unmapped`, `binding`, `facts`, `append`, `barrier` or `continuation` —
@@ -207,7 +209,7 @@ one puts on `exec`.
 
 ### Pins
 
-In schema 4, `knowledge` is harness knowledge in `SEC-11`'s, `CHN-R1`'s, `CHN-R7`'s and `ARC-43`'s
+In schema 5, `knowledge` is harness knowledge in `SEC-11`'s, `CHN-R1`'s, `CHN-R7`'s and `ARC-43`'s
 vocabulary and never
 the companion's state layout. External state is not in the file: `snapshot` is what the
 vendor's field showed when it was read, a session's `presented` is what the far sshd presented, and

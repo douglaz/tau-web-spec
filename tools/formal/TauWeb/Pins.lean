@@ -143,6 +143,9 @@ pair. -/
   publishedWithin : Bool := true
   reinstallRetiresPin : Bool := true
   installedFirstContact : Bool := true
+  /-- After a dispatched reinstall, ready_to_reset shares no key with earlier installations'
+  pins or observations. Vacuous before any reinstall; it does not prove disk erasure. -/
+  readyAfterReinstallFresh : Bool := true
   deriving DecidableEq, Repr
 
 /-- The rule as it stands. -/
@@ -355,8 +358,8 @@ inductive Event
   /-- A recorded LNVPS status response, ordered by Ed25519, RSA and ECDSA. A missing
   family shortens the list. No network or timer behavior is proved here. -/
   | published (entry : Entry) (per : Per) (keys : Keys)
-  /-- A separately chosen destructive reinstall, through the vendor API or from rescue,
-  starts a new installation and first contact for this machine. An ordinary rescue reset,
+  /-- A destructive reinstall dispatched: the vendor reinstall call, or the reset into rescue
+  on a dedicated server. It starts a new installation and first contact. Any other rescue reset,
   recovery, reboot or Restore is not this event. -/
   | reinstall (entry : Entry)
   /-- Restart from the durable journal, without volatile session/handshake records. -/
@@ -450,7 +453,10 @@ the presented set is the reset's confirmation or is not, whichever pin the probe
     | _, _ =>
       if k.awaiting.any (fun a => a.entry == m && a.into == System.rescue) then k
       else { k with snapshot := (m, keys) :: k.snapshot }
-  | .readyToReset m f => journal p k ⟨m, .machine, f, .readyToReset, 0⟩
+  | .readyToReset m f =>
+    if !p.readyAfterReinstallFresh || installationOf k m == 0 || fresh k m f then
+      journal p k ⟨m, .machine, f, .readyToReset, 0⟩
+    else k
   | .attest m pr f author durable => journal p k ⟨m, pr, f, .attest author, 0⟩ durable
   | .published m pr keys =>
     let mayAdmit := publicationAdmissible p k m keys
@@ -626,7 +632,10 @@ theorem inv_step (p : Params) (k : Knowledge) (hk : Inv p k) (e : Event) : Inv p
         ⟨m, .boot (bootOf { k with snapshot := (m, some f) :: k.snapshot } m), f, .rescueLast, 0⟩
       exact ⟨hs', hp', fun x hx hr => List.mem_cons_of_mem _ (hconf ▸ hh' x hx hr)⟩
     · split <;> exact ⟨hs, hp, hh⟩
-  | readyToReset m f => exact inv_journal p k ⟨m, .machine, f, .readyToReset, 0⟩ ⟨hs, hp, hh⟩
+  | readyToReset m f =>
+    simp only [step]; split
+    · exact inv_journal p k ⟨m, .machine, f, .readyToReset, 0⟩ ⟨hs, hp, hh⟩
+    · exact ⟨hs, hp, hh⟩
   | attest m pr f author durable =>
     exact inv_journal p k ⟨m, pr, f, .attest author, 0⟩ ⟨hs, hp, hh⟩ durable
   | published m pr keys =>
@@ -785,7 +794,10 @@ theorem consumed_step (p : Params) (k : Knowledge) (m : Entry) (hm : m ∈ k.con
     simp only [step]; split
     · exact journal_consumed _ _ _ _ _ hm
     · split <;> exact hm
-  | readyToReset n keys => exact journal_consumed _ _ _ _ _ hm
+  | readyToReset n keys =>
+    simp only [step]; split
+    · exact journal_consumed _ _ _ _ _ hm
+    · exact hm
   | attest n pr keys author durable => exact journal_consumed _ _ _ _ _ hm
   | published n pr keys =>
     simp only [step]
@@ -1300,8 +1312,9 @@ def dedicatedSecondRescueEvents : List Event :=
   [.reset entryA .rescue, .rescueLast entryA (some oldRescueKeys),
    .connect entryA .rescue oldRescueKey]
 
-def dedicatedReinstallEvents : List Event := ceremonyEvents ++ dedicatedSecondRescueEvents ++
-  [.reinstall entryA, .readyToReset entryA claimedKeys,
+def dedicatedReinstallEvents : List Event := ceremonyEvents ++
+  [.reset entryA .rescue, .reinstall entryA] ++ dedicatedSecondRescueEvents.drop 1 ++
+  [.readyToReset entryA claimedKeys,
    .reset entryA .installed, .connect entryA .installed claimedKey]
 
 def secondJobWithoutReinstallEvents : List Event := ceremonyEvents ++ dedicatedSecondRescueEvents ++
@@ -1341,13 +1354,13 @@ def disjointAfterJobEvents : List Event :=
    .connect entryA .installed nextPublishedKey]
 
 @[req "CHN-R7"] theorem dedicated_reinstall_admitted :
-    let boundary := run current init (ceremonyEvents ++ dedicatedSecondRescueEvents ++
-      [.reinstall entryA])
+    let boundary := run current init (ceremonyEvents ++
+      [.reset entryA .rescue, .reinstall entryA])
     let k := run current init dedicatedReinstallEvents
     pinFor boundary entryA .installed = none ∧
     installationOf boundary entryA = 1 ∧
     k.pins.map (fun pin => (pin.installation, pin.keys)) =
-      [(1, claimedKeys), (0, oldRescueKeys), (0, installedKeys), (0, rescueKeys)] ∧
+      [(1, claimedKeys), (1, oldRescueKeys), (0, installedKeys), (0, rescueKeys)] ∧
     k.sessions.map (·.keys) = [claimedKey, oldRescueKey, installedKey, rescueKey] ∧
     k.halts = [] := by decide +kernel
 
@@ -1653,6 +1666,40 @@ attest's, and the connection presenting its set is admitted against it. -/
     k.pins.map (·.source) = [.attest (plantedSender entryA), .readyToReset] ∧
     k.consumed = [entryA] ∧ k.sessions.map (·.keys) = [attestedKey] := by decide +kernel
 
+/-- A kept predecessor root's keys read after reinstall, then presented at contact. -/
+def keptRootEvents : List Event :=
+  [.readyToReset entryA installedKeys, .reinstall entryA, .restart,
+   .readyToReset entryA installedKeys, .connect entryA .installed installedKey]
+
+/-- An earlier incomplete observation counts even though it never admitted a pin. -/
+def observedRootEvents : List Event :=
+  [.published entryA .machine [21, 151], .reinstall entryA, .restart,
+   .readyToReset entryA installedKeys, .connect entryA .installed installedKey]
+
+def staleReadyAllowed : Params := { current with readyAfterReinstallFresh := false }
+
+/-- This enforces that no pinned key survives a reinstall, not that disks were erased as
+approved. For a predecessor that never reached ready_to_reset and has no retained matching
+observation it is vacuous. Labels and formatting are outside this companion. -/
+@[req "STG-20"] theorem kept_root_keys_after_reinstall_refused :
+    let k := run current init keptRootEvents
+    pinFor k entryA .installed = none ∧ k.sessions = [] ∧
+    k.halts.map (·.reason) = [.noPin] := by decide +kernel
+
+@[req "STG-20"] theorem kept_root_keys_pinned_without_guard :
+    let k := run staleReadyAllowed init keptRootEvents
+    (pinFor k entryA .installed).map (·.keys) = some installedKeys ∧
+    k.sessions.map (·.keys) = [installedKey] := by decide +kernel
+
+@[req "STG-20"] theorem observed_keys_after_reinstall_refused :
+    let k := run current init observedRootEvents
+    k.pins = [] ∧ k.sessions = [] ∧ k.halts.map (·.reason) = [.noPin] := by decide +kernel
+
+@[req "STG-20"] theorem observed_keys_pinned_without_guard :
+    let k := run staleReadyAllowed init observedRootEvents
+    (pinFor k entryA .installed).map (·.keys) = some installedKeys ∧
+    k.sessions.map (·.keys) = [installedKey] := by decide +kernel
+
 /-! ## The bound -/
 
 /-- The bound (`CONTEXT.md`): every trace of at most this many events over `alphabet`, from
@@ -1762,7 +1809,7 @@ def publicationSoundBefore (k : Knowledge) (m : Entry) (keys : Keys) : Bool :=
     (groups.head?).all (fun g =>
       g.observations.all (fun old => old.all keys.contains))
 
-def transitionSound (k : Knowledge) (e : Event) (k' : Knowledge) : Bool :=
+@[req "STG-20"] def transitionSound (k : Knowledge) (e : Event) (k' : Knowledge) : Bool :=
   let added := decide (k'.pins.length > k.pins.length)
   let noReplacement := !added ||
     (match k'.pins.head? with
@@ -1779,7 +1826,14 @@ def transitionSound (k : Knowledge) (e : Event) (k' : Knowledge) : Bool :=
         pin.entry == m && pin.per == .machine &&
           pin.installation == installationOf k' m)
     | _ => true
-  noReplacement && publicationSound && retirementSound
+  let readyFresh := match e with
+    | .readyToReset m keys => !added || installationOf k m == 0 ||
+      ((k.publicationGroups.filter (·.entry == m)).drop 1).all (fun g =>
+        g.observations.all (fun old => keys.all (fun key => !old.contains key))) &&
+      k.pins.all (fun pin => pin.entry != m || pin.per != .machine ||
+        pin.installation >= installationOf k m || keys.all (fun key => !pin.keys.contains key))
+    | _ => true
+  noReplacement && publicationSound && retirementSound && readyFresh
 
 /-- The lifecycle in the requirements' own terms, and stated without `admits`, `pinFor` or
 `check`, so that it decides what they read rather than agreeing with them: no pin the harness
