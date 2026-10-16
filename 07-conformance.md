@@ -483,8 +483,11 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       and active unit, and run the delivery check before any model command. A restriction
       dropped at boot becomes a finding. Declining leaves Delivered with "enabled, restart
       not demonstrated" beside it on the delivery card and trust display, with no lifecycle
-      finding. With no enabled-survives-reboot service, or a co-declared running-at-delivery
-      service, no reboot is offered. On re-entry, unit/enablement changes alone offer it again;
+      finding. With no enabled-survives-reboot service, no reboot is offered. With an
+      enabled-survives-reboot service and a co-declared running-at-delivery service, no reboot
+      is offered; with no demonstrated reboot, Delivered carries "enabled, restart not
+      demonstrated" on the delivery card and trust display, with no lifecycle finding. On
+      re-entry, unit/enablement changes alone offer it again;
       unchanged units do not. A boot-identity change since the last check plus a re-check
       demonstrates survival and lifts the label. A user-scope unit without `Linger=yes`
       raises a lifecycle finding; its read uses its account's manager, never the system manager.
@@ -804,8 +807,8 @@ evidence is that set's test run against the relay the harness uses.
       about a machine, and a phone screen has no room for that distinction. The trust display
       does not call the bundle "signed" until `OPN-15` closes (glossary, *Signed bundle*).
       Seed-backup display distinguishes full re-entry from skip and calls neither verified
-      (`SEC-2`). Wherever Delivered appears for a machine, carry `ARC-43`'s evidence label
-      when restart has not been demonstrated.
+      (`SEC-2`). Wherever Delivered appears for a machine declaring an
+      `enabled-survives-reboot` service with no demonstrated reboot, carry `ARC-43`'s evidence label.
 
 ## Measurements
 
@@ -908,8 +911,8 @@ Not pass/fail. Required to be recorded.
       export, through a machine re-check, until the harness records that application again,
       without a new approval or any implication of current installation or provider state. The no-model marker and empty list never mean unapproved.
       An imported local-store backup's machines are shown unchecked, their findings unknown,
-      and refuse a placement until a re-check, as a sheet Restore's do. Every imported seed,
-      including a current sheet or store backup, cannot allocate under the restored seed;
+      and refuse a placement until a re-check, as a sheet Restore's do. No imported seed —
+      from a current sheet or from a store backup — can allocate new identities;
       Replace with a fresh seed and its ceremony record restores allocation. A bare seed
       with neither sheet nor store backup is refused, explaining that a seed alone restores
       nothing and offering to bring the sheet or start fresh. Round-trip the ceremony record

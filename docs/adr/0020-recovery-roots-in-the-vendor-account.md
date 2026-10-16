@@ -42,8 +42,9 @@ rule.
 Direct Replace uses old seed and allocation metadata to re-enter machines and revoke relay
 passes, then installs keys derived from a fresh seed. Missing old material invokes the vendor
 fallback and leaves unknown passes unrevoked until expiry; partial recovery never reports
-complete revocation. Restore uses existing keys and does not revoke, but every imported
-seed cannot allocate new identities (amended 2026-10-16). A stale sheet cannot prove the latest index, so
+complete revocation. Restore uses existing keys and does not revoke, but no imported seed —
+from a current sheet or from a store backup — can allocate new identities (amended 2026-10-16).
+A stale sheet cannot prove the latest index, so
 allocation resumes only under a fresh seed through Replace (`STA-22b`).
 
 The sheet's password protects its metadata and spendable inference credential. It contains no

@@ -68,7 +68,8 @@ The design closes `OPN-28`'s construction question now. Integrated evidence rema
 The stage applicability table owns completion. No implementation behavior was tested by
 recording this decision.
 
-*Amended 2026-10-16:* `SEC-5` sets the minimum at 16 bytes for placement and every re-arm;
-its purpose is output legibility, not entropy. Its refusal offers no override: a refused
+*Amended 2026-10-16:* `SEC-5` says "Every placed secret MUST be at least **16 bytes**, checked
+at placement and at every re-arm from a machine report or a paste." Its purpose is output
+legibility, not entropy. Its refusal offers no override: a refused
 value typed into a model `exec` would sit in context and transcript. The minimum and visible
 named markers bound misleading output; T48's remaining questions are unchanged.

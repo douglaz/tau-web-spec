@@ -293,13 +293,13 @@ gated on it.
       guard a parameter with the refused-and-admitted pair. Witnesses: `STA-22`'s one-index-two-
       machines trap, the stale-sheet allocation, a successful allocate-create-destroy-allocate
       trace. Lands with `lake exe witnesses`, its witness file
-      `docs/design/allocation-witnesses-v2.json`, and the emission gate that holds the file to
+      `docs/design/allocation-witnesses-v1.json`, and the emission gate that holds the file to
       the emission (ADR-0032, "How the implementation is compared"). Blocked by T30. Modules
       2–5 follow in the ADR's order; module 4's rule is `STA-24`. *The module landed
       2026-09-18 in `tools/formal/TauWeb/Allocation.lean`: the identity structure, the
       allocator as a trace, the theorems over every trace, the guard as a parameter with its
       refused-and-admitted pair, the decided witnesses, and the control that flips the guard.
-      `lake exe witnesses`, `docs/design/allocation-witnesses-v2.json` with its schema in
+      `lake exe witnesses`, `docs/design/allocation-witnesses-v1.json` with its schema in
       `docs/design/witness-file-v1.md`, and the emission gate `tools/check_witnesses.py`
       landed the same day, with the bound as `TauWeb.Allocation.bound` and its decided
       enumeration.*

@@ -149,6 +149,8 @@ formal_control "formal: a CNF identifier in the formal tree" \
 # must be `decide` refuting stale_sheet_refused's own proposition -- a second error would
 # mean a neighbouring witness asserts what this guard decides, and a red elsewhere would
 # mean the mutation broke something other than the property it targets.
+# Rehearsed at bound 4: bounded_nodup stays green; reuse through a restored sheet needs
+# ceremony, exportSheet, allocate, restore, allocate, which is 5 events.
 expected=$((expected + 1))
 tmp="$(mktemp -d -p "$scratch_root")"
 copy_tree "$tmp"
@@ -338,7 +340,7 @@ PYCONTROL
   rm -rf "$tmp"
 }
 
-# Rehearsed at bound 3: removing this guard fails backup_missing_refused alone.
+# Rehearsed at bound 4: removing this guard fails backup_missing_refused alone.
 # The other allocation witnesses carry a durable ceremony; the no-reuse theorem does not
 # need this guard, so bounded_nodup stays green too.
 decl_control "$ALLOC" "formal: the generated-seed ceremony gate dropped" \

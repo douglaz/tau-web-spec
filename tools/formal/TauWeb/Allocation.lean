@@ -537,10 +537,13 @@ refused with the counter at the limit and not wrapped. -/
 
 /-- The bound (`CONTEXT.md`): every trace of at most this many events over `alphabet`, from
 `init`, is what `bounded_nodup` decides and what the witness file enumerates. Stated once, here,
-for both; beyond it is `issued_nodup`'s statement, not the file's. At bound 3 the
-enumeration allocates under epoch 0 or epoch 1 (replace, ceremony, allocate), but never under
-both in one trace: ceremony, allocate, replace, ceremony, allocate requires 5 events. -/
-@[req "STA-22"] def bound : Nat := 3
+for both; beyond it is `issued_nodup`'s statement, not the file's. At bound 4 the enumeration
+includes three consecutive allocations after a ceremony, and reallocation after created,
+failed or exportSheet. It allocates under epoch 0, 1 or 2 separately, but never under two
+epochs in one trace: ceremony, allocate, replace, ceremony, allocate requires 5 events.
+A destroy between allocations is a no-op without a preceding created; reallocation after
+an actual destruction also needs 5 events and is carried by `successful_trace`. -/
+@[req "STA-22"] def bound : Nat := 4
 
 /-- The events the bounded enumeration draws from: the machine family, the first machine's
 three outcomes, journal-level acts and a durably appended full-reentry ceremony.

@@ -354,7 +354,8 @@ which a mechanism then enforces), spec (too broad)
 *Delivered*: the delivery check finds no difference from the machine's declaration in force,
 and the fixed lockdown checks pass. It is a claim about that machine state, not that the
 application works; model-written check reports are outside it. `ARC-43` owns the evidence
-label beside Delivered when restart has not been demonstrated. *Handed over with findings*:
+label beside Delivered for a machine declaring an `enabled-survives-reboot` service with no
+demonstrated reboot. *Handed over with findings*:
 the operator takes the machine
 while findings stand; it is not delivered and is never described as locked down. What may still
 be placed on it, and what clears a finding, are `ARC-17`'s. Named 2026-10-05.
