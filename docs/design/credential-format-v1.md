@@ -113,7 +113,7 @@ key or envelope as a sheet. Local and sheet purposes cannot be interchanged.
 
 The authenticated UTF-8 JSON payload contains `version: 3`, `derivation_version: 1`,
 `seed_id`, `exported_at` (UTC RFC 3339), `journal_sequence`, `next_indices` (machine/pass/
-handoff), `allocations` (including consumed tombstones), `host_pins`,
+handoff), `seed_backup`, `allocations` (including consumed tombstones), `host_pins`,
 `host_pin_installations`, `exposure_ledger`,
 `placements: [{machine_index, application_name, name, path, placed_at}]`, `machine_states`,
 and optional
@@ -131,7 +131,7 @@ pin also carries its `installation` ordinal, starting at zero for that machine; 
 pin remains scoped by its rescue boot. Whether the installation
 carries an artifact pin is a different fact, carried per machine below. Each `machine_states` entry is
 `{machine_index, declaration, class, access_model, installation, weaker_modes, applications}`: the journaled
-declaration in force as a delivery-declaration v1 document, the class `ARC-36a` records, the
+declaration in force as a delivery-declaration version 2 document, the class `ARC-36a` records, the
 access model of `ARC-27`, `installation` as `"pinned"`, `"unpinned"` (`ARC-25`) or
 `"not_installed"` before any installation, and the labels of the acceptable weaker modes standing
 on the machine's bound set (`SEC-14`). A field not yet approved at export carries the explicit
@@ -219,6 +219,17 @@ algorithms, AAD or known-answer vectors.
 Reject unknown versions, duplicate identities/indices and malformed fields before binding
 anything; imported data never creates a binding without vendor reconciliation and an
 operator act. Never merge two counters and call the result proof that a backup is current.
+
+`seed_backup` is always present: the string `"none"`, or the object
+`{"seed_id": "<payload seed_id>", "completion": "full_reentry"}` with completion either
+`"full_reentry"` or `"skipped"`. It copies the journal's ceremony record for this seed id
+(`STA-23`); the explicit marker means no record exists. Import MUST refuse before binding a
+missing, malformed or duplicate record, duplicate object members, an unknown completion,
+or a seed id different from the payload's. Restore brings it back into the journal; an
+imported seed owes no ceremony and allocates nothing regardless of this record (`STA-22b`).
+Replace clears it for the fresh seed. This member completes the pre-deployment version-3
+payload contract in place; no deployed legacy payload is being reinterpreted. The sheet
+payload stays version 3, and the envelope and derivation stay unchanged.
 
 Export asks the operator to retain both the seed backup and the separate sheet passphrase.
 For maintained cloud, setup completion requires confirmation that the current sheet was

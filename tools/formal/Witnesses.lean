@@ -41,6 +41,10 @@ def identityFields (i : Identity) : List (String × Json) :=
   [("seed", toJson i.epoch), ("derivation_version", toJson i.version),
    ("family", toJson (familyName i.family)), ("index", toJson i.index)]
 
+def completionName : Completion → String
+  | .fullReentry => "full_reentry"
+  | .skipped => "skipped"
+
 /-- The projection of harness knowledge: the journal as `STA-22b` names its parts, entries
 oldest first. Nothing of the companion's `World` beyond the journal. -/
 def journalJson (j : Journal) : Json :=
@@ -51,13 +55,19 @@ def journalJson (j : Journal) : Json :=
                                 ("handoffs", toJson j.next.handoff)]),
     ("entries", Json.arr (j.entries.reverse.map fun e =>
       Json.mkObj (identityFields e.id ++ [("status", toJson (statusName e.status))])).toArray),
-    ("restored_from_import", toJson j.restored) ]
+    ("restored_from_import", toJson j.restored),
+    ("seed_backup", match j.ceremony with
+      | none => Json.str "none"
+      | some c => Json.str (completionName c)) ]
 
 def observed (kind : String) (i : Identity) : Json :=
   Json.mkObj [("kind", kind), ("provenance", "adapter observation"),
               ("identity", Json.mkObj (identityFields i))]
 
 def eventJson : Event → Json
+  | .ceremony c appended => Json.mkObj [("kind", "seed_backup"), ("provenance", "operator act"),
+      ("completion", completionName c), ("append", Json.mkObj [
+        ("provenance", "storage outcome of an append"), ("durable", toJson appended)])]
   | .allocate f => Json.mkObj [("kind", "allocate"), ("provenance", "model request"),
                                ("family", toJson (familyName f))]
   | .created i => observed "created" i
@@ -77,6 +87,7 @@ def stepJson (p : Params) (w : World) (e : Event) : Json × World :=
         [("allocation", "admitted"), ("identity", Json.mkObj (identityFields i))]
       else [("allocation", "refused")]
     | .allocate _, [] => [("allocation", "refused")]
+    | .ceremony _ appended, _ => [("recorded", toJson appended)]
     | _, _ => []
   (Json.mkObj ([("event", eventJson e)] ++ outcome ++ [("journal", journalJson w'.journal)]), w')
 
@@ -111,12 +122,18 @@ def Trace.json (t : Trace) : Json :=
   let steps := (t.events.foldl
     (fun (acc, w) e => let (j, w') := stepJson t.params w e; (acc.push j, w'))
     (#[], t.start)).1
-  traceJson t.decls (Json.mkObj [("restoredAllocatesNone", toJson t.params.restoredAllocatesNone)])
+  traceJson t.decls (Json.mkObj [("restoredAllocatesNone", toJson t.params.restoredAllocatesNone),
+    ("backupRecorded", toJson t.params.backupRecorded)])
     t.pair (journalJson t.start.journal) steps
 
 def noGuard : Params := { current with restoredAllocatesNone := false }
 
 def allocationWitnesses : List Trace := [
+  { decls := ["TauWeb.Allocation.backup_missing_refused"], events := backupMissingEvents,
+    pair := some (.refused, "TauWeb.Allocation.backup_missing_admitted") },
+  { decls := ["TauWeb.Allocation.backup_missing_admitted"], events := backupMissingEvents,
+    params := { current with backupRecorded := false },
+    pair := some (.admitted, "TauWeb.Allocation.backup_missing_refused") },
   { decls := ["TauWeb.Allocation.stale_sheet_refused"], events := staleSheetEvents,
     pair := some (.refused, "TauWeb.Allocation.stale_sheet_admitted") },
   { decls := ["TauWeb.Allocation.stale_sheet_admitted"], events := staleSheetEvents,
@@ -139,9 +156,9 @@ structure Module where
   named : List String
   refs : List String
 
-/-- The schema version of each emitted module. Pins and dispatch changed shape. -/
+/-- The schema version of each emitted module. Allocation, pins and dispatch changed shape. -/
 def schemaVersion (name : String) : Nat :=
-  if name == "pins" then 5 else if name == "dispatch" then 3 else 1
+  if name == "allocation" then 2 else if name == "pins" then 5 else if name == "dispatch" then 3 else 1
 
 /-- The header pretty, one trace per line: a diff names the trace that moved. -/
 def fileText (name : String) (ns : Name) (bound : Json) (witnesses enumeration : List Json) :

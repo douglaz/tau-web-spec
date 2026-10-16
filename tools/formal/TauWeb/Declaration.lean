@@ -4,7 +4,7 @@ import TauWeb.Req
 
 Presence is one type for every field — `missing`, `unspecified`, `specified` — and meaning is
 read per field from the table: only a specified value is evaluated, under its row's semantics.
-The table is `row`, a function over the fields of version 1 whose totality the elaborator
+The table is `row`, a function over the fields of version 2 whose totality the elaborator
 decides: a field added to `Field` without its row is a missing case and a red build. What an
 explicit empty list means is a column of that table, so "empty means nothing to check" cannot
 be written for a field whose row says nothing may.
@@ -25,11 +25,12 @@ the set difference the row names and nothing about ports, lifecycles or commands
 for `default_credentials` is the empty list of what must have been changed. `drift_checks` is
 "Run by the machine's own session on re-entry (`ARC-26`)", so at delivery a specified list
 passes on presence alone. The lightweight pentest (`ARC-17`), the scanner (`ARC-26`) and the
-profile's prose are not here. -/
+profile's prose are not here. The evidence label for enabled service lifecycle (`ARC-43`)
+is omitted: enabled, restart not demonstrated is a pass here, not a difference from the declaration. -/
 
 namespace TauWeb.Declaration
 
-/-- The fields of version 1, in the table's order. -/
+/-- The fields of version 2, in the table's order. -/
 @[req "ARC-39"] inductive Field
   | version
   | listenersInbound
@@ -117,7 +118,7 @@ structure Machine where
   observed : Field → List Nat
 
 /-- A field's verdict. `refused` is the declaration's own fault — an absent field, a value of
-the wrong shape, a version other than 1, spendable material declared on a multi-tenant
+the wrong shape, a version other than 2, spendable material declared on a multi-tenant
 machine; `blocked` is `unspecified`, "the tenant has not said; **delivery is blocked**";
 `finding` is "a difference from the declaration" (`ARC-39`). -/
 inductive Verdict
@@ -155,7 +156,7 @@ a list the maintained re-check runs passes on presence; every other list under `
 -/
 @[req "ARC-39"] def meaning (p : Params) (m : Machine) (f : Field) (v : Value) : Verdict :=
   match (row f).shape, v with
-  | .number, .number 1 => .pass
+  | .number, .number 2 => .pass
   | .flag, .flag true => if m.multiTenant then .refused else .pass
   | .flag, .flag false => if (m.observed f).isEmpty then .pass else .finding
   | .list e, .list declared => listMeaning p e declared (m.observed f)
@@ -315,10 +316,10 @@ there)", so `true` there is refused and no trace reaches delivery. -/
 /-! Each witness's declaration and machine are named here, so that the theorem and the emitter
 (`Witnesses.lean`) run the same check. -/
 
-/-- The document's "ad-hoc, v1 (complete)" declaration: one inbound listener, item 22, nothing
+/-- The document's "ad-hoc, v2 (complete)" declaration: one inbound listener, item 22, nothing
 else declared, spendable `false`. -/
 def adhoc : Declaration
-  | .version => .specified (.number 1)
+  | .version => .specified (.number 2)
   | .listenersInbound => .specified (.list [22])
   | .listenersOutbound => .specified (.list [])
   | .services => .specified (.list [])
@@ -332,13 +333,13 @@ def adhoc : Declaration
 def Declaration.set (d : Declaration) (f : Field) (v : Presence Value) : Declaration :=
   fun g => if g = f then v else d g
 
-/-- The document's "lnrent, v1 (template, every field unspecified)": the two values the corpus
-states, the service as item 1, and everything else `unspecified`. -/
+/-- The document's "lnrent, v2 (template, unstated fields unspecified)": the spendable prohibition the corpus
+states, and everything else `unspecified`; the tenant has not named its service scope. -/
 def template : Declaration
-  | .version => .specified (.number 1)
+  | .version => .specified (.number 2)
   | .listenersInbound => .unspecified
   | .listenersOutbound => .unspecified
-  | .services => .specified (.list [1])
+  | .services => .unspecified
   | .keyMaterialSpendable => .specified (.flag false)
   | .keyMaterialPermitted => .unspecified
   | .driftChecks => .unspecified
@@ -365,7 +366,7 @@ def spendableTrue : Declaration := adhoc.set .keyMaterialSpendable (.specified (
 def machine22and80 : Machine := machine22.showing .listenersInbound [22, 80]
 /-- `machine22` with an outbound restriction in place. -/
 def machineRestricted : Machine := machine22.showing .listenersOutbound [1]
-/-- `machine22` showing the template's service. -/
+/-- `machine22` also showing item 1 for services; the template declares no service yet. -/
 def machineWithService : Machine := machine22.showing .services [1]
 /-- `machine22` hosting strangers. -/
 def machineMultiTenant : Machine := { machine22 with multiTenant := true }
@@ -401,11 +402,11 @@ none is declared. -/
     let r := run current machineRestricted adhoc init walk
     r.verdict .listenersOutbound = some .pass ∧ r.delivered = true := by decide +kernel
 
-/-- The template on the machine showing its service: the specified fields pass and the
+/-- The template on a machine: the specified fields pass and the
 unspecified ones block, so delivery is not reached. -/
 @[req "ARC-39"] theorem template_blocked :
     let r := run current machineWithService template init walk
-    r.verdict .services = some .pass ∧ r.verdict .listenersInbound = some .blocked ∧
+    r.verdict .services = some .blocked ∧ r.verdict .listenersInbound = some .blocked ∧
     r.delivered = false := by decide +kernel
 
 /-- A field absent: `adhoc` without `drift_checks` is refused, not read as empty. -/

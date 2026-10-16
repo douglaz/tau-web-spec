@@ -120,7 +120,7 @@ _Avoid_: example (a witness is checked; an example is illustrated), sample, test
 
 **Witness file** · ADR-0032
 The companion's serialized witnesses and bounded traces for one module, one file under
-`docs/design/` — `allocation-witnesses-v1.json`, `declaration-witnesses-v1.json`,
+`docs/design/` — `allocation-witnesses-v2.json`, `declaration-witnesses-v1.json`,
 `relay-witnesses-v1.json`, `dispatch-witnesses-v3.json` and `pins-witnesses-v5.json`, with
 `witness-file-v1.md` describing their schemas — emitted by `lake exe witnesses` and held equal to the emission by
 `tools/check_witnesses.py`. Future implementation tests are to read them from the pinned tree;
@@ -353,7 +353,8 @@ which a mechanism then enforces), spec (too broad)
 **Delivered** / **handed over with findings** · `ARC-17`
 *Delivered*: the delivery check finds no difference from the machine's declaration in force,
 and the fixed lockdown checks pass. It is a claim about that machine state, not that the
-application works; model-written check reports are outside it. *Handed over with findings*:
+application works; model-written check reports are outside it. `ARC-43` owns the evidence
+label beside Delivered when restart has not been demonstrated. *Handed over with findings*:
 the operator takes the machine
 while findings stand; it is not delivered and is never described as locked down. What may still
 be placed on it, and what clears a finding, are `ARC-17`'s. Named 2026-10-05.

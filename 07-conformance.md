@@ -153,6 +153,7 @@ an item that tests a mode's conditions or its label is tiered by them like any o
 - [ ] **CNF-94 · BLOCKING** `place_secret` refuses what it must (`ARC-43`): a value equal to a
       credential the harness holds — among them the vendor credential, the seed, either
       inference tier, the relay key and a machine's client key —
+      a value below `SEC-5`'s minimum byte length (with its no-override refusal),
       a destination mode that lets another account read the file, a path that is or passes
       through a symbolic link, an existing file not recorded as this placement, an application
       name not recorded on the named machine (including one recorded only on another machine),
@@ -182,11 +183,14 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       before output collection or model commands on any machine of the set. The label is
       "re-armed from the machine's report", never "protected"; forgotten placements are not
       claimed covered. Machine-only entries are advisory and require an operator act to arm.
-      (d) Missing file, changed file or failed digest job: offer the local paste fallback;
+      (d) Missing file, changed file, failed digest job or below-minimum machine report
+      (`SEC-5`): offer the local paste fallback;
       it writes nothing to the machine, leaves the exposure listed, and changes no declaration
       or weaker-mode approval. Where the operator cannot paste the value, the delivery
       re-check runs on the set though a reference stays unarmed, releasing only its verdict,
-      and a rotation through `place_secret` then proceeds. Inspect paste custody and clearing under `SEC-5` row 12.
+      and a rotation through `place_secret` then proceeds. Refuse a below-minimum paste too,
+      leaving the reference unarmed. Inspect paste custody
+      and clearing under `SEC-5` row 12.
       In these cases reject model requests for `digest_secret`; inspect its command and
       destination for no harness key and no placement write, its captured output for hash
       and count only, and both sinks for no raw digest or file bytes. A symlink or traversed
@@ -213,7 +217,11 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       never-reused index (`STA-22`). Verified by deriving twice from the same seed and index and
       getting identical keys, and by confirming the journal refuses to create a machine at an
       index already recorded. Boundary-crossed: a reused index is one client key on two
-      machines.
+      machines. Under a generated seed with no `STA-23` ceremony record, allocations in all
+      families (machines, relay passes, handoffs) are refused, including across a restart and
+      for Replace's migration and new relay pass. Full re-entry and explicit skip each admit
+      allocation after their durable record; a failed append leaves no record and still
+      refuses allocation (`STA-22b`).
 - [ ] **CNF-73 · BLOCKING** No session and no machine is ever given the seed (`STA-22`).
       Verified by inspecting what each is given, as `CNF-9` does for the scanner. Escaped-secret:
       the seed reaches every maintained machine and every future introduction.
@@ -398,7 +406,11 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       lifecycle demonstration still gates delivery. Model-proposed ports, service names and
       hosts are approved as typed values; proposed measuring commands are refused as
       declaration entries, whose `required`/`drift_checks` come only from the signed bundle
-      or explicit empty sets.
+      or explicit empty sets. In the stage-1 systemd case, refuse a service name outside
+      `ARC-43`'s grammar or byte bound, an instance or unsupported suffix, and a missing or
+      malformed service scope/account under the declaration format. Inspect the composed
+      command for the `.service` suffix, `--` and wrapper quoting; typed values never become
+      shell syntax. Refuse declaration version 1; version 2 is required.
 - [ ] **CNF-108 · PRE-SCALE** A delivered maintained machine is re-entered by a later session
       over the same pinned channel, and that session re-runs the delivery check against the
       journaled declaration (`STG-9`, `ARC-26`). Verified by ending the first session, binding
@@ -452,7 +464,8 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       is usable on a machine whose product is reachable ports.
 - [ ] **CNF-53 · PRE-SCALE** The declared **service lifecycle** is demonstrated as declared, and
       the harness asserts nothing beyond it. A tenant declaring a service enabled and
-      restart-surviving has that verified; a tenant declaring a deliberately non-durable node
+      restart-surviving has that verified when the operator opts into the reboot, otherwise
+      labelled; a tenant declaring a deliberately non-durable node
       is not failed for it (`ARC-17`, `ARC-43`). A declared service not in its declared
       lifecycle is a lifecycle finding wherever the harness reads it: (a) with no placement, a
       stopped service yields the finding at the delivery check, and the machine is handed over
@@ -465,6 +478,16 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       previously delivered machine at re-entry, rotation through `place_secret` proceeds and a re-check
       clears it. An actual lockdown finding still refuses placement. The ad-hoc minimum's
       empty permitted tenant-key-material list does not itself refuse `place_secret`.
+      Exercise `ARC-43`'s survival evidence: with an explicit yes after the last placement,
+      record the old boot identity, reboot, reconnect on the pin, establish a new boot identity
+      and active unit, and run the delivery check before any model command. A restriction
+      dropped at boot becomes a finding. Declining leaves Delivered with "enabled, restart
+      not demonstrated" beside it on the delivery card and trust display, with no lifecycle
+      finding. With no enabled-survives-reboot service, or a co-declared running-at-delivery
+      service, no reboot is offered. On re-entry, unit/enablement changes alone offer it again;
+      unchanged units do not. A boot-identity change since the last check plus a re-check
+      demonstrates survival and lifts the label. A user-scope unit without `Linger=yes`
+      raises a lifecycle finding; its read uses its account's manager, never the system manager.
 - [ ] **CNF-52 · BLOCKING** On a multi-tenant machine, no spendable key material is present
       (`ARC-37`). Verified by searching the machine for private key material after a full
       install; watch-only public material is expected and permitted. BLOCKING because a wallet
@@ -780,6 +803,9 @@ evidence is that set's test run against the relay the harness uses.
       companion (ADR-0032) proves properties of this specification's definitions and nothing
       about a machine, and a phone screen has no room for that distinction. The trust display
       does not call the bundle "signed" until `OPN-15` closes (glossary, *Signed bundle*).
+      Seed-backup display distinguishes full re-entry from skip and calls neither verified
+      (`SEC-2`). Wherever Delivered appears for a machine, carry `ARC-43`'s evidence label
+      when restart has not been demonstrated.
 
 ## Measurements
 
@@ -810,7 +836,22 @@ Not pass/fail. Required to be recorded.
       unlock again, session workers lose access, and replay preserves unresolved actions.
       Inspect persisted bytes and worker inputs for forbidden plaintext keys. Exercise the
       persistent-storage request and visible refusal; the UI promises no immunity from loss.
+      Exercise the generated-seed ceremony at create, creation-finishing unlock and Replace:
+      words are always shown outside sessions, hidden while answering, and all twelve words
+      are checked as an import yielding the same seed id; a mismatch returns to the display.
+      Full re-entry and explicit skip are journaled distinctly and neither is shown as a
+      verified backup. Close the tab, hide the page and kill the worker before completion:
+      the next unlock still owes the ceremony. A failed append leaves it owed. Re-display
+      requires the passphrase again, ends sessions and uses the same ceremony; no other
+      display exists. Imported seeds, with sheet or store backup, owe no ceremony.
       Escaped-secret.
+- [ ] **CNF-111 · BLOCKING** Worker policy admission (`ARC-32`, `ARC-33`): in the harness
+      worker's own context, `import()` of a `data:` module and a cross-origin module,
+      `eval` and `Function` are refused. The self-check runs first, before dependencies load
+      by dynamic import. With no response header the worker refuses to unlock, saying why
+      (negative control); with the policy present, wasm loads and the store opens (positive
+      control). A session worker not under the policy refuses credentials, saying why.
+      Escaped secret: the harness worker holds the data key and seed.
 - [ ] **CNF-83 · BLOCKING** Derivation matches every v1 known-answer vector, upstream primitive
       vectors, and a second implementation (`STA-22a`). Different roles/indices yield distinct
       keys; out-of-range indices, unknown versions and invalid children cannot alias a valid
@@ -867,9 +908,13 @@ Not pass/fail. Required to be recorded.
       export, through a machine re-check, until the harness records that application again,
       without a new approval or any implication of current installation or provider state. The no-model marker and empty list never mean unapproved.
       An imported local-store backup's machines are shown unchecked, their findings unknown,
-      and refuse a placement until a re-check, as a sheet Restore's do. A stale sheet or imported
-      store cannot allocate
-      under the restored seed; Replace with a fresh seed restores allocation. Cloud with no
+      and refuse a placement until a re-check, as a sheet Restore's do. Every imported seed,
+      including a current sheet or store backup, cannot allocate under the restored seed;
+      Replace with a fresh seed and its ceremony record restores allocation. A bare seed
+      with neither sheet nor store backup is refused, explaining that a seed alone restores
+      nothing and offering to bring the sheet or start fresh. Round-trip the ceremony record
+      or explicit no-record marker; refuse malformed, duplicate or mismatched-seed records
+      before binding. Cloud with no
       sheet exposes destroy/recreate, never an unpinned keyed-rescue login; at LNVPS `ARC-22`'s
       forms apply instead — a stop with renewal off for the destroy, and for the recreate a
       reinstall that is a new first contact. Missing relay
@@ -935,7 +980,7 @@ promotion rule above.
 
 | Applies when | CNF items | Interpretation |
 |---|---|---|
-| Stage 1: required | 1–7, 10–17, 21, 23–26, 28–30, 32, 34–35, 37, 39–44, 49–56, 66–73, 78–79, 81–83, 87–91, 93–95, 99–104, 109–110 | One live LNVPS machine on catalogue plain Arch with no tenant, an initial session from the owner's goal and the later session `STG-9` requires (item 108) with a goal of its own, created through a typed adapter. First contact uses `CHN-R7`'s published-key route; item 23 requires no contact during its wait and item 109 requires published-pin admission, freshness, pin checking and disclosure on the integrated harness. Its new job-read pin admission, initial-group opening by a job read, and job-read attempt after a published pin belong to the dedicated row; its unused attest admission, initial-group opening by an attest, and consumed-introduction case belong to the attest row. Stage 1 keeps every case against earlier job-read and attest pins, on pins a Restore brings in, including item 84's "an initial empty group opened by a job read or attest". Synthetic unbound identities exercise 6 and 26. Item 7's growth and subset cases, and item 91's two-machine case, use fixtures until stage 2. Item 110 runs here the cases its own text assigns to stage 1. Item 12 is exercised with a hostile goal and a hostile fetched document; its untyped-scope restatement, and item 14's, wait for stage 2. Item 14 covers any root password the typed adapter's response carries. Item 23 covers unpinned-first-contact refusal; its attest-window case applies where attest is enabled, and its jump-host label waits for stage 2. Items 18 and 61 remain route-specific attest checks, required before enabling that route, not stage-1 requirements. Items 24 and 66 apply wherever the installation is pinned, and item 67's and item 93's unpinned cases wherever it is not; NixOS evidence is required before enabling NixOS. Interrupted resume (`STG-12`) is carried here by items 37, 39, 40 and 54–56; item 86's cases are a rescue boot's, and stay the test bed's. Item 95's cases all require integrated evidence (`OPN-28`). Item 50 covers the delivery check; its scanner half waits for scanner enablement. Item 10 covers local ledger persistence; its sheet-export half is the recovery row's. Item 72 covers local allocation; imported-state cases are 84. Item 81's migration case waits for self-host migration, which no stage yet offers. Item 32 covers the typed adapter's origin. Items 68–71, 78 and 88–90 apply to the procured inference path; bring-your-own and local inference have no aggregator to test. Item 88 uses injected list fixtures the way 17 uses an injected response. Item 42 covers placed secrets; its untyped-scope half waits for stage 2. Item 104 covers the LNVPS invoice and `ARC-30`'s TLS provenance, with no exemption; its untyped-scope case belongs to the stage-2 row. |
+| Stage 1: required | 1–7, 10–17, 21, 23–26, 28–30, 32, 34–35, 37, 39–44, 49–56, 66–73, 78–79, 81–83, 87–91, 93–95, 99–104, 109–111 | One live LNVPS machine on catalogue plain Arch with no tenant, an initial session from the owner's goal and the later session `STG-9` requires (item 108) with a goal of its own, created through a typed adapter. First contact uses `CHN-R7`'s published-key route; item 23 requires no contact during its wait and item 109 requires published-pin admission, freshness, pin checking and disclosure on the integrated harness. Its new job-read pin admission, initial-group opening by a job read, and job-read attempt after a published pin belong to the dedicated row; its unused attest admission, initial-group opening by an attest, and consumed-introduction case belong to the attest row. Stage 1 keeps every case against earlier job-read and attest pins, on pins a Restore brings in, including item 84's "an initial empty group opened by a job read or attest". Synthetic unbound identities exercise 6 and 26. Item 7's growth and subset cases, and item 91's two-machine case, use fixtures until stage 2. Item 110 runs here the cases its own text assigns to stage 1. Item 12 is exercised with a hostile goal and a hostile fetched document; its untyped-scope restatement, and item 14's, wait for stage 2. Item 14 covers any root password the typed adapter's response carries. Item 23 covers unpinned-first-contact refusal; its attest-window case applies where attest is enabled, and its jump-host label waits for stage 2. Items 18 and 61 remain route-specific attest checks, required before enabling that route, not stage-1 requirements. Items 24 and 66 apply wherever the installation is pinned, and item 67's and item 93's unpinned cases wherever it is not; NixOS evidence is required before enabling NixOS. Interrupted resume (`STG-12`) is carried here by items 37, 39, 40 and 54–56; item 86's cases are a rescue boot's, and stay the test bed's. Item 95's cases all require integrated evidence (`OPN-28`). Item 50 covers the delivery check; its scanner half waits for scanner enablement. Item 10 covers local ledger persistence; its sheet-export half is the recovery row's. Item 72 covers local allocation; imported-state cases are 84. Item 81's migration case waits for self-host migration, which no stage yet offers. Item 32 covers the typed adapter's origin. Items 68–71, 78 and 88–90 apply to the procured inference path; bring-your-own and local inference have no aggregator to test. Item 88 uses injected list fixtures the way 17 uses an injected response. Item 42 covers placed secrets; its untyped-scope half waits for stage 2. Item 104 covers the LNVPS invoice and `ARC-30`'s TLS provenance, with no exemption; its untyped-scope case belongs to the stage-2 row. |
 | Stage 1: record measurements | 45–47 | Require the integrated browser channel, not the rehearsal's timings. |
 | Stage 1: model-written check reports | 107 | The report label, verdict isolation and absence of automatic re-execution are required before stage 1 completes. |
 | Stage 1: re-entry | 108 | `STG-9`'s later session, re-entering over the same pin and re-running the check, is required before stage 1 completes. Item 93's re-entry case runs with it, using a placement or rotation in the re-entering session. |
@@ -973,7 +1018,7 @@ ad-hoc profile, the harness's machine-class questions and the signed lockdown ch
 journal (`CNF-49`); a missing one fails completion rather than being replaced by an essay.
 Item 95's cases pass on the integrated harness (`OPN-28`); the key design already permits
 construction. T48's minimum secret byte length is set and item 94 refuses a shorter value
-before completion: `SEC-5` requires one and leaves its number open. On LNVPS, completion also
+before completion under `SEC-5`'s settled bound. On LNVPS, completion also
 waits for T44's coordinated implementation of ADR-0042's decided vendor identity and recovery
 behavior: Restore and Replace are demonstrated with that identity after its format is available,
 never with one supplied ad hoc for the test. The accepted first-contact route is `CHN-R7`; its integrated checks in items 23 and 109 still gate completion. The recovery row, the

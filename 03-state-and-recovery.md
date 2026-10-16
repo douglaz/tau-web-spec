@@ -571,7 +571,8 @@ implementation must not choose paths independently.
   bookkeeping. `STA-3` already requires the record before the effect; the index is part of
   that record, and indices are monotonic.
 - **The sheet no longer carries keys.** Its contents are listed in `STA-16`. The seed
-  reconstructs a key only when its role and index are known. Seed-only recovery does not discover indices or relay purchases.
+  reconstructs a key only when its role and index are known. Seed-only recovery is refused:
+  a seed alone does not discover indices or relay purchases.
 - **A stolen seed is not revocable.** Replace (`STA-17`) is therefore a **new seed**, from which
   new client keys derive, with the old public keys removed from every maintained machine during
   re-entry — the same flow as before, with a different origin for the new keys and one more
@@ -607,10 +608,18 @@ All this metadata is included in `STA-16` exports, with an export time and journ
 Import checks the seed identifier, derives each listed public key and compares it, validates
 unique indices within each family and next-unused counters above all listed indices, and
 cross-checks vendor inventory before binding machines. A stale sheet cannot prove the latest
-counter. Therefore **a seed imported after loss of the canonical journal may restore listed
-identities but MUST NOT allocate new ones**, even when the sheet claims to be current. To
-allocate again, use Replace with a freshly generated seed; old records are retained until
-migration is complete. This restriction also applies to an imported local-store backup.
+counter. Therefore **every imported seed may restore listed identities but MUST NOT allocate
+new ones**, from a recovery sheet or an imported local-store backup, even when it claims to
+be current. To allocate again, use Replace with a freshly generated seed; old records are
+retained until migration is complete. An import bringing a seed with neither a sheet nor a
+store backup MUST be refused, saying that a seed alone restores nothing: bring the sheet,
+or start fresh.
+
+Under a generated seed, allocation in every family — machines, relay passes and handoffs —
+MUST be refused until that seed id has the journaled ceremony record of `STA-23`.
+Replace's machine-migration and new-relay-pass allocations wait for its fresh seed's record;
+generating that fresh seed is never gated. The ceremony gate's pair is
+`TauWeb.Allocation.backup_missing_refused` and `TauWeb.Allocation.backup_missing_admitted`.
 Existing identities remain usable during non-revoking Restore. Restored knowledge beyond allocation
 is governed by `STA-16`. The index rules are carried as
 `TauWeb.Allocation.allocate` (ADR-0032): under the restriction above,
@@ -634,7 +643,26 @@ are defined in the credential format. There is no plaintext or device-synced fal
 
 The harness worker alone unwraps and holds the data key and seed. The UI passes the
 passphrase once and clears its input; it never receives the unwrapped data key. The mnemonic
-may be displayed only in the dedicated seed-backup ceremony, outside session/model context.
+MUST always be shown in the dedicated seed-backup ceremony, outside any session, and MUST
+be hidden while the operator answers. This is its only display, including re-display on
+demand: the same ceremony, after the local passphrase is entered again, with no session
+running. The ceremony starts by stopping dispatch, ending session workers and closing their
+channels, as lock below does.
+
+A generated seed with no journaled ceremony record for its seed id owes this ceremony: at
+create, at the unlock that finishes creation (an envelope with no record generates the
+seed there), and for Replace's fresh seed. An imported seed owes none: typing it in is the
+proof, whether imported with a sheet or a local-store backup and whatever record it carries.
+This is a state, not a step in a flow. A closed tab, hidden page or killed worker interrupting
+it leaves it owed at the next unlock.
+
+Completion is all or zero: the operator either re-enters all twelve words, checked as an
+import that MUST yield the same seed id (a mismatch returns to the display), or explicitly
+skips the check. The record MUST say `full_reentry` or `skipped`, for that seed id, and MUST
+be durably appended before it takes effect (`STA-3`: "A canonical event MUST be durably
+appended **before** it is applied to in-memory state"). A failed append leaves no completion.
+Neither completion is displayed as a verified backup (`SEC-2`).
+
 Key derivation gives a session only its permitted child credentials. Explicit lock, page
 hide/backgrounding, or worker shutdown stops dispatch, ends session workers and closes
 channels; the worker clears its keys and credential buffers and returns locked. No unload
@@ -680,7 +708,8 @@ At LNVPS the unavailable-destroy treatment and reinstall's new first contact bel
 `ARC-22`: it says "a vendor-API reinstall of the same machine stands in and is a **new first
 contact**". No old pin is reused for that system.
 
-**STA-16** The recovery sheet holds the allocation metadata of `STA-22b`, host-key
+**STA-16** The recovery sheet holds the allocation metadata of `STA-22b`, the seed-backup
+ceremony record or explicit no-record marker for its seed id (`STA-23`), host-key
 fingerprints with the route that produced each pin (`CHN-R1`, `CHN-R5`, `CHN-R6` or `CHN-R7`), the
 per-machine installation groups and their compact recorded LNVPS publication fingerprints
 (including incomplete observations and complete candidates refused for overlap), and the

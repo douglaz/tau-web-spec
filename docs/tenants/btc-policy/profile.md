@@ -62,7 +62,7 @@ given an untyped vendor scope (`SEC-4`): this tenant ships briefs and uses typed
 ## Delivery declaration
 
 One vault protocol port, a node running at delivery that dies on the first reboot by design,
-and member keys generated on the machine and never exported. The structured v1 form
+and member keys generated on the machine and never exported. The structured version-2 form
 (`docs/design/delivery-declaration-v1.md`) waits on the two sub-slots below still marked "not
 yet stated" (TASKS T28).
 

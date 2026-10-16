@@ -37,10 +37,10 @@ gated on it.
       `docs/design/relay-witnesses-v1.json` and the controls that read them move when that set
       grows a formal layer; until then `CHN-15`, `CHN-16` and `CHN-16a` keep their `@[req]` tags
       and tau-web's index is the proof of record for the handshake and the destination pipeline.
-- [ ] **T28 — Restate the three tenant declarations in v1** (`docs/design/delivery-declaration-v1.md`).
+- [ ] **T28 — Restate the three tenant declarations in version 2** (`docs/design/delivery-declaration-v1.md`).
       ad-hoc is complete in the schema document; lnrent's template goes to lnrent#87 as the
       answer format; btc-policy's waits on its drift checks and required software. Each profile
-      then points at its v1 file.
+      then points at its version-2 file.
 - [ ] **T29 — Create the implementation repository** (ADR-0031). *Created 2026-09-16 as
       `douglaz/tau-web-rust`, with this repository (renamed `tau-web-spec`) as the `spec/`
       submodule pinned at `b3dec66`; the build gates below are still to be written there.*
@@ -88,10 +88,12 @@ gated on it.
       questions, in the harness's words; and the plain-language rendering of a proposed
       declaration the operator approves (`ARC-39`). These ship in the bundle and gate stage 1.
       Implement `ARC-43`'s harness-composed listener, outbound-restriction, unit-state and
-      enablement reads behind `CNF-50`, `CNF-53` and `CNF-103`. Still to decide: what establishes survival of a restart, and the
-      service-name grammar for a validated argument, never shell syntax. No init-specific
-      procedure or physical-restart requirement is selected by this task, nor are the two
-      re-check points `OPN-14` leaves open.
+      enablement reads behind `CNF-50`, `CNF-53` and `CNF-103`. Decided 2026-10-16: `ARC-43`
+      owns stage 1's systemd service-name grammar and the delivery reboot opted into by the
+      declaration and again at delivery; the declaration format owns service scope and user
+      accounts. OpenRC waits for the dedicated path's stage. Re-entry reads unit and
+      enablement for enabled-survives-reboot services; whether running-at-delivery binds
+      after delivery remains open in `OPN-14`.
 - [ ] **T43 — Stage 1's build list**. Implement `STG-21`'s corrected LNVPS/plain-Arch
       definition and the stage-1 applicability rows in `07-conformance.md` at tau-web-rust's
       next spec pin. These include recovery, scanning, reports and re-entry; specification
@@ -103,9 +105,10 @@ gated on it.
       sheet metadata, including each placement's application association and application/provider
       facts under the credential format's
       payload v3 and explicit refusal of payloads v1/v2; demonstrate `CNF-95` with `CNF-42` and
-      `CNF-84`. The design permits construction now. Still open: the numeric minimum accepted secret byte length, which
-      stage 1's completion requires (`07-conformance.md`); any
-      further changed-file detection policy after loss of the old reference; and compatibility
+      `CNF-84`. The design permits construction now. Decided 2026-10-16: `SEC-5` owns the
+      numeric minimum accepted secret byte length and no-override refusal; `CNF-94` exercises
+      it before stage-1 completion. Still open: any further changed-file detection policy after
+      loss of the old reference; and compatibility
       policy beyond the adopted sheet-payload version bump, should it become necessary. No
       length/value-derived reference belongs on the sheet and no legacy migration is selected.
 - [ ] **T49 — Later best practice: a signed library of read-only typed checks** (`ARC-39`).
@@ -126,7 +129,7 @@ gated on it.
       and its role-table rendering/emission as needed; regenerate
       `docs/design/credential-vectors-v1.json`, update
       `docs/design/check-credential-vectors.py`, and regenerate the affected
-      `docs/design/allocation-witnesses-v1.json` from its producing declarations. Update
+      `docs/design/allocation-witnesses-v2.json` from its producing declarations. Update
       tightly coupled role/derivation version metadata, index and sheet-format metadata,
       and compatibility rules in that same change, without choosing them here. Amend
       `SEC-5` row 22, `STA-17` for encrypted old-vendor-key carry-forward and residual
@@ -135,8 +138,10 @@ gated on it.
       index counts as used when any vendor shows a machine at it). Decide with it whether the
       sheet carries a carried-forward key, which a second store loss otherwise loses.
       Follow `STA-22a` / ADR-0032's coordinated-change discipline. Until then row 22's
-      "not derivable today" remains operative, and no derived key is usable. Unrelated
-      witness modules need no broad edits.
+      "not derivable today" remains operative, and no derived key is usable.
+      Revisit `STA-22b`'s bare-seed refusal once T44's bounded index scan can find LNVPS
+      machines: the seed-derived vendor identity may then recover inventory (ADR-0040).
+      Unrelated witness modules need no broad edits.
 - [ ] **T45 — Stage 2: the jump host and the untyped vendor scope** (`STG-22`, `CHN-R6`,
       `SEC-4`). Includes one thing the rules name and nothing yet carries: a jump-host source
       for a pin in the formal companion (`ARC-43` says "A pin taken at a jump-host first
@@ -241,8 +246,8 @@ gated on it.
         machine is destroyed and recreated, which re-runs its first contact and loses its
         state", and neither attest nor a jump host re-pins a machine that already exists.
         Whether a later rule should allow it is undecided.
-      - **Found by the branch review of 2026-10-06, not fixed there.** `SEC-5`'s minimum byte length has no
-        refusal case in `CNF-94` until T48 sets the bound, which stage 1's completion requires. The sheet carries neither `SEC-4`'s two answers for an
+      - **Found by the branch review of 2026-10-06.** The minimum byte length and `CNF-94`'s
+        refusal case were settled 2026-10-16 (`SEC-5`); integrated evidence remains T48's. The sheet carries neither `SEC-4`'s two answers for an
         untyped vendor scope nor `CHN-R6`'s jump vendor and date, both stage 2's.
       - **Found by the pull request's review of 2026-10-07, not fixed there.** A renewal
         invoice at an invoicing vendor can be relayed only while the app is open (`ARC-30`,
@@ -288,13 +293,13 @@ gated on it.
       guard a parameter with the refused-and-admitted pair. Witnesses: `STA-22`'s one-index-two-
       machines trap, the stale-sheet allocation, a successful allocate-create-destroy-allocate
       trace. Lands with `lake exe witnesses`, its witness file
-      `docs/design/allocation-witnesses-v1.json`, and the emission gate that holds the file to
+      `docs/design/allocation-witnesses-v2.json`, and the emission gate that holds the file to
       the emission (ADR-0032, "How the implementation is compared"). Blocked by T30. Modules
       2–5 follow in the ADR's order; module 4's rule is `STA-24`. *The module landed
       2026-09-18 in `tools/formal/TauWeb/Allocation.lean`: the identity structure, the
       allocator as a trace, the theorems over every trace, the guard as a parameter with its
       refused-and-admitted pair, the decided witnesses, and the control that flips the guard.
-      `lake exe witnesses`, `docs/design/allocation-witnesses-v1.json` with its schema in
+      `lake exe witnesses`, `docs/design/allocation-witnesses-v2.json` with its schema in
       `docs/design/witness-file-v1.md`, and the emission gate `tools/check_witnesses.py`
       landed the same day, with the bound as `TauWeb.Allocation.bound` and its decided
       enumeration.*

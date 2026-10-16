@@ -152,7 +152,7 @@ formal_control "formal: a CNF identifier in the formal tree" \
 expected=$((expected + 1))
 tmp="$(mktemp -d -p "$scratch_root")"
 copy_tree "$tmp"
-if ! (cd "$tmp/repo" && sed -i 's/^@\[req "STA-22b"\] def current : Params := { restoredAllocatesNone := true }$/@[req "STA-22b"] def current : Params := { restoredAllocatesNone := false }/' $ALLOC && grep -q 'def current : Params := { restoredAllocatesNone := false }$' $ALLOC); then
+if ! (cd "$tmp/repo" && sed -i 's/^  restoredAllocatesNone := true$/  restoredAllocatesNone := false/' $ALLOC && grep -q '^  restoredAllocatesNone := false$' $ALLOC); then
   echo "::error::formal: the guard flip did not apply"; fail=1
 else
   out="$(cd "$tmp/repo" && bash "$FORMAL" 2>&1)"
@@ -337,6 +337,13 @@ PYCONTROL
   fi
   rm -rf "$tmp"
 }
+
+# Rehearsed at bound 3: removing this guard fails backup_missing_refused alone.
+# The other allocation witnesses carry a durable ceremony; the no-reuse theorem does not
+# need this guard, so bounded_nodup stays green too.
+decl_control "$ALLOC" "formal: the generated-seed ceremony gate dropped" \
+  "sed -i 's/^  backupRecorded := true }\$/  backupRecorded := false }/' $ALLOC && grep -q '^  backupRecorded := false }\$' $ALLOC" \
+  backup_missing_refused
 
 pins_control() { decl_control "$PINS" "$@"; }
 dispatch_control() { decl_control "$DISP" "$@"; }
@@ -713,20 +720,20 @@ else
 fi
 
 WIT=tools/check_witnesses.py
-WITFILE=docs/design/allocation-witnesses-v1.json
+WITFILE=docs/design/allocation-witnesses-v2.json
 PINSWIT=docs/design/pins-witnesses-v5.json
 PINSEMIT=tools/formal/.lake/witnesses/pins-witnesses-v5.json
 
 # Compared against the emission the formal gate wrote before this script ran: one expected
 # outcome flipped by hand in the committed file is red, naming the module.
 control "witnesses: a committed file edited by hand" "$WIT" \
-  "sed -i '0,/\"allocation\":\"admitted\"/s//\"allocation\":\"refused\"/' $WITFILE && ! cmp -s $WITFILE tools/formal/.lake/witnesses/allocation-witnesses-v1.json" \
+  "sed -i '0,/\"allocation\":\"admitted\"/s//\"allocation\":\"refused\"/' $WITFILE && ! cmp -s $WITFILE tools/formal/.lake/witnesses/allocation-witnesses-v2.json" \
   "WITNESS DRIFT" "module allocation"
 
 # The emission itself: a CNF identifier in it is refused before the comparison, so the one
 # finding is that and not the drift the mutation also causes.
 control "witnesses: an emission carrying a CNF identifier" "$WIT" \
-  "sed -i 's/\"module\": \"allocation\"/\"module\": \"allocation\", \"exercised_by\": \"CNF-83\"/' tools/formal/.lake/witnesses/allocation-witnesses-v1.json && grep -q CNF-83 tools/formal/.lake/witnesses/allocation-witnesses-v1.json" \
+  "sed -i 's/\"module\": \"allocation\"/\"module\": \"allocation\", \"exercised_by\": \"CNF-83\"/' tools/formal/.lake/witnesses/allocation-witnesses-v2.json && grep -q CNF-83 tools/formal/.lake/witnesses/allocation-witnesses-v2.json" \
   "WITNESS DRIFT" "module allocation carries a CNF identifier"
 
 control "witnesses: a committed file no module emits" "$WIT" \
@@ -949,13 +956,15 @@ control "fixtures: a JSON example that does not parse" "$FIX" \
   "sed -i 's/^  \"services\": \[\],/  \"services\": [,/' $DECL && grep -q '\"services\": \[,' $DECL" \
   "BAD JSON" "Expecting value"
 
-# Added as a member of the first example only: "version" opens both.
+# Added as a member of the first example only: version 2 opens both examples.
+# Rehearsed after the declaration version change: each mutation produces one BAD JSON
+# finding, for its digest or fingerprint respectively.
 control "fixtures: a JSON example with a malformed digest" "$FIX" \
-  "sed -i '0,/^  \"version\": 1,/s//  \"version\": 1, \"sha256\": \"abc\",/' $DECL && grep -q '\"sha256\": \"abc\"' $DECL" \
+  "sed -i '0,/^  \"version\": 2,/s//  \"version\": 2, \"sha256\": \"abc\",/' $DECL && grep -q '\"sha256\": \"abc\"' $DECL" \
   "BAD JSON" "sha256 digest is exactly 64 hex"
 
 control "fixtures: a JSON example with a malformed fingerprint" "$FIX" \
-  "sed -i '0,/^  \"version\": 1,/s//  \"version\": 1, \"host_fingerprint\": \"nope\",/' $DECL && grep -q '\"host_fingerprint\": \"nope\"' $DECL" \
+  "sed -i '0,/^  \"version\": 2,/s//  \"version\": 2, \"host_fingerprint\": \"nope\",/' $DECL && grep -q '\"host_fingerprint\": \"nope\"' $DECL" \
   "BAD JSON" "not an MD5 colon-hex or SHA256 base64 fingerprint"
 
 control "fixtures: a Mermaid block declaring no diagram type" "$FIX" \

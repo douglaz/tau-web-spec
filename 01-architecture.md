@@ -46,7 +46,8 @@ about one:
   Hermes: "Hermes is an AI that acts on this server by itself. tau-web's promises cover what
   tau-web's AI does, not what Hermes does." Beside it the card MUST explain that Delivered
   covers the declared machine state and the fixed lockdown checks, and MUST say, substituting
-  the application's name: "It does not mean Hermes works".
+  the application's name: "It does not mean Hermes works". The card carries `ARC-43`'s evidence
+  label beside Delivered where applicable.
 
 **ARC-2** Nothing runs while the app is closed. This is accepted rather than worked around. It
 is a statement about the harness: an operator's application on a machine runs as the operator
@@ -271,12 +272,51 @@ output. The jobs are:
   machine of the bound set. Its rules are below.
 - `digest_secret` — a harness-initiated read of a recorded placement, under the rules below.
   The model MUST NOT request it through `request_harness_job` or supply its command.
+- `delivery_reboot` — a harness-initiated reboot outside LNVPS, only as the evidence clause
+  below permits. The model MUST NOT request it through `request_harness_job` or supply its
+  command. Its own job record follows `STA-20`; reboot ends the command, established by the
+  boot-identity change.
 
 Listener observations, outbound-restriction observations and service state/enablement
-observations used for delivery also MUST come from harness-composed reads. The signed checklist (`OPN-14`) owes the concrete reads,
-the evidence for `enabled-survives-reboot`, and a service-name grammar whose validated values
-are passed as arguments, never interpolated as shell syntax. The model proposes values,
-not the measuring procedure.
+observations used for delivery also MUST come from harness-composed reads. The signed
+checklist (`OPN-14`) still owes the concrete reads not settled below. The model proposes
+values, not the measuring procedure.
+
+For stage 1's **init-specific systemd case** (OpenRC waits for the dedicated path's stage),
+a declared service name MUST be bare, match `^[A-Za-z0-9_][A-Za-z0-9:_.-]*$`, and be at most
+247 bytes. The harness appends `.service`, keeping the whole within systemd.unit(5)'s 255
+bytes, and passes `--` before it. No `@` instances, `.socket` or `.timer` entries are admitted
+until a declaration needs one. The guarantee is the shell-inert character set together with
+the wrapper's quoting: an SSH exec carries a string, not an argv. Service-manager selection
+and the user-account grammar live in the declaration format.
+
+**Evidence for `enabled-survives-reboot`.** Reads alone establish "enabled", not "survives".
+A machine declaring such a service gets one harness-composed reboot at delivery, after the
+last placement, **only with the operator's explicit yes at that moment**. Record the boot
+identity, reboot, reconnect on the pin, confirm a new boot identity and the unit active, then
+run the delivery check before any model command. New boot identity plus active unit is the
+init-agnostic survival evidence. The delivery check also catches a restriction a boot drops;
+it asserts nothing beyond the declaration.
+
+At LNVPS the reboot is the typed restart, with its own vendor confirmation under `STA-24`:
+"the observation the operation's own reconciliation contract admits". Until that confirmation,
+box-plane dispatch stays stopped. The subsequent boot-identity read is a harness-composed
+box-plane read for survival evidence, never the restart's confirmation: `STA-24` says a job
+record "cannot clear a cloud-plane barrier". Elsewhere use `delivery_reboot` above.
+
+No reboot is offered when no such service is declared or a `running-at-delivery` service is
+also declared, since reboot would end it. For an `enabled-survives-reboot` service, if no
+reboot is demonstrated, including when the operator declines, the lifecycle MUST be labelled **"enabled, restart not demonstrated"**
+beside Delivered on the delivery card and in the trust display, wherever Delivered appears
+for that machine. That labelled state is no difference from the declaration, raises no
+lifecycle finding, and leaves the machine Delivered when its checks otherwise pass. A later
+boot-identity change plus a re-check lifts the label. A user-scope unit without `Linger=yes`
+is still a difference and a lifecycle finding.
+
+On re-entry (`STG-9`), read the unit and its enablement for `enabled-survives-reboot` services.
+Offer a reboot again only when the unit or its enablement changed; a boot-identity change
+since the last check counts as a demonstration when re-checked. Whether `running-at-delivery`
+binds after delivery stays open in `OPN-14`.
 
 Where a host-key pin may come from is `TauWeb.Pins.Source` and what each source may pin is
 `TauWeb.Pins.admits` (ADR-0032), with `TauWeb.Pins.installed_pin_from_authorized_source` over
@@ -321,6 +361,7 @@ here is non-waivable:
 - **A value equal to a credential the harness holds is refused** (`SEC-5`). Without that, a
   steered model asks for the vendor credential or the seed to be written where it has root, and
   `CNF-12` has something to send after all.
+- **A value below the minimum in `SEC-5` is refused**, with its no-override message.
 - **An unsafe destination is refused**: a mode that lets any account but the owner read the
   file, and a path that is a symbolic link or passes through one. An existing file MUST be
   refused unless the placement records name it as this placement; placing a new secret must
@@ -365,8 +406,9 @@ A machine-derived reference MUST be labelled **"re-armed from the machine's repo
 "protected" or proof that the original value was recovered. It covers no forgotten placement.
 Further changed-file detection policy remains open in T48.
 
-If the file is absent, changed against an intact reference, or the digest job fails, the
-harness MUST offer a visible fallback card: the operator may paste the secret locally to
+If the file is absent, changed against an intact reference, the digest job fails, or the
+machine-reported byte length is below `SEC-5`'s minimum, the harness MUST offer a visible
+fallback card: the operator may paste the secret locally to
 create a fresh reference under `SEC-5`. This act writes nothing to the machine and is not a
 placement or rotation. Rotation goes through the full `place_secret` ceremony. Re-arming
 neither reapproves the restored declaration nor any weaker mode; until the operator does,
@@ -634,7 +676,8 @@ property the session demonstrates, not a step it reports having performed.
 **Delivered, or handed over with findings — never something between.** A machine is
 **delivered** only when the delivery check finds no difference from its declaration in force
 and the fixed lockdown checks — default credentials and sshd posture, from the signed lockdown
-checklist (`OPN-14`) — pass. A finding is cleared by a re-check and by nothing else: after the
+checklist (`OPN-14`) — pass, with `ARC-43`'s evidence label where applicable. A finding is
+cleared by a re-check and by nothing else: after the
 machine is fixed, or after the operator amends its declaration by a journaled act. A finding is
 never accepted in place of an amendment, and an amendment cannot widen what the harness gates —
 it cannot declare spendable key material on a multi-tenant machine (`ARC-37`, ADR-0030's first
@@ -650,6 +693,7 @@ finding other than a lifecycle finding stands — the rule below, applied by `AR
 
 **A stopped service is a finding, and it does not refuse a secret.** A declared service that a
 harness-composed read does not find in its declared lifecycle is a **lifecycle finding**
+except for `ARC-43`'s labelled evidence state,
 whenever that read runs — at a delivery check or a later re-check, whether or not any secret is
 placed on the machine, and whether or not the service needs one to start. It is a finding like
 any other: the machine is not delivered while it stands, it stays shown, and only a re-check
@@ -711,7 +755,7 @@ A declaration covers at least:
   or a debug port left by the install.
 - **Service lifecycle.** Whether the tenant's software must merely be running at delivery, or be
   enabled and survive a restart. The harness has no opinion; it demonstrates whichever was
-  declared.
+  declared. `ARC-43`'s evidence clause supplies the restart-demonstration label.
 
 **What the check does not find** is hostile use of *declared* surface, or a machine that satisfies
 a declaration which is itself wrong. A vague or wide declaration buys a weak check. That is the
@@ -1177,6 +1221,8 @@ matches the published source
 the implementation repository from this one pinned at a commit; the publisher-chosen inputs it
 compiles in live here under `bundle/`
 ([ADR-0031](./docs/adr/0031-the-specification-and-the-implementation-are-separate-repositories.md)).
+The static host MUST send `ARC-33`'s policy as a `Content-Security-Policy` response header
+covering the worker scripts. A site-wide header suffices; per-path control is not required.
 
 Origin diversity — a different mirror per machine — was considered and **rejected on user
 safety, not security.** Instructing someone to open a second URL on a second device is
@@ -1195,6 +1241,15 @@ cannot know who is checking. Neither reproducible builds nor watchdogs exist tod
 approval and recording are (`SEC-4`, `SEC-12`) — but it is the boundary for code the harness
 never meant to run, and the two are different directives.
 
+The policy binds every context the bundle runs code in: the page, the harness worker and
+any session worker, however started. The harness worker not under the policy MUST refuse to unlock;
+a session worker not under it MUST refuse to receive credentials. Each says why. Its self-check MUST be the first
+thing it runs, before any dependency loads; dependencies load afterwards by dynamic import.
+The check MUST establish refusal of `import()` of a `data:` module and a cross-origin module,
+and of `eval` and `Function`. It MUST NOT rest on `eval` alone: earlier code can patch a
+global. Comparing a violation event's policy with the directive list below is an
+implementation option. ADR-0046 records the rejected inheritance shim.
+
 - **`connect-src` is permissive** for `https:` and `wss:` alike. The design does not restrict
   what the harness can *reach*; it restricts what runs without the operator's say. Exactness
   for the relay was only free while its origin was a constant, and the bring-your-own and
@@ -1203,7 +1258,7 @@ never meant to run, and the two are different directives.
   'wasm-unsafe-eval'`, `object-src 'none'`, `base-uri 'self'`). Approval and recording are
   functions inside the bundle; **injected code never calls them.** The bundle is already the
   largest concentrated risk, with no reproducible builds and no watchdogs today, so this is
-  the one control that binds that risk and it costs nothing.
+  a control that binds that risk, requiring the host header and worker self-check.
 
 **ARC-34** Continuous integration MUST run the CORS probe on every push, because browser
 reachability is an external dependency that can regress silently.

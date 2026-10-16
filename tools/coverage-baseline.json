@@ -1,6 +1,6 @@
 {
-  "max_uncovered_ratcheted": 76,
+  "max_uncovered_ratcheted": 74,
   "recorded": "2026-10-16",
-  "reason": "CNF-26 now covers ARC-21 abandonment authorization",
+  "reason": "Worker policy admission adds CNF-111 coverage of ARC-32 and ARC-33",
   "note": "Lower is better. Raise only deliberately, with a reason."
 }

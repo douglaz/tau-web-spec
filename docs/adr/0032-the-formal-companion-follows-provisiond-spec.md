@@ -181,3 +181,6 @@ reset-offer pairs for predecessor prerequisites and changed keys; pins adds the 
 ready-to-reset freshness pairs for earlier pins and observations. Dispatch's shared trace
 enumeration filters repeated request call ids, checked again by its bounded property; intent
 projection is positional. The witness schemas become dispatch 3 and pins 5.
+
+*Amended 2026-10-16:* The generated-seed ceremony gate is the parameter whose pair is
+`TauWeb.Allocation.backup_missing_refused` and `TauWeb.Allocation.backup_missing_admitted`.

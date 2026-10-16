@@ -19,9 +19,10 @@ is not revocable; changing what the browser uses is not removing a thief's acces
 `STA-17` says "Recovery after a *lost* phone revokes;
 restore after a *dead* one may not". Reusing the old key after theft leaves that key authorized.
 
-Restore also reaches an allocation dead end without Replace. `STA-22b` says "a seed imported
+Restore also reaches an allocation dead end without Replace. `STA-22b` said "a seed imported
 after loss of the canonical journal may restore listed identities but MUST NOT allocate new
-ones" and "To allocate again, use Replace with a freshly generated seed". An old sheet cannot
+ones" until 2026-10-15. `STA-22b` says "every imported seed may restore listed identities but MUST NOT allocate
+new ones" and "To allocate again, use Replace with a freshly generated seed". An old sheet cannot
 prove that later allocations never happened. Keeping Restore while omitting Replace would
 preserve access but strand the restored operator when they next need a new identity.
 
@@ -70,3 +71,11 @@ inventory and destruction; a probe is evidence about an API, not a decision abou
 T44 carries the deferred format and recovery change. `ARC-22`'s unavailable-destroy treatment
 remains separate from that decision.
 `OPN-3` tracks the evidence at each milestone. No integrated recovery result is claimed here.
+
+*Amended 2026-10-16:* Every imported seed restores and never allocates until Replace with a
+freshly generated seed; the harness cannot observe whether the old canonical journal still
+exists on a phone in a drawer. `STA-22b` owns the bare-seed refusal and `STA-23` the generated
+seed's ceremony. The refusal's "a seed alone restores nothing" has a limit: under ADR-0042,
+each LNVPS machine's vendor identity derives from the seed at its index. Once T44 implements
+bounded index discovery, a seed may find its machines by walking indices. Revisit the
+bare-seed refusal then; no inventory-discovery mechanism is added here.
