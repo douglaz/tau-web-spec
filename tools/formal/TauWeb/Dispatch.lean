@@ -37,7 +37,7 @@ running"), and `replay` throws it away and rebuilds it from the journal.
 one is a one-token change, and each has its refused-and-admitted pair.
 
 Amended 2026-10-17: a destructive reinstall's journaled approval names its reset call,
-entry and approved facts. It supplies no generation. The approval-bound reset is refused
+entry, session and approved facts. It supplies no generation. The approval-bound reset is refused
 unless a rescue activation dispatched since the approval is still confirmed by its newest
 durable read. Only a matching withdrawal since that approval withdraws it; dispositions do
 not. Dispatch remains subject to the barrier and standing disposition. Other resets retain
