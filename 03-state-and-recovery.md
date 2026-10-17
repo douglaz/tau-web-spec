@@ -858,6 +858,15 @@ The screen names unrecovered machines
 and unrevocable passes, and never reports a complete Replace or complete revocation while
 either remains outstanding, including a manual relay retirement awaiting confirmation.
 
+Replace's machine-migration MUST move the machine component to the machine's new index and
+carry its installation ordinal `n` with it (`STG-20`). It MUST refuse to migrate a machine
+whose install is unfinished in rescue: from the rescue reset that starts the first install
+or dispatches a destructive reinstall until the reset into the installed system is confirmed
+(`STG-4`), including after `ready_to_reset` records pins. `STA-20b` says "With an installed-system
+pin already recorded, continuing as if not done keeps that installation"; its root still carries
+the current label. Replace's screen MUST name the refused machine as not yet migrated, with
+the reason, and MUST NOT report a complete Replace while it remains outstanding.
+
 **Replace cannot cover the inference account credential, and MUST say so.** This credential
 has no account behind it, so there is nothing to revoke against (`SEC-5` row 14). What Replace *can* do is revoke every session key
 minted from it and mint no more — which stops the harness's own use and does nothing about a

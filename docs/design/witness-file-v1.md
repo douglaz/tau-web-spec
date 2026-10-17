@@ -119,6 +119,9 @@ its destroy is refused; the paired trace without `sessionDestroyRefused` retains
 admission as a trap, not a permission a comparison can infer. `ARC-21` runs abandonment
 "never through a session"; the flow's destroy intent is read outside request admission by
 `TauWeb.Dispatch.abandonment_ends_at_its_destroy_alone`.
+A replay ends every session (`STA-23`); no named witness has a session request after a replay
+it preceded. The bounded enumeration retains a superset of realizable traces, so its universal
+property is stronger.
 The file holds no trace in which a `register_key` is requested under a standing disposition: the journal holds nothing that says a
 key registration is owed, and `TauWeb.Dispatch.reinstall_does_not_refuse_key_registration` is
 decided over a trace that requests none. `destroy` stands for the destroy or the
@@ -133,6 +136,9 @@ otherwise the approval-bound reset is refused at dispatch. A matching withdrawal
 newest approval refuses that reset naming the withdrawal, even under a reinstall disposition,
 when no unresolved call bars it (`STA-24`).
 A disposition does not withdraw approval. A re-approval starts the activation check again.
+An approval is usable only while its rendering session runs (`STG-20`); the companion assumes
+ended sessions send no request and uses session binding for the successor refusal. Session
+termination and the no-longer-usable display with no withdrawal offer remain Markdown-only.
 An approval for a reset never dispatched cannot make another reset open an installation; a
 second rescue reset needs its own approved reinstall to open another. `withdraw_reinstall`
 records the named withdrawal except after that approval's reset was dispatched; that refusal

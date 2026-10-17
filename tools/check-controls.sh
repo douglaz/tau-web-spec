@@ -303,8 +303,8 @@ for i, line in enumerate(lines):
             print("The decision did not report a false proposition:", line)
             sys.exit(1)
     elif match[2] == "unsolved goals":
-        # These exact residual goals are the counterexamples to universal source and
-        # durability theorems. Generic open goals, resource failures and printer errors
+        # These exact residual goals are the counterexamples to universal source,
+        # durability and binding theorems. Generic open goals, resource failures and printer errors
         # remain unacceptable.
         open_goals = {
             ("no_rescue_session_before_fill", "case boot.attest",
@@ -313,6 +313,7 @@ for i, line in enumerate(lines):
              "⊢ Source.published = Source.rescueLast"),
             ("attest_acceptance_consumes", "case isTrue", "⊢ m ∈ k.consumed"),
             ("consumed_step", "case restart", "⊢ m ∈ []"),
+            ("admit_dispatched", "case h_2.isFalse", "⊢ rq.session = ap.session"),
         }
         if (not body or (decl, body[0], body[-1]) not in open_goals or
                 sum(text.lstrip().startswith("case ") for text in body) != 1 or
@@ -733,11 +734,20 @@ dispatch_control "formal: reset offer reads another installation or changed keys
 # predecessor current, and the later rescue reset trace never reaches installation 1.
 # Rehearsed 2026-10-17: both continuing dispositions preserve the separately approved boundary.
 # Rehearsed 2026-10-17: the new approval and offer traces also detect this broken guard.
+# Rehearsed 2026-10-17: the successor's re-approval opens the boundary; the ended-session
+# refusal replaces the retired replay-survival witness and does not depend on this guard.
 dispatch_control "formal: separately approved reinstall boundary dropped" \
   "sed -i 's/approvedReinstallBoundary : Bool := true/approvedReinstallBoundary : Bool := false/' $DISP && grep -q 'approvedReinstallBoundary : Bool := false' $DISP" \
   approved_reinstall_boundary_refused second_rescue_reset_opens_nothing_more \
   approved_reinstall_after_done_disposition approved_reinstall_after_not_done_disposition \
-  replaced_reinstall_keeps_approval withdrawn_approval_reset_admitted_without_guard withdrawal_after_dispatch_refused undispatched_approval_survives_replay reapproval_requires_new_activation withdrawal_identity_and_failed_append
+  replaced_reinstall_keeps_approval withdrawn_approval_reset_admitted_without_guard withdrawal_after_dispatch_refused successor_reapproval_opens_installation reapproval_requires_new_activation withdrawal_identity_and_failed_append
+
+# Rehearsed 2026-10-17: dropping binding leaves admit_dispatched's session equality unproved
+# and falsifies ended_session_approval_refused. dispatched_only_if uses admit_dispatched and
+# produces no separate failure. The diagnostic contract accepts only that exact residual goal.
+dispatch_control "formal: approval session binding dropped" \
+  "sed -i 's/if ap.session != rq.session then .refused .binding/if false then .refused .binding/' $DISP && grep -q 'if false then .refused .binding' $DISP" \
+  admit_dispatched ended_session_approval_refused
 
 # Rehearsed 2026-10-17: ignoring an incomplete collection offers the reset after both
 # changed-key and unchanged-key failures, in the main refusal and the entry-isolation trace.

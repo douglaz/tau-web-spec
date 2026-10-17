@@ -959,19 +959,36 @@ Not pass/fail. Required to be recorded.
       reinstall, the return to rescue waits for the other command and collects its record, and
       does not wait for the disposed one or require its record; the reset into rescue is
       dispatched with its intent recorded and no installed pins.
-      The installation id (`STG-20`) stays the same across restart and Restore, differs between
-      machines and fits the root label. It moves at destructive reinstall dispatch, never at
+      The installation id (`STG-20`) stays the same across restart and Restore; its machine
+      component is distinct among machines allocated under the current seed. Check lowercase
+      hexadecimal for the machine index and decimal for the installation ordinal, neither with
+      leading zeros. The longest label `7fffffff-9999999` fits the root label. A reinstall that
+      would make the ordinal 10 000 000 is refused before dispatch on both paths, saying that
+      the label would not fit. Replace moves the machine component to the new index and carries
+      the ordinal; an unmigrated retired-seed index can coincide with a migrated machine's new
+      index. Replace refuses to migrate an install unfinished in rescue (`STA-17`), including
+      after `ready_to_reset` records pins and before the installed-system reset is confirmed;
+      its screen names that machine as not yet migrated, says why, and does not report completion.
+      The ordinal moves at destructive reinstall dispatch, never at
       its choice: exercise both routes before its reset — replace a reinstall disposition with
       no approval standing, and withdraw a reinstall approval — and confirm the kept root still
       has the shown id. Also replace a reinstall disposition while a separate approval stands:
       choosing to keep the reinstall approval preserves it and its reset opens the installation;
       choosing withdrawal records the replacement and withdrawal separately, refuses that reset
       naming the withdrawal, and keeps the root's id and reset offer. Exercise the approval-only
-      change of mind and refusal of withdrawal after dispatch (`STG-20`). A fresh reinstall erases
+      change of mind and refusal of withdrawal after dispatch (`STG-20`). End the rendering
+      session after approval and before its reset, by lock and by worker restart: the approval
+      is shown as no longer usable with no withdrawal offer, the successor cannot dispatch that
+      reset under it, and it opens nothing. Approving again in the successor session, followed
+      by a rescue activation dispatched since then and still confirmed, opens the installation
+      at its reset. A fresh reinstall erases
       the approved predecessor, including an unmarked, foreign-id or hand-installed root, and
       labels the successor at formatting. Interrupt that successor and resume it under the same
       id without formatting again; a complete matching root is kept. Two matching roots or an
-      unreadable label stop and surface without erasure.
+      unresolved label probe stop and surface without erasure. Exercise exit 2, empty output
+      even at exit 0, other probe errors, and exit 0 with only partition-table or `LABEL_FATBOOT`
+      tags. Only exit 0 with a line beginning `TYPE=` and no line beginning `LABEL=` establishes
+      an unlabelled filesystem; exit 0 with a line beginning `LABEL=` supplies a label to compare.
       Continuing as if not done with an installed pin keeps the matching root and its keys
       (`STA-20b`). A changed-key `ready_to_reset` read withholds the offer and tells the operator
       before reboot. After reinstall, predecessor prerequisites cannot offer a reset. A first

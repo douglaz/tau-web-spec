@@ -32,6 +32,29 @@ installations' prerequisite reads and installed-system pins catches retained key
 reboot, rather than at a halt afterwards. Earlier observations remain the backstop's
 comparison, not the offer's. A predecessor's record cannot make the successor's offer.
 
+*Amended 2026-10-17:* `STG-20` says "An approval **stands** from its record until its reset is
+dispatched, a matching withdrawal is recorded, or the session it was rendered for ends".
+Session end is not journaled; the journal alone therefore cannot say whether an approval
+stands. An ended session's approval is shown as no longer usable, with no withdrawal offer,
+and opens nothing. A successor approves again and needs a rescue activation dispatched since
+that new approval and still confirmed. The companion assumes that ended sessions send no
+request; its successor refusal and re-approval traces carry the rule through session binding,
+without adding an event or changing the schema. It does not prove session termination or
+carry the display duties.
+
+*Amended 2026-10-17:* The encoding in `STG-20` replaces "its encoding is left unspecified":
+the machine-family index is lowercase hexadecimal without leading zeros, and the installation
+ordinal is decimal without leading zeros, initially zero. Distinctness is among machines
+allocated under the current seed; an unmigrated machine keeps its retired-seed index and can
+coincide with a migrated machine's new index. The largest index `7fffffff` leaves seven bytes
+after the separator: the uniform ordinal bound is 9 999 999, and `7fffffff-9999999` fits exactly
+in ext4's 16-byte label. A destructive reinstall that would exceed the bound is refused before
+dispatch, saying why, on both dedicated and LNVPS paths. `STA-17` owns Replace's migration of
+the component to the new index while carrying the ordinal, and refusal to migrate an install
+unfinished in rescue through confirmation of the reset into the installed system, including
+after pins are recorded. Its screen names the machine still awaiting migration and the reason;
+Replace remains incomplete. The install brief treats an unresolved label probe as unreadable.
+
 The label steers the model and nothing checks it. A matching root can be resumed or found
 complete and kept; an unmarked or foreign root is the predecessor, including a hand-installed
 one. Duplicate matching roots and unreadable labels stop the brief before erasure. Formatting

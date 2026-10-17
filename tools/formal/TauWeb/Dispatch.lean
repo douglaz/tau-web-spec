@@ -43,6 +43,13 @@ durable read. Only a matching withdrawal since that approval withdraws it; dispo
 not. Dispatch remains subject to the barrier and standing disposition. Other resets retain
 their checks and the single reset kind is unchanged. The companion cannot carry immediately
 preceding reads or refusal after a failed read append.
+An approval binds its rendering session. Lock, page hide, worker shutdown or replay ends that
+session (`STA-23`); the end is not journaled or modelled. Traces assume the convention that an
+ended session sends no request, and after replay only successor sessions act. The companion
+assumes this convention and does not prove session termination. `ended_session_approval_refused`
+and `successor_reapproval_opens_installation` carry the rule through `SEC-4`'s binding check.
+The display duties (shown as no longer usable, with no withdrawal offer) remain Markdown-only;
+`acceptsWithdrawal` does not read the running session, because those duties are outside it.
 For `ready_to_reset`, the durable per-command record
 (`ARC-8`, `STA-4`) precedes collection; `resetCollection` carries that record here. A missing
 durable prerequisite result after it withholds the offer across replay, per entry and current
@@ -65,6 +72,7 @@ inference intent is shown against (`ARC-31a`), a number and not a gate; the scre
 requires, which state what the journal already holds. Robot's predicates have no negative
 transition (`STG-4`: "None of these has a negative form"), so there is no observation meaning
 *it did not happen*: that reading arrives only as a disposition.
+The installation label's bound and overflow refusal are also not carried here.
 
 ponytail: `openIntents` rescans the journal for every intent it reads, which is quadratic in the
 trace, and `inEffect` reads the journal again for every disposition; the bound is three events,
@@ -936,7 +944,12 @@ inductive Event
   | approveReinstall (e : Entry) (call : CallId) (approval : Approval) (appended : Bool)
   /-- The operator's withdrawal of a dedicated reinstall approval (`STG-20`). -/
   | withdrawReinstall (e : Entry) (call : CallId) (approval : Approval) (appended : Bool)
-  /-- The worker is killed and replays the journal (`STA-7`). -/
+  /-- The worker is killed and replays the journal (`STA-7`). An approval binds its rendering
+  session; lock, page hide, worker shutdown or replay ends it (`STA-23`). That end is not
+  journaled or modelled: traces assume an ended session sends no request, and this companion
+  does not prove termination. The two successor traces use `SEC-4`'s binding check. Showing the
+  approval as no longer usable with no withdrawal offer remains Markdown-only;
+  `acceptsWithdrawal` therefore does not read the session. -/
   | replay
   deriving DecidableEq, Repr
 
@@ -1020,7 +1033,8 @@ theorem admit_dispatched (p : Params) (j : Journal) (rq : Request) (ap : Approva
               · exact nomatch h
               · injection h with h
                 subst h
-                exact ⟨rfl, rfl, rfl, hses.symm, hfacts, hblock, hnone⟩
+                refine ⟨rfl, rfl, rfl, ?_, hfacts, hblock, hnone⟩
+                simp_all only [intentOf]
 
 /-- What it is for a standing disposition not to restrict an operation: the destructive stop does
 not apply to it, and if it is within the reach the continuation permits it. -/
@@ -1264,8 +1278,10 @@ def approvalCreate : Approval := { session := sessionA, facts := factsCreate }
 "under its own approval, whose card shows the unresolved sibling and that it may be billing". -/
 def approvalCreateB : Approval := { session := sessionA, facts := factsCreateB }
 def approvalExec : Approval := { session := sessionA, facts := factsExec }
+def approvalExecB : Approval := { session := sessionB, facts := factsExec }
 def approvalRegister : Approval := { session := sessionA, facts := factsRegister }
 def approvalActivate : Approval := { session := sessionA, facts := factsActivate }
+def approvalActivateB : Approval := { session := sessionB, facts := factsActivate }
 def approvalDestroy : Approval := { session := sessionA, facts := factsDestroy }
 /-- The vendor's reinstall call approved for the successor session. -/
 def approvalReinstallB : Approval := { session := sessionB, facts := factsReinstall }
@@ -1290,6 +1306,9 @@ def resetRequest4 : Request := { resetRequest1 with call := 11 }
 /-- Two further requests for a reset during a return to rescue, each under a fresh call id. -/
 def resetRequest5 : Request := { resetRequest1 with call := 18 }
 def resetRequest6 : Request := { resetRequest1 with call := 19 }
+/-- The successor's reset and a second fresh request for the same action. -/
+def resetRequestB : Request := { resetRequest1 with call := 21, session := sessionB }
+def resetRequestB2 : Request := { resetRequestB with call := 22 }
 
 /-- The create at the first reserved index, and a second attempt at the same approved entry,
 which would reserve another. -/
@@ -1310,6 +1329,8 @@ def execRequest2 : Request := { execRequest with call := 12 }
 /-- Further commands, each under a fresh call id. -/
 def execRequest3 : Request := { execRequest with call := 17 }
 def execRequest4 : Request := { execRequest with call := 20 }
+/-- A successor command after replay, over the journal the earlier session wrote. -/
+def execRequestB : Request := { execRequest with call := 23, session := sessionB }
 
 /-- A destroy of the machine, which a disposition naming a destructive reinstall does not
 permit. -/
@@ -1327,6 +1348,7 @@ def activateRequest : Request :=
 /-- The same activation requested again under a fresh call id: a re-issue, which under a
 continuation that continues is the operator's explicit choice. -/
 def activateRequest2 : Request := { activateRequest with call := 16 }
+def activateRequestB : Request := { activateRequest with call := 24, session := sessionB }
 
 /-- A read naming the machine: a status query, the pinned SSH attempt or the collection of job
 records (`STA-24`). -/
@@ -1465,8 +1487,9 @@ def replacementEvents : List Event :=
   [.request resetRequest1 approvalReset true, .dispose dispositionA true, .dispose abandonA true,
    .replay, .request reinstallRequest approvalReinstallB true]
 
-/-- A killed worker replays, and a command is requested. Run from `replayStart`. -/
-def replayEvents : List Event := [.replay, .request execRequest approvalExec true]
+/-- A killed worker replays, and a successor requests a command under its own approval.
+Run from `replayStart`; the barrier holds whichever session requests it. -/
+def replayEvents : List Event := [.replay, .request execRequestB approvalExecB true]
 
 /-- An unresolved reset, a disposition naming abandonment, evidence that the reset succeeded, a
 command. -/
@@ -2297,8 +2320,8 @@ def keptReinstallApprovalEvents : List Event := replacedReinstallApprovalEvents 
   [.request resetRequest1 approvalReset true]
 
 def withdrawnReinstallApprovalEvents : List Event := replacedReinstallApprovalEvents ++
-  [.withdrawReinstall entryA resetRequest1.call approvalReset true, .replay,
-   .request resetRequest1 approvalReset true]
+  [.withdrawReinstall entryA resetRequest1.call approvalReset true,
+   .request resetRequest1 approvalReset true, .replay]
 
 @[req "STG-20"] theorem replaced_reinstall_keeps_approval :
     let before := run current farDone.external init replacedReinstallApprovalEvents
@@ -2310,9 +2333,10 @@ def withdrawnReinstallApprovalEvents : List Event := replacedReinstallApprovalEv
   decide +kernel
 
 @[req "STG-20"] theorem replaced_reinstall_withdraws_approval :
+    let refused := run current farDone.external init (withdrawnReinstallApprovalEvents.take 9)
     let w := run current farDone.external init withdrawnReinstallApprovalEvents
     w.dispatched.map (·.call) = [9, 10] ∧
-    w.verdict = some (.refused (.withdrawnApproval machineA 1 approvalReset)) ∧
+    refused.verdict = some (.refused (.withdrawnApproval machineA 1 approvalReset)) ∧
     installationOf current w.memory entryA = 0 ∧ offersReset current w.memory entryA = true := by
   decide +kernel
 
@@ -2382,13 +2406,37 @@ def withdrawalWithUnresolvedActivationEvents : List Event :=
     w.verdict = some (.refused (.barrier [10])) ∧
     w.dispatched.map (·.call) = [10] := by decide +kernel
 
-/-- Not issuing the reset is no withdrawal; replay retains the approval and rescue boundary. -/
-def replayApprovalEvents : List Event := approvedReinstallEvents.take 4 ++
-  [.replay, .request resetRequest1 approvalReset true]
+/-- Replay ends the rendering session without journaling that end. The successor cannot use
+its approval: binding refuses it. Its own unmatched approval dispatches an ordinary rescue
+reset and opens nothing. No ended session acts here. -/
+def endedSessionApprovalEvents : List Event := approvedReinstallEvents.take 4 ++
+  [.replay, .request resetRequestB approvalReset true,
+   .request resetRequestB2 approvalResetB true]
 
-@[req "STG-20"] theorem undispatched_approval_survives_replay :
-    let w := run current farDone.external init replayApprovalEvents
-    w.dispatched.map (·.call) = [1, 10] ∧ installationOf current w.memory entryA = 1 := by
+@[req "STG-20"] theorem ended_session_approval_refused :
+    let refused := run current farDone.external init (endedSessionApprovalEvents.take 6)
+    let w := run current farDone.external init endedSessionApprovalEvents
+    refused.verdict = some (.refused .binding) ∧
+    approvalBound refused.memory (intentOf resetRequestB2 machineA approvalResetB) = false ∧
+    approvedRescueReset current refused.memory
+      (intentOf resetRequestB2 machineA approvalResetB) = false ∧
+    installationOf current refused.memory entryA = 0 ∧
+    w.verdict = some (.dispatched (intentOf resetRequestB2 machineA approvalResetB)) ∧
+    w.dispatched.map (·.call) = [22, 10] ∧ installationOf current w.memory entryA = 0 := by
+  decide +kernel
+
+/-- The successor approves again, dispatches its own new activation and confirms it before
+its reset. This approval opens the installation; the earlier session never acts after replay. -/
+def successorReapprovalEvents : List Event := approvedReinstallEvents.take 4 ++
+  [.replay, .approveReinstall entryA resetRequestB.call approvalResetB true,
+   .request activateRequestB approvalActivateB true,
+   .observe .adapterRead machineA .activate true,
+   .request resetRequestB approvalResetB true]
+
+@[req "STG-20"] theorem successor_reapproval_opens_installation :
+    let w := run current farDone.external init successorReapprovalEvents
+    w.verdict = some (.dispatched (intentOf resetRequestB machineA approvalResetB)) ∧
+    w.dispatched.map (·.call) = [21, 24, 10] ∧ installationOf current w.memory entryA = 1 := by
   decide +kernel
 
 /-- A new approval after withdrawal needs its own newer activation, then opens the boundary. -/
@@ -2410,11 +2458,12 @@ withdrawal does not withdraw this one. -/
 def withdrawalIdentityEvents : List Event := approvedReinstallEvents.take 4 ++
   [.withdrawReinstall entryB 1 approvalReset true,
    .withdrawReinstall entryA 2 approvalReset true,
-   .withdrawReinstall entryA 1 approvalReset false, .replay,
+   .withdrawReinstall entryA 1 approvalReset false,
    .request resetRequest1 approvalReset true]
 
 @[req "STG-20"] theorem withdrawal_identity_and_failed_append :
     let w := run current farDone.external init withdrawalIdentityEvents
+    Rec.reinstallWithdrawal entryA 1 approvalReset ∉ w.journal ∧
     w.dispatched.map (·.call) = [1, 10] ∧ installationOf current w.memory entryA = 1 := by
   decide +kernel
 
@@ -2484,7 +2533,9 @@ statements, not the file's. -/
 /-- The events the bounded enumeration draws from: the destructive call and the same action under
 a fresh call id, box-plane work on the same machine, the vendor read that settles the reset, the
 operator's disposition, a replay, and a rescue activation, which an unresolved command may stand
-beside. -/
+beside. This alphabet includes pre-replay sessions acting after replay, a superset of realizable
+traces; a universal theorem over that superset is stronger. Named witnesses follow the convention
+that ended sessions send no request. -/
 def alphabet : List Event :=
   [.request resetRequest1 approvalReset true, .request resetRequest2 approvalReset true,
    .request execRequest approvalExec true, .observe .adapterRead machineA .reset true,

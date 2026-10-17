@@ -23,7 +23,9 @@ named source:
 - **the harness, per session** — the bound session's SSH client public key, shown to you for
   the one command that installs it (step 6);
 - **the harness, per machine** — the current installation id `<machine>-<n>` (`STG-20`),
-  always shown as `<installation-id>` below;
+  a lowercase hexadecimal machine-family index and a decimal installation ordinal, each without
+  leading zeros and each rendering zero as `0`, for example `0-0` or `1f-3`; always shown as
+  `<installation-id>` below;
 - **you**, from what you read in step 1 — the root disk, the additional disk set, the address,
   gateway and hostname; you compose them into the command you issue, and the harness journals
   that command as sent (`ARC-8`);
@@ -70,9 +72,15 @@ lsblk -dno NAME,SIZE,MODEL,SERIAL,WWN; ls -l /dev/disk/by-id/ | grep -v part; [ 
 - **Addressing is static.** Take the address, prefix and gateway from what the rescue kernel
   is using; there is no DHCP for the installed system to rely on.
 - Probe root filesystem labels directly from the disks, without mounting and never from a
-  cache. For each candidate partition, for example `blkid -p -s LABEL -o value <partition>`.
-  Distinguish a successful probe showing no label from an unreadable label: the latter means
-  stop and surface, never erase. Compare with the harness's shown `<installation-id>`.
+  cache. For each candidate partition, for example
+  `blkid -p -s TYPE -s LABEL -o export <partition>`, retaining its exit status and output.
+  A labelled root requires exit 0 and a line beginning `LABEL=`; compare its value with the
+  harness's shown `<installation-id>`. An unlabelled root requires exit 0, a line beginning
+  `TYPE=` reporting a filesystem, and no line beginning `LABEL=`. Everything else is an
+  unresolved label probe: stop and surface, never erase. This includes exit 2 (which can mean
+  no identified device or inability to gather information), empty output even with exit 0,
+  and every probe error or other status, including 4 and 8. Match the beginnings of lines:
+  `PART_ENTRY_TYPE=`, `PART_ENTRY_NAME=` and `LABEL_FATBOOT=` establish neither case.
   Only a matching root is this installation and eligible for **Resume** or "found complete,
   do not wipe". Two roots with that id mean stop and surface, never erase.
 - An unmarked root, another installation's id or another machine's id is the predecessor,
@@ -102,7 +110,7 @@ First inspect the labels probed in step 1. A single root whose label equals the 
 `<installation-id>` is yours: if partial, follow **Resume** without formatting; if complete,
 **found complete, do not wipe** — inspect it and request `ready_to_reset`, preserving its keys.
 An installed-system pin already recorded means continuing keeps that root and its keys; changing
-those keys requires a separately approved destructive reinstall (`STA-20b`). An unreadable label
+those keys requires a separately approved destructive reinstall (`STA-20b`). An unresolved label probe
 or two roots carrying the current id means stop and surface, never erase.
 
 With only a predecessor, or no root, on the approved disks, partition and format as approved below. Write
@@ -264,7 +272,7 @@ rehearsal never resumed; it only ever wiped. What a resume should look like, unt
   idempotent: step 7's additional-disk block erases. Resume only this installation's matching
   root and preserve its host keys. If it is complete, do not wipe: inspect it and request
   `ready_to_reset`. An unmarked or foreign-id root is the approved predecessor, not a resume;
-  two matching roots or an unreadable label mean stop and surface, never erase.
+  two matching roots or an unresolved label probe mean stop and surface, never erase.
 - If evidence cannot establish a safe continuation, stop and surface the unresolved action.
   A reinstall under `STG-20` is a separately recorded operator decision to discard this
   disposable install, with its disk set shown again. A timer or missing file never authorizes it.

@@ -432,7 +432,7 @@ gated on it.
       `TauWeb.Dispatch.failed_prerequisite_withdrawal_refused` /
       `TauWeb.Dispatch.failed_prerequisite_withdrawal_admitted_without_guard`.
       The durable per-command record of `ready_to_reset` is `resetCollection`, before the
-      result append: its missing durable result withdraws the offer across replay, per entry
+      result append: its missing durable result withholds the offer across replay, per entry
       and current installation. The witnesses include unchanged-key failures and restoration
       by a later durable read. `CONTEXT.md` lists the current file; that amendment emitted
       dispatch schema 4. `docs/design/witness-file-v1.md` defines its events, assumptions and

@@ -447,17 +447,28 @@ A disposition recorded since the approval does not withdraw it.
 `TauWeb.Dispatch.approved_reinstall_after_not_done_disposition` retain the approval through
 continuing dispositions. Only the operator's journaled withdrawal, naming the entry, the reset
 call and the approval, withdraws a reinstall approval.
-An approval **stands** from its record until its reset is dispatched or a matching withdrawal
-is recorded. This is derived from the journal: ending the session that rendered it does not
-end it, and several approvals for an entry stand independently. A withdrawal of an approval
-whose reset was already dispatched is refused and records nothing. A re-approval is newer and
+An approval **stands** from its record until its reset is dispatched, a matching withdrawal
+is recorded, or the session it was rendered for ends; several approvals for an entry stand
+independently. Unlike a disposition's standing, this reads both the journal and whether the
+rendering session still runs. `SEC-4` says "A typed operation that names an existing machine
+MUST be authorized against the calling session's binding". `STA-23` says "Explicit lock,
+page hide/backgrounding, or worker shutdown stops dispatch, ends session workers and closes
+channels" and "No unload callback is relied on for journaling". The rendering session's end
+is not journaled; after a restart, every earlier session's approval is no longer usable,
+needs no withdrawal and opens nothing. A withdrawal of an approval whose reset was already
+dispatched is refused and records nothing. A re-approval is newer and
 starts again: it stands and its reset needs an activation dispatched since the re-approval.
-Never issuing the reset is not a withdrawal: after a replay the approval stands. A withdrawal
-whose append fails is not recorded (`STA-3`), so the approval still stands. Choosing to keep
+Never issuing the reset is not a withdrawal. A replay ends the session, so its approval is
+then no longer usable, not withdrawn. A withdrawal whose append fails is not recorded (`STA-3`),
+so the approval still stands. Choosing to keep
 the reinstall approval journals nothing further.
 
 Wherever an undispatched reinstall approval stands, the harness MUST show it with a withdrawal
-offer, for each such approval. The withdrawal screen MUST say that a standing reinstall
+offer, for each such approval whose rendering session still runs. The harness MUST show an
+undispatched approval of an ended session as no longer usable, with no withdrawal offer, and
+say that approving again in this session is the way on. That makes a new approval for this
+session's reset call, whose rescue activation must be dispatched since the new approval and
+still confirmed. The withdrawal screen MUST say that a standing reinstall
 disposition still opens the installation through its own reset. After a withdrawal, when no
 unresolved call bars the reset (`STA-24`), the reset the approval named MUST be refused,
 naming the withdrawal, including when a destructive reinstall disposition stands and its own
@@ -483,11 +494,29 @@ Withdrawal has the pair `TauWeb.Dispatch.withdrawn_approval_reset_refused` /
 `TauWeb.Dispatch.withdrawn_reset_under_reinstall_refused` the disposition's own reset.
 `TauWeb.Dispatch.unresolved_activation_before_withdrawal_shown` carries the unresolved
 activation shown before the withdrawal.
+`TauWeb.Dispatch.ended_session_approval_refused` and
+`TauWeb.Dispatch.successor_reapproval_opens_installation` carry session succession through
+the approval's binding.
 
-The harness MUST always show the model the current installation id `<machine>-<n>`, with `n`
-the journal's installation generation. It is derived from the journal with no new journal field,
-unchanged across restart and Restore, distinct between the journal's machines, and at most
-16 bytes, so it fits an ext4 filesystem label. Its machine component's encoding is unspecified.
+The harness MUST always show the model the current installation id `<machine>-<n>`.
+`<machine>` is the lowercase hexadecimal, without leading zeros, of the machine-family index
+the machine's entry holds under the journal's current seed or, until Replace migrates it,
+under the retired seed (`STA-22b`). Machine indices are distinct among machines allocated
+under the current seed. A retired-seed index can coincide with a migrated machine's new index.
+`n` is the journal's installation ordinal in decimal without leading zeros, starting at zero
+per machine. It is derived from the journal with no new journal field, unchanged across restart
+and Restore. Index 0 and ordinal 0 each render as `0`, so the first installation of index 0
+is `0-0`. [docs/design/credential-format-v1.md](./docs/design/credential-format-v1.md) says
+"Indices are integers from 0 through 2^31−1": the largest machine component is `7fffffff`,
+eight bytes. With the one-byte `-` separator, seven bytes remain for `n`, so its uniform bound
+is 9 999 999 regardless of the machine component's
+length. The longest label, `7fffffff-9999999`, is exactly 16 bytes and fits ext4's label.
+The harness MUST refuse a destructive reinstall that would make `n` = 10 000 000 before
+dispatch, saying that the installation label would not fit: before the reset into rescue on
+the dedicated path, or before the vendor's reinstall call at LNVPS.
+`STA-17` says "Replace's machine-migration MUST move the machine component to the machine's
+new index and carry its installation ordinal `n` with it". The uniform bound keeps that move
+within the label's size even when the new index is longer.
 The install brief uses that label to distinguish its own root from a predecessor (ADR-0045).
 The label steers the model; nothing checks it.
 

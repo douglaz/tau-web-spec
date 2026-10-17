@@ -304,7 +304,8 @@ assert an outcome nobody has)
 
 **Withdrawal** · `STG-20`
 The operator's journaled act naming a dedicated reinstall approval, its entry and its reset
-call; distinct from a disposition and from choosing never to issue the reset.
+call; distinct from a disposition, from choosing never to issue the reset, and from the end
+of the session the approval was rendered for.
 _Avoid_: withdrawal of a reset offer — an offer is **withheld**, not withdrawn
 
 **Resource** · `STA-24`

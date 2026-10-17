@@ -144,7 +144,8 @@ malformed entry and an entry for a jump host; never interpret a missing entry or
 `host_pin_installations` is a required array of installation groups in creation order.
 Each group is `{machine_index, installation, observations}`. The ordinal starts at zero
 per machine and increases by one only on an operator-chosen destructive reinstall, through
-the vendor API or from rescue. `observations` is an array
+the vendor API or from rescue. Replace's migration carries that ordinal to the machine's
+new index (`STA-17`); it does not restart at zero. `observations` is an array
 in recording order; each observation is `{keys: [...]}`, whose elements are
 `{family, fingerprint}`. `family` is exactly `ed25519`, `rsa` or `ecdsa`, at most once per
 observation; `fingerprint` uses the host-pin fingerprint format. An empty reading that opens
