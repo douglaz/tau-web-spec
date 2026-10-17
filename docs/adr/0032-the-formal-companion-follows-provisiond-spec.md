@@ -184,3 +184,9 @@ projection is positional. The witness schemas become dispatch 3 and pins 5.
 
 *Amended 2026-10-16:* The generated-seed ceremony gate is the parameter whose pair is
 `TauWeb.Allocation.backup_missing_refused` and `TauWeb.Allocation.backup_missing_admitted`.
+
+*Amended 2026-10-17:* Dispatch adds the approved-reinstall boundary and failed-prerequisite
+withholding guards, then the approval-bound activation, earlier-installation offer comparison
+and reinstall-withdrawal guards. Their refused-and-admitted pairs retain each trap. A withdrawal
+record and event carry the approval's separate change of mind. The dispatch schema becomes 4
+and then 5; the bounded alphabet and bound are unchanged.

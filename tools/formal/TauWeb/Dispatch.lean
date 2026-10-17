@@ -37,16 +37,19 @@ running"), and `replay` throws it away and rebuilds it from the journal.
 one is a one-token change, and each has its refused-and-admitted pair.
 
 Amended 2026-10-17: a destructive reinstall's journaled approval names its reset call,
-entry and approved facts. It supplies no generation: only that reset's dispatch, after a
-rescue activation dispatched since the approval and still confirmed, opens the installation.
-A disposition recorded since the approval does not withdraw it; dispatch remains subject to
-the barrier and the standing disposition. The single reset kind is unchanged.
+entry and approved facts. It supplies no generation. The approval-bound reset is refused
+unless a rescue activation dispatched since the approval is still confirmed by its newest
+durable read. Only a matching withdrawal since that approval withdraws it; dispositions do
+not. Dispatch remains subject to the barrier and standing disposition. Other resets retain
+their checks and the single reset kind is unchanged. The companion cannot carry immediately
+preceding reads or refusal after a failed read append.
 For `ready_to_reset`, the durable per-command record
 (`ARC-8`, `STA-4`) precedes collection; `resetCollection` carries that record here. A missing
-durable prerequisite result after it withdraws the offer across replay, per entry and current
+durable prerequisite result after it withholds the offer across replay, per entry and current
 installation. No failed result is applied as knowledge, and a later durable read restores the
-offer only when its keys match the installation's pin. Transmission and collection of this
-command are abstracted into `resetPrereqs`; its prior command-record append is taken as given.
+offer only when its keys match the first durable read and no earlier installation's prerequisite
+set is identical. Transmission and collection of this command are abstracted into `resetPrereqs`;
+its prior command-record append is taken as given.
 
 What the module omits: the snapshot and the compaction of `STA-2`, since a snapshot is the
 journal's replay and adds no case here; the lock `STA-7` acquires and the single writer `STA-1`
@@ -255,6 +258,7 @@ inductive Rec
   | resetPrereqs (e : Entry) (installation : Nat) (keys : Nat)
   | reinstallApproval (e : Entry) (call : CallId) (approval : Approval)
   | resetCollection (e : Entry) (installation : Nat)
+  | reinstallWithdrawal (e : Entry) (call : CallId) (approval : Approval)
   deriving DecidableEq, Repr
 
 /-- **Harness knowledge**: the journal, newest first. Nothing else is knowledge here — what a
@@ -366,9 +370,21 @@ authority is per clause and this structure is not one. -/
   `approved_reinstall_boundary_admitted_without_guard`. -/
   approvedReinstallBoundary : Bool := true
   /-- `STA-20b`, 2026-10-17: a collection's durable command record with no durable result
-  withdraws the reset offer, including on replay. Pair: `failed_prerequisite_withdrawal_refused`
+  withholds the reset offer, including on replay. Pair: `failed_prerequisite_withdrawal_refused`
   / `failed_prerequisite_withdrawal_admitted_without_guard`. -/
   failedPrerequisiteWithdraws : Bool := true
+  /-- `STG-20`, 2026-10-17: an approval-bound reset requires a confirmed rescue activation
+  dispatched since the approval. Pair: `approval_reset_requires_rescue_refused` /
+  `approval_reset_requires_rescue_admitted_without_guard`. Other resets are unchanged. -/
+  approvalResetRequiresRescue : Bool := true
+  /-- `STA-20b`, 2026-10-17: the first current prerequisite keys must differ from every
+  earlier installation's prerequisite keys. Opaque ordinals carry identical sets only.
+  Pair: `kept_keys_reset_offer_refused` / `kept_keys_reset_offer_admitted_without_guard`. -/
+  resetOfferFreshKeys : Bool := true
+  /-- `STG-20`, 2026-10-17: a matching withdrawal since the newest approval withdraws it.
+  Without this guard the record withdraws nothing. Pair: `withdrawn_approval_reset_refused` /
+  `withdrawn_approval_reset_admitted_without_guard`. -/
+  reinstallWithdrawalEffective : Bool := true
   deriving DecidableEq, Repr
 
 /-- The rules as they stand. -/
@@ -431,6 +447,7 @@ reader below takes a journal `inEffect` has already read. -/
   | .resetPrereqs _ _ _ => false
   | .reinstallApproval _ _ _ => false
   | .resetCollection _ _ => false
+  | .reinstallWithdrawal _ _ _ => false
 
 /-- The unresolved intents of a journal's tail, given `later`, the records appended after it. An
 intent is unresolved while nothing appended **after** it settles it: a read settles the calls that
@@ -468,6 +485,7 @@ def disposes (r : Resource) : Rec → Bool
   | .resetPrereqs _ _ _ => false
   | .reinstallApproval _ _ _ => false
   | .resetCollection _ _ => false
+  | .reinstallWithdrawal _ _ _ => false
 
 /-- Whether the machine's return to rescue is ready for its reset, read in the journal before
 that reset. `STA-24`: while a destructive reinstall's disposition stands "the operations of that
@@ -503,6 +521,7 @@ where
     | .resetPrereqs _ _ _ :: rest => go read rest
     | .reinstallApproval _ _ _ :: rest => go read rest
     | .resetCollection _ _ :: rest => go read rest
+    | .reinstallWithdrawal _ _ _ :: rest => go read rest
 
 /-- Whether an operation is the one a continuation is dispatched at, read in the journal before
 it. `STA-24`: a continuation "is dispatched at the one that changes what the machine is running".
@@ -558,6 +577,7 @@ def standingIn (p : Params) (r : Resource) : Journal → Option (Disposition × 
   | .resetPrereqs _ _ _ :: rest => standingIn p r rest
   | .reinstallApproval _ _ _ :: rest => standingIn p r rest
   | .resetCollection _ _ :: rest => standingIn p r rest
+  | .reinstallWithdrawal _ _ _ :: rest => standingIn p r rest
 
 /-- What a disposition may name, against the journal before it (`STA-24`): it "names at least one
 call, and every call it names MUST be unresolved, on the disposition's own resource, in the
@@ -585,6 +605,7 @@ disposition is tested against the reading of what came before it. -/
   | .resetPrereqs e n keys :: rest => .resetPrereqs e n keys :: inEffect p rest
   | .reinstallApproval e c ap :: rest => .reinstallApproval e c ap :: inEffect p rest
   | .resetCollection e n :: rest => .resetCollection e n :: inEffect p rest
+  | .reinstallWithdrawal e c ap :: rest => .reinstallWithdrawal e c ap :: inEffect p rest
 
 /-- Whether the harness records a disposition the operator offers (`acceptable`, against the
 journal as it is read). Where it does not, "it is refused and nothing is recorded" (`STA-24`). -/
@@ -698,18 +719,41 @@ restricts nothing, which is the disposition read as unrestricted dispatch. -/
 @[req "STA-24"] def restriction (p : Params) (j : Journal) (r : Resource) : Option Continuation :=
   if p.dispositionBindsContinuation then (standing p j r).map (·.1.continuation) else none
 
-/-- The journaled approval is tied to this reset's call, resource and approved facts.
-Only the records since that approval may supply its rescue activation. An unrelated reset
-cannot consume it, and a reset already dispatched under this call cannot consume it twice.
-The approval names its reset call before that request exists: a reset re-requested under a
-fresh call id needs its own approval record to open the installation. A disposition recorded
-since the approval does not withdraw it. No generation is supplied by the approval. -/
-def approvedRescueReset (p : Params) (j : Journal) (i : Intent) : Bool :=
-  let since := j.takeWhile fun rec => match rec with
+/-- Records since the newest approval matching the entry, reset call and approved facts.
+No match leaves the whole journal, so its length also distinguishes an absent approval. -/
+def sinceApproval (j : Journal) (i : Intent) : Journal :=
+  j.takeWhile fun rec => match rec with
     | .reinstallApproval e c ap =>
       !(i.resource == .machine e && i.call == c && i.approval == ap)
     | _ => true
-  since.length < j.length &&
+
+/-- Only a reset with a matching separately journaled approval is approval-bound. -/
+def approvalBound (j : Journal) (i : Intent) : Bool :=
+  i.kind == .reset && (sinceApproval j i).length < j.length
+
+/-- A matching withdrawal after the newest approval; other approvals remain independent. -/
+def approvalWithdrawn (p : Params) (j : Journal) (i : Intent) : Bool :=
+  p.reinstallWithdrawalEffective && approvalBound j i && (sinceApproval j i).any fun rec =>
+    match rec with
+    | .reinstallWithdrawal e c ap =>
+      i.resource == .machine e && i.call == c && i.approval == ap
+    | _ => false
+
+/-- A withdrawal is refused only after that approval's reset was dispatched. Missing approvals
+and repeated withdrawals record an act that withdraws nothing further. -/
+def acceptsWithdrawal (j : Journal) (e : Entry) (c : CallId) (ap : Approval) : Bool :=
+  let i : Intent := ⟨c, .entry e, .machine e, .reset, ap.session, ap⟩
+  !(approvalBound j i && (intentsOf (sinceApproval j i)).any fun prior =>
+    prior.resource == i.resource && prior.kind == .reset && prior.call == c && prior.approval == ap)
+
+/-- The approval is tied to this reset's call, resource and approved facts. Only records since
+its newest matching approval supply the activation and its newest durable confirming read.
+A matching withdrawal there refuses it, even under a reinstall disposition. Re-approval starts
+again; a disposition does not withdraw an approval. No generation is supplied by the approval.
+Other reset calls cannot consume it; a dispatched reset cannot consume it twice. -/
+def approvedRescueReset (p : Params) (j : Journal) (i : Intent) : Bool :=
+  let since := sinceApproval j i
+  since.length < j.length && !approvalWithdrawn p j i &&
     !(intentsOf since).any (fun prior => prior.call == i.call) &&
     go since none since
 where
@@ -744,8 +788,9 @@ where
     | _ :: rest => go rest
 
 /-- The durable prerequisite reads of this installation, newest first. The first one, read
-oldest first, is the active installed pin; the newest must still match it. Keys are opaque
-ordinals, never a trace-supplied comparison verdict. -/
+oldest first, anchors the offer; the newest must still match it. An anchor repeating an earlier
+installation's prerequisite keys withholds the offer. Keys are opaque ordinals, never a
+trace-supplied comparison verdict. -/
 @[req "STA-20b"] def prerequisiteKeys (p : Params) (j : Journal) (e : Entry) : List Nat :=
   j.filterMap fun rec => match rec with
     | .resetPrereqs m n keys =>
@@ -753,12 +798,14 @@ ordinals, never a trace-supplied comparison verdict. -/
     | _ => none
 
 /-- The installed-system reset offer reads durable prerequisites in the current installation,
-with the newest keys equal to that installation's first durable read. A changed key or a
-predecessor's record withholds it before reboot. The running memory is the durable journal
-under the append guard. A newer `resetCollection` with no durable result after it withholds
-the offer for that entry and installation. This is not a dispatch check for the single `reset`
-kind: the immediate activation re-read before every reset into rescue is `STG-4`'s and is not
-carried here. -/
+with the newest keys equal to that installation's first durable read. A changed key withholds
+it; a predecessor's record cannot make it. A first set identical to any earlier installation's
+prerequisite set also withholds it before reboot. Partial overlap and installed-pin comparison
+are Markdown-only. The running memory is the durable journal under the append guard. A newer
+`resetCollection` with no durable result after it withholds the offer for that entry and
+installation. This is not a dispatch check for the single `reset` kind: the approval-bound
+rescue reset's activation check is in `admit`, while `STG-4`'s
+immediately preceding re-read duty is not carried here. -/
 @[req "STA-20b"] def offersReset (p : Params) (j : Journal) (e : Entry) : Bool :=
   let latest := j.findSome? fun rec => match rec with
     | .resetCollection m n =>
@@ -769,7 +816,11 @@ carried here. -/
   if p.failedPrerequisiteWithdraws && latest == some false then false
   else if p.resetOfferCurrentInstallation then
     let keys := prerequisiteKeys p j e
-    !keys.isEmpty && keys.head? == keys.getLast?
+    !keys.isEmpty && keys.head? == keys.getLast? &&
+      (!p.resetOfferFreshKeys || !j.any fun rec => match rec with
+        | .resetPrereqs m n old =>
+          m == e && n < installationOf p j e && keys.getLast? == some old
+        | _ => false)
   else j.any fun rec => match rec with | .resetPrereqs m _ _ => m == e | _ => false
 
 /-! ## The dispatch decision -/
@@ -791,6 +842,11 @@ inductive Refusal
   /-- `STA-24`: a disposition stands over the resource, and its continuation, shown here, does
   not permit this operation. -/
   | continuation (inForce : Continuation)
+  /-- `STG-20`: no confirming activation dispatched since the matching approval, or the
+  approval's reset was already dispatched and the same call is requested again. -/
+  | approvalActivation
+  /-- `STG-20`: the refusal names the matching withdrawal, not an activation. -/
+  | withdrawnApproval (resource : Resource) (call : CallId) (approval : Approval)
   deriving DecidableEq, Repr
 
 inductive Verdict
@@ -818,8 +874,9 @@ def intentOf (rq : Request) (r : Resource) (ap : Approval) : Intent :=
 /-- The dispatch check, in the order the requirements put it: the harness resolves what the model
 named (`STA-24`), `SEC-4`'s binding and approved record are checked, and only then `STA-24`'s
 barrier — "An approval already rendered does not clear the barrier; it is checked again at
-dispatch" — and after it what a standing disposition restricts. Total, and the order is the
-function's, so no refusal can be answered out of its place.
+dispatch" — and after it what a standing disposition restricts. A matching withdrawal is
+named before those checks; otherwise an approval-bound reset also needs `approvedRescueReset`.
+Every other reset retains its previous checks. Total, with refusal order defined here.
 
 A request here is a session's. Under a standing abandonment `permits` refuses its destroy;
 the operator flow's destroy intent may end the restriction when appended outside this function.
@@ -830,12 +887,17 @@ The flow's authorization is `SEC-4`'s and is not carried here. -/
   | some r =>
     if ap.session != rq.session then .refused .binding
     else if ap.facts != rq.facts then .refused .facts
+    else if approvalWithdrawn p j (intentOf rq r ap) then
+      .refused (.withdrawnApproval r rq.call ap)
     else match blocking p j (intentOf rq r ap) with
       | c :: cs => .refused (.barrier (c :: cs))
       | [] =>
         match restricted p j r rq.kind with
         | some c => .refused (.continuation c)
-        | none => .dispatched (intentOf rq r ap)
+        | none =>
+          if p.approvalResetRequiresRescue && approvalBound j (intentOf rq r ap) &&
+              !approvedRescueReset p j (intentOf rq r ap) then .refused .approvalActivation
+          else .dispatched (intentOf rq r ap)
 
 /-! ## The trace -/
 
@@ -872,6 +934,8 @@ inductive Event
   | resetPrereqs (e : Entry) (keys : Nat) (appended : Bool)
   /-- The existing journaled typed approval of a destructive reinstall, bound to its reset. -/
   | approveReinstall (e : Entry) (call : CallId) (approval : Approval) (appended : Bool)
+  /-- The operator's withdrawal of a dedicated reinstall approval (`STG-20`). -/
+  | withdrawReinstall (e : Entry) (call : CallId) (approval : Approval) (appended : Bool)
   /-- The worker is killed and replays the journal (`STA-7`). -/
   | replay
   deriving DecidableEq, Repr
@@ -902,6 +966,10 @@ the journal (`STA-2`, `STA-7`). -/
     { append p started (.resetPrereqs e n keys) ok with verdict := none }
   | .approveReinstall e c ap ok =>
     { append p w (.reinstallApproval e c ap) ok with verdict := none }
+  | .withdrawReinstall e c ap ok =>
+    if acceptsWithdrawal w.memory e c ap then
+      { append p w (.reinstallWithdrawal e c ap) ok with verdict := none }
+    else { w with verdict := none }
   | .replay => { w with memory := w.journal, verdict := none }
 
 def run (p : Params) (x : External) (w : World) : List Event → World
@@ -942,13 +1010,17 @@ theorem admit_dispatched (p : Params) (j : Journal) (rq : Request) (ap : Approva
         simp only [Bool.not_eq_true, bne_eq_false_iff_eq] at hses hfacts
         split at h
         · exact nomatch h
-        · rename_i hblock
-          split at h
+        · split at h
           · exact nomatch h
-          · rename_i hnone
-            injection h with h
-            subst h
-            exact ⟨rfl, rfl, rfl, hses.symm, hfacts, hblock, hnone⟩
+          · rename_i hblock
+            split at h
+            · exact nomatch h
+            · rename_i hnone
+              split at h
+              · exact nomatch h
+              · injection h with h
+                subst h
+                exact ⟨rfl, rfl, rfl, hses.symm, hfacts, hblock, hnone⟩
 
 /-- What it is for a standing disposition not to restrict an operation: the destructive stop does
 not apply to it, and if it is within the reach the continuation permits it. -/
@@ -1083,6 +1155,11 @@ theorem step_memory_eq (p : Params) (hp : p.durableBeforeApply = true) (x : Exte
   | resetPrereqs e keys ok =>
     exact append_memory_eq p hp _ (append_memory_eq p hp w hw _ true) _ ok
   | approveReinstall e c ap ok => exact append_memory_eq p hp w hw _ ok
+  | withdrawReinstall e c ap ok =>
+    simp only [step]
+    split
+    · exact append_memory_eq p hp w hw _ ok
+    · exact hw
   | replay => exact rfl
 
 theorem run_memory_eq (p : Params) (hp : p.durableBeforeApply = true) (x : External)
@@ -1989,7 +2066,7 @@ def omittedCallEvents : List Event :=
 def predecessorOfferEvents : List Event :=
   [.resetPrereqs entryA 101 true, .request reinstallRequest approvalReinstallB true, .replay]
 
-/-- A second read in one installation reports keys different from its active pin. -/
+/-- A second read in one installation reports keys different from its first durable read. -/
 def changedKeysOfferEvents : List Event :=
   [.resetPrereqs entryA 101 true, .resetPrereqs entryA 102 true, .replay]
 
@@ -2126,10 +2203,12 @@ def approvedWithoutActivationEvents : List Event :=
   [.approveReinstall entryA resetRequest1.call approvalReset true,
    .request resetRequest1 approvalReset true]
 
+/-- Restated 2026-10-17: the approval-bound reset is refused without a confirming activation
+since approval; formerly it dispatched without opening an installation. -/
 @[req "STG-20"] theorem approved_reset_without_activation_opens_nothing :
     let w := run current farDone.external init approvedWithoutActivationEvents
-    w.dispatched.map (·.call) = [1] ∧ installationOf current w.memory entryA = 0 := by
-  decide +kernel
+    w.dispatched = [] ∧ w.verdict = some (.refused .approvalActivation) ∧
+    installationOf current w.memory entryA = 0 := by decide +kernel
 
 def secondRescueResetEvents : List Event := approvedReinstallEvents.take 5 ++
   [.observe .adapterRead machineA .reset true,
@@ -2152,15 +2231,188 @@ def unrelatedRescueResetEvents : List Event := approvedReinstallEvents.take 4 ++
   decide +kernel
 
 /-- The newest activation read is not confirmation, even after an older confirming read.
-The reset may dispatch without a disposition, but it is not the reinstall's rescue reset. -/
+The approval-bound reset is refused. -/
 def approvedSpentReadEvents : List Event :=
   [.observe .adapterRead machineA .activate true,
    .request resetRequest1 approvalReset true]
 
+/-- Restated 2026-10-17: the non-confirming newest read refuses the approval-bound reset;
+formerly it dispatched without opening an installation. -/
 @[req "STG-20"] theorem approved_spent_activation_opens_nothing :
     let start := run current farDone.external init (approvedReinstallEvents.take 4)
     let w := run current activationNotConfirmed.external start approvedSpentReadEvents
-    w.dispatched.map (·.call) = [1, 10] ∧ installationOf current w.memory entryA = 0 := by
+    w.dispatched.map (·.call) = [10] ∧ w.verdict = some (.refused .approvalActivation) ∧
+    installationOf current w.memory entryA = 0 := by decide +kernel
+
+/-- The caller's kept-root trace: first successor prerequisites repeat predecessor keys. -/
+def keptKeysOfferEvents : List Event := predecessorOfferEvents ++ [.resetPrereqs entryA 101 true]
+
+def reusedOfferKeys : Params := { current with resetOfferFreshKeys := false }
+
+@[req "STA-20b"] theorem kept_keys_reset_offer_refused :
+    let w := run current farDone.external init keptKeysOfferEvents
+    installationOf current w.memory entryA = 1 ∧
+    offersReset current w.memory entryA = false := by decide +kernel
+
+@[req "STA-20b"] theorem kept_keys_reset_offer_admitted_without_guard :
+    let w := run reusedOfferKeys farDone.external init keptKeysOfferEvents
+    offersReset reusedOfferKeys w.memory entryA = true := by decide +kernel
+
+/-- A stale first durable read remains the offer's anchor even after a different later read.
+A key seen in an earlier prerequisite read, not merely its first, also withholds the offer. -/
+def earlierKeysOfferEvents : List Event :=
+  [.resetPrereqs entryA 101 true, .resetPrereqs entryA 102 true,
+   .request reinstallRequest approvalReinstallB true,
+   .resetPrereqs entryA 102 true, .resetPrereqs entryA 103 true, .replay]
+
+@[req "STA-20b"] theorem stale_first_prerequisite_keeps_offer_withheld :
+    let first := run current farDone.external init (earlierKeysOfferEvents.take 4)
+    let later := run current farDone.external init earlierKeysOfferEvents
+    offersReset current first.memory entryA = false ∧
+    prerequisiteKeys current later.memory entryA = [103, 102] ∧
+    offersReset current later.memory entryA = false := by decide +kernel
+
+def uncheckedApprovalReset : Params := { current with approvalResetRequiresRescue := false }
+
+/-- The guard's trace includes an activation confirmed before approval: it cannot qualify. -/
+def approvalResetGuardEvents : List Event :=
+  [.request activateRequest approvalActivate true,
+   .observe .adapterRead machineA .activate true] ++ approvedWithoutActivationEvents
+
+@[req "STG-20"] theorem approval_reset_requires_rescue_refused :
+    let w := run current farDone.external init approvalResetGuardEvents
+    w.dispatched.map (·.call) = [10] ∧ w.verdict = some (.refused .approvalActivation) ∧
+    installationOf current w.memory entryA = 0 := by decide +kernel
+
+@[req "STG-20"] theorem approval_reset_requires_rescue_admitted_without_guard :
+    let w := run uncheckedApprovalReset farDone.external init approvalResetGuardEvents
+    w.dispatched.map (·.call) = [1, 10] ∧
+    installationOf uncheckedApprovalReset w.memory entryA = 0 := by decide +kernel
+
+/-- Replacing the reinstall disposition preserves the separate approval until its own act. -/
+def replacedReinstallApprovalEvents : List Event := approvedReinstallDispositionEvents.take 6 ++
+  [.dispose { resource := machineA, calls := [9], continuation := .asIfDone } true]
+
+def keptReinstallApprovalEvents : List Event := replacedReinstallApprovalEvents ++
+  [.request resetRequest1 approvalReset true]
+
+def withdrawnReinstallApprovalEvents : List Event := replacedReinstallApprovalEvents ++
+  [.withdrawReinstall entryA resetRequest1.call approvalReset true, .replay,
+   .request resetRequest1 approvalReset true]
+
+@[req "STG-20"] theorem replaced_reinstall_keeps_approval :
+    let before := run current farDone.external init replacedReinstallApprovalEvents
+    let w := run current farDone.external init keptReinstallApprovalEvents
+    approvalBound before.memory (intentOf resetRequest1 machineA approvalReset) = true ∧
+    approvalWithdrawn current before.memory (intentOf resetRequest1 machineA approvalReset) = false ∧
+    w.dispatched.map (·.call) = [1, 9, 10] ∧
+    installationOf current w.memory entryA = 1 ∧ offersReset current w.memory entryA = false := by
+  decide +kernel
+
+@[req "STG-20"] theorem replaced_reinstall_withdraws_approval :
+    let w := run current farDone.external init withdrawnReinstallApprovalEvents
+    w.dispatched.map (·.call) = [9, 10] ∧
+    w.verdict = some (.refused (.withdrawnApproval machineA 1 approvalReset)) ∧
+    installationOf current w.memory entryA = 0 ∧ offersReset current w.memory entryA = true := by
+  decide +kernel
+
+/-- Approval-only change of mind, with no disposition. -/
+def approvalOnlyWithdrawalEvents : List Event := approvedReinstallEvents.take 4 ++
+  [.withdrawReinstall entryA resetRequest1.call approvalReset true,
+   .request resetRequest1 approvalReset true]
+
+def ignoredWithdrawal : Params := { current with reinstallWithdrawalEffective := false }
+
+@[req "STG-20"] theorem withdrawn_approval_reset_refused :
+    let w := run current farDone.external init approvalOnlyWithdrawalEvents
+    w.dispatched.map (·.call) = [10] ∧
+    w.verdict = some (.refused (.withdrawnApproval machineA 1 approvalReset)) ∧
+    installationOf current w.memory entryA = 0 := by decide +kernel
+
+@[req "STG-20"] theorem withdrawn_approval_reset_admitted_without_guard :
+    let w := run ignoredWithdrawal farDone.external init approvalOnlyWithdrawalEvents
+    Rec.reinstallWithdrawal entryA 1 approvalReset ∈ w.journal ∧
+    w.dispatched.map (·.call) = [1, 10] ∧
+    installationOf ignoredWithdrawal w.memory entryA = 1 := by decide +kernel
+
+/-- After dispatch a withdrawal is refused without changing the journal or any projection. -/
+def withdrawalAfterDispatchEvents : List Event := approvedReinstallEvents.take 5 ++
+  [.withdrawReinstall entryA resetRequest1.call approvalReset true]
+
+@[req "STG-20"] theorem withdrawal_after_dispatch_refused :
+    let before := run current farDone.external init (approvedReinstallEvents.take 5)
+    let w := run current farDone.external init withdrawalAfterDispatchEvents
+    acceptsWithdrawal before.memory entryA 1 approvalReset = false ∧
+    w.journal = before.journal ∧ w.memory = before.memory ∧ w.dispatched = before.dispatched ∧
+    installationOf current w.memory entryA = 1 := by decide +kernel
+
+/-- A disposition's confirmed activation cannot dispatch a withdrawn approval's reset.
+The disposition still opens the installation through its own, different reset call. -/
+def withdrawnUnderDispositionEvents : List Event := approvedReinstallDispositionEvents.take 9 ++
+  [.withdrawReinstall entryA resetRequest1.call approvalReset true,
+   .request resetRequest1 approvalReset true, .request resetRequest4 approvalReset true]
+
+@[req "STG-20"] theorem withdrawn_reset_under_reinstall_refused :
+    let refused := run current farDone.external init (withdrawnUnderDispositionEvents.take 11)
+    let w := run current farDone.external init withdrawnUnderDispositionEvents
+    refused.verdict = some (.refused (.withdrawnApproval machineA 1 approvalReset)) ∧
+    installationOf current refused.memory entryA = 0 ∧
+    restriction current refused.memory machineA = some .reinstall ∧
+    w.dispatched.map (·.call) = [11, 16, 9, 10] ∧
+    installationOf current w.memory entryA = 1 := by decide +kernel
+
+/-- Withdrawal is named even when no activation since approval would confirm either. -/
+def withdrawalWithoutActivationEvents : List Event :=
+  [.approveReinstall entryA 1 approvalReset true,
+   .withdrawReinstall entryA 1 approvalReset true, .request resetRequest1 approvalReset true]
+
+@[req "STG-20"] theorem withdrawal_before_activation_named :
+    let w := run current farDone.external init withdrawalWithoutActivationEvents
+    w.verdict = some (.refused (.withdrawnApproval machineA 1 approvalReset)) ∧
+    w.dispatched = [] := by decide +kernel
+
+/-- Not issuing the reset is no withdrawal; replay retains the approval and rescue boundary. -/
+def replayApprovalEvents : List Event := approvedReinstallEvents.take 4 ++
+  [.replay, .request resetRequest1 approvalReset true]
+
+@[req "STG-20"] theorem undispatched_approval_survives_replay :
+    let w := run current farDone.external init replayApprovalEvents
+    w.dispatched.map (·.call) = [1, 10] ∧ installationOf current w.memory entryA = 1 := by
+  decide +kernel
+
+/-- A new approval after withdrawal needs its own newer activation, then opens the boundary. -/
+def reapprovalEvents : List Event := approvedReinstallEvents.take 4 ++
+  [.withdrawReinstall entryA 1 approvalReset true,
+   .approveReinstall entryA 1 approvalReset true,
+   .request activateRequest2 approvalActivate true, .observe .adapterRead machineA .activate true,
+   .request resetRequest1 approvalReset true]
+
+@[req "STG-20"] theorem reapproval_requires_new_activation :
+    let before := run current farDone.external init (reapprovalEvents.take 6)
+    let w := run current farDone.external init reapprovalEvents
+    admit current before.memory resetRequest1 approvalReset = .refused .approvalActivation ∧
+    w.dispatched.map (·.call) = [1, 16, 10] ∧ installationOf current w.memory entryA = 1 := by
+  decide +kernel
+
+/-- A failed withdrawal append leaves approval standing; another entry's or another approval's
+withdrawal does not withdraw this one. -/
+def withdrawalIdentityEvents : List Event := approvedReinstallEvents.take 4 ++
+  [.withdrawReinstall entryB 1 approvalReset true,
+   .withdrawReinstall entryA 2 approvalReset true,
+   .withdrawReinstall entryA 1 approvalReset false, .replay,
+   .request resetRequest1 approvalReset true]
+
+@[req "STG-20"] theorem withdrawal_identity_and_failed_append :
+    let w := run current farDone.external init withdrawalIdentityEvents
+    w.dispatched.map (·.call) = [1, 10] ∧ installationOf current w.memory entryA = 1 := by
+  decide +kernel
+
+def repeatedWithdrawalEvents : List Event := withdrawalWithoutActivationEvents.take 2 ++
+  [.withdrawReinstall entryA 1 approvalReset true]
+
+@[req "STG-20"] theorem repeated_withdrawal_records :
+    let w := run current farDone.external init repeatedWithdrawalEvents
+    (w.journal.filter fun rec => rec == .reinstallWithdrawal entryA 1 approvalReset).length = 2 := by
   decide +kernel
 
 def failedPrerequisiteEvents : List Event :=
@@ -2170,8 +2422,8 @@ def failedPrerequisiteEvents : List Event :=
 
 def failedPrerequisiteKeepsOffer : Params := { current with failedPrerequisiteWithdraws := false }
 
-/-- Changed and unchanged failed reads both withdraw the offer; durable command records
-carry the withdrawal on replay, and only a later durable prerequisite result restores it. -/
+/-- Changed and unchanged failed reads both withhold the offer; durable command records
+carry withholding on replay, and only a later durable prerequisite result restores it. -/
 @[req "STA-20b"] theorem failed_prerequisite_withdrawal_refused :
     let first := run current farDone.external init (failedPrerequisiteEvents.take 1)
     let failed := run current farDone.external init (failedPrerequisiteEvents.take 2)

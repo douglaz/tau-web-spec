@@ -45,7 +45,9 @@ reconnect through the harness; do not try to re-pin anything.
 
 You stop when the installed system is on the disk and you have requested `ready_to_reset`.
 That job reads the installed host public keys from `/mnt`, journals their fingerprints,
-unmounts, and offers the reset to the operator. **You do not reboot and you do not unmount.**
+unmounts, and offers the reset to the operator unless `STA-20b` withholds it: changed keys,
+an earlier installation's keys, or no durable result. The operator is then told before reboot.
+**You do not reboot and you do not unmount.**
 If the installed system does not answer within `installed.wait_max` (`bundle/timing.toml`),
 the harness reports unreachability and offers a reinstall (`STG-20`). It first reconciles
 unresolved jobs and requires an explicit operator decision to discard the install and erase
@@ -241,7 +243,9 @@ strength of this brief.
 
 Request the harness job. It runs `cat /mnt/etc/ssh/ssh_host_*_key.pub`, derives and journals
 the fingerprints, syncs and unmounts `/mnt`, and offers the reset typed operation to the
-operator (`STG-4`, `CNF-22`). The harness then resets and connects to the installed system
+operator (`STG-4`, `CNF-22`), unless `STA-20b` withholds it for changed keys, an earlier
+installation's keys, or no durable result; the operator is then told before reboot.
+Once the reset is offered and approved, the harness resets and connects to the installed system
 with those keys and nothing else. On this run the keys on the wire after the reboot were
 byte-identical to what was read here. Do not `umount` yourself: a job that unmounts before
 the keys are read is exactly the ordering `ready_to_reset` exists to prevent.

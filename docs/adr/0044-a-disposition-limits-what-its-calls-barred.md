@@ -98,7 +98,7 @@ journal's meaning independent of which build wrote it.
 | **A separate reinstall-from-rescue operation with a hold of its own** | Rejected. It is a second mechanism beside the reset into rescue, and it still needs a rule for a command that never ends. |
 | **Under an untyped scope, the next call counts as the continuation** | Rejected. It asserts what an untyped call does, and a status query would end the limit. |
 | **Under an untyped scope, the destructive choices are not offered** | Rejected. Abandonment would stop being available exactly where the harness can do least, and the operator would have no way to hold the scope while acting by hand. |
-| **Spending the activation on later evidence** | Rejected. No read is required in that window; `active: false` has no positive meaning; a reboot report has no baseline. |
+| **Spending the activation on later evidence** | Rejected. `active: false` has no positive meaning; a reboot report has no baseline. |
 | **Evidence arriving later lifts the disposition** | Rejected. A status read would hand a machine the operator chose to abandon back to the session. |
 | **A disposition naming no unresolved call is accepted and limits nothing** | Rejected. The operator would be shown a standing abandonment that holds nothing, and a disposition recorded against one machine could end a call on another. |
 | **A record that fails the test on replay stops dispatch until a recovery step** | Rejected. It needs a procedure nobody has specified, for a record a conforming harness cannot write; read as nothing, every call it failed to dispose still bars. |
@@ -147,3 +147,8 @@ Only an activation dispatched under the standing choice counts for its reinstall
 call is cheap" was rejected as the reason: the counted activation is the one approved under
 the choice in force, with one boundary scoping both activation and read. These are the reasons
 for the clauses in `STA-24` and `SEC-4`, not additional rules.
+
+*Amended 2026-10-17:* The activation row's former "No read is required in that window"
+was wrong: `STG-4` says "Immediately before **every** reset into rescue", and requires a
+journaled re-read there. The rejected spending rule is unchanged; the read condition and
+residual window remain in their requirement owners.

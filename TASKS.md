@@ -434,9 +434,24 @@ gated on it.
       The durable per-command record of `ready_to_reset` is `resetCollection`, before the
       result append: its missing durable result withdraws the offer across replay, per entry
       and current installation. The witnesses include unchanged-key failures and restoration
-      by a later durable read. Existing theorem statements and the bounded alphabet stay as
-      they were. `docs/design/dispatch-witnesses-v4.json` is regenerated from the emission;
-      `docs/design/witness-file-v1.md` defines its new events, assumptions and projections.
+      by a later durable read. `CONTEXT.md` lists the current file; that amendment emitted
+      dispatch schema 4. `docs/design/witness-file-v1.md` defines its events, assumptions and
+      projections.
+      *Amended 2026-10-17:* Three guards add pairs:
+      `approvalResetRequiresRescue`, `TauWeb.Dispatch.approval_reset_requires_rescue_refused` /
+      `TauWeb.Dispatch.approval_reset_requires_rescue_admitted_without_guard`;
+      `resetOfferFreshKeys`, `TauWeb.Dispatch.kept_keys_reset_offer_refused` /
+      `TauWeb.Dispatch.kept_keys_reset_offer_admitted_without_guard`; and
+      `reinstallWithdrawalEffective`, `TauWeb.Dispatch.withdrawn_approval_reset_refused` /
+      `TauWeb.Dispatch.withdrawn_approval_reset_admitted_without_guard`.
+      `withdrawReinstall` / `reinstallWithdrawal` carry withdrawal separately from disposition.
+      The witnesses cover replacement while keeping or withdrawing approval, approval-only
+      withdrawal, refusal after dispatch, re-approval, replay, failed append and withdrawal
+      identity. `TauWeb.Dispatch.approved_reset_without_activation_opens_nothing` and
+      `TauWeb.Dispatch.approved_spent_activation_opens_nothing` are restated: the reset is now
+      refused, rather than dispatched without opening an installation. Other existing theorem
+      statements, the bounded alphabet and bound are unchanged. Dispatch schema 5 is regenerated
+      from the emission.
 - [x] **T36 — Formal companion, module 5: the host-pin lifecycle** (ADR-0032's inventory;
       `SEC-11`, `CHN-R1`, `ARC-43`, with `STA-20b`'s resume rule and `STG-4`'s third
       confirmation predicate). Landed 2026-09-20 in `tools/formal/TauWeb/Pins.lean`: what a pin

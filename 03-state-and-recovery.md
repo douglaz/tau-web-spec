@@ -162,8 +162,11 @@ continuing as if not done keeps that installation: the re-run MUST NOT re-format
 whose filesystem label equals the installation id the harness shows (`STG-20`). Changing the
 installed system's keys requires a destructive reinstall. The reset into the installed system
 MUST NOT be offered when the newest `ready_to_reset` read differs from the active installed pin;
-the operator is told then, before reboot. The offer MUST read the current installation's durable
-prerequisites, never the predecessor's record on the machine entry.
+the operator is told then, before reboot. The offer MUST NOT be made when the current
+installation's first durable prerequisite read shares a fingerprint with any earlier
+installation's prerequisite read or installed-system pin of that machine; the operator is told
+then, before reboot. The offer MUST use the current installation's durable prerequisites to
+make the offer; earlier installations' records are read only to withhold it.
 
 After an unexpected rescue reboot, a changed boot ID proves the old command cannot still be
 running; it does **not** prove its effects or exit status. Missing output, a missing job record,
@@ -174,25 +177,35 @@ browser's record of what was sent remains authoritative throughout (`STA-21`).
 The precondition of the offer of a reset into the installed system is
 `TauWeb.Dispatch.offersReset` (ADR-0032), which reads whether `ready_to_reset`'s record of the
 installed pins and the reset intent was durably appended in the current installation, and
-compares the newest read's keys against the first durable prerequisite read there, the active
-installed pin. `TauWeb.Dispatch.installationOf` derives that boundary from the journal's
-vendor reinstall call, the reset into rescue that dispatches a standing reinstall disposition,
-or the reset bound to a separately journaled reinstall approval.
+compares the newest read's keys against the first durable prerequisite read there. Where that
+first read shares a fingerprint with an earlier installation's prerequisite read or
+installed-system pin, the offer stays withheld for that installation whatever a later read
+shows; a new destructive reinstall is needed. The companion carries no earlier observations:
+a first read refused only for overlapping an earlier observation is outside it.
+`TauWeb.Dispatch.installationOf` derives that boundary from the journal's vendor reinstall
+call, the reset into rescue that dispatches a standing reinstall disposition, or the reset
+bound to a separately journaled reinstall approval not withdrawn since.
 `TauWeb.Dispatch.prerequisiteKeys` reads those records. The guard's pairs are
 `TauWeb.Dispatch.predecessor_reset_offer_refused` /
 `TauWeb.Dispatch.predecessor_reset_offer_admitted_without_guard` and
 `TauWeb.Dispatch.changed_keys_reset_offer_refused` /
 `TauWeb.Dispatch.changed_keys_reset_offer_admitted_without_guard`.
+Amended 2026-10-17: the earlier-keys comparison has the pair
+`TauWeb.Dispatch.kept_keys_reset_offer_refused` /
+`TauWeb.Dispatch.kept_keys_reset_offer_admitted_without_guard`;
+`TauWeb.Dispatch.stale_first_prerequisite_keeps_offer_withheld` retains the first-read anchor.
+Keys in this companion are one opaque ordinal per set: it carries identical sets only;
+partial fingerprint overlap and the comparison against installed-system pins are Markdown-only.
 `TauWeb.Dispatch.current_installation_reset_offered` carries a matching successor read and
 `TauWeb.Dispatch.dedicated_reset_retires_prerequisites` the dedicated dispatch boundary.
 The durable-append guard retains the pair
 `TauWeb.Dispatch.reset_offered_after_failed_append_refused` and
 `TauWeb.Dispatch.reset_offered_after_failed_append_admitted`.
 Amended 2026-10-17: `TauWeb.Dispatch.failed_prerequisite_withdrawal_refused` /
-`TauWeb.Dispatch.failed_prerequisite_withdrawal_admitted_without_guard` carries withdrawal after
+`TauWeb.Dispatch.failed_prerequisite_withdrawal_admitted_without_guard` carries withholding after
 any failed prerequisite append, including after an earlier durable read and across replay.
 The durable per-command record of `ready_to_reset` precedes collection; without its durable
-result the offer stays withdrawn, per entry and current installation, until a later durable
+result the offer stays withheld, per entry and current installation, until a later durable
 prerequisite read. `TauWeb.Dispatch.failed_collection_per_entry_and_installation` carries that
 isolation. That a reset into rescue
 under a disposition waits for the command the disposition does not name, and not for the one it
@@ -289,10 +302,18 @@ acceptance and display, never what it refuses on a machine: every disposed machi
 every cloud-plane side-effecting operation, and a destructive choice adds the box-plane stop.
 Only the continuation changes those refusals.
 
-When a destructive continuation is replaced by one that continues, the screen MUST say that the
-reinstall is cancelled, the model's commands resume and any reset is admitted subject to the
-other dispatch checks: with the activation's state unknown it may boot the installed system.
-It MUST offer the likely intent, a disposition of the activation with the reinstall continuation:
+When a destructive reinstall continuation is replaced by one that continues, the screen MUST
+say that the model's commands resume and any reset is admitted subject to the other dispatch
+checks. Where no reinstall approval stands it MUST say "the reinstall is cancelled", except
+under an untyped vendor scope: there it MUST describe releasing the hold, without implying
+that work done by hand at the vendor was cancelled. Where an undispatched reinstall approval
+stands, the screen MUST instead make the operator choose "keep the reinstall approval" or
+withdraw it, for each such approval. `STG-20` says "Only the operator's journaled withdrawal,
+naming the entry, the reset call and the approval, withdraws a reinstall approval"; the
+replacement and the withdrawal are separate journaled acts, neither implied by the other.
+On the dedicated path only, the screen MUST say that, with the activation's state unknown,
+a reset other than a standing approval's own reset may boot the installed system. It MUST
+there offer the likely intent, a disposition of the activation with the reinstall continuation:
 "retry the activation, keep the reinstall".
 
 **What a disposition reaches.** A standing disposition restricts, to its continuation, what the

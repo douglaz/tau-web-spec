@@ -263,8 +263,11 @@ reset with no disposition, the harness MUST read the activation predicate again 
 journal the read (`STA-3`). It MUST dispatch the reset only if that immediately preceding read
 still confirms the activation; a non-confirming read or a failed append is shown as the refusal.
 The residual window and its bounds are `STA-24`'s paragraph beginning "A reboot between that read
-and the reset leaves a window". The companion carries only one reset kind, so this universal
-re-read duty is not carried there.
+and the reset leaves a window". The companion carries only one reset kind. It carries this rule
+only for the reset a reinstall approval binds, through the newest durable activation read since
+the approval (`TauWeb.Dispatch.admit`): it cannot carry "immediately preceding"
+or the failed-append refusal, since a failed read append leaves an older confirming read newest.
+Every other reset retains its existing companion admission.
 
 Anything not confirmed stays unresolved under `STA-8` and the operator decides; the adapter is
 reconcile-before-retry (`STA-5`), and a second request for the same mutation under a new call
@@ -431,16 +434,52 @@ that boundary. At dispatch the old installed-system pin retires and the new `rea
 read can establish its pin before the reset into the installed system. Any other rescue reset,
 reboot, restart, Restore or non-destructive key recovery does not open that boundary.
 
+A reinstall approval is the separately journaled typed approval of a dedicated destructive
+reinstall, bound to its reset call, entry and approved facts, never a generation. This approval
+exists only on the dedicated path; at LNVPS the reinstall call is itself the dispatch, so no
+approval waits. `STG-4` says "It MUST dispatch the reset only if that immediately preceding read
+still confirms the activation". For the reset the approval binds, that activation MUST have
+been dispatched since the approval; otherwise the reset is refused, not dispatched without
+opening an installation.
+
+A disposition recorded since the approval does not withdraw it.
+`TauWeb.Dispatch.approved_reinstall_after_done_disposition` and
+`TauWeb.Dispatch.approved_reinstall_after_not_done_disposition` retain the approval through
+continuing dispositions. Only the operator's journaled withdrawal, naming the entry, the reset
+call and the approval, withdraws a reinstall approval.
+An approval **stands** from its record until its reset is dispatched or a matching withdrawal
+is recorded. This is derived from the journal: ending the session that rendered it does not
+end it, and several approvals for an entry stand independently. A withdrawal of an approval
+whose reset was already dispatched is refused and records nothing. A re-approval is newer and
+starts again: it stands and its reset needs an activation dispatched since the re-approval.
+Never issuing the reset is not a withdrawal: after a replay the approval stands. A withdrawal
+whose append fails is not recorded (`STA-3`), so the approval still stands. Choosing to keep
+the reinstall approval journals nothing further.
+
+Wherever an undispatched reinstall approval stands, the harness MUST show it with a withdrawal
+offer, for each such approval. The withdrawal screen MUST say that a standing reinstall
+disposition still opens the installation through its own reset. After a withdrawal, the reset
+the approval named MUST be refused, naming the withdrawal, including when a destructive
+reinstall disposition stands and its own activation is confirmed. That disposition opens the
+installation only through a reset of its own, another call.
+
 Amended 2026-10-17: `TauWeb.Dispatch.installationOf` also carries the separately approved
-dedicated reinstall with no disposition. Its pair is
+dedicated reinstall, with or without a disposition. Its pair is
 `TauWeb.Dispatch.approved_reinstall_boundary_refused` /
-`TauWeb.Dispatch.approved_reinstall_boundary_admitted_without_guard`. The journaled typed
-approval names its reset call, entry and approved facts, never a generation. Only that reset's
-dispatch counts, after a rescue activation dispatched since that approval and confirmed by its
-newest read. `TauWeb.Dispatch.approved_reset_without_activation_opens_nothing`,
-`TauWeb.Dispatch.approved_spent_activation_opens_nothing`,
-`TauWeb.Dispatch.unrelated_rescue_reset_opens_nothing` and
-`TauWeb.Dispatch.second_rescue_reset_opens_nothing_more` retain the non-boundaries.
+`TauWeb.Dispatch.approved_reinstall_boundary_admitted_without_guard`.
+The reset's activation condition has the pair
+`TauWeb.Dispatch.approval_reset_requires_rescue_refused` /
+`TauWeb.Dispatch.approval_reset_requires_rescue_admitted_without_guard`.
+`TauWeb.Dispatch.approved_reset_without_activation_opens_nothing` and
+`TauWeb.Dispatch.approved_spent_activation_opens_nothing` now show that reset refused, with no
+installation opened; `TauWeb.Dispatch.unrelated_rescue_reset_opens_nothing` and
+`TauWeb.Dispatch.second_rescue_reset_opens_nothing_more` retain the other non-boundaries.
+Withdrawal has the pair `TauWeb.Dispatch.withdrawn_approval_reset_refused` /
+`TauWeb.Dispatch.withdrawn_approval_reset_admitted_without_guard`.
+`TauWeb.Dispatch.replaced_reinstall_keeps_approval` and
+`TauWeb.Dispatch.replaced_reinstall_withdraws_approval` carry the replacement's two routes;
+`TauWeb.Dispatch.withdrawal_after_dispatch_refused` carries the refused withdrawal, and
+`TauWeb.Dispatch.withdrawn_reset_under_reinstall_refused` the disposition's own reset.
 
 The harness MUST always show the model the current installation id `<machine>-<n>`, with `n`
 the journal's installation generation. It is derived from the journal with no new journal field,

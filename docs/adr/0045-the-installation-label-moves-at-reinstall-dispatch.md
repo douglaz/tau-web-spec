@@ -22,9 +22,15 @@ its reset from re-labelling the kept root. Restart and Restore retain the id; th
 component is distinct within the journal, the whole id fits ext4's label, and its encoding is
 left unspecified. No journal field or disk record is added.
 
-*Amended 2026-10-17:* The companion carries a no-disposition reinstall through its existing
-journaled typed approval, bound to the reset call, entry and approved facts; only that reset's
-dispatch after a confirmed rescue activation since the approval advances the generation.
+*Amended 2026-10-17:* The companion carries a reinstall, with or without a disposition, through
+its existing journaled typed approval, bound to the reset call, entry and approved facts. Its
+reset is now refused without a confirmed rescue activation dispatched since the approval.
+Withdrawal in `STG-20`, rather than disposition, supplies the approval-only change of mind;
+`STA-24` owns the replacement screen. This keeps the label tied to the actual destructive
+boundary. Comparing the installation's first durable prerequisite read against earlier
+installations' prerequisite reads and installed-system pins catches retained keys before
+reboot, rather than at a halt afterwards. Earlier observations remain the backstop's
+comparison, not the offer's. A predecessor's record cannot make the successor's offer.
 
 The label steers the model and nothing checks it. A matching root can be resumed or found
 complete and kept; an unmarked or foreign root is the predecessor, including a hand-installed

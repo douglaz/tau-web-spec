@@ -1,4 +1,4 @@
-# Witness files v1, v2, v4 and v5
+# Witness files v1, v2 and v5
 
 The schemas of the files the formal companion emits, one per module, committed beside this
 document as `<module>-witnesses-v<schema>.json` (ADR-0032, "How the implementation is compared" —
@@ -11,10 +11,13 @@ the ceremony event, journal record and backup-gate assumption replace schema 1.
 Declaration and relay keep schema 1:
 [`declaration-witnesses-v1.json`](./declaration-witnesses-v1.json) from `TauWeb.Declaration`,
 [`relay-witnesses-v1.json`](./relay-witnesses-v1.json) from `TauWeb.Relay`. The dispatch
-module uses schema 4 in [`dispatch-witnesses-v4.json`](./dispatch-witnesses-v4.json) from
-`TauWeb.Dispatch`. Amended 2026-10-17: it replaces schema 3 with the approved dedicated
-reinstall boundary and failed-prerequisite withdrawal guards, `approve_reinstall`, and the
-journaled approval, prerequisite-command/result and current-installation projections. The
+module uses schema 5 in [`dispatch-witnesses-v5.json`](./dispatch-witnesses-v5.json) from
+`TauWeb.Dispatch`. Amended 2026-10-17: schema 5 adds the approval-bound activation,
+earlier-installation offer comparison and reinstall-withdrawal guards, `withdraw_reinstall`,
+its outcome and projection, and the `approval_activation` and `withdrawn_approval` refusals.
+Schema 4 added the approved dedicated reinstall boundary and failed-prerequisite withholding
+guards, `approve_reinstall`, and the journaled approval, prerequisite-command/result and
+current-installation projections. The
 installation boundary is computed from journaled dispatches, never supplied by an event.
 Schema 3 added the session-destroy and per-installation reset-offer guards, and the key-set
 ordinal on `reset_prereqs`. Schema 2 added refused
@@ -37,7 +40,7 @@ the trace that moved.
 
 | Member | What it holds |
 |---|---|
-| `schema` | `2` for allocation; `1` for declaration and relay; `4` for dispatch; `5` for pins. A change to any shape below is a new version and a new file name for that module. |
+| `schema` | `2` for allocation; `1` for declaration and relay; `5` for dispatch and pins. A change to any shape below is a new version and a new file name for that module. |
 | `module` | The inventory name, lower-case: `allocation`, `declaration`, `relay`, `dispatch`, and `pins` for the host-pin lifecycle. |
 | `namespace` | The Lean namespace the traces' declarations live in. |
 | `bound` | `declaration`, the tagged `bound` the decided property and the emitter share, and its value rendered under the module's own members. Allocation (`TauWeb.Allocation.bound`): `events`, the number, and `alphabet`, the events the enumeration draws from, including the ceremony. Declaration (`TauWeb.Declaration.bound`): `base`, the declaration and machine every case starts from; `presences`, per field, what the field is swept through, `missing` written as that word since a list has no absent member; `observations`, what the machine is made to show for it; `tenancies`. Relay (`TauWeb.Relay.bound`): `events`, the number; `alphabet`; and `start`, the opened connection every trace of the enumeration runs from. Dispatch (`TauWeb.Dispatch.bound`): `events`, the number; `alphabet`; and `start`, the journal every trace runs from, which carries the harness's associations and nothing dispatched. Pins (`TauWeb.Pins.bound`): the same shape; `start` carries one earlier `/rescue/last` snapshot, plus the fixed `planted_senders` list defined below from that starting knowledge and the alphabet. |
@@ -49,7 +52,7 @@ Both arrays hold traces of one shape:
 | Member | What it holds |
 |---|---|
 | `declarations` | The `TauWeb.*` theorems the trace came from, resolvable against the `lake exe gate` index. Every name the file carries — here, in `bound.declaration`, in `pair.with` — is one the emitter checked against the tags (`Witnesses.lean`). |
-| `assumptions` | Each guard parameter of the module by name, with the value the trace runs under, and each hypothesis the module takes rather than owns. Allocation has two guards, `restoredAllocatesNone` and `backupRecorded`; declaration has one, `emptyMeansPerField`; relay has one, `dialRequiresAuthAccepted`, beside `special`, `ownAddress` and `resolve` — the value `CHN-16a`'s pinned tables and the relay's resolver take for the trace, since the module quantifies over them. Dispatch carries `resourceKey`, `durableBeforeApply`, `endedBelowSucceeded`, `dispositionBindsContinuation`, `reach` (`disposed`, or one of the retained traps `resource`, `every_dispatch` and `still_unresolved`), `destructiveStops`, `lapse` (`continuation`, or `any_intent` or `first_operation`), `resetIntoRescueOnly`, `newestActivationRead`, `dispositionOwnResource`, `sessionDestroyRefused`, `resetOfferCurrentInstallation`, `approvedReinstallBoundary` and `failedPrerequisiteWithdraws`. What the far side actually did is external state, which a witness never carries. Pins carries `sourceAdmitsPin`, `attestAuthorMatches`, `attestSingleUse`, `attestDurable`, `attestFirstContact`, `publishedComplete`, `publishedFresh`, `publishedWithin`, `reinstallRetiresPin`, `installedFirstContact` and `readyAfterReinstallFresh`, with symbolic sender associations, seal-author observations, atomic durable appends, open introduction windows and vendor-status observations as stated assumptions. |
+| `assumptions` | Each guard parameter of the module by name, with the value the trace runs under, and each hypothesis the module takes rather than owns. Allocation has two guards, `restoredAllocatesNone` and `backupRecorded`; declaration has one, `emptyMeansPerField`; relay has one, `dialRequiresAuthAccepted`, beside `special`, `ownAddress` and `resolve` — the value `CHN-16a`'s pinned tables and the relay's resolver take for the trace, since the module quantifies over them. Dispatch carries `resourceKey`, `durableBeforeApply`, `endedBelowSucceeded`, `dispositionBindsContinuation`, `reach` (`disposed`, or one of the retained traps `resource`, `every_dispatch` and `still_unresolved`), `destructiveStops`, `lapse` (`continuation`, or `any_intent` or `first_operation`), `resetIntoRescueOnly`, `newestActivationRead`, `dispositionOwnResource`, `sessionDestroyRefused`, `resetOfferCurrentInstallation`, `approvedReinstallBoundary`, `failedPrerequisiteWithdraws`, `approvalResetRequiresRescue`, `resetOfferFreshKeys` and `reinstallWithdrawalEffective`. What the far side actually did is external state, which a witness never carries. Pins carries `sourceAdmitsPin`, `attestAuthorMatches`, `attestSingleUse`, `attestDurable`, `attestFirstContact`, `publishedComplete`, `publishedFresh`, `publishedWithin`, `reinstallRetiresPin`, `installedFirstContact` and `readyAfterReinstallFresh`, with symbolic sender associations, seal-author observations, atomic durable appends, open introduction windows and vendor-status observations as stated assumptions. |
 | `pair` | Present on a refused-and-admitted pair: `side`, `refused` or `admitted`, and `with`, the other side's declaration. What the comparison expects of each side is ADR-0032's. |
 | `start` | The state before the first event, in the projection below. Allocation: the `journal` — most traces start from the fresh seed; the exhaustion witness starts one below the index limit. Declaration: the `declaration` and the `machine` the check reads, and the empty `record`. Relay: the `challenge` as an ordinal, the `destination` the path parsed to, what the pipeline `classified` it as, the `pass` the operator's key holds, and the opened `connection`. Dispatch: the `knowledge` below, which every trace starts with the harness's associations in and nothing else, but for one witness: `TauWeb.Dispatch.replayed_invalid_disposition_means_nothing` starts from a journal a replay finds already written, holding an unresolved call and a disposition recorded against another resource, which no trace under the rules in force can write since such a disposition is refused. Pins: the `knowledge` below — for the witnesses, empty apart from `planted_senders`, which lists every machine the trace names; and `bound.start` for the enumeration. |
 | `steps` | One object per event, in order: `event`, the outcome members for that event kind, and the projection after the step — `journal` for allocation, `record` for declaration, `connection` for relay, `knowledge` for dispatch and for pins. |
@@ -79,6 +82,7 @@ beside them are the event's arguments.
 | `dispose` | disposition | `resource`, `calls`, `continuation` (`destructive_reinstall`, `abandonment`, `as_if_done` or `as_if_not_done`), `appended` | `disposition`: `recorded`; `refused`, where it names no call, or names a call that is neither unresolved on the disposition's own resource nor one the standing disposition disposed; or `not_appended` |
 | `associate` | operator act | `target`, `entry` | — |
 | `approve_reinstall` | operator act | `entry`, `call`, `approved` session and facts, `appended` | — |
+| `withdraw_reinstall` | operator act | `entry`, `call`, `approved` session and facts, `appended` | `withdrawal`: `recorded`, `refused` after that approval's reset was dispatched, or `not_appended` |
 | `reset_prereqs` | adapter observation | `entry`, `keys` (opaque key-set ordinal), `appended` | `offer`: whether the planned reset into the installed system may be offered |
 | `replay` | replay | — | — |
 | `reset` | operator act | `entry`, `into` | `boot`: the rescue boot the harness counts for that entry after it |
@@ -124,14 +128,19 @@ refused `dispose` changes nothing: the projection after it is the projection bef
 `approve_reinstall` carries the existing typed approval for one destructive reinstall's
 reset into rescue, bound to that reset call, approved entry, session and facts. It neither
 supplies nor moves the installation ordinal. The activation used at dispatch must have been
-dispatched since that approval and its newest admissible read must still confirm it. An
-approval for a reset never dispatched cannot make another reset open an installation; a
-second rescue reset needs its own approved reinstall to open another.
+dispatched since that approval and its newest admissible durable read must still confirm it;
+otherwise the approval-bound reset is refused at dispatch. A matching withdrawal since the
+newest approval refuses that reset naming the withdrawal, even under a reinstall disposition.
+A disposition does not withdraw approval. A re-approval starts the activation check again.
+An approval for a reset never dispatched cannot make another reset open an installation; a
+second rescue reset needs its own approved reinstall to open another. `withdraw_reinstall`
+records the named withdrawal except after that approval's reset was dispatched; that refusal
+changes no projection. No matching approval or a repeated withdrawal withdraws nothing further.
 
 `reset_prereqs` abstracts a `ready_to_reset` collection whose per-command record is already
 durable before collection starts (`ARC-8`, `STA-4`). It appends that command record first and
 then attempts the result append; `appended` here is the storage outcome of the **result**.
-A failed result contributes no result record. The prior durable command record withdraws
+A failed result contributes no result record. The prior durable command record withholds
 the offer across replay, for that entry and current installation, even when the failed read
 would have repeated the pin. A later durable prerequisite read can restore it. This event
 does not model command transmission or failure of the prior command-record append.
@@ -223,16 +232,19 @@ resolution, the barrier and the approval checks and nothing about arguments or c
 | `unresolved` | Per resource the journal names, the call ids the barrier stands on. |
 | `dispositions` | Every disposition record the journal holds, oldest first: its `resource`, `calls` and `continuation`, and `valid` — whether `STA-24`'s test accepts it against the journal before it. One that is not valid is read as if it had never been recorded, and is here because the operator is shown the record. A valid one may have been replaced or have ended since. |
 | `standing` | Per resource, the disposition standing over it: the `calls` it disposed and the `continuation` in force. Absent where none stands — none recorded, or the continuation dispatched — and in the trace that runs without `dispositionBindsContinuation`, where a disposition restricts nothing. |
-| `reset_offer` | The approved entries whose planned reset into the installed system may be offered (`STA-20b`): prerequisites belong to the current installation, the newest collection has a durable result, and its keys match the first durable prerequisite keys there, the active installed pin. |
+| `reset_offer` | The approved entries whose planned reset into the installed system may be offered (`STA-20b`): prerequisites belong to the current installation, the newest collection has a durable result, and its keys match the first durable prerequisite keys there. That first set must also differ from every earlier installation's prerequisite set for the entry. One ordinal per key set carries identical sets only; partial overlap and installed-pin comparison are Markdown-only. |
 | `current_installations` | Each named `entry` and its derived zero-based `installation`. Only a vendor reinstall dispatch or the rescue reset dispatching an approved destructive reinstall advances it. |
 | `reinstall_approvals` | Existing journaled typed approvals, oldest first: `entry`, `call` and `approved` session/facts. These name the specific reset dispatch, never a generation. |
+| `reinstall_withdrawals` | Journaled withdrawal acts, oldest first: `entry`, `call` and `approved` session/facts, matching the approval they withdraw. |
 | `prerequisite_records` | Oldest first, the durable `ready_to_reset` per-command records (`kind: command`) and results (`kind: result`), each with `entry` and derived `installation`; a result also has its symbolic `keys`. A command without a later durable result withholds the offer until a later durable prerequisite read. |
 | `dispatched` | The calls whose effect went out, oldest first. |
 
-A refusal is `reason` — `unmapped`, `binding`, `facts`, `append`, `barrier` or `continuation` —
-with `calls` on the barrier and, on the continuation, `in_force`: the continuation of the
+A refusal is `reason` — `unmapped`, `binding`, `facts`, `append`, `barrier`, `continuation`,
+`approval_activation` or `withdrawn_approval` — with `calls` on the barrier and, on the continuation, `in_force`: the continuation of the
 standing disposition that refused the request, whether by its reach or by the stop a destructive
-one puts on `exec`.
+one puts on `exec`. `approval_activation` names an approval-bound reset without a confirming
+activation dispatched since approval. `withdrawn_approval` names its matching withdrawal with
+`resource`, `call` and `approved` session/facts.
 
 
 ### Pins

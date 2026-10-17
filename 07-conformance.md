@@ -480,7 +480,9 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       empty permitted tenant-key-material list does not itself refuse `place_secret`.
       Exercise `ARC-43`'s survival evidence: with an explicit yes after the last placement,
       record the old boot identity, reboot, reconnect on the pin, establish a new boot identity
-      and active unit, and run the delivery check before any model command. A restriction
+      and active unit, and run the delivery check before any model command. At LNVPS, until
+      `TASKS.md` T50 defines the typed restart's confirmation, this case runs after the operator's
+      disposition of the restart with a continuation that continues. A restriction
       dropped at boot becomes a finding. Declining leaves Delivered with "enabled, restart
       not demonstrated" beside it on the delivery card and trust display, with no lifecycle
       finding. With no enabled-survives-reboot service, no reboot is offered. With an
@@ -625,13 +627,14 @@ evidence is that set's test run against the relay the harness uses.
       confirmation of the stop. A replacement that omits calls lists them, leaves their outcome
       unknown and settled under the replaced record, adds no restriction through them, and
       refuses ever naming them again, including at LNVPS. These are stage-1 cases.
-      On the dedicated test bed, replace a reinstall by a continuing disposition naming only
-      its unresolved activation: the screen says the reinstall is cancelled, commands resume,
-      and any reset is admitted subject to other checks, possibly booting the installed system
-      while the activation's state is unknown; it offers "retry the activation, keep the
-      reinstall" with the activation and reinstall continuation. A replayed journal that
-      already holds a disposition this test refuses ends no call and restricts nothing, and the
-      record is shown; a valid replacement is still the one in force after a restart (`STA-7`).
+      On the dedicated test bed, with no reinstall approval standing, replace a reinstall by a
+      continuing disposition naming only its unresolved activation: the screen says the reinstall
+      is cancelled, commands resume, and any reset is admitted subject to other checks, possibly
+      booting the installed system while the activation's state is unknown; it offers "retry the
+      activation, keep the reinstall" with the activation and reinstall continuation. A replayed
+      journal that already holds a disposition this test refuses ends no call and restricts
+      nothing, and the record is shown; a valid replacement is still the one in force after a
+      restart (`STA-7`).
       Evidence appended after a disposition about a call it disposed neither reopens that call
       nor removes the disposition; a read of the rescue activation decides which reset counts
       (`STA-24`). Destroyed
@@ -693,11 +696,14 @@ evidence is that set's test run against the relay the harness uses.
       mutation is requested again under a fresh call id before confirmation and is refused
       while the reconciliation reads stay available; an immediate `running`, a changed
       `boot_time`, or a job record claiming success does not substitute for the predicate
-      (`STA-24`). Every reset into rescue, ordinary ceremony and disposition's return included,
-      has an immediately preceding durably journaled activation read (`STG-4`). A confirming
-      read admits it; a non-confirming read and a failed read append each refuse it visibly,
-      with no reset dispatched. A late reset after first contact remains the residual described
-      in `STA-24`; pin matching before contact does not assert protection after contact.
+      (`STA-24`). Every reset into rescue, ordinary ceremony, disposition's return and the reset a
+      reinstall approval binds included, has an immediately preceding durably journaled
+      activation read (`STG-4`). The approval-bound reset needs an activation dispatched since
+      that approval (`STG-20`). A confirming read satisfies the read condition; withdrawal and
+      the since-approval condition can still refuse that reset. A non-confirming read and a
+      failed read append each refuse it visibly, with no reset dispatched. A late reset after
+      first contact remains the residual described in `STA-24`; pin matching before contact does
+      not assert protection after contact.
 - [ ] **CNF-39 · PRE-SCALE** After a killed worker, replay classifies incomplete calls, cancels
       those that cannot still exist, and surfaces uncertain ones without resuming them
       (`STA-7`).
@@ -955,15 +961,24 @@ Not pass/fail. Required to be recorded.
       dispatched with its intent recorded and no installed pins.
       The installation id (`STG-20`) stays the same across restart and Restore, differs between
       machines and fits the root label. It moves at destructive reinstall dispatch, never at
-      its choice: replace the reinstall before its reset and confirm the kept root still has
-      the shown id. A fresh reinstall erases the approved predecessor, including an unmarked,
-      foreign-id or hand-installed root, and labels the successor at formatting. Interrupt that
-      successor and resume it under the same id without formatting again; a complete matching
-      root is kept. Two matching roots or an unreadable label stop and surface without erasure.
+      its choice: exercise both routes before its reset — replace a reinstall disposition with
+      no approval standing, and withdraw a reinstall approval — and confirm the kept root still
+      has the shown id. Also replace a reinstall disposition while a separate approval stands:
+      choosing to keep the reinstall approval preserves it and its reset opens the installation;
+      choosing withdrawal records the replacement and withdrawal separately, refuses that reset
+      naming the withdrawal, and keeps the root's id and reset offer. Exercise the approval-only
+      change of mind and refusal of withdrawal after dispatch (`STG-20`). A fresh reinstall erases
+      the approved predecessor, including an unmarked, foreign-id or hand-installed root, and
+      labels the successor at formatting. Interrupt that successor and resume it under the same
+      id without formatting again; a complete matching root is kept. Two matching roots or an
+      unreadable label stop and surface without erasure.
       Continuing as if not done with an installed pin keeps the matching root and its keys
       (`STA-20b`). A changed-key `ready_to_reset` read withholds the offer and tells the operator
-      before reboot. After reinstall, predecessor prerequisites cannot offer a reset; kept old
-      keys are refused by the freshness backstop, including overlap with earlier observations.
+      before reboot. After reinstall, predecessor prerequisites cannot offer a reset. A first
+      `ready_to_reset` read carrying an earlier installation's prerequisite or installed-pin keys,
+      including partial overlap, withholds the offer and tells the operator before reboot;
+      a later different read does not restore that installation's offer. Kept old keys are
+      refused by the freshness backstop, including overlap with earlier observations.
       Disjoint successor keys can establish the new pin and offer the reset. `STG-20` says
       "The label steers the model; nothing checks it". Destroyed-data.
 - [ ] **CNF-87 · BLOCKING** The first-stage relay is a paid-tcp-relay relay with a hand-recorded
