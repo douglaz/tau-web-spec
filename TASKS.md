@@ -92,8 +92,8 @@ gated on it.
       owns stage 1's systemd service-name grammar and the delivery reboot opted into by the
       declaration and again at delivery; the declaration format owns service scope and user
       accounts. OpenRC waits for the dedicated path's stage. Re-entry reads unit and
-      enablement for enabled-survives-reboot services; whether running-at-delivery binds
-      after delivery remains open in `OPN-14`.
+      enablement for enabled-survives-reboot services; `OPN-14` holds the remaining open
+      points about running-at-delivery services at re-entry and after delivery.
 - [ ] **T43 — Stage 1's build list**. Implement `STG-21`'s corrected LNVPS/plain-Arch
       definition and the stage-1 applicability rows in `07-conformance.md` at tau-web-rust's
       next spec pin. These include recovery, scanning, reports and re-entry; specification
@@ -119,6 +119,20 @@ gated on it.
       classes each check as refusing placement or not: a TCP/HTTP check that counts would
       otherwise refuse the key of an application that only listens once it has its key — the
       trap `ARC-17`'s lifecycle-finding rule removed for `services`.
+- [ ] **T50 — Define LNVPS operation confirmation contracts** (recorded 2026-10-17;
+      bead `tw-w7a`, left open). The missing confirming observations cover the typed restart,
+      the stop that stands in for a destroy, renewal-off, and the vendor's reinstall call.
+      The duties depending on them remain in their owners: `ARC-43` says "Until that confirmation,
+      box-plane dispatch stays stopped" for the delivery restart; `STA-24` says "At LNVPS
+      renewal-off waits for the stop's confirmation"; for the reinstall continuation,
+      `STA-24` says "For a destructive reinstall that is at LNVPS the vendor's reinstall call".
+      Its own barrier then holds: `STA-24` says "from then on that call's own barrier governs".
+      Renewal-off already has a read-back: `STG-21` says "after each order the adapter MUST
+      turn the machine's automatic renewal off and read it back as off before the machine is
+      offered for delivery"; `CNF-104` exercises it. Whether that read-back is the confirming
+      observation under `STA-24` remains undecided. Define each operation's confirming
+      observation, what establishes only that it ended, and what leaves it unresolved, before
+      relying on those confirmations. No predicate is chosen here.
 - [ ] **T44 — Implement the decided derived vendor identity** (`OPN-26`, ADR-0042).
       This is a coordinated change required before stage-1 completion, not a new design
       question. Its eventual typed adapter follows `STG-21` and `ARC-30` for the accepted
@@ -400,7 +414,7 @@ gated on it.
       installation's newest prerequisite keys against its first durable read.
       `TauWeb.Dispatch.tracesUpTo` filters repeated request call ids; the narrowed
       `TauWeb.Dispatch.bounded` also checks their freshness. Intent projection reads by position.
-      `docs/design/dispatch-witnesses-v3.json` is the regenerated schema 3 file.
+      `CONTEXT.md` lists the current file; that amendment emitted dispatch schema 3.
       Pins adds `readyAfterReinstallFresh`, with
       `TauWeb.Pins.kept_root_keys_after_reinstall_refused` /
       `TauWeb.Pins.kept_root_keys_pinned_without_guard` and
@@ -408,6 +422,21 @@ gated on it.
       `TauWeb.Pins.observed_keys_pinned_without_guard`; `TauWeb.Pins.transitionSound`
       independently checks that admission. Its dedicated reinstall event follows the rescue
       reset at dispatch; `docs/design/pins-witnesses-v5.json` is its schema 5 file.
+      *Amended 2026-10-17:* `approvedReinstallBoundary` carries
+      `TauWeb.Dispatch.approved_reinstall_boundary_refused` /
+      `TauWeb.Dispatch.approved_reinstall_boundary_admitted_without_guard`. The existing
+      journaled typed approval is carried by `approveReinstall` / `reinstallApproval`, bound
+      to one reset call, entry and approved facts. Activation after approval, still confirmed
+      by its newest read, precedes the dispatch that opens the installation; no generation
+      field or reset kind is added. `failedPrerequisiteWithdraws` carries
+      `TauWeb.Dispatch.failed_prerequisite_withdrawal_refused` /
+      `TauWeb.Dispatch.failed_prerequisite_withdrawal_admitted_without_guard`.
+      The durable per-command record of `ready_to_reset` is `resetCollection`, before the
+      result append: its missing durable result withdraws the offer across replay, per entry
+      and current installation. The witnesses include unchanged-key failures and restoration
+      by a later durable read. Existing theorem statements and the bounded alphabet stay as
+      they were. `docs/design/dispatch-witnesses-v4.json` is regenerated from the emission;
+      `docs/design/witness-file-v1.md` defines its new events, assumptions and projections.
 - [x] **T36 — Formal companion, module 5: the host-pin lifecycle** (ADR-0032's inventory;
       `SEC-11`, `CHN-R1`, `ARC-43`, with `STA-20b`'s resume rule and `STG-4`'s third
       confirmation predicate). Landed 2026-09-20 in `tools/formal/TauWeb/Pins.lean`: what a pin

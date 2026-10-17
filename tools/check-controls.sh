@@ -560,6 +560,7 @@ dispatch_control "formal: an unresolved box-plane command barring nothing" \
 # side also sees it: the reset's barrier must refuse the later requests in that trace.
 # The reset offer's witness, which is the durability rule's and not the key's, stays green.
 # The new partial-abandonment witness also needs the barrier to hold across call ids.
+# Rehearsed 2026-10-17: the approved reset still waits for its new activation's confirmation.
 dispatch_control "formal: the barrier keyed on the call id" \
   "sed -i 's/{ resourceKey := .entry,/{ resourceKey := .call,/' $DISP && grep -q '{ resourceKey := .call,' $DISP" \
   same_action_new_call_id_refused second_index_same_entry_refused \
@@ -569,7 +570,8 @@ dispatch_control "formal: the barrier keyed on the call id" \
   disposition_names_every_call_unresolved replayed_invalid_disposition_means_nothing \
   return_to_rescue_trace reset_waits_for_other_commands bounded \
   spent_activation_counted_without_guard \
-  undisposed_command_bars_flow_destroy
+  undisposed_command_bars_flow_destroy \
+  approved_reinstall_keeps_disposition_activation_boundary
 
 # A disposition's reach, its end and what it may name (STA-24, 2026-10-13) are fields of
 # TauWeb.Dispatch.Params, each control one bad edit of one field's rule value. A red set also
@@ -605,13 +607,15 @@ dispatch_control "formal: a disposition's reach applied to every dispatch" \
 # disposition, dispatched under a disposition since replaced, or no longer confirmed by the
 # newest activation read.
 # The new session-destroy refusal and the restated operation-kinds theorem both need the disposed calls' reach.
+# Rehearsed 2026-10-17: an approval does not bypass the later reinstall disposition's reach.
 dispatch_control "formal: a disposition's reach computed from calls still unresolved" \
   "sed -i 's/reach : Reach := .disposed/reach : Reach := .stillUnresolved/' $DISP && grep -q 'reach : Reach := .stillUnresolved' $DISP" \
   disposition_one_continuation_refused replacement_in_force reset_without_rescue_refused \
   activation_before_disposition_not_counted activation_under_replaced_disposition_not_counted \
   return_to_rescue_trace \
   spent_activation_not_counted \
-  abandonment_ends_at_its_destroy_alone session_destroy_under_abandonment_refused
+  abandonment_ends_at_its_destroy_alone session_destroy_under_abandonment_refused \
+  approved_reinstall_keeps_disposition_activation_boundary
 
 # The lapse taken at any later intent: reset, disposition, read, command must end refused, and
 # the read's own intent ends the restriction. Every trace that states a disposition still
@@ -620,6 +624,7 @@ dispatch_control "formal: a disposition's reach computed from calls still unreso
 # operation-kinds theorem loses the restriction at a non-destroy intent; the newest-read trace
 # loses it at the activation intent, so its later reset goes out.
 # The new dedicated reset-offer boundary also needs the reinstall disposition to survive activation.
+# Rehearsed 2026-10-17: the disposition after approval also stands through its new activation.
 dispatch_control "formal: a disposition's restriction ended at any later intent" \
   "sed -i 's/lapse : Lapse := .continuation/lapse : Lapse := .anyIntent/' $DISP && grep -q 'lapse : Lapse := .anyIntent' $DISP" \
   read_does_not_lift_abandonment continuing_permits_what_was_barred \
@@ -627,7 +632,8 @@ dispatch_control "formal: a disposition's restriction ended at any later intent"
   preparation_keeps_restriction reinstall_does_not_refuse_key_registration \
   activation_under_replaced_disposition_not_counted return_to_rescue_trace \
   abandonment_ends_at_its_destroy_alone spent_activation_not_counted \
-  dedicated_reset_retires_prerequisites
+  dedicated_reset_retires_prerequisites \
+  approved_reinstall_keeps_disposition_activation_boundary
 
 # The destructive stop dropped: a command after a disposed command with a destructive
 # continuation must be refused, and so must one after a disposed activation. Neither disposed
@@ -647,12 +653,14 @@ dispatch_control "formal: a disposition matched to a call by call id alone" \
 # it too, and after the activation nothing stands for the operator to replace. The newest-read
 # trace loses the restriction there too, so the reset after a non-confirming read goes out.
 # The new dedicated reset-offer boundary also needs the reinstall disposition to survive activation.
+# Rehearsed 2026-10-17: the disposition after approval also survives its first operation.
 dispatch_control "formal: a disposition's restriction ended at the reinstall's first operation" \
   "sed -i 's/lapse : Lapse := .continuation/lapse : Lapse := .firstOperation/' $DISP && grep -q 'lapse : Lapse := .firstOperation' $DISP" \
   preparation_keeps_restriction reinstall_does_not_refuse_key_registration \
   activation_under_replaced_disposition_not_counted return_to_rescue_trace \
   spent_activation_not_counted \
-  dedicated_reset_retires_prerequisites
+  dedicated_reset_retires_prerequisites \
+  approved_reinstall_keeps_disposition_activation_boundary
 
 # Any reset ending the restriction: a reset with no rescue activation dispatched since the
 # disposition must be refused by the disposition itself. The reset the return-to-rescue trace
@@ -661,11 +669,13 @@ dispatch_control "formal: a disposition's restriction ended at the reinstall's f
 # The resets behind an activation that does not count -- confirmed before the disposition, or
 # dispatched under one since replaced, or no longer confirmed by its newest read -- go out
 # the same way.
+# Rehearsed 2026-10-17: the old activation cannot dispatch the disposition after approval.
 dispatch_control "formal: any reset taken for the reinstall" \
   "sed -i 's/resetIntoRescueOnly : Bool := true/resetIntoRescueOnly : Bool := false/' $DISP && grep -q 'resetIntoRescueOnly : Bool := false' $DISP" \
   reset_without_rescue_refused activation_before_disposition_not_counted \
   activation_under_replaced_disposition_not_counted return_to_rescue_trace \
-  spent_activation_not_counted
+  spent_activation_not_counted \
+  approved_reinstall_keeps_disposition_activation_boundary
 
 # The abandonment case removed: the destroy intent must end the restriction, and does not.
 # kinds_total still exhausts every kind.
@@ -683,9 +693,11 @@ dispatch_control "formal: abandonment also ends at reset" \
 
 # A confirmed activation counted despite its newest read no longer confirming it: the reset
 # must be refused under the reinstall disposition, and instead goes out as its continuation.
+# Rehearsed 2026-10-17: a separately approved reset must not open an installation under
+# that same stale read; approved_spent_activation_opens_nothing fails too.
 dispatch_control "formal: spent activation still counts for the reset" \
   "sed -i 's/newestActivationRead : Bool := true/newestActivationRead : Bool := false/' $DISP && grep -q 'newestActivationRead : Bool := false' $DISP" \
-  spent_activation_not_counted
+  spent_activation_not_counted approved_spent_activation_opens_nothing
 
 # A session's destroy cannot be the abandonment flow. Removing the guard admits that
 # request and falsifies both its refused witness and the operation-kinds theorem's refusal.
@@ -695,9 +707,29 @@ dispatch_control "formal: session destroy lifts abandonment" \
 
 # The old machine-wide offer accepts predecessor prerequisites and changed current keys;
 # the dedicated boundary witness also sees the predecessor's offer survive its rescue reset.
+# Rehearsed 2026-10-17: both sides of the no-disposition boundary pair also compare offers:
+# the refused side loses retirement, and the admitted side loses changed-key withholding.
+# Rehearsed 2026-10-17: all three intervening-disposition traces also retire the old offer.
 dispatch_control "formal: reset offer reads another installation or changed keys" \
   "sed -i 's/resetOfferCurrentInstallation : Bool := true/resetOfferCurrentInstallation : Bool := false/' $DISP && grep -q 'resetOfferCurrentInstallation : Bool := false' $DISP" \
-  predecessor_reset_offer_refused changed_keys_reset_offer_refused dedicated_reset_retires_prerequisites
+  predecessor_reset_offer_refused changed_keys_reset_offer_refused dedicated_reset_retires_prerequisites \
+  approved_reinstall_boundary_refused approved_reinstall_boundary_admitted_without_guard \
+  approved_reinstall_after_done_disposition approved_reinstall_after_not_done_disposition \
+  approved_reinstall_keeps_disposition_activation_boundary
+
+# Rehearsed 2026-10-17: without the separately approved boundary the first reset leaves the
+# predecessor current, and the later rescue reset trace never reaches installation 1.
+# Rehearsed 2026-10-17: both continuing dispositions preserve the separately approved boundary.
+dispatch_control "formal: separately approved reinstall boundary dropped" \
+  "sed -i 's/approvedReinstallBoundary : Bool := true/approvedReinstallBoundary : Bool := false/' $DISP && grep -q 'approvedReinstallBoundary : Bool := false' $DISP" \
+  approved_reinstall_boundary_refused second_rescue_reset_opens_nothing_more \
+  approved_reinstall_after_done_disposition approved_reinstall_after_not_done_disposition
+
+# Rehearsed 2026-10-17: ignoring an incomplete collection offers the reset after both
+# changed-key and unchanged-key failures, in the main refusal and the entry-isolation trace.
+dispatch_control "formal: failed prerequisite collection keeps the reset offered" \
+  "sed -i 's/failedPrerequisiteWithdraws : Bool := true/failedPrerequisiteWithdraws : Bool := false/' $DISP && grep -q 'failedPrerequisiteWithdraws : Bool := false' $DISP" \
+  failed_prerequisite_withdrawal_refused failed_collection_per_entry_and_installation
 
 # Both retained root keys and an earlier incomplete observation defeat the new pin. Bounded
 # independently checks admission against earlier pins and observations at the transition.
@@ -744,7 +776,7 @@ control "witnesses: a committed file no module emits" "$WIT" \
 
 # The renamed pins file is checked in both directions; each obsolete name must be visible
 # as an orphan. Each mutation gives the witness gate exactly one finding.
-passes "witnesses: unchanged v1 modules and pins v5" "$WIT" \
+passes "witnesses: allocation v2 and pins v5" "$WIT" \
   "test -f $WITFILE && test -f $PINSWIT && test -f $PINSEMIT"
 
 control "witnesses: pins v5 committed drift" "$WIT" \
@@ -765,7 +797,7 @@ control "witnesses: obsolete pins v3 orphan" "$WIT" \
 
 # The dispatch file was renamed with its schema too: its old name is an orphan.
 control "witnesses: obsolete dispatch v1 orphan" "$WIT" \
-  "cp docs/design/dispatch-witnesses-v3.json docs/design/dispatch-witnesses-v1.json" \
+  "cp docs/design/dispatch-witnesses-v4.json docs/design/dispatch-witnesses-v1.json" \
   "WITNESS DRIFT" "dispatch-witnesses-v1.json is committed but no module emits it"
 
 control "witnesses: obsolete pins v4 orphan" "$WIT" \
@@ -773,8 +805,12 @@ control "witnesses: obsolete pins v4 orphan" "$WIT" \
   "WITNESS DRIFT" "pins-witnesses-v4.json is committed but no module emits it"
 
 control "witnesses: obsolete dispatch v2 orphan" "$WIT" \
-  "cp docs/design/dispatch-witnesses-v3.json docs/design/dispatch-witnesses-v2.json" \
+  "cp docs/design/dispatch-witnesses-v4.json docs/design/dispatch-witnesses-v2.json" \
   "WITNESS DRIFT" "dispatch-witnesses-v2.json is committed but no module emits it"
+
+control "witnesses: obsolete dispatch v3 orphan" "$WIT" \
+  "cp docs/design/dispatch-witnesses-v4.json docs/design/dispatch-witnesses-v3.json" \
+  "WITNESS DRIFT" "dispatch-witnesses-v3.json is committed but no module emits it"
 
 control "witnesses: pins v5 emission carrying a CNF identifier" "$WIT" \
   "sed -i 's/\"module\": \"pins\"/\"module\": \"pins\", \"exercised_by\": \"CNF-18\"/' $PINSEMIT && grep -q CNF-18 $PINSEMIT" \

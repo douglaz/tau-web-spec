@@ -22,6 +22,10 @@ its reset from re-labelling the kept root. Restart and Restore retain the id; th
 component is distinct within the journal, the whole id fits ext4's label, and its encoding is
 left unspecified. No journal field or disk record is added.
 
+*Amended 2026-10-17:* The companion carries a no-disposition reinstall through its existing
+journaled typed approval, bound to the reset call, entry and approved facts; only that reset's
+dispatch after a confirmed rescue activation since the approval advances the generation.
+
 The label steers the model and nothing checks it. A matching root can be resumed or found
 complete and kept; an unmarked or foreign root is the predecessor, including a hand-installed
 one. Duplicate matching roots and unreadable labels stop the brief before erasure. Formatting

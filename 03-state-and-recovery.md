@@ -176,7 +176,9 @@ The precondition of the offer of a reset into the installed system is
 installed pins and the reset intent was durably appended in the current installation, and
 compares the newest read's keys against the first durable prerequisite read there, the active
 installed pin. `TauWeb.Dispatch.installationOf` derives that boundary from the journal's
-reinstall dispatch. `TauWeb.Dispatch.prerequisiteKeys` reads those records. The guard's pairs are
+vendor reinstall call, the reset into rescue that dispatches a standing reinstall disposition,
+or the reset bound to a separately journaled reinstall approval.
+`TauWeb.Dispatch.prerequisiteKeys` reads those records. The guard's pairs are
 `TauWeb.Dispatch.predecessor_reset_offer_refused` /
 `TauWeb.Dispatch.predecessor_reset_offer_admitted_without_guard` and
 `TauWeb.Dispatch.changed_keys_reset_offer_refused` /
@@ -185,7 +187,14 @@ reinstall dispatch. `TauWeb.Dispatch.prerequisiteKeys` reads those records. The 
 `TauWeb.Dispatch.dedicated_reset_retires_prerequisites` the dedicated dispatch boundary.
 The durable-append guard retains the pair
 `TauWeb.Dispatch.reset_offered_after_failed_append_refused` and
-`TauWeb.Dispatch.reset_offered_after_failed_append_admitted`. That a reset into rescue
+`TauWeb.Dispatch.reset_offered_after_failed_append_admitted`.
+Amended 2026-10-17: `TauWeb.Dispatch.failed_prerequisite_withdrawal_refused` /
+`TauWeb.Dispatch.failed_prerequisite_withdrawal_admitted_without_guard` carries withdrawal after
+any failed prerequisite append, including after an earlier durable read and across replay.
+The durable per-command record of `ready_to_reset` precedes collection; without its durable
+result the offer stays withdrawn, per entry and current installation, until a later durable
+prerequisite read. `TauWeb.Dispatch.failed_collection_per_entry_and_installation` carries that
+isolation. That a reset into rescue
 under a disposition waits for the command the disposition does not name, and not for the one it
 names, is `TauWeb.Dispatch.reset_waits_for_other_commands`, decided. What a changed boot ID
 establishes is `TauWeb.Dispatch.confirms`, whose lattice keeps *ended* below *succeeded*, with
@@ -250,7 +259,9 @@ continue.
 **What clears it.** Evidence is the observation the operation's own reconciliation contract
 admits — for Robot, `STG-4`'s predicates, read from the vendor or from a pin-checked handshake
 — durably appended before dispatch resumes (`STA-3`): a status read followed by a failed append
-leaves the barrier standing. A job record can settle the box-plane command it records, as
+leaves the barrier standing. LNVPS's confirming observations are not yet defined
+(`TASKS.md` T50); until they are, such a call stays unresolved until evidence or the operator's
+disposition. A job record can settle the box-plane command it records, as
 `STA-20` says and with the standing `STA-21` gives it; it cannot clear a cloud-plane barrier,
 and neither can model text (`SEC-8`). Otherwise the operator **disposes**: a record of its own
 kind naming the unresolved calls it ends, the continuation the operator chose — a destructive
@@ -339,7 +350,7 @@ A reboot between that read and the reset leaves a window this rule does not clos
 snapshot's keys, the reset's confirmation never holds and its barrier stands. Fresh disjoint
 keys published by an unrequested rescue boot can satisfy that predicate and match the pinned
 SSH attempt; a late reset landing after first contact can then kill the install mid-write.
-The real bounds are key publication taking about 80 s after the re-read (`CHN-R1`) and damage
+The real bounds are key publication taking about 80 s after the reset (`CHN-R1`) and damage
 limited to disks already chosen for erasure. *What this requirement used to say* was that
 "the pinned SSH attempt remains the bound"; that misses a reset landing after first contact.
 If the activation itself goes unresolved, its own barrier refuses the reset; evidence can
@@ -651,8 +662,10 @@ channels, as lock below does.
 
 A generated seed with no journaled ceremony record for its seed id owes this ceremony: at
 create, at the unlock that finishes creation (an envelope with no record generates the
-seed there), and for Replace's fresh seed. An imported seed owes none: typing it in is the
-proof, whether imported with a sheet or a local-store backup and whatever record it carries.
+seed there), and for Replace's fresh seed. An imported seed owes none: a sheet's seed is
+typed, while a local-store backup carries the ceremony record, if any, it was exported with.
+Regardless of that record, `STA-22b` says "every imported seed may
+restore listed identities but MUST NOT allocate new ones".
 This is a state, not a step in a flow. A closed tab, hidden page or killed worker interrupting
 it leaves it owed at the next unlock.
 

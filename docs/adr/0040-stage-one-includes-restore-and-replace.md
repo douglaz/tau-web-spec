@@ -21,7 +21,7 @@ restore after a *dead* one may not". Reusing the old key after theft leaves that
 
 Restore also reaches an allocation dead end without Replace. `STA-22b` said "a seed imported
 after loss of the canonical journal may restore listed identities but MUST NOT allocate new
-ones" until 2026-10-15. `STA-22b` says "every imported seed may restore listed identities but MUST NOT allocate
+ones" until 2026-10-16. `STA-22b` says "every imported seed may restore listed identities but MUST NOT allocate
 new ones" and "To allocate again, use Replace with a freshly generated seed". An old sheet cannot
 prove that later allocations never happened. Keeping Restore while omitting Replace would
 preserve access but strand the restored operator when they next need a new identity.

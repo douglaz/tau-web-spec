@@ -645,10 +645,13 @@ evidence is that set's test run against the relay the harness uses.
       ending the restriction — runs on the dedicated test bed. There, an activation confirmed
       before the standing disposition, or dispatched under a disposition since replaced, does
       not count; a fresh activation confirmed under the standing choice does. Include a fresh
-      activation requested and dispatched after the standing disposition that the vendor refuses because rescue remains armed, followed by an activation predicate read
-      that still confirms it: the vendor's refusal neither confirms nor refutes the activation,
-      the read confirms the fresh activation, and the subsequent reset into rescue is admitted
-      and ends the restriction. The untyped-scope hold is `CNF-105`.
+      activation requested and dispatched after the standing disposition while rescue remains
+      armed, whether the vendor accepts or refuses that second activation. Record Robot's
+      actual answer in the test record; whether it refuses there is unverified. In either case,
+      the activation predicate read (`STG-4`, `GET /boot/{n}/rescue`) decides confirmation,
+      independently of the activation response. Exercise a read that still confirms it:
+      the subsequent reset into rescue is admitted and ends the restriction. The untyped-scope
+      hold is `CNF-105`.
 - [ ] **CNF-30 · BLOCKING** Box-plane commands are recorded per command before transmission,
       and the transcript reconciles against what was sent (`ARC-8`).
 - [ ] **CNF-31 · PRE-SCALE** A scoped call is sent with redirect following disabled, and a

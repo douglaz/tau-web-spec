@@ -218,8 +218,12 @@ yet. lnrent's declaration, the Robot checklist and briefs 2–3 gate stage 3.
 `CNF-50`, `CNF-53` and `CNF-103` still need implementation. `ARC-43` now owns the service-name
 grammar and restart demonstration for stage 1's init-specific systemd case; OpenRC waits for
 the dedicated path's stage. Re-entry reads unit and enablement for `enabled-survives-reboot`
-services only. Whether `running-at-delivery` binds after delivery remains open. T42 carries
-the implementation; stage 1 still owes integrated evidence.
+services. Also open: whether `STG-9`'s re-entry re-check reads `running-at-delivery` services,
+and whether a stopped one is then outside its declared lifecycle and hence a lifecycle finding
+(`CNF-108`). `ARC-17` says "whenever that read runs — at a delivery check or a later re-check";
+the open point is when that declared lifecycle applies after delivery. Whether
+`running-at-delivery` binds after delivery remains open. T42 carries the implementation;
+stage 1 still owes integrated evidence.
 
 *Closes when:* the generic checklist ships and `CNF-49`–`CNF-53`, `CNF-99` and `CNF-103` have integrated
 evidence against it — that much for stage 1; and, for stage 3, the lnrent owner fills that

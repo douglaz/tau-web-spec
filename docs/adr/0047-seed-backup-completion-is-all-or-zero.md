@@ -12,7 +12,11 @@ import yielding the same seed id catches transcription errors; an explicit skip 
 the operator chose. Neither completion makes a verified-backup claim. A durable record is
 state, so interruption before it leaves the ceremony owed at the next unlock. Replace's
 fresh seed owes its own record before its allocations; generating the seed itself is free
-of that gate. Imported seeds restore and never allocate, and typing them in is their proof.
+of that gate. Imported seeds restore and never allocate.
+
+*Corrected 2026-10-17:* A sheet's seed is typed; an imported local-store backup carries its
+exported ceremony record, if any. Neither owes a fresh ceremony;
+`STA-22b` says "every imported seed may restore listed identities but MUST NOT allocate new ones".
 
 ## Alternatives rejected
 

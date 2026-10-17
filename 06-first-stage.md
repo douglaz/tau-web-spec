@@ -431,6 +431,17 @@ that boundary. At dispatch the old installed-system pin retires and the new `rea
 read can establish its pin before the reset into the installed system. Any other rescue reset,
 reboot, restart, Restore or non-destructive key recovery does not open that boundary.
 
+Amended 2026-10-17: `TauWeb.Dispatch.installationOf` also carries the separately approved
+dedicated reinstall with no disposition. Its pair is
+`TauWeb.Dispatch.approved_reinstall_boundary_refused` /
+`TauWeb.Dispatch.approved_reinstall_boundary_admitted_without_guard`. The journaled typed
+approval names its reset call, entry and approved facts, never a generation. Only that reset's
+dispatch counts, after a rescue activation dispatched since that approval and confirmed by its
+newest read. `TauWeb.Dispatch.approved_reset_without_activation_opens_nothing`,
+`TauWeb.Dispatch.approved_spent_activation_opens_nothing`,
+`TauWeb.Dispatch.unrelated_rescue_reset_opens_nothing` and
+`TauWeb.Dispatch.second_rescue_reset_opens_nothing_more` retain the non-boundaries.
+
 The harness MUST always show the model the current installation id `<machine>-<n>`, with `n`
 the journal's installation generation. It is derived from the journal with no new journal field,
 unchanged across restart and Restore, distinct between the journal's machines, and at most

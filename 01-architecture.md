@@ -300,7 +300,9 @@ it asserts nothing beyond the declaration.
 
 At LNVPS the reboot is the typed restart, with its own vendor confirmation under `STA-24`:
 "the observation the operation's own reconciliation contract admits". Until that confirmation,
-box-plane dispatch stays stopped. The subsequent boot-identity read is a harness-composed
+box-plane dispatch stays stopped. LNVPS's confirming observations are not yet defined
+(`TASKS.md` T50); until they are, such a call stays unresolved until evidence or the operator's
+disposition. The subsequent boot-identity read is a harness-composed
 box-plane read for survival evidence, never the restart's confirmation: `STA-24` says a job
 record "cannot clear a cloud-plane barrier". Elsewhere use `delivery_reboot` above.
 
