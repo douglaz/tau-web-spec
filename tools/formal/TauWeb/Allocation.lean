@@ -8,21 +8,22 @@ index family, which decides index sharing, and child-secret interpretation. The 
 
 The rest is the allocator as a trace. A `World` is the journal — harness knowledge: the seed
 epoch, the derivation version, next-unused per family, the allocated entries with their
-tombstones, and whether the seed was restored from a sheet or store — beside three things no
+tombstones, the ceremony record, and whether the seed was restored from a sheet or store — beside three things no
 loss of the journal rewinds: the last sheet the operator exported, the fresh seeds generated
 (entropy), and `issued`, every identity the trace has ever reserved, since a key derived from it
 may be on a machine. The theorems are over every trace from `init`; the witnesses are the
 inventory's retained traps, decided.
 
-`Params` lists the guard the dated amendment added, a field so that removing it is a one-token
-change (`tools/check-controls.sh` flips it and expects exactly one witness red).
+`Params` lists the imported-seed and ceremony guards. Each can be removed independently;
+`tools/check-controls.sh` requires exactly its refused witness to turn red.
 
 What the module omits: Replace's re-entry to remove the old keys from every maintained machine
 (`STA-17`); the sheet's import checks — seed identifier, derived public keys, unique indices,
 vendor inventory — beyond the counter rule the guard is, since a sheet here is always a copy of
 an earlier journal and passes them by construction; derivation-version upgrades, so `version`
 is `1` throughout; the vendor resource each entry maps to, since only the index rules are at
-stake. A fresh seed is 128 bits of CSPRNG entropy; its freshness is taken as given, as
+stake; the ceremony models a completion and its durable append, not word entry, display,
+passphrase handling or interruption before that append. A fresh seed is 128 bits of CSPRNG entropy; its freshness is taken as given, as
 `nextSeed`, a counter outside the journal, rather than as a hypothesis on each theorem. -/
 
 namespace TauWeb.Allocation
@@ -131,18 +132,22 @@ def Next.set (n : Next) : Family → Nat → Next
   | .pass,    k => { n with pass := k }
   | .handoff, k => { n with handoff := k }
 
-/-- The journal's allocation state — `STA-22b`: "The journal owns a seed identifier, derivation
-version, next unused index for each role family (machines, passes, handoffs), and allocated
-entries, including tombstones for failed or destroyed allocations". `restored`: the seed was
-"imported after loss of the canonical journal" and no Replace has happened since. The sheet
-is the one import here; it stands for the local-store backup too, since "This restriction also
-applies to an imported local-store backup". Entries newest first. -/
+/-- Which completion the operator chose; neither is a verified backup (`SEC-2`). -/
+inductive Completion
+  | fullReentry
+  | skipped
+  deriving DecidableEq, Repr
+
+/-- The journal's allocation metadata and ceremony record for its current seed epoch.
+`restored` means any imported seed with no Replace since, including a current sheet or
+local-store backup; import cannot prove that no other canonical journal exists. -/
 @[req "STA-22b"] structure Journal where
   epoch    : Nat
   version  : Nat
   next     : Next
   entries  : List Entry
   restored : Bool
+  ceremony : Option Completion
   deriving DecidableEq, Repr
 
 structure World where
@@ -156,22 +161,28 @@ structure World where
   issued   : List Identity
   deriving DecidableEq, Repr
 
-/-- The guard `STA-22b` gained on 2026-09-09: "a seed imported after loss of the canonical journal
-may restore listed identities but MUST NOT allocate new ones, even when the sheet claims to be
-current", because "A stale sheet cannot prove the latest counter". One field, so that removing it
-is a one-token change; `stale_sheet_refused` and `stale_sheet_admitted` are its pair. -/
+/-- The imported-seed bar, widened to every import on 2026-10-16, and the generated-seed
+ceremony gate added that day. Each guard has its own refused/admitted pair. -/
 @[req "STA-22b"] structure Params where
   restoredAllocatesNone : Bool
+  backupRecorded : Bool
   deriving DecidableEq, Repr
 
-/-- The allocator as it stands, the guard present. -/
-@[req "STA-22b"] def current : Params := { restoredAllocatesNone := true }
+/-- The allocator with both guards present; one exact line per control mutation. -/
+@[req "STA-22b"] def current : Params := {
+  restoredAllocatesNone := true
+  backupRecorded := true }
 
-/-- Whether a reservation in family `f` is admitted: not under the restored-seed guard, and the
-family's counter below `indexLimit` — "No wraparound is allowed" (`credential-format-v1.md`),
-so exhaustion refuses. -/
+/-- No allocation under an imported seed, or under a generated seed without its ceremony
+record; the family's counter must also be below `indexLimit` (no wraparound). -/
 @[req "STA-22b"] def admits (p : Params) (j : Journal) (f : Family) : Bool :=
-  !(p.restoredAllocatesNone && j.restored) && j.next.get f < indexLimit
+  !(p.restoredAllocatesNone && j.restored) &&
+    (!p.backupRecorded || j.ceremony.isSome) && j.next.get f < indexLimit
+
+/-- A ceremony completion takes effect only after its durable append. A failed append leaves
+no new record, so an interruption before completion is still owed at the next unlock. -/
+@[req "STA-23"] def ceremony (w : World) (c : Completion) (appended : Bool) : World :=
+  if appended then { w with journal := { w.journal with ceremony := some c } } else w
 
 /-- The identity a reservation in family `f` would take: this seed, this version, the family's
 next-unused index. -/
@@ -208,10 +219,9 @@ def mark (w : World) (i : Identity) (from_ to : Status) : World :=
 the journal as of now. -/
 @[req "STA-22b"] def exportSheet (w : World) : World := { w with sheet := some w.journal }
 
-/-- The seed imported after loss of the canonical journal, from the sheet the operator holds:
-the journal is the sheet's copy, marked restored, so that "Existing identities remain usable
-during non-revoking Restore" (`STA-22b`) and the guard applies. With no sheet there is nothing
-to restore. -/
+/-- Every seed import restores only listed identities and the sheet's ceremony record.
+No sheet means a bare seed, refused with the world unchanged: seed-only recovery discovers
+neither indices nor relay purchases. The sheet also stands for a local-store backup. -/
 @[req "STA-22b"] def restore (w : World) : World :=
   match w.sheet with
   | some s => { w with journal := { s with restored := true } }
@@ -222,10 +232,11 @@ to restore. -/
 their old epoch; and the guard lifts — "To allocate again, use Replace with a freshly generated
 seed". -/
 @[req "STA-22"] def replace (w : World) : World :=
-  { w with journal := { w.journal with epoch := w.nextSeed, next := ⟨0, 0, 0⟩, restored := false },
+  { w with journal := { w.journal with epoch := w.nextSeed, next := ⟨0, 0, 0⟩, restored := false, ceremony := none },
            nextSeed := w.nextSeed + 1 }
 
 inductive Event
+  | ceremony (completion : Completion) (appended : Bool)
   | allocate (f : Family)
   | created (i : Identity)
   | failed (i : Identity)
@@ -236,6 +247,7 @@ inductive Event
   deriving DecidableEq, Repr
 
 def step (p : Params) (w : World) : Event → World
+  | .ceremony c appended => ceremony w c appended
   | .allocate f => allocate p w f
   | .created i  => settle w i true
   | .failed i   => settle w i false
@@ -250,7 +262,7 @@ def run (p : Params) (w : World) : List Event → World
 
 /-- A fresh seed at epoch 0, derivation version 1, nothing issued, no sheet. -/
 def init : World :=
-  { journal := { epoch := 0, version := 1, next := ⟨0, 0, 0⟩, entries := [], restored := false },
+  { journal := { epoch := 0, version := 1, next := ⟨0, 0, 0⟩, entries := [], restored := false, ceremony := none },
     sheet := none, nextSeed := 1, issued := [] }
 
 /-! ## Over every trace -/
@@ -281,7 +293,7 @@ theorem allocate_inv (p : Params) (hp : p.restoredAllocatesNone = true) (w : Wor
     unfold admits at hadm
     simp only [hp, Bool.true_and, Bool.and_eq_true, Bool.not_eq_eq_eq_not, Bool.not_true,
       decide_eq_true_eq] at hadm
-    obtain ⟨hres, hlim⟩ := hadm
+    obtain ⟨⟨hres, _⟩, hlim⟩ := hadm
     have hbound := hnext hres
     refine ⟨?_, ?_, hep, hsh, ?_⟩
     · rw [List.nodup_cons]
@@ -313,6 +325,8 @@ theorem entries_only_inv (w : World) (es : List Entry) (hw : Inv w) :
 theorem inv_step (p : Params) (hp : p.restoredAllocatesNone = true) (w : World) (hw : Inv w)
     (e : Event) : Inv (step p w e) := by
   cases e with
+  | ceremony c appended =>
+    simp only [step, ceremony]; split <;> exact hw
   | allocate f => exact allocate_inv p hp w f hw
   | created i => exact entries_only_inv w _ hw
   | failed i => exact entries_only_inv w _ hw
@@ -371,6 +385,8 @@ and "No wraparound is allowed" (`credential-format-v1.md`). Needs no guard. -/
     intro w hw
     apply ih
     cases e with
+    | ceremony c appended =>
+      simp only [step, ceremony]; split <;> exact hw
     | allocate f =>
       simp only [step, allocate]
       split
@@ -413,12 +429,14 @@ new status. Every outcome after the reservation is a `mark`, so this is every on
     (w : World) (hres : w.journal.restored = true) (f : Family) : allocate p w f = w := by
   simp [allocate, admits, hp, hres]
 
-/-- Without it — the rule as it stood before 2026-09-09 — a restored seed allocates whenever its
-family's counter is not exhausted, at the index the sheet's counter names. -/
+/-- Without the import bar (added 2026-09-09), but retaining the 2026-10-16 ceremony gate,
+a restored seed allocates when its counter is not exhausted and that gate admits, at the
+sheet's index. This restates the admitted side for the new admission condition. -/
 @[req "STA-22b"] theorem restored_admitted (p : Params) (hp : p.restoredAllocatesNone = false)
-    (w : World) (f : Family) (hlim : w.journal.next.get f < indexLimit) :
+    (w : World) (f : Family) (hlim : w.journal.next.get f < indexLimit)
+    (hbackup : p.backupRecorded = false ∨ w.journal.ceremony.isSome = true) :
     (allocate p w f).issued = w.journal.fresh f :: w.issued := by
-  simp [allocate, admits, hp, hlim]
+  rcases hbackup with h | h <;> simp [allocate, admits, hp, hlim, h]
 
 /-- Exhaustion refuses: at the limit the world is unchanged, and the counter does not wrap. -/
 @[req "STA-22a"] theorem exhausted_refused (p : Params) (w : World) (f : Family)
@@ -426,6 +444,18 @@ family's counter is not exhausted, at the index the sheet's counter names. -/
   simp [allocate, admits, Nat.not_lt.mpr h]
 
 /-! ## The witnesses, decided -/
+
+/-- A failed ceremony append followed by allocation: still no record. -/
+def backupMissingEvents : List Event := [.ceremony .skipped false, .allocate .machine]
+
+@[req "STA-22b"] theorem backup_missing_refused :
+    (run current init backupMissingEvents).issued = [] ∧
+    (run current init backupMissingEvents).journal.ceremony = none := by decide +kernel
+
+@[req "STA-22b"] theorem backup_missing_admitted :
+    (run { current with backupRecorded := false } init backupMissingEvents).issued =
+      [⟨0, 1, .machine, 0⟩] := by decide +kernel
+
 
 def m0 : Identity := ⟨0, 1, .machine, 0⟩
 def m1 : Identity := ⟨0, 1, .machine, 1⟩
@@ -437,7 +467,7 @@ def m1 : Identity := ⟨0, 1, .machine, 1⟩
 created, the phone's journal lost, the sheet restored — its counter says 1 — and an allocation
 attempted. -/
 def staleSheetEvents : List Event :=
-  [.allocate .machine, .created m0, .exportSheet, .allocate .machine, .created m1,
+  [.ceremony .fullReentry true, .allocate .machine, .created m0, .exportSheet, .allocate .machine, .created m1,
    .restore, .allocate .machine]
 
 def staleSheetTrace (p : Params) : World := run p init staleSheetEvents
@@ -458,10 +488,11 @@ it, so the two are one trace. -/
     (staleSheetTrace { current with restoredAllocatesNone := false }).issued = [m1, m1, m0] ∧
     ¬ (staleSheetTrace { current with restoredAllocatesNone := false }).issued.Nodup := by decide +kernel
 
-/-- Replace after the restore lifts the guard: the next allocation is admitted, under the fresh
-epoch, at index 0. Stated on what Replace decides and not on what the guard did before it, so
+/-- Replace after the restore lifts the import bar; after the fresh seed's ceremony, the next
+allocation is admitted under its epoch at index 0. Stated on what Replace decides and not on
+what the import bar did before it, so
 that the flipped guard reddens `stale_sheet_refused` alone. -/
-def replaceAgainEvents : List Event := staleSheetEvents ++ [.replace, .allocate .machine]
+def replaceAgainEvents : List Event := staleSheetEvents ++ [.replace, .ceremony .fullReentry true, .allocate .machine]
 
 @[req "STA-22"] theorem replace_allocates_again :
     let w := run current init replaceAgainEvents
@@ -469,7 +500,8 @@ def replaceAgainEvents : List Event := staleSheetEvents ++ [.replace, .allocate 
     w.journal.restored = false := by
   decide +kernel
 
-def failedCreateEvents : List Event := [.allocate .machine, .failed m0, .allocate .machine]
+def failedCreateEvents : List Event :=
+  [.ceremony .skipped true, .allocate .machine, .failed m0, .allocate .machine]
 
 /-- A failed create keeps its index: the next allocation takes index 1, and the tombstone stays. -/
 @[req "STA-22b"] theorem failed_create_keeps_index :
@@ -478,7 +510,7 @@ def failedCreateEvents : List Event := [.allocate .machine, .failed m0, .allocat
   decide +kernel
 
 def successfulEvents : List Event :=
-  [.allocate .machine, .created m0, .destroy m0, .allocate .machine, .created m1]
+  [.ceremony .fullReentry true, .allocate .machine, .created m0, .destroy m0, .allocate .machine, .created m1]
 
 /-- The allocator is not safe by refusing everything: allocate, create, destroy, allocate again,
 create again — two machines, two identities, one tombstone, the counter at 2. -/
@@ -490,7 +522,7 @@ create again — two machines, two identities, one tombstone, the counter at 2. 
 
 /-- The fresh seed with the machine counter one below the limit. -/
 def exhaustionStart : World :=
-  { init with journal := { init.journal with next := ⟨indexLimit - 1, 0, 0⟩ } }
+  { init with journal := { init.journal with next := ⟨indexLimit - 1, 0, 0⟩, ceremony := some .fullReentry } }
 
 def exhaustionEvents : List Event := [.allocate .machine, .allocate .machine]
 
@@ -505,13 +537,20 @@ refused with the counter at the limit and not wrapped. -/
 
 /-- The bound (`CONTEXT.md`): every trace of at most this many events over `alphabet`, from
 `init`, is what `bounded_nodup` decides and what the witness file enumerates. Stated once, here,
-for both; beyond it is `issued_nodup`'s statement, not the file's. -/
-@[req "STA-22"] def bound : Nat := 3
+for both; beyond it is `issued_nodup`'s statement, not the file's. At bound 4 the enumeration
+includes three consecutive allocations after a ceremony, and reallocation after created,
+failed or exportSheet. It allocates under epoch 0, 1 or 2 separately, but never under two
+epochs in one trace: ceremony, allocate, replace, ceremony, allocate requires 5 events.
+A destroy between allocations is a no-op without a preceding created; reallocation after
+an actual destruction also needs 5 events and is carried by `successful_trace`. -/
+@[req "STA-22"] def bound : Nat := 4
 
 /-- The events the bounded enumeration draws from: the machine family, the first machine's
-three outcomes, and the three journal-level acts. -/
+three outcomes, journal-level acts and a durably appended full-reentry ceremony.
+`tracesUpTo bound` holds the enumeration; failed append and skip are named witnesses. -/
 def alphabet : List Event :=
-  [.allocate .machine, .created m0, .failed m0, .destroy m0, .exportSheet, .restore, .replace]
+  [.allocate .machine, .created m0, .failed m0, .destroy m0, .exportSheet, .restore, .replace,
+   .ceremony .fullReentry true]
 
 /-- Every trace of exactly `n` events over `alphabet`. -/
 def tracesOf : Nat → List (List Event)

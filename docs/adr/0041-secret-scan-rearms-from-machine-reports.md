@@ -27,7 +27,7 @@ bounded provenance label owned by `ARC-43`: "re-armed from the machine's report"
 The label matters in both directions. Machine-selected current bytes can fail to catch the
 old secret and can select other bytes for redaction. The minimum-length requirement and
 visible named markers in `SEC-5` bound misleading output, without claiming hostile-machine
-protection. The numeric minimum remains open in T48. Encoded, partial and transformed output
+protection. The numeric minimum remained open in T48 until the amendment below. Encoded, partial and transformed output
 and plaintext machine-side output remain outside the scan's claim.
 
 ## Alternatives considered
@@ -67,3 +67,9 @@ The design closes `OPN-28`'s construction question now. Integrated evidence rema
 `CNF-95` owns the scan cases, paired with `CNF-84` for Restore and `CNF-42` for display.
 The stage applicability table owns completion. No implementation behavior was tested by
 recording this decision.
+
+*Amended 2026-10-16:* `SEC-5` says "Every placed secret MUST be at least **16 bytes**, checked
+at placement and at every re-arm from a machine report or a paste." Its purpose is output
+legibility, not entropy. Its refusal offers no override: a refused
+value typed into a model `exec` would sit in context and transcript. The minimum and visible
+named markers bound misleading output; T48's remaining questions are unchanged.

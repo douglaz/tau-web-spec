@@ -37,10 +37,10 @@ gated on it.
       `docs/design/relay-witnesses-v1.json` and the controls that read them move when that set
       grows a formal layer; until then `CHN-15`, `CHN-16` and `CHN-16a` keep their `@[req]` tags
       and tau-web's index is the proof of record for the handshake and the destination pipeline.
-- [ ] **T28 — Restate the three tenant declarations in v1** (`docs/design/delivery-declaration-v1.md`).
+- [ ] **T28 — Restate the three tenant declarations in version 2** (`docs/design/delivery-declaration-v1.md`).
       ad-hoc is complete in the schema document; lnrent's template goes to lnrent#87 as the
       answer format; btc-policy's waits on its drift checks and required software. Each profile
-      then points at its v1 file.
+      then points at its version-2 file.
 - [ ] **T29 — Create the implementation repository** (ADR-0031). *Created 2026-09-16 as
       `douglaz/tau-web-rust`, with this repository (renamed `tau-web-spec`) as the `spec/`
       submodule pinned at `b3dec66`; the build gates below are still to be written there.*
@@ -88,10 +88,12 @@ gated on it.
       questions, in the harness's words; and the plain-language rendering of a proposed
       declaration the operator approves (`ARC-39`). These ship in the bundle and gate stage 1.
       Implement `ARC-43`'s harness-composed listener, outbound-restriction, unit-state and
-      enablement reads behind `CNF-50`, `CNF-53` and `CNF-103`. Still to decide: what establishes survival of a restart, and the
-      service-name grammar for a validated argument, never shell syntax. No init-specific
-      procedure or physical-restart requirement is selected by this task, nor are the two
-      re-check points `OPN-14` leaves open.
+      enablement reads behind `CNF-50`, `CNF-53` and `CNF-103`. Decided 2026-10-16: `ARC-43`
+      owns stage 1's systemd service-name grammar and the delivery reboot opted into by the
+      declaration and again at delivery; the declaration format owns service scope and user
+      accounts. OpenRC waits for the dedicated path's stage. Re-entry reads unit and
+      enablement for enabled-survives-reboot services; `OPN-14` holds the remaining open
+      points about running-at-delivery services at re-entry and after delivery.
 - [ ] **T43 — Stage 1's build list**. Implement `STG-21`'s corrected LNVPS/plain-Arch
       definition and the stage-1 applicability rows in `07-conformance.md` at tau-web-rust's
       next spec pin. These include recovery, scanning, reports and re-entry; specification
@@ -103,9 +105,10 @@ gated on it.
       sheet metadata, including each placement's application association and application/provider
       facts under the credential format's
       payload v3 and explicit refusal of payloads v1/v2; demonstrate `CNF-95` with `CNF-42` and
-      `CNF-84`. The design permits construction now. Still open: the numeric minimum accepted secret byte length, which
-      stage 1's completion requires (`07-conformance.md`); any
-      further changed-file detection policy after loss of the old reference; and compatibility
+      `CNF-84`. The design permits construction now. Decided 2026-10-16: `SEC-5` owns the
+      numeric minimum accepted secret byte length and no-override refusal; `CNF-94` exercises
+      it before stage-1 completion. Still open: any further changed-file detection policy after
+      loss of the old reference; and compatibility
       policy beyond the adopted sheet-payload version bump, should it become necessary. No
       length/value-derived reference belongs on the sheet and no legacy migration is selected.
 - [ ] **T49 — Later best practice: a signed library of read-only typed checks** (`ARC-39`).
@@ -116,6 +119,20 @@ gated on it.
       classes each check as refusing placement or not: a TCP/HTTP check that counts would
       otherwise refuse the key of an application that only listens once it has its key — the
       trap `ARC-17`'s lifecycle-finding rule removed for `services`.
+- [ ] **T50 — Define LNVPS operation confirmation contracts** (recorded 2026-10-17;
+      bead `tw-w7a`, left open). The missing confirming observations cover the typed restart,
+      the stop that stands in for a destroy, renewal-off, and the vendor's reinstall call.
+      The duties depending on them remain in their owners: `ARC-43` says "Until that confirmation,
+      box-plane dispatch stays stopped" for the delivery restart; `STA-24` says "At LNVPS
+      renewal-off waits for the stop's confirmation"; for the reinstall continuation,
+      `STA-24` says "For a destructive reinstall that is at LNVPS the vendor's reinstall call".
+      Its own barrier then holds: `STA-24` says "from then on that call's own barrier governs".
+      Renewal-off already has a read-back: `STG-21` says "after each order the adapter MUST
+      turn the machine's automatic renewal off and read it back as off before the machine is
+      offered for delivery"; `CNF-104` exercises it. Whether that read-back is the confirming
+      observation under `STA-24` remains undecided. Define each operation's confirming
+      observation, what establishes only that it ended, and what leaves it unresolved, before
+      relying on those confirmations. No predicate is chosen here.
 - [ ] **T44 — Implement the decided derived vendor identity** (`OPN-26`, ADR-0042).
       This is a coordinated change required before stage-1 completion, not a new design
       question. Its eventual typed adapter follows `STG-21` and `ARC-30` for the accepted
@@ -126,7 +143,7 @@ gated on it.
       and its role-table rendering/emission as needed; regenerate
       `docs/design/credential-vectors-v1.json`, update
       `docs/design/check-credential-vectors.py`, and regenerate the affected
-      `docs/design/allocation-witnesses-v1.json` from its producing declarations. Update
+      `docs/design/allocation-witnesses-v2.json` from its producing declarations. Update
       tightly coupled role/derivation version metadata, index and sheet-format metadata,
       and compatibility rules in that same change, without choosing them here. Amend
       `SEC-5` row 22, `STA-17` for encrypted old-vendor-key carry-forward and residual
@@ -135,8 +152,10 @@ gated on it.
       index counts as used when any vendor shows a machine at it). Decide with it whether the
       sheet carries a carried-forward key, which a second store loss otherwise loses.
       Follow `STA-22a` / ADR-0032's coordinated-change discipline. Until then row 22's
-      "not derivable today" remains operative, and no derived key is usable. Unrelated
-      witness modules need no broad edits.
+      "not derivable today" remains operative, and no derived key is usable.
+      Revisit `STA-22b`'s bare-seed refusal once T44's bounded index scan can find LNVPS
+      machines: the seed-derived vendor identity may then recover inventory (ADR-0040).
+      Unrelated witness modules need no broad edits.
 - [ ] **T45 — Stage 2: the jump host and the untyped vendor scope** (`STG-22`, `CHN-R6`,
       `SEC-4`). Includes one thing the rules name and nothing yet carries: a jump-host source
       for a pin in the formal companion (`ARC-43` says "A pin taken at a jump-host first
@@ -241,8 +260,8 @@ gated on it.
         machine is destroyed and recreated, which re-runs its first contact and loses its
         state", and neither attest nor a jump host re-pins a machine that already exists.
         Whether a later rule should allow it is undecided.
-      - **Found by the branch review of 2026-10-06, not fixed there.** `SEC-5`'s minimum byte length has no
-        refusal case in `CNF-94` until T48 sets the bound, which stage 1's completion requires. The sheet carries neither `SEC-4`'s two answers for an
+      - **Found by the branch review of 2026-10-06.** The minimum byte length and `CNF-94`'s
+        refusal case were settled 2026-10-16 (`SEC-5`); integrated evidence remains T48's. The sheet carries neither `SEC-4`'s two answers for an
         untyped vendor scope nor `CHN-R6`'s jump vendor and date, both stage 2's.
       - **Found by the pull request's review of 2026-10-07, not fixed there.** A renewal
         invoice at an invoicing vendor can be relayed only while the app is open (`ARC-30`,
@@ -354,7 +373,7 @@ gated on it.
       at the approved entry rather than the allocation index or the call id; `STA-3`'s
       append-before-apply, which is also `STA-20b`'s reset-offer precondition; the observation
       lattice, which keeps a changed boot ID below success; and the disposition's binding to the
-      one continuation it names. `docs/design/dispatch-witnesses-v1.json` is its file; the
+      one continuation it names. Its first witness file used schema 1; the
       controls switch the key to the call id and add an operation with no plane.
       *Amended 2026-10-13 with `STA-24`'s disposition rule (ADR-0044).* The continuation is
       `TauWeb.Dispatch.Continuation`, the operator's four choices, and no longer an operation.
@@ -379,9 +398,60 @@ gated on it.
       `TauWeb.Dispatch.reinstall_does_not_refuse_key_registration`,
       `TauWeb.Dispatch.activation_before_disposition_not_counted` and
       `TauWeb.Dispatch.activation_under_replaced_disposition_not_counted`.
-      `docs/design/dispatch-witnesses-v2.json` replaces the v1 file, as schema 2; the controls
+      `CONTEXT.md` lists the current dispatch witness file; the controls
       are the `dispatch_control` calls in `tools/check-controls.sh`, each with its exact red
       set. The untyped scope, its pause and its hold stay outside the module.
+      *Amended 2026-10-16:* `sessionDestroyRefused` carries
+      `TauWeb.Dispatch.session_destroy_under_abandonment_refused` /
+      `TauWeb.Dispatch.session_destroy_lifts_abandonment_without_guard`.
+      `TauWeb.Dispatch.abandonment_ends_at_its_destroy_alone` now refuses the session request
+      while preserving the appended flow intent's lapse. `resetOfferCurrentInstallation` carries
+      `TauWeb.Dispatch.predecessor_reset_offer_refused` /
+      `TauWeb.Dispatch.predecessor_reset_offer_admitted_without_guard` and
+      `TauWeb.Dispatch.changed_keys_reset_offer_refused` /
+      `TauWeb.Dispatch.changed_keys_reset_offer_admitted_without_guard`.
+      The offer derives installation boundaries at dispatch and compares the current
+      installation's newest prerequisite keys against its first durable read.
+      `TauWeb.Dispatch.tracesUpTo` filters repeated request call ids; the narrowed
+      `TauWeb.Dispatch.bounded` also checks their freshness. Intent projection reads by position.
+      `CONTEXT.md` lists the current file; that amendment emitted dispatch schema 3.
+      Pins adds `readyAfterReinstallFresh`, with
+      `TauWeb.Pins.kept_root_keys_after_reinstall_refused` /
+      `TauWeb.Pins.kept_root_keys_pinned_without_guard` and
+      `TauWeb.Pins.observed_keys_after_reinstall_refused` /
+      `TauWeb.Pins.observed_keys_pinned_without_guard`; `TauWeb.Pins.transitionSound`
+      independently checks that admission. Its dedicated reinstall event follows the rescue
+      reset at dispatch; `docs/design/pins-witnesses-v5.json` is its schema 5 file.
+      *Amended 2026-10-17:* `approvedReinstallBoundary` carries
+      `TauWeb.Dispatch.approved_reinstall_boundary_refused` /
+      `TauWeb.Dispatch.approved_reinstall_boundary_admitted_without_guard`. The existing
+      journaled typed approval is carried by `approveReinstall` / `reinstallApproval`, bound
+      to one reset call, entry, session and approved facts. Activation after approval, still
+      confirmed by its newest read, precedes the dispatch that opens the installation; no
+      generation field or reset kind is added. `failedPrerequisiteWithdraws` carries
+      `TauWeb.Dispatch.failed_prerequisite_withdrawal_refused` /
+      `TauWeb.Dispatch.failed_prerequisite_withdrawal_admitted_without_guard`.
+      The durable per-command record of `ready_to_reset` is `resetCollection`, before the
+      result append: its missing durable result withholds the offer across replay, per entry
+      and current installation. The witnesses include unchanged-key failures and restoration
+      by a later durable read. `CONTEXT.md` lists the current file; that amendment emitted
+      dispatch schema 4. `docs/design/witness-file-v1.md` defines its events, assumptions and
+      projections.
+      *Amended 2026-10-17:* Three guards add pairs:
+      `approvalResetRequiresRescue`, `TauWeb.Dispatch.approval_reset_requires_rescue_refused` /
+      `TauWeb.Dispatch.approval_reset_requires_rescue_admitted_without_guard`;
+      `resetOfferFreshKeys`, `TauWeb.Dispatch.kept_keys_reset_offer_refused` /
+      `TauWeb.Dispatch.kept_keys_reset_offer_admitted_without_guard`; and
+      `reinstallWithdrawalEffective`, `TauWeb.Dispatch.withdrawn_approval_reset_refused` /
+      `TauWeb.Dispatch.withdrawn_approval_reset_admitted_without_guard`.
+      `withdrawReinstall` / `reinstallWithdrawal` carry withdrawal separately from disposition.
+      The witnesses cover replacement while keeping or withdrawing approval, approval-only
+      withdrawal, refusal after dispatch, re-approval, replay, failed append and withdrawal
+      identity. `TauWeb.Dispatch.approved_reset_without_activation_opens_nothing` and
+      `TauWeb.Dispatch.approved_spent_activation_opens_nothing` are restated: the reset is now
+      refused, rather than dispatched without opening an installation. Other existing theorem
+      statements, the bounded alphabet and bound are unchanged. Dispatch schema 5 is regenerated
+      from the emission.
 - [x] **T36 — Formal companion, module 5: the host-pin lifecycle** (ADR-0032's inventory;
       `SEC-11`, `CHN-R1`, `ARC-43`, with `STA-20b`'s resume rule and `STG-4`'s third
       confirmation predicate). Landed 2026-09-20 in `tools/formal/TauWeb/Pins.lean`: what a pin

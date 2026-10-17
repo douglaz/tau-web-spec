@@ -1,6 +1,6 @@
 {
-  "max_uncovered_ratcheted": 77,
-  "recorded": "2026-10-11",
-  "reason": "CNF-109 covers the scan-time answerer in TRU-E13",
+  "max_uncovered_ratcheted": 74,
+  "recorded": "2026-10-16",
+  "reason": "Worker policy admission adds CNF-111 coverage of ARC-32 and ARC-33",
   "note": "Lower is better. Raise only deliberately, with a reason."
 }
