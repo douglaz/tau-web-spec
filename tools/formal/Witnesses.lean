@@ -780,6 +780,8 @@ def witnesses : List Trace := [
   { decls := ["TauWeb.Dispatch.withdrawal_after_dispatch_refused"], events := withdrawalAfterDispatchEvents },
   { decls := ["TauWeb.Dispatch.withdrawn_reset_under_reinstall_refused"], events := withdrawnUnderDispositionEvents },
   { decls := ["TauWeb.Dispatch.withdrawal_before_activation_named"], events := withdrawalWithoutActivationEvents },
+  { decls := ["TauWeb.Dispatch.unresolved_activation_before_withdrawal_shown"],
+    events := withdrawalWithUnresolvedActivationEvents },
   { decls := ["TauWeb.Dispatch.undispatched_approval_survives_replay"], events := replayApprovalEvents },
   { decls := ["TauWeb.Dispatch.reapproval_requires_new_activation"], events := reapprovalEvents },
   { decls := ["TauWeb.Dispatch.withdrawal_identity_and_failed_append"], events := withdrawalIdentityEvents },

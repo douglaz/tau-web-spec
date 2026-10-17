@@ -23,8 +23,8 @@ component is distinct within the journal, the whole id fits ext4's label, and it
 left unspecified. No journal field or disk record is added.
 
 *Amended 2026-10-17:* The companion carries a reinstall, with or without a disposition, through
-its existing journaled typed approval, bound to the reset call, entry and approved facts. Its
-reset is now refused without a confirmed rescue activation dispatched since the approval.
+its existing journaled typed approval, bound to the reset call, entry, session and approved facts.
+Its reset is now refused without a confirmed rescue activation dispatched since the approval.
 Withdrawal in `STG-20`, rather than disposition, supplies the approval-only change of mind;
 `STA-24` owns the replacement screen. This keeps the label tied to the actual destructive
 boundary. Comparing the installation's first durable prerequisite read against earlier

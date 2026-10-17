@@ -426,9 +426,9 @@ gated on it.
       `TauWeb.Dispatch.approved_reinstall_boundary_refused` /
       `TauWeb.Dispatch.approved_reinstall_boundary_admitted_without_guard`. The existing
       journaled typed approval is carried by `approveReinstall` / `reinstallApproval`, bound
-      to one reset call, entry and approved facts. Activation after approval, still confirmed
-      by its newest read, precedes the dispatch that opens the installation; no generation
-      field or reset kind is added. `failedPrerequisiteWithdraws` carries
+      to one reset call, entry, session and approved facts. Activation after approval, still
+      confirmed by its newest read, precedes the dispatch that opens the installation; no
+      generation field or reset kind is added. `failedPrerequisiteWithdraws` carries
       `TauWeb.Dispatch.failed_prerequisite_withdrawal_refused` /
       `TauWeb.Dispatch.failed_prerequisite_withdrawal_admitted_without_guard`.
       The durable per-command record of `ready_to_reset` is `resetCollection`, before the

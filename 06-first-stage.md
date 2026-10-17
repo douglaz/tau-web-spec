@@ -435,12 +435,12 @@ read can establish its pin before the reset into the installed system. Any other
 reboot, restart, Restore or non-destructive key recovery does not open that boundary.
 
 A reinstall approval is the separately journaled typed approval of a dedicated destructive
-reinstall, bound to its reset call, entry and approved facts, never a generation. This approval
-exists only on the dedicated path; at LNVPS the reinstall call is itself the dispatch, so no
-approval waits. `STG-4` says "It MUST dispatch the reset only if that immediately preceding read
-still confirms the activation". For the reset the approval binds, that activation MUST have
-been dispatched since the approval; otherwise the reset is refused, not dispatched without
-opening an installation.
+reinstall, bound to its reset call, entry, approved facts and the session it was rendered for,
+never a generation. This approval exists only on the dedicated path; at LNVPS the reinstall call
+is itself the dispatch, so no approval waits. `STG-4` says "It MUST dispatch the reset only if
+that immediately preceding read still confirms the activation". For the reset the approval
+binds, that activation MUST have been dispatched since the approval; otherwise the reset is
+refused, not dispatched without opening an installation.
 
 A disposition recorded since the approval does not withdraw it.
 `TauWeb.Dispatch.approved_reinstall_after_done_disposition` and
@@ -458,10 +458,11 @@ the reinstall approval journals nothing further.
 
 Wherever an undispatched reinstall approval stands, the harness MUST show it with a withdrawal
 offer, for each such approval. The withdrawal screen MUST say that a standing reinstall
-disposition still opens the installation through its own reset. After a withdrawal, the reset
-the approval named MUST be refused, naming the withdrawal, including when a destructive
-reinstall disposition stands and its own activation is confirmed. That disposition opens the
-installation only through a reset of its own, another call.
+disposition still opens the installation through its own reset. After a withdrawal, when no
+unresolved call bars the reset (`STA-24`), the reset the approval named MUST be refused,
+naming the withdrawal, including when a destructive reinstall disposition stands and its own
+activation is confirmed. That disposition opens the installation only through a reset of its
+own, another call.
 
 Amended 2026-10-17: `TauWeb.Dispatch.installationOf` also carries the separately approved
 dedicated reinstall, with or without a disposition. Its pair is
@@ -480,6 +481,8 @@ Withdrawal has the pair `TauWeb.Dispatch.withdrawn_approval_reset_refused` /
 `TauWeb.Dispatch.replaced_reinstall_withdraws_approval` carry the replacement's two routes;
 `TauWeb.Dispatch.withdrawal_after_dispatch_refused` carries the refused withdrawal, and
 `TauWeb.Dispatch.withdrawn_reset_under_reinstall_refused` the disposition's own reset.
+`TauWeb.Dispatch.unresolved_activation_before_withdrawal_shown` carries the unresolved
+activation shown before the withdrawal.
 
 The harness MUST always show the model the current installation id `<machine>-<n>`, with `n`
 the journal's installation generation. It is derived from the journal with no new journal field,

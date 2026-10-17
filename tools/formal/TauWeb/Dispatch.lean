@@ -719,7 +719,7 @@ restricts nothing, which is the disposition read as unrestricted dispatch. -/
 @[req "STA-24"] def restriction (p : Params) (j : Journal) (r : Resource) : Option Continuation :=
   if p.dispositionBindsContinuation then (standing p j r).map (·.1.continuation) else none
 
-/-- Records since the newest approval matching the entry, reset call and approved facts.
+/-- Records since the newest approval matching the entry, reset call, session and approved facts.
 No match leaves the whole journal, so its length also distinguishes an absent approval. -/
 def sinceApproval (j : Journal) (i : Intent) : Journal :=
   j.takeWhile fun rec => match rec with
@@ -746,8 +746,8 @@ def acceptsWithdrawal (j : Journal) (e : Entry) (c : CallId) (ap : Approval) : B
   !(approvalBound j i && (intentsOf (sinceApproval j i)).any fun prior =>
     prior.resource == i.resource && prior.kind == .reset && prior.call == c && prior.approval == ap)
 
-/-- The approval is tied to this reset's call, resource and approved facts. Only records since
-its newest matching approval supply the activation and its newest durable confirming read.
+/-- The approval is tied to this reset's call, resource, session and approved facts. Only records
+since its newest matching approval supply the activation and its newest durable confirming read.
 A matching withdrawal there refuses it, even under a reinstall disposition. Re-approval starts
 again; a disposition does not withdraw an approval. No generation is supplied by the approval.
 Other reset calls cannot consume it; a dispatched reset cannot consume it twice. -/
@@ -874,8 +874,8 @@ def intentOf (rq : Request) (r : Resource) (ap : Approval) : Intent :=
 /-- The dispatch check, in the order the requirements put it: the harness resolves what the model
 named (`STA-24`), `SEC-4`'s binding and approved record are checked, and only then `STA-24`'s
 barrier — "An approval already rendered does not clear the barrier; it is checked again at
-dispatch" — and after it what a standing disposition restricts. A matching withdrawal is
-named before those checks; otherwise an approval-bound reset also needs `approvedRescueReset`.
+dispatch" — then a matching withdrawal, and then what a standing disposition restricts.
+Otherwise an approval-bound reset also needs `approvedRescueReset`.
 Every other reset retains its previous checks. Total, with refusal order defined here.
 
 A request here is a session's. Under a standing abandonment `permits` refuses its destroy;
@@ -887,12 +887,12 @@ The flow's authorization is `SEC-4`'s and is not carried here. -/
   | some r =>
     if ap.session != rq.session then .refused .binding
     else if ap.facts != rq.facts then .refused .facts
-    else if approvalWithdrawn p j (intentOf rq r ap) then
-      .refused (.withdrawnApproval r rq.call ap)
     else match blocking p j (intentOf rq r ap) with
       | c :: cs => .refused (.barrier (c :: cs))
       | [] =>
-        match restricted p j r rq.kind with
+        if approvalWithdrawn p j (intentOf rq r ap) then
+          .refused (.withdrawnApproval r rq.call ap)
+        else match restricted p j r rq.kind with
         | some c => .refused (.continuation c)
         | none =>
           if p.approvalResetRequiresRescue && approvalBound j (intentOf rq r ap) &&
@@ -1010,10 +1010,10 @@ theorem admit_dispatched (p : Params) (j : Journal) (rq : Request) (ap : Approva
         simp only [Bool.not_eq_true, bne_eq_false_iff_eq] at hses hfacts
         split at h
         · exact nomatch h
-        · split at h
+        · rename_i hblock
+          split at h
           · exact nomatch h
-          · rename_i hblock
-            split at h
+          · split at h
             · exact nomatch h
             · rename_i hnone
               split at h
@@ -2244,7 +2244,7 @@ formerly it dispatched without opening an installation. -/
     w.dispatched.map (·.call) = [10] ∧ w.verdict = some (.refused .approvalActivation) ∧
     installationOf current w.memory entryA = 0 := by decide +kernel
 
-/-- The caller's kept-root trace: first successor prerequisites repeat predecessor keys. -/
+/-- A kept-root trace: the first successor prerequisite read repeats a predecessor's keys. -/
 def keptKeysOfferEvents : List Event := predecessorOfferEvents ++ [.resetPrereqs entryA 101 true]
 
 def reusedOfferKeys : Params := { current with resetOfferFreshKeys := false }
@@ -2370,6 +2370,17 @@ def withdrawalWithoutActivationEvents : List Event :=
     let w := run current farDone.external init withdrawalWithoutActivationEvents
     w.verdict = some (.refused (.withdrawnApproval machineA 1 approvalReset)) ∧
     w.dispatched = [] := by decide +kernel
+
+/-- An unresolved activation is shown before the withdrawal of the reset's approval. -/
+def withdrawalWithUnresolvedActivationEvents : List Event :=
+  [.approveReinstall entryA 1 approvalReset true,
+   .request activateRequest approvalActivate true,
+   .withdrawReinstall entryA 1 approvalReset true, .request resetRequest1 approvalReset true]
+
+@[req "STA-24"] theorem unresolved_activation_before_withdrawal_shown :
+    let w := run current farDone.external init withdrawalWithUnresolvedActivationEvents
+    w.verdict = some (.refused (.barrier [10])) ∧
+    w.dispatched.map (·.call) = [10] := by decide +kernel
 
 /-- Not issuing the reset is no withdrawal; replay retains the approval and rescue boundary. -/
 def replayApprovalEvents : List Event := approvedReinstallEvents.take 4 ++

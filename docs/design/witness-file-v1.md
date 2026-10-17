@@ -130,7 +130,8 @@ reset into rescue, bound to that reset call, approved entry, session and facts. 
 supplies nor moves the installation ordinal. The activation used at dispatch must have been
 dispatched since that approval and its newest admissible durable read must still confirm it;
 otherwise the approval-bound reset is refused at dispatch. A matching withdrawal since the
-newest approval refuses that reset naming the withdrawal, even under a reinstall disposition.
+newest approval refuses that reset naming the withdrawal, even under a reinstall disposition,
+when no unresolved call bars it (`STA-24`).
 A disposition does not withdraw approval. A re-approval starts the activation check again.
 An approval for a reset never dispatched cannot make another reset open an installation; a
 second rescue reset needs its own approved reinstall to open another. `withdraw_reinstall`

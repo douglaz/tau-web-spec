@@ -561,6 +561,7 @@ dispatch_control "formal: an unresolved box-plane command barring nothing" \
 # The reset offer's witness, which is the durability rule's and not the key's, stays green.
 # The new partial-abandonment witness also needs the barrier to hold across call ids.
 # Rehearsed 2026-10-17: the approved reset still waits for its new activation's confirmation.
+# The unresolved activation is also shown before a withdrawn approval's reset.
 dispatch_control "formal: the barrier keyed on the call id" \
   "sed -i 's/{ resourceKey := .entry,/{ resourceKey := .call,/' $DISP && grep -q '{ resourceKey := .call,' $DISP" \
   same_action_new_call_id_refused second_index_same_entry_refused \
@@ -571,7 +572,8 @@ dispatch_control "formal: the barrier keyed on the call id" \
   return_to_rescue_trace reset_waits_for_other_commands bounded \
   spent_activation_counted_without_guard \
   undisposed_command_bars_flow_destroy \
-  approved_reinstall_keeps_disposition_activation_boundary
+  approved_reinstall_keeps_disposition_activation_boundary \
+  unresolved_activation_before_withdrawal_shown
 
 # A disposition's reach, its end and what it may name (STA-24, 2026-10-13) are fields of
 # TauWeb.Dispatch.Params, each control one bad edit of one field's rule value. A red set also
