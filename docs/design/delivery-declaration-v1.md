@@ -1,7 +1,7 @@
-# Delivery declaration v1
+# Delivery declaration v2
 
 Normative companion to `ARC-39` and ADR-0030's "Delivery declaration" slot. The structured form
-the delivery check (`CNF-49`–`CNF-53`) reads. A tenant's profile carries the prose; a v1
+the delivery check (`CNF-49`–`CNF-53`) reads. A tenant's profile carries the prose; a version-2
 document carries the values the harness measures against — today the examples below, and a
 file beside each profile once T28 lands. Where no tenant applies, the declaration is the one
 the operator approved for that machine, starting from the ad-hoc minimum below (`ARC-39`), and
@@ -30,15 +30,15 @@ is evaluated, under that field's semantics.
 
 ## Shape
 
-JSON object, `version: 1`. Field names are fixed; values are as described.
+JSON object, `version: 2` (version 1 is refused). Field names are fixed; values are as described.
 
 <!-- formal: TauWeb.Render.declarationTable -->
 | Field | Value | What the check does | What the declaration decides |
 |---|---|---|---|
-| `version` | `1` | Refuse any other | **number** |
+| `version` | `2` | Refuse any other | **number** |
 | `listeners.inbound` | list of `{proto: "tcp"\|"udp", port: n, from: "any"\|"peers"\|"none"}` | Every answering socket must match an entry; an undeclared one is the finding (`CNF-50`, `CNF-51`) | **nothing may** |
 | `listeners.outbound` | list of `{proto, host, port}` restrictions, or `[]` for none; `host` is a DNS name, a CIDR block, or `"any"` | Each declared restriction must be in place | **none is declared** |
-| `services` | list of `{name, lifecycle: "running-at-delivery"\|"enabled-survives-reboot"}` | Demonstrated exactly as declared; nothing beyond it is asserted (`CNF-53`) | **none is declared** |
+| `services` | list of `{name, scope, lifecycle: "running-at-delivery"\|"enabled-survives-reboot"}` | Demonstrated or labelled under `ARC-43`'s evidence clause; nothing beyond the declaration is asserted (`CNF-53`) | **none is declared** |
 | `key_material.spendable` | `false` on a multi-tenant machine (`ARC-37`, harness rule; a profile cannot set `true` there) | Searched for after install (`CNF-52`) | **flag** |
 | `key_material.permitted` | list of `{kind, where}` describing the **tenant's** key material expected on disk, or `[]` for none; application credentials placed under `ARC-43` are classified separately by `SEC-5` row 12. On a multi-tenant machine only public or watch-only kinds are admissible (`ARC-37`); a single-purpose machine may list private, non-spendable material, as btc-policy's member vault keys are | Tenant material outside the list is a finding. The machine's SSH host keys and own client public key (`SEC-1`, `CHN-R1`, `CHN-R7`) are expected machine material and are never listed, regardless of who generated them | **nothing may** |
 | `drift_checks` | list of `{name, command, expect}` the maintained re-check runs, or `[]` | Run by the machine's own session (`ARC-26`), not at delivery | **on re-entry** |
@@ -64,11 +64,20 @@ classification does not relax `ARC-37` for the spendable material it governs: on
 multi-tenant machine `place_secret` refuses a value the operator has not confirmed is not
 spendable (`ARC-43`).
 
-## ad-hoc, v1 (complete)
+Each `services[]` entry MUST have `scope: {"kind": "system"}` or
+`scope: {"kind": "user", "account": "name"}`. A user account MUST match
+`^[a-z_][a-z0-9_-]{0,31}$`; a system entry has no account member. A user-scope read uses that
+account's manager and also requires `Linger=yes`. A system-scope read of a user unit MUST
+never be made: it would raise a false lifecycle finding. Hermes's own installer makes a
+lingering user unit. Service names use `ARC-43`'s stage-1 systemd grammar. A missing or
+malformed scope is an invalid declaration entry. This added required member is why the
+schema is version 2; the file name is retained.
+
+## ad-hoc, v2 (complete)
 
 ```json
 {
-  "version": 1,
+  "version": 2,
   "listeners": { "inbound": [ { "proto": "tcp", "port": 22, "from": "any" } ], "outbound": [] },
   "services": [],
   "key_material": { "spendable": false, "permitted": [] },
@@ -82,17 +91,18 @@ This is the signed minimum every proposal starts from. What the operator approve
 for a machine — a listener, a service, an application's outbound destinations — is that
 machine's journaled declaration, not profile content (ad-hoc profile).
 
-## lnrent, v1 (template, every field unspecified)
+## lnrent, v2 (template, unstated fields unspecified)
 
 To be sent to the tenant (T28) as the answer format for
-[douglaz/lnrent#87](https://github.com/douglaz/lnrent/issues/87). The two values the corpus
-already states are filled; everything else waits for the tenant.
+[douglaz/lnrent#87](https://github.com/douglaz/lnrent/issues/87). The version and the spendable prohibition are filled; everything else waits for the tenant.
+No service scope is named by the profile, so `services` stays `"unspecified"`; its stated
+lifecycle remains in the profile's prose.
 
 ```json
 {
-  "version": 1,
+  "version": 2,
   "listeners": { "inbound": "unspecified", "outbound": "unspecified" },
-  "services": [ { "name": "lnrentd", "lifecycle": "enabled-survives-reboot" } ],
+  "services": "unspecified",
   "key_material": { "spendable": false, "permitted": "unspecified" },
   "drift_checks": "unspecified",
   "required": "unspecified",
@@ -100,9 +110,11 @@ already states are filled; everything else waits for the tenant.
 }
 ```
 
-## btc-policy, v1
+## btc-policy, v2
 
 Restated from its profile when the tenant supplies its drift checks and required software
 (both "not yet stated"); until then the same template shape with those two fields
-`"unspecified"`, one inbound listener on the vault protocol port from `peers`, one service
-`running-at-delivery`, and `key_material.permitted` naming the member vault keys. TASKS T28.
+`"unspecified"`, one inbound listener on the vault protocol port from `peers`, and
+`key_material.permitted` naming the member vault keys. `services` is `"unspecified"` until
+the tenant names its service scope; its stated `running-at-delivery` lifecycle remains in
+the profile's prose, as the lnrent template invents no scope either. TASKS T28.

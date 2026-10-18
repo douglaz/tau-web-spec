@@ -120,8 +120,8 @@ _Avoid_: example (a witness is checked; an example is illustrated), sample, test
 
 **Witness file** · ADR-0032
 The companion's serialized witnesses and bounded traces for one module, one file under
-`docs/design/` — `allocation-witnesses-v1.json`, `declaration-witnesses-v1.json`,
-`relay-witnesses-v1.json`, `dispatch-witnesses-v2.json` and `pins-witnesses-v4.json`, with
+`docs/design/` — `allocation-witnesses-v2.json`, `declaration-witnesses-v1.json`,
+`relay-witnesses-v1.json`, `dispatch-witnesses-v5.json` and `pins-witnesses-v5.json`, with
 `witness-file-v1.md` describing their schemas — emitted by `lake exe witnesses` and held equal to the emission by
 `tools/check_witnesses.py`. Future implementation tests are to read them from the pinned tree;
 nothing outside this repository reads witness files today. Never compiled into the build. It
@@ -302,6 +302,12 @@ or by a disposition, never by a timer.
 _Avoid_: pending, in flight (both suggest it will settle by itself), failed, timed out (both
 assert an outcome nobody has)
 
+**Withdrawal** · `STG-20`
+The operator's journaled act naming a dedicated reinstall approval, its entry and its reset
+call; distinct from a disposition, from choosing never to issue the reset, and from the end
+of the session the approval was rendered for.
+_Avoid_: withdrawal of a reset offer — an offer is **withheld**, not withdrawn
+
 **Resource** · `STA-24`
 What an intent record names and the unresolved barrier holds on: a machine's **approved
 entry** in the setup, to which its allocation index and vendor machine id are associated; or,
@@ -353,7 +359,9 @@ which a mechanism then enforces), spec (too broad)
 **Delivered** / **handed over with findings** · `ARC-17`
 *Delivered*: the delivery check finds no difference from the machine's declaration in force,
 and the fixed lockdown checks pass. It is a claim about that machine state, not that the
-application works; model-written check reports are outside it. *Handed over with findings*:
+application works; model-written check reports are outside it. `ARC-43` owns the evidence
+label beside Delivered for a machine declaring an `enabled-survives-reboot` service with no
+demonstrated reboot. *Handed over with findings*:
 the operator takes the machine
 while findings stand; it is not delivered and is never described as locked down. What may still
 be placed on it, and what clears a finding, are `ARC-17`'s. Named 2026-10-05.

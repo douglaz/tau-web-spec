@@ -258,10 +258,16 @@ did not happen" is therefore always the operator's disposition (`STA-24`) and ne
 and whether a Robot reset can be delayed or dropped is not known: the rehearsal's three cycles
 at about eighty seconds are the only data.
 
-Immediately before the reset into rescue at which a standing disposition's destructive
-reinstall is dispatched (`STA-24`), the harness MUST read the activation predicate again and
-durably journal the read (`STA-3`); only a re-read the journal holds discharges this duty. This
-duty does not extend to the ordinary install ceremony's reset into rescue with no disposition.
+Immediately before **every** reset into rescue, including the ordinary install ceremony's
+reset with no disposition, the harness MUST read the activation predicate again and durably
+journal the read (`STA-3`). It MUST dispatch the reset only if that immediately preceding read
+still confirms the activation; a non-confirming read or a failed append is shown as the refusal.
+The residual window and its bounds are `STA-24`'s paragraph beginning "A reboot between that read
+and the reset leaves a window". The companion carries only one reset kind. It carries this rule
+only for the reset a reinstall approval binds, through the newest durable activation read since
+the approval (`TauWeb.Dispatch.admit`): it cannot carry "immediately preceding"
+or the failed-append refusal, since a failed read append leaves an older confirming read newest.
+Every other reset retains its existing companion admission.
 
 Anything not confirmed stays unresolved under `STA-8` and the operator decides; the adapter is
 reconcile-before-retry (`STA-5`), and a second request for the same mutation under a new call
@@ -421,11 +427,116 @@ as an unbootable machine.
 Unreachability is not proof of boot failure: a relay or network outage can look the same.
 The timeout does not clear an unresolved action or authorize a wipe. The operator must choose
 the destructive reinstall, with the selected disks shown; normal typed approvals and journal
-ordering apply. Resume first follows `STA-20b`. Once that separately approved destructive
-reinstall from rescue is recorded, it opens a new installation: the old installed-system pin
-retires and the new `ready_to_reset` job read can establish its pin before the reset into the
-installed system. A rescue reset, reboot, restart, Restore or non-destructive key recovery
-does not open that boundary. The harness does not reach for the vendor's console.
+ordering apply. Resume first follows `STA-20b`. That separately approved destructive reinstall
+opens a new installation when it is **dispatched**: the reset into rescue on a dedicated server,
+or the vendor's reinstall call at LNVPS. Choosing it or recording its disposition does not move
+that boundary. At dispatch the old installed-system pin retires and the new `ready_to_reset` job
+read can establish its pin before the reset into the installed system. Any other rescue reset,
+reboot, restart, Restore or non-destructive key recovery does not open that boundary.
+
+A reinstall approval is the separately journaled typed approval of a dedicated destructive
+reinstall, bound to its reset call, entry, approved facts and the session it was rendered for,
+never a generation. This approval exists only on the dedicated path; at LNVPS the reinstall call
+is itself the dispatch, so no approval waits. `STG-4` says "It MUST dispatch the reset only if
+that immediately preceding read still confirms the activation". For the reset the approval
+binds, that activation MUST have been dispatched since the approval; otherwise the reset is
+refused, not dispatched without opening an installation.
+
+A disposition recorded since the approval does not withdraw it.
+`TauWeb.Dispatch.approved_reinstall_after_done_disposition` and
+`TauWeb.Dispatch.approved_reinstall_after_not_done_disposition` retain the approval through
+continuing dispositions. Only the operator's journaled withdrawal, naming the entry, the reset
+call and the approval, withdraws a reinstall approval.
+An approval **stands** from its record until its reset is dispatched, a matching withdrawal
+is recorded, or the session it was rendered for ends; several approvals for an entry stand
+independently. Unlike a disposition's standing, this reads both the journal and whether the
+rendering session still runs. `SEC-4` says "A typed operation that names an existing machine
+MUST be authorized against the calling session's binding". `STA-23` says "Explicit lock,
+page hide/backgrounding, or worker shutdown stops dispatch, ends session workers and closes
+channels" and "No unload callback is relied on for journaling". The rendering session's end
+is not journaled; after a restart, every earlier session's approval is no longer usable,
+needs no withdrawal and opens nothing. A withdrawal of an approval whose reset was already
+dispatched is refused and records nothing. A re-approval is newer and
+starts again: it stands and its reset needs an activation dispatched since the re-approval.
+Never issuing the reset is not a withdrawal. A replay ends the session, so its approval is
+then no longer usable, not withdrawn. A withdrawal whose append fails is not recorded (`STA-3`),
+so the approval still stands. Choosing to keep
+the reinstall approval journals nothing further.
+
+Wherever an undispatched reinstall approval stands, the harness MUST show it with a withdrawal
+offer, for each such approval whose rendering session still runs. The harness MUST show an
+undispatched approval of an ended session as no longer usable, with no withdrawal offer, and
+say that approving again in this session is the way on. That makes a new approval for this
+session's reset call, whose rescue activation must be dispatched since the new approval and
+still confirmed. The withdrawal screen MUST say that a standing reinstall
+disposition still opens the installation through its own reset. After a withdrawal, when no
+unresolved call bars the reset (`STA-24`), the reset the approval named MUST be refused,
+naming the withdrawal, including when a destructive reinstall disposition stands and its own
+activation is confirmed. That disposition opens the installation only through a reset of its
+own, another call.
+
+Amended 2026-10-17: `TauWeb.Dispatch.installationOf` also carries the separately approved
+dedicated reinstall, with or without a disposition. Its pair is
+`TauWeb.Dispatch.approved_reinstall_boundary_refused` /
+`TauWeb.Dispatch.approved_reinstall_boundary_admitted_without_guard`.
+The reset's activation condition has the pair
+`TauWeb.Dispatch.approval_reset_requires_rescue_refused` /
+`TauWeb.Dispatch.approval_reset_requires_rescue_admitted_without_guard`.
+`TauWeb.Dispatch.approved_reset_without_activation_opens_nothing` and
+`TauWeb.Dispatch.approved_spent_activation_opens_nothing` now show that reset refused, with no
+installation opened; `TauWeb.Dispatch.unrelated_rescue_reset_opens_nothing` and
+`TauWeb.Dispatch.second_rescue_reset_opens_nothing_more` retain the other non-boundaries.
+Withdrawal has the pair `TauWeb.Dispatch.withdrawn_approval_reset_refused` /
+`TauWeb.Dispatch.withdrawn_approval_reset_admitted_without_guard`.
+`TauWeb.Dispatch.replaced_reinstall_keeps_approval` and
+`TauWeb.Dispatch.replaced_reinstall_withdraws_approval` carry the replacement's two routes;
+`TauWeb.Dispatch.withdrawal_after_dispatch_refused` carries the refused withdrawal, and
+`TauWeb.Dispatch.withdrawn_reset_under_reinstall_refused` the disposition's own reset.
+`TauWeb.Dispatch.unresolved_activation_before_withdrawal_shown` carries the unresolved
+activation shown before the withdrawal.
+`TauWeb.Dispatch.ended_session_approval_refused` and
+`TauWeb.Dispatch.successor_reapproval_opens_installation` carry session succession through
+the approval's binding.
+
+The harness MUST always show the model the current installation id `<machine>-<n>`.
+`<machine>` is the lowercase hexadecimal, without leading zeros, of the machine-family index
+the machine's entry holds under the journal's current seed or, until Replace migrates it
+under `STA-17`'s condition (including its dedicated-machine relabel confirmation), under the
+retired seed (`STA-22b`). Machine indices are distinct among machines allocated
+under the current seed. A retired-seed index can coincide with a migrated machine's new index.
+`n` is the journal's installation ordinal in decimal without leading zeros, starting at zero
+per machine. It is derived from the journal with no new journal field, unchanged across restart
+and Restore. Index 0 and ordinal 0 each render as `0`, so the first installation of index 0
+is `0-0`. [docs/design/credential-format-v1.md](./docs/design/credential-format-v1.md) says
+"Indices are integers from 0 through 2^31−1": the largest machine component is `7fffffff`,
+eight bytes. With the one-byte `-` separator, seven bytes remain for `n`, so its uniform bound
+is 9 999 999 regardless of the machine component's
+length. The longest label, `7fffffff-9999999`, is exactly 16 bytes and fits ext4's label.
+The harness MUST refuse a destructive reinstall that would make `n` = 10 000 000 before
+dispatch, saying that the installation id would exceed its limit: before the reset into
+rescue on the dedicated path, or before the vendor's reinstall call at LNVPS.
+`STA-17` says "Replace's machine-migration MUST move the machine component to the machine's
+new index and carry its installation ordinal `n` with it". The uniform bound keeps that move
+within the label's size even when the new index is longer.
+The install brief uses that label to distinguish its own root from a predecessor (ADR-0045).
+On a dedicated machine, `STA-17`'s relabel job moves the root's label to the new id; its
+non-dedicated path, including LNVPS, writes no label. The companion does not model Replace's
+migration steps or the relabel: `tools/formal/TauWeb/Allocation.lean` says "What the module
+omits: Replace's re-entry to remove the old keys from every maintained machine (`STA-17`)";
+`TauWeb.Pins.kept_root_keys_after_reinstall_refused` says "Labels and formatting are outside
+this companion".
+The label steers the model; nothing checks it.
+
+As a backstop, a `ready_to_reset` pin after a dispatched reinstall MUST share no fingerprint
+with any observation or installed-system pin of that machine in any earlier installation.
+`TauWeb.Pins.fresh` supplies this comparison, including observations; its guard's pairs are
+`TauWeb.Pins.kept_root_keys_after_reinstall_refused` /
+`TauWeb.Pins.kept_root_keys_pinned_without_guard` and
+`TauWeb.Pins.observed_keys_after_reinstall_refused` /
+`TauWeb.Pins.observed_keys_pinned_without_guard`. `TauWeb.Pins.transitionSound` checks that
+admission within the bound. This enforces "no pinned key survives a reinstall", never "erased
+as approved", and is vacuous for a predecessor that never reached `ready_to_reset` and left no
+matching observation. The harness does not reach for the vendor's console.
 
 That console exists — Hetzner's vKVM rescue boots the installed disk inside a virtual machine
 with a screen — and it is **the operator's own tool, by hand, outside the harness**, for a

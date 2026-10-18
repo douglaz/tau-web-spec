@@ -22,6 +22,10 @@ named source:
   commands that need them;
 - **the harness, per session** — the bound session's SSH client public key, shown to you for
   the one command that installs it (step 6);
+- **the harness, per machine** — the current installation id `<machine>-<n>` (`STG-20`),
+  a lowercase hexadecimal machine-family index and a decimal installation ordinal, each without
+  leading zeros and each rendering zero as `0`, for example `0-0` or `1f-3`; always shown as
+  `<installation-id>` below;
 - **you**, from what you read in step 1 — the root disk, the additional disk set, the address,
   gateway and hostname; you compose them into the command you issue, and the harness journals
   that command as sent (`ARC-8`);
@@ -43,7 +47,9 @@ reconnect through the harness; do not try to re-pin anything.
 
 You stop when the installed system is on the disk and you have requested `ready_to_reset`.
 That job reads the installed host public keys from `/mnt`, journals their fingerprints,
-unmounts, and offers the reset to the operator. **You do not reboot and you do not unmount.**
+unmounts, and offers the reset to the operator unless `STA-20b` withholds it: changed keys,
+an earlier installation's keys, or no durable result. The operator is then told before reboot.
+**You do not reboot and you do not unmount.**
 If the installed system does not answer within `installed.wait_max` (`bundle/timing.toml`),
 the harness reports unreachability and offers a reinstall (`STG-20`). It first reconciles
 unresolved jobs and requires an explicit operator decision to discard the install and erase
@@ -65,7 +71,22 @@ lsblk -dno NAME,SIZE,MODEL,SERIAL,WWN; ls -l /dev/disk/by-id/ | grep -v part; [ 
   the same disk under UEFI. Install both bootloaders regardless of what you see here.
 - **Addressing is static.** Take the address, prefix and gateway from what the rescue kernel
   is using; there is no DHCP for the installed system to rely on.
-- If the disk already holds a partial install, read the **Resume** section before wiping.
+- Probe root filesystem labels directly from the disks, without mounting and never from a
+  cache. For each candidate partition, for example
+  `blkid -p -s TYPE -s LABEL -o export <partition>`, retaining its exit status and output.
+  A labelled root requires exit 0 and a line beginning `LABEL=`; compare its value with the
+  harness's shown `<installation-id>`. An unlabelled root requires exit 0, a line beginning
+  `TYPE=` reporting a filesystem, and no line beginning `LABEL=`. Everything else is an
+  unresolved label probe: stop and surface, never erase. This includes exit 2 (which can mean
+  no identified device or inability to gather information), empty output even with exit 0,
+  and every probe error or other status, including 4 and 8. Match the beginnings of lines:
+  `PART_ENTRY_TYPE=`, `PART_ENTRY_NAME=` and `LABEL_FATBOOT=` establish neither case.
+  Only a matching root is this installation and eligible for **Resume** or "found complete,
+  do not wipe". Two roots with that id mean stop and surface, never erase.
+- An unmarked root, another installation's id or another machine's id is the predecessor,
+  including a hand-installed root. It is erased on the selected disks as approved for this
+  install; never resume it merely because it looks complete. The label steers you; nothing
+  checks it. Read **Resume** before wiping a matching root.
 - Decide the complete installation disk set by WWN before any write, and state it in your
   next command: the root disk, and the explicitly selected additional disks (or none). Never
   the whole disk list. Every disk you name will be erased. Re-read identities in the rescue
@@ -85,12 +106,27 @@ the bundle's value binds.
 
 ## Step 3 — partition, format, mount
 
+First inspect the labels probed in step 1. A single root whose label equals the shown
+`<installation-id>` is yours: if partial, follow **Resume** without formatting; if complete,
+**found complete, do not wipe** — inspect it and request `ready_to_reset`, preserving its keys.
+An installed-system pin already recorded means continuing keeps that root and its keys; changing
+those keys requires a separately approved destructive reinstall (`STA-20b`). An unresolved label probe
+or two roots carrying the current id means stop and surface, never erase.
+
+With only a predecessor, or no root, on the approved disks, partition and format as approved below. Write
+the shown id as the root label in the **same** `mkfs.ext4` command: no gap between formatting
+and marking. It is readable without mounting and fits ext4's 16-byte label (`STG-20`).
+You write the label once, at formatting in `mkfs.ext4`; never rewrite a root's label yourself.
+Afterwards, on a dedicated machine, only the harness rewrites it, through Replace's relabel
+job (`STA-17`), which moves it to the machine's new id. Once the harness confirms that relabel,
+the id it shows is the one the root carries.
+
 GPT with a 1 MiB BIOS-boot partition, a 512 MiB EFI system partition, and the rest as root.
 The same layout boots both firmware modes. One block, so the partition paths it computes
 are used where they were computed:
 
 ```sh
-D=<root-wwn>; sgdisk --zap-all "$D" && sgdisk -n1:0:+1M -t1:ef02 -n2:0:+512M -t2:ef00 -n3:0:0 -t3:8300 "$D" && partprobe "$D" && sleep 2 && ESP=$(lsblk -nrpo NAME "$D" | sed -n 3p) && ROOT=$(lsblk -nrpo NAME "$D" | sed -n 4p) && mkfs.vfat -F32 "$ESP" && mkfs.ext4 -F "$ROOT" && mount "$ROOT" /mnt && mkdir -p /mnt/boot/efi && mount "$ESP" /mnt/boot/efi
+D=<root-wwn>; sgdisk --zap-all "$D" && sgdisk -n1:0:+1M -t1:ef02 -n2:0:+512M -t2:ef00 -n3:0:0 -t3:8300 "$D" && partprobe "$D" && sleep 2 && ESP=$(lsblk -nrpo NAME "$D" | sed -n 3p) && ROOT=$(lsblk -nrpo NAME "$D" | sed -n 4p) && mkfs.vfat -F32 "$ESP" && mkfs.ext4 -F -L '<installation-id>' "$ROOT" && mount "$ROOT" /mnt && mkdir -p /mnt/boot/efi && mount "$ESP" /mnt/boot/efi
 ```
 
 Mounts persist on the machine; shell variables do not. Software RAID across the two disks was
@@ -219,7 +255,9 @@ strength of this brief.
 
 Request the harness job. It runs `cat /mnt/etc/ssh/ssh_host_*_key.pub`, derives and journals
 the fingerprints, syncs and unmounts `/mnt`, and offers the reset typed operation to the
-operator (`STG-4`, `CNF-22`). The harness then resets and connects to the installed system
+operator (`STG-4`, `CNF-22`), unless `STA-20b` withholds it for changed keys, an earlier
+installation's keys, or no durable result; the operator is then told before reboot.
+Once the reset is offered and approved, the harness resets and connects to the installed system
 with those keys and nothing else. On this run the keys on the wire after the reboot were
 byte-identical to what was read here. Do not `umount` yourself: a job that unmounts before
 the keys are read is exactly the ordering `ready_to_reset` exists to prevent.
@@ -233,10 +271,12 @@ rehearsal never resumed; it only ever wiped. What a resume should look like, unt
   wait; a missing record means unresolved, not permission to retry or wipe.
 - Re-identify disks by WWN and inspect partitions and mount state before changing them.
   Because every block is stateless, a block can be re-issued on its own: if `/mnt` is
-  mounted and holds a partial Alpine root, inspect the package, network and boot state and
+  mounted and its disk-probed label equals the shown id, inspect the package, network and boot state and
   re-issue only the blocks whose work is missing. Steps 5–7 as a whole are **not** declared
-  idempotent: step 7's additional-disk block erases. Preserve existing host keys; if step 6
-  already ran, do not run `ssh-keygen -A` again.
+  idempotent: step 7's additional-disk block erases. Resume only this installation's matching
+  root and preserve its host keys. If it is complete, do not wipe: inspect it and request
+  `ready_to_reset`. An unmarked or foreign-id root is the approved predecessor, not a resume;
+  two matching roots or an unresolved label probe mean stop and surface, never erase.
 - If evidence cannot establish a safe continuation, stop and surface the unresolved action.
   A reinstall under `STG-20` is a separately recorded operator decision to discard this
   disposable install, with its disk set shown again. A timer or missing file never authorizes it.

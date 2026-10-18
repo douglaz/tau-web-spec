@@ -293,8 +293,11 @@ accumulated knowledge or opens its group; repeated empty, exact, reordered, and 
 contained readings do not extend history. Keep every installation boundary.
 
 An operator-chosen destructive reinstall through the vendor API or from rescue is a new first
-contact: the old installed pin authorizes no new contact. A reset, reboot, restart, Restore or
-non-destructive recovery does not open an installation or permit replacement. A valid source
+contact: the old installed pin authorizes no new contact. `STG-20` says it "opens a new
+installation when it is **dispatched**: the reset into rescue on a dedicated server, or the
+vendor's reinstall call at LNVPS". That reset into rescue dispatches the operator-chosen
+destructive reinstall. Any other reset, reboot, restart, Restore or non-destructive recovery
+does not open an installation or permit replacement. A valid source
 may establish the next pin under its own rules; a complete
 publication satisfying these comparisons can do so here. Without a reinstall, no
 installed-system pin from any source replaces an active pin on that machine, even if its

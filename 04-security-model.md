@@ -80,7 +80,8 @@ in its bound set and no other, so a session cannot authenticate to a machine out
 and the refusal comes from SSH rather than from the harness declining to call its own
 transport. Two harness flows hold a client key outside any session, and no model drives
 either: the jump-host flow (`CHN-R6`), and Replace's key migration (`STA-17`), which holds one
-machine's old and new keys while it swaps them and runs nothing else on it. A single shared client key would leave this invariant enforced only by routing code,
+machine's old and new keys while it swaps them and runs on it only what `STA-17` names.
+A single shared client key would leave this invariant enforced only by routing code,
 which is bookkeeping rather than a boundary.
 
 **The key is the machine's, not the session's, and a binding is exclusive.** Until 2026-09-16
@@ -159,7 +160,9 @@ implementation can be required to prevent.
 **The product MUST NOT present any claim as verified.** There is no verification layer.
 "Verified" and "no anomalies found" are claims this design cannot make. A model-written check
 report MUST be labelled **"Checks the AI wrote — not part of Delivered"**, with no tick mark
-and no "passed" or "verified" treatment, whatever its output (`ARC-39`).
+and no "passed" or "verified" treatment, whatever its output (`ARC-39`). The seed-backup
+record and display MUST say which `STA-23` completion happened, full re-entry or skip;
+neither is presented as a verified backup.
 
 ### SEC-3 — the box plane has no path to the harness's cloud plane
 
@@ -199,6 +202,14 @@ the authorization at each dispatch is the enforcement.
 session's binding**, enforced by the adapter rather than left to the approval screen: one
 naming a machine outside the calling session's bound set is refused. A session's vendor
 operations reach the machines of its own set and account-level creation, nothing else.
+
+**The abandonment flow is authorized outside any session.** It MUST act only on machines of
+the unfinished setup whose vendor machine id reached the approved entry through **this setup's
+own** create response, or through evidence tied to the seed-derived key. This authorization is
+checked at dispatch. A mapping imported from a recovery sheet is never enough by itself. A lost
+create with no admissible evidence remains subject to `ARC-22`'s "cannot be destroyed from here
+and may still exist and bill". The calling-session binding above governs session operations;
+this paragraph governs only the deterministic abandonment flow (`ARC-21`).
 
 **What is dispatched is the approved record.** The adapter executes the structured facts as
 they were approved and journaled — the resource (`STA-24`), the arguments, the declared cost
@@ -262,7 +273,7 @@ outgrown, because adding a credential means adding a row.
 
 | # | Credential | Origin | Where it lives | Lifetime | What it authorizes | How it dies |
 |---|---|---|---|---|---|---|
-| 1 | Vendor API credential, used through a typed adapter | Operator | Browser memory only | The sessions it is supplied to, or one deterministic harness flow (`STA-18`, `ARC-21`) | Whatever the vendor grants it, up to full account authority; the adapter authorizes each operation against the calling session's bound set (`SEC-4`), so one credential may serve several sessions | Session or flow ends |
+| 1 | Vendor API credential, used through a typed adapter | Operator | Browser memory only | The sessions it is supplied to, or one deterministic harness flow (`STA-18`, `ARC-21`) | Whatever the vendor grants it, up to full account authority; the adapter authorizes session operations against the calling session's bound set, so one credential may serve several sessions; it authorizes the abandonment flow against this setup's own create response or evidence tied to the seed-derived key (`SEC-4`) | Session or flow ends |
 | 2 | Inference **session** key | Minted from row 14 (procured); supplied by the operator (BYO) | Browser memory only | One session | Inference spend, **up to its own cap** | Revoked at session end (procured); session ends (BYO) |
 | 3 | **SSH client private key, one per machine** | **Derived** from row 15 at that machine's index (`STA-22`) | Re-derived on demand; nothing to export. Given to the machine's bound session and no other; a jump host's, at the jump host's own index, is given to no session (`CHN-R6`); during Replace, the machine's old and new keys are held by the harness's model-free Replace flow and given to no session (`STA-17`) | Machine lifetime | Login to **that one machine** | Removed from the machine on Replace (`STA-17`), which is a new seed; a jump host's dies with the jump host |
 | 4 | **Relay key**, one per pass | Derived from row 15 (`STA-22`); its public half is what the relay binds a bought pass to (`CHN-15`), and what the first stage hands the publisher out of band | Re-derived on demand; nothing to store | Until the pass expires or is revoked | Reaching the destinations recorded against its pass, on any port; recording destinations; revoking (`CHN-16`) | Pass expires or replacement is confirmed under `STA-17`, by signed revocation or stage 1's manual retirement |
@@ -276,10 +287,10 @@ outgrown, because adding a credential means adding a row.
 | 12 | **Application secret placed on a machine** | Operator, on `place_secret`'s card (`ARC-43`) | Browser memory until the placing session ends, then the machine alone; briefly in the local paste re-arm card (`ARC-43`), cleared after reference construction and never persisted or sent | Machine lifetime | Whatever the application it was placed for uses it for | Machine destroyed, or operator rotates |
 | 13 | ~~Injected SSH host private key~~ | — | — | — | — | **Row retired. `CHN-R3` is abandoned**: user-data stays readable from the vendor's metadata endpoint for the instance's life, so the key would be permanently re-fetchable by anything on the machine. No exception wording fixes that. |
 | 14 | **Inference account credential** (procured only) | Operator, on funding an account-free balance | Encrypted at rest; **exported in the sheet** | Until the balance is spent | The remaining balance; minting and revoking row 2; attaching a funding source (`ARC-31a`) | Spent down or abandoned — **it is bearer and cannot be revoked** |
-| 15 | **Operator seed** | Operator, at first use; backed up by the operator | Encrypted at rest; **in the operator's head or seed backup**, never in the sheet | Until replaced | Deriving rows 3, 4, 7, 16 and 17 — **every maintained machine, every relay pass, every future introduction, and every declared handoff** (`STA-22`) | Replaced by a new seed on Replace (`STA-17`); the old one is not revocable, only abandoned — and it is still needed *during* Replace |
+| 15 | **Operator seed** | Operator, at first use; backed up by the operator | Encrypted at rest; **in the operator's head or seed backup**, never in the sheet; words displayed only in `STA-23`'s ceremony | Until replaced | Deriving rows 3, 4, 7, 16 and 17 — **every maintained machine, every relay pass, every future introduction, and every declared handoff** (`STA-22`) | Replaced by a new seed on Replace (`STA-17`); the old one is not revocable, only abandoned — and it is still needed *during* Replace |
 | 16 | **Attest recipient key**, one per machine — a jump host pinned by attest included, at its own index | Derived from row 15 (`STA-22`) | Re-derived on demand; public half in boot user-data | Until the introduction is accepted or the window closes | Decrypting **one** machine's introduction, and authenticating the inbox subscription that receives it (NIP-42, `CHN-18`) | The browser stops listening; the key is never used again |
 | 17 | **Post-harness credential** (profiles declaring a handoff credential) | Derived from row 15 (`STA-22`); public half installed only on the machines the profile's handoff slot declares, during setup, before the handoff point (`ARC-19a`) | Re-derived on demand; nothing stored | As declared by the profile's handoff slot | Exactly the reach the profile's handoff slot declares, and no more — btc-policy's instance is the coordinator peer credential | As declared by the profile's handoff slot |
-| 18 | Local unlock passphrase | Operator-chosen (`STA-23`) | Input UI briefly, then harness-worker memory; never persisted or sent | Unlock or passphrase-change operation | Derives row 19 to unwrap the local data key | Input and buffers cleared after use |
+| 18 | Local unlock passphrase | Operator-chosen (`STA-23`) | Input UI briefly, then harness-worker memory; never persisted or sent | Unlock, passphrase change or seed re-display (`STA-23`) | Derives row 19 to unwrap the local data key | Input and buffers cleared after use |
 | 19 | Wrapping key (local store or sheet) | PBKDF2 from row 18 or row 10, with independent salts and purposes | Harness-worker memory only | Wrap/unwrap operation | Unwraps one row-20 key | Cleared after wrap/unwrap |
 | 20 | Data-encryption key (local store or sheet) | Browser CSPRNG, independent per store/export | Harness-worker memory; only an authenticated wrapped copy persists | Local store unlocked; sheet import/export operation | Decrypts the named local store or sheet, never another purpose | Cleared on lock/end; replaced on re-encryption |
 | 21 | **Jump-vendor credential**: a vendor credential supplied separately from the target's (`CHN-R6`) | Operator | Browser memory only, held by the jump-host flow; never given to a session | One jump-host flow, from the create to the confirmed destroy | Creating one jump host, reading its address and destroying it, through the jump vendor's adapter | Flow ends |
@@ -308,9 +319,16 @@ the scan may compare the entered value in browser memory. Later it MUST compare
 `L`, including windows crossing output chunks, before decoding or release to either sink.
 Unscanned bytes MUST be withheld; matches become visible redaction markers naming the secret,
 never silent omissions. The browser retains only the scan key, keyed reference and byte length
-after the value is cleared; neither a bare hash nor the value persists there. A minimum byte length is
-required at placement and every re-arm, with the numeric bound still open in T48; no arbitrary number
-is implied by this construction. Placement and recovery arming are `ARC-43`'s procedures.
+after the value is cleared; neither a bare hash nor the value persists there. Every placed
+secret MUST be at least **16 bytes**, checked at placement and at every re-arm from a machine
+report or a paste. One bound applies to every value: the harness cannot classify a value and
+`place_secret` takes no kind. A machine-reported length below the minimum falls back to the
+local paste (`ARC-43`); a pasted value below it is refused and the reference stays unarmed,
+with rotation through `place_secret` the way on. The refusal MUST say to mint or choose a
+longer value at the service and offer no override: a refused value typed into a model `exec`
+would sit in context and transcript. The minimum and visible named markers bound misleading
+output (ADR-0041); this is output legibility, never an entropy claim. Placement and recovery
+arming are `ARC-43`'s procedures.
 
 The scan sees exact values only: an encoded, partial or transformed copy passes. It covers
 only placements whose reference the browser holds — none known only as "unknown since export"
@@ -359,6 +377,7 @@ Counting means: an application secret on a machine (`SEC-5` row 12) and an appro
 scope (row 11) both widen a model's reach beyond its bound set, and both appear in the
 blast-radius statement and the trust display for as long as they are live. Every acceptable
 weaker mode standing on a set (`SEC-14`) is counted and shown the same way, for the set.
+Where Delivered appears, the trust display carries `ARC-43`'s evidence label where applicable.
 
 This replaces an absolute the root shell already defeated. A tenant that needs the absolute
 supplies it by procedure — `SEC-T4`.

@@ -98,7 +98,7 @@ journal's meaning independent of which build wrote it.
 | **A separate reinstall-from-rescue operation with a hold of its own** | Rejected. It is a second mechanism beside the reset into rescue, and it still needs a rule for a command that never ends. |
 | **Under an untyped scope, the next call counts as the continuation** | Rejected. It asserts what an untyped call does, and a status query would end the limit. |
 | **Under an untyped scope, the destructive choices are not offered** | Rejected. Abandonment would stop being available exactly where the harness can do least, and the operator would have no way to hold the scope while acting by hand. |
-| **Spending the activation on later evidence** | Rejected. No read is required in that window; `active: false` has no positive meaning; a reboot report has no baseline. |
+| **Spending the activation on later evidence** | Rejected. `active: false` has no positive meaning; a reboot report has no baseline. |
 | **Evidence arriving later lifts the disposition** | Rejected. A status read would hand a machine the operator chose to abandon back to the session. |
 | **A disposition naming no unresolved call is accepted and limits nothing** | Rejected. The operator would be shown a standing abandonment that holds nothing, and a disposition recorded against one machine could end a call on another. |
 | **A record that fails the test on replay stops dispatch until a recovery step** | Rejected. It needs a procedure nobody has specified, for a record a conforming harness cannot write; read as nothing, every call it failed to dispose still bars. |
@@ -135,3 +135,20 @@ one outstanding effect per resource, and the companion's bounded property said t
 every resource whose unresolved calls are not all box-plane. An activation unresolved beside a
 box-plane command, which the carve-outs admit, refutes both; the enumeration had not reached
 it because its alphabet held no activation. Both now state what may be unresolved together.
+
+*Amended 2026-10-16:* A session's destroy under abandonment is refused: the continuation is
+the operator flow, not a request a session can send to lift its restriction. The flow still
+meets the barrier on every undisposed call. Its authorization is `SEC-4`'s new paragraph: a sheet
+mapping alone is insufficient because it establishes no connection between this unfinished
+setup's create and the vendor machine the flow would destroy. A replacement omitting calls
+leaves them settled, unknown, and never named again. Widening the replacement exception to the
+whole chain was rejected: it changes nothing refused, and a settled call is not waited for.
+Only an activation dispatched under the standing choice counts for its reinstall. "A fresh
+call is cheap" was rejected as the reason: the counted activation is the one approved under
+the choice in force, with one boundary scoping both activation and read. These are the reasons
+for the clauses in `STA-24` and `SEC-4`, not additional rules.
+
+*Amended 2026-10-17:* The activation row's former "No read is required in that window"
+was wrong: `STG-4` says "Immediately before **every** reset into rescue", and requires a
+journaled re-read there. The rejected spending rule is unchanged; the read condition and
+residual window remain in their requirement owners.

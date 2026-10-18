@@ -69,8 +69,8 @@ configuration; the stage-1 first-contact probe is `OPN-24`'s.
 - Stage 1 supplies the recovery row of `07-conformance.md`, including `CNF-10`'s export
   case, and local allocation/derivation evidence (`CNF-72`, `CNF-83`). Its relay replacement
   is the manual route in `STA-17`.
-- The dedicated path supplies `CNF-84`'s Robot rescue case on the integrated harness; the
-  historical rehearsal is not that evidence.
+- The dedicated path supplies `CNF-20`'s relabel cases and `CNF-84`'s Robot rescue case on
+  the integrated harness; the historical rehearsal is not that evidence.
 - Paid/public relay enablement supplies signed revocation (`CNF-60`).
 
 Each part closes on the app and hardware to which its applicability row applies. A format
@@ -214,14 +214,16 @@ template shipped with every unstated field `unspecified` so the harness invents 
 and sshd posture — keyed on no vendor and no tenant, shipped in the bundle. It does not exist
 yet. lnrent's declaration, the Robot checklist and briefs 2–3 gate stage 3.
 
-*Owed 2026-10-06:* the harness-composed reads of `ARC-43` behind `CNF-50`, `CNF-53` and
-`CNF-103`: listeners, outbound restrictions, unit state and enablement, evidence establishing survival of a restart, and a
-service-name grammar that passes a validated name as an argument, never shell syntax.
-Neither the concrete grammar, init-specific reads nor restart-demonstration mechanism is
-selected here. Also open: whether `STG-9`'s re-entry re-check reads `services` as well as
-`drift_checks`, and whether `running-at-delivery` binds after delivery; neither changes how a
-lifecycle finding treats placement (`ARC-17`). T42 carries their implementation and stage 1
-still owes their evidence.
+*Owed 2026-10-06; decisions updated 2026-10-16:* the harness-composed reads behind
+`CNF-50`, `CNF-53` and `CNF-103` still need implementation. `ARC-43` now owns the service-name
+grammar and restart demonstration for stage 1's init-specific systemd case; OpenRC waits for
+the dedicated path's stage. Re-entry reads unit and enablement for `enabled-survives-reboot`
+services. Also open: whether `STG-9`'s re-entry re-check reads `running-at-delivery` services,
+and whether a stopped one is then outside its declared lifecycle and hence a lifecycle finding
+(`CNF-108`). `ARC-17` says "whenever that read runs — at a delivery check or a later re-check";
+the open point is when that declared lifecycle applies after delivery. Whether
+`running-at-delivery` binds after delivery remains open. T42 carries the implementation;
+stage 1 still owes integrated evidence.
 
 *Closes when:* the generic checklist ships and `CNF-49`–`CNF-53`, `CNF-99` and `CNF-103` have integrated
 evidence against it — that much for stage 1; and, for stage 3, the lnrent owner fills that
@@ -242,7 +244,7 @@ path. *Closes when:* stage 3 is designed.
 implementation, 2026-10-06.* `SEC-5` row 23 and its scan semantics define the browser-keyed
 reference; `ARC-43` owns placement, machine re-hashing and the local paste fallback. The key
 may be held immediately under that design; evidence is a completion gate, not authority to
-construct it. T48 carries the build and the still-open numeric minimum secret length.
+construct it. T48 carries the build; `SEC-5` now owns the settled minimum byte length.
 
 *Closes when:* `CNF-95`'s cases pass on the integrated harness, paired with `CNF-84` for
 Restore and `CNF-42` for the retained exposure display. Construction can proceed; stage 1
@@ -344,7 +346,10 @@ one is not bounded at all.**
 
 **OPN-16 — Content-Security-Policy admission.** *Substantially closed.* The posture is
 `ARC-33`: `connect-src` permissive, `script-src`/`object-src`/`base-uri` strict. What stays open
-is empirical — runtime admission of the policy is unverified.
+is empirical. Worker runtime admission is now carried by `CNF-111` and closes for the
+worker when that item passes on the integrated harness. No such evidence is claimed here;
+page-context runtime admission remains unverified. ADR-0046's three-engine measurement is
+evidence for rejecting the shim, not an integrated-harness pass.
 
 **OPN-18 — A durable remote job record.** *Closed by design; open only as implementation.*
 `STA-20` makes every box-plane command a job whose record holds the command as received, its

@@ -157,7 +157,16 @@ unexpected rescue reboot too: one rule everywhere, and the second reset there is
 Recording installed host-key pins is a prerequisite of a reset into the installed system, not of
 a reset into rescue. Keeping the current rescue boot and running the install again is not a
 destructive reinstall; it is continuing as if not done, under which the wait above for a job the
-harness can see still running still applies.
+harness can see still running still applies. With an installed-system pin already recorded,
+continuing as if not done keeps that installation: the re-run MUST NOT re-format the root
+whose filesystem label equals the installation id the harness shows (`STG-20`). Changing the
+installed system's keys requires a destructive reinstall. The reset into the installed system
+MUST NOT be offered when the newest `ready_to_reset` read differs from the active installed pin;
+the operator is told then, before reboot. The offer MUST NOT be made when the current
+installation's first durable prerequisite read shares a fingerprint with any earlier
+installation's prerequisite read or installed-system pin of that machine; the operator is told
+then, before reboot. The offer MUST use the current installation's durable prerequisites to
+make the offer; earlier installations' records are read only to withhold it.
 
 After an unexpected rescue reboot, a changed boot ID proves the old command cannot still be
 running; it does **not** prove its effects or exit status. Missing output, a missing job record,
@@ -167,9 +176,38 @@ browser's record of what was sent remains authoritative throughout (`STA-21`).
 
 The precondition of the offer of a reset into the installed system is
 `TauWeb.Dispatch.offersReset` (ADR-0032), which reads whether `ready_to_reset`'s record of the
-installed pins and the reset intent was durably appended, with
+installed pins and the reset intent was durably appended in the current installation, and
+compares the newest read's keys against the first durable prerequisite read there. Where that
+first read shares a fingerprint with an earlier installation's prerequisite read or
+installed-system pin, the offer stays withheld for that installation whatever a later read
+shows; a new destructive reinstall is needed. The companion carries no earlier observations:
+a first read refused only for overlapping an earlier observation is outside it.
+`TauWeb.Dispatch.installationOf` derives that boundary from the journal's vendor reinstall
+call, the reset into rescue that dispatches a standing reinstall disposition, or the reset
+bound to a separately journaled reinstall approval not withdrawn since.
+`TauWeb.Dispatch.prerequisiteKeys` reads those records. The guard's pairs are
+`TauWeb.Dispatch.predecessor_reset_offer_refused` /
+`TauWeb.Dispatch.predecessor_reset_offer_admitted_without_guard` and
+`TauWeb.Dispatch.changed_keys_reset_offer_refused` /
+`TauWeb.Dispatch.changed_keys_reset_offer_admitted_without_guard`.
+Amended 2026-10-17: the earlier-keys comparison has the pair
+`TauWeb.Dispatch.kept_keys_reset_offer_refused` /
+`TauWeb.Dispatch.kept_keys_reset_offer_admitted_without_guard`;
+`TauWeb.Dispatch.stale_first_prerequisite_keeps_offer_withheld` retains the first-read anchor.
+Keys in this companion are one opaque ordinal per set: it carries identical sets only;
+partial fingerprint overlap and the comparison against installed-system pins are Markdown-only.
+`TauWeb.Dispatch.current_installation_reset_offered` carries a matching successor read and
+`TauWeb.Dispatch.dedicated_reset_retires_prerequisites` the dedicated dispatch boundary.
+The durable-append guard retains the pair
 `TauWeb.Dispatch.reset_offered_after_failed_append_refused` and
-`TauWeb.Dispatch.reset_offered_after_failed_append_admitted` its pair. That a reset into rescue
+`TauWeb.Dispatch.reset_offered_after_failed_append_admitted`.
+Amended 2026-10-17: `TauWeb.Dispatch.failed_prerequisite_withdrawal_refused` /
+`TauWeb.Dispatch.failed_prerequisite_withdrawal_admitted_without_guard` carries withholding after
+any failed prerequisite append, including after an earlier durable read and across replay.
+The durable per-command record of `ready_to_reset` precedes collection; without its durable
+result the offer stays withheld, per entry and current installation, until a later durable
+prerequisite read. `TauWeb.Dispatch.failed_collection_per_entry_and_installation` carries that
+isolation. That a reset into rescue
 under a disposition waits for the command the disposition does not name, and not for the one it
 names, is `TauWeb.Dispatch.reset_waits_for_other_commands`, decided. What a changed boot ID
 establishes is `TauWeb.Dispatch.confirms`, whose lattice keeps *ended* below *succeeded*, with
@@ -190,8 +228,11 @@ deterministic verifier stands and MUST NOT be reported as more (`SEC-2`).
 resource is unresolved (`STA-8`), the harness worker MUST NOT dispatch a side-effecting
 operation naming that resource — whatever its call id, through whichever tool, and whichever
 session or model requests it, including a session that re-enters or succeeds the one that
-raised it. The request is refused and the unresolved call is shown in its place: to the model
-as the tool result, to the operator on the screen. An approval already rendered does not clear
+raised it, and including the operator's abandonment flow. A machine with unresolved calls
+therefore needs a disposition naming every one before that flow's destroy; an unnamed call
+keeps barring it. A machine with none needs no disposition. The request is refused and the
+unresolved call is shown in its place: to the model as the tool result where a model requested
+it, to the operator on the screen. An approval already rendered does not clear
 the barrier; it is checked again at dispatch.
 
 **The resource is what the intent record named, assigned or checked by the harness and never
@@ -231,7 +272,9 @@ continue.
 **What clears it.** Evidence is the observation the operation's own reconciliation contract
 admits — for Robot, `STG-4`'s predicates, read from the vendor or from a pin-checked handshake
 — durably appended before dispatch resumes (`STA-3`): a status read followed by a failed append
-leaves the barrier standing. A job record can settle the box-plane command it records, as
+leaves the barrier standing. LNVPS's confirming observations are not yet defined
+(`TASKS.md` T50); until they are, such a call stays unresolved until evidence or the operator's
+disposition. A job record can settle the box-plane command it records, as
 `STA-20` says and with the standing `STA-21` gives it; it cannot clear a cloud-plane barrier,
 and neither can model text (`SEC-8`). Otherwise the operator **disposes**: a record of its own
 kind naming the unresolved calls it ends, the continuation the operator chose — a destructive
@@ -252,7 +295,26 @@ disposition: a new disposition may name the calls the standing one disposed, whi
 exception to naming unresolved calls, since those calls already carry the standing disposition
 as their terminal record. One disposition stands per resource, the latest, and its continuation
 is the one in force; the operator is shown what it replaces. Neither a timer nor the model
-replaces one.
+replaces one. A call omitted by a replacement stays settled under the replaced record with
+outcome unknown, adds no restriction, and may never be named again. The replacement screen
+MUST list the calls it drops. This holds at LNVPS too. Which calls a disposition names decides
+acceptance and display, never what it refuses on a machine: every disposed machine call barred
+every cloud-plane side-effecting operation, and a destructive choice adds the box-plane stop.
+Only the continuation changes those refusals.
+
+When a destructive reinstall continuation is replaced by one that continues, the screen MUST
+say that the model's commands resume and any reset is admitted subject to the other dispatch
+checks. Where no reinstall approval stands it MUST say "the reinstall is cancelled", except
+under an untyped vendor scope: there it MUST describe releasing the hold, without implying
+that work done by hand at the vendor was cancelled. Where an undispatched reinstall approval
+stands, the screen MUST instead make the operator choose "keep the reinstall approval" or
+withdraw it, for each such approval. `STG-20` says "Only the operator's journaled withdrawal,
+naming the entry, the reset call and the approval, withdraws a reinstall approval"; the
+replacement and the withdrawal are separate journaled acts, neither implied by the other.
+On the dedicated path only, the screen MUST say that, with the activation's state unknown,
+a reset other than a standing approval's own reset may boot the installed system. It MUST
+there offer the likely intent, a disposition of the activation with the reinstall continuation:
+"retry the activation, keep the reinstall".
 
 **What a disposition reaches.** A standing disposition restricts, to its continuation, what the
 calls it names barred while they were unresolved. An operation outside that reach is neither
@@ -289,7 +351,9 @@ For a destructive reinstall that is at LNVPS the vendor's reinstall call
 the operations of that machine's return to rescue that touch no running system — the rescue
 activation, and a key registration where one is owed — are admitted and do not end the
 restriction, and the reset into rescue is a reset dispatched after that rescue activation is
-confirmed and while the newest read of that activation still confirms it. `CHN-R1` says the
+confirmed and while the newest read of that activation still confirms it. Only an activation
+dispatched after the standing disposition counts: it is the activation approved under the choice
+in force, and one boundary scopes both the activation and its read. `CHN-R1` says the
 plain rescue endpoint "reports inactive and empty once the boot has consumed the activation":
 a confirmation already given can be stale. The newest read is the read of the activation
 predicate (`STG-4`), `GET /boot/{n}/rescue`, journaled before the reset's intent at its dispatch
@@ -301,19 +365,27 @@ that tells nothing, leaves it not counted: it settles nothing and reopens nothin
 activation call stays terminal. It only means the activation is not the one the reset into
 rescue follows. Any other reset is refused while the disposition stands: with no confirmed rescue
 activation it boots the installed system and would hand the machine back. A later read that
-confirms it, or a fresh activation confirmed, admits the reset. A reboot between that read and
-the reset is bounded by the pin check, and this window is not closed: the reset's own
-confirmation never holds, and its barrier stands, if `/rescue/last` still has the pre-reset
-snapshot's keys. If the
-unrequested boot publishes fresh keys after that snapshot but before the harness's reset lands,
-those keys can satisfy the disjoint-key predicate; the pinned SSH attempt remains the bound.
-If the activation itself goes unresolved, its own barrier refuses the reset, the disposition
-still stands and the box plane stays stopped until evidence or a further disposition. The model's install commands
+confirms it, or a fresh activation confirmed, admits the reset.
+
+A reboot between that read and the reset leaves a window this rule does not close. The pin check bounds it only before first contact: if `/rescue/last` still has the pre-reset
+snapshot's keys, the reset's confirmation never holds and its barrier stands. Fresh disjoint
+keys published by an unrequested rescue boot can satisfy that predicate and match the pinned
+SSH attempt; a late reset landing after first contact can then kill the install mid-write.
+The real bounds are key publication taking about 80 s after the reset (`CHN-R1`) and damage
+limited to disks already chosen for erasure. *What this requirement used to say* was that
+"the pinned SSH attempt remains the bound"; that misses a reset landing after first contact.
+If the activation itself goes unresolved, its own barrier refuses the reset; evidence can
+settle that call but does not lift the reinstall's box-plane stop, which holds until the reset
+or replacement of the disposition. *What this requirement used to say* was "the box plane stays
+stopped until evidence or a further disposition"; evidence does not undo the operator's choice.
+The model's install commands
 follow the reset's confirmation: `STA-20b` says "Dispatch resumes on the reset's confirmation".
 For abandonment it is that flow's operation naming the machine: the destroy, or the stop that
 stands in for it (`ARC-22`), whose own barrier then holds the box plane as the exception above
-says. A model's request for either is not made admissible by this: what a session may request
-is `SEC-4`'s to bound. Abandonment is setup-wide (`ARC-22`) and the restriction is not: apart
+says. A session's request for that destroy or stop under a standing abandonment MUST be refused:
+abandonment permits only the abandonment flow. At LNVPS renewal-off waits for the stop's
+confirmation: renewal control names the same resource and its barrier still holds.
+Abandonment is setup-wide (`ARC-22`) and the restriction is not: apart
 from the hold below, it covers a machine with a disposed call and nothing else; what an
 abandoned setup permits afterwards, and that the flow runs outside any session, are `ARC-21`'s,
 `ARC-22`'s and `STA-18`'s. A continuation that continues has no operation to be dispatched at:
@@ -385,7 +457,8 @@ pairs are `TauWeb.Dispatch.same_action_new_call_id_refused` and
 `TauWeb.Dispatch.second_index_same_entry_refused` and
 `TauWeb.Dispatch.second_index_same_entry_admitted` for the index one level up. What may be
 unresolved together is `TauWeb.Dispatch.unresolvedTogether`, decided over the bound by
-`TauWeb.Dispatch.bounded`.
+`TauWeb.Dispatch.bounded`. `TauWeb.Dispatch.tracesUpTo` filters out every sequence whose requests
+repeat a call id; the bounded property also checks that freshness.
 
 A disposition's four choices are `TauWeb.Dispatch.Continuation`. What it may name is
 `TauWeb.Dispatch.acceptable`: `TauWeb.Dispatch.step` refuses one that fails it, and
@@ -426,7 +499,9 @@ its last clause. Each guard is a parameter with its pair:
   `TauWeb.Dispatch.spent_activation_counted_without_guard` for the newest activation read,
   with `TauWeb.Dispatch.return_to_rescue_trace` the return whole;
 - the disposition's own resource, `TauWeb.Dispatch.disposition_names_own_unresolved_calls` and
-  `TauWeb.Dispatch.disposition_ends_call_elsewhere_without_guard`.
+  `TauWeb.Dispatch.disposition_ends_call_elsewhere_without_guard`;
+- the session destroy under abandonment, `TauWeb.Dispatch.session_destroy_under_abandonment_refused`
+  and `TauWeb.Dispatch.session_destroy_lifts_abandonment_without_guard`.
 
 `TauWeb.Dispatch.replayed_invalid_disposition_means_nothing` is the replay, and
 `TauWeb.Dispatch.evidence_after_disposition_changes_nothing` is that later evidence neither reopens
@@ -438,9 +513,13 @@ a disposed reset nor removes its disposition. Decided beside them, with no param
 the reset into rescue follows; and `TauWeb.Dispatch.reinstall_does_not_refuse_key_registration`,
 that the restriction does not refuse a key registration and still stands after one. The
 companion carries nothing of whether a registration is owed, so no trace requests one under a
-disposition. The companion's `exec` is box-plane work as a whole, and a request there carries
-nothing of who sends it: that abandonment's destroy is the operator flow's and never a
-session's is `ARC-21`'s, and no trace dispatches one.
+disposition. The companion's `exec` is box-plane work as a whole, and a request there is a
+session's. Its destroy under abandonment is refused; the guard-removed paired trace retains
+the former admission as a trap. The operator flow's intent is appended outside admission in
+`TauWeb.Dispatch.abandonment_ends_at_its_destroy_alone`, which now also states the session's
+refusal. `TauWeb.Dispatch.undisposed_command_bars_flow_destroy` shows that the flow's intent
+still meets an undisposed call's barrier; `TauWeb.Dispatch.omitted_call_stays_settled` carries
+replacement's omission.
 `TauWeb.Dispatch.restriction` is the continuation in force over a resource;
 `TauWeb.Dispatch.admissible` is what clears a barrier and
 `TauWeb.Dispatch.cloud_confirmed_by_read_only` that nothing else does; and
@@ -524,7 +603,8 @@ implementation must not choose paths independently.
   bookkeeping. `STA-3` already requires the record before the effect; the index is part of
   that record, and indices are monotonic.
 - **The sheet no longer carries keys.** Its contents are listed in `STA-16`. The seed
-  reconstructs a key only when its role and index are known. Seed-only recovery does not discover indices or relay purchases.
+  reconstructs a key only when its role and index are known. Seed-only recovery is refused:
+  a seed alone does not discover indices or relay purchases.
 - **A stolen seed is not revocable.** Replace (`STA-17`) is therefore a **new seed**, from which
   new client keys derive, with the old public keys removed from every maintained machine during
   re-entry — the same flow as before, with a different origin for the new keys and one more
@@ -560,10 +640,18 @@ All this metadata is included in `STA-16` exports, with an export time and journ
 Import checks the seed identifier, derives each listed public key and compares it, validates
 unique indices within each family and next-unused counters above all listed indices, and
 cross-checks vendor inventory before binding machines. A stale sheet cannot prove the latest
-counter. Therefore **a seed imported after loss of the canonical journal may restore listed
-identities but MUST NOT allocate new ones**, even when the sheet claims to be current. To
-allocate again, use Replace with a freshly generated seed; old records are retained until
-migration is complete. This restriction also applies to an imported local-store backup.
+counter. Therefore **every imported seed may restore listed identities but MUST NOT allocate
+new ones**, from a recovery sheet or an imported local-store backup, even when it claims to
+be current. To allocate again, use Replace with a freshly generated seed; old records are
+retained until migration is complete. An import bringing a seed with neither a sheet nor a
+store backup MUST be refused, saying that a seed alone restores nothing: bring the sheet,
+or start fresh.
+
+Under a generated seed, allocation in every family — machines, relay passes and handoffs —
+MUST be refused until that seed id has the journaled ceremony record of `STA-23`.
+Replace's machine-migration and new-relay-pass allocations wait for its fresh seed's record;
+generating that fresh seed is never gated. The ceremony gate's pair is
+`TauWeb.Allocation.backup_missing_refused` and `TauWeb.Allocation.backup_missing_admitted`.
 Existing identities remain usable during non-revoking Restore. Restored knowledge beyond allocation
 is governed by `STA-16`. The index rules are carried as
 `TauWeb.Allocation.allocate` (ADR-0032): under the restriction above,
@@ -587,7 +675,28 @@ are defined in the credential format. There is no plaintext or device-synced fal
 
 The harness worker alone unwraps and holds the data key and seed. The UI passes the
 passphrase once and clears its input; it never receives the unwrapped data key. The mnemonic
-may be displayed only in the dedicated seed-backup ceremony, outside session/model context.
+MUST always be shown in the dedicated seed-backup ceremony, outside any session, and MUST
+be hidden while the operator answers. This is its only display, including re-display on
+demand: the same ceremony, after the local passphrase is entered again, with no session
+running. The ceremony starts by stopping dispatch, ending session workers and closing their
+channels, as lock below does.
+
+A generated seed with no journaled ceremony record for its seed id owes this ceremony: at
+create, at the unlock that finishes creation (an envelope with no record generates the
+seed there), and for Replace's fresh seed. An imported seed owes none: a sheet's seed is
+typed, while a local-store backup carries the ceremony record, if any, it was exported with.
+Regardless of that record, `STA-22b` says "every imported seed may
+restore listed identities but MUST NOT allocate new ones".
+This is a state, not a step in a flow. A closed tab, hidden page or killed worker interrupting
+it leaves it owed at the next unlock.
+
+Completion is all or zero: the operator either re-enters all twelve words, checked as an
+import that MUST yield the same seed id (a mismatch returns to the display), or explicitly
+skips the check. The record MUST say `full_reentry` or `skipped`, for that seed id, and MUST
+be durably appended before it takes effect (`STA-3`: "A canonical event MUST be durably
+appended **before** it is applied to in-memory state"). A failed append leaves no completion.
+Neither completion is displayed as a verified backup (`SEC-2`).
+
 Key derivation gives a session only its permitted child credentials. Explicit lock, page
 hide/backgrounding, or worker shutdown stops dispatch, ends session workers and closes
 channels; the worker clears its keys and credential buffers and returns locked. No unload
@@ -633,7 +742,8 @@ At LNVPS the unavailable-destroy treatment and reinstall's new first contact bel
 `ARC-22`: it says "a vendor-API reinstall of the same machine stands in and is a **new first
 contact**". No old pin is reused for that system.
 
-**STA-16** The recovery sheet holds the allocation metadata of `STA-22b`, host-key
+**STA-16** The recovery sheet holds the allocation metadata of `STA-22b`, the seed-backup
+ceremony record or explicit no-record marker for its seed id (`STA-23`), host-key
 fingerprints with the route that produced each pin (`CHN-R1`, `CHN-R5`, `CHN-R6` or `CHN-R7`), the
 per-machine installation groups and their compact recorded LNVPS publication fingerprints
 (including incomplete observations and complete candidates refused for overlap), and the
@@ -747,6 +857,46 @@ shows a destroy that is not confirmed.
 The screen names unrecovered machines
 and unrevocable passes, and never reports a complete Replace or complete revocation while
 either remains outstanding, including a manual relay retirement awaiting confirmation.
+
+Replace's machine-migration MUST move the machine component to the machine's new index and
+carry its installation ordinal `n` with it (`STG-20`). It MUST refuse to migrate a machine
+whose install is unfinished in rescue: from the rescue reset that starts the first install
+or dispatches a destructive reinstall until the reset into the installed system is confirmed
+(`STG-4`), including after `ready_to_reset` records pins. `STA-20b` says "With an installed-system
+pin already recorded, continuing as if not done keeps that installation"; its root still carries
+the current label. Replace's screen MUST name the refused machine as not yet migrated, with
+the reason, and MUST NOT report a complete Replace while it remains outstanding.
+
+For the direct re-entry in Replace's bullet above, a dedicated machine MUST have its root
+filesystem's label rewritten after the connection authenticated by the new key is confirmed
+and before the old public key is removed. The harness MUST decide whether the machine is
+dedicated from the journal's record of its vendor in its `STA-22b` machine entry, never from
+the disk: a missing or damaged root label, or one carrying another id, does not exempt a
+dedicated machine. The rewrite is one typed, harness-composed `replace_root_label` job
+(`ARC-43`), never a model command. It writes `<new machine component>-<n>`: the lowercase
+hexadecimal of the new index and the same ordinal `n`, encoded as `STG-20` specifies. Like
+any harness job it MUST be recorded before transmission (`ARC-8`) and have its machine-side
+job record (`STA-20`).
+
+In that flow, the harness MUST confirm that write by a harness-composed read of the label
+taken after the write, using captured job output (`ARC-43`), never model text. That read
+confirms only the job's own write; it checks nothing about how the install brief uses the
+label. If the job fails or no read shows the new id, the machine MUST remain not migrated,
+its old public key MUST NOT be removed, and Replace remains incomplete. The screen MUST name
+that machine as not yet migrated, with the reason; the completion refusal above applies.
+
+Until a read of the label succeeds, the harness MUST re-read it on each later connection to
+the machine: a write that landed with its read-back lost leaves the root at the new id while
+the harness still shows the old one. Re-reading the label is a status query; `STA-8` says
+"Establishing *what happened* by a status query is permitted and required where a tool
+supports one". A later read showing the new id confirms the relabel without another write. Re-issuing the write
+with the same new id MUST be a fresh issue the operator chooses in Replace's flow, never an
+automatic retry (`STA-6`). In this direct re-entry, a dedicated machine counts as migrated
+only when a read shows the new id; that is when the shown installation id (`STG-20`) MUST move
+to the new index, never before the disk does, and only after that may the old key be removed.
+At LNVPS, and at any other non-dedicated vendor, the shown id still moves to the new index
+when Replace's bullet above migrates it, as before, but there is no relabel step and nothing
+is written to the disk.
 
 **Replace cannot cover the inference account credential, and MUST say so.** This credential
 has no account behind it, so there is nothing to revoke against (`SEC-5` row 14). What Replace *can* do is revoke every session key

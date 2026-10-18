@@ -41,6 +41,10 @@ def identityFields (i : Identity) : List (String × Json) :=
   [("seed", toJson i.epoch), ("derivation_version", toJson i.version),
    ("family", toJson (familyName i.family)), ("index", toJson i.index)]
 
+def completionName : Completion → String
+  | .fullReentry => "full_reentry"
+  | .skipped => "skipped"
+
 /-- The projection of harness knowledge: the journal as `STA-22b` names its parts, entries
 oldest first. Nothing of the companion's `World` beyond the journal. -/
 def journalJson (j : Journal) : Json :=
@@ -51,13 +55,19 @@ def journalJson (j : Journal) : Json :=
                                 ("handoffs", toJson j.next.handoff)]),
     ("entries", Json.arr (j.entries.reverse.map fun e =>
       Json.mkObj (identityFields e.id ++ [("status", toJson (statusName e.status))])).toArray),
-    ("restored_from_import", toJson j.restored) ]
+    ("restored_from_import", toJson j.restored),
+    ("seed_backup", match j.ceremony with
+      | none => Json.str "none"
+      | some c => Json.str (completionName c)) ]
 
 def observed (kind : String) (i : Identity) : Json :=
   Json.mkObj [("kind", kind), ("provenance", "adapter observation"),
               ("identity", Json.mkObj (identityFields i))]
 
 def eventJson : Event → Json
+  | .ceremony c appended => Json.mkObj [("kind", "seed_backup"), ("provenance", "operator act"),
+      ("completion", completionName c), ("append", Json.mkObj [
+        ("provenance", "storage outcome of an append"), ("durable", toJson appended)])]
   | .allocate f => Json.mkObj [("kind", "allocate"), ("provenance", "model request"),
                                ("family", toJson (familyName f))]
   | .created i => observed "created" i
@@ -77,6 +87,7 @@ def stepJson (p : Params) (w : World) (e : Event) : Json × World :=
         [("allocation", "admitted"), ("identity", Json.mkObj (identityFields i))]
       else [("allocation", "refused")]
     | .allocate _, [] => [("allocation", "refused")]
+    | .ceremony _ appended, _ => [("recorded", toJson appended)]
     | _, _ => []
   (Json.mkObj ([("event", eventJson e)] ++ outcome ++ [("journal", journalJson w'.journal)]), w')
 
@@ -111,12 +122,18 @@ def Trace.json (t : Trace) : Json :=
   let steps := (t.events.foldl
     (fun (acc, w) e => let (j, w') := stepJson t.params w e; (acc.push j, w'))
     (#[], t.start)).1
-  traceJson t.decls (Json.mkObj [("restoredAllocatesNone", toJson t.params.restoredAllocatesNone)])
+  traceJson t.decls (Json.mkObj [("restoredAllocatesNone", toJson t.params.restoredAllocatesNone),
+    ("backupRecorded", toJson t.params.backupRecorded)])
     t.pair (journalJson t.start.journal) steps
 
 def noGuard : Params := { current with restoredAllocatesNone := false }
 
 def allocationWitnesses : List Trace := [
+  { decls := ["TauWeb.Allocation.backup_missing_refused"], events := backupMissingEvents,
+    pair := some (.refused, "TauWeb.Allocation.backup_missing_admitted") },
+  { decls := ["TauWeb.Allocation.backup_missing_admitted"], events := backupMissingEvents,
+    params := { current with backupRecorded := false },
+    pair := some (.admitted, "TauWeb.Allocation.backup_missing_refused") },
   { decls := ["TauWeb.Allocation.stale_sheet_refused"], events := staleSheetEvents,
     pair := some (.refused, "TauWeb.Allocation.stale_sheet_admitted") },
   { decls := ["TauWeb.Allocation.stale_sheet_admitted"], events := staleSheetEvents,
@@ -139,9 +156,9 @@ structure Module where
   named : List String
   refs : List String
 
-/-- The schema version of each emitted module. Pins and dispatch changed shape. -/
+/-- The schema version of each emitted module. Allocation, pins and dispatch changed shape. -/
 def schemaVersion (name : String) : Nat :=
-  if name == "pins" then 4 else if name == "dispatch" then 2 else 1
+  if name == "allocation" then 2 else if name == "pins" then 5 else if name == "dispatch" then 5 else 1
 
 /-- The header pretty, one trace per line: a diff names the trace that moved. -/
 def fileText (name : String) (ns : Name) (bound : Json) (witnesses enumeration : List Json) :
@@ -537,6 +554,10 @@ def refusalJson : Refusal → Json
   | .binding => Json.mkObj [("reason", "binding")]
   | .facts => Json.mkObj [("reason", "facts")]
   | .append => Json.mkObj [("reason", "append")]
+  | .approvalActivation => Json.mkObj [("reason", "approval_activation")]
+  | .withdrawnApproval r c ap => Json.mkObj [
+      ("reason", "withdrawn_approval"), ("resource", resourceJson r), ("call", toJson c),
+      ("approved", Json.mkObj [("session", toJson ap.session), ("facts", toJson ap.facts)])]
   | .barrier cs => Json.mkObj [("reason", "barrier"), ("calls", toJson cs)]
   | .continuation c =>
     Json.mkObj [("reason", "continuation"), ("in_force", continuationName c)]
@@ -545,13 +566,16 @@ def refusalJson : Refusal → Json
 def entriesOf (j : TauWeb.Dispatch.Journal) : List TauWeb.Dispatch.Entry :=
   (j.filterMap fun rec => match rec with
     | .association _ e => some e
-    | .resetPrereqs e => some e
+    | .resetPrereqs e _ _ => some e
+    | .resetCollection e _ => some e
+    | .reinstallApproval e _ _ => some e
+    | .reinstallWithdrawal e _ _ => some e
     | .intent i => match i.resource with | .machine e => some e | .inference => none
     | _ => none).eraseDups
 
 /-- One call as the journal holds it: the intent record, and whether it is still unresolved. A
 read is never an unresolved call — it has no effect to be unresolved about. -/
-def callJson (p : TauWeb.Dispatch.Params) (j : TauWeb.Dispatch.Journal) (i : Intent) : Json :=
+def callJson (p : TauWeb.Dispatch.Params) (later : TauWeb.Dispatch.Journal) (i : Intent) : Json :=
   Json.mkObj [
     ("call", toJson i.call), ("target", targetJson i.target),
     ("resource", resourceJson i.resource), ("operation", kindName i.kind),
@@ -559,8 +583,21 @@ def callJson (p : TauWeb.Dispatch.Params) (j : TauWeb.Dispatch.Journal) (i : Int
     ("approved", Json.mkObj [("session", toJson i.approval.session),
                              ("facts", toJson i.approval.facts)]),
     ("state", Json.str (if !sideEffecting i.kind then "no_effect"
-                        else if (unresolved p j i.resource).contains i.call then "unresolved"
+                        else if !later.any (settles p i) then "unresolved"
                         else "terminal")) ]
+
+/-- Project each intent at its position. Only records after it can settle it; an older
+terminal intent cannot be rewritten by a newer intent carrying the same id. -/
+def callsJson (p : TauWeb.Dispatch.Params) (j : TauWeb.Dispatch.Journal) : List Json :=
+  go [] j
+where
+  go (later : TauWeb.Dispatch.Journal) : TauWeb.Dispatch.Journal → List Json
+    | [] => []
+    | rec :: rest =>
+      let tail := go (rec :: later) rest
+      match rec with
+      | .intent i => callJson p later i :: tail
+      | _ => tail
 
 /-- Every disposition the journal holds, newest first, each with whether `acceptable` accepts it
 against the reading of the journal before it — the test `inEffect` reads by. -/
@@ -583,7 +620,7 @@ def knowledgeJson (p : TauWeb.Dispatch.Params) (w : TauWeb.Dispatch.World) : Jso
     ("associations", Json.arr ((j.filterMap fun rec => match rec with
       | .association t e => some (Json.mkObj [("target", targetJson t), ("entry", toJson e)])
       | _ => none).reverse).toArray),
-    ("calls", Json.arr ((intentsOf j).reverse.map (callJson p j)).toArray),
+    ("calls", Json.arr ((callsJson p (inEffect p j)).reverse).toArray),
     ("unresolved", Json.arr ((resourcesOf j).map fun r =>
       Json.mkObj [("resource", resourceJson r),
                   ("calls", toJson (unresolved p j r))]).toArray),
@@ -596,7 +633,25 @@ def knowledgeJson (p : TauWeb.Dispatch.Params) (w : TauWeb.Dispatch.World) : Jso
         Json.mkObj [("resource", resourceJson r), ("calls", toJson s.1.calls),
                     ("continuation", continuationName s.1.continuation)]
       else none).toArray),
-    ("reset_offer", toJson ((entriesOf j).filter (offersReset j))),
+    ("reset_offer", toJson ((entriesOf j).filter (offersReset p j))),
+    ("current_installations", toJson ((entriesOf j).map fun e =>
+      Json.mkObj [("entry", toJson e), ("installation", toJson (installationOf p j e))])),
+    ("reinstall_approvals", toJson ((j.reverse.filterMap fun rec => match rec with
+      | .reinstallApproval e c ap => some (Json.mkObj [
+          ("entry", toJson e), ("call", toJson c),
+          ("approved", Json.mkObj [("session", toJson ap.session), ("facts", toJson ap.facts)])])
+      | _ => none))),
+    ("reinstall_withdrawals", toJson ((j.reverse.filterMap fun rec => match rec with
+      | .reinstallWithdrawal e c ap => some (Json.mkObj [
+          ("entry", toJson e), ("call", toJson c),
+          ("approved", Json.mkObj [("session", toJson ap.session), ("facts", toJson ap.facts)])])
+      | _ => none))),
+    ("prerequisite_records", toJson ((j.reverse.filterMap fun rec => match rec with
+      | .resetCollection e n => some (Json.mkObj [
+          ("kind", "command"), ("entry", toJson e), ("installation", toJson n)])
+      | .resetPrereqs e n keys => some (Json.mkObj [
+          ("kind", "result"), ("entry", toJson e), ("installation", toJson n), ("keys", toJson keys)])
+      | _ => none))),
     ("dispatched", toJson (w.dispatched.reverse.map Intent.call)) ]
 
 /-- An event's provenance is ADR-0032's closed vocabulary; `appended` beside it is the storage
@@ -622,9 +677,19 @@ def eventJson (x : External) : TauWeb.Dispatch.Event → Json
   | .associate t e => Json.mkObj [
       ("kind", "associate"), ("provenance", "operator act"),
       ("target", targetJson t), ("entry", toJson e)]
-  | .resetPrereqs e ok => Json.mkObj [
+  | .resetPrereqs e keys ok => Json.mkObj [
       ("kind", "reset_prereqs"), ("provenance", "adapter observation"),
-      ("entry", toJson e), ("appended", toJson ok)]
+      ("entry", toJson e), ("keys", toJson keys), ("appended", toJson ok)]
+  | .approveReinstall e c ap ok => Json.mkObj [
+      ("kind", "approve_reinstall"), ("provenance", "operator act"),
+      ("entry", toJson e), ("call", toJson c),
+      ("approved", Json.mkObj [("session", toJson ap.session), ("facts", toJson ap.facts)]),
+      ("appended", toJson ok)]
+  | .withdrawReinstall e c ap ok => Json.mkObj [
+      ("kind", "withdraw_reinstall"), ("provenance", "operator act"),
+      ("entry", toJson e), ("call", toJson c),
+      ("approved", Json.mkObj [("session", toJson ap.session), ("facts", toJson ap.facts)]),
+      ("appended", toJson ok)]
   | .replay => Json.mkObj [("kind", "replay"), ("provenance", "replay")]
 
 /-- One step: the event, what the harness did with it, and the projection after. -/
@@ -640,11 +705,15 @@ def stepJson (p : TauWeb.Dispatch.Params) (x : External) (w : TauWeb.Dispatch.Wo
     | .observe _ r _ _ =>
       [("settled", toJson ((unresolved p w.memory r).filter fun c =>
         !(unresolved p w'.memory r).contains c))]
-    | .resetPrereqs e _ => [("offer", toJson (offersReset w'.memory e))]
+    | .resetPrereqs e _ _ => [("offer", toJson (offersReset p w'.memory e))]
     | .dispose d _ =>
       [("disposition", Json.str (if !accepts p w.memory d then "refused"
                                  else if w'.memory == w.memory then "not_appended"
                                  else "recorded"))]
+    | .withdrawReinstall e c ap _ =>
+      [("withdrawal", Json.str (if !acceptsWithdrawal w.memory e c ap then "refused"
+                                else if w'.memory == w.memory then "not_appended"
+                                else "recorded"))]
     | _ => []
   (Json.mkObj ([("event", eventJson x e)] ++ outcome ++ [("knowledge", knowledgeJson p w')]), w')
 
@@ -674,7 +743,14 @@ def assumptionsJson (p : TauWeb.Dispatch.Params) : Json :=
               ("lapse", Json.str (lapseName p.lapse)),
               ("resetIntoRescueOnly", toJson p.resetIntoRescueOnly),
               ("newestActivationRead", toJson p.newestActivationRead),
-              ("dispositionOwnResource", toJson p.dispositionOwnResource)]
+              ("dispositionOwnResource", toJson p.dispositionOwnResource),
+              ("sessionDestroyRefused", toJson p.sessionDestroyRefused),
+              ("resetOfferCurrentInstallation", toJson p.resetOfferCurrentInstallation),
+              ("approvedReinstallBoundary", toJson p.approvedReinstallBoundary),
+              ("failedPrerequisiteWithdraws", toJson p.failedPrerequisiteWithdraws),
+              ("approvalResetRequiresRescue", toJson p.approvalResetRequiresRescue),
+              ("resetOfferFreshKeys", toJson p.resetOfferFreshKeys),
+              ("reinstallWithdrawalEffective", toJson p.reinstallWithdrawalEffective)]
 
 def Trace.json (t : Trace) : Json :=
   let segments := if t.segments.isEmpty then [(t.far, t.events)] else t.segments
@@ -686,6 +762,67 @@ def Trace.json (t : Trace) : Json :=
   traceJson t.decls (assumptionsJson t.params) t.pair (knowledgeJson t.params t.start) steps
 
 def witnesses : List Trace := [
+  { decls := ["TauWeb.Dispatch.approval_reset_requires_rescue_refused"], events := approvalResetGuardEvents,
+    pair := some (.refused, "TauWeb.Dispatch.approval_reset_requires_rescue_admitted_without_guard") },
+  { decls := ["TauWeb.Dispatch.approval_reset_requires_rescue_admitted_without_guard"], events := approvalResetGuardEvents,
+    params := uncheckedApprovalReset, pair := some (.admitted, "TauWeb.Dispatch.approval_reset_requires_rescue_refused") },
+  { decls := ["TauWeb.Dispatch.kept_keys_reset_offer_refused"], events := keptKeysOfferEvents,
+    pair := some (.refused, "TauWeb.Dispatch.kept_keys_reset_offer_admitted_without_guard") },
+  { decls := ["TauWeb.Dispatch.kept_keys_reset_offer_admitted_without_guard"], events := keptKeysOfferEvents,
+    params := reusedOfferKeys, pair := some (.admitted, "TauWeb.Dispatch.kept_keys_reset_offer_refused") },
+  { decls := ["TauWeb.Dispatch.withdrawn_approval_reset_refused"], events := approvalOnlyWithdrawalEvents,
+    pair := some (.refused, "TauWeb.Dispatch.withdrawn_approval_reset_admitted_without_guard") },
+  { decls := ["TauWeb.Dispatch.withdrawn_approval_reset_admitted_without_guard"], events := approvalOnlyWithdrawalEvents,
+    params := ignoredWithdrawal, pair := some (.admitted, "TauWeb.Dispatch.withdrawn_approval_reset_refused") },
+  { decls := ["TauWeb.Dispatch.stale_first_prerequisite_keeps_offer_withheld"], events := earlierKeysOfferEvents },
+  { decls := ["TauWeb.Dispatch.replaced_reinstall_keeps_approval"], events := keptReinstallApprovalEvents },
+  { decls := ["TauWeb.Dispatch.replaced_reinstall_withdraws_approval"], events := withdrawnReinstallApprovalEvents },
+  { decls := ["TauWeb.Dispatch.withdrawal_after_dispatch_refused"], events := withdrawalAfterDispatchEvents },
+  { decls := ["TauWeb.Dispatch.withdrawn_reset_under_reinstall_refused"], events := withdrawnUnderDispositionEvents },
+  { decls := ["TauWeb.Dispatch.withdrawal_before_activation_named"], events := withdrawalWithoutActivationEvents },
+  { decls := ["TauWeb.Dispatch.unresolved_activation_before_withdrawal_shown"],
+    events := withdrawalWithUnresolvedActivationEvents },
+  { decls := ["TauWeb.Dispatch.ended_session_approval_refused"], events := endedSessionApprovalEvents },
+  { decls := ["TauWeb.Dispatch.successor_reapproval_opens_installation"], events := successorReapprovalEvents },
+  { decls := ["TauWeb.Dispatch.reapproval_requires_new_activation"], events := reapprovalEvents },
+  { decls := ["TauWeb.Dispatch.withdrawal_identity_and_failed_append"], events := withdrawalIdentityEvents },
+  { decls := ["TauWeb.Dispatch.repeated_withdrawal_records"], events := repeatedWithdrawalEvents },
+  { decls := ["TauWeb.Dispatch.approved_reinstall_after_done_disposition"],
+    events := approvedContinuingDispositionEvents .asIfDone },
+  { decls := ["TauWeb.Dispatch.approved_reinstall_after_not_done_disposition"],
+    events := approvedContinuingDispositionEvents .asIfNotDone },
+  { decls := ["TauWeb.Dispatch.approved_reinstall_keeps_disposition_activation_boundary"],
+    events := approvedReinstallDispositionEvents },
+  { decls := ["TauWeb.Dispatch.approved_reinstall_boundary_refused"], events := approvedReinstallEvents,
+    pair := some (.refused, "TauWeb.Dispatch.approved_reinstall_boundary_admitted_without_guard") },
+  { decls := ["TauWeb.Dispatch.approved_reinstall_boundary_admitted_without_guard"], events := approvedReinstallEvents,
+    params := uncarriedApproval, pair := some (.admitted, "TauWeb.Dispatch.approved_reinstall_boundary_refused") },
+  { decls := ["TauWeb.Dispatch.approved_reset_without_activation_opens_nothing"], events := approvedWithoutActivationEvents },
+  { decls := ["TauWeb.Dispatch.second_rescue_reset_opens_nothing_more"], events := secondRescueResetEvents },
+  { decls := ["TauWeb.Dispatch.unrelated_rescue_reset_opens_nothing"], events := unrelatedRescueResetEvents },
+  { decls := ["TauWeb.Dispatch.approved_spent_activation_opens_nothing"], events := [],
+    segments := [(farDone, approvedReinstallEvents.take 4), (activationNotConfirmed, approvedSpentReadEvents)] },
+  { decls := ["TauWeb.Dispatch.failed_prerequisite_withdrawal_refused"], events := failedPrerequisiteEvents,
+    pair := some (.refused, "TauWeb.Dispatch.failed_prerequisite_withdrawal_admitted_without_guard") },
+  { decls := ["TauWeb.Dispatch.failed_prerequisite_withdrawal_admitted_without_guard"], events := failedPrerequisiteEvents,
+    params := failedPrerequisiteKeepsOffer, pair := some (.admitted, "TauWeb.Dispatch.failed_prerequisite_withdrawal_refused") },
+  { decls := ["TauWeb.Dispatch.failed_collection_per_entry_and_installation"], events := failedCollectionIsolationEvents },
+  { decls := ["TauWeb.Dispatch.session_destroy_under_abandonment_refused"], events := sessionDestroyEvents,
+    pair := some (.refused, "TauWeb.Dispatch.session_destroy_lifts_abandonment_without_guard") },
+  { decls := ["TauWeb.Dispatch.session_destroy_lifts_abandonment_without_guard"], events := sessionDestroyEvents,
+    params := sessionDestroyAllowed, pair := some (.admitted, "TauWeb.Dispatch.session_destroy_under_abandonment_refused") },
+  { decls := ["TauWeb.Dispatch.predecessor_reset_offer_refused"], events := predecessorOfferEvents,
+    pair := some (.refused, "TauWeb.Dispatch.predecessor_reset_offer_admitted_without_guard") },
+  { decls := ["TauWeb.Dispatch.predecessor_reset_offer_admitted_without_guard"], events := predecessorOfferEvents,
+    params := oldResetOffer, pair := some (.admitted, "TauWeb.Dispatch.predecessor_reset_offer_refused") },
+  { decls := ["TauWeb.Dispatch.changed_keys_reset_offer_refused"], events := changedKeysOfferEvents,
+    pair := some (.refused, "TauWeb.Dispatch.changed_keys_reset_offer_admitted_without_guard") },
+  { decls := ["TauWeb.Dispatch.changed_keys_reset_offer_admitted_without_guard"], events := changedKeysOfferEvents,
+    params := oldResetOffer, pair := some (.admitted, "TauWeb.Dispatch.changed_keys_reset_offer_refused") },
+  { decls := ["TauWeb.Dispatch.undisposed_command_bars_flow_destroy"], events := partialAbandonEvents },
+  { decls := ["TauWeb.Dispatch.omitted_call_stays_settled"], events := omittedCallEvents },
+  { decls := ["TauWeb.Dispatch.current_installation_reset_offered"], events := currentOfferEvents },
+  { decls := ["TauWeb.Dispatch.dedicated_reset_retires_prerequisites"], events := dedicatedOfferEvents },
   { decls := ["TauWeb.Dispatch.same_action_new_call_id_refused"], events := sameActionEvents,
     pair := some (.refused, "TauWeb.Dispatch.same_action_new_call_id_admitted") },
   { decls := ["TauWeb.Dispatch.same_action_new_call_id_admitted"], events := sameActionEvents,
@@ -997,6 +1134,7 @@ def assumptionsJson (p : TauWeb.Pins.Params) : Json :=
     ("publishedWithin", toJson p.publishedWithin),
     ("reinstallRetiresPin", toJson p.reinstallRetiresPin),
     ("installedFirstContact", toJson p.installedFirstContact),
+    ("readyAfterReinstallFresh", toJson p.readyAfterReinstallFresh),
     ("senderAssociation", "planted sender ordinal equals machine entry; fixed across restart"),
     ("sealAuthor", "observed author after unwrap; cryptography assumed"),
     ("journalAppend", "successful append atomically persists machine, pins and consumed state; restart retains them"),
@@ -1011,6 +1149,14 @@ def Trace.json (t : Trace)
   traceJson t.decls (assumptionsJson t.params) t.pair (knowledgeJson t.start named) steps
 
 def witnesses : List Trace := [
+  { decls := ["TauWeb.Pins.kept_root_keys_after_reinstall_refused"], events := keptRootEvents,
+    pair := some (.refused, "TauWeb.Pins.kept_root_keys_pinned_without_guard") },
+  { decls := ["TauWeb.Pins.kept_root_keys_pinned_without_guard"], events := keptRootEvents,
+    params := staleReadyAllowed, pair := some (.admitted, "TauWeb.Pins.kept_root_keys_after_reinstall_refused") },
+  { decls := ["TauWeb.Pins.observed_keys_after_reinstall_refused"], events := observedRootEvents,
+    pair := some (.refused, "TauWeb.Pins.observed_keys_pinned_without_guard") },
+  { decls := ["TauWeb.Pins.observed_keys_pinned_without_guard"], events := observedRootEvents,
+    params := staleReadyAllowed, pair := some (.admitted, "TauWeb.Pins.observed_keys_after_reinstall_refused") },
   { decls := ["TauWeb.Pins.pin_ceremony_trace"], events := ceremonyEvents },
   { decls := ["TauWeb.Pins.rescue_pin_not_reused_across_boots"], events := reuseEvents },
   { decls := ["TauWeb.Pins.reordered_rescue_refused"], events := rescueReorderedEvents },

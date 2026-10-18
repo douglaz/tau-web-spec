@@ -111,3 +111,12 @@ are unchanged — though the body's "malice is what the threshold absorbs" holds
 a threshold exists; for a single-machine tenant nothing absorbs malice and `SEC-CLAIM`
 states the accepted risk. The coordinator consequences are the federation half ADR-0016
 marks for its seam.
+
+*Amended 2026-10-16:* Restart survival is demonstrated by one reboot opted into twice: the
+approved declaration names `enabled-survives-reboot`, then the operator explicitly says yes
+at delivery. `ARC-43` owns the evidence and its label. Reads alone can mislead: a lingering
+user unit reads enabled without `Linger=yes`, armed-for-next-boot firewall state can differ
+from loaded state, and a new kernel can be installed but never booted. An observed new boot
+identity and active unit demonstrate survival without choosing an init. "enabled, restart
+not demonstrated" describes the evidence, raises no lifecycle finding and stays beside
+Delivered where applicable; it is no waiver or additional acceptable weaker mode.

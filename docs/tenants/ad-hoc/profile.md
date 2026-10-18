@@ -45,7 +45,7 @@ installed software listens on, what must be running, where an operator's applica
 as typed values under `ARC-39`, whose measuring procedures remain the harness's,
 and the operator approves the result in plain language; the approved declaration is journaled
 with the machine and is the one in force. An unspecified field blocks delivery; an explicit
-empty set does not. The minimum's structured v1 form is complete in
+empty set does not. The minimum's structured version-2 form is complete in
 [`docs/design/delivery-declaration-v1.md`](../../design/delivery-declaration-v1.md).
 
 ### Network policy

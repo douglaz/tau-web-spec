@@ -305,3 +305,6 @@ an ADR is where *why* lives.
 | [0042](./docs/adr/0042-the-vendor-identity-is-derived-per-machine.md) | The vendor identity is derived per machine |
 | [0043](./docs/adr/0043-lnvps-published-host-keys-admit-installed-system-pins.md) | LNVPS published host keys admit installed-system pins |
 | [0044](./docs/adr/0044-a-disposition-limits-what-its-calls-barred.md) | A disposition limits what its calls barred, and a destructive one stops the model's commands |
+| [0045](./docs/adr/0045-the-installation-label-moves-at-reinstall-dispatch.md) | The installation label moves at reinstall dispatch |
+| [0046](./docs/adr/0046-workers-check-the-host-delivered-policy.md) | Workers check the host-delivered policy before unlocking |
+| [0047](./docs/adr/0047-seed-backup-completion-is-all-or-zero.md) | Seed-backup completion is all or zero |
