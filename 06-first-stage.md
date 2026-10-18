@@ -500,8 +500,9 @@ the approval's binding.
 
 The harness MUST always show the model the current installation id `<machine>-<n>`.
 `<machine>` is the lowercase hexadecimal, without leading zeros, of the machine-family index
-the machine's entry holds under the journal's current seed or, until Replace migrates it,
-under the retired seed (`STA-22b`). Machine indices are distinct among machines allocated
+the machine's entry holds under the journal's current seed or, until Replace migrates it
+under `STA-17`'s condition (including its dedicated-machine relabel confirmation), under the
+retired seed (`STA-22b`). Machine indices are distinct among machines allocated
 under the current seed. A retired-seed index can coincide with a migrated machine's new index.
 `n` is the journal's installation ordinal in decimal without leading zeros, starting at zero
 per machine. It is derived from the journal with no new journal field, unchanged across restart
@@ -512,12 +513,18 @@ eight bytes. With the one-byte `-` separator, seven bytes remain for `n`, so its
 is 9 999 999 regardless of the machine component's
 length. The longest label, `7fffffff-9999999`, is exactly 16 bytes and fits ext4's label.
 The harness MUST refuse a destructive reinstall that would make `n` = 10 000 000 before
-dispatch, saying that the installation label would not fit: before the reset into rescue on
-the dedicated path, or before the vendor's reinstall call at LNVPS.
+dispatch, saying that the installation id would exceed its limit: before the reset into
+rescue on the dedicated path, or before the vendor's reinstall call at LNVPS.
 `STA-17` says "Replace's machine-migration MUST move the machine component to the machine's
 new index and carry its installation ordinal `n` with it". The uniform bound keeps that move
 within the label's size even when the new index is longer.
 The install brief uses that label to distinguish its own root from a predecessor (ADR-0045).
+On a dedicated machine, `STA-17`'s relabel job moves the root's label to the new id; its
+non-dedicated path, including LNVPS, writes no label. The companion does not model Replace's
+migration steps or the relabel: `tools/formal/TauWeb/Allocation.lean` says "What the module
+omits: Replace's re-entry to remove the old keys from every maintained machine (`STA-17`)";
+`TauWeb.Pins.kept_root_keys_after_reinstall_refused` says "Labels and formatting are outside
+this companion".
 The label steers the model; nothing checks it.
 
 As a backstop, a `ready_to_reset` pin after a dispatched reinstall MUST share no fingerprint

@@ -94,9 +94,10 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       machine, survives restart, and is exported in the recovery sheet. An entry is made at
       binding for every machine of the session's bound set and records the set it was bound in
       (`STA-10`).
-- [ ] **CNF-91 · BLOCKING** Every box-plane command and every harness job names its machine,
-      and the harness resolves the name against the session's bound set before anything is
-      sent (`ARC-7`, `SEC-1`). Verified with a set of two: a command naming a machine outside
+- [ ] **CNF-91 · BLOCKING** Within a session, every box-plane command and every harness job
+      names its machine, and the harness resolves the name against the session's bound set
+      before anything is sent (`ARC-7`, `SEC-1`).
+      Verified with a set of two: a command naming a machine outside
       the set is not sent; a job's record, captured value or pin from one machine satisfies no
       check about the other. Destroyed data: with more than one key in a session, nothing else
       stands between a confused model and the wrong disk.
@@ -253,6 +254,27 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       complete revocation. The screen names application-secret rotation at its service,
       the unrevocable inference account credential, and possible thief persistence with a
       destroy/rebuild offer; scan re-arm is never described as a remedy for any of these.
+      The following relabel cases are **dedicated-path evidence** under the applicability
+      table, including the fixture for a non-dedicated vendor:
+      (a) On a dedicated machine, after the connection authenticated by the new key succeeds
+      and before the old key is removed, `replace_root_label` rewrites the root label to the
+      new index's installation id with the same ordinal. Its job is recorded before
+      transmission and has its machine-side record (`ARC-8`, `STA-20`); a model request for
+      it is refused (`ARC-43`). A harness-composed read shows the new id before the old key
+      is removed.
+      (b) Make the job fail: the screen reports the machine not migrated with the reason,
+      its old key stays, and Replace is not reported complete.
+      (c) Make the write succeed but the read not show the new id: the result is the same
+      as (b).
+      (d) Lose the read-back after the write landed: the machine stays unmigrated and its
+      shown id stays at the old index. A later read showing the new id migrates it without
+      a rewrite. Any re-issued write with the same new id is a fresh issue chosen by the
+      operator, never automatic; the old key is
+      removed only after a read shows the new id.
+      (e) A dedicated machine whose root label is missing, damaged or carries another id
+      still receives the job: the journal's vendor record decides the path, never the disk.
+      (f) With a fixture journal entry recording a non-dedicated vendor, no relabel job is
+      sent and nothing is written to the disk.
 - [ ] **CNF-68 · BLOCKING** No session ever holds the inference **account** credential
       (`ARC-31a`, `SEC-5` row 14). Verified by inspecting what a session is given, as `CNF-9`
       does for the scanner — a refusal test cannot distinguish an absent credential from one the
@@ -964,11 +986,18 @@ Not pass/fail. Required to be recorded.
       hexadecimal for the machine index and decimal for the installation ordinal, neither with
       leading zeros. The longest label `7fffffff-9999999` fits the root label. A reinstall that
       would make the ordinal 10 000 000 is refused before dispatch on both paths, saying that
-      the label would not fit. Replace moves the machine component to the new index and carries
-      the ordinal; an unmigrated retired-seed index can coincide with a migrated machine's new
-      index. Replace refuses to migrate an install unfinished in rescue (`STA-17`), including
+      the installation id would exceed its limit. Replace moves the machine component to the
+      new index and carries the ordinal; an unmigrated retired-seed index can coincide with
+      a migrated machine's new index. Replace refuses to migrate an install unfinished in
+      rescue (`STA-17`), including
       after `ready_to_reset` records pins and before the installed-system reset is confirmed;
       its screen names that machine as not yet migrated, says why, and does not report completion.
+      After Replace migrates a completed dedicated machine with its relabel confirmed, a
+      return to rescue without a destructive reinstall finds one root whose label equals
+      the shown id. The install brief treats it as this installation — found complete or
+      Resume — never as a predecessor. Also exercise an unconfirmed relabel whose write
+      failed without changing the label: the machine keeps its old shown id, still equal
+      to its unchanged label; the lost-read-back case is `CNF-20`'s (d).
       The ordinal moves at destructive reinstall dispatch, never at
       its choice: exercise both routes before its reset — replace a reinstall disposition with
       no approval standing, and withdraw a reinstall approval — and confirm the kept root still
@@ -1022,9 +1051,9 @@ promotion rule above.
 | Stage 1: record measurements | 45–47 | Require the integrated browser channel, not the rehearsal's timings. |
 | Stage 1: model-written check reports | 107 | The report label, verdict isolation and absence of automatic re-execution are required before stage 1 completes. |
 | Stage 1: re-entry | 108 | `STG-9`'s later session, re-entering over the same pin and re-running the check, is required before stage 1 completes. Item 93's re-entry case runs with it, using a placement or rotation in the re-entering session. |
-| Stage 1: recovery export/import and Replace | 19–20, 84 | Before maintained cloud delivery: export, Restore, allocation refusal, cloud destroy/recreate and partial-Replace cases pass, with item 10's export case. At LNVPS, `ARC-22` owns both forms: a destroy is a stop with renewal off, and a recreate is a reinstall that is a new first contact and cannot reuse the old pin. Item 84 checks `CHN-R7` provenance, earlier and refused publication knowledge, and pending pin retirement through sheet export and Restore; item 109 checks fresh admission after reinstall. Item 20 uses the manual publisher-confirmed pass retirement/enrollment route. Only item 84's Robot rescue case waits for the dedicated row; signed pass revocation waits for the paid/public row. |
+| Stage 1: recovery export/import and Replace | 19–20, 84 | Before maintained cloud delivery: export, Restore, allocation refusal, cloud destroy/recreate and partial-Replace cases pass, with item 10's export case. At LNVPS, `ARC-22` owns both forms: a destroy is a stop with renewal off, and a recreate is a reinstall that is a new first contact and cannot reuse the old pin. Item 84 checks `CHN-R7` provenance, earlier and refused publication knowledge, and pending pin retirement through sheet export and Restore; item 109 checks fresh admission after reinstall. Item 20 uses the manual publisher-confirmed pass retirement/enrollment route. Only item 20's relabel cases and item 84's Robot rescue case wait for the dedicated row; signed pass revocation waits for the paid/public row. |
 | Attest first-contact route | 18, 23 (attest-window case), 61, 74–75, 109 (attest admission) | Before enabling attest at any vendor that accepts boot configuration, including one used for a jump host. This row does not gate LNVPS stage 1. |
-| The dedicated path: the construction test bed | 22, 38, 48, 62–64, 80, 84, 85–86, 109 (job-read admission), 110 | The Robot dedicated path's own checks, including only item 84's Robot rescue case and item 110's reset-into-rescue cases. Their by-hand evidence stands (48 is recorded), construction exercises them on the test bed, and they pass on the integrated harness before a dedicated-server path is offered to an operator, which no stage before the third does. Items 62–64 also apply to any typed adapter that rides the pinned tunnel, stage 1's included if its vendor refuses a browser origin. |
+| The dedicated path: the construction test bed | 20 (relabel cases), 22, 38, 48, 62–64, 80, 84, 85–86, 109 (job-read admission), 110 | The Robot dedicated path's own checks, including item 20's relabel cases, only item 84's Robot rescue case, and item 110's reset-into-rescue cases. Their by-hand evidence stands (48 is recorded), construction exercises them on the test bed, and they pass on the integrated harness before a dedicated-server path is offered to an operator, which no stage before the third does. Items 62–64 also apply to any typed adapter that rides the pinned tunnel, stage 1's included if its vendor refuses a browser origin. |
 | Stage 2: a vendor with no adapter whose API the browser can reach (`CHN-12b`), the jump host, sets above one | 7, 12, 14, 23, 27, 29, 31, 33, 42, 91–93, 96–98, 104–106 | Before enabling an untyped scope, an untyped vendor scope, the jump-host route or a bound set of more than one machine. Items 7 and 91 cover set growth, subsets and two-machine sets; items 12, 14 and 29 their untyped-scope cases; item 23 the jump-host label; item 42 the untyped-scope half of the trust display; item 93 the jump-host, untyped-scope and larger-set modes, each accepted at the act it governs and restated, with their re-entry and reinstall cases; item 104 an invoice decoded from an untyped response, where the vendor invoices. Item 92's multi-tenant case gates sets above one; its independence-bound case gates the first profile that declares a bound. Repeat item 17 against real untyped responses. |
 | Post-harness handoff | 8, 77 | Before enabling any profile that declares one; none exists before stage 3. |
 | Scanner and advisory monitoring | 9, 36 | Also complete item 50's scanner case before exposing scanner results. |

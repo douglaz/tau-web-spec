@@ -23,7 +23,8 @@ gated on it.
       Local unlock and v1 derivation gate the first stage (`CNF-82`–`CNF-83`); recovery
       export/import and Replace gate maintained-cloud stage-1 completion under the recovery
       row of `07-conformance.md`. Implement `STA-17`'s manual relay retirement, with signed
-      revocation and Robot rescue following their separate applicability rows.
+      revocation, `CNF-20`'s relabel cases and Robot rescue following their separate
+      applicability rows.
 - [ ] **T23 — Demonstrate interrupted rescue installation** (`OPN-18`). Implement the
       `STA-20b` handoff and run `CNF-40` and `CNF-54`–`CNF-56` (stage 1's part of `OPN-18`), with
       `CNF-85` and `CNF-86` for the test bed, on the integrated

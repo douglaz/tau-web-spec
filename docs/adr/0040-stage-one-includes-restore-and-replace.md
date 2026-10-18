@@ -79,3 +79,8 @@ seed's ceremony. The refusal's "a seed alone restores nothing" has a limit: unde
 each LNVPS machine's vendor identity derives from the seed at its index. Once T44 implements
 bounded index discovery, a seed may find its machines by walking indices. Revisit the
 bare-seed refusal then; no inventory-discovery mechanism is added here.
+
+*Amended 2026-10-18:* Item 20's relabel cases are also assigned to the dedicated row of
+`07-conformance.md`'s applicability table, because Replace's relabel runs only on dedicated
+machines (`STA-17`). The earlier assignment of item 84's Robot rescue case remains; stage 1's
+required row and all severity tiers are unchanged.

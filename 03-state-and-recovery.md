@@ -867,6 +867,36 @@ pin already recorded, continuing as if not done keeps that installation"; its ro
 the current label. Replace's screen MUST name the refused machine as not yet migrated, with
 the reason, and MUST NOT report a complete Replace while it remains outstanding.
 
+For the direct re-entry in Replace's bullet above, a dedicated machine MUST have its root
+filesystem's label rewritten after the connection authenticated by the new key is confirmed
+and before the old public key is removed. The harness MUST decide whether the machine is
+dedicated from the journal's record of its vendor in its `STA-22b` machine entry, never from
+the disk: a missing or damaged root label, or one carrying another id, does not exempt a
+dedicated machine. The rewrite is one typed, harness-composed `replace_root_label` job
+(`ARC-43`), never a model command. It writes `<new machine component>-<n>`: the lowercase
+hexadecimal of the new index and the same ordinal `n`, encoded as `STG-20` specifies. Like
+any harness job it MUST be recorded before transmission (`ARC-8`) and have its machine-side
+job record (`STA-20`).
+
+In that flow, the harness MUST confirm that write by a harness-composed read of the label
+taken after the write, using captured job output (`ARC-43`), never model text. That read
+confirms only the job's own write; it checks nothing about how the install brief uses the
+label. If the job fails or no read shows the new id, the machine MUST remain not migrated,
+its old public key MUST NOT be removed, and Replace remains incomplete. The screen MUST name
+that machine as not yet migrated, with the reason; the completion refusal above applies.
+
+The relabel job MAY be retried: a write that landed with its read-back lost leaves the root
+at the new id while the harness still shows the old one. Re-reading the label is a status
+query; `STA-8` says "Establishing *what happened* by a status query is permitted". A later
+read showing the new id confirms the relabel without another write. Re-issuing the write
+with the same new id MUST be a fresh issue the operator chooses in Replace's flow, never an
+automatic retry (`STA-6`). In this direct re-entry, a dedicated machine counts as migrated
+only when a read shows the new id; that is when the shown installation id (`STG-20`) MUST move
+to the new index, never before the disk does, and only after that may the old key be removed.
+At LNVPS, and at any other non-dedicated vendor, the shown id still moves to the new index
+when Replace's bullet above migrates it, as before, but there is no relabel step and nothing
+is written to the disk.
+
 **Replace cannot cover the inference account credential, and MUST say so.** This credential
 has no account behind it, so there is nothing to revoke against (`SEC-5` row 14). What Replace *can* do is revoke every session key
 minted from it and mint no more — which stops the harness's own use and does nothing about a

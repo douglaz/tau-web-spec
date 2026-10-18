@@ -116,6 +116,10 @@ or two roots carrying the current id means stop and surface, never erase.
 With only a predecessor, or no root, on the approved disks, partition and format as approved below. Write
 the shown id as the root label in the **same** `mkfs.ext4` command: no gap between formatting
 and marking. It is readable without mounting and fits ext4's 16-byte label (`STG-20`).
+You write the label once, at formatting in `mkfs.ext4`; never rewrite a root's label yourself.
+Afterwards, on a dedicated machine, only the harness rewrites it, through Replace's relabel
+job (`STA-17`), which moves it to the machine's new id. Once the harness confirms that relabel,
+the id it shows is the one the root carries.
 
 GPT with a 1 MiB BIOS-boot partition, a 512 MiB EFI system partition, and the rest as root.
 The same layout boots both firmware modes. One block, so the partition paths it computes

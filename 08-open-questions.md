@@ -69,8 +69,8 @@ configuration; the stage-1 first-contact probe is `OPN-24`'s.
 - Stage 1 supplies the recovery row of `07-conformance.md`, including `CNF-10`'s export
   case, and local allocation/derivation evidence (`CNF-72`, `CNF-83`). Its relay replacement
   is the manual route in `STA-17`.
-- The dedicated path supplies `CNF-84`'s Robot rescue case on the integrated harness; the
-  historical rehearsal is not that evidence.
+- The dedicated path supplies `CNF-20`'s relabel cases and `CNF-84`'s Robot rescue case on
+  the integrated harness; the historical rehearsal is not that evidence.
 - Paid/public relay enablement supplies signed revocation (`CNF-60`).
 
 Each part closes on the app and hardware to which its applicability row applies. A format

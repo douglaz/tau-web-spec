@@ -242,6 +242,10 @@ larger set it is what stands between an honest, confused model and the wrong dis
 record, the values captured from it and the pins it yields belong to the machine it named, and
 satisfy no check about another.
 
+In Replace's model-free flow (`STA-17`, `SEC-1`), which no session holds, the harness names
+the one machine it is migrating; that flow's commands and jobs go to that machine alone, and
+their records and captured values belong to that machine and satisfy no check about another.
+
 **ARC-8** Recording commits **per command**, before transmission. "Every byte recorded
 before transmission" would otherwise imply a granularity nobody chose, resting on an
 execution model nobody had stated, and the two plausible readings differ by orders of
@@ -277,6 +281,10 @@ output. The jobs are:
   below permits. The model MUST NOT request it through `request_harness_job` or supply its
   command. Its own job record follows `STA-20`; reboot ends the command, established by the
   boot-identity change.
+- `replace_root_label` — a harness-initiated rewrite of a dedicated machine's root label
+  during Replace's model-free direct re-entry migration, outside any session. The model
+  MUST NOT request it through `request_harness_job` or supply its command. Its rules are
+  `STA-17`'s.
 
 Listener observations, outbound-restriction observations and service state/enablement
 observations used for delivery also MUST come from harness-composed reads. The signed

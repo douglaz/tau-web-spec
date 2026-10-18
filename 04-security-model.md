@@ -80,7 +80,8 @@ in its bound set and no other, so a session cannot authenticate to a machine out
 and the refusal comes from SSH rather than from the harness declining to call its own
 transport. Two harness flows hold a client key outside any session, and no model drives
 either: the jump-host flow (`CHN-R6`), and Replace's key migration (`STA-17`), which holds one
-machine's old and new keys while it swaps them and runs nothing else on it. A single shared client key would leave this invariant enforced only by routing code,
+machine's old and new keys while it swaps them and runs on it only what `STA-17` names.
+A single shared client key would leave this invariant enforced only by routing code,
 which is bookkeeping rather than a boundary.
 
 **The key is the machine's, not the session's, and a binding is exclusive.** Until 2026-09-16
