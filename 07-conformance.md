@@ -267,8 +267,8 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       (c) Make the write succeed but the read not show the new id: the result is the same
       as (b).
       (d) Lose the read-back after the write landed: the machine stays unmigrated and its
-      shown id stays at the old index. A later read showing the new id migrates it without
-      a rewrite. Any re-issued write with the same new id is a fresh issue chosen by the
+      shown id stays at the old index. The harness re-reads the label on the next connection
+      to the machine, and a read showing the new id migrates it without a rewrite. Any re-issued write with the same new id is a fresh issue chosen by the
       operator, never automatic; the old key is
       removed only after a read shows the new id.
       (e) A dedicated machine whose root label is missing, damaged or carries another id

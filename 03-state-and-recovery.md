@@ -885,10 +885,11 @@ label. If the job fails or no read shows the new id, the machine MUST remain not
 its old public key MUST NOT be removed, and Replace remains incomplete. The screen MUST name
 that machine as not yet migrated, with the reason; the completion refusal above applies.
 
-The relabel job MAY be retried: a write that landed with its read-back lost leaves the root
-at the new id while the harness still shows the old one. Re-reading the label is a status
-query; `STA-8` says "Establishing *what happened* by a status query is permitted". A later
-read showing the new id confirms the relabel without another write. Re-issuing the write
+Until a read of the label succeeds, the harness MUST re-read it on each later connection to
+the machine: a write that landed with its read-back lost leaves the root at the new id while
+the harness still shows the old one. Re-reading the label is a status query; `STA-8` says
+"Establishing *what happened* by a status query is permitted and required where a tool
+supports one". A later read showing the new id confirms the relabel without another write. Re-issuing the write
 with the same new id MUST be a fresh issue the operator chooses in Replace's flow, never an
 automatic retry (`STA-6`). In this direct re-entry, a dedicated machine counts as migrated
 only when a read shows the new id; that is when the shown installation id (`STG-20`) MUST move
