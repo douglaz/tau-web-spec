@@ -555,11 +555,19 @@ dispatch_control "formal: an unresolved box-plane command barring nothing" \
 # bounded also reaches that case with its second command in the alphabet.
 # Rehearsed 2026-10-18: the new refusal, isolation and reboot traces need the hold; the
 # counterfactual stop trace now expects it too.
+# Rehearsed 2026-10-19: the reboot behind an unresolved command needs the hold too.
 dispatch_control "formal: the machine command hold dropped" \
   "sed -i 's/commandHold : Bool := true/commandHold : Bool := false/' $DISP && grep -q 'commandHold : Bool := false' $DISP" \
   command_preempts_reinstall_without_guard second_command_held hold_reads_and_other_machines \
+  command_holds_delivery_reboot \
   delivery_reboot_same_boot_refused delivery_reboot_failed_append_holds delivery_reboot_collection_identity \
   bounded
+
+# Rehearsed 2026-10-19: a hold that covers only a following command lets the harness's reboot
+# start beside the command still running.
+dispatch_control "formal: the command hold leaves the reboot out" \
+  "sed -i \"s/^    (k' == .exec || k' == .deliveryReboot)\$/    (k' == .exec)/\" $DISP && grep -q \"^    (k' == .exec)\$\" $DISP" \
+  command_holds_delivery_reboot
 
 # Rehearsed 2026-10-18: treating the record's own boot as a result releases the command.
 dispatch_control "formal: same-boot delivery reboot settled" \
@@ -582,7 +590,8 @@ dispatch_control "formal: same-boot delivery reboot settled" \
 # The unresolved activation is also shown before a withdrawn approval's reset.
 # Rehearsed 2026-10-18: the new hold and reboot refusal traces also need the resource key to
 # survive a fresh call id.
-# Rehearsed 2026-10-19: the activation/reset trace also needs the command to bar fresh call ids.
+# Rehearsed 2026-10-19: the activation/reset trace also needs the command to bar fresh call ids,
+# and so does the reboot behind a command.
 dispatch_control "formal: the barrier keyed on the call id" \
   "sed -i 's/{ resourceKey := .entry,/{ resourceKey := .call,/' $DISP && grep -q '{ resourceKey := .call,' $DISP" \
   same_action_new_call_id_refused second_index_same_entry_refused boot_id_change_not_success_refused \
@@ -591,6 +600,7 @@ dispatch_control "formal: the barrier keyed on the call id" \
   replayed_invalid_disposition_means_nothing spent_activation_counted_without_guard return_to_rescue_trace \
   reset_waits_for_other_commands undisposed_command_bars_flow_destroy approved_reinstall_keeps_disposition_activation_boundary \
   unresolved_activation_before_withdrawal_shown second_command_held hold_reads_and_other_machines \
+  command_holds_delivery_reboot \
   delivery_reboot_same_boot_refused delivery_reboot_failed_append_holds delivery_reboot_collection_identity \
   command_bars_activation_and_reset bounded
 

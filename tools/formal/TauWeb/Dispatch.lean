@@ -409,7 +409,8 @@ authority is per clause and this structure is not one. -/
   `withdrawn_approval_reset_admitted_without_guard`. -/
   reinstallWithdrawalEffective : Bool := true
   /-- `STA-20`, 2026-10-18: an unresolved box-plane command holds the next command.
-  Pair: `second_command_held` / `second_command_without_hold`. -/
+  Pair: `second_command_held` / `second_command_without_hold`; for the harness's reboot,
+  `command_holds_delivery_reboot` / `delivery_reboot_without_hold`. -/
   commandHold : Bool := true
   /-- `ARC-43`, 2026-10-18: a reboot's own collection needs a different boot.
   Pair: `delivery_reboot_same_boot_refused` / `delivery_reboot_same_boot_admitted_without_guard`. -/
@@ -2651,6 +2652,22 @@ def holdIsolationEvents : List Event :=
     unresolved current w.memory machineA = [20] := by decide +kernel
 
 def rebootRequest : Request := { execRequest with call := 30, kind := .deliveryReboot }
+
+/-- A harness reboot requested while a command is unresolved on the machine. -/
+def commandRebootEvents : List Event :=
+  [.request execRequest approvalExec true, .request rebootRequest approvalExec true]
+
+/-- An unresolved command holds the harness's reboot too, without recording its intent. -/
+@[req "STA-20"] theorem command_holds_delivery_reboot :
+    let w := run current farDone.external init commandRebootEvents
+    w.dispatched.map (·.call) = [7] ∧
+    w.verdict = some (.refused (.barrier [7])) ∧
+    (intentsOf w.memory).length = 1 := by decide +kernel
+
+/-- Without the command hold, the reboot goes out beside the unresolved command. -/
+@[req "STA-20"] theorem delivery_reboot_without_hold :
+    let w := run withoutCommandHold farDone.external init commandRebootEvents
+    w.dispatched.map (·.call) = [30, 7] := by decide +kernel
 
 /-- A harness reboot requested while the disposed command's destructive reinstall stands. -/
 def destructiveRebootEvents : List Event :=
