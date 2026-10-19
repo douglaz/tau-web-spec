@@ -20,12 +20,13 @@ the stop. Replace's treatment of the machine belongs to `STA-17`.
 `ARC-43` says "the card is offered at once for every known required placement on it whose
 reference is unarmed, the disposed digest's included". No required reference is waived; a
 local paste can arm it while the destructive reinstall or abandonment still stands. The paste
-sends nothing to the machine and changes no dispatch restriction. A late record of the disposed
-digest arms nothing and cross-checks a paste without replacing it.
+sends nothing to the machine and changes no restriction of `STA-20` or `STA-24`. A late
+record of the disposed digest arms nothing and cross-checks a paste without replacing it.
 
-Without a paste, `ARC-43` says "one operator act after the reinstall restarts the re-read for
-that machine's unarmed placements". A refused digest is a first issue when admitted, and a
-disposed digest has no automatic re-issue. The continuation's completion alone releases no
+Under a destructive reinstall without a paste, `ARC-43` says "nothing is composed or re-issued
+for that machine's unarmed placements until one operator act after the reinstall restarts the
+re-read for all of them". That act issues a refused digest as a first issue and a disposed one
+as the operator's re-issue, never automatically. The continuation's completion alone releases no
 output whose reference remains unarmed.
 
 ## Alternatives considered

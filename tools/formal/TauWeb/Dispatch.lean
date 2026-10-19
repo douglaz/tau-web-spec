@@ -2670,6 +2670,18 @@ def destructiveRebootEvents : List Event :=
     w.dispatched.map (·.call) = [30, 7] ∧
     w.verdict = some (.dispatched (intentOf rebootRequest machineA approvalExec)) := by decide +kernel
 
+/-- A harness reboot requested while the disposed command's abandonment stands. -/
+def abandonmentRebootEvents : List Event :=
+  [.request execRequest approvalExec true,
+   .dispose { reinstallAfterCommand with continuation := .abandon } true,
+   .request rebootRequest approvalExec true]
+
+/-- Abandonment refuses the harness's reboot while its destructive stop stands. -/
+@[req "STA-24"] theorem abandonment_stops_delivery_reboot :
+    let w := run current farDone.external init abandonmentRebootEvents
+    w.dispatched.map (·.call) = [7] ∧
+    w.verdict = some (.refused (.continuation .abandon)) := by decide +kernel
+
 /-- The collection on the record's own boot, even alongside a generic success observation. -/
 def sameBootRebootEvents : List Event :=
   [.request rebootRequest approvalExec true,

@@ -907,6 +907,8 @@ def witnesses : List Trace := [
   { decls := ["TauWeb.Dispatch.delivery_reboot_dispatched_without_destructive_stop"],
     events := destructiveRebootEvents, params := noDestructiveStop,
     pair := some (.admitted, "TauWeb.Dispatch.destructive_choice_stops_delivery_reboot") },
+  { decls := ["TauWeb.Dispatch.abandonment_stops_delivery_reboot"],
+    events := abandonmentRebootEvents },
   { decls := ["TauWeb.Dispatch.read_and_inference_never_restricted"],
     events := readInferenceEvents,
     pair := some (.refused, "TauWeb.Dispatch.read_and_inference_restricted_without_guard") },

@@ -670,11 +670,12 @@ dispatch_control "formal: a disposition's restriction ended at any later intent"
 # call bars a command, so the stop is all that refuses either.
 # Rehearsed 2026-10-18: a late reboot result must leave the destructive disposition stopping
 # commands.
-# Rehearsed 2026-10-19: the harness reboot is refused by the destructive stop too.
+# Rehearsed 2026-10-19: the harness reboot is refused by the destructive stop under reinstall
+# and abandonment alike.
 dispatch_control "formal: the destructive stop dropped" \
   "sed -i 's/destructiveStops : Bool := true/destructiveStops : Bool := false/' $DISP && grep -q 'destructiveStops : Bool := false' $DISP" \
   destructive_choice_stops_commands_after_activation destructive_choice_stops_commands delivery_reboot_late_result_keeps_disposition \
-  destructive_choice_stops_delivery_reboot
+  destructive_choice_stops_delivery_reboot abandonment_stops_delivery_reboot
 
 # The resource check on a disposition's named calls dropped: one recorded against the sibling
 # entry is accepted and ends this entry's call, at recording and on replay alike.

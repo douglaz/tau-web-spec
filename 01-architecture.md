@@ -464,12 +464,13 @@ whose reference is unarmed, the disposed digest's included, and says that rotati
 `STA-24` admits it. A digest record of a call named by a destructive disposition arms nothing,
 whenever collected; it is journaled and shown and cross-checks a paste. A digest result that
 arrives after the paste, a disposed digest's record among them, is a cross-check only: a
-mismatch is visible and MUST NOT replace the pasted reference. A pasted reference owes no new
-digest after the reset. Without a paste, a refused digest is composed as a first issue once
-`STA-24` admits it, and a disposed one is re-issued only by the operator: one operator act after
-the reinstall restarts the re-read for that machine's unarmed placements. Offering or accepting
-the paste neither delays the continuation nor lifts any dispatch restriction. Under
-abandonment, clearing this gate does not resume the abandoned setup.
+mismatch is visible and MUST NOT replace the pasted reference. A pasted reference owes no
+new digest after the reset. Under a destructive reinstall without a paste, nothing is
+composed or re-issued for that machine's unarmed placements until one operator act after
+the reinstall restarts the re-read for all of them: a refused digest as a first issue, a
+disposed one as the operator's re-issue, never automatically. Offering or accepting the
+paste neither delays the continuation nor lifts a restriction of `STA-20` or `STA-24`.
+Under abandonment, clearing this gate does not resume the abandoned setup.
 The paste writes nothing to the machine and is not a placement or rotation. Rotation goes
 through the full `place_secret` ceremony. Re-arming neither reapproves the restored declaration nor any weaker mode; until the operator does,
 `place_secret`'s card restates the restored state as "unknown since export" (`STA-16`).

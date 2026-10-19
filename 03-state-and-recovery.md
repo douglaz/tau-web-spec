@@ -524,7 +524,8 @@ its last clause. Each guard is a parameter with its pair:
   `TauWeb.Dispatch.command_preempts_reinstall_without_guard`, with
   `TauWeb.Dispatch.destructive_choice_stops_commands_after_activation` for a disposed call that
   barred nothing on the box; and `TauWeb.Dispatch.destructive_choice_stops_delivery_reboot` /
-  `TauWeb.Dispatch.delivery_reboot_dispatched_without_destructive_stop` for the harness's reboot;
+  `TauWeb.Dispatch.delivery_reboot_dispatched_without_destructive_stop` for the harness's reboot,
+  with `TauWeb.Dispatch.abandonment_stops_delivery_reboot` under abandonment;
 - the end at the continuation's dispatch and not at any later intent,
   `TauWeb.Dispatch.read_does_not_lift_abandonment` and
   `TauWeb.Dispatch.read_lifts_abandonment_without_guard`, nor at the reinstall's first
@@ -910,8 +911,9 @@ the reason, and MUST NOT report a complete Replace while it remains outstanding.
 
 A machine under `STA-20`'s hold or a standing destructive reinstall or abandonment disposition
 (`STA-24`) MUST be shown as not yet migrated, with the reason, and MUST keep its old key;
-Replace migrates the others. After the hold or restriction ends, its migration steps are first
-issues, starting with the key install in the order above; the completion refusal above applies.
+Replace migrates the others. After the hold, or a destructive reinstall's restriction,
+ends, its migration steps are first issues, starting with the key install in the order
+above; the completion refusal above applies.
 
 For the direct re-entry in Replace's bullet above, a dedicated machine MUST have its root
 filesystem's label rewritten after the connection authenticated by the new key is confirmed
@@ -932,8 +934,9 @@ its old public key MUST NOT be removed, and Replace remains incomplete. The scre
 that machine as not yet migrated, with the reason; the completion refusal above applies.
 
 Until a read of the label succeeds, the harness MUST re-read it on each later connection to
-the machine, once `STA-24` admits the re-read: a write that landed with its read-back lost leaves the root
-at the new id while the harness still shows the old one. A later read showing the new id
+the machine, once `STA-20` and `STA-24` admit the re-read: a write that landed with its
+read-back lost leaves the root at the new id while the harness still shows the old one. A
+later read showing the new id
 confirms the relabel without another write. Re-issuing the write
 with the same new id MUST be a fresh issue the operator chooses in Replace's flow, never an
 automatic retry (`STA-6`). In this direct re-entry, a dedicated machine counts as migrated
