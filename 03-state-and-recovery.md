@@ -97,7 +97,7 @@ machines are unaffected. Only a terminal record releases the hold: a finished re
 command but `delivery_reboot`, `delivery_reboot`'s boot change (`ARC-43`), or a disposition,
 which `STA-24` says "is a terminal record of its own kind"; otherwise an ended, missing or
 incomplete record does not, and no timeout does. A disposition's continuation still restricts
-as `STA-24` says, "A destructive continuation stops the model's commands", and later evidence
+as `STA-24` says, "A destructive continuation stops every box-plane job", and later evidence
 does not lift that. The dispatch check carries the rule and the single writer serializes it
 with the intent's append, so two requests cannot both pass. A held request is not run and
 records no intent. The harness collects the calls holding it, waiting while a command's own
@@ -351,11 +351,13 @@ there offer the likely intent, a disposition of the activation with the reinstal
 
 **What a disposition reaches.** A standing disposition restricts, to its continuation, what the
 calls it names barred while they were unresolved. An operation outside that reach is neither
-restricted by it nor ends it. A read and the inference request are never restricted. So a
-disposed reset, reinstall or destroy keeps box-plane dispatch to that machine stopped except as
+restricted by it nor ends it. A read and the inference request are never restricted. A read
+here is one named under *What stays permitted*; a box-plane job that reads is a command
+(`STA-20`). So a disposed reset, reinstall or destroy keeps box-plane dispatch to that machine stopped except as
 the continuation permits; a disposed create, activation or key registration bars nothing on the
 box plane; and a disposed box-plane command restricts only what an unresolved box-plane command
-bars. Within the reach the harness worker MUST NOT dispatch an operation the continuation does
+bars. The disposition releases the named command's hold; unnamed unresolved commands retain
+theirs. Within the reach the harness worker MUST NOT dispatch an operation the continuation does
 not permit. A destructive reinstall permits only the reinstall, abandonment only the
 abandonment flow. Continuing as if done and continuing as if not done restrict nothing:
 everything the disposed calls barred is permitted again, a re-issue of the same operation
@@ -366,14 +368,17 @@ permission is not a dispatch: an operation the continuation permits still meets 
 dispatch requirement, the approval and the binding (`SEC-4`) among them, and for a reinstall
 `STA-20b`'s prerequisites.
 
-**A destructive continuation stops the model's commands.** When the continuation is a
-destructive reinstall or abandonment, the harness worker MUST refuse the model's box-plane
-commands to that machine, whatever the disposed call was. A harness-owned job the model
-requests (`ARC-43`) is one of them: it runs on the machine like any command, and that the
-harness composed it changes nothing here. This is the one case where the restriction exceeds
-what the disposed calls barred. Reads stay permitted throughout, the pinned
-SSH attempt that is `STG-4`'s third predicate and the collection of job records among them: they
-are how the operator learns whether a reinstall landed.
+**A destructive continuation stops every box-plane job.** When the continuation is a
+destructive reinstall or abandonment, the harness worker MUST refuse every box-plane job to
+that machine, whatever the disposed call was and whoever starts it: the model's commands, a
+harness-owned job the model requests (`ARC-43`), and the jobs the harness composes itself,
+`delivery_reboot`, `replace_root_label`, Replace's key install and old-key removal (`STA-17`),
+`digest_secret` and the delivery check's harness-composed reads among them. That the harness
+composed or started a job changes nothing here: a stray command would pre-empt the reinstall
+the operator chose, and each further one would defer it again. This is the one case where the
+restriction exceeds what the disposed calls barred. Reads stay permitted throughout, the
+pinned SSH attempt that is `STG-4`'s third predicate and the collection of job records among
+them: they are how the operator learns whether a reinstall landed.
 
 **When the restriction ends.** The restriction ends when the continuation it names is
 dispatched, its intent durably appended (`STA-3`); from then on that call's own barrier governs,
@@ -518,7 +523,8 @@ its last clause. Each guard is a parameter with its pair:
 - the destructive stop, `TauWeb.Dispatch.destructive_choice_stops_commands` and
   `TauWeb.Dispatch.command_preempts_reinstall_without_guard`, with
   `TauWeb.Dispatch.destructive_choice_stops_commands_after_activation` for a disposed call that
-  barred nothing on the box;
+  barred nothing on the box; and `TauWeb.Dispatch.destructive_choice_stops_delivery_reboot` /
+  `TauWeb.Dispatch.delivery_reboot_dispatched_without_destructive_stop` for the harness's reboot;
 - the end at the continuation's dispatch and not at any later intent,
   `TauWeb.Dispatch.read_does_not_lift_abandonment` and
   `TauWeb.Dispatch.read_lifts_abandonment_without_guard`, nor at the reinstall's first
@@ -544,10 +550,12 @@ a disposed reset nor removes its disposition. Decided beside them, with no param
 `TauWeb.Dispatch.activation_before_disposition_not_counted` and
 `TauWeb.Dispatch.activation_under_replaced_disposition_not_counted` for which rescue activation
 the reset into rescue follows; and `TauWeb.Dispatch.reinstall_does_not_refuse_key_registration`,
-that the restriction does not refuse a key registration and still stands after one. The
-companion carries nothing of whether a registration is owed, so no trace requests one under a
-disposition. The companion's `exec` is box-plane work as a whole, and a request there is a
-session's. Its destroy under abandonment is refused; the guard-removed paired trace retains
+that the restriction does not refuse a key registration and still stands after one;
+`TauWeb.Dispatch.command_bars_activation_and_reset` pins an unresolved command barring both
+activation and reset. The companion carries nothing of whether a registration is owed, so no trace requests one under a
+disposition. The companion's `exec` is box-plane work other than the harness's `deliveryReboot`,
+and a request there is a session's; the destructive stop is by kind, whoever
+starts the job. Its destroy under abandonment is refused; the guard-removed paired trace retains
 the former admission as a trap. The operator flow's intent is appended outside admission in
 `TauWeb.Dispatch.abandonment_ends_at_its_destroy_alone`, which now also states the session's
 refusal. `TauWeb.Dispatch.undisposed_command_bars_flow_destroy` shows that the flow's intent
@@ -900,8 +908,9 @@ pin already recorded, continuing as if not done keeps that installation"; its ro
 the current label. Replace's screen MUST name the refused machine as not yet migrated, with
 the reason, and MUST NOT report a complete Replace while it remains outstanding.
 
-A machine under `STA-20`'s hold MUST be shown as not yet migrated, with the reason, and MUST
-keep its old key; Replace migrates the others. After release, its migration steps are first
+A machine under `STA-20`'s hold or a standing destructive reinstall or abandonment disposition
+(`STA-24`) MUST be shown as not yet migrated, with the reason, and MUST keep its old key;
+Replace migrates the others. After the hold or restriction ends, its migration steps are first
 issues, starting with the key install in the order above; the completion refusal above applies.
 
 For the direct re-entry in Replace's bullet above, a dedicated machine MUST have its root
@@ -923,10 +932,9 @@ its old public key MUST NOT be removed, and Replace remains incomplete. The scre
 that machine as not yet migrated, with the reason; the completion refusal above applies.
 
 Until a read of the label succeeds, the harness MUST re-read it on each later connection to
-the machine: a write that landed with its read-back lost leaves the root at the new id while
-the harness still shows the old one. Re-reading the label is a status query; `STA-8` says
-"Establishing *what happened* by a status query is permitted and required where a tool
-supports one". A later read showing the new id confirms the relabel without another write. Re-issuing the write
+the machine, once `STA-24` admits the re-read: a write that landed with its read-back lost leaves the root
+at the new id while the harness still shows the old one. A later read showing the new id
+confirms the relabel without another write. Re-issuing the write
 with the same new id MUST be a fresh issue the operator chooses in Replace's flow, never an
 automatic retry (`STA-6`). In this direct re-entry, a dedicated machine counts as migrated
 only when a read shows the new id; that is when the shown installation id (`STG-20`) MUST move

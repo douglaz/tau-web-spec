@@ -68,7 +68,7 @@ the channel and the journal, the stage needs:
 - **goal input, and the harness's own questions** for machine class and the declaration
   (`ARC-36a`, `ARC-39`);
 - **`place_secret` and its scan/re-arm paths**, for the application's key (`ARC-43`, `SEC-5`):
-  `CNF-95`'s cases pass before completion (`OPN-28`);
+  `CNF-95`'s stage-1 cases pass before completion (`OPN-28`);
 - **the unpinned label, or a publisher pin for Arch** (`ARC-25`);
 - **delivered against handed over with findings**, and a generic signed lockdown checklist
   (`ARC-17`, `OPN-14`), with the harness-composed listener and service-lifecycle evidence

@@ -184,14 +184,34 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       before output collection or model commands on any machine of the set. The label is
       "re-armed from the machine's report", never "protected"; forgotten placements are not
       claimed covered. Machine-only entries are advisory and require an operator act to arm.
-      (d) Missing file, changed file, failed digest job or below-minimum machine report
-      (`SEC-5`): offer the local paste fallback;
+      (d) Missing file, changed file, failed digest job, a digest `STA-24` refuses, one a
+      disposition leaves unknown, or below-minimum machine report (`SEC-5`): offer the local
+      paste fallback;
       it writes nothing to the machine, leaves the exposure listed, and changes no declaration
       or weaker-mode approval. Where the operator cannot paste the value, the delivery
       re-check runs on the set though a reference stays unarmed, releasing only its verdict,
-      and a rotation through `place_secret` then proceeds. Refuse a below-minimum paste too,
+      and a rotation through `place_secret` then proceeds. On a machine under a destructive
+      disposition, both wait until `STA-24` admits them, and the card says rotation waits.
+      Refuse a below-minimum paste too,
       leaving the reference unarmed. Inspect paste custody
       and clearing under `SEC-5` row 12.
+      (e) At a vendor with a typed reinstall, three machines A, B and M are in one bound set
+      after local-store loss. M carries placements P1 and P2; P1's `digest_secret` goes
+      unresolved and the operator disposes it with a destructive reinstall. P2's digest is
+      refused and recorded as refused, never absent or failed; P1's outcome stays unknown
+      (`CNF-29`: a disposition "keeps their outcome unknown"). The fallback card is offered
+      at once for both placements, disposed P1 included, and says rotation waits. With neither,
+      one or both pasted, output on A and B is released only after both. Refuse a below-minimum
+      paste, leaving the reference unarmed. A copied key split across output chunks on A is
+      redacted. A late P1 record arms nothing even before a paste; it is journaled and shown,
+      never replaces a pasted reference, and shows a mismatch on cross-check. A pasted reference
+      gets no digest after the reset. Without a paste, nothing is re-issued until the
+      operator's one act after the reinstall, which covers M's unarmed placements together;
+      the refused digest is composed as a first issue once `STA-24` admits it. M's traffic
+      shows nothing sent for the paste. At LNVPS, until `TASKS.md` T50 defines the typed
+      reinstall's confirmation, this case runs after the operator's disposition of the
+      reinstall with a continuation that continues. Stage 1 runs the assertions on M alone;
+      the A/B output-release and copied-key assertions run at stage 2.
       In these cases reject model requests for `digest_secret`; inspect its command and
       destination for no harness key and no placement write, its captured output for hash
       and count only, and both sinks for no raw digest or file bytes. A symlink or traversed
@@ -521,19 +541,27 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       `Ended` read on the old boot, a missing record, an incomplete one with no boot of its own or
       read on its own boot, and another machine's record keep it held; a settlement append that did
       not land leaves it held across replay, and one that landed settles on replay; a model box-plane
-      request after the yes and before the delivery check's verdict, including after the reboot
-      settled, is held; an `exec` of the same reboot command settles by its exit like any command and
+      request after the yes journaled with the reboot's intent and before the delivery check's
+      verdict, including after the reboot settled, is held; an `exec` of the same reboot command settles by its exit like any command and
       holds when it reads `Ended` or an incomplete record; the settlement is refused for a missing
       yes, the wrong call, and LNVPS's typed restart.
       A model command in flight at the yes holds the reboot, and its later issue asks again;
-      after a disposition with a destructive continuation, a new-boot record arriving later
+      that held reboot starts no pending-check hold before its yes is journaled with its intent.
+      After the reboot settles, a delivery-check read ends without an exit; its disposition
+      with a continuation that continues releases `STA-20`'s hold. No verdict comes, and the
+      model's request stays held until the operator's journaled stop, which shows the check as
+      stopped, never as a pass.
+      After a disposition with a destructive continuation, a new-boot record arriving later
       does not lift the restriction.
       For running-at-delivery, stopped on the same boot is a finding at re-entry; after a
       restart, the note "stopped since a restart, as approved" shows and there is no finding.
       A crash finding followed by a restart stays until the service is found running; a
       never-found-running service still binds. A placing session needs every such service
       running after its last placement, and the note does not count: stopped is a lifecycle
-      finding there. An explicit declaration amendment still clears through a re-check.
+      finding there. An explicit declaration amendment still clears through a re-check:
+      withdrawing the promise and re-checking clears the flag; putting the promise back makes
+      a stopped service a finding, not the note, until a check finds it running; an edit that
+      keeps the promise leaves a standing finding standing and leaves a note a note.
       Re-entry reads every declared service's unit and enablement only for
       enabled-survives-reboot services.
 - [ ] **CNF-52 · BLOCKING** On a multi-tenant machine, no spendable key material is present
@@ -641,8 +669,8 @@ evidence is that set's test run against the relay the harness uses.
       purchase. Stage 1: the create, box-plane and inference cases; the Robot cases run on the
       dedicated test bed; the untyped-scope cases pass before that capability is enabled.
 - [ ] **CNF-110 · BLOCKING** A standing operator disposition restricts what the calls it names
-      barred and, under a destructive continuation, the model's box-plane commands to the
-      machine, and apart from the untyped-scope hold (`CNF-105`) nothing else (`STA-24`).
+      barred and, under a destructive continuation, every box-plane job to the machine,
+      whoever starts it, and apart from the untyped-scope hold (`CNF-105`) nothing else (`STA-24`).
       With a call that changes what the machine is running
       left unresolved and disposed: a box-plane command to that machine, a harness-owned job the
       model requests included, is refused under a destructive reinstall and under abandonment, and so is every cloud-plane operation the
@@ -656,6 +684,9 @@ evidence is that set's test run against the relay the harness uses.
       is refused. In every case a status read, a pinned SSH attempt, the collection of job
       records and the inference request are dispatched and do not end the restriction: the
       model's command that the disposition refused before one is refused after it.
+      Under each of destructive reinstall and abandonment, Replace's key install and old-key
+      removal, `digest_secret` and a delivery-check read composed by the harness are refused;
+      the permitted reads still pass. These refusal cases run at stage 1.
       The restriction ends at the dispatch of
       the continuation and not before: from that intent the call's own barrier refuses, and
       nothing is refused under the disposition. A disposition naming no call, a call already
@@ -670,7 +701,9 @@ evidence is that set's test run against the relay the harness uses.
       confirmation of the stop. A replacement that omits calls lists them, leaves their outcome
       unknown and settled under the replaced record, adds no restriction through them, and
       refuses ever naming them again, including at LNVPS. These are stage-1 cases.
-      On the dedicated test bed, with no reinstall approval standing, replace a reinstall by a
+      On the dedicated test bed, the harness-composed `delivery_reboot` and
+      `replace_root_label` are each refused under both destructive continuations.
+      With no reinstall approval standing, replace a reinstall by a
       continuing disposition naming only its unresolved activation: the screen says the reinstall
       is cancelled, commands resume, and any reset is admitted subject to other checks, possibly
       booting the installed system while the activation's state is unknown; it offers "retry the
@@ -757,9 +790,9 @@ evidence is that set's test run against the relay the harness uses.
       with the worker alive after a dropped connection, in a successor session, and for two
       requests made together: the later request is not run, records no intent, and its result
       carries the earlier record; a held read is held too; a missing, incomplete or ended record
-      keeps the machine held until the operator's disposition; a call disposed with a
-      continuation that continues holds nothing, and a destructive one still stops the model's
-      commands; collection started while the earlier call's own dispatch awaits its record
+      keeps the machine held until a finished record, `delivery_reboot`'s boot change, or the
+      operator's disposition; a call disposed with a continuation that continues holds nothing,
+      and a destructive one still stops every box-plane job; collection started while the earlier call's own dispatch awaits its record
       appends no second result; a held harness-initiated job is issued once after release under
       one intent, and a stopped wait issues nothing, across replay too; another machine is
       unaffected. This is the corruption case, which is why it blocks.
@@ -1081,14 +1114,14 @@ promotion rule above.
 
 | Applies when | CNF items | Interpretation |
 |---|---|---|
-| Stage 1: required | 1–7, 10–17, 21, 23–26, 28–30, 32, 34–35, 37, 39–44, 49–56, 66–73, 78–79, 81–83, 87–91, 93–95, 99–104, 109–111 | One live LNVPS machine on catalogue plain Arch with no tenant, an initial session from the owner's goal and the later session `STG-9` requires (item 108) with a goal of its own, created through a typed adapter. First contact uses `CHN-R7`'s published-key route; item 23 requires no contact during its wait and item 109 requires published-pin admission, freshness, pin checking and disclosure on the integrated harness. Its new job-read pin admission, initial-group opening by a job read, and job-read attempt after a published pin belong to the dedicated row; its unused attest admission, initial-group opening by an attest, and consumed-introduction case belong to the attest row. Stage 1 keeps every case against earlier job-read and attest pins, on pins a Restore brings in, including item 84's "an initial empty group opened by a job read or attest". Synthetic unbound identities exercise 6 and 26. Item 7's growth and subset cases, and item 91's two-machine case, use fixtures until stage 2. Item 110 runs here the cases its own text assigns to stage 1. Item 12 is exercised with a hostile goal and a hostile fetched document; its untyped-scope restatement, and item 14's, wait for stage 2. Item 14 covers any root password the typed adapter's response carries. Item 23 covers unpinned-first-contact refusal; its attest-window case applies where attest is enabled, and its jump-host label waits for stage 2. Items 18 and 61 remain route-specific attest checks, required before enabling that route, not stage-1 requirements. Items 24 and 66 apply wherever the installation is pinned, and item 67's and item 93's unpinned cases wherever it is not; NixOS evidence is required before enabling NixOS. Interrupted resume (`STG-12`) is carried here by items 37, 39, 40 and 54–56; item 86's cases are a rescue boot's, and stay the test bed's. Item 95's cases all require integrated evidence (`OPN-28`). Item 50 covers the delivery check; its scanner half waits for scanner enablement. Item 10 covers local ledger persistence; its sheet-export half is the recovery row's. Item 72 covers local allocation; imported-state cases are 84. Item 81's migration case waits for self-host migration, which no stage yet offers. Item 32 covers the typed adapter's origin. Items 68–71, 78 and 88–90 apply to the procured inference path; bring-your-own and local inference have no aggregator to test. Item 88 uses injected list fixtures the way 17 uses an injected response. Item 42 covers placed secrets; its untyped-scope half waits for stage 2. Item 104 covers the LNVPS invoice and `ARC-30`'s TLS provenance, with no exemption; its untyped-scope case belongs to the stage-2 row. |
+| Stage 1: required | 1–7, 10–17, 21, 23–26, 28–30, 32, 34–35, 37, 39–44, 49–56, 66–73, 78–79, 81–83, 87–91, 93–95, 99–104, 109–111 | One live LNVPS machine on catalogue plain Arch with no tenant, an initial session from the owner's goal and the later session `STG-9` requires (item 108) with a goal of its own, created through a typed adapter. First contact uses `CHN-R7`'s published-key route; item 23 requires no contact during its wait and item 109 requires published-pin admission, freshness, pin checking and disclosure on the integrated harness. Its new job-read pin admission, initial-group opening by a job read, and job-read attempt after a published pin belong to the dedicated row; its unused attest admission, initial-group opening by an attest, and consumed-introduction case belong to the attest row. Stage 1 keeps every case against earlier job-read and attest pins, on pins a Restore brings in, including item 84's "an initial empty group opened by a job read or attest". Synthetic unbound identities exercise 6 and 26. Item 7's growth and subset cases, and item 91's two-machine case, use fixtures until stage 2. Item 110 runs here the cases its own text assigns to stage 1. Item 12 is exercised with a hostile goal and a hostile fetched document; its untyped-scope restatement, and item 14's, wait for stage 2. Item 14 covers any root password the typed adapter's response carries. Item 23 covers unpinned-first-contact refusal; its attest-window case applies where attest is enabled, and its jump-host label waits for stage 2. Items 18 and 61 remain route-specific attest checks, required before enabling that route, not stage-1 requirements. Items 24 and 66 apply wherever the installation is pinned, and item 67's and item 93's unpinned cases wherever it is not; NixOS evidence is required before enabling NixOS. Interrupted resume (`STG-12`) is carried here by items 37, 39, 40 and 54–56; item 86's cases are a rescue boot's, and stay the test bed's. Item 95's stage-1 cases all require integrated evidence (`OPN-28`); case (e) runs here on M alone: every assertion but its A/B output-release and copied-key assertions, which belong to stage 2. Item 53's `delivery_reboot` cases belong to the dedicated row: the own-record settlement and its append/replay cases; the hold after the journaled yes, including after the reboot settled; the missing-yes and wrong-call settlement refusals; the command in flight at the yes and its held unjournaled yes; the stopped pending-check case; and the late new-boot record under a destructive disposition. LNVPS's typed-restart survival evidence, its typed-restart settlement refusal, the `exec` of the same reboot bytes and every other item-53 case stay here. Item 55's `delivery_reboot` settlement belongs to the dedicated row; the rest stays here. Item 50 covers the delivery check; its scanner half waits for scanner enablement. Item 10 covers local ledger persistence; its sheet-export half is the recovery row's. Item 72 covers local allocation; imported-state cases are 84. Item 81's migration case waits for self-host migration, which no stage yet offers. Item 32 covers the typed adapter's origin. Items 68–71, 78 and 88–90 apply to the procured inference path; bring-your-own and local inference have no aggregator to test. Item 88 uses injected list fixtures the way 17 uses an injected response. Item 42 covers placed secrets; its untyped-scope half waits for stage 2. Item 104 covers the LNVPS invoice and `ARC-30`'s TLS provenance, with no exemption; its untyped-scope case belongs to the stage-2 row. |
 | Stage 1: record measurements | 45–47 | Require the integrated browser channel, not the rehearsal's timings. |
 | Stage 1: model-written check reports | 107 | The report label, verdict isolation and absence of automatic re-execution are required before stage 1 completes. |
 | Stage 1: re-entry | 108 | `STG-9`'s later session, re-entering over the same pin and re-running the check, is required before stage 1 completes. Item 93's re-entry case runs with it, using a placement or rotation in the re-entering session. |
 | Stage 1: recovery export/import and Replace | 19–20, 84 | Before maintained cloud delivery: export, Restore, allocation refusal, cloud destroy/recreate and partial-Replace cases pass, with item 10's export case. At LNVPS, `ARC-22` owns both forms: a destroy is a stop with renewal off, and a recreate is a reinstall that is a new first contact and cannot reuse the old pin. Item 84 checks `CHN-R7` provenance, earlier and refused publication knowledge, and pending pin retirement through sheet export and Restore; item 109 checks fresh admission after reinstall. Item 20 uses the manual publisher-confirmed pass retirement/enrollment route. Only item 20's relabel cases and item 84's Robot rescue case wait for the dedicated row; signed pass revocation waits for the paid/public row. |
 | Attest first-contact route | 18, 23 (attest-window case), 61, 74–75, 109 (attest admission) | Before enabling attest at any vendor that accepts boot configuration, including one used for a jump host. This row does not gate LNVPS stage 1. |
-| The dedicated path: the construction test bed | 20 (relabel cases), 22, 38, 48, 62–64, 80, 84, 85–86, 109 (job-read admission), 110 | The Robot dedicated path's own checks, including item 20's relabel cases, only item 84's Robot rescue case, and item 110's reset-into-rescue cases. Their by-hand evidence stands (48 is recorded), construction exercises them on the test bed, and they pass on the integrated harness before a dedicated-server path is offered to an operator, which no stage before the third does. Items 62–64 also apply to any typed adapter that rides the pinned tunnel, stage 1's included if its vendor refuses a browser origin. |
-| Stage 2: a vendor with no adapter whose API the browser can reach (`CHN-12b`), the jump host, sets above one | 7, 12, 14, 23, 27, 29, 31, 33, 42, 91–93, 96–98, 104–106 | Before enabling an untyped scope, an untyped vendor scope, the jump-host route or a bound set of more than one machine. Items 7 and 91 cover set growth, subsets and two-machine sets; items 12, 14 and 29 their untyped-scope cases; item 23 the jump-host label; item 42 the untyped-scope half of the trust display; item 93 the jump-host, untyped-scope and larger-set modes, each accepted at the act it governs and restated, with their re-entry and reinstall cases; item 104 an invoice decoded from an untyped response, where the vendor invoices. Item 92's multi-tenant case gates sets above one; its independence-bound case gates the first profile that declares a bound. Repeat item 17 against real untyped responses. |
+| The dedicated path: the construction test bed | 20 (relabel cases), 22, 38, 48, 53 (`delivery_reboot` cases), 55 (`delivery_reboot` case), 62–64, 80, 84, 85–86, 109 (job-read admission), 110 | The Robot dedicated path's own checks, including item 20's relabel cases, only item 84's Robot rescue case, item 53's `delivery_reboot` cases, as the stage-1 row lists them, item 55's `delivery_reboot` settlement case, and item 110's reset-into-rescue, harness-composed `delivery_reboot` and `replace_root_label` refusal cases. Their by-hand evidence stands (48 is recorded), construction exercises them on the test bed, and they pass on the integrated harness before a dedicated-server path is offered to an operator, which no stage before the third does. Items 62–64 also apply to any typed adapter that rides the pinned tunnel, stage 1's included if its vendor refuses a browser origin. |
+| Stage 2: a vendor with no adapter whose API the browser can reach (`CHN-12b`), the jump host, sets above one | 7, 12, 14, 23, 27, 29, 31, 33, 42, 91–93, 95 (case (e)'s A/B assertions), 96–98, 104–106 | Before enabling an untyped scope, an untyped vendor scope, the jump-host route or a bound set of more than one machine. Item 95's case (e) covers A/B output release only after both pastes and the copied key on A redacted. Items 7 and 91 cover set growth, subsets and two-machine sets; items 12, 14 and 29 their untyped-scope cases; item 23 the jump-host label; item 42 the untyped-scope half of the trust display; item 93 the jump-host, untyped-scope and larger-set modes, each accepted at the act it governs and restated, with their re-entry and reinstall cases; item 104 an invoice decoded from an untyped response, where the vendor invoices. Item 92's multi-tenant case gates sets above one; its independence-bound case gates the first profile that declares a bound. Repeat item 17 against real untyped responses. |
 | Post-harness handoff | 8, 77 | Before enabling any profile that declares one; none exists before stage 3. |
 | Scanner and advisory monitoring | 9, 36 | Also complete item 50's scanner case before exposing scanner results. |
 | Paid/public relay access | 57–60, 65, 76 | Before enrolment opens beyond the publisher's fixed first-stage record, including item 60's signed pass revocation. Stage 1 uses item 20's manual retirement route and still requires 81 and 87. |

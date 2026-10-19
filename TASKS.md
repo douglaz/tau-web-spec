@@ -459,6 +459,11 @@ gated on it.
       The alphabet gains a second fresh command; the restated bounded property admits at most
       one unresolved box-plane command per resource. Dispatch schema 6 carries the operation,
       collection, guards and reboot-result projection (ADR-0048).
+      *Amended 2026-10-19:* Module 4 widens `TauWeb.Dispatch.stops` to `deliveryReboot`, with
+      `TauWeb.Dispatch.destructive_choice_stops_delivery_reboot` /
+      `TauWeb.Dispatch.delivery_reboot_dispatched_without_destructive_stop` under `destructiveStops`.
+      `TauWeb.Dispatch.command_bars_activation_and_reset` pins an unresolved command barring
+      activation and reset (ADR-0050). Dispatch schema 6 is unchanged and regenerated.
 - [x] **T36 — Formal companion, module 5: the host-pin lifecycle** (ADR-0032's inventory;
       `SEC-11`, `CHN-R1`, `ARC-43`, with `STA-20b`'s resume rule and `STG-4`'s third
       confirmation predicate). Landed 2026-09-20 in `tools/formal/TauWeb/Pins.lean`: what a pin

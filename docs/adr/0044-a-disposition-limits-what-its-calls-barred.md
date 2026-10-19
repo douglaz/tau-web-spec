@@ -157,3 +157,7 @@ residual window remain in their requirement owners.
 unresolved together": `STA-20`'s command hold admits at most one unresolved box-plane command.
 An older activation or key registration may still stand beside it; the disposition's rule is
 unchanged.
+
+*Amended 2026-10-19:* ADR-0050 widens the destructive stop: `STA-24` says "the harness
+worker MUST refuse every box-plane job to that machine, whatever the disposed call was and
+whoever starts it". The earlier title and shape remain the history of ADR-0044's decision.

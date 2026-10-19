@@ -42,7 +42,7 @@ the trace that moved.
 
 | Member | What it holds |
 |---|---|
-| `schema` | `2` for allocation; `1` for declaration and relay; `5` for dispatch and pins. A change to any shape below is a new version and a new file name for that module. |
+| `schema` | `2` for allocation; `1` for declaration and relay; `6` for dispatch and `5` for pins. A change to any shape below is a new version and a new file name for that module. |
 | `module` | The inventory name, lower-case: `allocation`, `declaration`, `relay`, `dispatch`, and `pins` for the host-pin lifecycle. |
 | `namespace` | The Lean namespace the traces' declarations live in. |
 | `bound` | `declaration`, the tagged `bound` the decided property and the emitter share, and its value rendered under the module's own members. Allocation (`TauWeb.Allocation.bound`): `events`, the number, and `alphabet`, the events the enumeration draws from, including the ceremony. Declaration (`TauWeb.Declaration.bound`): `base`, the declaration and machine every case starts from; `presences`, per field, what the field is swept through, `missing` written as that word since a list has no absent member; `observations`, what the machine is made to show for it; `tenancies`. Relay (`TauWeb.Relay.bound`): `events`, the number; `alphabet`; and `start`, the opened connection every trace of the enumeration runs from. Dispatch (`TauWeb.Dispatch.bound`): `events`, the number; `alphabet`; and `start`, the journal every trace runs from, which carries the harness's associations and nothing dispatched. Pins (`TauWeb.Pins.bound`): the same shape; `start` carries one earlier `/rescue/last` snapshot, plus the fixed `planted_senders` list defined below from that starting knowledge and the alphabet. |
@@ -118,7 +118,10 @@ and its `reports` together, and the step's `settled` is the answer; a read settl
 were outstanding when it was taken, never one dispatched afterwards.
 
 A `request` is labelled a model request and is a session's, except `delivery_reboot`, which
-is labelled an operator act and represents the harness flow. Under a standing abandonment
+is labelled an operator act and represents the harness flow. The dispatch witnesses do not
+model the delivery check's verdict or its pending-check hold: a model `exec` after a settled
+`delivery_reboot` in a trace stands for one after the verdict, and an implementation compares
+those steps on that reading. Under a standing abandonment
 a session's destroy is refused; the paired trace without `sessionDestroyRefused` retains the
 former admission as a trap, not a permission a comparison can infer. `ARC-21` runs abandonment
 "never through a session"; the flow's destroy intent is read outside request admission by
@@ -254,8 +257,8 @@ resolution, the barrier and the approval checks and nothing about arguments or c
 A refusal is `reason` — `unmapped`, `binding`, `facts`, `append`, `barrier`, `continuation`,
 `approval_activation` or `withdrawn_approval` — with `calls` on the barrier and, on the continuation, `in_force`: the continuation of the
 standing disposition that refused the request, whether by its reach or by the stop a destructive
-one puts on `exec`. `approval_activation` names an approval-bound reset without a confirming
-activation dispatched since approval. `withdrawn_approval` names its matching withdrawal with
+one puts on `exec` and `delivery_reboot`. `approval_activation` names an approval-bound reset
+without a confirming activation dispatched since approval. `withdrawn_approval` names its matching withdrawal with
 `resource`, `call` and `approved` session/facts.
 
 

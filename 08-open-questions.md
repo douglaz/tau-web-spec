@@ -244,7 +244,8 @@ construct it. T48 carries the build; `SEC-5` now owns the settled minimum byte l
 
 *Closes when:* `CNF-95`'s cases pass on the integrated harness, paired with `CNF-84` for
 Restore and `CNF-42` for the retained exposure display. Construction can proceed; stage 1
-requires that evidence, including fallback and output boundaries.
+requires that evidence for the stage-1 cases, including fallback and output boundaries;
+case (e)'s A/B assertions wait for stage 2 under the applicability table.
 
 **OPN-15 — Reproducible builds and the watchdogs that would make them mean something.** Neither
 exists. Until they do, the bundle's integrity rests on trusting the host outright, and `TRU-A1`

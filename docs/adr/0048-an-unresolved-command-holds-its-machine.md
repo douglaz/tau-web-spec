@@ -25,7 +25,7 @@ record naming the machine and old boot, collected on a different boot, is its re
 shutdown prevented a completion mark. A missing record names no boot and cannot supply that
 result. The settlement records a boot change, never an exit status or its cause, and is durable
 before dispatch resumes. The delivery check still holds model commands until its verdict or
-the operator's explicit act. A held reboot asks for yes again at its first issue after release.
+the operator's journaled stop of the pending check. A held reboot asks for yes again at its first issue after release.
 
 A held harness job is composed afresh by its visible flow after release, rather than queued;
 a stopped wait leaves no work armed through replay. Replace leaves the held machine not

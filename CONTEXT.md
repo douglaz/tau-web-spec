@@ -328,8 +328,8 @@ _Avoid_: override, resolution, "mark as done" (a disposition marks nothing done)
 What a disposition names, chosen by the operator from four: a destructive reinstall,
 abandonment, continuing as if done, continuing as if not done. The first two are
 **destructive**: each permits only its own flow, which can take several operations and is
-dispatched at the one that changes what the machine is running, and each stops the model's
-box-plane commands. The two that continue record what the operator assumed and restrict
+dispatched at the one that changes what the machine is running, and each stops every box-plane
+job, whoever starts it. The two that continue record what the operator assumed and restrict
 nothing.
 _Avoid_: next step, retry (a re-issue under a continuation that continues is the operator's
 choice and never automatic), recovery flow (the operator names a choice; the flow it stands for,

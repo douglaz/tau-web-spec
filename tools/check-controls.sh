@@ -543,11 +543,13 @@ pins_control "formal: installed pin replaces another source without reinstall" \
 # after an activation confirmed before the disposition. The resource key's own witnesses, which
 # this mutation does not touch, stay green.
 # The new partial-abandonment witness needs the undisposed command to bar the flow destroy too.
+# Rehearsed 2026-10-19: the activation/reset bars theorem also depends on commands barring cloud-plane work.
 dispatch_control "formal: an unresolved box-plane command barring nothing" \
   "sed -i \"s/^  else if cloudPlane k' then true\$/  else if cloudPlane k' then cloudPlane k/\" $DISP && grep -q \"else if cloudPlane k' then cloudPlane k\" $DISP" \
   command_preempts_reinstall_without_guard reset_waits_for_other_commands \
   activation_before_disposition_not_counted bounded \
-  undisposed_command_bars_flow_destroy
+  undisposed_command_bars_flow_destroy \
+  command_bars_activation_and_reset
 
 # Rehearsed 2026-10-18: the hold refuses a second command under a fresh call id;
 # bounded also reaches that case with its second command in the alphabet.
@@ -580,6 +582,7 @@ dispatch_control "formal: same-boot delivery reboot settled" \
 # The unresolved activation is also shown before a withdrawn approval's reset.
 # Rehearsed 2026-10-18: the new hold and reboot refusal traces also need the resource key to
 # survive a fresh call id.
+# Rehearsed 2026-10-19: the activation/reset trace also needs the command to bar fresh call ids.
 dispatch_control "formal: the barrier keyed on the call id" \
   "sed -i 's/{ resourceKey := .entry,/{ resourceKey := .call,/' $DISP && grep -q '{ resourceKey := .call,' $DISP" \
   same_action_new_call_id_refused second_index_same_entry_refused boot_id_change_not_success_refused \
@@ -589,7 +592,7 @@ dispatch_control "formal: the barrier keyed on the call id" \
   reset_waits_for_other_commands undisposed_command_bars_flow_destroy approved_reinstall_keeps_disposition_activation_boundary \
   unresolved_activation_before_withdrawal_shown second_command_held hold_reads_and_other_machines \
   delivery_reboot_same_boot_refused delivery_reboot_failed_append_holds delivery_reboot_collection_identity \
-  bounded
+  command_bars_activation_and_reset bounded
 
 # A disposition's reach, its end and what it may name (STA-24, 2026-10-13) are fields of
 # TauWeb.Dispatch.Params, each control one bad edit of one field's rule value. A red set also
@@ -603,10 +606,12 @@ dispatch_control "formal: the barrier keyed on the call id" \
 # The omitted-call witness also needs a continuing replacement to permit commands outside its disposed calls' reach.
 # Rehearsed 2026-10-18: the rebuilt rescue and partial-abandonment traces need the continuing
 # choice to admit B.
+# Rehearsed 2026-10-19: the guard-off reboot must stay outside the disposed command's reach.
 dispatch_control "formal: a disposition's reach taken from the resource" \
   "sed -i 's/reach : Reach := .disposed/reach : Reach := .resource/' $DISP && grep -q 'reach : Reach := .resource' $DISP" \
   continuing_permits_what_was_barred command_preempts_reinstall_without_guard read_and_inference_never_restricted \
-  reset_waits_for_other_commands undisposed_command_bars_flow_destroy omitted_call_stays_settled
+  reset_waits_for_other_commands undisposed_command_bars_flow_destroy omitted_call_stays_settled \
+  delivery_reboot_dispatched_without_destructive_stop
 
 # The reach applied to every dispatch, the read exemption dropped: a read under a standing
 # destructive disposition must dispatch, and is refused -- in the trace that is for it and in the
@@ -614,11 +619,13 @@ dispatch_control "formal: a disposition's reach taken from the resource" \
 # The omitted-call witness also needs its continuing replacement to leave commands unrestricted.
 # Rehearsed 2026-10-18: the rebuilt rescue and partial-abandonment traces need the continuing
 # choice to admit B.
+# Rehearsed 2026-10-19: the guard-off reboot must stay outside the disposed command's reach.
 dispatch_control "formal: a disposition's reach applied to every dispatch" \
   "sed -i 's/reach : Reach := .disposed/reach : Reach := .everyDispatch/' $DISP && grep -q 'reach : Reach := .everyDispatch' $DISP" \
   read_does_not_lift_abandonment read_lifts_abandonment_without_guard continuing_permits_what_was_barred \
   command_preempts_reinstall_without_guard read_and_inference_never_restricted reset_waits_for_other_commands \
-  undisposed_command_bars_flow_destroy omitted_call_stays_settled
+  undisposed_command_bars_flow_destroy omitted_call_stays_settled \
+  delivery_reboot_dispatched_without_destructive_stop
 
 # The reach computed from the calls still unresolved instead of the disposed ones: it collapses
 # to no restriction but the destructive stop, so every cloud-plane operation a disposition
@@ -663,9 +670,11 @@ dispatch_control "formal: a disposition's restriction ended at any later intent"
 # call bars a command, so the stop is all that refuses either.
 # Rehearsed 2026-10-18: a late reboot result must leave the destructive disposition stopping
 # commands.
+# Rehearsed 2026-10-19: the harness reboot is refused by the destructive stop too.
 dispatch_control "formal: the destructive stop dropped" \
   "sed -i 's/destructiveStops : Bool := true/destructiveStops : Bool := false/' $DISP && grep -q 'destructiveStops : Bool := false' $DISP" \
-  destructive_choice_stops_commands_after_activation destructive_choice_stops_commands delivery_reboot_late_result_keeps_disposition
+  destructive_choice_stops_commands_after_activation destructive_choice_stops_commands delivery_reboot_late_result_keeps_disposition \
+  destructive_choice_stops_delivery_reboot
 
 # The resource check on a disposition's named calls dropped: one recorded against the sibling
 # entry is accepted and ends this entry's call, at recording and on replay alike.

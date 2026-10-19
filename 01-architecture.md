@@ -314,11 +314,12 @@ A machine declaring such a service gets one harness-composed reboot at delivery,
 last placement, **only with the operator's explicit yes at that moment**. Record the boot
 identity, reboot, reconnect on the pin, confirm a new boot identity and the unit active, then
 run the delivery check before any model command.
-From the yes until the delivery check's verdict is durably journaled, the dispatch check,
-serialized with the intent's append, holds the model's box-plane commands to that machine as
-`STA-20`'s hold does, and the held result names the pending check; the verdict or the
-operator's explicit act ends it. New boot identity plus active unit is the
-init-agnostic survival evidence. The delivery check also catches a restriction a boot drops;
+From the operator's yes journaled with the reboot's intent until the delivery check's verdict
+is durably journaled, the dispatch check, serialized with the intent's append, holds the model's
+box-plane commands to that machine as `STA-20`'s hold does, and the held result names the pending
+check; the verdict, or the operator's journaled stop of the pending check, shown to the operator,
+ends it. A stop settles no verdict and is shown as a stopped check, never as a pass. New boot
+identity plus active unit is the init-agnostic survival evidence. The delivery check also catches a restriction a boot drops;
 it asserts nothing beyond the declaration.
 
 At LNVPS the reboot is the typed restart, with its own vendor confirmation under `STA-24`:
@@ -344,11 +345,15 @@ changed; a boot-identity change since the last check counts as a demonstration w
 
 **When `running-at-delivery` binds.** Each check that finds the service running MUST journal
 the boot identity with that result. Its lifecycle binds on that boot until the boot changes;
-a service never found running binds. Stopped on that boot is a lifecycle finding (`ARC-17`).
+a service never found running binds. An amendment that newly declares a service
+`running-at-delivery` re-anchors it: from that amendment it counts as never found running, so it
+binds until a check finds it running. Stopped on that boot is a lifecycle finding (`ARC-17`).
 Stopped after that boot changed, having been found running on it, raises no finding and MUST
 carry the note **"stopped since a restart, as approved"** wherever Delivered appears for that
-machine. A boot change never clears a standing lifecycle finding; with the declaration
-unchanged, a re-check clears it only when it finds the service running. `ARC-17` says "after
+machine. A boot change never clears a standing lifecycle finding; with that service's
+`running-at-delivery` promise unchanged, a re-check clears it only when it finds the service
+running. An edit that leaves the promise as it was neither clears a standing finding nor turns
+a note into a finding. `ARC-17` says "after
 the operator amends its declaration by a journaled act"; that re-check route remains. In a
 session that places a secret, this note does not count for the post-placement demonstration
 (`ARC-17`): a stopped service is a lifecycle finding there.
@@ -430,11 +435,11 @@ the best practice, and the card says so. The harness mints nothing for an applic
 minted from the inference account would be a harness credential on a machine (`ARC-1`).
 
 **Re-arming after store loss is harness work.** On binding a session after local-store loss,
-`digest_secret` MUST run for every placement the sheet records on that bound set's machines
-before any model command
-or collection of old or new job records can release output to either the model or the
-transcript on that bound set. It reads the recorded path, refuses a symbolic link or a path
-traversing one, writes nothing to the placement, and outputs only SHA-256 of the file's bytes
+every placement the sheet records on that bound set's machines MUST have its required reference
+re-armed by `digest_secret` or the local paste below before any model command or collection of
+old or new job records can release output to either the model or the transcript on that bound
+set. `digest_secret` remains the default re-arm path. It reads the recorded path, refuses a
+symbolic link or a path traversing one, writes nothing to the placement, and outputs only SHA-256 of the file's bytes
 and their byte count, never the bytes. Normal machine-side capture remains `STA-20`'s; its
 raw digest output MUST reach neither model context nor transcript, which receive status only.
 The browser constructs the reference with a fresh browser-only key under `SEC-5` row 23;
@@ -449,12 +454,24 @@ A machine-derived reference MUST be labelled **"re-armed from the machine's repo
 "protected" or proof that the original value was recovered. It covers no forgotten placement.
 Further changed-file detection policy remains open in T48.
 
-If the file is absent, changed against an intact reference, the digest job fails, or the
-machine-reported byte length is below `SEC-5`'s minimum, the harness MUST offer a visible
-fallback card: the operator may paste the secret locally to
-create a fresh reference under `SEC-5`. This act writes nothing to the machine and is not a
-placement or rotation. Rotation goes through the full `place_secret` ceremony. Re-arming
-neither reapproves the restored declaration nor any weaker mode; until the operator does,
+If the file is absent, changed against an intact reference, the digest job fails, `STA-24`
+refuses it, a disposition leaves its outcome unknown, or the machine-reported byte length is
+below `SEC-5`'s minimum, the harness MUST offer a visible fallback card: the operator may paste
+the secret locally to create a fresh reference under `SEC-5`. Refusal or disposition alone
+leaves the reference unarmed. While a destructive reinstall or abandonment disposition stands
+on a machine (`STA-24`), the card is offered at once for every known required placement on it
+whose reference is unarmed, the disposed digest's included, and says that rotation waits until
+`STA-24` admits it. A digest record of a call named by a destructive disposition arms nothing,
+whenever collected; it is journaled and shown and cross-checks a paste. A digest result that
+arrives after the paste, a disposed digest's record among them, is a cross-check only: a
+mismatch is visible and MUST NOT replace the pasted reference. A pasted reference owes no new
+digest after the reset. Without a paste, a refused digest is composed as a first issue once
+`STA-24` admits it, and a disposed one is re-issued only by the operator: one operator act after
+the reinstall restarts the re-read for that machine's unarmed placements. Offering or accepting
+the paste neither delays the continuation nor lifts any dispatch restriction. Under
+abandonment, clearing this gate does not resume the abandoned setup.
+The paste writes nothing to the machine and is not a placement or rotation. Rotation goes
+through the full `place_secret` ceremony. Re-arming neither reapproves the restored declaration nor any weaker mode; until the operator does,
 `place_secret`'s card restates the restored state as "unknown since export" (`STA-16`).
 
 Model `exec` across the bound set MUST wait while any known required placement reference is

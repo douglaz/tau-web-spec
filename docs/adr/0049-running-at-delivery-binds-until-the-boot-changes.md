@@ -20,6 +20,8 @@ Stopped on the anchor boot is a finding. Stopped only after a restart carries th
 
 A restart cannot clear a standing crash finding. With the declaration unchanged, a check
 finding the service running clears it; the existing declaration-amendment route remains.
+Putting the promise back re-anchors the service as never found running; an edit that keeps
+the promise re-anchors nothing.
 A session placing a secret needs the service running after its last placement: the note does
 not count, and a stopped service there is a lifecycle finding, preserving the delivered or
 handed-over-with-findings verdict.

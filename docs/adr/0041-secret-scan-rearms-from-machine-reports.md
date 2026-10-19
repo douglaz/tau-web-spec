@@ -73,3 +73,7 @@ at placement and at every re-arm from a machine report or a paste." Its purpose 
 legibility, not entropy. Its refusal offers no override: a refused
 value typed into a model `exec` would sit in context and transcript. The minimum and visible
 named markers bound misleading output; T48's remaining questions are unchanged.
+
+*Amended 2026-10-19:* ADR-0050 extends B′'s timing: `ARC-43` says "`STA-24` refuses it,
+a disposition leaves its outcome unknown" among the fallback triggers, and "the card is offered
+at once" under a standing destructive disposition. B′ remains the fallback, not the default.

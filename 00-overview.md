@@ -310,3 +310,4 @@ an ADR is where *why* lives.
 | [0047](./docs/adr/0047-seed-backup-completion-is-all-or-zero.md) | Seed-backup completion is all or zero |
 | [0048](./docs/adr/0048-an-unresolved-command-holds-its-machine.md) | An unresolved command holds its machine |
 | [0049](./docs/adr/0049-running-at-delivery-binds-until-the-boot-changes.md) | Running-at-delivery binds until the boot changes |
+| [0050](./docs/adr/0050-destructive-dispositions-stop-every-box-plane-job.md) | A destructive disposition stops every box-plane job and offers the local paste at once |

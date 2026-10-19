@@ -24,7 +24,8 @@ against the journal before it. `step` refuses a disposition that fails it and re
 and `inEffect` reads a journal that already holds one "as if it had never been recorded"
 (`STA-24`), so recording and replay cannot disagree. What a standing disposition restricts is
 `restricted`: the reach, computed from the calls it disposed through `bars`, and beside it the
-stop a destructive continuation puts on `exec`. It stands until its continuation is dispatched
+stop a destructive continuation puts on `exec` and `deliveryReboot`, by kind, whoever starts
+the job. It stands until its continuation is dispatched
 (`standingIn`) or a later one replaces it.
 
 **In memory and in the journal.** `World` carries both, because `STA-3` — "A canonical event
@@ -354,9 +355,11 @@ authority is per clause and this structure is not one. -/
   for `everyDispatch`, and `replacement_in_force` / `replaced_continuation_dispatched_without_guard`
   for `stillUnresolved`. -/
   reach : Reach := .disposed
-  /-- `STA-24`: when the continuation is destructive "the harness worker MUST refuse the model's
-  box-plane commands to that machine, whatever the disposed call was". Its pair is
-  `destructive_choice_stops_commands` / `command_preempts_reinstall_without_guard`. -/
+  /-- `STA-24`: when the continuation is destructive "the harness worker MUST refuse every
+  box-plane job to that machine, whatever the disposed call was and whoever starts it". Its pairs
+  are `destructive_choice_stops_commands` / `command_preempts_reinstall_without_guard` and
+  `destructive_choice_stops_delivery_reboot` /
+  `delivery_reboot_dispatched_without_destructive_stop`. -/
   destructiveStops : Bool := true
   /-- Where the restriction ends (`STA-24`, 2026-10-13). Its pairs are
   `read_does_not_lift_abandonment` / `read_lifts_abandonment_without_guard` for `anyIntent` and
@@ -746,10 +749,11 @@ this. -/
   else (disposed s).any fun o => bars o.kind k
 
 /-- The stop a destructive continuation adds beside the reach (`STA-24`): "the harness worker
-MUST refuse the model's box-plane commands to that machine, whatever the disposed call was". It
-is `exec` and nothing else, so reads stay permitted throughout. -/
+MUST refuse every box-plane job to that machine, whatever the disposed call was and whoever
+starts it". It covers `exec` and `deliveryReboot`, the companion's box-plane kinds; permitted
+reads stay permitted throughout. -/
 @[req "STA-24"] def stops (p : Params) (c : Continuation) (k : Kind) : Bool :=
-  p.destructiveStops && destructive c && k == .exec
+  p.destructiveStops && destructive c && (k == .exec || k == .deliveryReboot)
 
 /-- Whether a standing disposition refuses an operation of kind `k` on the resource, and under
 which continuation: the destructive stop, or an operation within the reach that the continuation
@@ -1105,7 +1109,7 @@ theorem restricted_none (p : Params) (j : Journal) (r : Resource) (k : Kind)
 external state: an effect is dispatched only if its intent and approval are durable — the intent
 record, carrying the approval, is in the journal the step appended — the binding still holds, the
 approved facts are what is dispatched, no unresolved call bars it, and under a standing
-disposition it is not one of the model's commands a destructive continuation stops and, where it
+disposition it is not a box-plane job a destructive continuation stops and, where it
 is within the disposition's reach, the continuation permits it.
 
 Restated 2026-10-13. Until then the last clause read that every dispatch under a standing
@@ -1140,7 +1144,7 @@ a command a disposed activation never barred. The clause is now over the reach. 
 
 /-- **A read and the inference request are never restricted**, over every journal, every resource
 and every standing disposition, under the rule's reach: `bars` answers no for both, so neither is
-within any disposition's reach, and the destructive stop is on `exec` alone. -/
+within any disposition's reach, and the destructive stop is on `exec` and `deliveryReboot`. -/
 @[req "STA-24"] theorem read_and_inference_unrestricted (p : Params) (hp : p.reach = .disposed)
     (j : Journal) (r : Resource) :
     restricted p j r .read = none ∧ restricted p j r .inference = none := by
@@ -1835,7 +1839,7 @@ which the unresolved activation never did: the command is refused. -/
     w.dispatched.map (·.call) = [16, 10] ∧
     w.verdict = some (.refused (.continuation .asIfNotDone)) := by decide +kernel
 
-/-- **A destructive continuation stops the model's commands, whatever was disposed.** The disposed
+/-- **A destructive continuation stops every box-plane job, whatever was disposed.** The disposed
 call is an activation, which bars nothing on the box, and the command is refused all the same: the
 continuation is a destructive reinstall. -/
 @[req "STA-24"] theorem destructive_choice_stops_commands_after_activation :
@@ -1844,7 +1848,7 @@ continuation is a destructive reinstall. -/
     w.verdict = some (.refused (.continuation .reinstall)) ∧
     unresolved current w.memory machineA = [] := by decide +kernel
 
-/-- **A destructive continuation stops the model's commands, and ends at its dispatch.** A command
+/-- **A destructive continuation stops every box-plane job, and ends at its dispatch.** A command
 is unresolved and disposed naming a destructive reinstall. A second command is refused by the
 disposition; the disposed command holds nothing. The vendor's reinstall call is
 dispatched. From its intent the restriction is gone and the reinstall's own barrier holds the box
@@ -2125,6 +2129,21 @@ def sessionDestroyAllowed : Params := { current with sessionDestroyRefused := fa
     let w := run sessionDestroyAllowed farDone.external init sessionDestroyEvents
     w.dispatched.map (·.call) = [8, 1] ∧
     restriction sessionDestroyAllowed w.memory machineA = none := by decide +kernel
+
+/-- The two cloud-plane requests beside one unresolved box-plane command. -/
+def commandBarsEvents : List Event :=
+  [.request execRequest approvalExec true,
+   .request activateRequest approvalActivate true,
+   .request resetRequest1 approvalReset true]
+
+/-- An unresolved box-plane command bars both activation and reset (`STA-24`). -/
+@[req "STA-24"] theorem command_bars_activation_and_reset :
+    bars .exec .activate = true ∧ bars .exec .reset = true ∧
+    (run current farDone.external init commandBarsEvents).dispatched.map (·.call) = [7] ∧
+    (run current farDone.external init (commandBarsEvents.take 2)).verdict =
+      some (.refused (.barrier [7])) ∧
+    (run current farDone.external init commandBarsEvents).verdict =
+      some (.refused (.barrier [7])) := by decide +kernel
 
 /-- A disposed command's replacement cannot free the flow's destroy past a later command. -/
 def partialAbandonEvents : List Event :=
@@ -2632,6 +2651,24 @@ def holdIsolationEvents : List Event :=
     unresolved current w.memory machineA = [20] := by decide +kernel
 
 def rebootRequest : Request := { execRequest with call := 30, kind := .deliveryReboot }
+
+/-- A harness reboot requested while the disposed command's destructive reinstall stands. -/
+def destructiveRebootEvents : List Event :=
+  [.request execRequest approvalExec true,
+   .dispose reinstallAfterCommand true,
+   .request rebootRequest approvalExec true]
+
+/-- The destructive stop refuses the harness's reboot, just as it refuses a session's command. -/
+@[req "STA-24"] theorem destructive_choice_stops_delivery_reboot :
+    let w := run current farDone.external init destructiveRebootEvents
+    w.dispatched.map (·.call) = [7] ∧
+    w.verdict = some (.refused (.continuation .reinstall)) := by decide +kernel
+
+/-- Without the stop, the disposed command neither holds nor reaches the reboot, which goes out. -/
+@[req "STA-24"] theorem delivery_reboot_dispatched_without_destructive_stop :
+    let w := run noDestructiveStop farDone.external init destructiveRebootEvents
+    w.dispatched.map (·.call) = [30, 7] ∧
+    w.verdict = some (.dispatched (intentOf rebootRequest machineA approvalExec)) := by decide +kernel
 
 /-- The collection on the record's own boot, even alongside a generic success observation. -/
 def sameBootRebootEvents : List Event :=
