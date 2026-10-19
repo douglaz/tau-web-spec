@@ -1,7 +1,7 @@
 import TauWeb.Req
 /-! Module 4, dispatch and the unresolved barrier (ADR-0032's inventory): `STA-3`, `STA-4`,
-`STA-7`, `STA-8`, `STA-24`, `SEC-12`, `STA-20b` and `STG-4`'s confirmation predicates. What this
-module encodes was decided by a two-reader panel on 2026-09-16
+`STA-7`, `STA-8`, `STA-20`, `ARC-43`, `STA-24`, `SEC-12`, `STA-20b` and `STG-4`'s confirmation
+predicates. What this module encodes was decided by a two-reader panel on 2026-09-16
 (`docs/review/2026-09-16-barrier-panel.md`), and `STA-24` is what came out of it.
 
 **Two kinds of state, two types.** `Journal` is harness knowledge — what was durably authorized,
@@ -73,6 +73,14 @@ requires, which state what the journal already holds. Robot's predicates have no
 transition (`STG-4`: "None of these has a negative form"), so there is no observation meaning
 *it did not happen*: that reading arrives only as a disposition.
 The installation label's bound and overflow refusal are also not carried here.
+For `STA-20`'s hold, the wait, collection procedure, stopping, held result's contents and
+harness-flow resumption remain prose, as does `ARC-43`'s pending-delivery-check hold.
+A reboot collection carries its call's recorded boot, or none for an absent boot; the external
+boot read enters only through `step`. Record completeness and exit status are immaterial to
+that settlement and are not fields here. The request shape represents the harness flow for
+`deliveryReboot`; the prohibition on a model requesting that job remains Markdown-only. The
+durable intent's approval represents the explicit yes; re-asking after a held first issue is
+not carried.
 
 ponytail: `openIntents` rescans the journal for every intent it reads, which is quadratic in the
 trace, and `inEffect` reads the journal again for every disposition; the bound is three events,
@@ -125,7 +133,8 @@ inductive Resource
 renewal control and reinstall are available"). `destroy` is the abandonment flow's operation
 naming the machine: "the destroy, or the stop that stands in for it" (`STA-24`), since where the
 vendor offers no destroy route the harness "stops that machine, turns automatic renewal off"
-(`ARC-22`). `exec` is box-plane work (`ARC-8`) as a whole; `read` is what `STA-24` keeps
+(`ARC-22`). `exec` is ordinary box-plane work (`ARC-8`);
+`deliveryReboot` is the harness-owned delivery reboot (`ARC-43`); `read` is what `STA-24` keeps
 permitted — "the adapter's status queries, the pinned SSH attempt that is `STG-4`'s third
 predicate, the collection of job records"; `inference` is `ARC-31a`'s own off-machine call. -/
 inductive Kind
@@ -136,6 +145,7 @@ inductive Kind
   | activate
   | registerKey
   | exec
+  | deliveryReboot
   | read
   | inference
   deriving DecidableEq, Repr
@@ -143,7 +153,7 @@ inductive Kind
 /-- The two planes of ADR-0002. No wildcard: a kind added without a plane does not build. -/
 def cloudPlane : Kind → Bool
   | .create | .reset | .reinstall | .destroy | .activate | .registerKey => true
-  | .exec | .read | .inference => false
+  | .exec | .deliveryReboot | .read | .inference => false
 
 /-- `STA-24`'s one exception for the box plane: "a cloud-plane operation that **changes what the
 machine is running** — a reset, a reinstall, a destroy, or the stop that stands in for a destroy
@@ -152,13 +162,13 @@ The stop is carried by `destroy`. These are also the operations a destructive co
 dispatched at (`dispatchesContinuation`). -/
 @[req "STA-24"] def changesRunning : Kind → Bool
   | .reset | .reinstall | .destroy => true
-  | .create | .activate | .registerKey | .exec | .read | .inference => false
+  | .create | .activate | .registerKey | .exec | .deliveryReboot | .read | .inference => false
 
 /-- A read is not side-effecting: it is permitted whatever the barrier says, and it never becomes
 an unresolved call of its own. Everything else is side-effecting and carries `SEC-12`'s record. -/
 @[req "SEC-12"] def sideEffecting : Kind → Bool
   | .read => false
-  | .create | .reset | .reinstall | .destroy | .activate | .registerKey | .exec | .inference => true
+  | .create | .reset | .reinstall | .destroy | .activate | .registerKey | .exec | .deliveryReboot | .inference => true
 
 /-! ## The two kinds of state -/
 
@@ -180,6 +190,7 @@ handshake. Nothing here is harness knowledge, and nothing below reads it: the di
 take the journal alone, so a theorem about the first never speaks for the second. -/
 structure External where
   reports : Resource → Kind → Standing
+  boot : Resource → Nat
 
 /-- Where an observation came from. `STA-24` reads evidence at its provenance: from the vendor
 or from a pin-checked handshake; "A job record can settle the box-plane command it records, as
@@ -261,6 +272,7 @@ system. -/
 inductive Rec
   | intent (i : Intent)
   | observation (o : Observation)
+  | deliveryRebootResult (call : CallId) (resource : Resource) (recordBoot : Option Nat) (observedBoot : Nat)
   | disposition (d : Disposition)
   | association (t : Target) (e : Entry)
   | resetPrereqs (e : Entry) (installation : Nat) (keys : Nat)
@@ -393,6 +405,12 @@ authority is per clause and this structure is not one. -/
   Without this guard the record withdraws nothing. Pair: `withdrawn_approval_reset_refused` /
   `withdrawn_approval_reset_admitted_without_guard`. -/
   reinstallWithdrawalEffective : Bool := true
+  /-- `STA-20`, 2026-10-18: an unresolved box-plane command holds the next command.
+  Pair: `second_command_held` / `second_command_without_hold`. -/
+  commandHold : Bool := true
+  /-- `ARC-43`, 2026-10-18: a reboot's own collection needs a different boot.
+  Pair: `delivery_reboot_same_boot_refused` / `delivery_reboot_same_boot_admitted_without_guard`. -/
+  rebootBootChange : Bool := true
   deriving DecidableEq, Repr
 
 /-- The rules as they stand. -/
@@ -438,8 +456,20 @@ clears nothing either. -/
   | .jobRecord => !cloudPlane o.kind
   | .notifyEvent | .modelText => false
 
+/-- `ARC-43`'s reboot result: the collection names the approved call and machine, and reads
+another boot than the job record's own. A missing boot settles nothing. The approval is carried
+by the durable intent and must bind its session. No generic observation settles this kind.
+Without the boot-change guard, a same-boot record is wrongly enough. -/
+@[req "ARC-43"] def deliveryRebootResult (p : Params) (i : Intent) (call : CallId)
+    (resource : Resource) (recordBoot : Option Nat) (observedBoot : Nat) : Bool :=
+  i.kind == .deliveryReboot && i.call == call && i.resource == resource &&
+    i.session == i.approval.session && (match recordBoot with
+      | none => false
+      | some boot => !p.rebootBootChange || boot != observedBoot)
+
 /-- Whether a record is a terminal record for an intent. An admissible observation for that
-resource and operation whose standing confirms it, or a disposition on the intent's resource
+resource and operation whose standing confirms it (excluding `deliveryReboot`), a matching
+`deliveryRebootResult`, or a disposition on the intent's resource
 naming the call — `STA-24`: "**A disposition is a terminal record of its own kind**: it ends the
 call's unresolved state with the outcome recorded as unknown, so the barrier stays one derivation
 — an intent with no terminal record — and a disposed call is not an open one." This reads one
@@ -447,7 +477,9 @@ record; whether a disposition counts at all is not decided from the record alone
 reader below takes a journal `inEffect` has already read. -/
 @[req "STA-8"] def settles (p : Params) (i : Intent) : Rec → Bool
   | .observation o =>
-    admissible o && o.resource == i.resource && o.kind == i.kind && confirms p o.standing
+    admissible o && o.resource == i.resource && o.kind == i.kind && confirms p o.standing &&
+      i.kind != .deliveryReboot
+  | .deliveryRebootResult c r boot observed => deliveryRebootResult p i c r boot observed
   | .disposition d =>
     (d.resource == i.resource || !p.dispositionOwnResource) && d.calls.contains i.call
   | .intent _ => false
@@ -494,6 +526,7 @@ def disposes (r : Resource) : Rec → Bool
   | .reinstallApproval _ _ _ => false
   | .resetCollection _ _ => false
   | .reinstallWithdrawal _ _ _ => false
+  | .deliveryRebootResult _ _ _ _ => false
 
 /-- Whether the machine's return to rescue is ready for its reset, read in the journal before
 that reset. `STA-24`: while a destructive reinstall's disposition stands "the operations of that
@@ -530,6 +563,7 @@ where
     | .reinstallApproval _ _ _ :: rest => go read rest
     | .resetCollection _ _ :: rest => go read rest
     | .reinstallWithdrawal _ _ _ :: rest => go read rest
+    | .deliveryRebootResult _ _ _ _ :: rest => go read rest
 
 /-- Whether an operation is the one a continuation is dispatched at, read in the journal before
 it. `STA-24`: a continuation "is dispatched at the one that changes what the machine is running".
@@ -586,6 +620,7 @@ def standingIn (p : Params) (r : Resource) : Journal → Option (Disposition × 
   | .reinstallApproval _ _ _ :: rest => standingIn p r rest
   | .resetCollection _ _ :: rest => standingIn p r rest
   | .reinstallWithdrawal _ _ _ :: rest => standingIn p r rest
+  | .deliveryRebootResult _ _ _ _ :: rest => standingIn p r rest
 
 /-- What a disposition may name, against the journal before it (`STA-24`): it "names at least one
 call, and every call it names MUST be unresolved, on the disposition's own resource, in the
@@ -614,6 +649,7 @@ disposition is tested against the reading of what came before it. -/
   | .reinstallApproval e c ap :: rest => .reinstallApproval e c ap :: inEffect p rest
   | .resetCollection e n :: rest => .resetCollection e n :: inEffect p rest
   | .reinstallWithdrawal e c ap :: rest => .reinstallWithdrawal e c ap :: inEffect p rest
+  | .deliveryRebootResult c r b seen :: rest => .deliveryRebootResult c r b seen :: inEffect p rest
 
 /-- Whether the harness records a disposition the operator offers (`acceptable`, against the
 journal as it is read). Where it does not, "it is refused and nothing is recorded" (`STA-24`). -/
@@ -640,8 +676,8 @@ with one exception stated here" — the cloud-plane operation that changes what 
 running — so "An unresolved activation or key registration touches no running system and blocks
 nothing on the box". That carve-out is what is dispatched and not what is outstanding: an
 unresolved box-plane command still bars a cloud-plane operation, which is the general rule above
-and is what `STA-20b` asks for when it "waits for all tracked commands to end" before a planned
-reset. And the inference request "does **not** bar the next request", nor does an unresolved one
+and supports `STA-20b`'s planned-reset prerequisites. `STA-20`'s command hold is a
+separate guard in `barring`. And the inference request "does **not** bar the next request", nor does an unresolved one
 bar anything: "its only effect is bounded spend, and the next request is the session's only way
 to continue". -/
 @[req "STA-24"] def bars (k k' : Kind) : Bool :=
@@ -649,9 +685,15 @@ to continue". -/
   else if cloudPlane k' then true
   else changesRunning k
 
+/-- The command-to-command admission guard (`STA-20`). Permitted record collection is `read`,
+never `exec`; neither it nor the inference request is held. Resource matching is in `barring`. -/
+@[req "STA-20"] def commandHold (p : Params) (k k' : Kind) : Bool :=
+  p.commandHold && (k == .exec || k == .deliveryReboot) &&
+    (k' == .exec || k' == .deliveryReboot)
+
 /-- The unresolved calls on the intent's resource whose operation bars it. -/
-def barring (p : Params) (j : Journal) (i : Intent) : List Intent :=
-  (openIntents p j i.resource).filter fun o => bars o.kind i.kind
+@[req "STA-20"] def barring (p : Params) (j : Journal) (i : Intent) : List Intent :=
+  (openIntents p j i.resource).filter fun o => bars o.kind i.kind || commandHold p o.kind i.kind
 
 /-- The unresolved calls that bar an intent, at the key in force. Under `entry` — the rule —
 every unresolved call naming the resource bars, which is what makes a second attempt at the same
@@ -862,10 +904,12 @@ inductive Verdict
   | refused (r : Refusal)
   deriving DecidableEq, Repr
 
-/-- What a model sends (ADR-0032: "Requests carry what a model would send; the file never
+/-- What a session sends (ADR-0032: "Requests carry what a model would send; the file never
 supplies an already-correct resource key, so the request-to-entry mapping is what gets
 compared"): a fresh call id, the target it names, the operation, the session it runs in, and the
-facts it asks for. The resource is not here. -/
+facts it asks for. The resource is not here. For `deliveryReboot` this same request shape
+represents the harness flow under the operator's yes; the prohibition on a model requesting
+that job remains Markdown-only. -/
 structure Request where
   call : CallId
   target : Target
@@ -886,7 +930,8 @@ dispatch" — then a matching withdrawal, and then what a standing disposition r
 Otherwise an approval-bound reset also needs `approvedRescueReset`.
 Every other reset retains its previous checks. Total, with refusal order defined here.
 
-A request here is a session's. Under a standing abandonment `permits` refuses its destroy;
+Ordinary requests here are a session's; `deliveryReboot` represents the harness flow.
+Under a standing abandonment `permits` refuses its destroy;
 the operator flow's destroy intent may end the restriction when appended outside this function.
 The flow's authorization is `SEC-4`'s and is not carried here. -/
 @[req "STA-4"] def admit (p : Params) (j : Journal) (rq : Request) (ap : Approval) : Verdict :=
@@ -934,6 +979,9 @@ inductive Event
   /-- A read of the far side: its provenance, the resource and the operation it is a predicate
   for, and the storage outcome of its append. What it reports is external state's. -/
   | observe (provenance : Provenance) (resource : Resource) (kind : Kind) (appended : Bool)
+  /-- The reboot's own record, collected on the external boot; no boot is a missing record
+  or one that never recorded its boot. -/
+  | collectReboot (call : CallId) (resource : Resource) (recordBoot : Option Nat) (appended : Bool)
   /-- The operator disposes (`STA-24`), with the storage outcome of the record's own append. -/
   | dispose (d : Disposition) (appended : Bool)
   /-- The harness associates what a model may name with the approved entry. -/
@@ -969,6 +1017,8 @@ the journal (`STA-2`, `STA-7`). -/
       else { w with verdict := some (.refused .append) }
   | .observe prov r k ok =>
     { append p w (.observation ⟨prov, r, k, x.reports r k⟩) ok with verdict := none }
+  | .collectReboot c r boot ok =>
+    { append p w (.deliveryRebootResult c r boot (x.boot r)) ok with verdict := none }
   | .dispose d ok =>
     if accepts p w.memory d then { append p w (.disposition d) ok with verdict := none }
     else { w with verdict := none }
@@ -1121,6 +1171,7 @@ a job record "cannot clear a cloud-plane barrier, and neither can model text (`S
     (hc : cloudPlane i.kind = true) (o : Observation) (h : settles p i (.observation o) = true) :
     o.provenance = .adapterRead ∨ o.provenance = .pinCheckedHandshake := by
   simp only [settles, Bool.and_eq_true, admissible] at h
+  obtain ⟨h, _⟩ := h
   obtain ⟨⟨⟨hadm, hres⟩, hkind⟩, _⟩ := h
   simp only [beq_iff_eq] at hkind
   cases hp : o.provenance with
@@ -1144,7 +1195,7 @@ request is the session's only way to continue." -/
   have hb : ∀ k, bars k .inference = false := fun k => by cases k <;> rfl
   refine ⟨?_, fun k => by cases k <;> rfl⟩
   have hnil : barring p j i = [] :=
-    List.filter_eq_nil_iff.mpr fun o _ => by simp [h, hb]
+    List.filter_eq_nil_iff.mpr fun o _ => by simp [commandHold, h, hb]
   simp only [blocking, hnil]
   cases p.resourceKey <;> rfl
 
@@ -1160,6 +1211,7 @@ theorem step_memory_eq (p : Params) (hp : p.durableBeforeApply = true) (x : Exte
       · exact append_memory_eq p hp w hw _ ok
       · exact hw
   | observe prov r k ok => exact append_memory_eq p hp w hw _ ok
+  | collectReboot c r boot ok => exact append_memory_eq p hp w hw _ ok
   | dispose d ok =>
     simp only [step]
     split
@@ -1203,13 +1255,15 @@ machine actually did stays an assumption and never a table this module owns. -/
 structure Far where
   succeeded : List (Resource × Kind)
   ended : List (Resource × Kind)
+  boot : Nat := 2
   deriving DecidableEq, Repr
 
 def Far.external (f : Far) : External :=
   { reports := fun r k =>
       if f.succeeded.contains (r, k) then .succeeded
       else if f.ended.contains (r, k) then .ended
-      else .unknown }
+      else .unknown,
+    boot := fun _ => f.boot }
 
 /-- Two approved machine entries of one setup batch (`ARC-15`): the one every witness works
 against, and a sibling, which `STA-24` makes independent — "A different approved entry is
@@ -1233,6 +1287,8 @@ def index2 : Nat := 2
 "including a session that re-enters or succeeds the one that raised it". -/
 def sessionA : SessionId := 1
 def sessionB : SessionId := 2
+/-- The successor after a second replay ends the first successor too. -/
+def sessionC : SessionId := 3
 
 def factsReset : Facts := 1
 def factsCreate : Facts := 2
@@ -1279,6 +1335,7 @@ def approvalCreate : Approval := { session := sessionA, facts := factsCreate }
 def approvalCreateB : Approval := { session := sessionA, facts := factsCreateB }
 def approvalExec : Approval := { session := sessionA, facts := factsExec }
 def approvalExecB : Approval := { session := sessionB, facts := factsExec }
+def approvalExecC : Approval := { session := sessionC, facts := factsExec }
 def approvalRegister : Approval := { session := sessionA, facts := factsRegister }
 def approvalActivate : Approval := { session := sessionA, facts := factsActivate }
 def approvalActivateB : Approval := { session := sessionB, facts := factsActivate }
@@ -1286,7 +1343,9 @@ def approvalDestroy : Approval := { session := sessionA, facts := factsDestroy }
 /-- The vendor's reinstall call approved for the successor session. -/
 def approvalReinstallB : Approval := { session := sessionB, facts := factsReinstall }
 def approvalRead : Approval := { session := sessionA, facts := factsRead }
+def approvalReadB : Approval := { session := sessionB, facts := factsRead }
 def approvalInference : Approval := { session := sessionA, facts := factsInference }
+def approvalInferenceB : Approval := { session := sessionB, facts := factsInference }
 
 /-- The destructive call: a reset of the machine the vendor id names. Its second request is the
 same action under a fresh call id, which is what a model sends when no confirmation arrives. -/
@@ -1547,12 +1606,14 @@ def replacedActivationEvents : List Event :=
    .request resetRequest2 approvalReset true,
    .request activateRequest2 approvalActivate true]
 
-/-- A server already in rescue: two commands unresolved, a disposition naming the first and a
-destructive reinstall, the rescue activation requested while the second still runs, the second's
-job record, the activation again, its confirmation, the reset into rescue. -/
+/-- A server already in rescue: command A disposed with a continuing choice, B dispatched,
+then A's disposition replaced by a destructive reinstall, the rescue activation requested while
+the second still runs, the second's job record, the activation again, its confirmation, the reset
+into rescue. -/
 def rescueCommandEvents : List Event :=
-  [.request execRequest approvalExec true, .request execRequest2 approvalExec true,
-   .dispose reinstallAfterCommand true,
+  [.request execRequest approvalExec true,
+   .dispose { reinstallAfterCommand with continuation := .asIfNotDone } true,
+   .request execRequest2 approvalExec true, .dispose reinstallAfterCommand true,
    .request activateRequest approvalActivate true,
    .observe .jobRecord machineA .exec true,
    .request activateRequest2 approvalActivate true,
@@ -1732,7 +1793,7 @@ command after it is still refused and the disposition still stands. -/
 
 /-- The operation kinds an intent may carry, exhausted by `kinds_total`. -/
 def kinds : List Kind :=
-  [.create, .reset, .reinstall, .destroy, .activate, .registerKey, .exec, .read, .inference]
+  [.create, .reset, .reinstall, .destroy, .activate, .registerKey, .exec, .deliveryReboot, .read, .inference]
 
 @[req "STA-24"] theorem kinds_total : ∀ k, k ∈ kinds := by intro k; cases k <;> decide
 
@@ -1785,7 +1846,7 @@ continuation is a destructive reinstall. -/
 
 /-- **A destructive continuation stops the model's commands, and ends at its dispatch.** A command
 is unresolved and disposed naming a destructive reinstall. A second command is refused by the
-disposition, though an unresolved command bars no other. The vendor's reinstall call is
+disposition; the disposed command holds nothing. The vendor's reinstall call is
 dispatched. From its intent the restriction is gone and the reinstall's own barrier holds the box
 plane: a third command is refused by that barrier, and after the reinstall's confirmation a
 fourth is dispatched. -/
@@ -1800,10 +1861,12 @@ fourth is dispatched. -/
     unresolved current w.memory machineA = [20] := by decide +kernel
 
 /-- Without the stop the second command is dispatched between the choice and the reinstall, is
-unresolved when the reinstall is requested, and bars it. -/
+unresolved when the reinstall is requested, and bars it.
+Restated 2026-10-18: the new command hold refuses the third and fourth commands too; the
+second still pre-empts the reinstall, which is this witness's point. -/
 @[req "STA-24"] theorem command_preempts_reinstall_without_guard :
     let w := run noDestructiveStop farDone.external init commandReinstallEvents
-    w.dispatched.map (·.call) = [20, 17, 12, 7] ∧
+    w.dispatched.map (·.call) = [12, 7] ∧
     (run noDestructiveStop farDone.external init (commandReinstallEvents.take 4)).verdict =
       some (.refused (.barrier [12])) := by decide +kernel
 
@@ -2017,8 +2080,10 @@ restriction is gone, and that reset's barrier refuses the command after it. -/
     restriction current w.memory machineA = none ∧
     unresolved current w.memory machineA = [19] := by decide +kernel
 
-/-- **The reset waits for the other command and not for the disposed one.** Two commands are
-unresolved in rescue; the disposition names the first and a destructive reinstall. The rescue
+/-- **The reset waits for the other command and not for the disposed one.** A is disposed with a
+continuing choice, B is dispatched, then A's choice is replaced by a destructive reinstall.
+Restated 2026-10-18: the refusal is at prefix five, after the new continuing disposition;
+the trace no longer requires two commands unresolved together. The rescue
 activation is refused while the second still runs, by the second's barrier alone: the first is
 disposed and bars nothing. Once the second's job record is collected the activation is
 dispatched and confirmed, and the reset into rescue goes out with no record of the first — which
@@ -2026,7 +2091,7 @@ dispatched and confirmed, and the reset into rescue goes out with no record of t
 @[req "STA-20b"] theorem reset_waits_for_other_commands :
     let w := run current farDone.external init rescueCommandEvents
     w.dispatched.map (·.call) = [2, 16, 12, 7] ∧
-    (run current farDone.external init (rescueCommandEvents.take 4)).verdict =
+    (run current farDone.external init (rescueCommandEvents.take 5)).verdict =
       some (.refused (.barrier [12])) ∧
     restriction current w.memory machineA = none ∧
     unresolved current w.memory machineA = [2] := by decide +kernel
@@ -2035,7 +2100,7 @@ dispatched and confirmed, and the reset into rescue goes out with no record of t
 observable state, never by its own response and never by a clock". The barrier is not safe by
 refusing everything: all six effects go out, each once its predecessor is confirmed, the install
 follows the reset into rescue and the reset into the installed system follows the install's own
-job record — which is `STA-20b` waiting "for all tracked commands to end" before a planned reset.
+job record — which meets `STA-20b`'s planned-reset prerequisites.
 Only the last call is still open when the trace ends. -/
 @[req "STG-4"] theorem ceremony_trace :
     let w := run current farDone.external init ceremonyEvents
@@ -2061,9 +2126,11 @@ def sessionDestroyAllowed : Params := { current with sessionDestroyRefused := fa
     w.dispatched.map (·.call) = [8, 1] ∧
     restriction sessionDestroyAllowed w.memory machineA = none := by decide +kernel
 
-/-- Disposing only one of two commands cannot free the flow's destroy intent. -/
+/-- A disposed command's replacement cannot free the flow's destroy past a later command. -/
 def partialAbandonEvents : List Event :=
-  [.request execRequest approvalExec true, .request execRequest2 approvalExec true,
+  [.request execRequest approvalExec true,
+   .dispose { reinstallAfterCommand with continuation := .asIfDone } true,
+   .request execRequest2 approvalExec true,
    .dispose { reinstallAfterCommand with continuation := .abandon } true]
 
 @[req "STA-24"] theorem undisposed_command_bars_flow_destroy :
@@ -2073,15 +2140,19 @@ def partialAbandonEvents : List Event :=
 
 /-- Replacing a disposition with a narrower continuing choice does not unsettle omitted calls. -/
 def omittedCallEvents : List Event :=
-  [.request execRequest approvalExec true, .request execRequest2 approvalExec true,
+  [.request execRequest approvalExec true,
+   .dispose { reinstallAfterCommand with continuation := .asIfDone } true,
+   .request execRequest2 approvalExec true,
    .dispose { reinstallAfterCommand with calls := [7, 12] } true,
    .dispose { reinstallAfterCommand with calls := [12], continuation := .asIfNotDone } true,
    .dispose { reinstallAfterCommand with continuation := .asIfDone } true]
 
+/-- Restated 2026-10-18: three dispositions include the continuing choice that admits B.
+The narrower replacement still cannot name A again after omitting it. -/
 @[req "STA-24"] theorem omitted_call_stays_settled :
     let w := run current farDone.external init omittedCallEvents
     unresolved current w.memory machineA = [] ∧
-    (dispositionsOf w.memory).length = 2 ∧
+    (dispositionsOf w.memory).length = 3 ∧
     restriction current w.memory machineA = some .asIfNotDone ∧
     restricted current w.memory machineA .exec = none := by decide +kernel
 
@@ -2523,6 +2594,126 @@ def failedCollectionIsolationEvents : List Event :=
     offersReset current fresh.memory entryA = true ∧
     offersReset current fresh.memory entryB = true := by decide +kernel
 
+/-! ## The machine hold and the delivery reboot (2026-10-18) -/
+
+def secondCommandEvents : List Event :=
+  [.request execRequest approvalExec true, .request execRequest2 approvalExec true]
+
+def withoutCommandHold : Params := { current with commandHold := false }
+
+/-- An unresolved command holds a second command without recording its intent. -/
+@[req "STA-20"] theorem second_command_held :
+    let w := run current farDone.external init secondCommandEvents
+    w.dispatched.map (·.call) = [7] ∧
+    w.verdict = some (.refused (.barrier [7])) ∧
+    (intentsOf w.memory).length = 1 := by decide +kernel
+
+/-- Without the command hold, both commands dispatch on the same machine. -/
+@[req "STA-20"] theorem second_command_without_hold :
+    let w := run withoutCommandHold farDone.external init secondCommandEvents
+    w.dispatched.map (·.call) = [12, 7] := by decide +kernel
+
+/-- Record collection, inference and another machine remain available across replay;
+a successor's command is held, then a finished job record releases it. -/
+def holdIsolationEvents : List Event :=
+  [.request execRequest approvalExec true, .replay,
+   .request { execRequest2 with session := sessionB } approvalExecB true,
+   .request { readRequest with session := sessionB } approvalReadB true,
+   .request { inferenceRequest1 with session := sessionB } approvalInferenceB true,
+   .request { execRequest3 with target := .entry entryB, session := sessionB } approvalExecB true,
+   .observe .jobRecord machineA .exec true,
+   .request { execRequest4 with session := sessionB } approvalExecB true]
+
+@[req "STA-20"] theorem hold_reads_and_other_machines :
+    let w := run current farDone.external init holdIsolationEvents
+    (run current farDone.external init (holdIsolationEvents.take 3)).verdict =
+      some (.refused (.barrier [7])) ∧
+    w.dispatched.map (·.call) = [20, 17, 14, 13, 7] ∧
+    unresolved current w.memory machineA = [20] := by decide +kernel
+
+def rebootRequest : Request := { execRequest with call := 30, kind := .deliveryReboot }
+
+/-- The collection on the record's own boot, even alongside a generic success observation. -/
+def sameBootRebootEvents : List Event :=
+  [.request rebootRequest approvalExec true,
+   .observe .jobRecord machineA .deliveryReboot true,
+   .collectReboot 30 machineA (some 2) true, .request execRequest approvalExec true]
+
+def withoutRebootBootChange : Params := { current with rebootBootChange := false }
+
+def rebootDone : Far := { farDone with succeeded := (machineA, .deliveryReboot) :: farDone.succeeded }
+
+/-- A collection on the reboot record's own boot leaves the command held. -/
+@[req "ARC-43"] theorem delivery_reboot_same_boot_refused :
+    let w := run current rebootDone.external init sameBootRebootEvents
+    w.dispatched.map (·.call) = [30] ∧
+    w.verdict = some (.refused (.barrier [30])) := by decide +kernel
+
+/-- Without the boot-change guard, a same-boot collection releases the command. -/
+@[req "ARC-43"] theorem delivery_reboot_same_boot_admitted_without_guard :
+    let w := run withoutRebootBootChange rebootDone.external init sameBootRebootEvents
+    w.dispatched.map (·.call) = [7, 30] := by decide +kernel
+
+def newBootRebootEvents : List Event :=
+  [.request rebootRequest approvalExec true,
+   .collectReboot 30 machineA (some 1) true, .replay,
+   .request { execRequest with session := sessionB } approvalExecB true]
+
+/-- A durable new-boot collection releases the successor's command across replay. -/
+@[req "ARC-43"] theorem delivery_reboot_new_boot_settles :
+    let w := run current farDone.external init newBootRebootEvents
+    w.dispatched.map (·.call) = [7, 30] ∧
+    unresolved current w.memory machineA = [7] ∧
+    changesRunning .deliveryReboot = false := by decide +kernel
+
+def failedRebootAppendEvents : List Event :=
+  [.request rebootRequest approvalExec true, .collectReboot 30 machineA (some 1) false,
+   .replay, .request { execRequest with session := sessionB } approvalExecB true,
+   .collectReboot 30 machineA (some 1) true, .replay,
+   .request { execRequest2 with session := sessionC } approvalExecC true]
+
+@[req "ARC-43"] theorem delivery_reboot_failed_append_holds :
+    let held := run current farDone.external init (failedRebootAppendEvents.take 4)
+    let w := run current farDone.external init failedRebootAppendEvents
+    held.verdict = some (.refused (.barrier [30])) ∧ held.memory = held.journal ∧
+    w.dispatched.map (·.call) = [12, 30] ∧ unresolved current w.memory machineA = [12] := by
+  decide +kernel
+
+/-- Wrong call, machine, missing recorded boot and generic observations settle nothing. -/
+def invalidRebootCollections : List Event :=
+  [.request rebootRequest approvalExec true,
+   .collectReboot 31 machineA (some 1) true, .collectReboot 30 machineB (some 1) true,
+   .collectReboot 30 machineA none true, .observe .adapterRead machineA .deliveryReboot true,
+   .request execRequest approvalExec true]
+
+@[req "ARC-43"] theorem delivery_reboot_collection_identity :
+    let w := run current rebootDone.external init invalidRebootCollections
+    w.dispatched.map (·.call) = [30] ∧
+    w.verdict = some (.refused (.barrier [30])) ∧
+    settles current (intentOf resetRequest1 machineA approvalReset)
+      (.deliveryRebootResult 1 machineA (some 1) 2) = false ∧
+    settles current (intentOf rebootRequest machineA approvalExecB)
+      (.deliveryRebootResult 30 machineA (some 1) 2) = false := by decide +kernel
+
+/-- A failed approval check records no intent for a later collection to settle. -/
+def unapprovedRebootEvents : List Event :=
+  [.request rebootRequest approvalExecB true, .collectReboot 30 machineA (some 1) true,
+   .request execRequest approvalExec true]
+
+@[req "ARC-43"] theorem delivery_reboot_requires_approval :
+    let w := run current farDone.external init unapprovedRebootEvents
+    w.dispatched.map (·.call) = [7] ∧ (intentsOf w.memory).length = 1 := by decide +kernel
+
+def disposedRebootEvents : List Event :=
+  [.request rebootRequest approvalExec true,
+   .dispose ⟨machineA, [30], .reinstall⟩ true,
+   .collectReboot 30 machineA (some 1) true, .request execRequest approvalExec true]
+
+@[req "ARC-43"] theorem delivery_reboot_late_result_keeps_disposition :
+    let w := run current farDone.external init disposedRebootEvents
+    w.verdict = some (.refused (.continuation .reinstall)) ∧
+    restriction current w.memory machineA = some .reinstall := by decide +kernel
+
 /-! ## The bound -/
 
 /-- The bound (`CONTEXT.md`): every trace of at most this many events over `alphabet`, from
@@ -2532,14 +2723,16 @@ statements, not the file's. -/
 
 /-- The events the bounded enumeration draws from: the destructive call and the same action under
 a fresh call id, box-plane work on the same machine, the vendor read that settles the reset, the
-operator's disposition, a replay, and a rescue activation, which an unresolved command may stand
-beside. This alphabet includes pre-replay sessions acting after replay, a superset of realizable
-traces; a universal theorem over that superset is stronger. Named witnesses follow the convention
-that ended sessions send no request. -/
+operator's disposition, a replay, a second fresh box-plane command and a rescue activation.
+An unresolved activation may precede one command; an unresolved command bars an activation.
+This alphabet includes pre-replay sessions acting after replay, a superset of realizable
+traces; a universal theorem over that superset is stronger. Named witnesses follow the
+convention that ended sessions send no request. -/
 def alphabet : List Event :=
   [.request resetRequest1 approvalReset true, .request resetRequest2 approvalReset true,
    .request execRequest approvalExec true, .observe .adapterRead machineA .reset true,
-   .dispose dispositionA true, .replay, .request activateRequest approvalActivate true]
+   .dispose dispositionA true, .replay, .request activateRequest approvalActivate true,
+   .request execRequest2 approvalExec true]
 
 /-- Every trace of exactly `n` events over `alphabet`. -/
 def tracesOf : Nat → List (List Event)
@@ -2556,22 +2749,20 @@ shortest first. Both the decided property and the emitter read this filter. -/
 @[req "STA-24"] def tracesUpTo (n : Nat) : List (List Event) :=
   ((List.range (n + 1)).flatMap tracesOf).filter freshRequests
 
-/-- What may be unresolved together on one resource. `STA-24`: "On one machine at most one
-cloud-plane call is unresolved at a time, it is older than every box-plane command unresolved
-beside it, and a call that changes what the machine is running is unresolved alone". Stated
-without `bars`, so that it decides what `bars` reads rather than agreeing with it. Box-plane
-commands are `STA-20`'s tracked jobs, plural by design — "waits for all tracked commands to end"
-— and an unresolved activation or key registration "blocks nothing on the box", so a command may
-be unresolved beside one. Until 2026-10-13 this said that a second unresolved call needs every
-unresolved call to be box-plane, which an activation beside a command refutes. -/
+/-- What may be unresolved together on one resource. `STA-24` permits an older activation
+or key registration beside one box-plane command; `STA-20` admits at most one such command.
+Stated without the admission guards, so the bounded check independently checks their result. -/
 @[req "STA-24"] def unresolvedTogether (p : Params) (j : Journal) : Bool :=
   (resourcesOf j).all fun r =>
     let open_ := openIntents p j r
+    (decide ((open_.filter fun i => i.kind == .exec || i.kind == .deliveryReboot).length ≤ 1)) &&
     (open_.dropLast.all fun i => !cloudPlane i.kind) &&
     (decide (open_.length ≤ 1) || open_.all fun i => !changesRunning i.kind)
 
 /-- What may be unresolved together, decided within the bound, with distinct request call ids
-checked independently of the filter. Narrowed 2026-10-16 to reachable request identities: the
+checked independently of the filter. Restated 2026-10-18: the predicate also requires at most
+one unresolved box-plane command per resource, over the alphabet with a second fresh command.
+Narrowed 2026-10-16 to reachable request identities: the
 enumeration the witness file carries is one the companion itself closed over. -/
 @[req "STA-24"] theorem bounded :
     (tracesUpTo bound).all (fun es =>

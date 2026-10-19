@@ -47,7 +47,7 @@ about one:
   tau-web's AI does, not what Hermes does." Beside it the card MUST explain that Delivered
   covers the declared machine state and the fixed lockdown checks, and MUST say, substituting
   the application's name: "It does not mean Hermes works". The card carries `ARC-43`'s evidence
-  label beside Delivered where applicable.
+  labels beside Delivered where applicable.
 
 **ARC-2** Nothing runs while the app is closed. This is accepted rather than worked around. It
 is a statement about the harness: an operator's application on a machine runs as the operator
@@ -279,8 +279,18 @@ output. The jobs are:
   The model MUST NOT request it through `request_harness_job` or supply its command.
 - `delivery_reboot` — a harness-initiated reboot outside LNVPS, only as the evidence clause
   below permits. The model MUST NOT request it through `request_harness_job` or supply its
-  command. Its own job record follows `STA-20`; reboot ends the command, established by the
-  boot-identity change.
+  command. Its own job record follows `STA-20`; its result is the boot change, not the
+  command's exit. The operator's yes is the intent's approval, journaled with it; a re-issue
+  needs a fresh yes. A reboot held behind a command in flight when the operator said yes
+  records no intent; its first issue after release asks for the yes again. Its terminal record
+  is a collection of that call's job record for that machine reading a boot other than the
+  record's own, whatever exit code it carries and whether or not the record was marked
+  complete (the reboot can stop the job before that mark), appended durably before dispatch
+  resumes; it claims the observed boot change, never an exit status or a cause. An exit or a
+  proven end read on the record's own boot, a missing record, an incomplete one that carries
+  no boot of its own, and a record of another machine settle nothing (`STA-20`'s hold). The
+  flow reconnects on the pin and collects until such a read lands, shown to the operator and
+  stoppable. The same bytes sent through `exec` are an ordinary `STA-20` command.
 - `replace_root_label` — a harness-initiated rewrite of a dedicated machine's root label
   during Replace's model-free direct re-entry migration, outside any session. The model
   MUST NOT request it through `request_harness_job` or supply its command. Its rules are
@@ -303,7 +313,11 @@ and the user-account grammar live in the declaration format.
 A machine declaring such a service gets one harness-composed reboot at delivery, after the
 last placement, **only with the operator's explicit yes at that moment**. Record the boot
 identity, reboot, reconnect on the pin, confirm a new boot identity and the unit active, then
-run the delivery check before any model command. New boot identity plus active unit is the
+run the delivery check before any model command.
+From the yes until the delivery check's verdict is durably journaled, the dispatch check,
+serialized with the intent's append, holds the model's box-plane commands to that machine as
+`STA-20`'s hold does, and the held result names the pending check; the verdict or the
+operator's explicit act ends it. New boot identity plus active unit is the
 init-agnostic survival evidence. The delivery check also catches a restriction a boot drops;
 it asserts nothing beyond the declaration.
 
@@ -324,10 +338,28 @@ lifecycle finding, and leaves the machine Delivered when its checks otherwise pa
 boot-identity change plus a re-check lifts the label. A user-scope unit without `Linger=yes`
 is still a difference and a lifecycle finding.
 
-On re-entry (`STG-9`), read the unit and its enablement for `enabled-survives-reboot` services.
-Offer a reboot again only when the unit or its enablement changed; a boot-identity change
-since the last check counts as a demonstration when re-checked. Whether `running-at-delivery`
-binds after delivery stays open in `OPN-14`.
+On re-entry (`STG-9`), read every declared service's unit, and read enablement only for
+`enabled-survives-reboot` services. Offer a reboot again only when the unit or its enablement
+changed; a boot-identity change since the last check counts as a demonstration when re-checked.
+
+**When `running-at-delivery` binds.** Each check that finds the service running MUST journal
+the boot identity with that result. Its lifecycle binds on that boot until the boot changes;
+a service never found running binds. Stopped on that boot is a lifecycle finding (`ARC-17`).
+Stopped after that boot changed, having been found running on it, raises no finding and MUST
+carry the note **"stopped since a restart, as approved"** wherever Delivered appears for that
+machine. A boot change never clears a standing lifecycle finding; with the declaration
+unchanged, a re-check clears it only when it finds the service running. `ARC-17` says "after
+the operator amends its declaration by a journaled act"; that re-check route remains. In a
+session that places a secret, this note does not count for the post-placement demonstration
+(`ARC-17`): a stopped service is a lifecycle finding there.
+
+The reboot's settlement is `TauWeb.Dispatch.deliveryRebootResult`, read by
+`TauWeb.Dispatch.settles` (ADR-0032). Its guard's pair is
+`TauWeb.Dispatch.delivery_reboot_same_boot_refused` /
+`TauWeb.Dispatch.delivery_reboot_same_boot_admitted_without_guard`;
+`TauWeb.Dispatch.delivery_reboot_new_boot_settles` carries the admitted new-boot read, and
+`TauWeb.Dispatch.delivery_reboot_failed_append_holds` carries a failed append across replay.
+The companion omits this evidence clause's pending-check hold and lifecycle reads.
 
 Where a host-key pin may come from is `TauWeb.Pins.Source` and what each source may pin is
 `TauWeb.Pins.admits` (ADR-0032), with `TauWeb.Pins.installed_pin_from_authorized_source` over
@@ -336,9 +368,9 @@ and `TauWeb.Pins.installed_pin_from_model_text_admitted`. The companion carries 
 path, attest and `CHN-R7`, with `TauWeb.Pins.published_source_admitted` and
 `TauWeb.Pins.published_rescue_refused` exercising the new source boundary. A pin taken at a
 jump-host first contact
-(`CHN-R6`) is not among `TauWeb.Pins.Source`'s cases (T45). Only
-this pin-source clause of `ARC-43` is formalized; the rules of `place_secret` and
-`digest_secret` below are not, and this text is their home (ADR-0032, "Authority is per
+(`CHN-R6`) is not among `TauWeb.Pins.Source`'s cases (T45). The
+pin-source and delivery-reboot settlement clauses of `ARC-43` are formalized; the rules of
+`place_secret` and `digest_secret` below are not, and this text is their home (ADR-0032, "Authority is per
 clause").
 
 `fetch_artifact` and `ready_to_reset` are **box-plane work**: they run under the box-plane
@@ -687,7 +719,7 @@ property the session demonstrates, not a step it reports having performed.
 **Delivered, or handed over with findings — never something between.** A machine is
 **delivered** only when the delivery check finds no difference from its declaration in force
 and the fixed lockdown checks — default credentials and sshd posture, from the signed lockdown
-checklist (`OPN-14`) — pass, with `ARC-43`'s evidence label where applicable. A finding is
+checklist (`OPN-14`) — pass, with `ARC-43`'s evidence labels where applicable. A finding is
 cleared by a re-check and by nothing else: after the
 machine is fixed, or after the operator amends its declaration by a journaled act. A finding is
 never accepted in place of an amendment, and an amendment cannot widen what the harness gates —
@@ -704,7 +736,8 @@ finding other than a lifecycle finding stands — the rule below, applied by `AR
 
 **A stopped service is a finding, and it does not refuse a secret.** A declared service that a
 harness-composed read does not find in its declared lifecycle is a **lifecycle finding**
-except for `ARC-43`'s labelled evidence state,
+except for `ARC-43`'s labelled evidence states (its stopped-since-restart note does not count
+in a placing session's post-placement demonstration),
 whenever that read runs — at a delivery check or a later re-check, whether or not any secret is
 placed on the machine, and whether or not the service needs one to start. It is a finding like
 any other: the machine is not delivered while it stands, it stays shown, and only a re-check
@@ -714,7 +747,9 @@ first key and a rotated one alike. Every other finding, a lockdown finding inclu
 refuses placement, and the fixed lockdown checks MUST have passed first. Whether a finding is a
 lifecycle finding follows from the declaration field that produced it (`services`), never from
 the model. A session that places secrets demonstrates the declared lifecycle after its
-placements, and delivery rests on that demonstration; placement itself clears no finding. A
+placements, and delivery rests on that demonstration; placement itself clears no finding.
+A session that places a secret MUST find every `running-at-delivery` service running after its
+last placement; the note "stopped since a restart, as approved" does not count. A
 session that ends before its final demonstration leaves the verdict of its last check standing,
 shown with any placement made since.
 
@@ -766,7 +801,7 @@ A declaration covers at least:
   or a debug port left by the install.
 - **Service lifecycle.** Whether the tenant's software must merely be running at delivery, or be
   enabled and survive a restart. The harness has no opinion; it demonstrates whichever was
-  declared. `ARC-43`'s evidence clause supplies the restart-demonstration label.
+  declared. `ARC-43`'s evidence clause supplies the lifecycle evidence labels.
 
 **What the check does not find** is hostile use of *declared* surface, or a machine that satisfies
 a declaration which is itself wrong. A vague or wide declaration buys a weak check. That is the

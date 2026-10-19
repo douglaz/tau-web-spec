@@ -158,7 +158,7 @@ structure Module where
 
 /-- The schema version of each emitted module. Allocation, pins and dispatch changed shape. -/
 def schemaVersion (name : String) : Nat :=
-  if name == "allocation" then 2 else if name == "pins" then 5 else if name == "dispatch" then 5 else 1
+  if name == "allocation" then 2 else if name == "pins" then 5 else if name == "dispatch" then 6 else 1
 
 /-- The header pretty, one trace per line: a diff names the trace that moved. -/
 def fileText (name : String) (ns : Name) (bound : Json) (witnesses enumeration : List Json) :
@@ -498,6 +498,7 @@ def kindName : Kind → String
   | .activate => "activate"
   | .registerKey => "register_key"
   | .exec => "exec"
+  | .deliveryReboot => "delivery_reboot"
   | .read => "read"
   | .inference => "inference"
 
@@ -646,6 +647,11 @@ def knowledgeJson (p : TauWeb.Dispatch.Params) (w : TauWeb.Dispatch.World) : Jso
           ("entry", toJson e), ("call", toJson c),
           ("approved", Json.mkObj [("session", toJson ap.session), ("facts", toJson ap.facts)])])
       | _ => none))),
+    ("reboot_results", toJson ((j.reverse.filterMap fun rec => match rec with
+      | .deliveryRebootResult c r boot observed => some (Json.mkObj [
+          ("call", toJson c), ("resource", resourceJson r), ("record_boot", toJson boot),
+          ("observed_boot", toJson observed)])
+      | _ => none))),
     ("prerequisite_records", toJson ((j.reverse.filterMap fun rec => match rec with
       | .resetCollection e n => some (Json.mkObj [
           ("kind", "command"), ("entry", toJson e), ("installation", toJson n)])
@@ -659,7 +665,7 @@ outcome of that event's own append, a driver instruction like a lost response. A
 what the far side reported, which is the adapter's answer and not the harness's decision. -/
 def eventJson (x : External) : TauWeb.Dispatch.Event → Json
   | .request rq ap ok => Json.mkObj [
-      ("kind", "request"), ("provenance", "model request"),
+      ("kind", "request"), ("provenance", Json.str (if rq.kind == .deliveryReboot then "operator act" else "model request")),
       ("call", toJson rq.call), ("target", targetJson rq.target),
       ("operation", kindName rq.kind), ("session", toJson rq.session),
       ("facts", toJson rq.facts),
@@ -670,6 +676,10 @@ def eventJson (x : External) : TauWeb.Dispatch.Event → Json
       ("source", provenanceName prov), ("resource", resourceJson r),
       ("operation", kindName k), ("reports", standingName (x.reports r k)),
       ("appended", toJson ok)]
+  | .collectReboot c r boot ok => Json.mkObj [
+      ("kind", "collect_reboot"), ("provenance", "adapter observation"),
+      ("call", toJson c), ("resource", resourceJson r), ("record_boot", toJson boot),
+      ("observed_boot", toJson (x.boot r)), ("appended", toJson ok)]
   | .dispose d ok => Json.mkObj [
       ("kind", "dispose"), ("provenance", "disposition"),
       ("resource", resourceJson d.resource), ("calls", toJson d.calls),
@@ -702,7 +712,7 @@ def stepJson (p : TauWeb.Dispatch.Params) (x : External) (w : TauWeb.Dispatch.Wo
       | some (.dispatched _) => [("dispatch", Json.str "dispatched")]
       | some (.refused r) => [("dispatch", Json.str "refused"), ("refusal", refusalJson r)]
       | none => []
-    | .observe _ r _ _ =>
+    | .observe _ r _ _ | .collectReboot _ r _ _ =>
       [("settled", toJson ((unresolved p w.memory r).filter fun c =>
         !(unresolved p w'.memory r).contains c))]
     | .resetPrereqs e _ _ => [("offer", toJson (offersReset p w'.memory e))]
@@ -750,7 +760,8 @@ def assumptionsJson (p : TauWeb.Dispatch.Params) : Json :=
               ("failedPrerequisiteWithdraws", toJson p.failedPrerequisiteWithdraws),
               ("approvalResetRequiresRescue", toJson p.approvalResetRequiresRescue),
               ("resetOfferFreshKeys", toJson p.resetOfferFreshKeys),
-              ("reinstallWithdrawalEffective", toJson p.reinstallWithdrawalEffective)]
+              ("reinstallWithdrawalEffective", toJson p.reinstallWithdrawalEffective),
+              ("commandHold", toJson p.commandHold), ("rebootBootChange", toJson p.rebootBootChange)]
 
 def Trace.json (t : Trace) : Json :=
   let segments := if t.segments.isEmpty then [(t.far, t.events)] else t.segments
@@ -762,6 +773,22 @@ def Trace.json (t : Trace) : Json :=
   traceJson t.decls (assumptionsJson t.params) t.pair (knowledgeJson t.params t.start) steps
 
 def witnesses : List Trace := [
+  { decls := ["TauWeb.Dispatch.second_command_held"], events := secondCommandEvents,
+    pair := some (.refused, "TauWeb.Dispatch.second_command_without_hold") },
+  { decls := ["TauWeb.Dispatch.second_command_without_hold"], events := secondCommandEvents,
+    params := withoutCommandHold, pair := some (.admitted, "TauWeb.Dispatch.second_command_held") },
+  { decls := ["TauWeb.Dispatch.hold_reads_and_other_machines"], events := holdIsolationEvents },
+  { decls := ["TauWeb.Dispatch.delivery_reboot_same_boot_refused"], events := sameBootRebootEvents,
+    far := rebootDone, pair := some (.refused, "TauWeb.Dispatch.delivery_reboot_same_boot_admitted_without_guard") },
+  { decls := ["TauWeb.Dispatch.delivery_reboot_same_boot_admitted_without_guard"], events := sameBootRebootEvents,
+    far := rebootDone, params := withoutRebootBootChange,
+    pair := some (.admitted, "TauWeb.Dispatch.delivery_reboot_same_boot_refused") },
+  { decls := ["TauWeb.Dispatch.delivery_reboot_new_boot_settles"], events := newBootRebootEvents },
+  { decls := ["TauWeb.Dispatch.delivery_reboot_failed_append_holds"], events := failedRebootAppendEvents },
+  { decls := ["TauWeb.Dispatch.delivery_reboot_collection_identity"], events := invalidRebootCollections,
+    far := rebootDone },
+  { decls := ["TauWeb.Dispatch.delivery_reboot_requires_approval"], events := unapprovedRebootEvents },
+  { decls := ["TauWeb.Dispatch.delivery_reboot_late_result_keeps_disposition"], events := disposedRebootEvents },
   { decls := ["TauWeb.Dispatch.approval_reset_requires_rescue_refused"], events := approvalResetGuardEvents,
     pair := some (.refused, "TauWeb.Dispatch.approval_reset_requires_rescue_admitted_without_guard") },
   { decls := ["TauWeb.Dispatch.approval_reset_requires_rescue_admitted_without_guard"], events := approvalResetGuardEvents,

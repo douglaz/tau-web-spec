@@ -121,7 +121,7 @@ _Avoid_: example (a witness is checked; an example is illustrated), sample, test
 **Witness file** · ADR-0032
 The companion's serialized witnesses and bounded traces for one module, one file under
 `docs/design/` — `allocation-witnesses-v2.json`, `declaration-witnesses-v1.json`,
-`relay-witnesses-v1.json`, `dispatch-witnesses-v5.json` and `pins-witnesses-v5.json`, with
+`relay-witnesses-v1.json`, `dispatch-witnesses-v6.json` and `pins-witnesses-v5.json`, with
 `witness-file-v1.md` describing their schemas — emitted by `lake exe witnesses` and held equal to the emission by
 `tools/check_witnesses.py`. Future implementation tests are to read them from the pinned tree;
 nothing outside this repository reads witness files today. Never compiled into the build. It
@@ -298,7 +298,8 @@ _Avoid_: outsourced, hosted (both suggest the harness arranged it; the operator 
 The state of a call that may have produced an external effect and has no **terminal record**
 — the journal event that ends a call with its outcome, called *terminal record* everywhere
 (`SEC-12`, `ARC-31a`; `STA-8` said *terminal event* until 2026-09-16). Left only by evidence
-or by a disposition, never by a timer.
+or by a disposition, never by a timer. `STA-20` owns the per-machine box-plane command
+hold; `ARC-43` owns delivery_reboot's terminal boot-change collection.
 _Avoid_: pending, in flight (both suggest it will settle by itself), failed, timed out (both
 assert an outcome nobody has)
 
@@ -360,8 +361,8 @@ which a mechanism then enforces), spec (too broad)
 *Delivered*: the delivery check finds no difference from the machine's declaration in force,
 and the fixed lockdown checks pass. It is a claim about that machine state, not that the
 application works; model-written check reports are outside it. `ARC-43` owns the evidence
-label beside Delivered for a machine declaring an `enabled-survives-reboot` service with no
-demonstrated reboot. *Handed over with findings*:
+labels beside Delivered: "enabled, restart not demonstrated" and "stopped since a restart,
+as approved", under its evidence clause. *Handed over with findings*:
 the operator takes the machine
 while findings stand; it is not delivered and is never described as locked down. What may still
 be placed on it, and what clears a finding, are `ARC-17`'s. Named 2026-10-05.
@@ -674,6 +675,9 @@ Evidence that the operator has funded credits at a provider. It does **not** pro
 used which proxy, because one top-up buys many queries.
 
 ## Flagged ambiguities
+
+**"Hold"**: qualify `STA-20`'s unresolved-command hold and `ARC-43`'s pending-delivery-check
+hold; `STA-24`'s untyped-vendor-scope hold is a separate rule.
 
 **"Instance"** is overloaded and must always be qualified.
 - **Session** — one run of the harness under one set of weights, touching only its bound set. Prefer

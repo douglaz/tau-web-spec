@@ -152,3 +152,8 @@ for the clauses in `STA-24` and `SEC-4`, not additional rules.
 was wrong: `STG-4` says "Immediately before **every** reset into rescue", and requires a
 journaled re-read there. The rejected spending rule is unchanged; the read condition and
 residual window remain in their requirement owners.
+
+*Amended 2026-10-18:* ADR-0048 supersedes the paragraph ending "Both now state what may be
+unresolved together": `STA-20`'s command hold admits at most one unresolved box-plane command.
+An older activation or key registration may still stand beside it; the disposition's rule is
+unchanged.

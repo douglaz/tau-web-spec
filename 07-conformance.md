@@ -515,6 +515,27 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       unchanged units do not. A boot-identity change since the last check plus a re-check
       demonstrates survival and lifts the label. A user-scope unit without `Linger=yes`
       raises a lifecycle finding; its read uses its account's manager, never the system manager.
+      The reboot's own record settles it with no disposition when collection reads it for that
+      machine on a new boot, whatever exit code it carries (usually exit 0, written before shutdown)
+      and also when the reboot stopped the job before its record was marked complete; an exit or
+      `Ended` read on the old boot, a missing record, an incomplete one with no boot of its own or
+      read on its own boot, and another machine's record keep it held; a settlement append that did
+      not land leaves it held across replay, and one that landed settles on replay; a model box-plane
+      request after the yes and before the delivery check's verdict, including after the reboot
+      settled, is held; an `exec` of the same reboot command settles by its exit like any command and
+      holds when it reads `Ended` or an incomplete record; the settlement is refused for a missing
+      yes, the wrong call, and LNVPS's typed restart.
+      A model command in flight at the yes holds the reboot, and its later issue asks again;
+      after a disposition with a destructive continuation, a new-boot record arriving later
+      does not lift the restriction.
+      For running-at-delivery, stopped on the same boot is a finding at re-entry; after a
+      restart, the note "stopped since a restart, as approved" shows and there is no finding.
+      A crash finding followed by a restart stays until the service is found running; a
+      never-found-running service still binds. A placing session needs every such service
+      running after its last placement, and the note does not count: stopped is a lifecycle
+      finding there. An explicit declaration amendment still clears through a re-check.
+      Re-entry reads every declared service's unit and enablement only for
+      enabled-survives-reboot services.
 - [ ] **CNF-52 · BLOCKING** On a multi-tenant machine, no spendable key material is present
       (`ARC-37`). Verified by searching the machine for private key material after a full
       install; watch-only public material is expected and permitted. BLOCKING because a wallet
@@ -609,7 +630,7 @@ evidence is that set's test run against the relay the harness uses.
       **including under a new call id**, through another tool, after replay, and from a later
       session bound to the same machine — and so is a *different* side-effecting operation
       naming that resource, an activation after an unresolved key registration being the
-      dedicated path's case; a read against the resource is not (`STA-24`).
+      dedicated path's case; `STA-24`'s permitted reads are not refused.
       A second allocation index for the same approved machine entry does not evade the
       refusal; a different approved entry remains permitted. A status read whose journal
       append fails leaves the barrier standing; an operator disposition ends the unresolved
@@ -729,14 +750,25 @@ evidence is that set's test run against the relay the harness uses.
 - [ ] **CNF-39 · PRE-SCALE** After a killed worker, replay classifies incomplete calls, cancels
       those that cannot still exist, and surfaces uncertain ones without resuming them
       (`STA-7`).
-- [ ] **CNF-40 · BLOCKING** A command still running when the session dropped is **not**
-      re-run on reconnect. Verified by starting a long command, killing the session, and
-      confirming the returning session waits on the job record rather than launching a second
-      one (`STA-20`). This is the corruption case, which is why it blocks.
+- [ ] **CNF-40 · BLOCKING** A command still running when the session dropped is **not** re-run
+      on reconnect. Verified by starting a long command, killing the session, and confirming the
+      returning session waits on the job record rather than launching a second one (`STA-20`),
+      also under a new call id, through `exec` and `request_harness_job`, after a reconnect,
+      with the worker alive after a dropped connection, in a successor session, and for two
+      requests made together: the later request is not run, records no intent, and its result
+      carries the earlier record; a held read is held too; a missing, incomplete or ended record
+      keeps the machine held until the operator's disposition; a call disposed with a
+      continuation that continues holds nothing, and a destructive one still stops the model's
+      commands; collection started while the earlier call's own dispatch awaits its record
+      appends no second result; a held harness-initiated job is issued once after release under
+      one intent, and a stopped wait issues nothing, across replay too; another machine is
+      unaffected. This is the corruption case, which is why it blocks.
 - [ ] **CNF-54 · PRE-SCALE** A completed command's exit code and output are read from the job
       record after a session drop, not inferred from machine state.
 - [ ] **CNF-55 · PRE-SCALE** An installed-system job record survives a reboot. Its boot identity
-      establishes that an unfinished old command ended; success still needs a terminal record.
+      establishes that an unfinished old command ended; it stays unresolved until disposition.
+      `ARC-43`'s `delivery_reboot` settles by its boot change; an ordinary finished record settles
+      by its exit code.
       A missing record remains unresolved. Rescue follows `CNF-86`, not a persistence claim.
 - [ ] **CNF-56 · PRE-SCALE** The command recorded by the machine matches the command the
       browser journal recorded before sending. A mismatch is surfaced as a finding, and is
@@ -840,6 +872,8 @@ evidence is that set's test run against the relay the harness uses.
       Seed-backup display distinguishes full re-entry from skip and calls neither verified
       (`SEC-2`). Wherever Delivered appears for a machine declaring an
       `enabled-survives-reboot` service with no demonstrated reboot, carry `ARC-43`'s evidence label.
+      Carry "stopped since a restart, as approved" wherever Delivered appears when `ARC-43`'s
+      running-at-delivery note applies.
 
 ## Measurements
 
@@ -976,11 +1010,11 @@ Not pass/fail. Required to be recorded.
       installed pins, and confirm box-plane dispatch resumes on the reset's confirmation and
       not on reconnection. Force an unexpected rescue reboot: a changed boot ID establishes
       that the old command ended while its effects and exit status remain unresolved, until
-      inspection or explicit disposition, never automatic re-execution (`STA-20b`, `STA-24`).
-      With one command of two left unresolved in rescue and disposed toward a destructive
-      reinstall, the return to rescue waits for the other command and collects its record, and
-      does not wait for the disposed one or require its record; the reset into rescue is
-      dispatched with its intent recorded and no installed pins.
+      the operator's disposition, never automatic re-execution (`STA-20b`, `STA-24`).
+      Dispose command A with a continuation that continues, dispatch B, then replace A's
+      disposition with a destructive reinstall: the return to rescue waits for B and collects
+      its record, and does not wait for the disposed one or require its record; the reset into
+      rescue is dispatched with its intent recorded and no installed pins.
       The installation id (`STG-20`) stays the same across restart and Restore; its machine
       component is distinct among machines allocated under the current seed. Check lowercase
       hexadecimal for the machine index and decimal for the installation ordinal, neither with

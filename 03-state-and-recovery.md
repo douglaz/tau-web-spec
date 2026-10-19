@@ -54,7 +54,7 @@ unresolved set it had. Cancelling the calls that were never dispatched is not ca
 enter an unresolved state requiring evidence or operator inspection to leave. It MUST NOT be
 retried automatically and no timer may clear it. Establishing *what happened* by a status
 query is permitted and required where a tool supports one; doing it *again* is not. What the
-unresolved state **blocks**, and for which resource, is `STA-24`; an operator disposition ends
+unresolved state **blocks**, and for which resource, is `STA-20` and `STA-24`; an operator disposition ends
 that state without establishing the earlier call's outcome, and what it restricts afterwards is
 `STA-24`'s too. The state is derived and never journaled as its own event:
 `TauWeb.Dispatch.unresolved` over `TauWeb.Dispatch.openIntents` and `TauWeb.Dispatch.settles`,
@@ -74,8 +74,12 @@ machine keeps a record on persistent disk (`/var/lib/tau-web/jobs`, root-only) h
 the **command as received**, its output, its exit code once it has
 one, and enough to tell whether **the command itself** is still alive. On reconnect the session
 reads that record rather than guessing — exit code present means finished, the command's own
-process alive means wait. A record with no exit code and a proven-ended command means it
-died and `ARC-10`'s convergence applies. A missing record is unresolved, never proof of death.
+process alive means wait. A record with no exit code and a proven-ended command means it died;
+the call stays unresolved (`STA-8`: it "has no terminal record") until the operator's
+disposition (`STA-24`), and a continuation that continues then converges as `ARC-10` says:
+"reconnect, read the machine's state, and continue from what is found". `ARC-43`'s
+`delivery_reboot` is settled by its boot change instead. A missing record is unresolved, never
+proof of death.
 Record the boot identity with the job; a PID from another boot cannot establish liveness.
 
 **A record names its machine, and holds no job's input.** Every record carries the machine the
@@ -84,6 +88,34 @@ A harness job that takes a value on standard input — `place_secret` (`ARC-43`)
 its command like any other, and the job wrapper MUST NOT write that input to any file but the
 job's destination: the input is not part of the command as received, and a spooled copy in the
 job directory would be a second cleartext secret on the machine.
+
+**An unresolved command holds its machine.** While a box-plane command to a machine is
+unresolved (`STA-8`), the harness worker MUST NOT dispatch another box-plane command to that
+machine, whatever its call id, tool, requester or session; a read through `exec` is a command,
+and a job the harness composes is held too. Collecting a job record is not held, and other
+machines are unaffected. Only a terminal record releases the hold: a finished record of any
+command but `delivery_reboot`, `delivery_reboot`'s boot change (`ARC-43`), or a disposition,
+which `STA-24` says "is a terminal record of its own kind"; otherwise an ended, missing or
+incomplete record does not, and no timeout does. A disposition's continuation still restricts
+as `STA-24` says, "A destructive continuation stops the model's commands", and later evidence
+does not lift that. The dispatch check carries the rule and the single writer serializes it
+with the intent's append, so two requests cannot both pass. A held request is not run and
+records no intent. The harness collects the calls holding it, waiting while a command's own
+process or its runner is alive; a call whose own dispatch is still awaiting its record is not
+collected separately, the held request waits on that same result. The wait does not hold the
+writer, is shown to the operator and may be stopped; stopping settles nothing, and a machine
+that cannot be reached is answered at once. A held model request's result names the holding
+calls, carries what collection read, and says what can release them (a finished record or a
+disposition; for `delivery_reboot`, a boot change or a disposition); the model then decides
+again. A held harness job is not queued: the flow that needs it stays shown and composes it
+afresh once the hold lifts, a first issue and not a retry; after a stopped wait only the
+operator resumes that flow, and nothing left armed survives replay.
+
+The admission guard is `TauWeb.Dispatch.commandHold`, consulted by
+`TauWeb.Dispatch.barring` beside the cloud-plane barrier (ADR-0032). Its parameter's pair is
+`TauWeb.Dispatch.second_command_held` / `TauWeb.Dispatch.second_command_without_hold`;
+`TauWeb.Dispatch.hold_reads_and_other_machines` carries the permitted collection and independence.
+The wait, collection, stopping, held result and harness-flow resumption remain prose here.
 
 ***"It" is the command, not everything the command started.*** A command that launches a daemon
 finishes when the command finishes; whether the daemon it started is still up is a **service**
@@ -123,6 +155,7 @@ called `setsid()` out of its session — is what POSIX cannot do, and it is the 
 long install — useful during `STG-2`'s by-hand rehearsal — but that is an observation
 convenience and never the record. On the installed system the files survive a reboot; the
 recorded boot identity establishes that the old command ended, but not whether it succeeded.
+`ARC-43` owns `delivery_reboot`'s boot-change result.
 
 **STA-20b Rescue installation has a bounded exception to disk persistence.** Its tracked
 jobs live in root-only `/run/tau-web/jobs` in the rescue system, outside every installation
@@ -130,7 +163,7 @@ disk. They survive an SSH disconnect, not a reboot. Each record carries the resc
 (`/proc/sys/kernel/random/boot_id`), the browser's command ID and the command fields of
 `STA-20`. The wrapper runs detached from the SSH connection, captures output to files and
 refuses to launch an existing command ID again within that boot. A reconnect checks this
-record before issuing more work; a still-running job is waited on, including during partitioning.
+record before issuing more work; the wait, including during partitioning, is `STA-20`'s hold.
 
 Before a planned reset, the harness stops dispatch, waits for all tracked commands to end,
 copies their records into the encrypted browser journal as **advisory observations**, and
@@ -156,8 +189,8 @@ rescue boot — a new rescue activation and reset, then the install — and does
 unexpected rescue reboot too: one rule everywhere, and the second reset there is accepted.
 Recording installed host-key pins is a prerequisite of a reset into the installed system, not of
 a reset into rescue. Keeping the current rescue boot and running the install again is not a
-destructive reinstall; it is continuing as if not done, under which the wait above for a job the
-harness can see still running still applies. With an installed-system pin already recorded,
+destructive reinstall; it is continuing as if not done, under which `STA-20`'s hold still
+applies to any other unresolved job. With an installed-system pin already recorded,
 continuing as if not done keeps that installation: the re-run MUST NOT re-format the root
 whose filesystem label equals the installation id the harness shows (`STG-20`). Changing the
 installed system's keys requires a destructive reinstall. The reset into the installed system
@@ -170,8 +203,8 @@ make the offer; earlier installations' records are read only to withhold it.
 
 After an unexpected rescue reboot, a changed boot ID proves the old command cannot still be
 running; it does **not** prove its effects or exit status. Missing output, a missing job record,
-or a record from the old boot leaves the operation unresolved under `STA-8` until inspection
-supports convergence or the operator explicitly chooses a new destructive reinstall. The
+or a record from the old boot leaves the operation unresolved under `STA-8` until the operator's
+disposition: continuing on what inspection shows, or a new destructive reinstall. The
 browser's record of what was sent remains authoritative throughout (`STA-21`).
 
 The precondition of the offer of a reset into the installed system is
@@ -418,7 +451,7 @@ replay (`STA-7`) and session succession without an event of its own, because an 
 recording "became unresolved" is exactly what a crash could fail to write. On one machine at
 most one cloud-plane call is unresolved at a time, it is older than every box-plane command
 unresolved beside it, and a call that changes what the machine is running is unresolved alone;
-box-plane commands may be unresolved together, as `STA-20`'s tracked jobs are. Admission,
+at most one box-plane command is unresolved (`STA-20`'s hold). Admission,
 reservation and the dispatch check are serialized by the single writer (`STA-1`), so two
 requests cannot both pass before either is unresolved. What this rule cannot reach is a journal
 that is lost with the phone: `STA-14` states that transcripts are gone, and a recovery sheet is
@@ -866,6 +899,10 @@ or dispatches a destructive reinstall until the reset into the installed system 
 pin already recorded, continuing as if not done keeps that installation"; its root still carries
 the current label. Replace's screen MUST name the refused machine as not yet migrated, with
 the reason, and MUST NOT report a complete Replace while it remains outstanding.
+
+A machine under `STA-20`'s hold MUST be shown as not yet migrated, with the reason, and MUST
+keep its old key; Replace migrates the others. After release, its migration steps are first
+issues, starting with the key install in the order above; the completion refusal above applies.
 
 For the direct re-entry in Replace's bullet above, a dedicated machine MUST have its root
 filesystem's label rewritten after the connection authenticated by the new key is confirmed

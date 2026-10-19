@@ -25,8 +25,9 @@ the set difference the row names and nothing about ports, lifecycles or commands
 for `default_credentials` is the empty list of what must have been changed. `drift_checks` is
 "Run by the machine's own session on re-entry (`ARC-26`)", so at delivery a specified list
 passes on presence alone. The lightweight pentest (`ARC-17`), the scanner (`ARC-26`) and the
-profile's prose are not here. The evidence label for enabled service lifecycle (`ARC-43`)
-is omitted: enabled, restart not demonstrated is a pass here, not a difference from the declaration. -/
+profile's prose are not here. The lifecycle evidence labels (`ARC-43`) are omitted: "enabled,
+restart not demonstrated" and "stopped since a restart, as approved" are passes here, not
+differences from the declaration; the placing-session demonstration remains prose. -/
 
 namespace TauWeb.Declaration
 

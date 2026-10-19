@@ -159,3 +159,7 @@ key, only the harness worker unwraps it, and lock/restart clears runtime authori
 credential-format companion owns the KDF and envelope. A compromised device can still roll
 back a whole encrypted store; importing a backup therefore invokes `STA-22b`'s restriction
 against new allocations under the recovered seed. Encryption does not prove backup freshness.
+
+*Amended 2026-10-18:* ADR-0048 replaces the rescue correction's "until inspection or explicit
+operator disposition": inspection alone settles nothing without a terminal record. `STA-20`
+and `STA-20b` own the hold and disposition path; `ARC-43` owns the delivery reboot's result.
