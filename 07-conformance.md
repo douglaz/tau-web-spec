@@ -205,7 +205,7 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       paste, leaving the reference unarmed. A copied key split across output chunks on A is
       redacted. A late P1 record arms nothing even before a paste; it is journaled and shown,
       never replaces a pasted reference, and shows a mismatch on cross-check. A pasted reference
-      gets no digest after the reset. Without a paste, nothing is composed or re-issued for
+      gets no digest after the reset. Without a paste, no digest is composed or re-issued for
       M's unarmed placements until the operator's one act after the reinstall, which covers
       them together: P2's digest as a first issue, P1's as the operator's re-issue. M's
       traffic shows nothing sent for the paste. At LNVPS, until `TASKS.md` T50 defines the

@@ -465,7 +465,7 @@ whose reference is unarmed, the disposed digest's included, and says that rotati
 whenever collected; it is journaled and shown and cross-checks a paste. A digest result that
 arrives after the paste, a disposed digest's record among them, is a cross-check only: a
 mismatch is visible and MUST NOT replace the pasted reference. A pasted reference owes no
-new digest after the reset. Under a destructive reinstall without a paste, nothing is
+new digest after the reset. Under a destructive reinstall without a paste, no digest is
 composed or re-issued for that machine's unarmed placements until one operator act after
 the reinstall restarts the re-read for all of them: a refused digest as a first issue, a
 disposed one as the operator's re-issue, never automatically. Offering or accepting the

@@ -23,7 +23,7 @@ local paste can arm it while the destructive reinstall or abandonment still stan
 sends nothing to the machine and changes no restriction of `STA-20` or `STA-24`. A late
 record of the disposed digest arms nothing and cross-checks a paste without replacing it.
 
-Under a destructive reinstall without a paste, `ARC-43` says "nothing is composed or re-issued
+Under a destructive reinstall without a paste, `ARC-43` says "no digest is composed or re-issued
 for that machine's unarmed placements until one operator act after the reinstall restarts the
 re-read for all of them". That act issues a refused digest as a first issue and a disposed one
 as the operator's re-issue, never automatically. The continuation's completion alone releases no

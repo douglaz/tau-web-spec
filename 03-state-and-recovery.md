@@ -165,9 +165,10 @@ disk. They survive an SSH disconnect, not a reboot. Each record carries the resc
 refuses to launch an existing command ID again within that boot. A reconnect checks this
 record before issuing more work; the wait, including during partitioning, is `STA-20`'s hold.
 
-Before a planned reset, the harness stops dispatch, waits for all tracked commands to end,
-copies their records into the encrypted browser journal as **advisory observations**, and
-durably records installed host-key pins and the reset intent. If collection or the durable
+Before a planned reset, the harness stops dispatch, waits until every tracked command has a
+terminal record (`STA-20`), copies their records into the encrypted browser journal as
+**advisory observations**, and durably records installed host-key pins and the reset intent.
+If collection or the durable
 append fails, it does not reset — and it does not *offer* the reset either: the offer is
 checked against those durable prerequisites at the moment it is made, and an approval already
 rendered is checked again at dispatch. **Dispatch resumes on the reset's confirmation
