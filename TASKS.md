@@ -92,9 +92,10 @@ gated on it.
       enablement reads behind `CNF-50`, `CNF-53` and `CNF-103`. Decided 2026-10-16: `ARC-43`
       owns stage 1's systemd service-name grammar and the delivery reboot opted into by the
       declaration and again at delivery; the declaration format owns service scope and user
-      accounts. OpenRC waits for the dedicated path's stage. Re-entry reads unit and
-      enablement for enabled-survives-reboot services; `OPN-14` holds the remaining open
-      points about running-at-delivery services at re-entry and after delivery.
+      accounts. OpenRC waits for the dedicated path's stage. Decided 2026-10-18 (ADR-0049):
+      re-entry reads every declared service's unit and reads enablement only for
+      enabled-survives-reboot services; `ARC-43` owns running-at-delivery's boot anchor,
+      stopped-since-restart note and persistence of lifecycle findings.
 - [ ] **T43 — Stage 1's build list**. Implement `STG-21`'s corrected LNVPS/plain-Arch
       definition and the stage-1 applicability rows in `07-conformance.md` at tau-web-rust's
       next spec pin. These include recovery, scanning, reports and re-entry; specification
@@ -453,6 +454,16 @@ gated on it.
       refused, rather than dispatched without opening an installation. Other existing theorem
       statements, the bounded alphabet and bound are unchanged. Dispatch schema 5 is regenerated
       from the emission.
+      *Amended 2026-10-18:* Module 4 gains `STA-20`'s command-hold guard and pair, and
+      `ARC-43`'s `deliveryReboot` kind and boot-change settlement arm with its guard and pair.
+      The alphabet gains a second fresh command; the restated bounded property admits at most
+      one unresolved box-plane command per resource. Dispatch schema 6 carries the operation,
+      collection, guards and reboot-result projection (ADR-0048).
+      *Amended 2026-10-19:* Module 4 widens `TauWeb.Dispatch.stops` to `deliveryReboot`, with
+      `TauWeb.Dispatch.destructive_choice_stops_delivery_reboot` /
+      `TauWeb.Dispatch.delivery_reboot_dispatched_without_destructive_stop` under `destructiveStops`.
+      `TauWeb.Dispatch.command_bars_activation_and_reset` pins an unresolved command barring
+      activation and reset (ADR-0050). Dispatch schema 6 is unchanged and regenerated.
 - [x] **T36 — Formal companion, module 5: the host-pin lifecycle** (ADR-0032's inventory;
       `SEC-11`, `CHN-R1`, `ARC-43`, with `STA-20b`'s resume rule and `STG-4`'s third
       confirmation predicate). Landed 2026-09-20 in `tools/formal/TauWeb/Pins.lean`: what a pin

@@ -377,7 +377,7 @@ Counting means: an application secret on a machine (`SEC-5` row 12) and an appro
 scope (row 11) both widen a model's reach beyond its bound set, and both appear in the
 blast-radius statement and the trust display for as long as they are live. Every acceptable
 weaker mode standing on a set (`SEC-14`) is counted and shown the same way, for the set.
-Where Delivered appears, the trust display carries `ARC-43`'s evidence label where applicable.
+Where Delivered appears, the trust display carries `ARC-43`'s evidence labels where applicable.
 
 This replaces an absolute the root shell already defeated. A tenant that needs the absolute
 supplies it by procedure — `SEC-T4`.

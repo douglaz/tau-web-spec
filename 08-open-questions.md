@@ -214,16 +214,12 @@ template shipped with every unstated field `unspecified` so the harness invents 
 and sshd posture — keyed on no vendor and no tenant, shipped in the bundle. It does not exist
 yet. lnrent's declaration, the Robot checklist and briefs 2–3 gate stage 3.
 
-*Owed 2026-10-06; decisions updated 2026-10-16:* the harness-composed reads behind
+*Owed 2026-10-06; decisions updated 2026-10-16 and 2026-10-18:* the harness-composed reads behind
 `CNF-50`, `CNF-53` and `CNF-103` still need implementation. `ARC-43` now owns the service-name
 grammar and restart demonstration for stage 1's init-specific systemd case; OpenRC waits for
-the dedicated path's stage. Re-entry reads unit and enablement for `enabled-survives-reboot`
-services. Also open: whether `STG-9`'s re-entry re-check reads `running-at-delivery` services,
-and whether a stopped one is then outside its declared lifecycle and hence a lifecycle finding
-(`CNF-108`). `ARC-17` says "whenever that read runs — at a delivery check or a later re-check";
-the open point is when that declared lifecycle applies after delivery. Whether
-`running-at-delivery` binds after delivery remains open. T42 carries the implementation;
-stage 1 still owes integrated evidence.
+the dedicated path's stage. Re-entry reads every declared service's unit and reads enablement
+only for `enabled-survives-reboot` services (`ARC-43`, decided 2026-10-18, ADR-0049).
+T42 carries the implementation; stage 1 still owes integrated evidence.
 
 *Closes when:* the generic checklist ships and `CNF-49`–`CNF-53`, `CNF-99` and `CNF-103` have integrated
 evidence against it — that much for stage 1; and, for stage 3, the lnrent owner fills that
@@ -248,7 +244,8 @@ construct it. T48 carries the build; `SEC-5` now owns the settled minimum byte l
 
 *Closes when:* `CNF-95`'s cases pass on the integrated harness, paired with `CNF-84` for
 Restore and `CNF-42` for the retained exposure display. Construction can proceed; stage 1
-requires that evidence, including fallback and output boundaries.
+requires that evidence for the stage-1 cases, including fallback and output boundaries;
+cases (e) and (f)'s A/B assertions wait for stage 2 under the applicability table.
 
 **OPN-15 — Reproducible builds and the watchdogs that would make them mean something.** Neither
 exists. Until they do, the bundle's integrity rests on trusting the host outright, and `TRU-A1`

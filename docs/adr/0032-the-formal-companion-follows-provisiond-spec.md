@@ -190,3 +190,16 @@ withholding guards, then the approval-bound activation, earlier-installation off
 and reinstall-withdrawal guards. Their refused-and-admitted pairs retain each trap. A withdrawal
 record and event carry the approval's separate change of mind. The dispatch schema becomes 4
 and then 5; the bounded alphabet and bound are unchanged.
+
+*Amended 2026-10-18:* Module 4 gains `STA-20`'s command-hold guard and refused/admitted pair,
+and `ARC-43`'s `deliveryReboot` kind and boot-change settlement arm with its own guard and pair.
+Its alphabet gains a second fresh command; the restated bounded property admits at most one
+unresolved box-plane command per resource. Dispatch schema 6 adds the operation, collection,
+guards and reboot-result projection. ADR-0048 records the decision; the wait, collection
+procedure, stopping, held result and pending-delivery-check hold remain prose.
+
+*Amended 2026-10-19:* Module 4 widens `TauWeb.Dispatch.stops` to `deliveryReboot`, with
+`TauWeb.Dispatch.destructive_choice_stops_delivery_reboot` /
+`TauWeb.Dispatch.delivery_reboot_dispatched_without_destructive_stop` under `destructiveStops`.
+`TauWeb.Dispatch.command_bars_activation_and_reset` pins an unresolved command barring activation
+and reset (ADR-0050). Dispatch schema 6 is unchanged and regenerated.

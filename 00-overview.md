@@ -308,3 +308,6 @@ an ADR is where *why* lives.
 | [0045](./docs/adr/0045-the-installation-label-moves-at-reinstall-dispatch.md) | The installation label moves at reinstall dispatch |
 | [0046](./docs/adr/0046-workers-check-the-host-delivered-policy.md) | Workers check the host-delivered policy before unlocking |
 | [0047](./docs/adr/0047-seed-backup-completion-is-all-or-zero.md) | Seed-backup completion is all or zero |
+| [0048](./docs/adr/0048-an-unresolved-command-holds-its-machine.md) | An unresolved command holds its machine |
+| [0049](./docs/adr/0049-running-at-delivery-binds-until-the-boot-changes.md) | Running-at-delivery binds until the boot changes |
+| [0050](./docs/adr/0050-destructive-dispositions-stop-every-box-plane-job.md) | A destructive disposition stops every box-plane job and offers the local paste at once |
