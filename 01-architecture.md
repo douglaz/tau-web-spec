@@ -425,10 +425,11 @@ here is non-waivable:
   sent; without that confirmation nothing is placed. The harness cannot classify a value, so the
   confirmation is the operator's, recorded with the placement.
 - **The placed secret is listed in the trust display** until it is rotated or the machine is
-  destroyed (`SEC-6`). After a Restore the display starts from the placement records the sheet
-  holds (`STA-16`). Machine records may add entries, visibly labelled as machine-reported and
-  advisory, but MUST NOT remove any. An absent file stays listed; absence, scan re-arm and
-  a machine's claim of removal are not rotation or destruction.
+  destroyed (`SEC-6`), at LNVPS until the vendor's deletion is confirmed (`SEC-5` row 12). After
+  a Restore the display starts from the placement records the sheet holds (`STA-16`). Machine
+  records may add entries, visibly labelled as machine-reported and advisory, but MUST NOT
+  remove any. An absent file stays listed; absence, scan re-arm, a machine's claim of removal
+  and the stop that stands in for a destroy (`ARC-22`) are not rotation or destruction.
 
 A key the operator minted at its service with a cap, or one the operator can revoke there, is
 the best practice, and the card says so. The harness mints nothing for an application: a key
@@ -461,11 +462,16 @@ the secret locally to create a fresh reference under `SEC-5`. Refusal or disposi
 leaves the reference unarmed. While a destructive reinstall or abandonment disposition stands
 on a machine (`STA-24`), the card is offered at once for every known required placement on it
 whose reference is unarmed, the disposed digest's included, and says that rotation waits until
-`STA-24` admits it. A digest record of a call named by a destructive disposition arms nothing,
-whenever collected; it is journaled and shown and cross-checks a paste. A digest result that
-arrives after the paste, a disposed digest's record among them, is a cross-check only: a
-mismatch is visible and MUST NOT replace the pasted reference. A pasted reference owes no
-new digest after the reset. Under a destructive reinstall without a paste, no digest is
+`STA-24` and `ARC-17`'s placement gates admit it. Where the commands the machine needs (its
+install, or a fix for a finding that refuses placement) wait on these references, the card
+says they wait for a paste, and that neither a reinstall nor the stop that stands in for a
+destroy (`ARC-22`) ends that wait; at a vendor that offers the operator no destroy route it
+offers no destroy, and says the secret stays listed until the vendor's deletion is confirmed.
+A digest record of a call named by a destructive disposition arms nothing, whenever collected;
+it is journaled and shown and cross-checks a paste. A digest result that arrives after the
+paste, a disposed digest's record among them, is a cross-check only: a mismatch is visible
+and MUST NOT replace the pasted reference. A pasted reference owes no new digest after the
+reset. Under a destructive reinstall without a paste, no digest is
 composed or re-issued for that machine's unarmed placements until one operator act after
 the reinstall restarts the re-read for all of them: a refused digest as a first issue, a
 disposed one as the operator's re-issue, never automatically. Offering or accepting the

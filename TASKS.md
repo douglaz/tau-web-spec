@@ -96,6 +96,8 @@ gated on it.
       re-entry reads every declared service's unit and reads enablement only for
       enabled-survives-reboot services; `ARC-43` owns running-at-delivery's boot anchor,
       stopped-since-restart note and persistence of lifecycle findings.
+      When the checklist exists, run it against a fresh LNVPS catalogue image; if the image
+      fails a fixed check, `tw-i55` is due before stage 1 completes.
 - [ ] **T43 — Stage 1's build list**. Implement `STG-21`'s corrected LNVPS/plain-Arch
       definition and the stage-1 applicability rows in `07-conformance.md` at tau-web-rust's
       next spec pin. These include recovery, scanning, reports and re-entry; specification
@@ -123,7 +125,13 @@ gated on it.
       trap `ARC-17`'s lifecycle-finding rule removed for `services`.
 - [ ] **T50 — Define LNVPS operation confirmation contracts** (recorded 2026-10-17;
       bead `tw-w7a`, left open). The missing confirming observations cover the typed restart,
-      the stop that stands in for a destroy, renewal-off, and the vendor's reinstall call.
+      the stop that stands in for a destroy, renewal-off, the vendor's reinstall call, and the
+      vendor's deletion of a stopped machine. `SEC-5` rows 12 and 23 count the deletion as the
+      machine's destruction at LNVPS: "the vendor's confirmed deletion, not the stop that stands
+      in for a destroy". The starting fact is recorded in
+      `docs/findings/2026-10-11-lnvps-phase-b.md`: "A stop (`PATCH …/stop`) left the machine
+      `stopped` and still listed, with `deleting_on` one day after the expiry (the grace may
+      lengthen with the subscription's age; it was read at day 0)." No deletion has been observed.
       The duties depending on them remain in their owners: `ARC-43` says "Until that confirmation,
       box-plane dispatch stays stopped" for the delivery restart; `STA-24` says "At LNVPS
       renewal-off waits for the stop's confirmation"; for the reinstall continuation,
