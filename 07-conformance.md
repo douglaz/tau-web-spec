@@ -190,8 +190,9 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       it writes nothing to the machine, leaves the exposure listed, and changes no declaration
       or weaker-mode approval. Where the operator cannot paste the value, the delivery
       re-check runs on the set though a reference stays unarmed, releasing only its verdict,
-      and a rotation through `place_secret` then proceeds. On a machine under a destructive
-      disposition, both wait until `STA-24` admits them, and the card says rotation waits.
+      and a rotation through `place_secret` then proceeds once `ARC-17`'s placement gates admit it.
+      On a machine under a destructive disposition, both wait until `STA-24` admits them,
+      the rotation until those gates do as well, and the card says rotation waits.
       Refuse a below-minimum paste too,
       leaving the reference unarmed. Inspect paste custody
       and clearing under `SEC-5` row 12.
@@ -221,7 +222,12 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       neither, one or both pasted, output on A and B is released only after both. A late P1 record
       arms nothing and never replaces a pasted reference. The abandonment flow's operation naming M
       is dispatched whether or not anything was pasted, and clearing the gate resumes nothing of the
-      abandoned setup. P1's digest is never re-issued automatically, and M's traffic shows nothing
+      abandoned setup. At LNVPS that operation is the stop that stands in for a destroy (`ARC-22`):
+      once it is dispatched, output on A and B is still released only after both pastes, P1 and
+      P2 stay listed and counted whether or not anything was pasted, and the card offers no
+      destroy and says the secrets stay listed until they are rotated or the vendor's deletion
+      is confirmed.
+      P1's digest is never re-issued automatically, and M's traffic shows nothing
       sent for the paste. Stage 1 runs the assertions on M alone; the A/B output-release assertions
       run at stage 2.
       In these cases reject model requests for `digest_secret`; inspect its command and
@@ -892,6 +898,7 @@ evidence is that set's test run against the relay the harness uses.
       entries remain displayed (`STA-16`, `ARC-43`); machine reports may add labelled
       advisory entries and remove none. An absent file stays listed. Re-arming or a machine's
       removal claim never drops an entry; only the owning rotation/destruction rules do.
+      At LNVPS the stop that stands in for a destroy never drops one either.
 - [ ] **CNF-93 · BLOCKING** An acceptable weaker mode is accepted by its label for one bound
       set before the first contact it governs — an acceptance after that contact is
       refused — and is never entered by failing
