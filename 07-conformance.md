@@ -225,7 +225,8 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       abandoned setup. At LNVPS that operation is the stop that stands in for a destroy (`ARC-22`):
       once it is dispatched, output on A and B is still released only after both pastes, P1 and
       P2 stay listed and counted whether or not anything was pasted, and the card offers no
-      destroy and says the secrets stay listed until the vendor's deletion is confirmed.
+      destroy and says the secrets stay listed until they are rotated or the vendor's deletion
+      is confirmed.
       P1's digest is never re-issued automatically, and M's traffic shows nothing
       sent for the paste. Stage 1 runs the assertions on M alone; the A/B output-release assertions
       run at stage 2.
@@ -897,8 +898,7 @@ evidence is that set's test run against the relay the harness uses.
       entries remain displayed (`STA-16`, `ARC-43`); machine reports may add labelled
       advisory entries and remove none. An absent file stays listed. Re-arming or a machine's
       removal claim never drops an entry; only the owning rotation/destruction rules do.
-      At LNVPS the stop that stands in for a destroy never drops one either; the vendor's
-      confirmed deletion does (`SEC-5` row 12).
+      At LNVPS the stop that stands in for a destroy never drops one either.
 - [ ] **CNF-93 · BLOCKING** An acceptable weaker mode is accepted by its label for one bound
       set before the first contact it governs — an acceptance after that contact is
       refused — and is never entered by failing

@@ -425,7 +425,7 @@ here is non-waivable:
   sent; without that confirmation nothing is placed. The harness cannot classify a value, so the
   confirmation is the operator's, recorded with the placement.
 - **The placed secret is listed in the trust display** until it is rotated or the machine is
-  destroyed (`SEC-6`), at LNVPS until the vendor's deletion is confirmed (`SEC-5` row 12). After
+  destroyed (`SEC-6`; at LNVPS, the vendor's confirmed deletion, `SEC-5` row 12). After
   a Restore the display starts from the placement records the sheet holds (`STA-16`). Machine
   records may add entries, visibly labelled as machine-reported and advisory, but MUST NOT
   remove any. An absent file stays listed; absence, scan re-arm, a machine's claim of removal
@@ -464,9 +464,10 @@ on a machine (`STA-24`), the card is offered at once for every known required pl
 whose reference is unarmed, the disposed digest's included, and says that rotation waits until
 `STA-24` and `ARC-17`'s placement gates admit it. Where the commands the machine needs (its
 install, or a fix for a finding that refuses placement) wait on these references, the card
-says they wait for a paste, and that neither a reinstall nor the stop that stands in for a
-destroy (`ARC-22`) ends that wait; at a vendor that offers the operator no destroy route it
-offers no destroy, and says the secret stays listed until the vendor's deletion is confirmed.
+says that neither a reinstall nor the stop that stands in for a destroy (`ARC-22`) ends that
+wait. Under either disposition, at a vendor that offers the operator no destroy route, the
+card offers no destroy and says the secret stays listed until it is rotated or the vendor's
+deletion is confirmed.
 A digest record of a call named by a destructive disposition arms nothing, whenever collected;
 it is journaled and shown and cross-checks a paste. A digest result that arrives after the
 paste, a disposed digest's record among them, is a cross-check only: a mismatch is visible
