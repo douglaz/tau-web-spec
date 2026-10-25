@@ -1,8 +1,10 @@
 # bundle/ — publisher-chosen inputs the build compiles in
 
-Values the specification governs and the implementation repository compiles into the served
-build at the pinned spec commit (ADR-0031). Nothing here is fetched at runtime (`SEC-7`,
-`CNF-34`). Changing a value is a commit to this repository and a pin bump on the other side.
+Values the specification governs and the implementation repository compiles into the served build
+at the pinned spec commit (ADR-0031). These compiled inputs are not substituted at runtime
+(`SEC-7`, `CNF-34`). CHN-19 uses its compiled key and starting set to verify runtime relay
+announcements; those events are external content under SEC-8, not replacements for bundle inputs.
+Changing a compiled value is a commit to this repository and a pin bump on the other side.
 
 | File | Governs | Rule |
 |---|---|---|
@@ -14,3 +16,11 @@ build at the pinned spec commit (ADR-0031). Nothing here is fetched at runtime (
 
 Tenant profiles stay in `docs/tenants/`, briefs in `docs/briefs/` and under each tenant; the
 build compiles those in too.
+
+CHN-19 also requires a publisher key and public discovery starting set from
+`relay-discovery.toml`. The schema is documented in
+[`docs/design/relay-discovery-inputs.md`](../docs/design/relay-discovery-inputs.md).
+Deployment values have to be selected and validated before this file and its bundle-table row
+are added together. The schema template is not a usable publisher key, endpoint or recovery
+locator; a build without valid discovery inputs cannot enable the publisher default. Explicit
+bring-your-own remains independent.

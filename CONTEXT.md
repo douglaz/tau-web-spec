@@ -448,6 +448,20 @@ relay binds a purchase to and what the first stage hands the publisher; its priv
 the connection challenge, destination records, and revocation. Never stored, never bearer.
 _Avoid_: relay credential (too vague), "the npub" (which of several)
 
+**Publisher discovery key** · `CHN-19`
+The compiled publisher signing identity for discovering the default TCP relay; distinct from the
+seed-derived holder relay key. The public announcement schema and publisher duties are
+paid-tcp-relay `WIR-14` and `OPR-10`.
+
+**Discovery starting set** · `CHN-19`
+The compiled public Nostr endpoints and their named operators used to retrieve publisher
+announcements. Separate from the notify relay set of `CHN-18`.
+
+**Relay locator** · `STA-22b`, `CHN-19`
+The recorded locator for a holder's relay pass: a publisher discovery key or a direct relay URL.
+It locates the service holding that pass; it is not the holder's derived relay key, a destination
+authorization or proof of the newest remote announcement.
+
 **Drop-box** — retired. A one-time buffer the browser used to open at the relay before creating
 a machine. Replaced by an inbox any Nostr relay provides (`CHN-4`). The name survives only in
 the records that rejected relay-side single-use, which still applies to the inbox.

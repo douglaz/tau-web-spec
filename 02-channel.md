@@ -514,6 +514,9 @@ the operator's own maintained machine once one exists. Who runs a relay and what
 one still depends on is stated once in paid-tcp-relay (`OPR-3`, `OPR-4`, its ADR 0002); this
 requirement is tau-web's decision to adopt that default.
 
+The publisher default is located through CHN-19. Bring-your-own uses an explicitly entered direct
+relay URL, independently of publisher discovery and its availability.
+
 That move retains an **external relay route for the relay-host machine itself**, for SSH,
 recovery and outside-in scans. `CHN-16a` forbids a relay from dialing its own addresses.
 Before switching the default, configure and demonstrate that external route and preserve its
@@ -528,6 +531,81 @@ a hostile relay could present its own, have it pinned, and read the session from
 Under `CHN-R6` the relay carries the outer ciphertext of a session pinned out of band, and
 stays a denial of service.
 
+**CHN-19** **Publisher-signed relay discovery.** The build MUST compile the publisher discovery
+public key P and a nonempty public Nostr discovery starting set B from
+`bundle/relay-discovery.toml` at its pinned specification commit. P is a lowercase hex BIP-340
+x-only public key. B contains records pairing `wss` Nostr URLs with their operators' names for the
+trust display; those endpoints permit anonymous reads of paid-tcp-relay WIR-14; at least one is
+hosted independently of the TCP service. B is separate from CHN-18's private notify-inbox set. The
+build's pin delegates only the locator authority defined by SEC-8. It inherits the glossary's
+signed-bundle qualification; no runtime bundle signature is claimed. The publisher's publication
+and continuity duties are paid-tcp-relay OPR-10.
+
+Before a new publisher-default connection, query every endpoint in B for the WIR-14 address, using
+a NIP-01 filter with `authors:[P]`, `kinds:[30079]`, `#d:["paid-tcp-relays"]` and `limit:1`. Bound
+the complete discovery attempt by `relay_discovery.fetch_max` in `bundle/timing.toml`; close its
+subscriptions when that attempt ends. Validate each candidate's NIP-01 id and BIP-340 signature,
+`pubkey=P`, kind, d tag and complete WIR-14 schema. Reject a future `created_at` by the browser's
+clock in newly fetched or bundled candidates. Invalid candidates do not change discovery state.
+Local high-water records and signed records imported from a recovery sheet retain their ordering
+evidence independently of current route usability; validate their id, signature, recorded
+publisher-key association and complete schema before merging them. A recorded event whose
+`created_at` is future by the current browser clock remains recorded and participates in ordering,
+but cannot supply a route until it is no longer future. Do not discard such a record to reveal an
+older locator, and do not reject an otherwise valid sheet merely for that clock difference.
+
+Among admissible candidates and retained records for P, select greatest `created_at`, then
+lexically smallest id on a tie. Atomically merge the selected full signed event into the durable
+high-water record for P, including when empty, expired or retained from recovery while future by
+the current clock. Concurrent discovery attempts and Restore MUST NOT overwrite a higher-ranked
+record with a lower-ranked one. Complete this retention before using a publisher locator; if
+retention fails, block publisher-default attempts until it succeeds. Neither fetch failure nor
+withdrawal nor expiration permits fallback below the retained high-water event. Fetched, bundled
+and recovered records share id, signature, key, schema and ordering checks; the recorded-event
+clock rule above distinguishes retained evidence from newly admitted network data. Bundle
+snapshots are optional supplementary signed data and confer no extra validity. Restore cannot roll
+back a newer locally held event.
+
+Use only the selected event, only when its `created_at` is not future by the browser's current
+clock, only while that clock is strictly less than its signed expiration, and only with a nonempty
+URL array. A still-valid cached event may be used after a bounded fetch fails; label that use with
+its `created_at` and expiration. Without such an event, or after an empty withdrawal, block the
+publisher default and offer explicitly entered bring-your-own under CHN-11. Never silently use a
+compiled or formerly selected TCP URL. A signature and unexpired validity do not establish that a
+fresh restore has seen the publisher's newest event. Store loss, older sheets, incomplete
+publication or an endpoint withholding a successor can leave that successor unknown.
+paid-tcp-relay `OPR-10` says "Each newly issued replacement announcement, including an empty
+withdrawal or expiration renewal, MUST have a `created_at` strictly greater than every earlier
+announcement issued at this address, and an expiration no earlier than any announcement it
+supersedes." This removes the case where a correctly published successor disappears solely by
+expiring before a still-valid predecessor; it does not prove delivery or restore lost knowledge.
+An older, still-unexpired signed list can remain selectable when no newer record is known. No
+maximum announcement lifetime is specified here; the residual window lasts until that list's
+signed expiration. The interface MUST not claim otherwise.
+
+Try the selected event's TCP URLs in listed order, with the same holder pass identity and
+admission checks. Pin R for each connection before opening the paid-tcp-relay `/v2/` request.
+Before sending AUTH, require the challenge's `relay` to equal R byte for byte, and sign exactly R
+in AUTH's `relay` tag. On mismatch close with 4002 and send no AUTH. Do not follow a redirect to a
+different base URL as discovery. List updates and expiration affect future attempts, never
+retarget an open connection. Explicit BYO and recovered direct locators use the same connection
+binding, independently of P or discovery availability. A newly entered direct URL is normalized to
+WIR-14's WHATWG form before its first recording. Historical direct locators are preserved exactly;
+a nonconforming historical value remains recorded and blocked pending an explicit correction,
+rather than being silently rewritten.
+
+A recovered publisher locator is usable only when its P equals the build pin. A different
+recovered P remains recorded but blocked; do not substitute the build P. Publisher-key rotation
+requires an explicitly chosen build-pin and sheet-locator migration, with pass-state continuity
+checked separately. An announcement cannot rotate P, alter B or reinterpret a direct locator. The
+migration is not inferred from matching URLs. CHN-19 owns this publisher-key migration condition;
+it is distinct from STA-17's seed Replace. Record the operator's explicit build-pin and
+sheet-locator migration choice, retain the old identity until that migration completes, and export
+the updated locator. Discovery supplies no implicit migration act. Discovery locates only the TCP
+service: an announcement does not move CHN-18's notify set. A TCP-service move that separates it
+from the same-host Nostr notify service in CHN-9/CHN-18 requires a separate build change to those
+notify rules and inputs.
+
 **CHN-15** Relay access is **bought, not granted**, and what is bought is recorded against a
 **relay key** the browser derives from the seed (`STA-22`), one per purchase. The model — the
 `402` purchase, the key-bound pass, the challenge the browser signs in the NIP-42 shape it
@@ -537,9 +615,13 @@ already implements for the Nostr relay, and the wire with its check order — is
 2026-09-24; `docs/design/relay-protocol-v1.md` is retained as history. What tau-web owns: the
 key derives from the seed and re-derives from the seed plus its exported pass index (`STA-22b`),
 so **nothing bearer is stored** and missing allocation metadata can lose access to paid quota;
-and the operator's own wallet pays the invoice (`ARC-30`, `SEC-13`). The handshake and its check
-order are carried in Lean under `TauWeb.Relay` (ADR-0032) until the port to paid-tcp-relay lands
-(T30); that note names the declarations.
+and the operator's own wallet pays the invoice (`ARC-30`, `SEC-13`). The historical `/v1/`
+handshake and check order are carried in Lean under `TauWeb.Relay` (ADR-0032) until the port to
+paid-tcp-relay lands (T30); that note names the declarations. Those declarations and
+`relay-witnesses-v1.json` do not certify the `/v2/` additions. The consumer uses `/v2/` for
+CHN-19 connections; shared behavior remains paid-tcp-relay's rather than a second wire contract
+here. The source reference for adopting that profile must identify its merged specification
+revision before this amendment is published; an unmerged branch tip cannot supply that pin.
 
 **No account, and therefore no identity party.** That is the point: an account system is a party
 that knows every operator and can deny them service, which `SEC-10` prices as a schema

@@ -30,7 +30,7 @@ flowchart LR
     end
     subgraph A["Added by this product — the only tier the design controls"]
         A1[Bundle + publisher]
-        A2[Relay]
+        A2["TCP relay and publisher-default<br/>public Nostr discovery"]
     end
     A -->|"guarded by SEC-10"| GUARD([Grows only when someone decides it should])
     E -->|grows when the world does| WORLD([Not guarded])
@@ -263,6 +263,20 @@ once one exists. That machine's own bound model then becomes a potential metadat
 priced rather than hidden (`CHN-14`). An external relay still carries management and scans
 of the relay-host machine itself (`CHN-11`); self-hosting does not eliminate that route's
 availability or topology exposure.
+
+CHN-19's compiled discovery set is a separate publisher-default dependency. Its public endpoints
+see the reader's network address, query key and timing, can correlate repeated reads, and can
+withhold or replay signed events within the client's validity and ordering limits. Discovery sends
+no holder pass key, pass index, seed, destination or private notify wrap. The trust display names
+the configured operators of the discovery endpoints and marks them as required for
+publisher-default discovery, separately from elective notify additions in TRU-E10. Signature
+verification limits locator forgery by those endpoints; it does not hide read metadata or
+establish that the newest event was returned. The publisher discovery key can redirect the TCP
+route and therefore who observes its topology; a compromised key does not defeat end-to-end host
+pins or authorize a call. paid-tcp-relay `OPR-10` says "Every listed TCP URL MUST be operated by
+the same operator and serve the same pass records, destination sets, expiry and retirement state,
+and pacing/window counters." Public discovery is an additional use of the named Nostr-relay party
+class, accounted for here rather than represented as an operator-elected private inbox.
 
 **TRU-A3 — Retired. The coordinator is not a party this product adds.** It was listed because
 its reach was believed broader than anything else the application does — every machine's client

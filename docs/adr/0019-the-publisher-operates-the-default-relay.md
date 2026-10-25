@@ -116,3 +116,11 @@ retains, so the relay-install brief configures no connection logging, and the tr
 display prices the host machine's model as a potential metadata observer regardless —
 for a vault, that model can see the member topology, the same cost the scanner's row
 already names.
+
+## Public publisher-key discovery, October 25 amendment
+
+CHN-19 supplies the publisher default's locator; bring-your-own remains an independently
+configured direct URL. The publisher discovery key and public discovery starting set are compiled
+inputs; TCP addresses may move through verified signed announcements. This does not make a new TCP
+operator implicit, remove the external relay route for a self-hosted relay's machine, or turn the
+Content-Security-Policy into an origin pin.

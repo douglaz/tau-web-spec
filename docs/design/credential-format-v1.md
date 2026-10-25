@@ -111,10 +111,10 @@ nonce and AAD `tau-web/sheet/v1/<id>/payload`; only the wrapped key persists. Th
 envelope adds `payload_nonce` and `payload` to the fields above. Never reuse a local-store
 key or envelope as a sheet. Local and sheet purposes cannot be interchanged.
 
-The authenticated UTF-8 JSON payload contains `version: 3`, `derivation_version: 1`,
+The authenticated UTF-8 JSON payload contains `version: 4`, `derivation_version: 1`,
 `seed_id`, `exported_at` (UTC RFC 3339), `journal_sequence`, `next_indices` (machine/pass/
 handoff), `seed_backup`, `allocations` (including consumed tombstones), `host_pins`,
-`host_pin_installations`, `exposure_ledger`,
+`host_pin_installations`, `relay_discovery`, `exposure_ledger`,
 `placements: [{machine_index, application_name, name, path, placed_at}]`, `machine_states`,
 and optional
 `inference_account_credential`. Each allocation has its family, index, stable
@@ -122,6 +122,34 @@ resource identity and expected public key as required by `STA-22b`, and a jump h
 carries `jump_host: true`, recording that it is in no session's bound set, and no other
 allocation carries the field; a failed allocation may
 have no vendor resource ID, but retains its index. No seed or derived private key is included.
+
+In payload version 4, a pass allocation's resource identity is the member `relay_locator`, exactly
+one of `{"publisher":"<P>"}` and `{"url":"<R>"}`. P has CHN-19's public-key encoding; R is the
+direct relay base URL. Its expected public key remains the holder's derived relay key. Reject
+unknown locator tags, extra members, both alternatives, missing values and wrong types; never
+infer an alternative from a URL. Before contact require paid-tcp-relay WIR-14's URL form for a
+`/v2/` attempt; normalize newly entered direct URLs before first recording under CHN-19, but
+preserve historical direct locator values exactly; a historical locator that cannot be used stays
+recorded and blocked pending an explicit correction.
+
+Version 4 also requires `relay_discovery`, an array of `{"publisher":"<P>","event":<complete
+signed WIR-14 event>}` records, or `[]` if none are known. At most one record is permitted per P.
+Validate each signed event's NIP-01 id, BIP-340 signature, key association with the record's P,
+and complete WIR-14 schema before merging it under CHN-19. A recorded event that is future by the
+importing clock is retained as ordering evidence and blocks that publisher route while future;
+expired and empty records are also retained as ordering evidence and are not usable locators.
+Build-pin equality gates route use, not retention of an event valid for its recorded P. Reject
+malformed or duplicate records before binding. Imported starting URLs never replace the compiled
+discovery set B.
+
+Version 3 is accepted only by an explicit compatibility conversion that preserves every other
+version-3 field and its validation, wraps each recorded relay URL as `{"url":R}`, and supplies
+`relay_discovery:[]`. Never infer publisher identity from URL equality. Version 4 exports use only
+the typed locator. Unknown payload versions and versions 1 and 2 remain unsupported. Publisher-key
+mismatch is a blocked recorded identity, not malformed data or permission to substitute a key.
+This compatibility conversion changes neither the v1 encryption envelope nor derivation version 1,
+AAD, algorithms or known-answer vectors.
+
 Each `host_pins` entry names the host-key route that produced it: `retrieve` (`CHN-R1`),
 `attest` (`CHN-R5`), `jump_host` (`CHN-R6`) or `lnvps_retrieve` (`CHN-R7`). The last
 value records the retrieved LNVPS hypervisor-scan provenance and is restored with the pin;
@@ -179,9 +207,8 @@ add no fact after separate partial observations, so no complete observation is
 required in the group. Later refused observations may add facts after that prefix;
 they remain recorded and MUST NOT invalidate an already admitted pin. Missing
 or invalid history MUST NOT become empty history. `STA-16` owns what Restore does with
-these facts. These fields complete the pre-deployment version-3 payload contract; no
-deployed legacy payload is being reinterpreted and the v1 envelope and derivation are
-unchanged.
+these facts. These fields remain required in the version-4 payload and in the version-3
+compatibility input; the envelope and derivation are unchanged.
 
 `applications` is a required JSON array of objects, each with exactly the required members
 `name` and `model_provider`. `name` is a nonempty string without leading or trailing
@@ -213,10 +240,10 @@ ambiguous machine associations, duplicate placement records, duplicate JSON obje
 in a placement and malformed fields before binding.
 An application recorded only on another machine cannot satisfy the reference. No placement
 value, digest, scan key, byte length or other value-derived reference is included. Payload
-versions 1 and 2 and unknown payload versions are unsupported: refuse them explicitly, with no compatibility migration
-and no interpretation of missing placement or application lists as empty. This payload-version
-change does not change the v1 envelope, derivation paths,
-algorithms, AAD or known-answer vectors.
+versions 1 and 2 and unknown payload versions are unsupported: refuse them explicitly. Version 3
+has only the explicit compatibility conversion above, and missing placement or application lists
+are never interpreted as empty. The version-4 payload changes neither the v1 envelope, derivation
+paths, algorithms, AAD nor known-answer vectors.
 Reject unknown versions, duplicate identities/indices and malformed fields before binding
 anything; imported data never creates a binding without vendor reconciliation and an
 operator act. Never merge two counters and call the result proof that a backup is current.
@@ -228,9 +255,8 @@ operator act. Never merge two counters and call the result proof that a backup i
 missing, malformed or duplicate record, duplicate object members, an unknown completion,
 or a seed id different from the payload's. Restore brings it back into the journal; an
 imported seed owes no ceremony and allocates nothing regardless of this record (`STA-22b`).
-Replace clears it for the fresh seed. This member completes the pre-deployment version-3
-payload contract in place; no deployed legacy payload is being reinterpreted. The sheet
-payload stays version 3, and the envelope and derivation stay unchanged.
+Replace clears it for the fresh seed. This member remains required in payload version 4 and the
+version-3 compatibility input; the envelope and derivation stay unchanged.
 
 Export asks the operator to retain both the seed backup and the separate sheet passphrase.
 For maintained cloud, setup completion requires confirmation that the current sheet was

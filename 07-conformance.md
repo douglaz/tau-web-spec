@@ -1123,6 +1123,40 @@ Not pass/fail. Required to be recorded.
       development proxy (`STG-18`); purchase and quota accounting are outside this check.
       Boundary-crossed.
 
+      For the `/v2/` profile, also pass paid-tcp-relay `CNF-3`–`CNF-5`, `CNF-9`, `CNF-10`
+      and, for publisher discovery, `CNF-21`. Shared wire duties and fixtures have their single
+      home in that set. For STA-17's manual replacement, confirm publisher retirement of the
+      old pass; do not substitute hand retirement for the signed-revocation demonstration.
+
+      Also demonstrate `CHN-19` and `SEC-8` with controlled signed-event fixtures and the
+      publisher's public announcement: valid discovery and cached-within-expiry use; bad id,
+      signature, key, schema and newly fetched future timestamp refusal; bounded fetch failure
+      with and without a valid cache; expiry and empty withdrawal without fallback below a
+      retained high-water event, including after local replay and sheet Restore when that record
+      survives locally or in the sheet; greatest-timestamp/smallest-id ordering; discovery while
+      the former TCP host is unavailable using an independently hosted endpoint; URL-order
+      attempts and byte-exact challenge/AUTH binding; no retargeting of an open connection; and
+      refusal of list-carried destination, host-pin, capability or policy changes. Open each
+      configured alias under its own public origin and verify the matching advertised and AUTH
+      names, another-alias refusal before dialing, and a non-default public port.
+
+      Demonstrate that a retained withdrawal survives restart, concurrent discovery completion and
+      an older sheet, including completion of a slower attempt after a newer record was retained.
+      A retention failure blocks publisher-default contact. Separately demonstrate a fresh Restore
+      whose sheet lacks the withdrawal, with discovery withholding or lacking that successor: an
+      older still-unexpired signed event may be selected, and the display does not claim
+      newest-state knowledge. Do not claim this proves that a conforming publisher or an honest
+      current mirror has forgotten a still-valid successor.
+
+      Export and import a version-4 locator and retained withdrawal. Import a correctly signed
+      recorded event whose timestamp is ahead of the importing clock: preserve the event, block
+      the publisher route while it is future, and do not reveal an older locator or reject
+      unrelated valid sheet data for that clock difference. Explicitly convert a version-3 URL as
+      direct even when it matches a published URL; preserve historical locator bytes and block a
+      nonconforming value pending explicit correction. Show that a recovered publisher-key
+      mismatch remains recorded and blocked until explicit migration. Record the observed
+      outcomes; make the relevant case fail when each guarded refusal is removed.
+
 ## Stage applicability and admission
 
 This table is exhaustive; every new CNF item must acquire a row before it can gate a stage.

@@ -395,6 +395,14 @@ checked at runtime. Every use of the phrase in this corpus inherits that definit
 **All tool output and fetched external content MUST be typed as untrusted** and MUST NOT
 authorize an action on its own, declare capabilities, or override policy.
 
+CHN-19's compiled publisher-key pin delegates one narrow authority: choosing transport locators
+for that publisher's existing relay-pass identity. Only the harness's verification and selection
+under CHN-19 may produce a typed verified locator from the fetched bytes. That locator is route
+input to a separately authorized call; the event itself authorizes no call. Discovery MUST NOT
+change a destination authorization, holder key or pass index, SSH or TLS host pin, vendor
+identity, capability declaration, policy, brief or feed. A valid signed list does not make other
+fetched content trusted, and does not authorize first-contact trust through a relay.
+
 ### SEC-9 — counts are shown per layer
 
 **Trust counts MUST be shown per layer and MUST NOT be blended into a single score** — and

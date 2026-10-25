@@ -218,8 +218,20 @@ revokes it by the old key's signature.)*
 
 ## Recovery and destination limits, September 9 correction
 
-The derived key is recoverable only with its pass index and relay URL (`STA-22b`), now included
-in the sheet. Missing metadata can lose remaining quota; seed-only purchase discovery is not
+The seed and pass index re-derive the holder's relay key; the exported relay locator finds the
+relay that holds the pass (`STA-22b`, `CHN-19`). Missing metadata can lose remaining quota;
+seed-only purchase discovery is not
 promised. `CHN-16a` also constrains every destination at dial time to public unicast addresses,
 excluding the relay itself. A signed destination record does not authorize loopback, private
 network or metadata access, even in the first stage's manually enrolled configuration.
+
+## /v2/ and typed locators, October 25 amendment
+
+CHN-19 adopts publisher-key discovery with explicit direct bring-your-own locators. STA-22b
+and the credential format carry payload v4, preserve v3 URLs as direct identities and retain
+signed high-water events. Neither a matching URL nor an announcement substitutes a publisher
+key or migrates a pass. Derivation version 1 and the envelope remain unchanged.
+
+CNF-87 demonstrates the selected shared `/v2/` profile and the consumer's discovery, trust and
+recovery boundary. The historical v1 formal module and witnesses remain scoped to v1 pending
+T30's port; they provide no proof of the new wire or discovery behavior.
