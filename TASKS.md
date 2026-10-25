@@ -85,11 +85,12 @@ gated on it.
       unpinned-label versus Arch-pin choice stays open under `ARC-24` / `ARC-25`, to be
       recorded when taken.
 - [ ] **T42 — The generic signed lockdown checklist, and the harness's questions** (`OPN-14`,
-      `ARC-17`, `ARC-36a`). The fixed checks, keyed on no vendor and no tenant; the machine-class
-      questions, in the harness's words; and the plain-language rendering of a proposed
-      declaration the operator approves (`ARC-39`). These ship in the bundle and gate stage 1.
-      Implement `ARC-43`'s harness-composed listener, outbound-restriction, unit-state and
-      enablement reads behind `CNF-50`, `CNF-53` and `CNF-103`. Decided 2026-10-16: `ARC-43`
+      `ARC-17`, `ARC-36a`). Decided 2026-10-25 (ADR-0051): `bundle/lockdown.toml` supplies the
+      fixed checks, keyed on no vendor and no tenant; the machine-class question, in the
+      harness's words; and the plain-language rendering of a proposed declaration the operator
+      approves (`ARC-39`). Left: tau-web-rust's implementation of the checklist and `ARC-43`'s
+      harness-composed listener, outbound-restriction, unit-state and enablement reads behind
+      `CNF-50`, `CNF-53` and `CNF-103`, the fresh-image run below, and the integrated evidence. Decided 2026-10-16: `ARC-43`
       owns stage 1's systemd service-name grammar and the delivery reboot opted into by the
       declaration and again at delivery; the declaration format owns service scope and user
       accounts. OpenRC waits for the dedicated path's stage. Decided 2026-10-18 (ADR-0049):

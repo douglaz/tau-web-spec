@@ -298,8 +298,11 @@ output. The jobs are:
 
 Listener observations, outbound-restriction observations and service state/enablement
 observations used for delivery also MUST come from harness-composed reads. The signed
-checklist (`OPN-14`) still owes the concrete reads not settled below. The model proposes
-values, not the measuring procedure.
+checklist (`OPN-14`) states those reads in `bundle/lockdown.toml`, beside the fixed lockdown
+checks. A read that ran and exited with a status its entry does not name, or found no binary,
+is that check's finding, never a pass; a read refused or held before dispatch, or with no
+record, settles nothing (`STA-20`, `STA-24`). The model proposes values, not the measuring
+procedure.
 
 For stage 1's **init-specific systemd case** (OpenRC waits for the dedicated path's stage),
 a declared service name MUST be bare, match `^[A-Za-z0-9_][A-Za-z0-9:_.-]*$`, and be at most
