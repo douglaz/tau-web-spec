@@ -13,32 +13,17 @@ measure against an unspecified procedure. Vendor-specific lockdown remains separ
 
 ## The shape chosen
 
-The password-posture read checks the effective OpenSSH password settings, comparing key
-names without regard to case. It does not check root-specific SSH login policy. The read
-needs root to read root-only host keys. A separate directive search refuses Match blocks and
-Includes other than the main configuration's own standard drop-in glob: effective output
-without a connection specification does not cover conditional Match blocks. The search
-follows symlinked drop-ins, omits an absent drop-in path and always prints file names. An
-unreadable directory or file, missing main configuration or dangling link remains a failed
-read, even when other files produced matches.
+The checklist's `sshd-password-off`, `sshd-no-match` and `no-account-password` entries own
+the fixed checks, their reads and their verdicts. The route from LNVPS's default login user
+to root remains a separate open requirement; locking a password used by that route could
+break it.
 
-Every local account password field must be nonempty and marked locked or disabled. Checking
-only empty fields would miss a vendor-generated password hash. The field stays in the job
-record; the finding names only the account. This deliberately does not try to distinguish an
-operator-chosen hash from a vendor default. The route from LNVPS's default login user to root
-remains a separate open requirement; locking a password used by that route could break it.
+The checklist's `[read.listeners_inbound]` owns inbound observation and matching, including
+local bindings and the distinction from the outside scan. Unconnected UDP sockets can be
+transient; this is an observation, not evidence of a permanent set.
 
-Inbound observation includes loopback-bound sockets. A local-only declaration is measured by
-its binding; internet or peer reachability belongs to the outside scan. Unconnected UDP
-sockets can be transient, so the read reports what it observes rather than promising that
-the observed set is permanent.
-
-Outbound restriction uses one fixed output-chain form, compared as printed JSON expressions,
-with one rule per declared destination and no extra rules. Expression order is retained;
-sets are compared without order and duplicate rules still count. The fixed exceptions are
-loopback, established/related traffic and the selected IPv6 neighbour-discovery and
-multicast-listener message types. These types are matched to any address; the check does not
-constrain their destinations. Echo requests started by the machine get no blanket exception.
+The checklist's `[read.listeners_outbound]` owns the fixed output-chain form, its comparison
+and its exceptions.
 
 A namespace check on the chosen form retained peer-initiated IPv6 ping, related error replies
 and multicast-listener reports while dropping a ping started by the restricted machine. It
@@ -47,11 +32,11 @@ it establishes neither multicast-snooping switch behaviour nor operation on a fr
 image. The fresh-image run and integrated evidence remain T42's work. Necessary DNS or time
 service destinations depend on the actual declaration and are not inferred by the checklist.
 
-An empty outbound list declares no restriction and runs no outbound read. A DNS-name host
-is refused until a read can measure it. State and enablement reads accept the named
-service-manager exit statuses and decide from stdout; inactive or missing units are answers,
-not failures to run. Refused or undispatched reads and missing job records settle no verdict.
-Service-name grammar, account scope and reboot evidence keep their existing owners.
+The checklist's `[read.service_state]`, `[read.service_enablement]`, `[read.linger]` and
+`[read.boot_identity]` own those commands and accepted exit statuses. General read-failure
+and unresolved-read behavior belongs to `ARC-43`. Declaration value grammar stays in
+`docs/design/delivery-declaration-v1.md`; service-name grammar, account scope and reboot
+evidence keep their existing owners.
 
 ## Alternatives considered
 
@@ -70,4 +55,4 @@ Service-name grammar, account scope and reboot evidence keep their existing owne
 
 The checklist is available for implementation; its existence is not evidence that a machine
 passes it. T42 and `OPN-14` remain open for implementation, the fresh-image run and integrated
-evidence. Nonempty default-credential declarations wait for their own concrete read.
+evidence. The declaration format owns admissible default-credential values.

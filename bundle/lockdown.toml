@@ -5,9 +5,8 @@
 # Every read is a harness-composed box-plane job (ARC-43) under STA-20's record. Its command is
 # the bytes below with each {typed value} substituted single-quoted by the wrapper; the model
 # never supplies or edits one. Only the verdict and the named findings leave the record (SEC-8).
-# A read that ran and exited with a status its entry does not name, or found no binary, is that
-# check's finding, never a pass. A read refused or held before dispatch, or with no record,
-# settles nothing (STA-20, STA-24).
+# Read failures and reads that settle nothing follow ARC-43; each entry names its accepted
+# exit statuses below.
 
 version = 1
 
@@ -17,6 +16,7 @@ version = 1
 [[check]]
 id = "sshd-password-off"
 read = "sshd -T"
+# Exit 0 is an answer, evaluated below.
 # Each key below must have one of the listed values in sshd -T's output. Keys compare
 # case-insensitively, since builds differ in the case they print. sshd -T exits 1 when it
 # cannot read the root-only host keys, so this read needs root.
@@ -41,6 +41,7 @@ finding = "SSH has a Match block or an extra Include in {file}; the fixed checks
 [[check]]
 id = "no-account-password"
 read = "cut -d: -f1,2 /etc/shadow"
+# Exit 0 is an answer, evaluated below.
 # Pass: every account's second field is non-empty and starts with '!' or '*' (locked, or no
 # password). A hash is a finding; an empty field is a finding. The field itself never leaves
 # the record; only the account name does.
@@ -53,6 +54,7 @@ finding_empty = "Account {account} has an empty password field"
 
 [read.listeners_inbound]
 command = "ss -H -n -l -t -u"
+# Exit 0 is an answer, evaluated below.
 # Observed: every LISTEN tcp socket and every UNCONN udp socket, as (proto, port, local address);
 # '%iface' suffixes are dropped. No -p: process names never enter the record.
 # A socket matches an entry when proto and port are equal. Loopback-bound sockets count.
@@ -64,6 +66,7 @@ finding_not_local = "{proto} port {port} is declared local-only but listens on {
 
 [read.listeners_outbound]
 command = "nft -j list table inet tau_web_outbound"
+# Exit 0 is an answer, evaluated below.
 # An entry {proto, host, port} names an allowed destination. This form permits only declared
 # destinations, loopback, established/related traffic and the listed IPv6 neighbour-discovery
 # and multicast-listener message types (matched by type, to any address). The read compares
@@ -86,7 +89,7 @@ command = "nft -j list table inet tau_web_outbound"
 # as a multiset (duplicate rules count). Ignore handles and comments. Unsupported JSON is a
 # failed read. A /32 or /128 destination prints as a bare address, not a prefix object.
 # With [] the read is not run.
-# A DNS-name host is refused when the declaration is proposed: no static rule measures a name.
+# Destination value grammar lives in docs/design/delivery-declaration-v1.md.
 finding = "Outbound restriction to {host} on {proto} port {port} is not in place"
 
 [read.service_state]
@@ -102,10 +105,12 @@ user = "systemctl --user -M {account}@ is-enabled -- {name}.service"
 
 [read.linger]
 command = "loginctl show-user --property=Linger --value -- {account}"
+# Exit 0 is an answer, evaluated below.
 # Lingering: stdout is exactly "yes". An error (no such user known to logind) is not lingering.
 
 [read.boot_identity]
 command = "cat /proc/sys/kernel/random/boot_id"   # STA-20's boot identity; no new rule
+# Exit 0 is an answer; stdout carries the boot identity.
 
 # ARC-36a: the machine-class question, in the harness's words. Asked per machine with no tenant;
 # nothing preselected; the model never words, answers or preselects it.
@@ -169,7 +174,7 @@ title = "Extra checks"
 entry = "Checked at handover: {name}."
 empty = "No extra checks at handover."
 
-[render.default_credentials]   # a list is refused when proposed at stage 1; entry unused until a read exists
+[render.default_credentials]   # admissible values: docs/design/delivery-declaration-v1.md
 title = "Default passwords"
 none = "No default credential is listed to be changed."
 entry = "Changed from its default: {item}."
