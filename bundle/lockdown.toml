@@ -1,0 +1,180 @@
+# The generic signed lockdown checklist, the harness's machine-class question and the
+# plain-language rendering of a proposed declaration (OPN-14, ARC-17, ARC-36a, ARC-39, ARC-43).
+# Keyed on no vendor and no tenant. Stage 1's case: systemd and OpenSSH.
+#
+# Every read is a harness-composed box-plane job (ARC-43) under STA-20's record. Its command is
+# the bytes below with each {typed value} substituted single-quoted by the wrapper; the model
+# never supplies or edits one. Only the verdict and the named findings leave the record (SEC-8).
+# Read failures and reads that settle nothing follow ARC-43; each entry names its accepted
+# exit statuses below.
+
+version = 1
+
+# Fixed lockdown checks: ARC-17's "default credentials and sshd posture". Every machine, every
+# declaration. A failure is a lockdown finding: it refuses place_secret (ARC-17).
+
+[[check]]
+id = "sshd-password-off"
+read = "sshd -T"
+# Exit 0 is an answer, evaluated below.
+# Each key below must have one of the listed values in sshd -T's output. Keys compare
+# case-insensitively, since builds differ in the case they print. sshd -T exits 1 when it
+# cannot read the root-only host keys, so this read needs root.
+expect = { passwordauthentication = ["no"], kbdinteractiveauthentication = ["no"], permitemptypasswords = ["no"] }
+finding = "SSH posture check failed: {key} is {value}"
+
+[[check]]
+id = "sshd-no-match"
+read = '''set -- /etc/ssh/sshd_config
+if [ -e /etc/ssh/sshd_config.d ] || [ -L /etc/ssh/sshd_config.d ]; then
+  set -- "$@" /etc/ssh/sshd_config.d
+fi
+exec grep -RHniE '^[[:space:]]*(match|include)([[:space:]]|=)' "$@"'''
+# Pass: exit 1, or exit 0 with every reported directive being /etc/ssh/sshd_config's own
+# "Include /etc/ssh/sshd_config.d/*.conf". Any Match block or other Include is a finding:
+# sshd -T without -C applies "Match all" but not a conditional Match such as "Match User arch",
+# and an Include from elsewhere is a file these checks do not read. -R follows symlinked
+# drop-ins. An absent drop-in path is left out; an existing path or dangling symlink is read.
+# Exit 2 is a failed read regardless of stdout; other statuses follow the rule above.
+finding = "SSH has a Match block or an extra Include in {file}; the fixed checks cannot see what it changes"
+
+[[check]]
+id = "no-account-password"
+read = "cut -d: -f1,2 /etc/shadow"
+# Exit 0 is an answer, evaluated below.
+# Pass: every account's second field is non-empty and starts with '!' or '*' (locked, or no
+# password). A hash is a finding; an empty field is a finding. The field itself never leaves
+# the record; only the account name does.
+finding_hash = "Account {account} has a password field not marked locked or disabled"
+finding_empty = "Account {account} has an empty password field"
+
+# Declaration reads (ARC-43: "Listener observations, outbound-restriction observations and
+# service state/enablement observations used for delivery also MUST come from harness-composed
+# reads."). Each produces the observed set that TauWeb.Declaration.meaning compares.
+
+[read.listeners_inbound]
+command = "ss -H -n -l -t -u"
+# Exit 0 is an answer, evaluated below.
+# Observed: every LISTEN tcp socket and every UNCONN udp socket, as (proto, port, local address);
+# '%iface' suffixes are dropped. No -p: process names never enter the record.
+# A socket matches an entry when proto and port are equal. Loopback-bound sockets count.
+# A socket whose only matching entries say from = "none" must be bound to 127.0.0.0/8 or ::1;
+# bound elsewhere it is a finding. "any" and "peers" are not measured inside: who can reach a
+# port is the outside scan's (ARC-26), which reports only.
+finding_undeclared = "Something answers on {proto} port {port} that the declaration does not list"
+finding_not_local = "{proto} port {port} is declared local-only but listens on {address}"
+
+[read.listeners_outbound]
+command = "nft -j list table inet tau_web_outbound"
+# Exit 0 is an answer, evaluated below.
+# An entry {proto, host, port} names an allowed destination. This form permits only declared
+# destinations, loopback, established/related traffic and the listed IPv6 neighbour-discovery
+# and multicast-listener message types (matched by type, to any address). The read compares
+# rules, not meanings. The model installs it with its own commands (and makes it
+# survive a boot); the read only checks it.
+#   table inet tau_web_outbound {
+#     chain output { type filter hook output priority 0; policy drop;
+#       oif "lo" accept
+#       ct state established,related accept
+#       icmpv6 type { nd-router-solicit, nd-neighbor-solicit, nd-neighbor-advert, mld-listener-report, mld-listener-done, mld2-listener-report } accept
+#       # one rule per entry:
+#       ip daddr {cidr4} {proto} dport {port} accept    # IPv4 CIDR host
+#       ip6 daddr {cidr6} {proto} dport {port} accept   # IPv6 CIDR host
+#       {proto} dport {port} accept                     # host = "any"
+#     } }
+# Observed: every declared entry only when the table and chain match this fixed form and the
+# rules, as nft -j prints them, are exactly the fixed rules plus one per declared entry, each
+# once, in any order; otherwise none. Compare rule.expr arrays structurally, preserving
+# expression order; compare literal sets and state lists as sets of equal size, and the rules
+# as a multiset (duplicate rules count). Ignore handles and comments. Unsupported JSON is a
+# failed read. A /32 or /128 destination prints as a bare address, not a prefix object.
+# With [] the read is not run.
+# Destination value grammar lives in docs/design/delivery-declaration-v1.md.
+finding = "Outbound restriction to {host} on {proto} port {port} is not in place"
+
+[read.service_state]
+system = "systemctl is-active -- {name}.service"
+user = "systemctl --user -M {account}@ is-active -- {name}.service"
+# Exit 0, 3 or 4 (no such unit) is an answer, decided by stdout. Running: stdout is "active" or "reloading".
+
+[read.service_enablement]
+system = "systemctl is-enabled -- {name}.service"
+user = "systemctl --user -M {account}@ is-enabled -- {name}.service"
+# Exit 0, 1 or 4 (not-found) is an answer, decided by stdout. Enabled: stdout is exactly "enabled".
+# "enabled-runtime", "static", "indirect", "alias", "generated", "linked", "masked", "disabled" are not.
+
+[read.linger]
+command = "loginctl show-user --property=Linger --value -- {account}"
+# Exit 0 is an answer, evaluated below.
+# Lingering: stdout is exactly "yes". An error (no such user known to logind) is not lingering.
+
+[read.boot_identity]
+command = "cat /proc/sys/kernel/random/boot_id"   # STA-20's boot identity; no new rule
+# Exit 0 is an answer; stdout carries the boot identity.
+
+# ARC-36a: the machine-class question, in the harness's words. Asked per machine with no tenant;
+# nothing preselected; the model never words, answers or preselects it.
+
+[class]
+question = "Will this server serve parties you have never met, including visitors to a public website?"
+answers = [
+  { text = "No", class = "single-purpose" },
+  { text = "Yes", class = "multi-tenant" },
+  { text = "Not sure", class = "multi-tenant" },
+]
+note = "If you answer Yes or Not sure, the server is treated as shared: no key that can spend money may be placed there, and it is set up apart from your other servers."
+
+# ARC-39: the plain-language rendering the operator approves. One line per entry, in field
+# order; a field's empty list renders its own meaning; "unspecified" renders [render.unspecified].
+# version is not rendered (a version other than 2 is refused before rendering).
+
+[render]
+heading = "When this server is handed over, tau-web will check that:"
+fixed = "SSH configuration disables password authentication; checked local password entries are locked or disabled."
+unspecified = "{field}: not stated yet. The server cannot be delivered until it is."
+
+[render.listeners_inbound]
+title = "Open ports"
+entry = "It may answer on {PROTO} port {port}, {from}."
+from = { any = "for anyone on the internet", peers = "meant for its peers only; tau-web does not check who can reach it", none = "only from inside the server itself" }
+closing = "Anything else found answering is a problem."
+empty = "Nothing answers on any port. Anything found answering is a problem."
+
+[render.listeners_outbound]
+title = "Outgoing connections"
+entry = "It may connect out to {host} on {PROTO} port {port}."
+host = { any = "any address" }
+closing = "Other outgoing traffic is blocked, except local connections, existing connections and related traffic, and IPv6 neighbour and multicast-listener messages (to any address)."
+empty = "No restriction on outgoing connections is declared; none is checked."
+
+[render.services]
+title = "Services"
+entry_running = "{name} ({scope}) is running when handed over. A restart may stop it."
+entry_enabled = "{name} ({scope}) must be running and enabled for boot. Restart survival is demonstrated only if a reboot is offered and approved; otherwise it is labelled 'enabled, restart not demonstrated'."
+scope = { system = "a system service", user = "a service of user {account}" }
+empty = "No service is promised."
+
+[render.key_material_spendable]
+title = "Money keys"
+false = "Spendable key material is forbidden; the post-setup search looks for it."
+true = "It may hold keys that can spend money."
+
+[render.key_material_permitted]
+title = "Other keys"
+entry = "Expected: {kind} at {where}."
+empty = "No keys of its own are expected; any found is a problem. Its SSH keys and the app keys tau-web places are counted separately."
+
+[render.drift_checks]
+title = "Later checks"
+entry = "Re-checked on each later visit: {name}."
+empty = "No extra checks on later visits."
+
+[render.required]
+title = "Extra checks"
+entry = "Checked at handover: {name}."
+empty = "No extra checks at handover."
+
+[render.default_credentials]   # admissible values: docs/design/delivery-declaration-v1.md
+title = "Default passwords"
+none = "No default credential is listed to be changed."
+entry = "Changed from its default: {item}."

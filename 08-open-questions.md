@@ -193,8 +193,9 @@ artifact hash comparison against the bundle's value and the host-key fingerprint
 `STG-2`'s briefs show which commands genuinely need the browser rather than the machine.
 
 **OPN-14 — What "locked down" means, per vendor.** A pentest can only assert what it checks, so
-the checklist is part of the signed brief set — and it does not exist yet for any vendor. Until
-it does, `ARC-17`'s deliverable has no definition to be measured against.
+the checklist is part of the signed brief set — the generic one ships as
+`bundle/lockdown.toml`; no vendor's exists yet. The generic checks give `ARC-17`'s deliverable
+its stage-1 measure; the vendor-specific checks remain open.
 
 Two parts are no longer open. Who may run which check was settled by `ARC-26`. And the *shape* is
 settled: a delivery declaration (`ARC-39`) — a tenant's, or with no tenant the one the operator
@@ -211,8 +212,9 @@ template shipped with every unstated field `unspecified` so the harness invents 
 *Split 2026-10-05.* With no tenant the declaration is the one the operator approved
 (`ARC-39`), so no tenant's input gates stage 1. What stage 1 needs from this entry is a
 **generic signed lockdown checklist**: the fixed checks `ARC-17` names — default credentials
-and sshd posture — keyed on no vendor and no tenant, shipped in the bundle. It does not exist
-yet. lnrent's declaration, the Robot checklist and briefs 2–3 gate stage 3.
+and sshd posture — keyed on no vendor and no tenant, shipped in the bundle as
+`bundle/lockdown.toml` (decided 2026-10-25), with `ARC-36a`'s question and `ARC-39`'s rendering.
+lnrent's declaration, the Robot checklist and briefs 2–3 gate stage 3.
 
 *Owed 2026-10-06; decisions updated 2026-10-16 and 2026-10-18:* the harness-composed reads behind
 `CNF-50`, `CNF-53` and `CNF-103` still need implementation. `ARC-43` now owns the service-name

@@ -36,14 +36,14 @@ JSON object, `version: 2` (version 1 is refused). Field names are fixed; values 
 | Field | Value | What the check does | What the declaration decides |
 |---|---|---|---|
 | `version` | `2` | Refuse any other | **number** |
-| `listeners.inbound` | list of `{proto: "tcp"\|"udp", port: n, from: "any"\|"peers"\|"none"}` | Every answering socket must match an entry; an undeclared one is the finding (`CNF-50`, `CNF-51`) | **nothing may** |
-| `listeners.outbound` | list of `{proto, host, port}` restrictions, or `[]` for none; `host` is a DNS name, a CIDR block, or `"any"` | Each declared restriction must be in place | **none is declared** |
+| `listeners.inbound` | list of `{proto: "tcp"\|"udp", port: n, from: "any"\|"peers"\|"none"}` | Checked by `bundle/lockdown.toml`'s `[read.listeners_inbound]`, which owns socket matching, local bindings and the distinction from the outside scan (`CNF-50`, `CNF-51`) | **nothing may** |
+| `listeners.outbound` | list of `{proto: "tcp"\|"udp", host, port}` allowed destinations, subject to the fixed form's stated exceptions, or `[]` for no restriction; `host` is a CIDR block or `"any"`; a DNS name is refused when proposed until a read can measure one | A nonempty list is checked by `bundle/lockdown.toml`'s `[read.listeners_outbound]`, which owns the fixed form and its exceptions; with `[]` nothing is read | **none is declared** |
 | `services` | list of `{name, scope, lifecycle: "running-at-delivery"\|"enabled-survives-reboot"}` | Demonstrated or labelled under `ARC-43`'s evidence clause; nothing beyond the declaration is asserted (`CNF-53`). For `running-at-delivery`, apply `ARC-43`'s lifecycle on the last-running boot and restart note, and `ARC-17`'s placing-session demonstration. | **none is declared** |
 | `key_material.spendable` | `false` on a multi-tenant machine (`ARC-37`, harness rule; a profile cannot set `true` there) | Searched for after install (`CNF-52`) | **flag** |
 | `key_material.permitted` | list of `{kind, where}` describing the **tenant's** key material expected on disk, or `[]` for none; application credentials placed under `ARC-43` are classified separately by `SEC-5` row 12. On a multi-tenant machine only public or watch-only kinds are admissible (`ARC-37`); a single-purpose machine may list private, non-spendable material, as btc-policy's member vault keys are | Tenant material outside the list is a finding. The machine's SSH host keys and own client public key (`SEC-1`, `CHN-R1`, `CHN-R7`) are expected machine material and are never listed, regardless of who generated them | **nothing may** |
 | `drift_checks` | list of `{name, command, expect}` the maintained re-check runs, or `[]` | Run by the machine's own session (`ARC-26`), not at delivery | **on re-entry** |
 | `required` | list of `{name, check: command, expect}` — software and checks that must hold at delivery, or `[]` | Run at delivery | **none is declared** |
-| `default_credentials` | `"none"` or a list of what must have been changed | Checked at delivery (`ARC-17`) | **none is declared** |
+| `default_credentials` | `"none"` or a list of what must have been changed | Checked at delivery (`ARC-17`). A list other than `"none"` is refused when proposed until a read can measure it. | **none is declared** |
 <!-- /formal -->
 
 Every field of this table is carried as `TauWeb.Declaration.row` (ADR-0032), one row per field
