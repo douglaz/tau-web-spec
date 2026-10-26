@@ -22,7 +22,8 @@ headers() {  # method path host [extra curl args...]
     || { echo "CURL_FAILED $?"; return; }
   printf '%s\n' "$out"
 }
-hdr() { printf '%s' "$1" | grep -i "^$2:" | tr -d '\r' | cut -d: -f2- | tr 'A-Z' 'a-z'; }
+hdr_raw() { printf '%s' "$1" | grep -i "^$2:" | tr -d '\r' | cut -d: -f2-; }
+hdr() { hdr_raw "$1" "$2" | tr 'A-Z' 'a-z'; }
 status() { printf '%s' "$1" | grep -i -m1 '^HTTP/' | awk '{print $2}'; }
 has() { printf ' %s ' "$1" | tr ',' ' ' | tr -s ' ' | grep -q " $2 "; }
 
@@ -35,21 +36,21 @@ has() { printf ' %s ' "$1" | tr ',' ' ' | tr -s ' ' | grep -q " $2 "; }
 probe() {
   host=$1 path=$2 expect=$3 requested=${4:-POST}
   requested=$(printf '%s' "$requested" | tr 'a-z' 'A-Z')
-  method_token=$(printf '%s' "$requested" | tr 'A-Z' 'a-z')
   pre=$(headers OPTIONS "$path" "$host" -H "Access-Control-Request-Method: $requested" \
         -H "Access-Control-Request-Headers: authorization,content-type")
   get=$(headers GET "$path" "$host")
   case "$pre$get" in *CURL_FAILED*)
     printf 'FAIL %-28s %-24s transport failure\n' "$host" "$path"; fail=1; return ;; esac
   ao_pre=$(hdr "$pre" access-control-allow-origin); ao_get=$(hdr "$get" access-control-allow-origin)
-  am=$(hdr "$pre" access-control-allow-methods); ah=$(hdr "$pre" access-control-allow-headers)
+  # Method tokens are case-sensitive; header names are not.
+  am=$(hdr_raw "$pre" access-control-allow-methods); ah=$(hdr "$pre" access-control-allow-headers)
   st=$(status "$pre")
   case $expect in
     cors)
       r=ok
       case $st in 2*) ;; *) r=FAIL ;; esac
       { has "$ao_pre" '\*' || has "$ao_pre" "$ORIGIN"; } || r=FAIL
-      { has "$am" '\*' || has "$am" "$method_token"; } || r=FAIL
+      { has "$am" '\*' || has "$am" "$requested"; } || r=FAIL
       { has "$ah" '\*' || { has "$ah" authorization && has "$ah" content-type; }; } || r=FAIL
       { has "$ao_get" '\*' || has "$ao_get" "$ORIGIN"; } || r=FAIL ;;
     none)

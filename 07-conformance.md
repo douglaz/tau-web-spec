@@ -795,7 +795,9 @@ evidence is that set's test run against the relay the harness uses.
       account or target, arbitrary response, box-plane output, notify event and proposed text
       confirm no cloud operation. Robot's mutation-response refusal stays intact.
       - Order: a validated exact-call receipt confirms only its returned VM id and durable
-        entry association. Lost response plus one exact matching unassociated candidate in a
+        entry association. A missing returned id or absent, wrong-entry or failed-append
+        association leaves the order unresolved, including after replay.
+        Lost response plus one exact matching unassociated candidate in a
         complete decoded listing confirms even with unrelated nonmatches present. Zero leaves
         unresolved, including after unpaid purge; multiple matching candidates require
         inspection and show each may bill. Partial/truncated/malformed listing, wrong account,

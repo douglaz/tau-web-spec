@@ -262,6 +262,7 @@ structure Receipt where
   target : Target
   binding : ReceiptBinding
   validated : Bool
+  returnedVendor : Option Nat := none
   deriving DecidableEq, Repr
 
 /-- The approval decision journaled with the intent (`STA-4`). `SEC-4` makes it two properties
@@ -464,6 +465,10 @@ authority is per clause and this structure is not one. -/
   /-- `ARC-43`, 2026-10-18: a reboot's own collection needs a different boot.
   Pair: `delivery_reboot_same_boot_refused` / `delivery_reboot_same_boot_admitted_without_guard`. -/
   rebootBootChange : Bool := true
+  /-- `STG-21a`: an order receipt confirms only with its returned vendor id durably
+  associated with the approved entry. Pair: `order_receipt_association_required` /
+  `order_receipt_without_association_admitted`. -/
+  orderAssociation : Bool := true
   deriving DecidableEq, Repr
 
 /-- The rules as they stand. -/
@@ -516,6 +521,15 @@ resource and target, plus browser-vendor TLS and operation-specific validated su
     r.resource == i.resource && r.target == i.target &&
     i.approval.receiptBinding == some r.binding && r.binding.operation.kind == i.kind
 
+/-- The returned order id and its association must both be durable before settlement.
+Receipt arrival alone is not an association. Other receipt operations return no new id. -/
+@[req "STG-21a"] def orderAssociated (j : Journal) (i : Intent) (r : Receipt) : Bool :=
+  match r.binding.operation with
+  | .order => match r.returnedVendor, i.resource with
+    | some id, .machine e => associated j (.vendor id) == some e
+    | _, _ => false
+  | .stop | .restart => true
+
 /-- `ARC-43`'s reboot result: the collection names the approved call and machine, and reads
 another boot than the job record's own. A missing boot settles nothing. The approval is carried
 by the durable intent and must bind its session. No generic observation settles this kind.
@@ -532,14 +546,14 @@ resource and operation whose standing confirms it (excluding `deliveryReboot`), 
 `deliveryRebootResult`, or a disposition on the intent's resource
 naming the call — `STA-24`: "**A disposition is a terminal record of its own kind**: it ends the
 call's unresolved state with the outcome recorded as unknown, so the barrier stays one derivation
-— an intent with no terminal record — and a disposed call is not an open one." This reads one
-record; whether a disposition counts at all is not decided from the record alone, and every
-reader below takes a journal `inEffect` has already read. -/
-@[req "STA-8"] def settles (p : Params) (i : Intent) : Rec → Bool
+— an intent with no terminal record — and a disposed call is not an open one." Order receipts
+also read the durable association in `j`; whether a disposition counts at all is not decided
+from the record alone. Every reader below takes a journal `inEffect` has already read. -/
+@[req "STA-8"] def settles (p : Params) (i : Intent) (j : Journal) : Rec → Bool
   | .observation o =>
     admissible o && o.resource == i.resource && o.kind == i.kind && confirms p o.standing &&
       i.kind != .deliveryReboot
-  | .receipt r => receiptMatches i r
+  | .receipt r => receiptMatches i r && (!p.orderAssociation || orderAssociated j i r)
   | .deliveryRebootResult c r boot observed => deliveryRebootResult p i c r boot observed
   | .disposition d =>
     (d.resource == i.resource || !p.dispositionOwnResource) && d.calls.contains i.call
@@ -553,18 +567,18 @@ reader below takes a journal `inEffect` has already read. -/
 /-- The unresolved intents of a journal's tail, given `later`, the records appended after it. An
 intent is unresolved while nothing appended **after** it settles it: a read settles the calls that
 were outstanding when it was taken, never one dispatched afterwards. Newest first. -/
-def openFrom (p : Params) (r : Resource) (later : Journal) : Journal → List Intent
+def openFrom (p : Params) (r : Resource) (whole : Journal) (later : Journal) : Journal → List Intent
   | [] => []
   | rec :: rest =>
-    let tail := openFrom p r (rec :: later) rest
+    let tail := openFrom p r whole (rec :: later) rest
     match rec with
     | .intent i =>
-      if i.resource == r && sideEffecting i.kind && !later.any (settles p i) then i :: tail
+      if i.resource == r && sideEffecting i.kind && !later.any (settles p i whole) then i :: tail
       else tail
     | _ => tail
 
 /-- The unresolved intents naming a resource, in a journal `inEffect` has read. -/
-def openIn (p : Params) (e : Journal) (r : Resource) : List Intent := openFrom p r [] e
+def openIn (p : Params) (e : Journal) (r : Resource) : List Intent := openFrom p r e [] e
 
 /-- Whether a call is unresolved on a resource, in a journal `inEffect` has read. -/
 def unresolvedIn (p : Params) (e : Journal) (r : Resource) (c : CallId) : Bool :=
@@ -1237,8 +1251,8 @@ standing." Over every journal, every read and every resource: the step changes n
 Exact-call receipts use the separate `receiptMatches` predicate. `STA-24`:
 a job record "cannot clear a cloud-plane barrier, and neither can model text (`SEC-8`)", and
 `CHN-17`'s notify event is the machine's word as well. -/
-@[req "STA-24"] theorem cloud_observation_sources (p : Params) (i : Intent)
-    (hc : cloudPlane i.kind = true) (o : Observation) (h : settles p i (.observation o) = true) :
+@[req "STA-24"] theorem cloud_observation_sources (p : Params) (i : Intent) (j : Journal)
+    (hc : cloudPlane i.kind = true) (o : Observation) (h : settles p i j (.observation o) = true) :
     o.provenance = .adapterRead ∨ o.provenance = .pinCheckedHandshake := by
   simp only [settles, Bool.and_eq_true, admissible] at h
   obtain ⟨h, _⟩ := h
@@ -2831,9 +2845,9 @@ def invalidRebootCollections : List Event :=
     let w := run current rebootDone.external init invalidRebootCollections
     w.dispatched.map (·.call) = [30] ∧
     w.verdict = some (.refused (.barrier [30])) ∧
-    settles current (intentOf resetRequest1 machineA approvalReset)
+    settles current (intentOf resetRequest1 machineA approvalReset) []
       (.deliveryRebootResult 1 machineA (some 1) 2) = false ∧
-    settles current (intentOf rebootRequest machineA approvalExecB)
+    settles current (intentOf rebootRequest machineA approvalExecB) []
       (.deliveryRebootResult 30 machineA (some 1) 2) = false := by decide +kernel
 
 /-- A failed approval check records no intent for a later collection to settle. -/
@@ -2885,7 +2899,8 @@ def tracesOf : Nat → List (List Event)
 def restartBinding : ReceiptBinding := ⟨.restart, 41, 73⟩
 def restartApproval : Approval := { approvalReset with receiptBinding := some restartBinding }
 def restartReceipt : Receipt :=
-  ⟨.browserVendorTls, resetRequest1.call, machineA, resetRequest1.target, restartBinding, true⟩
+  { source := .browserVendorTls, call := resetRequest1.call, resource := machineA,
+    target := resetRequest1.target, binding := restartBinding, validated := true }
 def receiptEvents (r : Receipt) (ok : Bool) : List Event :=
   [.request resetRequest1 restartApproval true, .receive r ok, .replay]
 
@@ -2918,11 +2933,53 @@ def refusedReceipts : List Receipt :=
     receiptMatches (intentOf resetRequest1 machineA approvalReset) restartReceipt = false := by
   decide +kernel
 
+def operationReceipt (op : ReceiptOperation) : Receipt :=
+  { restartReceipt with binding := { restartBinding with operation := op }, returnedVendor := if op == .order then some 307 else none }
+
 def operationReceiptEvents (op : ReceiptOperation) : List Event :=
   let binding := { restartBinding with operation := op }
   [.request { resetRequest1 with kind := op.kind }
-      { restartApproval with receiptBinding := some binding } true,
-   .receive { restartReceipt with binding := binding } true, .replay]
+      { restartApproval with receiptBinding := some binding } true] ++
+  (if op == .order then [.associate (.vendor 307) entryA] else []) ++
+  [.receive (operationReceipt op) true, .replay]
+
+def orderWithoutAssociationEvents : List Event :=
+  (operationReceiptEvents .order).take 1 ++ [.receive (operationReceipt .order) true, .replay]
+def orderWithoutIdEvents : List Event :=
+  (operationReceiptEvents .order).take 1 ++ [.associate (.vendor 307) entryA,
+   .receive { restartReceipt with binding := { restartBinding with operation := .order } } true,
+   .replay]
+
+def orderFailedReceiptEvents : List Event :=
+  (operationReceiptEvents .order).take 1 ++
+  [.associate (.vendor 307) entryA,
+   .receive (operationReceipt .order) false, .replay]
+
+def orderWrongAssociationEvents : List Event :=
+  (operationReceiptEvents .order).take 1 ++
+  [.associate (.vendor 307) entryB, .receive (operationReceipt .order) true, .replay]
+
+/-- Receipt and association may be journaled separately; neither half alone settles the order.
+Wrong-entry association and failed receipt append also leave it unresolved after replay. -/
+@[req "STG-21a"] theorem order_receipt_association_required :
+    unresolved current (run current farDone.external init orderWithoutAssociationEvents).memory
+      machineA = [resetRequest1.call] ∧
+    unresolved current (run current farDone.external init orderWithoutIdEvents).memory
+      machineA = [resetRequest1.call] ∧
+    unresolved current (run current farDone.external init orderWrongAssociationEvents).memory
+      machineA = [resetRequest1.call] ∧
+    unresolved current (run current farDone.external init orderFailedReceiptEvents).memory
+      machineA = [resetRequest1.call] := by decide +kernel
+
+def noOrderAssociation : Params := { current with orderAssociation := false }
+
+@[req "STG-21a"] theorem order_receipt_without_association_admitted :
+    unresolved noOrderAssociation
+      (run noOrderAssociation farDone.external init orderWithoutAssociationEvents).memory
+      machineA = [] ∧
+    unresolved noOrderAssociation
+      (run noOrderAssociation farDone.external init orderWithoutIdEvents).memory
+      machineA = [] := by decide +kernel
 
 /-- All three operation classes settle through the same exact-context checks; no reinstall
 receipt can match even an incorrectly annotated reinstall approval. -/

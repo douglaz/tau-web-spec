@@ -131,9 +131,17 @@ Renewal-off is confirmed by a successfully decoded authenticated machine read un
 
 Publication-based reinstall confirmation requires a complete nonempty publication durably recorded for the immediately preceding installation before dispatch, followed by a post-dispatch running status carrying a complete publication satisfying every CHN-R7 earlier-group disjointness and current-group containment rule. Without that baseline or another expressly admitted discriminator, reinstall remains unconfirmed. Observing the intervening empty publication is unnecessary.
 
-No other discriminator is admitted. Installation opens at dispatch, not confirmation; preserve every earlier group, incomplete/refused observation and pin from every source. A complete candidate must be disjoint from all earlier-group knowledge/pins AND contain all current-group knowledge. Empty/partial/overlapping sets, image id, power/uptime changes and a reinstall 2xx establish no completion. Timeout or lost wait establishes neither failed nor ended. A clear can be intermediate and does not admit a pin. An empty prior group can admit a pin under CHN-R7 but cannot confirm this reinstall; the cloud barrier and existing permitted-read rules still apply independently.
+No other discriminator is admitted. `STG-20` owns the installation's dispatch boundary;
+`CHN-R7` owns publication-history retention, candidate admission and host-key pin admission.
+Image id, power/uptime changes and a reinstall 2xx establish no completion. Timeout or lost
+wait establishes neither failed nor ended. A clear can be intermediate and does not confirm
+reinstall. An empty prior group can admit a pin under `CHN-R7` but cannot confirm this
+reinstall; the cloud barrier and existing permitted-read rules still apply independently.
 
-An old-key observation retained after dispatch can prevent later confirmation in that installation; this conservative CHN-R7 behaviour is explicitly retained, not secretly fixed or promised to recover. Preserve the existing wait maximum and the vendor/address-scan trust residual in full; do not cross the barrier with SSH to manufacture cloud evidence.
+An old-key observation retained after dispatch can prevent later confirmation in that
+installation; this conservative `CHN-R7` behaviour is explicitly retained, not secretly fixed
+or promised to recover. `CHN-R7` also owns the wait maximum and vendor/address-scan trust
+residual; the cloud barrier permits no SSH to manufacture cloud evidence.
 
 **Deletion.** Complete authenticated inventory absence alone establishes only absence from
 that account. Ordinary transfer returning 403 does not establish deletion. No stopped state,

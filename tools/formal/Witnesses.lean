@@ -569,7 +569,8 @@ def receiptSourceName : ReceiptSource → String
 def receiptJson (r : Receipt) : Json := Json.mkObj [
   ("source", receiptSourceName r.source), ("call", toJson r.call),
   ("resource", resourceJson r.resource), ("target", targetJson r.target),
-  ("binding", receiptBindingJson r.binding), ("validated", toJson r.validated)]
+  ("binding", receiptBindingJson r.binding), ("validated", toJson r.validated),
+  ("returned_vendor", toJson r.returnedVendor)]
 
 def refusalJson : Refusal → Json
   | .unmapped => Json.mkObj [("reason", "unmapped")]
@@ -598,7 +599,7 @@ def entriesOf (j : TauWeb.Dispatch.Journal) : List TauWeb.Dispatch.Entry :=
 
 /-- One call as the journal holds it: the intent record, and whether it is still unresolved. A
 read is never an unresolved call — it has no effect to be unresolved about. -/
-def callJson (p : TauWeb.Dispatch.Params) (later : TauWeb.Dispatch.Journal) (i : Intent) : Json :=
+def callJson (p : TauWeb.Dispatch.Params) (whole later : TauWeb.Dispatch.Journal) (i : Intent) : Json :=
   Json.mkObj [
     ("call", toJson i.call), ("target", targetJson i.target),
     ("resource", resourceJson i.resource), ("operation", kindName i.kind),
@@ -607,7 +608,7 @@ def callJson (p : TauWeb.Dispatch.Params) (later : TauWeb.Dispatch.Journal) (i :
                              ("facts", toJson i.approval.facts),
                              ("receipt_binding", (i.approval.receiptBinding.map receiptBindingJson).getD Json.null)]),
     ("state", Json.str (if !sideEffecting i.kind then "no_effect"
-                        else if !later.any (settles p i) then "unresolved"
+                        else if !later.any (settles p i whole) then "unresolved"
                         else "terminal")) ]
 
 /-- Project each intent at its position. Only records after it can settle it; an older
@@ -620,7 +621,7 @@ where
     | rec :: rest =>
       let tail := go (rec :: later) rest
       match rec with
-      | .intent i => callJson p later i :: tail
+      | .intent i => callJson p j later i :: tail
       | _ => tail
 
 /-- Every disposition the journal holds, newest first, each with whether `acceptable` accepts it
@@ -798,7 +799,8 @@ def assumptionsJson (p : TauWeb.Dispatch.Params) : Json :=
               ("approvalResetRequiresRescue", toJson p.approvalResetRequiresRescue),
               ("resetOfferFreshKeys", toJson p.resetOfferFreshKeys),
               ("reinstallWithdrawalEffective", toJson p.reinstallWithdrawalEffective),
-              ("commandHold", toJson p.commandHold), ("rebootBootChange", toJson p.rebootBootChange)]
+              ("commandHold", toJson p.commandHold), ("rebootBootChange", toJson p.rebootBootChange),
+              ("orderAssociation", toJson p.orderAssociation)]
 
 def Trace.json (t : Trace) : Json :=
   let segments := if t.segments.isEmpty then [(t.far, t.events)] else t.segments
@@ -810,6 +812,22 @@ def Trace.json (t : Trace) : Json :=
   traceJson t.decls (assumptionsJson t.params) t.pair (knowledgeJson t.params t.start) steps
 
 def witnesses : List Trace := [
+  { decls := ["TauWeb.Dispatch.order_receipt_association_required"],
+    events := orderWithoutAssociationEvents,
+    pair := some (.refused, "TauWeb.Dispatch.order_receipt_without_association_admitted") },
+  { decls := ["TauWeb.Dispatch.order_receipt_without_association_admitted"],
+    events := orderWithoutAssociationEvents, params := noOrderAssociation,
+    pair := some (.admitted, "TauWeb.Dispatch.order_receipt_association_required") },
+  { decls := ["TauWeb.Dispatch.order_receipt_association_required"],
+    events := orderWithoutIdEvents,
+    pair := some (.refused, "TauWeb.Dispatch.order_receipt_without_association_admitted") },
+  { decls := ["TauWeb.Dispatch.order_receipt_without_association_admitted"],
+    events := orderWithoutIdEvents, params := noOrderAssociation,
+    pair := some (.admitted, "TauWeb.Dispatch.order_receipt_association_required") },
+  { decls := ["TauWeb.Dispatch.order_receipt_association_required"],
+    events := orderWrongAssociationEvents },
+  { decls := ["TauWeb.Dispatch.order_receipt_association_required"],
+    events := orderFailedReceiptEvents },
   { decls := ["TauWeb.Dispatch.lnvps_receipt_confirms"],
     events := receiptEvents restartReceipt true },
   { decls := ["TauWeb.Dispatch.lnvps_receipt_refusals"],
