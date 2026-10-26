@@ -61,6 +61,14 @@ what placing machines at several vendors buys.
 At LNVPS, the operator's shared email address links the separate per-machine accounts at the
 vendor, and HTTP ordering records the buyer's IP address and country
 (`docs/findings/2026-10-08-lnvps-research.md` §3).
+`STG-21a` admits deletion confirmation with an accepted risk, on the assumption that a staff
+transfer is improbable. The source permits both an original-account purge to return a valid
+404 before the VM ownership check while the transferred host survives, and a receiving-account
+purge racing a transfer to remove the VM row without host teardown. Both can satisfy the
+combined reads without host destruction. They are source-derived counterexamples, not live
+observations or reproduced database races. Later payment can also un-delete a soft-deleted id
+and queue a rebuild; reappearance handling and its billing-display gap remain outside the
+completion claim. ADR-0042 records the rationale; `CNF-112` preserves the counterexamples.
 
 **TRU-E2 — The inference proxy: the one the operator funds, and the aggregator it appears to
 route through.** Procured inference uses the candidate order in `ARC-31b` behind a single

@@ -124,26 +124,11 @@ gated on it.
       classes each check as refusing placement or not: a TCP/HTTP check that counts would
       otherwise refuse the key of an application that only listens once it has its key — the
       trap `ARC-17`'s lifecycle-finding rule removed for `services`.
-- [ ] **T50 — Define LNVPS operation confirmation contracts** (recorded 2026-10-17;
-      bead `tw-w7a`, left open). The missing confirming observations cover the typed restart,
-      the stop that stands in for a destroy, renewal-off, the vendor's reinstall call, and the
-      vendor's deletion of a stopped machine. `SEC-5` rows 12 and 23 count the deletion as the
-      machine's destruction at LNVPS: "the vendor's confirmed deletion, not the stop that stands
-      in for a destroy". The starting fact is recorded in
-      `docs/findings/2026-10-11-lnvps-phase-b.md`: "A stop (`PATCH …/stop`) left the machine
-      `stopped` and still listed, with `deleting_on` one day after the expiry (the grace may
-      lengthen with the subscription's age; it was read at day 0)." No deletion has been observed.
-      The duties depending on them remain in their owners: `ARC-43` says "Until that confirmation,
-      box-plane dispatch stays stopped" for the delivery restart; `STA-24` says "At LNVPS
-      renewal-off waits for the stop's confirmation"; for the reinstall continuation,
-      `STA-24` says "For a destructive reinstall that is at LNVPS the vendor's reinstall call".
-      Its own barrier then holds: `STA-24` says "from then on that call's own barrier governs".
-      Renewal-off already has a read-back: `STG-21` says "after each order the adapter MUST
-      turn the machine's automatic renewal off and read it back as off before the machine is
-      offered for delivery"; `CNF-104` exercises it. Whether that read-back is the confirming
-      observation under `STA-24` remains undecided. Define each operation's confirming
-      observation, what establishes only that it ended, and what leaves it unresolved, before
-      relying on those confirmations. No predicate is chosen here.
+- [x] **T50 — Define LNVPS operation confirmation contracts** (`tw-w7a`).
+      Specified in `STA-5`, `STA-24`, `STG-21` and `STG-21a`; `CNF-112` holds the operation
+      conformance pairs. ADR-0042 records the source baseline and accepted administrative-race
+      risk. Later same-id reappearance is unhandled and limits the completion claim. This closes
+      the specification task, not integrated implementation or live deletion evidence.
 - [ ] **T44 — Implement the decided derived vendor identity** (`OPN-26`, ADR-0042).
       This is a coordinated change required before stage-1 completion, not a new design
       question. Its eventual typed adapter follows `STG-21` and `ARC-30` for the accepted
@@ -378,7 +363,8 @@ gated on it.
       journal and the running worker's in-memory state both carried, so `STA-3` is the statement
       that they never diverge. The principal theorem is
       `TauWeb.Dispatch.dispatched_only_if`, and its companions are
-      `TauWeb.Dispatch.replay_same_unresolved`, `TauWeb.Dispatch.cloud_confirmed_by_read_only`,
+      `TauWeb.Dispatch.replay_same_unresolved`, `TauWeb.Dispatch.cloud_observation_sources`,
+      `TauWeb.Dispatch.cloud_receipt_correlated`,
       `TauWeb.Dispatch.failed_append_keeps_barrier` and `TauWeb.Dispatch.inference_unbarred`.
       Each parameter has its refused-and-admitted pair: the resource key, which the panel settled
       at the approved entry rather than the allocation index or the call id; `STA-3`'s

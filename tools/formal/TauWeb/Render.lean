@@ -1,10 +1,11 @@
 import TauWeb.Declaration
 import TauWeb.Allocation
+import TauWeb.Dispatch
 /-! The marked regions (ADR-0032): what the lines between `<!-- formal: <decl> -->` and
 `<!-- /formal -->` in a document must contain, computed from the declaration named. `lake exe
 render` prints them and `tools/check_regions.py` holds each document to them.
 
-Both regions here are `match` regions — tables whose cells carry prose and conformance
+The regions here are `match` regions — tables whose cells carry prose and conformance
 citations the companion does not emit and never may (ADR-0032, "What it never carries", which
 is path-independent). The gate keeps only the tokens these declarations determine and diffs
 those, so a cell's rationale stays the document's, where the citation gates read it, and its
@@ -97,7 +98,19 @@ and `TauWeb.Allocation.total` decides that every role below it has a row. -/
   { decl := "TauWeb.Render.roleTable", kind := .«match»,
     text := "\n".intercalate ((List.range count).filterMap roleRow) }
 
+open TauWeb.Dispatch in
+@[req "STA-24"] def receiptTable : Region :=
+  { decl := "TauWeb.Render.receiptTable", kind := .«match»,
+    text := "\n".intercalate ([ReceiptOperation.order, .stop, .restart].map fun op =>
+      let name := match op with | .order => "order" | .stop => "stop" | .restart => "restart"
+      let kind := match op.kind with
+        | .create => "create"
+        | .destroy => "destroy"
+        | .reset => "reset"
+        | _ => "refused"
+      s!"| `{name}` | `{kind}` |") }
+
 /-- Every region a document may carry. One the documents do not render is a red gate. -/
-def regions : List Region := [declarationTable, roleTable]
+def regions : List Region := [declarationTable, roleTable, receiptTable]
 
 end TauWeb.Render

@@ -39,6 +39,10 @@ confirmed by observable state, as `STG-4` states. The inference adapter is
 **never-retry-automatically for its record and unbarred for its dispatch**: a lost response
 leaves its intent unresolved (`ARC-31a`) and does not stop the next request (`STA-24`).
 
+Catalogue reads are pure. Authenticated account, inventory, machine-status and SSH-key-list reads, and renewal quotes, are repeat-safe reconciliation reads, idempotent under the same account public key; they can create its empty account row. Quote does not create a payment/invoice. Renewal-off is an idempotent assignment scoped to the recorded account, machine and subscription. Create/order, SSH-key registration, stop, restart and reinstall are reconcile-before-retry. No unresolved mutation is automatically replayed, including under a fresh call id, a fresh allocation index for the same approved entry, replay or successor session. No retry classification bypasses STA-8/STA-24.
+
+Account PATCH and invoice-producing renew are never-retry-automatically. None bypasses STA-8 or STA-24.
+
 **STA-6 Box-plane work is never-retry-automatically.** Arbitrary shell on a remote machine
 cannot declare itself idempotent, so no honest declaration other than this exists. Its
 recovery path is `ARC-10`: reconnect, read the machine's state, converge.
@@ -304,11 +308,34 @@ request: its only effect is bounded spend, and the next request is the session's
 continue.
 
 **What clears it.** Evidence is the observation the operation's own reconciliation contract
-admits — for Robot, `STG-4`'s predicates, read from the vendor or from a pin-checked handshake
+admits, or its expressly admitted exact-call receipt — for Robot, `STG-4`'s predicates, read from the vendor or from a pin-checked handshake
 — durably appended before dispatch resumes (`STA-3`): a status read followed by a failed append
-leaves the barrier standing. LNVPS's confirming observations are not yet defined
-(`TASKS.md` T50); until they are, such a call stays unresolved until evidence or the operator's
-disposition. A job record can settle the box-plane command it records, as
+leaves the barrier standing. LNVPS's operation predicates are `STG-21a`'s.
+Confirmation evidence MUST identify the expected account, machine and operation and be durably
+appended before taking effect. Failed append, timeout and operator disposition establish no success.
+Receipt evidence binds the successful response to the exact dispatched call, signed request,
+account and target, received over browser-terminated vendor TLS, with its operation-specific
+interpretation. A generic 2xx, an unrelated response or an unvalidated/malformed body is
+insufficient. Receipt authority is limited to `STG-21a`'s order, stop and restart predicates;
+no other mutation response becomes confirmation. The formal receipt operation mapping is:
+
+<!-- formal: TauWeb.Render.receiptTable -->
+| Receipt operation | Dispatch kind |
+|---|---|
+| `order` | `create` |
+| `stop` | `destroy` |
+| `restart` | `reset` |
+<!-- /formal -->
+
+`destroy` carries the LNVPS stand-in stop here; its successful receipt establishes stopped,
+not destruction. Only LNVPS approvals carry a receipt binding; Robot's reset remains read-confirmed.
+`TauWeb.Dispatch.cloud_observation_sources` retains read provenance refusal;
+`TauWeb.Dispatch.cloud_receipt_correlated` states exact receipt correlation.
+The deletion evidence record is distinct from
+a dispatched-call receipt: it names the recorded key, account result, associated id, complete
+listing omission and decoded exact-id error, and takes effect only after durable append. It
+correlates no dispatched call and does not itself settle a distinct unresolved stop or renewal-off
+call. A job record can settle the box-plane command it records, as
 `STA-20` says and with the standing `STA-21` gives it; it cannot clear a cloud-plane barrier,
 and neither can model text (`SEC-8`). Otherwise the operator **disposes**: a record of its own
 kind naming the unresolved calls it ends, the continuation the operator chose — a destructive
@@ -564,8 +591,9 @@ refusal. `TauWeb.Dispatch.undisposed_command_bars_flow_destroy` shows that the f
 still meets an undisposed call's barrier; `TauWeb.Dispatch.omitted_call_stays_settled` carries
 replacement's omission.
 `TauWeb.Dispatch.restriction` is the continuation in force over a resource;
-`TauWeb.Dispatch.admissible` is what clears a barrier and
-`TauWeb.Dispatch.cloud_confirmed_by_read_only` that nothing else does; and
+`TauWeb.Dispatch.admissible` and `TauWeb.Dispatch.receiptMatches` govern the two evidence
+forms; `TauWeb.Dispatch.cloud_observation_sources` and
+`TauWeb.Dispatch.cloud_receipt_correlated` retain their separate provenance and correlation; and
 `TauWeb.Dispatch.inference_unbarred` is the inference request's exemption. The
 untyped call's scope is not among the resources it carries, so neither the pause nor the hold
 is carried.
@@ -907,8 +935,8 @@ If the old seed or an index is missing, direct re-entry and pass revocation cann
 Robot machines can still be rekeyed through vendor-authenticated rescue (`STA-15`); cloud
 machines are destroyed and recreated, as that section says. At LNVPS a missing old seed or index
 also loses that machine's vendor key, so the harness can neither reinstall nor stop it; the
-machine is shown as existing and billed until the vendor deletes it after expiry, as `ARC-22`
-shows a destroy that is not confirmed.
+machine remains shown as existing and billed: without its key, no read confirms deletion
+under `STG-21a`, and expiry or operator disposition ends no duty (`ARC-22`).
 The screen names unrecovered machines
 and unrevocable passes, and never reports a complete Replace or complete revocation while
 either remains outstanding, including a manual relay retirement awaiting confirmation.

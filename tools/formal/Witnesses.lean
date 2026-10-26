@@ -158,7 +158,7 @@ structure Module where
 
 /-- The schema version of each emitted module. Allocation, pins and dispatch changed shape. -/
 def schemaVersion (name : String) : Nat :=
-  if name == "allocation" then 2 else if name == "pins" then 5 else if name == "dispatch" then 6 else 1
+  if name == "allocation" then 2 else if name == "pins" then 5 else if name == "dispatch" then 7 else 1
 
 /-- The header pretty, one trace per line: a diff names the trace that moved. -/
 def fileText (name : String) (ns : Name) (bound : Json) (witnesses enumeration : List Json) :
@@ -550,6 +550,27 @@ def targetJson : Target → Json
   | .vendor v => Json.mkObj [("vendor_machine_id", toJson v)]
   | .inferenceCap => Json.mkObj [("inference_cap", toJson true)]
 
+def receiptOperationName : ReceiptOperation → String
+  | .order => "order"
+  | .stop => "stop"
+  | .restart => "restart"
+
+def receiptBindingJson (b : ReceiptBinding) : Json := Json.mkObj [
+  ("operation", receiptOperationName b.operation), ("account", toJson b.account),
+  ("signed_request", toJson b.signedRequest)]
+
+def receiptSourceName : ReceiptSource → String
+  | .browserVendorTls => "browser_vendor_tls"
+  | .arbitraryResponse => "arbitrary_response"
+  | .jobOutput => "job_output"
+  | .notifyEvent => "notify_event"
+  | .proposedText => "proposed_text"
+
+def receiptJson (r : Receipt) : Json := Json.mkObj [
+  ("source", receiptSourceName r.source), ("call", toJson r.call),
+  ("resource", resourceJson r.resource), ("target", targetJson r.target),
+  ("binding", receiptBindingJson r.binding), ("validated", toJson r.validated)]
+
 def refusalJson : Refusal → Json
   | .unmapped => Json.mkObj [("reason", "unmapped")]
   | .binding => Json.mkObj [("reason", "binding")]
@@ -558,7 +579,8 @@ def refusalJson : Refusal → Json
   | .approvalActivation => Json.mkObj [("reason", "approval_activation")]
   | .withdrawnApproval r c ap => Json.mkObj [
       ("reason", "withdrawn_approval"), ("resource", resourceJson r), ("call", toJson c),
-      ("approved", Json.mkObj [("session", toJson ap.session), ("facts", toJson ap.facts)])]
+      ("approved", Json.mkObj [("session", toJson ap.session), ("facts", toJson ap.facts),
+        ("receipt_binding", (ap.receiptBinding.map receiptBindingJson).getD Json.null)])]
   | .barrier cs => Json.mkObj [("reason", "barrier"), ("calls", toJson cs)]
   | .continuation c =>
     Json.mkObj [("reason", "continuation"), ("in_force", continuationName c)]
@@ -582,7 +604,8 @@ def callJson (p : TauWeb.Dispatch.Params) (later : TauWeb.Dispatch.Journal) (i :
     ("resource", resourceJson i.resource), ("operation", kindName i.kind),
     ("session", toJson i.session),
     ("approved", Json.mkObj [("session", toJson i.approval.session),
-                             ("facts", toJson i.approval.facts)]),
+                             ("facts", toJson i.approval.facts),
+                             ("receipt_binding", (i.approval.receiptBinding.map receiptBindingJson).getD Json.null)]),
     ("state", Json.str (if !sideEffecting i.kind then "no_effect"
                         else if !later.any (settles p i) then "unresolved"
                         else "terminal")) ]
@@ -640,12 +663,14 @@ def knowledgeJson (p : TauWeb.Dispatch.Params) (w : TauWeb.Dispatch.World) : Jso
     ("reinstall_approvals", toJson ((j.reverse.filterMap fun rec => match rec with
       | .reinstallApproval e c ap => some (Json.mkObj [
           ("entry", toJson e), ("call", toJson c),
-          ("approved", Json.mkObj [("session", toJson ap.session), ("facts", toJson ap.facts)])])
+          ("approved", Json.mkObj [("session", toJson ap.session), ("facts", toJson ap.facts),
+        ("receipt_binding", (ap.receiptBinding.map receiptBindingJson).getD Json.null)])])
       | _ => none))),
     ("reinstall_withdrawals", toJson ((j.reverse.filterMap fun rec => match rec with
       | .reinstallWithdrawal e c ap => some (Json.mkObj [
           ("entry", toJson e), ("call", toJson c),
-          ("approved", Json.mkObj [("session", toJson ap.session), ("facts", toJson ap.facts)])])
+          ("approved", Json.mkObj [("session", toJson ap.session), ("facts", toJson ap.facts),
+        ("receipt_binding", (ap.receiptBinding.map receiptBindingJson).getD Json.null)])])
       | _ => none))),
     ("reboot_results", toJson ((j.reverse.filterMap fun rec => match rec with
       | .deliveryRebootResult c r boot observed => some (Json.mkObj [
@@ -658,6 +683,9 @@ def knowledgeJson (p : TauWeb.Dispatch.Params) (w : TauWeb.Dispatch.World) : Jso
       | .resetPrereqs e n keys => some (Json.mkObj [
           ("kind", "result"), ("entry", toJson e), ("installation", toJson n), ("keys", toJson keys)])
       | _ => none))),
+    ("receipts", toJson ((j.filterMap fun rec => match rec with
+      | .receipt r => some (receiptJson r)
+      | _ => none).reverse)),
     ("dispatched", toJson (w.dispatched.reverse.map Intent.call)) ]
 
 /-- An event's provenance is ADR-0032's closed vocabulary; `appended` beside it is the storage
@@ -669,13 +697,17 @@ def eventJson (x : External) : TauWeb.Dispatch.Event → Json
       ("call", toJson rq.call), ("target", targetJson rq.target),
       ("operation", kindName rq.kind), ("session", toJson rq.session),
       ("facts", toJson rq.facts),
-      ("approved", Json.mkObj [("session", toJson ap.session), ("facts", toJson ap.facts)]),
+      ("approved", Json.mkObj [("session", toJson ap.session), ("facts", toJson ap.facts),
+        ("receipt_binding", (ap.receiptBinding.map receiptBindingJson).getD Json.null)]),
       ("appended", toJson ok)]
   | .observe prov r k ok => Json.mkObj [
       ("kind", "read"), ("provenance", "adapter observation"),
       ("source", provenanceName prov), ("resource", resourceJson r),
       ("operation", kindName k), ("reports", standingName (x.reports r k)),
       ("appended", toJson ok)]
+  | .receive r ok => Json.mkObj [
+      ("kind", "receive"), ("provenance", "adapter observation"),
+      ("receipt", receiptJson r), ("appended", toJson ok)]
   | .collectReboot c r boot ok => Json.mkObj [
       ("kind", "collect_reboot"), ("provenance", "adapter observation"),
       ("call", toJson c), ("resource", resourceJson r), ("record_boot", toJson boot),
@@ -693,12 +725,14 @@ def eventJson (x : External) : TauWeb.Dispatch.Event → Json
   | .approveReinstall e c ap ok => Json.mkObj [
       ("kind", "approve_reinstall"), ("provenance", "operator act"),
       ("entry", toJson e), ("call", toJson c),
-      ("approved", Json.mkObj [("session", toJson ap.session), ("facts", toJson ap.facts)]),
+      ("approved", Json.mkObj [("session", toJson ap.session), ("facts", toJson ap.facts),
+        ("receipt_binding", (ap.receiptBinding.map receiptBindingJson).getD Json.null)]),
       ("appended", toJson ok)]
   | .withdrawReinstall e c ap ok => Json.mkObj [
       ("kind", "withdraw_reinstall"), ("provenance", "operator act"),
       ("entry", toJson e), ("call", toJson c),
-      ("approved", Json.mkObj [("session", toJson ap.session), ("facts", toJson ap.facts)]),
+      ("approved", Json.mkObj [("session", toJson ap.session), ("facts", toJson ap.facts),
+        ("receipt_binding", (ap.receiptBinding.map receiptBindingJson).getD Json.null)]),
       ("appended", toJson ok)]
   | .replay => Json.mkObj [("kind", "replay"), ("provenance", "replay")]
 
@@ -715,6 +749,9 @@ def stepJson (p : TauWeb.Dispatch.Params) (x : External) (w : TauWeb.Dispatch.Wo
     | .observe _ r _ _ | .collectReboot _ r _ _ =>
       [("settled", toJson ((unresolved p w.memory r).filter fun c =>
         !(unresolved p w'.memory r).contains c))]
+    | .receive r _ =>
+      [("settled", toJson ((unresolved p w.memory r.resource).filter fun c =>
+        !(unresolved p w'.memory r.resource).contains c))]
     | .resetPrereqs e _ _ => [("offer", toJson (offersReset p w'.memory e))]
     | .dispose d _ =>
       [("disposition", Json.str (if !accepts p w.memory d then "refused"
@@ -773,6 +810,20 @@ def Trace.json (t : Trace) : Json :=
   traceJson t.decls (assumptionsJson t.params) t.pair (knowledgeJson t.params t.start) steps
 
 def witnesses : List Trace := [
+  { decls := ["TauWeb.Dispatch.lnvps_receipt_confirms"],
+    events := receiptEvents restartReceipt true },
+  { decls := ["TauWeb.Dispatch.lnvps_receipt_refusals"],
+    events := [.request resetRequest1 restartApproval true] ++
+      refusedReceipts.flatMap (fun r => [.receive r true, .replay]) ++
+      [.receive restartReceipt false, .replay] },
+  { decls := ["TauWeb.Dispatch.lnvps_receipt_refusals"],
+    events := [.request resetRequest1 approvalReset true, .receive restartReceipt true, .replay] },
+  { decls := ["TauWeb.Dispatch.receipt_operation_limit"], events := operationReceiptEvents .order },
+  { decls := ["TauWeb.Dispatch.receipt_operation_limit"], events := operationReceiptEvents .stop },
+  { decls := ["TauWeb.Dispatch.receipt_operation_limit"], events := operationReceiptEvents .restart },
+  { decls := ["TauWeb.Dispatch.receipt_operation_limit"],
+    events := [.request { resetRequest1 with kind := .reinstall } restartApproval true,
+      .receive restartReceipt true, .replay] },
   { decls := ["TauWeb.Dispatch.second_command_held"], events := secondCommandEvents,
     pair := some (.refused, "TauWeb.Dispatch.second_command_without_hold") },
   { decls := ["TauWeb.Dispatch.second_command_without_hold"], events := secondCommandEvents,
