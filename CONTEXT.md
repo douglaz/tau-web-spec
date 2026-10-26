@@ -434,7 +434,7 @@ _Avoid_: master key, root key (both suggest something a session holds), "the use
 unqualified "seed" in any sentence that also mentions a vault
 (a derived key is one of many, and none is the operator's social identity)
 
-**Relay pass** · `CHN-15`, `CHN-16`; owned by paid-tcp-relay (`PAS-3`)
+**Relay pass** · `CHN-15`, `CHN-16`; owned by [paid-tcp-relay][relay-source] (`PAS-3`)
 What is bought: the relay's record of which destinations a relay key may reach, until when, and
 how fast. Paid for by invoice, bound to a key, never held as a value. There is no identity
 behind it. Its key re-derives from the seed and exported pass index; losing the index can
@@ -442,11 +442,25 @@ lose the remaining quota.
 _Avoid_: token, subscription, API key (all imply an account or a bearer string); "present the
 pass" (one presents the key; the relay finds the pass)
 
-**Relay key** · `CHN-15`, `SEC-5` row 4; owned by paid-tcp-relay (`PAS-2`)
+**Relay key** · `CHN-15`, `SEC-5` row 4; owned by [paid-tcp-relay][relay-source] (`PAS-2`)
 The keypair the browser derives from the seed for one relay pass. Its public half is what the
 relay binds a purchase to and what the first stage hands the publisher; its private half signs
 the connection challenge, destination records, and revocation. Never stored, never bearer.
 _Avoid_: relay credential (too vague), "the npub" (which of several)
+
+**Publisher discovery key** · `CHN-19`
+The compiled publisher signing identity for discovering the default TCP relay; distinct from the
+seed-derived holder relay key. The public announcement schema and publisher duties are
+[paid-tcp-relay][relay-source] `WIR-14` and `OPR-10`.
+
+**Discovery starting set** · `CHN-19`
+The compiled public Nostr endpoints and their named operators used to retrieve publisher
+announcements. Separate from the notify relay set of `CHN-18`.
+
+**Relay locator** · `STA-22b`, `CHN-19`
+The recorded locator for a holder's relay pass: a publisher discovery key or a direct relay URL.
+It locates the service holding that pass; it is not the holder's derived relay key, a destination
+authorization or proof of the newest remote announcement.
 
 **Drop-box** — retired. A one-time buffer the browser used to open at the relay before creating
 a machine. Replaced by an inbox any Nostr relay provides (`CHN-4`). The name survives only in
@@ -732,3 +746,5 @@ different sentences and only the second one is true, so only the second one gets
 What we don't do is *pretend* otherwise. A tenant that needs the AI kept away from secrets
 designs its procedure for that, like btc-policy sealing its nodes. Everywhere else we minimize
 what the model can reach and count what's left.
+
+[relay-source]: https://github.com/douglaz/paid-tcp-relay/tree/ba316fc4f734deb93d76561d8703551377987654

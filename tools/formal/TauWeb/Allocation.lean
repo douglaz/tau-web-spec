@@ -1,6 +1,10 @@
 import TauWeb.Req
 /-! Module 1, allocation (ADR-0032's inventory): `STA-22`, `STA-22a`, `STA-22b` and the index
-rules of `credential-format-v1.md`.
+rules of `credential-format-v1.md`. The trace abstracts allocation identities and counters;
+it does not represent typed relay locators, discovery events, the recovery-payload version or
+CHN-19's monotone merge. Payload v4 does not change the derivation version or index identity.
+The `restore` transition below is an allocation projection, not replacement of the complete
+recovery store or a rule for overwriting discovery evidence.
 
 The first clause carried is the credential format's role table (`STA-22a`): role number to
 index family, which decides index sharing, and child-secret interpretation. The table is closed

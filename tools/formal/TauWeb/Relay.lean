@@ -1,6 +1,8 @@
 import TauWeb.Req
 /-! Module 3, relay admission (ADR-0032's inventory): `CHN-15`, `CHN-16`, `CHN-16a` and
-`relay-protocol-v1.md`.
+`relay-protocol-v1.md`. This module and its v1 witnesses retain that historical profile;
+they do not formalize the /v2/ connection binding, termination or discovery additions. The
+shared protocol stays in [paid-tcp-relay](https://github.com/douglaz/paid-tcp-relay/tree/ba316fc4f734deb93d76561d8703551377987654); T30 owns this module's port.
 
 The handshake is a state machine in which `authAccepted` — step 3's checks all passed — is a
 different phase from `okSent`, which the relay reaches only once the dial has returned. The two

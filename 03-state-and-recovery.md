@@ -618,7 +618,7 @@ the separate-account case and the current credential format, not an available LN
 | Host-key pins | The vendor login |
 | The machine inventory | **The seed** — in the operator's head or seed backup, never on the phone alone (`STA-22`) |
 | Action transcripts | **The SSH client keys, re-derived from the seed plus allocation metadata** (`STA-22b`) |
-| Provenance records | **The relay pass**, if its relay address and derivation index were exported (`STA-22b`) |
+| Provenance records | **The relay pass**, if its relay locator and pass index were exported (`STA-22b`) |
 | The exposure ledger | The app URL |
 | | The recovery sheet, **if exported** |
 | **The inference account credential**, unless exported: it is bearer, there is no account behind it, and nothing re-derives it | The inference balance — **only** through the sheet (`SEC-5` row 14) |
@@ -666,14 +666,22 @@ Every allocation and recovery export records that version. Unknown versions are 
 an upgrade never silently reinterprets an existing identity. The seed is a dedicated harness
 seed, never an existing wallet or social-identity seed.
 
+For the recovery payload's version-3-to-version-4 compatibility conversion, see the
+[credential format](./docs/design/credential-format-v1.md). For publisher-key mismatch and
+migration, see `CHN-19`.
+
 **STA-22b Allocation metadata is recoverable state.** The journal owns a seed identifier,
 derivation version, next unused index for each role family (machines, passes, handoffs),
 and allocated entries, including tombstones for failed or destroyed allocations. A jump host
 (`CHN-R6`) takes a machine-family index like any machine, and its entry records that it is in
-no session's bound set. A machine
-entry maps vendor/account reference and immutable vendor machine ID to its index and expected
-SSH public key; a pass entry maps relay URL and public key to its index; a handoff entry
-maps tenant and **handoff ID** to its index. The handoff ID is the identifier the profile's
+no session's bound set. A machine entry maps vendor/account reference and immutable vendor machine
+ID to its index and expected SSH public key; a pass entry maps `relay_locator` and the holder's
+relay-key public half to its pass index; a handoff entry maps tenant and **handoff ID** to its
+index. A pass's `relay_locator` is exactly `{"publisher":P}` for publisher discovery or
+`{"url":R}` for a direct locator. The publisher's discovery key is not the holder's seed-derived
+relay key. The journal also retains CHN-19's signed discovery high-water event per recorded
+publisher key, including withdrawals and expired events; it is recoverable metadata, not proof of
+the newest remote state. The handoff ID is the identifier the profile's
 handoff slot names for the thing its credential is issued to — stable for that credential's
 declared lifetime, so a resumed or restored setup re-derives the same key (btc-policy's is
 the federation ID). Machine roles share one machine index. Reserve it
@@ -805,6 +813,10 @@ the seed is never in the sheet. Placement records carry no value, digest, scan k
 length or other value-derived reference. Their versioned wire shape and association checks
 live in the credential format; incompatible sheet payloads MUST be refused, never imported
 as though no placements or applications existed.
+
+The sheet includes every pass's typed relay locator and retained signed discovery events
+(`STA-22b`). For discovery-event merging, publisher-key mismatch and direct-locator identity
+on Restore, see `CHN-19`.
 
 Every machine-state entry MUST record the operator's installed applications by name and, for
 each, its model provider: the party `TRU-E12` names, recorded whether or not that

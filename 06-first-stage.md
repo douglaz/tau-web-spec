@@ -384,10 +384,11 @@ counts as touching it until that machine is destroyed".
 - **Relay enrolment.** The operator's relay **public** key, derived from the seed (`CHN-15`),
   is handed to the publisher out of band and recorded by hand. Nothing secret crosses and
   nothing is pasted into the app. The publisher configures the allowed public destinations
-  and connection/probe limits (paid-tcp-relay `PAS-6`, its `bundle/timing.toml`); fresh
+  and connection/probe limits ([paid-tcp-relay][relay-source] `PAS-6`, its `bundle/timing.toml`); fresh
   challenge authentication, destination restriction and private-address refusal still apply
   (`CNF-81`, `CNF-87`). There is no purchase flow or automated reacquisition story;
   that is `OPN-2`. Manual replacement follows `STA-17` and the stage-1 recovery row.
+  For publisher-default discovery, see `CHN-19`.
 - **That the application works.** Hermes's functional behavior, and whether its provider
   answers, are not stage-1 gates; the delivery claim is bounded by `ARC-1a` and `ARC-17`.
   Listing that provider in the trust display (`TRU-E12`, `CNF-103`) still is.
@@ -555,3 +556,5 @@ install (`ARC-10`, `STG-12`: inspect what is there and continue) from this rung'
 
 `STG-22` and `STG-23` say what stages 2 and 3 bring. Both reuse the channel, the journal and
 the delivery check that stage 1 proves; neither is a subset of it.
+
+[relay-source]: https://github.com/douglaz/paid-tcp-relay/tree/ba316fc4f734deb93d76561d8703551377987654

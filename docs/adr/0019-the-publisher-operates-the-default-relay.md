@@ -1,7 +1,7 @@
 # The publisher operates the default relay; bring-your-own is the escape hatch
 
-**Moved 2026-09-24.** The rule this record adopted is paid-tcp-relay's (its ADR 0002, `OPR-3`,
-`OPR-4`; github.com/douglaz/paid-tcp-relay). This record stays as the history of why tau-web
+**Moved 2026-09-24.** The rule this record adopted is [paid-tcp-relay][relay-source]'s (its ADR 0002, `OPR-3`,
+`OPR-4`; [source revision][relay-source]). This record stays as the history of why tau-web
 adopted it and is no longer the rule's home; `CHN-11` is tau-web's decision to adopt the default.
 
 The WebSocket-to-TCP relay of
@@ -116,3 +116,11 @@ retains, so the relay-install brief configures no connection logging, and the tr
 display prices the host machine's model as a potential metadata observer regardless —
 for a vault, that model can see the member topology, the same cost the scanner's row
 already names.
+
+## Public publisher-key discovery, October 25 amendment
+
+For publisher-default discovery, see `CHN-19`. For bring-your-own and the relay-host machine's
+external route, see `CHN-11`. For the discovery authority boundary and trust display, see `SEC-8`
+and `TRU-A2`.
+
+[relay-source]: https://github.com/douglaz/paid-tcp-relay/tree/ba316fc4f734deb93d76561d8703551377987654

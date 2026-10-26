@@ -478,8 +478,8 @@ or it spends seconds looking up optional keys on the network before an inbox exi
 
 ## The relay
 
-**CHN-8** The relay MUST NOT be a generic open proxy — paid-tcp-relay's `OPR-1`
-(github.com/douglaz/paid-tcp-relay), where the combination that makes a relay defensible —
+**CHN-8** The relay MUST NOT be a generic open proxy — [paid-tcp-relay][relay-source]'s `OPR-1`
+([source revision][relay-source]), where the combination that makes a relay defensible —
 paid, recorded, capped, paced, revocable — is stated once. The archived specification's §21
 requirements were the origin; the rule moved there on 2026-09-24, and the harness relies on
 that set and adds nothing.
@@ -503,7 +503,7 @@ probes, the pinned vendor tunnel where a vendor refuses CORS (`CHN-12a`), and wh
 profile's post-harness credential speaks to its machines after delivery (`ARC-19a`) — and, if
 `CHN-12b` is ever built, untyped calls whose destination refuses browser CORS.
 The machine-originated attest post no longer crosses it at all. Minimum usage is a design
-property, not an accident; the relay-side statement of the same property is paid-tcp-relay's
+property, not an accident; the relay-side statement of the same property is [paid-tcp-relay][relay-source]'s
 `OPR-2`.
 
 **CHN-11** The relay's operator is the **publisher** by default, with bring-your-own as the
@@ -511,8 +511,11 @@ escape hatch ([ADR-0019](./docs/adr/0019-the-publisher-operates-the-default-rela
 publisher's seat is a **bootstrap**: before the operator has any machine, someone must carry
 the bytes that provision the first one. The product actively offers the move to a relay on
 the operator's own maintained machine once one exists. Who runs a relay and what a self-hosted
-one still depends on is stated once in paid-tcp-relay (`OPR-3`, `OPR-4`, its ADR 0002); this
+one still depends on is stated once in [paid-tcp-relay][relay-source] (`OPR-3`, `OPR-4`, its ADR 0002); this
 requirement is tau-web's decision to adopt that default.
+
+The publisher default is located through CHN-19. Bring-your-own uses an explicitly entered direct
+relay URL, independently of publisher discovery and its availability.
 
 That move retains an **external relay route for the relay-host machine itself**, for SSH,
 recovery and outside-in scans. `CHN-16a` forbids a relay from dialing its own addresses.
@@ -528,18 +531,99 @@ a hostile relay could present its own, have it pinned, and read the session from
 Under `CHN-R6` the relay carries the outer ciphertext of a session pinned out of band, and
 stays a denial of service.
 
+**CHN-19** **Publisher-signed relay discovery.** The build MUST compile the publisher discovery
+public key P and a nonempty public Nostr discovery starting set B from
+`bundle/relay-discovery.toml` at its pinned specification commit. P is a lowercase hex BIP-340
+x-only public key. B contains records pairing `wss` Nostr URLs with their operators' names for the
+trust display; those endpoints permit anonymous reads of [paid-tcp-relay][relay-source] WIR-14; at least one is
+hosted independently of the TCP service. B is separate from CHN-18's private notify-inbox set. The
+build's pin delegates only the locator authority defined by SEC-8. It inherits the glossary's
+signed-bundle qualification; no runtime bundle signature is claimed. The publisher's publication
+and continuity duties are [paid-tcp-relay][relay-source] OPR-10.
+
+Before a new publisher-default connection, query every endpoint in B for the WIR-14 address, using
+a NIP-01 filter with `authors:[P]`, `kinds:[30079]`, `#d:["paid-tcp-relays"]` and `limit:1`. Bound
+the complete discovery attempt by `relay_discovery.fetch_max` in `bundle/timing.toml`; close its
+subscriptions when that attempt ends. Validate each candidate's NIP-01 id and BIP-340 signature,
+`pubkey=P`, kind, d tag and complete WIR-14 schema. Reject a future `created_at` by the browser's
+clock in newly fetched or bundled candidates. Invalid candidates do not change discovery state.
+Local high-water records and signed records imported from a recovery sheet retain their ordering
+evidence independently of current route usability; validate their id, signature, recorded
+publisher-key association and complete schema before merging them. A recorded event whose
+`created_at` is future by the current browser clock remains recorded and participates in ordering,
+but cannot supply a route until it is no longer future. Do not discard such a record to reveal an
+older locator, and do not reject an otherwise valid sheet merely for that clock difference.
+
+Among admissible candidates and retained records for P, select greatest `created_at`, then
+lexically smallest id on a tie. Atomically merge the selected full signed event into the durable
+high-water record for P, including when empty, expired or retained from recovery while future by
+the current clock. Concurrent discovery attempts and Restore MUST NOT overwrite a higher-ranked
+record with a lower-ranked one. Complete this retention before using a publisher locator; if
+retention fails, block publisher-default attempts until it succeeds. Neither fetch failure nor
+withdrawal nor expiration permits fallback below the retained high-water event. Fetched, bundled
+and recovered records share id, signature, key, schema and ordering checks; the recorded-event
+clock rule above distinguishes retained evidence from newly admitted network data. Bundle
+snapshots are optional supplementary signed data and confer no extra validity. Restore cannot roll
+back a newer locally held event.
+
+Use only the selected event, only when its `created_at` is not future by the browser's current
+clock, only while that clock is strictly less than its signed expiration, and only with a nonempty
+URL array. A still-valid cached event may be used after a bounded fetch fails; label that use with
+its `created_at` and expiration. Without such an event, or after an empty withdrawal, block the
+publisher default and offer explicitly entered bring-your-own under CHN-11. Never silently use a
+compiled or formerly selected TCP URL. A signature and unexpired validity do not establish that a
+fresh restore has seen the publisher's newest event. Store loss, older sheets, incomplete
+publication or an endpoint withholding a successor can leave that successor unknown.
+[paid-tcp-relay][relay-source] `OPR-10` says "Each newly issued replacement announcement, including an empty
+withdrawal or expiration renewal, MUST have a `created_at` strictly greater than every earlier
+announcement issued at this address, and an expiration no earlier than any announcement it
+supersedes." This removes the case where a correctly published successor disappears solely by
+expiring before a still-valid predecessor; it does not prove delivery or restore lost knowledge.
+An older, still-unexpired signed list can remain selectable when no newer record is known. No
+maximum announcement lifetime is specified here; the residual window lasts until that list's
+signed expiration. The interface MUST not claim otherwise.
+
+Try the selected event's TCP URLs in listed order, with the same holder pass identity and
+admission checks. Pin R for each connection before opening the [paid-tcp-relay][relay-source] `/v2/` request.
+Before sending AUTH, require the challenge's `relay` to equal R byte for byte, and sign exactly R
+in AUTH's `relay` tag. On mismatch close with 4002 and send no AUTH. Do not follow a redirect to a
+different base URL as discovery. List updates and expiration affect future attempts, never
+retarget an open connection. Explicit BYO and recovered direct locators use the same connection
+binding, independently of P or discovery availability. A newly entered direct URL is normalized to
+WIR-14's WHATWG form before its first recording. Historical direct locators are preserved exactly;
+a nonconforming historical value remains recorded and blocked pending an explicit correction,
+rather than being silently rewritten.
+
+A recovered publisher locator is usable only when its P equals the build pin. A different
+recovered P remains recorded but blocked; do not substitute the build P. Publisher-key rotation
+requires an explicitly chosen build-pin and sheet-locator migration, with pass-state continuity
+checked separately. An announcement cannot rotate P, alter B or reinterpret a direct locator. The
+migration is not inferred from matching URLs. CHN-19 owns this publisher-key migration condition;
+it is distinct from STA-17's seed Replace. Record the operator's explicit build-pin and
+sheet-locator migration choice, retain the old identity until that migration completes, and export
+the updated locator. Discovery supplies no implicit migration act. Discovery locates only the TCP
+service: an announcement does not move CHN-18's notify set. A TCP-service move that separates it
+from the same-host Nostr notify service in CHN-9/CHN-18 requires a separate build change to those
+notify rules and inputs.
+
 **CHN-15** Relay access is **bought, not granted**, and what is bought is recorded against a
 **relay key** the browser derives from the seed (`STA-22`), one per purchase. The model — the
 `402` purchase, the key-bound pass, the challenge the browser signs in the NIP-42 shape it
-already implements for the Nostr relay, and the wire with its check order — is paid-tcp-relay's
-(`PAS-1`–`PAS-8`, `WIR-1`–`WIR-11`; github.com/douglaz/paid-tcp-relay), adopted by
+already implements for the Nostr relay, and the wire with its check order — is [paid-tcp-relay][relay-source]'s
+(`PAS-1`–`PAS-8`, `WIR-1`–`WIR-14`; [source revision][relay-source]), adopted by
 [ADR-0025](./docs/adr/0025-relay-access-is-bought-not-granted.md) and moved there on
 2026-09-24; `docs/design/relay-protocol-v1.md` is retained as history. What tau-web owns: the
 key derives from the seed and re-derives from the seed plus its exported pass index (`STA-22b`),
 so **nothing bearer is stored** and missing allocation metadata can lose access to paid quota;
-and the operator's own wallet pays the invoice (`ARC-30`, `SEC-13`). The handshake and its check
-order are carried in Lean under `TauWeb.Relay` (ADR-0032) until the port to paid-tcp-relay lands
-(T30); that note names the declarations.
+and the operator's own wallet pays the invoice (`ARC-30`, `SEC-13`). The historical `/v1/`
+handshake and check order are carried in Lean under `TauWeb.Relay` (ADR-0032) until the port to
+[paid-tcp-relay][relay-source] lands (T30); that note names the declarations. Those declarations and
+`relay-witnesses-v1.json` do not certify the `/v2/` additions. The consumer uses `/v2/` for
+CHN-19 connections; shared behavior remains [paid-tcp-relay][relay-source]'s rather than a second wire contract
+here. All references to that set in this specification use merged source revision
+[`ba316fc4f734deb93d76561d8703551377987654`](https://github.com/douglaz/paid-tcp-relay/commit/ba316fc4f734deb93d76561d8703551377987654).
+The selected wire profile is `/v2/`; `/v1/` and the historical companion remain explicitly scoped
+to v1.
 
 **No account, and therefore no identity party.** That is the point: an account system is a party
 that knows every operator and can deny them service, which `SEC-10` prices as a schema
@@ -548,7 +632,7 @@ purchase, and the relay cannot link two purchases by their keys. What it can lin
 destination set, which `CHN-13` already prices.
 
 **CHN-16** A pass's **destination record is the authorization**, not a separate system
-(paid-tcp-relay `PAS-4`, `DST-1`, moved 2026-09-24). A pass is bought before the machines exist,
+([paid-tcp-relay][relay-source] `PAS-4`, `DST-1`, moved 2026-09-24). A pass is bought before the machines exist,
 so its destination list grows as the operator creates them — the moment the relay learns
 topology, already priced at `CHN-13` — and recording a destination requires the relay key's
 signature, so nobody but the key holder can widen a pass. A recorded destination is reachable
@@ -563,7 +647,7 @@ relay's view equals the world's.
 **CHN-16a Destination authorization never grants access to the relay's private network.**
 The policy — public unicast only, at registration and on every outbound connection; the refused
 address classes; the resolver rule; the pinned IANA tables; unknown forms failing closed; an
-egress firewall as defence in depth — is paid-tcp-relay's (`DST-4`–`DST-7`, moved 2026-09-24)
+egress firewall as defence in depth — is [paid-tcp-relay][relay-source]'s (`DST-4`–`DST-7`, moved 2026-09-24)
 and applies to the first stage's hand-recorded relay key unchanged (`PAS-6`).
 
 The check on every outbound connection is carried as `TauWeb.Relay.parse`,
@@ -577,7 +661,7 @@ address, `TauWeb.Relay.mapped_forbidden_refused` closes the IPv4-mapped spelling
 tables enter the companion as an assumption it quantifies over, never as data it owns. The
 any-port rationale, pacing as the anti-abuse control, and the economic bound on a destination
 the relay cannot verify are that set's `DST-2`, `DST-3`, `DST-8` and ADR 0003; `ARC-26`'s
-per-target limit is the same figure paid-tcp-relay names as pacing.
+per-target limit is the same figure [paid-tcp-relay][relay-source] names as pacing.
 
 **CHN-12** A tunnel terminates TLS **inside the browser** and carries ciphertext over the
 relay, so the relay stays a carrier and learns nothing of the contents. Browsers do not expose
@@ -613,7 +697,7 @@ arbitrary service refusing browser CORS is out of reach for untyped calls.**
 
 ## What the relay learns
 
-**CHN-13** The relay learns the **machine topology** (paid-tcp-relay `OPR-6`), and the product
+**CHN-13** The relay learns the **machine topology** ([paid-tcp-relay][relay-source] `OPR-6`), and the product
 MUST say so. Which
 operator, which destination, when, accumulated over time, *is* the machine set for a
 federation. That is the same knowledge `TRU-E5` prices as a named trust row for the scanner,
@@ -648,6 +732,8 @@ bite it.
 
 **CHN-14** Self-hosting has its own honest price, named rather than hidden: the hosting
 machine's **bound model** has box-plane reach over whatever the relay retains, so the
-relay-install brief configures no connection logging — a relay keeps none, paid-tcp-relay
+relay-install brief configures no connection logging — a relay keeps none, [paid-tcp-relay][relay-source]
 `OPR-5` — and the trust display prices the host machine's model as a potential metadata observer
 regardless.
+
+[relay-source]: https://github.com/douglaz/paid-tcp-relay/tree/ba316fc4f734deb93d76561d8703551377987654
