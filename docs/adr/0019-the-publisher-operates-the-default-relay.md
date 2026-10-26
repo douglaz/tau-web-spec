@@ -123,4 +123,12 @@ For publisher-default discovery, see `CHN-19`. For bring-your-own and the relay-
 external route, see `CHN-11`. For the discovery authority boundary and trust display, see `SEC-8`
 and `TRU-A2`.
 
-[relay-source]: https://github.com/douglaz/paid-tcp-relay/tree/ba316fc4f734deb93d76561d8703551377987654
+## Publisher hosting admission, October 26 amendment
+
+For the selected publisher pod hosting profile, process-local TLS, environment exclusions and
+the independent egress barrier with its declared resolver exception, see `CHN-11`. For truthful
+coverage and source privilege, see `ARC-41`. For admission evidence, see `CNF-113` and the relay
+evidence introduction in `07-conformance.md`. For shared behavior and its rationale, see
+[paid-tcp-relay][relay-source] DST-2–DST-7, OPR-5 and its ADR 0005.
+
+[relay-source]: https://github.com/douglaz/paid-tcp-relay/tree/49309df54dea3841f3cb1a37527f8d4ec9b5f1ab

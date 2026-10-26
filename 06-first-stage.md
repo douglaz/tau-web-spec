@@ -649,4 +649,4 @@ install (`ARC-10`, `STG-12`: inspect what is there and continue) from this rung'
 `STG-22` and `STG-23` say what stages 2 and 3 bring. Both reuse the channel, the journal and
 the delivery check that stage 1 proves; neither is a subset of it.
 
-[relay-source]: https://github.com/douglaz/paid-tcp-relay/tree/ba316fc4f734deb93d76561d8703551377987654
+[relay-source]: https://github.com/douglaz/paid-tcp-relay/tree/49309df54dea3841f3cb1a37527f8d4ec9b5f1ab

@@ -957,13 +957,19 @@ retains unresolved-machine and incomplete-abandonment truth until deletion is co
 [`docs/tenants/btc-policy/profile.md`](./docs/tenants/btc-policy/profile.md), slot
 "Delivery declaration" (ADR-0030). The identifier is kept so existing references resolve.
 
-**ARC-41** The relay-side view of a machine MUST **equal** the world's, and equality has two
-sides. The firewall MUST NOT privilege the relay's source addresses — no allowlist, no
-relay-only port — because a privileged source makes that view larger than the world's. And the
-relay MUST NOT narrow it either: a pass reaches a recorded destination on any port (`CHN-16`),
-because a relay forwarding only port 22 makes the view smaller than the world's and turns the
-scan into a check that cannot fail. The scanner's no-access argument (`ARC-26`) rests on
-equality; only one side of it used to be written down.
+**ARC-41** For a recorded destination eligible under [paid-tcp-relay][relay-source] DST-4,
+the relay-side view of a machine MUST **equal** the world's, and equality has two sides. The
+firewall MUST NOT privilege the relay's source addresses — no allowlist, no relay-only port —
+because a privileged source makes that view larger than the world's. This includes a co-tenant's
+allowlist of a shared relay egress source; disclosure does not make that source unprivileged.
+And the relay MUST NOT narrow eligible destinations to selected ports. For the any-port rule,
+see DST-2 and `CHN-16`; for the scanner's no-access argument, see `ARC-26`.
+
+A self-address or profile-environment exclusion is unavailable coverage, never closed ports or
+successful outside-in verification. Management/scanning of an excluded target MUST use an
+eligible external route demonstrated before any equal-view claim. Missing destination-family
+reachability is also unavailable coverage, never a successful scan. Both-family classification
+and refusal do not establish deployed reachability. `CHN-11` owns the publisher hosting profile.
 
 **One accepted narrowing, with numbers.** OpenSSH since 9.8 penalises a source address that
 misbehaves: 1 s for a connection closed before authentication, 5 s for a refused key,
@@ -1345,3 +1351,5 @@ implementation option. ADR-0046 records the rejected inheritance shim.
 
 **ARC-34** Continuous integration MUST run the CORS probe on every push, because browser
 reachability is an external dependency that can regress silently.
+
+[relay-source]: https://github.com/douglaz/paid-tcp-relay/tree/49309df54dea3841f3cb1a37527f8d4ec9b5f1ab

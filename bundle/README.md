@@ -27,7 +27,7 @@ Deployment values have to be selected and validated before this file and its bun
 are added together. The schema template is not a usable publisher key, endpoint or recovery
 locator. For publisher-default admission, see `CHN-19`; for bring-your-own, see `CHN-11`.
 
-[relay-source]: https://github.com/douglaz/paid-tcp-relay/tree/ba316fc4f734deb93d76561d8703551377987654
+[relay-source]: https://github.com/douglaz/paid-tcp-relay/tree/49309df54dea3841f3cb1a37527f8d4ec9b5f1ab
 
 The CORS probe table includes LNVPS `/api/v1/vm` with requested POST and
 `/api/v1/account` with requested PATCH, alongside the existing inference and Robot routes.

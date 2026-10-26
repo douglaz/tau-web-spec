@@ -747,4 +747,4 @@ What we don't do is *pretend* otherwise. A tenant that needs the AI kept away fr
 designs its procedure for that, like btc-policy sealing its nodes. Everywhere else we minimize
 what the model can reach and count what's left.
 
-[relay-source]: https://github.com/douglaz/paid-tcp-relay/tree/ba316fc4f734deb93d76561d8703551377987654
+[relay-source]: https://github.com/douglaz/paid-tcp-relay/tree/49309df54dea3841f3cb1a37527f8d4ec9b5f1ab

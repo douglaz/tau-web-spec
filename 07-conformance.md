@@ -460,7 +460,11 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       machines. The jump host and its cost appear in the approval batch (`ARC-15`), and one
       whose destroy is unresolved is shown as possibly still existing and billing (`ARC-22`).
 - [ ] **CNF-25 · PRE-SCALE** The vendor firewall does not privilege the relay's source
-      addresses (`ARC-41`), so the scanner's view equals the world's.
+      addresses, including a co-tenant allowlist of shared egress. Check eligible-target
+      reachability on arbitrary ports; self/environment exclusions and unavailable destination
+      families yield unavailable coverage, never closed ports or successful outside-in
+      verification. Demonstrate an eligible external route before claiming excluded-target
+      coverage (`ARC-41`).
 - [ ] **CNF-79 · PRE-SCALE** The channel's pinning cases (`CNF-21`, and `CNF-62` wherever its
       dedicated row applies it) pass on a
       physical Android Chrome (`STG-14`, `OVR-1`); first seen 2026-09-08 on the spike
@@ -609,17 +613,42 @@ an item that tests a mode's conditions or its label is tiered by them like any o
 
 ## Relay access — `CHN-15`, `CHN-16`
 
-These items are [paid-tcp-relay][relay-source]'s since 2026-09-24 ([source revision][relay-source],
-`05-conformance-checklist.md`); each below names the relay rule it depends on, and the harness's
-evidence is that set's test run against the relay the harness uses.
+The shared relay demonstrations are at [paid-tcp-relay][relay-source]
+(`05-conformance-checklist.md`). That checklist and its fixtures define demonstrations and
+data, not an executable suite. The relay implementation owns its executable suite and
+conformance record; the harness integration owns a separate client-observable record against
+the actual live public base and controlled, recorded destinations. Both records identify the
+same implementation/artifact and the selected revision/profile of `CHN-15`. Each identifies
+build inputs/artifact digest, intended/effective configuration digest as applicable, exact
+commands/status, cases, controls, observation points and exclusions. The live record MUST cite
+a deployment record binding its public base to the running artifact digest and effective
+configuration; equality of source commits alone is insufficient.
+
+Keep source/static intent, isolated executable results, isolated enforcement, effective
+deployment inspections with bounded controlled canaries, and live-public-base client results
+distinct. A local/fixture pass cannot discharge required deployment/live assertions. Attribute
+every assertion to an observation point that can establish it, with a control that detects its
+violation. For every required assertion, record passing evidence or an explicit pending status
+and named admission blocker. Correctly bound relay/consumer records may be referenced; do not
+require a live repetition to replace adequate evidence at its required observation point.
+Pending required deployment/live evidence blocks the relevant admission and stage completion,
+while honest local results remain recordable.
+
+Changes to the effective artifact/configuration, network path/policy, capture/collection
+components, address inventory, TLS or relevant retained state invalidate affected evidence and
+require re-demonstration. Confine instrumentation to synthetic traffic; retained bounded
+verdict/configuration/control records MUST NOT contain real-holder topology. These rules apply
+to the relay evidence in `CNF-81`, `CNF-87` and `CNF-113`.
 
 - [ ] **CNF-57 · BLOCKING** An unpaid caller is refused: the relay the harness uses is not usable
       without a valid, unexpired, unrevoked pass bound to the key that signs the challenge, and a
       replayed challenge signature is refused (`CHN-15`; [paid-tcp-relay][relay-source] `PAS-1`, `PAS-3`,
       `WIR-6`).
-- [ ] **CNF-58 · BLOCKING** A pass reaches only the destinations recorded against it, on **any**
-      port, since `ARC-41` requires the relay-side view to equal the world's (`CHN-16`;
-      [paid-tcp-relay][relay-source] `DST-1`, `DST-2`).
+- [ ] **CNF-58 · BLOCKING** A pass reaches only its recorded destinations, on any port where
+      eligible under [paid-tcp-relay][relay-source] DST-4. Demonstrate whole-host exclusions
+      reported as unavailable coverage rather than closed ports or successful outside-in
+      verification, and an unrelated eligible public target on SSH and other ports (`CHN-16`,
+      `ARC-41`; shared DST-1, DST-2).
 - [ ] **CNF-65 · BLOCKING** Probing a recorded destination is **paced**, and `ARC-26`'s per-run and
       per-target limits hold against the rate the relay actually allows (`CHN-16`; [paid-tcp-relay][relay-source]
       `DST-3`). BLOCKING because pacing is the whole of what stops a wide port range being the
@@ -1038,12 +1067,18 @@ Not pass/fail. Required to be recorded.
 
 ## Additional contracts from the September 9 review
 
-- [ ] **CNF-81 · BLOCKING** A recorded destination still cannot reach relay-private services:
-      the destination policy of `CHN-16a` holds on the relay the harness uses ([paid-tcp-relay][relay-source]
-      `DST-4`–`DST-7`, its checklist's private-network item, moved 2026-09-24). Before enabling
-      self-host migration, demonstrate SSH re-entry and scanning of the relay host through a
-      retained external relay; migration without that route is refused (`CHN-11`; [paid-tcp-relay][relay-source]
-      `OPR-4`). Boundary-crossed: a pass must not grant the relay's private network position.
+- [ ] **CNF-81 · BLOCKING** A recorded destination still cannot reach relay-private services
+      (`CHN-16a`; [paid-tcp-relay][relay-source] DST-4–DST-7, CNF-14). Demonstrate application
+      refusal at registration and every dial, including DNS answers, normalized forms, changed
+      inventory before queued initiation and unrelated public positive controls. Separate
+      injected-inventory results from effective deployment self-address completeness. For the
+      publisher default, also pass `CNF-113`; for its mandatory independent barrier and
+      precisely declared private resolver TCP/53 exception outside that second wall, see
+      `CHN-11`. An application refusal or client timeout establishes no independent denial.
+      Before enabling self-host migration, demonstrate SSH re-entry and scanning of the relay
+      host through a retained external relay; migration without that route is refused
+      (`CHN-11`; shared OPR-4). This migration case remains deferred until that capability is
+      enabled. Boundary-crossed: a pass must not grant the relay's private network position.
 - [ ] **CNF-82 · BLOCKING** Local storage follows `STA-23`: wrong passphrases, modified
       envelopes/records, cross-store substitution and unknown formats fail closed; no new
       empty store replaces failed decryption. Reload and background/explicit lock require
@@ -1207,17 +1242,34 @@ Not pass/fail. Required to be recorded.
       refused by the freshness backstop, including overlap with earlier observations.
       Disjoint successor keys can establish the new pin and offer the reset. `STG-20` says
       "The label steers the model; nothing checks it". Destroyed-data.
-- [ ] **CNF-87 · BLOCKING** The first-stage relay is a [paid-tcp-relay][relay-source] relay with a hand-recorded
-      pass (its `PAS-6`): it passes that set's handshake items — fresh challenge, unknown key and
-      replayed signature refused, only the recorded destination set reachable, its
-      `bundle/timing.toml` limits applied, the order challenge, AUTH, OK, a binary frame before
-      OK or a text frame after it closing the socket, **no dial before the AUTH is accepted** and
-      no byte before OK (`WIR-4`–`WIR-10`, moved 2026-09-24). It is not an unauthenticated
-      development proxy (`STG-18`); purchase and quota accounting are outside this check.
-      Boundary-crossed.
+- [ ] **CNF-87 · BLOCKING** The first-stage relay uses the selected `/v2/` profile and a
+      hand-recorded pass (`STG-18`; [paid-tcp-relay][relay-source] PAS-6). Demonstrate fresh
+      challenge, unknown-key and replayed-signature refusal, recorded-only destination
+      reachability, configured timing limits, challenge/AUTH/OK ordering, binary-before-OK
+      and text-after-OK termination, **no dial before the AUTH is accepted** and no application
+      byte before OK. Use the shared WIR-4–WIR-10 and WIR-12–WIR-13 cases below. Purchase and
+      quota accounting remain outside this check. Boundary-crossed.
 
-      For the `/v2/` profile, also pass [paid-tcp-relay][relay-source] `CNF-3`–`CNF-5`, `CNF-10`
-      and, for publisher discovery, `CNF-21`. At stage 1, apply `CNF-9` to hand retirement and
+      For the `/v2/` profile, pass [paid-tcp-relay][relay-source] CNF-3–CNF-5, CNF-10,
+      CNF-12–CNF-14 and, for publisher discovery, CNF-21. Include pacing across restart,
+      concurrent replicas, aliases and domain moves; when event-derived state is lost, show
+      conservative restart refusal. Demonstrate that pass edits are acknowledged only after
+      inclusion in the running relay's authoritative state, including failed reload refusal,
+      hand retirement/removal during pending, quiet and active connections, cancelled work
+      and late successful dials. Include expiry and unrelated-destination positive controls.
+      For the publisher default, also pass `CNF-113`.
+
+      Observe attempted outbound initiation at the relay during refused AUTH, with a positive
+      control that detects a deliberately early attempt even when no destination accepts it;
+      separately observe no application bytes reaching the destination before OK, with its own
+      positive control (shared CNF-4). Client refusals/timeouts prove neither assertion. The
+      live integration matrix covers client-observable challenge/AUTH/OK ordering, admission
+      refusals, recorded-only reachability, arbitrary ports, pacing and the required `/v2/`
+      frame/termination behavior observable by its selected client API. Supported behavior
+      does not narrow the selected protocol. Do not assume live-service loopback/private
+      listeners, fixture pause controls or internal event logs; adapt client cases explicitly.
+
+      At stage 1, apply shared CNF-9 to hand retirement and
       destination removal; require its signed-revocation demonstration before paid/public relay
       access, as the admission table specifies. Shared wire duties and fixtures have their single
       home in that set. For STA-17's manual replacement, confirm publisher retirement of the
@@ -1252,6 +1304,54 @@ Not pass/fail. Required to be recorded.
       mismatch remains recorded and blocked until explicit migration. Record the observed
       outcomes; make the relevant case fail when each guarded refusal is removed.
 
+- [ ] **CNF-113 · BLOCKING** Publisher-default hosting admission (`CHN-11`, `ARC-41`):
+      inspect the effective admitted pod/init configuration, actual forwarding/TLS termination
+      path, host collectors and all operated retention surfaces. Demonstrate relay-process TLS
+      over L4 passthrough or a dedicated public port, with no destination-logging proxy or
+      traffic/logging sidecar. Include certificate issuance/renewal, malformed requests,
+      handshake failures, plaintext-origin and redirect/error paths, with no destination logs
+      or plaintext fallback. Use [paid-tcp-relay][relay-source] CNF-19 for browser-accepted WSS
+      and plain-ws refusal at the actual public origin; trusting a fixture certificate is not
+      that public-origin check.
+
+      Apply shared CNF-16 to the complete operated traffic/collection/storage path for
+      successful, refused and sparse attempts: ingress/L4 forwarding, relay output/files,
+      operated resolvers, node/network flow telemetry, error/debug/trace channels, metric
+      labels/exemplars/series, collectors, rotations, backups and joined stores. Include
+      retained source-IP/time-only records, connection-derived metrics and collector exports;
+      deliberately retaining an event record or event-derived series makes the check fail.
+      Identify observers outside operator control. Bounded/static inspection cannot establish
+      historical absence of logs or deployment silence.
+
+      Demonstrate shared CNF-14 with complete current self and declared environment
+      inventories: pod/workload, underlying node, service/public front door, pod/service
+      ranges, control-plane/metadata and shared-host services, including public addresses
+      and both families. Include missing/stale/incomplete required inventory refusal,
+      registration and every-dial checks, changed queued-dial inventory, DNS/normalized forms,
+      unrelated public positive controls, unavailable-coverage reporting and source-privilege
+      refusal of an equal-view claim. Treat actual destination-family reachability separately.
+
+      Test application refusal and the independent workload-selecting barrier separately.
+      In isolated enforcement tests, bypass the application guard and attempt forbidden,
+      self and environment routes in both families. Record effective combined enforcement,
+      host/node exceptions and routing/NAT. Exercise the precisely declared private resolver
+      TCP/53 endpoint, neighboring addresses and other ports; show that only the declared
+      route is excepted and state plainly if the tunnel connector can use it outside the
+      second wall. Keep mandatory application refusal on that route. Include public SSH and
+      other-port positive controls. Deliberately opening a forbidden rule must make the
+      enforcement check fail. Local namespace/firewall tests establish only their tested
+      setup, never a future deployment's enforcement.
+
+      Separately inspect effective deployment routing/admission, running image, inventories,
+      collectors, mounts/retention, TLS/certificate renewal, replica/reload configuration and
+      pacing continuity, with bounded synthetic canaries and required observation controls.
+      Bind that deployment to the implementation/artifact, effective configuration and live
+      public base used by `CNF-87`. Record required unavailable assertions as pending admission
+      blockers; source/static and isolated results alone never pass this item. Relevant
+      operated-path changes invalidate affected evidence as the relay evidence introduction
+      specifies. Boundary-crossed: publisher hosting must not grant an internal network
+      position or retain connection history.
+
 ## Stage applicability and admission
 
 This table is exhaustive; every new CNF item must acquire a row before it can gate a stage.
@@ -1264,6 +1364,7 @@ promotion rule above.
 | Applies when | CNF items | Interpretation |
 |---|---|---|
 | Stage 1: required | 1–7, 10–17, 21, 23–26, 28–30, 32, 34–35, 37, 39–44, 49–56, 66–73, 78–79, 81–83, 87–91, 93–95, 99–104, 109–111, 112 | One live LNVPS machine on catalogue plain Arch with no tenant, an initial session from the owner's goal and the later session `STG-9` requires (item 108) with a goal of its own, created through a typed adapter. First contact uses `CHN-R7`'s published-key route; item 23 requires no contact during its wait and item 109 requires published-pin admission, freshness, pin checking and disclosure on the integrated harness. Its new job-read pin admission, initial-group opening by a job read, and job-read attempt after a published pin belong to the dedicated row; its unused attest admission, initial-group opening by an attest, and consumed-introduction case belong to the attest row. Stage 1 keeps every case against earlier job-read and attest pins, on pins a Restore brings in, including item 84's "an initial empty group opened by a job read or attest". Synthetic unbound identities exercise 6 and 26. Item 7's growth and subset cases, and item 91's two-machine case, use fixtures until stage 2. Item 110 runs here the cases its own text assigns to stage 1. Item 12 is exercised with a hostile goal and a hostile fetched document; its untyped-scope restatement, and item 14's, wait for stage 2. Item 14 covers any root password the typed adapter's response carries. Item 23 covers unpinned-first-contact refusal; its attest-window case applies where attest is enabled, and its jump-host label waits for stage 2. Items 18 and 61 remain route-specific attest checks, required before enabling that route, not stage-1 requirements. Items 24 and 66 apply wherever the installation is pinned, and item 67's and item 93's unpinned cases wherever it is not; NixOS evidence is required before enabling NixOS. Interrupted resume (`STG-12`) is carried here by items 37, 39, 40 and 54–56; item 86's cases are a rescue boot's, and stay the test bed's. Item 95's stage-1 cases all require integrated evidence (`OPN-28`); cases (e) and (f) run here on M alone: every assertion but their A/B output-release assertions and case (e)'s copied-key assertions, which belong to stage 2. Item 53's `delivery_reboot` cases belong to the dedicated row: the own-record settlement and its append/replay cases; the hold after the journaled yes, including after the reboot settled; the missing-yes and wrong-call settlement refusals; the command in flight at the yes and its held unjournaled yes; the stopped pending-check case; and the late new-boot record under a destructive disposition. LNVPS's typed-restart survival evidence, its typed-restart settlement refusal, its typed-restart hold after the journaled yes including after the reboot settled, its typed-restart stopped pending-check case, the `exec` of the same reboot bytes and every other item-53 case stay here. Item 55's `delivery_reboot` settlement belongs to the dedicated row; the rest stays here. Item 50 covers the delivery check; its scanner half waits for scanner enablement. Item 10 covers local ledger persistence; its sheet-export half is the recovery row's. Item 72 covers local allocation; imported-state cases are 84. Item 81's migration case waits for self-host migration, which no stage yet offers. Item 32 covers the typed adapter's origin. Items 68–71, 78 and 88–90 apply to the procured inference path; bring-your-own and local inference have no aggregator to test. Item 88 uses injected list fixtures the way 17 uses an injected response. Item 42 covers placed secrets; its untyped-scope half waits for stage 2. Item 104 covers the LNVPS invoice and `ARC-30`'s TLS provenance, with no exemption; its untyped-scope case belongs to the stage-2 row. |
+| Stage 1: publisher-default hosting | 113 | Required before admitting the publisher default and before stage 1 completes with it. Include the effective-deployment and live-origin evidence, with the precise resolver TCP/53 route outside the independent-denial guarantee where connector-usable. Isolated results remain recordable while required deployment assertions are pending; pending does not pass admission. This row does not impose the publisher profile on bring-your-own or a self-hosted migration target. |
 | Stage 1: record measurements | 45–47 | Require the integrated browser channel, not the rehearsal's timings. |
 | Stage 1: model-written check reports | 107 | The report label, verdict isolation and absence of automatic re-execution are required before stage 1 completes. |
 | Stage 1: re-entry | 108 | `STG-9`'s later session, re-entering over the same pin and re-running the check, is required before stage 1 completes. Item 93's re-entry case runs with it, using a placement or rotation in the re-entering session. |
@@ -1314,4 +1415,4 @@ Every BLOCKING addition must name an irreversible family: escaped secret, crosse
 destroyed data or money out. Tier labels and applicability are separate: a federation blocker
 can remain deferred while a first-stage PRE-SCALE behavior is required by that stage.
 
-[relay-source]: https://github.com/douglaz/paid-tcp-relay/tree/ba316fc4f734deb93d76561d8703551377987654
+[relay-source]: https://github.com/douglaz/paid-tcp-relay/tree/49309df54dea3841f3cb1a37527f8d4ec9b5f1ab

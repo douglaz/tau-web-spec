@@ -18,4 +18,4 @@ Commit the usable bundle file with its row in `bundle/README.md`. No TCP domain,
 or discovery service is selected by these example strings. For starting-set and notify-input
 authority, see `CHN-19` and `SEC-8`.
 
-[relay-source]: https://github.com/douglaz/paid-tcp-relay/tree/ba316fc4f734deb93d76561d8703551377987654
+[relay-source]: https://github.com/douglaz/paid-tcp-relay/tree/49309df54dea3841f3cb1a37527f8d4ec9b5f1ab

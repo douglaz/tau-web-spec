@@ -204,7 +204,7 @@ procedure, stopping, held result and pending-delivery-check hold remain prose.
 `TauWeb.Dispatch.command_bars_activation_and_reset` pins an unresolved command barring activation
 and reset (ADR-0050). Dispatch schema 6 is unchanged and regenerated.
 
-[relay-source]: https://github.com/douglaz/paid-tcp-relay/tree/ba316fc4f734deb93d76561d8703551377987654
+[relay-source]: https://github.com/douglaz/paid-tcp-relay/tree/49309df54dea3841f3cb1a37527f8d4ec9b5f1ab
 
 The 2026-10-26 LNVPS amendment adds explicit exact-call receipt provenance and correlation
 under `STA-24`, with the operation mapping rendered beside its rule. Dispatch schema 7 carries

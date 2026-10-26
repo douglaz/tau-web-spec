@@ -751,4 +751,4 @@ implementation/tenant evidence, not claims that the harness already exists.
 - [x] **T20 — What the first stage does not test.** `STG-18`: acquisition, relay enrolment,
       inference funding, and a phone-only operator getting started at all.
 
-[relay-source]: https://github.com/douglaz/paid-tcp-relay/tree/ba316fc4f734deb93d76561d8703551377987654
+[relay-source]: https://github.com/douglaz/paid-tcp-relay/tree/49309df54dea3841f3cb1a37527f8d4ec9b5f1ab
