@@ -222,7 +222,7 @@ structure Observation where
   standing : Standing
   deriving DecidableEq, Repr
 
-/-- The narrow receipt exception of `STA-24` and `STG-21a`. Stop uses `destroy`,
+/-- Receipt operations; for evidence authority, see `STA-24` and `STG-21a`. Stop uses `destroy`,
 which already carries the LNVPS stop standing in for destruction; restart uses `reset`.
 This typing grants no receipt authority to Robot's reset. -/
 inductive ReceiptOperation
@@ -465,8 +465,8 @@ authority is per clause and this structure is not one. -/
   /-- `ARC-43`, 2026-10-18: a reboot's own collection needs a different boot.
   Pair: `delivery_reboot_same_boot_refused` / `delivery_reboot_same_boot_admitted_without_guard`. -/
   rebootBootChange : Bool := true
-  /-- `STG-21a`: an order receipt confirms only with its returned vendor id durably
-  associated with the approved entry. Pair: `order_receipt_association_required` /
+  /-- `STG-21a` says "A validated recorded response correlated to the order confirms its returned VM id, durably associated with the approved entry."
+  Pair: `order_receipt_association_required` /
   `order_receipt_without_association_admitted`. -/
   orderAssociation : Bool := true
   deriving DecidableEq, Repr

@@ -106,8 +106,8 @@ account read does not repair the receiving-account race.
 
 The decision accepts both risks on the assumption that a staff transfer is improbable. The
 combined-read authority and its duty-ending consequence are retained deliberately, rather than
-claimed source-sound for all executions. `TRU-E1` exposes the trust assumption; `CNF-112` keeps
-both counterexamples observable. There is no operator-carried evidence alternative.
+claimed source-sound for all executions. For the trust assumption, see `TRU-E1`; for
+conformance, see `CNF-112`. There is no operator-carried evidence alternative.
 
 A later subscription payment can reactivate a soft-deleted id and queue `SpawnVm`; missing
 host state can be rebuilt. No reappearance handling is added. This leaves a billing-display

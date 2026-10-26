@@ -60,7 +60,8 @@ abandonment before any order. No harness recovery mechanism is added. After a lo
 operator supplies the address again. A newly ordered machine reads automatic renewal on
 (`docs/findings/2026-10-11-lnvps-phase-b.md`), and `ARC-30` says "nothing pays one for them":
 after each order the adapter MUST turn the machine's automatic renewal off and read it back as
-off under `STG-21a`'s subscription-bound predicate before the machine is offered for delivery.
+off before the machine is offered for delivery. For the predicate, see `STG-21a`, which says
+"The same predicate is STG-21's delivery read-back."
 
 First contact follows `CHN-R7`, admitted from `OPN-24`'s live published-key probe.
 The phase-B finding records matching presented and published keys before and after reinstall
@@ -127,9 +128,21 @@ Clarification of readiness: a running status satisfies only any independently sp
 
 Renewal-off is confirmed by a successfully decoded authenticated machine read under the expected machine identity, naming its recorded id, with auto_renewal_enabled=false and a present subscription_id matching the subscription previously durably associated with that entry. Retain the evidence before clearing the barrier. The authoritative postcondition can confirm after a lost write response. True, missing/mismatched subscription, missing baseline association, unreadable/malformed response, or the documented false/None fallback leaves unresolved. The same predicate is STG-21's delivery read-back. Abandonment renewal-off still waits for confirmed stop. Neither assignment nor stop establishes billing has ended or the machine has been destroyed.
 
+`STG-21` says "after each order the adapter MUST turn the machine's automatic renewal off and read it back as
+off before the machine is offered for delivery."
+
 **Reinstall.**
 
 Publication-based reinstall confirmation requires a complete nonempty publication durably recorded for the immediately preceding installation before dispatch, followed by a post-dispatch running status carrying a complete publication satisfying every CHN-R7 earlier-group disjointness and current-group containment rule. Without that baseline or another expressly admitted discriminator, reinstall remains unconfirmed. Observing the intervening empty publication is unnecessary.
+
+`CHN-R7` says "A complete candidate
+for the current installation MUST share no fingerprint with any observation or installed-system
+pin from any source in any earlier installation of that machine, including incomplete
+observations, refused complete candidates, and groups older than the last one."
+`CHN-R7` also says "Within the
+current installation, a complete
+candidate MUST contain every fingerprint previously observed there: a partial reading can
+become complete, but no observation can be contradicted or forgotten."
 
 No other discriminator is admitted. `STG-20` owns the installation's dispatch boundary;
 `CHN-R7` owns publication-history retention, candidate admission and host-key pin admission.
@@ -137,10 +150,12 @@ Image id, power/uptime changes and a reinstall 2xx establish no completion. Time
 wait establishes neither failed nor ended. A clear can be intermediate and does not confirm
 reinstall. An empty prior group can admit a pin under `CHN-R7` but cannot confirm this
 reinstall; the cloud barrier and existing permitted-read rules still apply independently.
+For pin admission, `CHN-R7` says "a complete
+publication satisfying these comparisons can do so here."
 
 An old-key observation retained after dispatch can prevent later confirmation in that
-installation; this conservative `CHN-R7` behaviour is explicitly retained, not secretly fixed
-or promised to recover. `CHN-R7` also owns the wait maximum and vendor/address-scan trust
+installation; the quoted publication-history rules are retained, with no recovery promised.
+`CHN-R7` also owns the wait maximum and vendor/address-scan trust
 residual; the cloud barrier permits no SSH to manufacture cloud evidence.
 
 **Deletion.** Complete authenticated inventory absence alone establishes only absence from

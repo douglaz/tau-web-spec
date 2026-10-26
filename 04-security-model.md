@@ -297,9 +297,12 @@ outgrown, because adding a credential means adding a row.
 | 22 | **Derived vendor identity** — not derivable today | — | — | — | — | No role exists for it. `STA-22` says "an implementation must not choose paths independently", and credential format v1 (`STA-22a`) defines no role, index family or known-answer vector for a vendor identity; until it does, none is derived or used (`OPN-26`) |
 | 23 | **Placed-secret scan key and reference**, per secret | Fresh independent browser-CSPRNG key `K` on placement or re-arm; reference `HMAC-SHA-256(K, SHA-256(value))` plus byte length `L` | Encrypted local store under `STA-23`; working copy only in browser memory. Neither key nor reference goes to the machine, sheet, model, transcript or app origin | Until rotation, machine destruction (at LNVPS, the vendor's confirmed deletion, not the stop that stands in for a destroy, `ARC-22`) or local-store loss; re-arm replaces it with a fresh key/reference | Local exact-value comparison only; no external authority | Cleared from working memory on lock, page hide, worker shutdown or session end; persistent copy removed on rotation/destruction, lost with the store |
 
-For rows 5, 6, 12 and 23, LNVPS destruction means the durably recorded deletion confirmation
-admitted by `STG-21a`, with the accepted risk and completion limit it records (`ARC-22`). Until
-then, retain outstanding-machine truth and placed-secret duties; stop, a deletion date and
+For rows 5, 6, 12 and 23, LNVPS destruction means the durably recorded deletion confirmation.
+For its predicate, see `STG-21a`; for abandonment, see `ARC-22`.
+`STG-21a` says "This is accepted vendor risk, not proof of host destruction in every source-permitted execution."
+Its completion limit is "No post-confirmation reappearance handling is specified: the resulting billing-display gap remains,
+and completion does not claim permanent id absence or coverage of that gap."
+Until confirmation, retain outstanding-machine truth and placed-secret duties; stop, a deletion date and
 operator disposition end none of them. This adds no reappearance handling.
 
 Rows 18–20 use the versioned envelope in `STA-23`. Row 15 derives row 17 as well as the

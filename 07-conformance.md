@@ -222,10 +222,10 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       M's unarmed placements until the operator's one act after the reinstall, which covers
       them together: P2's digest as a first issue, P1's as the operator's re-issue. M's
       traffic shows nothing sent for the paste. At LNVPS the assertions after reinstall run
-      after `STG-21a`'s publication confirmation or the operator's disposition with a
+      after publication confirmation (for its predicate, see `STG-21a`) or the operator's disposition with a
       continuation that continues; every assertion before dispatch runs while the destructive
-      disposition stands, and dispatch opens the reinstall's own barrier. `CNF-112` tests that
-      a pin admitted after empty history cannot clear that barrier. Stage 1 runs
+      disposition stands, and dispatch opens the reinstall's own barrier. For the separate
+      pin/barrier conformance pairs, see `CNF-112`. Stage 1 runs
       the assertions on M alone; the A/B output-release and copied-key assertions run at
       stage 2.
       (f) As (e), in an unfinished setup whose abandonment flow `SEC-4` authorizes for M by evidence
@@ -401,7 +401,9 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       `TRU-E13`). The disclosure and every refusal block this route. Export and Restore keep
       `lnvps_retrieve` provenance and installation groups with the pin (`CNF-84`); they do not start
       a new first contact. A pin admitted after an empty prior installation group does not
-      confirm reinstall (`STG-21a`); its cloud barrier still holds. An operation receipt or
+      confirm reinstall; `STG-21a` says "An empty prior group can admit a pin under `CHN-R7` but cannot confirm this
+      reinstall; the cloud barrier and existing permitted-read rules still apply independently."
+      An operation receipt or
       status field outside the admitted key field never supplies a pin or survival evidence.
 - [ ] **CNF-24 · BLOCKING** The install artifact is verified against a value the browser supplies
       from the signed bundle, and a mismatch halts the install (`ARC-25`, `STG-6`). Verified by
@@ -556,8 +558,9 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       Exercise `ARC-43`'s survival evidence: with an explicit yes after the last placement,
       record the old boot identity, reboot, reconnect on the pin, establish a new boot identity
       and active unit, and run the delivery check before any model command. At LNVPS,
-      `STG-21a`'s exact-call restart receipt clears the cloud barrier but supplies no survival
-      evidence: new boot identity and active unit are still independently required. Without
+      an exact-call restart receipt clears the cloud barrier; `STG-21a` says
+      "It does not establish a completed guest boot or service survival."
+      New boot identity and active unit are still independently required. Without
       that receipt the barrier holds; a disposition with a continuation that continues retains
       its unknown outcome and adds no survival evidence. A restriction
       dropped at boot becomes a finding. Declining leaves Delivered with "enabled, restart
@@ -711,7 +714,7 @@ evidence is that set's test run against the relay the harness uses.
       is `STA-24`'s, and `CNF-110` tests it. Verified with a lost response to a
       Robot reset followed by the model requesting the reset again. Money out and destroyed
       data: an autonomous caller must not turn a lost response into another wipe or another
-      purchase. `CNF-112` adds LNVPS operation evidence, failed append and replay pairs.
+      purchase. For LNVPS operation evidence, failed append and replay pairs, see `CNF-112`.
       Stage 1: the create, box-plane and inference cases; the Robot cases run on the
       dedicated test bed; the untyped-scope cases pass before that capability is enabled.
 - [ ] **CNF-110 · BLOCKING** A standing operator disposition restricts what the calls it names
@@ -783,8 +786,7 @@ evidence is that set's test run against the relay the harness uses.
       redirect response ends the call (`ARC-6`).
 - [ ] **CNF-32 · PRE-SCALE** An origin's route is selected by a dedicated no-side-effect probe
       before any side-effecting call exists, and a real call's failure never selects a new
-      route. The bundle probe's per-route CORS checks include LNVPS VM and account/PATCH
-      preflight shapes (`CNF-4`); they do not establish signed-operation success.
+      route. For the bundle probe's per-route CORS conformance, see `CNF-4`.
 - [ ] **CNF-33 · PRE-SCALE** The approval screen for an untyped scope does not present the
       scope as a bound on what the credential can do.
 
@@ -842,7 +844,8 @@ evidence is that set's test run against the relay the harness uses.
         admin-extended VM, purge transaction removing its row without host teardown, then the
         original verified account's successful combined reads. In both, the chosen conjunction
         is true and host destruction false; confirmation and duty-ending effects are nevertheless
-        admitted under the expressly accepted improbable-staff-transfer risk (`TRU-E1`).
+        admitted under the expressly accepted improbable-staff-transfer risk; `TRU-E1` says
+        "Both can satisfy the combined reads without host destruction."
         Include ordinary host-first soft deletion followed by later paid-subscription un-delete
         and rebuild: record the billing-display gap and no permanent-absence completion claim;
         no post-confirmation reappearance handling is required. These are fixture/source traces,

@@ -261,9 +261,11 @@ host keys (`CHN-R5`), or LNVPS published host keys only as an installed-system p
 read by direct fetch from the recorded vendor status response over browser-terminated TLS,
 or operation-confirmation evidence admitted by `STA-24`; never from model text.**
 For attest duties, `CHN-R5` says "accepts the fingerprints only if the seal's author is the sender key it planted"; `CHN-5` says "Single-use MUST be enforced by the browser, not by any relay".
+`STA-24` identifies the evidence forms: "Evidence is the observation the operation's own reconciliation contract
+admits, or its expressly admitted exact-call receipt".
 Operation-confirmation evidence admitted by STA-24 supplies authority only for that operation’s result, not for delivery checks or host-key pins.
-`STG-21`'s account-verification read and `STG-21a`'s order-listing, registration, renewal,
-reinstall and combined deletion reads carry this operation-limited authority. Listing omission
+For account verification, see `STG-21`; for order-listing, registration, renewal,
+reinstall and combined deletion predicates, see `STG-21a`. Listing omission
 or a direct-read 404 grants nothing outside the deletion contract. Arbitrary vendor output
 has no authority. Apart from these operation results and the rescue, attest and LNVPS pins,
 every checked value is job output. The artifact hash
@@ -331,8 +333,9 @@ it asserts nothing beyond the declaration.
 
 At LNVPS the reboot is the typed restart, with its own vendor confirmation under `STA-24`:
 "the observation the operation's own reconciliation contract admits". Until that confirmation,
-box-plane dispatch stays stopped. `STG-21a` owns restart confirmation; its task result
-establishes neither guest boot nor service survival. The subsequent boot-identity read is a harness-composed
+box-plane dispatch stays stopped. `STG-21a` owns restart confirmation and says
+"It does not establish a completed guest boot or service survival."
+The subsequent boot-identity read is a harness-composed
 box-plane read for survival evidence, never the restart's confirmation: `STA-24` says a job
 record "cannot clear a cloud-plane barrier". Elsewhere use `delivery_reboot` above.
 
@@ -932,8 +935,10 @@ against.
 **At LNVPS, which offers the operator no destroy route, destruction remains unconfirmed
 until the admitted deletion evidence is durably recorded.** Destroy and recreate take different
 forms there. Where the harness would destroy a machine — an abandonment, or the old machine of a Replace rebuild — it stops that machine, turns automatic renewal off, and shows it as still existing and billed, with the vendor's stated deletion date, until deletion is confirmed under the LNVPS operation contract.
-`STG-21a` owns that contract, including its accepted administrative-race risk and the deferred
-same-id reappearance gap. Confirmed deletion counts as destruction for `SEC-5`'s lifecycle duties.
+`STG-21a` owns that contract and says "This is accepted vendor risk, not proof of host destruction in every source-permitted execution."
+Its completion limit is "No post-confirmation reappearance handling is specified: the resulting billing-display gap remains,
+and completion does not claim permanent id absence or coverage of that gap."
+Confirmed deletion counts as destruction; `SEC-5` owns the lifecycle duties.
 A stop is neither confirmed destruction nor confirmed billing cessation. The
 routes the operator can call omit destroy, while stop, renewal control and reinstall are available
 (`docs/findings/2026-10-08-lnvps-research.md` §3). **Where the harness would recreate a

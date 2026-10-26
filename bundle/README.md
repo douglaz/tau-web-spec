@@ -35,4 +35,5 @@ The CORS probe table includes LNVPS `/api/v1/vm` with requested POST and
 unauthenticated OPTIONS and GET are sent; the requested mutation is never sent. OPTIONS
 success, origin, method and header checks are independent of GET's origin-header check;
 a readable GET authentication refusal can pass. This checks declared CORS shape, not
-signed-mutation acceptance or end-to-end browser functionality (`CNF-4`, `CNF-32`).
+signed-mutation acceptance or end-to-end browser functionality. For conformance, see
+`CNF-4` and `CNF-32`.

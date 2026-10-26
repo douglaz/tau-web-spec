@@ -43,6 +43,9 @@ Catalogue reads are pure. Authenticated account, inventory, machine-status and S
 
 Account PATCH and invoice-producing renew are never-retry-automatically. None bypasses STA-8 or STA-24.
 
+`STA-8` says "It MUST NOT be retried automatically and no timer may clear it."
+`STA-24` owns the dispatch barrier: "The unresolved barrier holds per resource, not per call."
+
 **STA-6 Box-plane work is never-retry-automatically.** Arbitrary shell on a remote machine
 cannot declare itself idempotent, so no honest declaration other than this exists. Its
 recovery path is `ARC-10`: reconnect, read the machine's state, converge.
@@ -316,8 +319,9 @@ appended before taking effect. Failed append, timeout and operator disposition e
 Receipt evidence binds the successful response to the exact dispatched call, signed request,
 account and target, received over browser-terminated vendor TLS, with its operation-specific
 interpretation. A generic 2xx, an unrelated response or an unvalidated/malformed body is
-insufficient. Receipt authority is limited to `STG-21a`'s order, stop and restart predicates;
-no other mutation response becomes confirmation. The formal receipt operation mapping is:
+insufficient. Receipt authority is limited to order, stop and restart;
+no other mutation response becomes confirmation. For their predicates, see `STG-21a`.
+The formal receipt operation mapping is:
 
 <!-- formal: TauWeb.Render.receiptTable -->
 | Receipt operation | Dispatch kind |
@@ -935,8 +939,8 @@ If the old seed or an index is missing, direct re-entry and pass revocation cann
 Robot machines can still be rekeyed through vendor-authenticated rescue (`STA-15`); cloud
 machines are destroyed and recreated, as that section says. At LNVPS a missing old seed or index
 also loses that machine's vendor key, so the harness can neither reinstall nor stop it; the
-machine remains shown as existing and billed: without its key, no read confirms deletion
-under `STG-21a`, and expiry or operator disposition ends no duty (`ARC-22`).
+machine remains shown as existing and billed. `STG-21a` says "Without the key, no read confirms deletion, and the placed-secret duties continue."
+For abandonment duties, see `ARC-22`.
 The screen names unrecovered machines
 and unrevocable passes, and never reports a complete Replace or complete revocation while
 either remains outstanding, including a manual relay retirement awaiting confirmation.

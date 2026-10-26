@@ -125,9 +125,10 @@ gated on it.
       otherwise refuse the key of an application that only listens once it has its key — the
       trap `ARC-17`'s lifecycle-finding rule removed for `services`.
 - [x] **T50 — Define LNVPS operation confirmation contracts** (`tw-w7a`).
-      Specified in `STA-5`, `STA-24`, `STG-21` and `STG-21a`; `CNF-112` holds the operation
-      conformance pairs. ADR-0042 records the source baseline and accepted administrative-race
-      risk. Later same-id reappearance is unhandled and limits the completion claim. This closes
+      For the rules, see `STA-5`, `STA-24`, `STG-21` and `STG-21a`; for the operation
+      conformance pairs, see `CNF-112`; for the source baseline and rationale, see ADR-0042.
+      `STG-21a` says "No post-confirmation reappearance handling is specified: the resulting billing-display gap remains,
+      and completion does not claim permanent id absence or coverage of that gap." This closes
       the specification task, not integrated implementation or live deletion evidence.
 - [ ] **T44 — Implement the decided derived vendor identity** (`OPN-26`, ADR-0042).
       This is a coordinated change required before stage-1 completion, not a new design
