@@ -388,8 +388,7 @@ counts as touching it until that machine is destroyed".
   challenge authentication, destination restriction and private-address refusal still apply
   (`CNF-81`, `CNF-87`). There is no purchase flow or automated reacquisition story;
   that is `OPN-2`. Manual replacement follows `STA-17` and the stage-1 recovery row.
-  The publisher default is discovered under CHN-19; manual pass enrolment does not supply a fixed
-  default TCP URL.
+  For publisher-default discovery, see `CHN-19`.
 - **That the application works.** Hermes's functional behavior, and whether its provider
   answers, are not stage-1 gates; the delivery claim is bounded by `ARC-1a` and `ARC-17`.
   Listing that provider in the trust display (`TRU-E12`, `CNF-103`) still is.

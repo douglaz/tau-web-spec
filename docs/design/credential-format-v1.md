@@ -124,29 +124,24 @@ allocation carries the field; a failed allocation may
 have no vendor resource ID, but retains its index. No seed or derived private key is included.
 
 In payload version 4, a pass allocation's resource identity is the member `relay_locator`, exactly
-one of `{"publisher":"<P>"}` and `{"url":"<R>"}`. P has CHN-19's public-key encoding; R is the
-direct relay base URL. Its expected public key remains the holder's derived relay key. Reject
+one of `{"publisher":"<P>"}` and `{"url":"<R>"}`. For P's encoding and R's contact admission,
+see `CHN-19`. The allocation's expected public key remains the holder's derived relay key. Reject
 unknown locator tags, extra members, both alternatives, missing values and wrong types; never
-infer an alternative from a URL. Before contact require [paid-tcp-relay][relay-source] WIR-14's URL form for a
-`/v2/` attempt; normalize newly entered direct URLs before first recording under CHN-19, but
-preserve historical direct locator values exactly; a historical locator that cannot be used stays
-recorded and blocked pending an explicit correction.
+infer an alternative from a URL. For direct-locator recording and correction, see `CHN-19`.
 
 Version 4 also requires `relay_discovery`, an array of `{"publisher":"<P>","event":<complete
 signed WIR-14 event>}` records, or `[]` if none are known. At most one record is permitted per P.
+For the event format, see [paid-tcp-relay][relay-source] `WIR-14`.
 Validate each signed event's NIP-01 id, BIP-340 signature, key association with the record's P,
-and complete WIR-14 schema before merging it under CHN-19. A recorded event that is future by the
-importing clock is retained as ordering evidence and blocks that publisher route while future;
-expired and empty records are also retained as ordering evidence and are not usable locators.
-Build-pin equality gates route use, not retention of an event valid for its recorded P. Reject
-malformed or duplicate records before binding. Imported starting URLs never replace the compiled
-discovery set B.
+and complete WIR-14 schema before merging it under `CHN-19`. For retained-event ordering and
+route usability, see `CHN-19`. Reject malformed or duplicate records before binding.
+Imported starting URLs never replace the compiled discovery set B.
 
 Version 3 is accepted only by an explicit compatibility conversion that preserves every other
 version-3 field and its validation, wraps each recorded relay URL as `{"url":R}`, and supplies
 `relay_discovery:[]`. Never infer publisher identity from URL equality. Version 4 exports use only
-the typed locator. Unknown payload versions and versions 1 and 2 remain unsupported. Publisher-key
-mismatch is a blocked recorded identity, not malformed data or permission to substitute a key.
+the typed locator. Unknown payload versions and versions 1 and 2 remain unsupported. For
+publisher-key mismatch and migration, see `CHN-19`.
 This compatibility conversion changes neither the v1 encryption envelope nor derivation version 1,
 AAD, algorithms or known-answer vectors.
 

@@ -1,6 +1,6 @@
 # Relay access is bought, not granted
 
-**Moved 2026-09-24.** The rule this record adopted, with both amendments below, is
+**Moved 2026-09-24.** The rule this record adopted, with its amendments below, is
 [paid-tcp-relay][relay-source]'s (its ADRs 0001 and 0003, `PAS-1`–`PAS-8`, `DST-2`, `DST-3`;
 [source revision][relay-source]). This record stays as the history of why tau-web adopted it
 and is no longer the rule's home; `CHN-15` and `CHN-16` are tau-web's adoption.
@@ -218,22 +218,18 @@ revokes it by the old key's signature.)*
 
 ## Recovery and destination limits, September 9 correction
 
-The seed and pass index re-derive the holder's relay key; the exported relay locator finds the
-relay that holds the pass (`STA-22b`, `CHN-19`). Missing metadata can lose remaining quota;
-seed-only purchase discovery is not
-promised. `CHN-16a` also constrains every destination at dial time to public unicast addresses,
-excluding the relay itself. A signed destination record does not authorize loopback, private
-network or metadata access, even in the first stage's manually enrolled configuration.
+For holder-key recovery and allocation metadata, see `STA-22` and `STA-22b`; for the pass
+locator, see `CHN-19`. For destination authorization and network restrictions, see `CHN-16`
+and `CHN-16a`.
 
 ## /v2/ and typed locators, October 25 amendment
 
-CHN-19 adopts publisher-key discovery with explicit direct bring-your-own locators. STA-22b
-and the credential format carry payload v4, preserve v3 URLs as direct identities and retain
-signed high-water events. Neither a matching URL nor an announcement substitutes a publisher
-key or migrates a pass. Derivation version 1 and the envelope remain unchanged.
+For publisher discovery and publisher-key migration, see `CHN-19`. For recorded pass locators
+and recovery metadata, see `STA-22b` and the
+[credential format](../design/credential-format-v1.md), `STA-22a`'s normative companion.
+For derivation and the encryption envelope, see `STA-22a` and that companion.
 
-CNF-87 demonstrates the selected shared `/v2/` profile and the consumer's discovery, trust and
-recovery boundary. The historical v1 formal module and witnesses remain scoped to v1 pending
-T30's port; they provide no proof of the new wire or discovery behavior.
+For `/v2/` conformance, see `CNF-87`. For the historical formal module's proof scope, see
+`CHN-15` and ADR-0032; for its port, see `T30`.
 
 [relay-source]: https://github.com/douglaz/paid-tcp-relay/tree/ba316fc4f734deb93d76561d8703551377987654

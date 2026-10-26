@@ -119,10 +119,8 @@ already names.
 
 ## Public publisher-key discovery, October 25 amendment
 
-CHN-19 supplies the publisher default's locator; bring-your-own remains an independently
-configured direct URL. The publisher discovery key and public discovery starting set are compiled
-inputs; TCP addresses may move through verified signed announcements. This does not make a new TCP
-operator implicit, remove the external relay route for a self-hosted relay's machine, or turn the
-Content-Security-Policy into an origin pin.
+For publisher-default discovery, see `CHN-19`. For bring-your-own and the relay-host machine's
+external route, see `CHN-11`. For the discovery authority boundary and trust display, see `SEC-8`
+and `TRU-A2`.
 
 [relay-source]: https://github.com/douglaz/paid-tcp-relay/tree/ba316fc4f734deb93d76561d8703551377987654

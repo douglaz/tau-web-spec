@@ -666,9 +666,9 @@ Every allocation and recovery export records that version. Unknown versions are 
 an upgrade never silently reinterprets an existing identity. The seed is a dedicated harness
 seed, never an existing wallet or social-identity seed.
 
-The recovery payload's explicit version-3-to-version-4 pass-locator conversion is defined by the
-credential format. It changes neither derivation version 1 nor any derived holder key. A
-publisher-key mismatch is governed by CHN-19 and is not silently migrated.
+For the recovery payload's version-3-to-version-4 compatibility conversion, see the
+[credential format](./docs/design/credential-format-v1.md). For publisher-key mismatch and
+migration, see `CHN-19`.
 
 **STA-22b Allocation metadata is recoverable state.** The journal owns a seed identifier,
 derivation version, next unused index for each role family (machines, passes, handoffs),
@@ -814,11 +814,9 @@ length or other value-derived reference. Their versioned wire shape and associat
 live in the credential format; incompatible sheet payloads MUST be refused, never imported
 as though no placements or applications existed.
 
-The sheet includes every pass's typed relay locator and CHN-19's retained signed discovery events.
-On Restore, combine recorded discovery events with any newer local record under CHN-19's ordering
-before a publisher route is used; missing newer remote knowledge is not inferred. Publisher-key
-mismatch remains recorded and blocked under CHN-19. Direct locators retain their recorded
-identity.
+The sheet includes every pass's typed relay locator and retained signed discovery events
+(`STA-22b`). For discovery-event merging, publisher-key mismatch and direct-locator identity
+on Restore, see `CHN-19`.
 
 Every machine-state entry MUST record the operator's installed applications by name and, for
 each, its model provider: the party `TRU-E12` names, recorded whether or not that

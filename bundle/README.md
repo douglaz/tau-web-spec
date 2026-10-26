@@ -1,10 +1,12 @@
 # bundle/ — publisher-chosen inputs the build compiles in
 
 Values the specification governs and the implementation repository compiles into the served build
-at the pinned spec commit (ADR-0031). These compiled inputs are not substituted at runtime
-(`SEC-7`, `CNF-34`). CHN-19 uses its compiled key and starting set to verify runtime relay
-announcements; those events are external content under SEC-8, not replacements for bundle inputs.
-Changing a compiled value is a commit to this repository and a pin bump on the other side.
+at the pinned spec commit (ADR-0031). Changing a compiled value is a commit to this repository
+and a pin bump on the other side.
+
+`SEC-7` says "Briefs and advisory feed lists MUST ship in the signed bundle and MUST NOT be fetched,
+configured, or substituted at runtime." See also `CNF-34`. For publisher-default discovery and
+the external-content boundary, see `CHN-19` and `SEC-8`.
 
 | File | Governs | Rule |
 |---|---|---|
@@ -17,12 +19,12 @@ Changing a compiled value is a commit to this repository and a pin bump on the o
 Tenant profiles stay in `docs/tenants/`, briefs in `docs/briefs/` and under each tenant; the
 build compiles those in too.
 
-CHN-19 also requires a publisher key and public discovery starting set from
-`relay-discovery.toml`. The schema is documented in
+`CHN-19` says "The build MUST compile the publisher discovery public key P and a nonempty public
+Nostr discovery starting set B from `bundle/relay-discovery.toml` at its pinned specification
+commit." The schema is documented in
 [`docs/design/relay-discovery-inputs.md`](../docs/design/relay-discovery-inputs.md).
 Deployment values have to be selected and validated before this file and its bundle-table row
 are added together. The schema template is not a usable publisher key, endpoint or recovery
-locator; a build without valid discovery inputs cannot enable the publisher default. Explicit
-bring-your-own remains independent.
+locator. For publisher-default admission, see `CHN-19`; for bring-your-own, see `CHN-11`.
 
 [relay-source]: https://github.com/douglaz/paid-tcp-relay/tree/ba316fc4f734deb93d76561d8703551377987654

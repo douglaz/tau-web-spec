@@ -13,11 +13,9 @@ nostr_relays = [
 ]
 ```
 
-Select an actual publisher signing identity and reachable anonymously readable public Nostr
-endpoints, including an independently hosted endpoint. Record actual operator names for the
-trust display. Validate the selected key encoding, URL forms and endpoint duties before
-committing the usable bundle file with its row in `bundle/README.md`. No TCP domain, signing
-key or discovery service is selected by these example strings. The event does not supply a
-new compiled starting set or a private notify inbox.
+Select and validate deployment values under `CHN-19`; for the trust display, see `TRU-A2`.
+Commit the usable bundle file with its row in `bundle/README.md`. No TCP domain, signing key
+or discovery service is selected by these example strings. For starting-set and notify-input
+authority, see `CHN-19` and `SEC-8`.
 
 [relay-source]: https://github.com/douglaz/paid-tcp-relay/tree/ba316fc4f734deb93d76561d8703551377987654
