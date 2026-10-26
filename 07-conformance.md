@@ -21,9 +21,21 @@ Treat any unchecked box below as a green check next to an empty test suite.
 - [ ] **CNF-4** The CORS probe runs on every push (`ARC-34`), and its failure fails the build.
       Browser reachability is an external dependency that can regress silently. The probe is
       `bundle/cors-probe.sh`: unauthenticated, an `Origin`-bearing `OPTIONS` and `GET` per
-      origin, asserting on the `Access-Control-*` headers themselves and never on success —
+      route, asserting on the `Access-Control-*` headers themselves rather than treating HTTP
+      success alone as CORS evidence —
       the corpus was fooled once by a probe that measured a 200. The build-failing gate is the
       implementation repository's CI, running it from the pinned spec tree (ADR-0031).
+      The table includes the LNVPS VM route with requested POST and account route with
+      requested PATCH. Fixture cases check OPTIONS success, origin, requested method and
+      requested headers independently of GET's origin header; POST is the default requested
+      method, and requested methods are compared case-sensitively. For the uppercase PATCH
+      preflight, otherwise identical fixtures with `Access-Control-Allow-Methods: PATCH` pass
+      and `Access-Control-Allow-Methods: patch` fail. Header-name comparison remains
+      case-insensitive. Missing origin,
+      method or headers and transport failure each fail; a readable authentication-refused
+      GET with the required header passes. Assert only unauthenticated OPTIONS and GET are
+      sent, with no signed mutation or verification-link fetch. The probe establishes declared
+      CORS shape, not signed-mutation acceptance or end-to-end browser functionality.
 
 ## Tiering — which of these gate what
 
@@ -209,10 +221,11 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       gets no digest after the reset. Without a paste, no digest is composed or re-issued for
       M's unarmed placements until the operator's one act after the reinstall, which covers
       them together: P2's digest as a first issue, P1's as the operator's re-issue. M's
-      traffic shows nothing sent for the paste. At LNVPS, until `TASKS.md` T50 defines the
-      typed reinstall's confirmation, the assertions after the reinstall run after the
-      operator's disposition of the reinstall call with a continuation that continues;
-      every assertion before it runs while the destructive disposition stands. Stage 1 runs
+      traffic shows nothing sent for the paste. At LNVPS the assertions after reinstall run
+      after publication confirmation (for its predicate, see `STG-21a`) or the operator's disposition with a
+      continuation that continues; every assertion before dispatch runs while the destructive
+      disposition stands, and dispatch opens the reinstall's own barrier. For the separate
+      pin/barrier conformance pairs, see `CNF-112`. Stage 1 runs
       the assertions on M alone; the A/B output-release and copied-key assertions run at
       stage 2.
       (f) As (e), in an unfinished setup whose abandonment flow `SEC-4` authorizes for M by evidence
@@ -356,7 +369,7 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       deadline, first contact is unresolved, with no login or timer-driven retry. The harness
       offers operator-chosen reinstall or abandonment, never automatic reinstall, fallback
       login or trust on first use. Abandonment stops the machine, turns renewal off and leaves
-      it shown as existing and billed until the vendor's stated deletion date (`ARC-22`). Exercise each
+      it shown as existing and billed until deletion is confirmed (`ARC-22`). Exercise each
       refusal and deadline against the integrated harness, including a status response that
       still shows the old publication after reinstall. Boundary crossed: a key taken on trust
       through the relay hands the relay the session.
@@ -387,7 +400,11 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       answer on the machine's address inside the vendor's network at scan time** (`TRU-E1`,
       `TRU-E13`). The disclosure and every refusal block this route. Export and Restore keep
       `lnvps_retrieve` provenance and installation groups with the pin (`CNF-84`); they do not start
-      a new first contact.
+      a new first contact. A pin admitted after an empty prior installation group does not
+      confirm reinstall; `STG-21a` says "An empty prior group can admit a pin under `CHN-R7` but cannot confirm this
+      reinstall; the cloud barrier and existing permitted-read rules still apply independently."
+      An operation receipt or
+      status field outside the admitted key field never supplies a pin or survival evidence.
 - [ ] **CNF-24 · BLOCKING** The install artifact is verified against a value the browser supplies
       from the signed bundle, and a mismatch halts the install (`ARC-25`, `STG-6`). Verified by
       serving an artifact that does not match and confirming the install stops rather than
@@ -540,9 +557,12 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       empty permitted tenant-key-material list does not itself refuse `place_secret`.
       Exercise `ARC-43`'s survival evidence: with an explicit yes after the last placement,
       record the old boot identity, reboot, reconnect on the pin, establish a new boot identity
-      and active unit, and run the delivery check before any model command. At LNVPS, until
-      `TASKS.md` T50 defines the typed restart's confirmation, this case runs after the operator's
-      disposition of the restart with a continuation that continues. A restriction
+      and active unit, and run the delivery check before any model command. At LNVPS,
+      an exact-call restart receipt clears the cloud barrier; `STG-21a` says
+      "It does not establish a completed guest boot or service survival."
+      New boot identity and active unit are still independently required. Without
+      that receipt the barrier holds; a disposition with a continuation that continues retains
+      its unknown outcome and adds no survival evidence. A restriction
       dropped at boot becomes a finding. Declining leaves Delivered with "enabled, restart
       not demonstrated" beside it on the delivery card and trust display, with no lifecycle
       finding. With no enabled-survives-reboot service, no reboot is offered. With an
@@ -644,7 +664,17 @@ evidence is that set's test run against the relay the harness uses.
       association; a different invoice presented in model text never reaches the wallet;
       when neither LNVPS response supplies an invoice, none reaches the wallet. After an LNVPS
       order, a fixture vendor that reports automatic renewal on is set off and read back off
-      before the machine is offered for delivery (`STG-21`). The app holds no funds at any step
+      before the machine is offered for delivery (`STG-21`, `STG-21a`). Expected previously
+      recorded subscription id plus authoritative false passes, including after a lost write
+      response; false/None fallback, missing or mismatched baseline subscription and unreadable
+      response keep delivery blocked. Before ordering, exact expected account and email with
+      email_verified=true passes; false, omitted/null, different email/key, HTML success and
+      PATCH success do not. A stored expired token plus repeated PATCH mints nothing; opening
+      the original link with successful clearance followed by explicitly requested same-address
+      PATCH can reissue. Failed clearing, unavailable link or replacement has honest external
+      recovery or abandonment fallback, with no mail access, alternate address or automatic
+      resend. A verification read whose append fails permits no order, including after replay;
+      a durably appended verification read survives replay. The app holds no funds at any step
       (`SEC-13`). Money out.
 - [ ] **CNF-105 · BLOCKING** While a call under an untyped vendor scope is open or unresolved,
       no box-plane command is dispatched to any machine of the session's bound set at that
@@ -684,7 +714,8 @@ evidence is that set's test run against the relay the harness uses.
       is `STA-24`'s, and `CNF-110` tests it. Verified with a lost response to a
       Robot reset followed by the model requesting the reset again. Money out and destroyed
       data: an autonomous caller must not turn a lost response into another wipe or another
-      purchase. Stage 1: the create, box-plane and inference cases; the Robot cases run on the
+      purchase. For LNVPS operation evidence, failed append and replay pairs, see `CNF-112`.
+      Stage 1: the create, box-plane and inference cases; the Robot cases run on the
       dedicated test bed; the untyped-scope cases pass before that capability is enabled.
 - [ ] **CNF-110 · BLOCKING** A standing operator disposition restricts what the calls it names
       barred and, under a destructive continuation, every box-plane job to the machine,
@@ -755,9 +786,71 @@ evidence is that set's test run against the relay the harness uses.
       redirect response ends the call (`ARC-6`).
 - [ ] **CNF-32 · PRE-SCALE** An origin's route is selected by a dedicated no-side-effect probe
       before any side-effecting call exists, and a real call's failure never selects a new
-      route.
+      route. For the bundle probe's per-route CORS conformance, see `CNF-4`.
 - [ ] **CNF-33 · PRE-SCALE** The approval screen for an untyped scope does not present the
       scope as a bound on what the credential can do.
+
+- [ ] **CNF-112 · BLOCKING** LNVPS operation evidence (`STA-5`, `STA-24`, `STG-21a`,
+      `ARC-22`, `SEC-5`, `ARC-43`) is operation-limited. Inject the following fixture pairs,
+      with failed durable append and replay for every admitted path. A failed append applies
+      no confirmation or deletion consequence, including after replay. Successful replay
+      retains the recorded result and associations. Run the fresh-call-id, changed-index for
+      the same entry, successor-session and different-entry barrier pairs in `CNF-29`/`CNF-110`
+      against these operations. Generic 2xx, malformed response, wrong call/signed request,
+      account or target, arbitrary response, box-plane output, notify event and proposed text
+      confirm no cloud operation. Robot's mutation-response refusal stays intact.
+      - Order: a validated exact-call receipt confirms only its returned VM id and durable
+        entry association. A missing returned id or absent, wrong-entry or failed-append
+        association leaves the order unresolved, including after replay.
+        Lost response plus one exact matching unassociated candidate in a
+        complete decoded listing confirms even with unrelated nonmatches present. Zero leaves
+        unresolved, including after unpaid purge; multiple matching candidates require
+        inspection and show each may bill. Partial/truncated/malformed listing, wrong account,
+        image, full standard/custom resources, client key or ssh_key.id, and already-associated
+        id refuse. Adoption sends no new order and establishes no host/IP creation, invoice,
+        payment, boot or readiness. Key-list reconciliation confirms registration; its lost
+        insertion response cannot trigger a duplicate insertion. Account PATCH and
+        invoice-producing renew never retry automatically; a new call id or session cannot
+        bypass an unresolved mutation.
+      - Stop: exact-call successful receipt confirms even with stale/running cache. A wrong-call
+        receipt, lost/error/timeout response, cached stopped/default/unknown, advancing timestamp
+        or delayed pre-dispatch observation written to cache after dispatch cannot confirm.
+        Subsequent running is displayed without reopening the settled call. Stop retains
+        outstanding-machine and placed-secret duties and proves no billing cessation.
+      - Restart: only exact-call hard-reset task success confirms. Running, lower/same uptime,
+        power transitions or key equality cannot identify a lost reset. Boot/job/keyscan output
+        cannot clear the cloud barrier; completed guest boot and service survival stay independent.
+      - Renewal-off: authoritative false with the expected previously recorded subscription
+        confirms even after lost response. False/None fallback, true, missing/mismatched
+        subscription, missing baseline and malformed/unreadable result leave unresolved.
+        Abandonment renewal-off still waits for stop confirmation; neither ends billing duties.
+      - Reinstall: complete prior durable nonempty publication followed by running with a complete
+        disjoint successor containing current-group knowledge confirms without observing empty.
+        Empty baseline plus queued initial-boot fill, partial baseline plus same-algorithm key
+        replacement, partial/overlapping/current-group-contradictory candidate, image, power,
+        uptime or reinstall 2xx do not. Preserve incomplete/refused observations and pins from
+        every source. A stale old-key poll can conservatively prevent later success; do not
+        erase it. Pin admission after empty history does not confirm the operation. Timeout
+        proves neither failed nor ended; deadlines, permitted reads and scan residual stay intact.
+      - Deletion: ordinary host-first soft/hard deletion satisfying every combined read confirms
+        and ends the destruction-bound duties. Inventory absence alone, transfer 403, transfer
+        then soft delete yielding 403, wrong key, partial/malformed listing, bare/undecodable
+        404, 401/403 auth failure, standalone 404/500, elapsed date or SSH loss do not.
+        Lost key retains duties, with no operator-carried evidence admission. The durable
+        constituent deletion record does not settle a distinct unresolved stop or renewal call.
+        Preserve both source-derived administrative-race traces: (a) transfer, original-account
+        listing omission, ignored account insert, emptied-account purge, account-id lookup 404
+        before VM lookup; (b) receiving-account purge's zero-live guard, transfer of an unpaid
+        admin-extended VM, purge transaction removing its row without host teardown, then the
+        original verified account's successful combined reads. In both, the chosen conjunction
+        is true and host destruction false; confirmation and duty-ending effects are nevertheless
+        admitted under the expressly accepted improbable-staff-transfer risk; `TRU-E1` says
+        "Both can satisfy the combined reads without host destruction."
+        Include ordinary host-first soft deletion followed by later paid-subscription un-delete
+        and rebuild: record the billing-display gap and no permanent-absence completion claim;
+        no post-confirmation reappearance handling is required. These are fixture/source traces,
+        not claimed live observations. Escaped secret, destroyed data and money out: an
+        unsupported confirmation can lift barriers or end duties while a host still survives.
 
 ## Briefs and untrusted content — `SEC-7`, `SEC-8`
 
@@ -1170,7 +1263,7 @@ promotion rule above.
 
 | Applies when | CNF items | Interpretation |
 |---|---|---|
-| Stage 1: required | 1–7, 10–17, 21, 23–26, 28–30, 32, 34–35, 37, 39–44, 49–56, 66–73, 78–79, 81–83, 87–91, 93–95, 99–104, 109–111 | One live LNVPS machine on catalogue plain Arch with no tenant, an initial session from the owner's goal and the later session `STG-9` requires (item 108) with a goal of its own, created through a typed adapter. First contact uses `CHN-R7`'s published-key route; item 23 requires no contact during its wait and item 109 requires published-pin admission, freshness, pin checking and disclosure on the integrated harness. Its new job-read pin admission, initial-group opening by a job read, and job-read attempt after a published pin belong to the dedicated row; its unused attest admission, initial-group opening by an attest, and consumed-introduction case belong to the attest row. Stage 1 keeps every case against earlier job-read and attest pins, on pins a Restore brings in, including item 84's "an initial empty group opened by a job read or attest". Synthetic unbound identities exercise 6 and 26. Item 7's growth and subset cases, and item 91's two-machine case, use fixtures until stage 2. Item 110 runs here the cases its own text assigns to stage 1. Item 12 is exercised with a hostile goal and a hostile fetched document; its untyped-scope restatement, and item 14's, wait for stage 2. Item 14 covers any root password the typed adapter's response carries. Item 23 covers unpinned-first-contact refusal; its attest-window case applies where attest is enabled, and its jump-host label waits for stage 2. Items 18 and 61 remain route-specific attest checks, required before enabling that route, not stage-1 requirements. Items 24 and 66 apply wherever the installation is pinned, and item 67's and item 93's unpinned cases wherever it is not; NixOS evidence is required before enabling NixOS. Interrupted resume (`STG-12`) is carried here by items 37, 39, 40 and 54–56; item 86's cases are a rescue boot's, and stay the test bed's. Item 95's stage-1 cases all require integrated evidence (`OPN-28`); cases (e) and (f) run here on M alone: every assertion but their A/B output-release assertions and case (e)'s copied-key assertions, which belong to stage 2. Item 53's `delivery_reboot` cases belong to the dedicated row: the own-record settlement and its append/replay cases; the hold after the journaled yes, including after the reboot settled; the missing-yes and wrong-call settlement refusals; the command in flight at the yes and its held unjournaled yes; the stopped pending-check case; and the late new-boot record under a destructive disposition. LNVPS's typed-restart survival evidence, its typed-restart settlement refusal, its typed-restart hold after the journaled yes including after the reboot settled, its typed-restart stopped pending-check case, the `exec` of the same reboot bytes and every other item-53 case stay here. Item 55's `delivery_reboot` settlement belongs to the dedicated row; the rest stays here. Item 50 covers the delivery check; its scanner half waits for scanner enablement. Item 10 covers local ledger persistence; its sheet-export half is the recovery row's. Item 72 covers local allocation; imported-state cases are 84. Item 81's migration case waits for self-host migration, which no stage yet offers. Item 32 covers the typed adapter's origin. Items 68–71, 78 and 88–90 apply to the procured inference path; bring-your-own and local inference have no aggregator to test. Item 88 uses injected list fixtures the way 17 uses an injected response. Item 42 covers placed secrets; its untyped-scope half waits for stage 2. Item 104 covers the LNVPS invoice and `ARC-30`'s TLS provenance, with no exemption; its untyped-scope case belongs to the stage-2 row. |
+| Stage 1: required | 1–7, 10–17, 21, 23–26, 28–30, 32, 34–35, 37, 39–44, 49–56, 66–73, 78–79, 81–83, 87–91, 93–95, 99–104, 109–111, 112 | One live LNVPS machine on catalogue plain Arch with no tenant, an initial session from the owner's goal and the later session `STG-9` requires (item 108) with a goal of its own, created through a typed adapter. First contact uses `CHN-R7`'s published-key route; item 23 requires no contact during its wait and item 109 requires published-pin admission, freshness, pin checking and disclosure on the integrated harness. Its new job-read pin admission, initial-group opening by a job read, and job-read attempt after a published pin belong to the dedicated row; its unused attest admission, initial-group opening by an attest, and consumed-introduction case belong to the attest row. Stage 1 keeps every case against earlier job-read and attest pins, on pins a Restore brings in, including item 84's "an initial empty group opened by a job read or attest". Synthetic unbound identities exercise 6 and 26. Item 7's growth and subset cases, and item 91's two-machine case, use fixtures until stage 2. Item 110 runs here the cases its own text assigns to stage 1. Item 12 is exercised with a hostile goal and a hostile fetched document; its untyped-scope restatement, and item 14's, wait for stage 2. Item 14 covers any root password the typed adapter's response carries. Item 23 covers unpinned-first-contact refusal; its attest-window case applies where attest is enabled, and its jump-host label waits for stage 2. Items 18 and 61 remain route-specific attest checks, required before enabling that route, not stage-1 requirements. Items 24 and 66 apply wherever the installation is pinned, and item 67's and item 93's unpinned cases wherever it is not; NixOS evidence is required before enabling NixOS. Interrupted resume (`STG-12`) is carried here by items 37, 39, 40 and 54–56; item 86's cases are a rescue boot's, and stay the test bed's. Item 95's stage-1 cases all require integrated evidence (`OPN-28`); cases (e) and (f) run here on M alone: every assertion but their A/B output-release assertions and case (e)'s copied-key assertions, which belong to stage 2. Item 53's `delivery_reboot` cases belong to the dedicated row: the own-record settlement and its append/replay cases; the hold after the journaled yes, including after the reboot settled; the missing-yes and wrong-call settlement refusals; the command in flight at the yes and its held unjournaled yes; the stopped pending-check case; and the late new-boot record under a destructive disposition. LNVPS's typed-restart survival evidence, its typed-restart settlement refusal, its typed-restart hold after the journaled yes including after the reboot settled, its typed-restart stopped pending-check case, the `exec` of the same reboot bytes and every other item-53 case stay here. Item 55's `delivery_reboot` settlement belongs to the dedicated row; the rest stays here. Item 50 covers the delivery check; its scanner half waits for scanner enablement. Item 10 covers local ledger persistence; its sheet-export half is the recovery row's. Item 72 covers local allocation; imported-state cases are 84. Item 81's migration case waits for self-host migration, which no stage yet offers. Item 32 covers the typed adapter's origin. Items 68–71, 78 and 88–90 apply to the procured inference path; bring-your-own and local inference have no aggregator to test. Item 88 uses injected list fixtures the way 17 uses an injected response. Item 42 covers placed secrets; its untyped-scope half waits for stage 2. Item 104 covers the LNVPS invoice and `ARC-30`'s TLS provenance, with no exemption; its untyped-scope case belongs to the stage-2 row. |
 | Stage 1: record measurements | 45–47 | Require the integrated browser channel, not the rehearsal's timings. |
 | Stage 1: model-written check reports | 107 | The report label, verdict isolation and absence of automatic re-execution are required before stage 1 completes. |
 | Stage 1: re-entry | 108 | `STG-9`'s later session, re-entering over the same pin and re-running the check, is required before stage 1 completes. Item 93's re-entry case runs with it, using a placement or rotation in the re-entering session. |

@@ -61,6 +61,16 @@ what placing machines at several vendors buys.
 At LNVPS, the operator's shared email address links the separate per-machine accounts at the
 vendor, and HTTP ordering records the buyer's IP address and country
 (`docs/findings/2026-10-08-lnvps-research.md` §3).
+`STG-21a` says "The combined reads are admitted despite the verified administrative transfer/purge races
+recorded in `TRU-E1` and ADR-0042, on the accepted assumption that a staff transfer is improbable."
+The source permits both an original-account purge to return a valid
+404 before the VM ownership check while the transferred host survives, and a receiving-account
+purge racing a transfer to remove the VM row without host teardown. Both can satisfy the
+combined reads without host destruction. They are source-derived counterexamples, not live
+observations or reproduced database races. Later payment can also un-delete a soft-deleted id
+and queue a rebuild. `STG-21a` says "No post-confirmation reappearance handling is specified: the resulting billing-display gap remains,
+and completion does not claim permanent id absence or coverage of that gap."
+For the rationale, see ADR-0042; for conformance, see `CNF-112`.
 
 **TRU-E2 — The inference proxy: the one the operator funds, and the aggregator it appears to
 route through.** Procured inference uses the candidate order in `ARC-31b` behind a single

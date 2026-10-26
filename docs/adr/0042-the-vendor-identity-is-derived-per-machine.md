@@ -52,8 +52,7 @@ roots inventory, apart from the seed, which roots credentials. With a seed-deriv
 whoever holds the seed holds the account too: stop, renew, and reinstall, which wipes the disk.
 A lost seed loses both.
 
-**Replace carries the key forward.** LNVPS cannot change an account's key or move a machine
-between accounts. Replace derives each machine's old role-5 key once more and keeps that key
+**Replace carries the key forward.** The customer API offers no route to change an account's key or transfer its VMs; the admin API can transfer a VM and its subscription to another account. Replace derives each machine's old role-5 key once more and keeps that key
 alone, encrypted in the new local store, never the retired seed. It states that the retired
 seed's holder shares control of the vendor account, and offers a rebuild under the new seed:
 the treatment Replace already gives the inference credential it cannot revoke. The rebuild is
@@ -79,3 +78,38 @@ but it is not read-only at the vendor: each probed key leaves an empty account r
 | **NIP-90 ordering for stage 1** | Rejected on 2026-10-10: the order path refuses every order (`docs/findings/2026-10-09-lnvps-nip90-probe.md`, LNVPS/api#422), and it adds Nostr relays as parties. It may return later. |
 | **Rebuild every machine at Replace** | Rejected. A month's rent per machine, and a risk to the application's data. |
 | **Keep the retired seed for vendor operations** | Rejected. Replace ends with the retired seed abandoned (`STA-17`). |
+
+## Operation evidence amendment (2026-10-26)
+
+The source baseline for `STG-21a` is LNVPS/api commit
+`8352f114302dfc5953849416ea13bfd76eb65ecd`. Stop awaits its task and a stopped observation;
+restart awaits the hard-reset task only. Cached status cannot identify either lost call.
+Proxmox `QemuServer.pm` at `71ea0ac7192bb935f63cb64beb59e87d6cecd3bf` reports QEMU
+process-age uptime, and reset sends `system_reset`; neither proves a guest boot. Its recorded
+SHA-256 is `d9636866aa464ee35ada3bc241c77957045e0589198df4ccd7571260dbf18dd6`.
+
+The former blanket read-only rule excluded operation receipts that do carry useful exact-call
+results. The narrow amendment admits those results without treating them as delivery evidence
+or pin authority. Automatic unique exact-match order association avoids a duplicate order while
+zero candidates cannot prove non-execution: unpaid orders can be purged. No paid/unpaid filter
+was selected. Complete prior reinstall publication is necessary because partial same-algorithm
+keys can be replaced during capture; the conservative retained-old-key trap remains intentional.
+
+The normal deletion path tears down the host before database deletion. It is not the only
+source-permitted path. In `lnvps_db/src/mysql.rs`, `upsert_user`'s ignored insert and subsequent
+account-id select are separately awaited. Purging the emptied original account between them
+after a transfer yields a valid JSON 404 before the VM lookup. Separately, `delete_user` checks
+its live-VM count before its transaction: transfer of an unpaid, admin-extended VM after that
+check permits deletion of its row without a host call. The original verified account can then
+satisfy every deletion read while the transferred host survives. Repeating the original
+account read does not repair the receiving-account race.
+
+The decision accepts both risks on the assumption that a staff transfer is improbable. The
+combined-read authority and its duty-ending consequence are retained deliberately, rather than
+claimed source-sound for all executions. For the trust assumption, see `TRU-E1`; for
+conformance, see `CNF-112`. There is no operator-carried evidence alternative.
+
+A later subscription payment can reactivate a soft-deleted id and queue `SpawnVm`; missing
+host state can be rebuilt. No reappearance handling is added. This leaves a billing-display
+gap, so completion claims neither permanent id absence nor coverage of that gap. No live
+vendor call or deletion observation establishes these source-derived conclusions.

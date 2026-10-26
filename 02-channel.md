@@ -312,9 +312,8 @@ check. Status polling during the wait uses `bundle/timing.toml`'s
 `lnvps.published_key_wait_max`. Past that maximum, first contact is unresolved: the harness
 MUST offer only operator-chosen vendor reinstall, which starts a new first contact, or
 abandonment under `ARC-22`. It MUST NOT log in, retry the unresolved contact on a timer,
-automatically reinstall, fall back to an unpinned login, or trust on first use. Abandonment
-stops the machine with renewal off while it remains existing and billed until the vendor's
-stated deletion date (`ARC-22`). Polling during the allowed wait is not a retry after its
+automatically reinstall, fall back to an unpinned login, or trust on first use.
+For abandonment, see `ARC-22`. Polling during the allowed wait is not a retry after its
 deadline.
 
 The trust display MUST identify the pin as **retrieved from the vendor's hypervisor scan**,

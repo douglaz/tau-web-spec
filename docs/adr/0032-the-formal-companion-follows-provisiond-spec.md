@@ -205,3 +205,9 @@ procedure, stopping, held result and pending-delivery-check hold remain prose.
 and reset (ADR-0050). Dispatch schema 6 is unchanged and regenerated.
 
 [relay-source]: https://github.com/douglaz/paid-tcp-relay/tree/ba316fc4f734deb93d76561d8703551377987654
+
+The 2026-10-26 LNVPS amendment adds explicit exact-call receipt provenance and correlation
+under `STA-24`, with the operation mapping rendered beside its rule. Dispatch schema 7 carries
+approved receipt bindings, received results and retained receipt records. The former read-only
+cloud theorem becomes the read-observation provenance theorem, alongside the receipt-correlation
+theorem. Robot read confirmation, arbitrary-output refusal and durable-before-apply remain.

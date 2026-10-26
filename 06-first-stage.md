@@ -46,13 +46,22 @@ operator's own email address to that account at the vendor. The harness MUST NOT
 address anywhere except to the vendor. The same operator address serves every machine's
 separate account. LNVPS sends a single-use verification link valid for about a day; the
 operator opens it. The harness MUST NOT create a mailbox or read the operator's mail. It MUST
-wait until the account reads as verified before submitting the machine's HTTP order through
-the vendor API. A link that expires unopened is requested again; the wait ends only with
-verification or with the operator abandoning the setup (`ARC-22`). After a lost local store the
+wait as follows before submitting the machine's HTTP order through the vendor API:
+
+Ordering waits for authenticated account status showing the expected email and email_verified=true under the expected machine identity. Read-only reconciliation remains permitted. For an unopened expired link, the operator may open the original link, then explicitly request same-address PATCH. Reissue depends on successful token clearing. If the original link is unavailable, clearing fails or replacement cannot be obtained, offer operator-led vendor recovery or abandonment; promise no automated resend.
+
+Expected email means the recorded operator address byte for byte. False, absent/null field,
+unreadable response, different address or different key does not verify; HTML success, PATCH
+success and notification settings do not verify. The adapter obtains no mail/token, invents no
+resend route and submits no alternate address to force reissue. Each reissue PATCH is explicitly
+requested and obeys `STA-5` and `STA-24`. Operator-led vendor recovery is an unverified possible
+external remedy, never a promised available API feature; supported harness fallback is
+abandonment before any order. No harness recovery mechanism is added. After a lost local store the
 operator supplies the address again. A newly ordered machine reads automatic renewal on
 (`docs/findings/2026-10-11-lnvps-phase-b.md`), and `ARC-30` says "nothing pays one for them":
 after each order the adapter MUST turn the machine's automatic renewal off and read it back as
-off before the machine is offered for delivery.
+off before the machine is offered for delivery. For the predicate, see `STG-21a`, which says
+"The same predicate is STG-21's delivery read-back."
 
 First contact follows `CHN-R7`, admitted from `OPN-24`'s live published-key probe.
 The phase-B finding records matching presented and published keys before and after reinstall
@@ -87,6 +96,89 @@ stage 1 waits"; the phase-B result satisfied it.
 The live Hetzner Cloud catalogue lacks Arch (`docs/findings/2026-10-08-lnvps-research.md`,
 last section). The TCP relay and stage-1 manual enrollment and retirement keep their existing
 checks.
+
+**STG-21a LNVPS operation confirmation MUST use the following operation-specific predicates.**
+`STA-24` owns evidence admissibility and durability, `STA-5` the retry classes. These predicates
+are based on the recorded source baseline, not live observations of deletion
+([ADR-0042](./docs/adr/0042-the-vendor-identity-is-derived-per-machine.md)).
+
+**Order and SSH-key registration.**
+
+A validated recorded response correlated to the order confirms its returned VM id, durably associated with the approved entry. Order confirmation establishes the vendor order's returned or reconciled VM id and its association with the approved entry. It does not establish host creation, IP allocation, invoice production, payment, boot or contact readiness. Zero inventory matches leaves unresolved, never proves non-execution and never authorises another order; unpaid purge is one reason. Conflicting/multiple candidates require inspection and no automatic association. Exact account, client SSH key, image and full template/custom resources must be checked against the original recorded intent, and the selected id must not already belong to another entry. No automatic start route or history-based confirmation is added.
+
+An order is confirmed by its recorded 2xx `VmStatus` naming the machine id. After a lost response, it is confirmed by an authenticated listing under the entry's recorded key that holds exactly one machine not associated with another entry, whose image, template resources and `ssh_key.id` equal the recorded request. Zero matches leaves the order unresolved, including after the vendor purges unpaid orders. Two or more go to the operator, who is shown that each may bill.
+
+Here, ‘exactly one’ counts matching, unassociated candidates in the complete successfully decoded authenticated listing, rather than every machine in that listing. Matching requires the recorded account key, image id, client SSH key, all requested standard-template or custom-resource values and `ssh_key.id`; the selected vendor id and its association with the approved entry MUST be durably appended before confirmation takes effect. A partial, truncated, malformed or failed listing confirms nothing. Unrelated nonmatching machines do not change the matching-candidate count.
+
+SSH-key registration is confirmed through the authenticated key-list read matching the recorded account and expected key material and any previously recorded key id; its mutation response is outside the narrow receipt exception. A lost insertion response does not authorise a duplicate insert.
+
+**Stop.**
+
+A recorded successful response correlated to this stop confirms the vendor-observed stopped state awaited by its handler. A subsequent cached stopped result adds no freshness. Without that response, confirmation requires a vendor observation causally established as post-dispatch; otherwise the stop remains unconfirmed.
+
+At the recorded API baseline no cache timestamp rule establishes that causality. A lost/error/timed-out response therefore leaves stop unresolved until qualifying evidence or disposition; no currently identified status-read-only predicate qualifies. No hypothetical future refresh capability is silently implemented. Unknown/default/running/unproved-fresh stopped results and read errors confirm nothing. A subsequent running read is shown and does not retroactively rewrite or reopen a settled call. Stop establishes neither destruction nor the end of billing or placed-secret duties.
+
+**Restart.**
+
+Only a recorded successful response correlated to this exact restart request confirms the vendor’s report of successful hard-reset task completion. It does not establish a completed guest boot or service survival. Running is a separate readiness condition. Without that response, the available status predicate cannot confirm restart.
+
+Clarification of readiness: a running status satisfies only any independently specified running-state check; it establishes no guest/service readiness and adds no new readiness gate. Lost/error/timed-out response leaves the restart unresolved until disposition or genuinely qualifying future operation evidence, not a status-field inference. Running, lower/same uptime, key equality or power transitions cannot identify this reset. No boot-id read/job output/keyscan confirms it; permitted changed-boot evidence can establish only that old jobs ended. `ARC-43` owns separate survival evidence and the dedicated-path `delivery_reboot` exception.
+
+**Renewal-off.**
+
+Renewal-off is confirmed by a successfully decoded authenticated machine read under the expected machine identity, naming its recorded id, with auto_renewal_enabled=false and a present subscription_id matching the subscription previously durably associated with that entry. Retain the evidence before clearing the barrier. The authoritative postcondition can confirm after a lost write response. True, missing/mismatched subscription, missing baseline association, unreadable/malformed response, or the documented false/None fallback leaves unresolved. The same predicate is STG-21's delivery read-back. Abandonment renewal-off still waits for confirmed stop. Neither assignment nor stop establishes billing has ended or the machine has been destroyed.
+
+`STG-21` says "after each order the adapter MUST turn the machine's automatic renewal off and read it back as
+off before the machine is offered for delivery."
+
+**Reinstall.**
+
+Publication-based reinstall confirmation requires a complete nonempty publication durably recorded for the immediately preceding installation before dispatch, followed by a post-dispatch running status carrying a complete publication satisfying every CHN-R7 earlier-group disjointness and current-group containment rule. Without that baseline or another expressly admitted discriminator, reinstall remains unconfirmed. Observing the intervening empty publication is unnecessary.
+
+`CHN-R7` says "A complete candidate
+for the current installation MUST share no fingerprint with any observation or installed-system
+pin from any source in any earlier installation of that machine, including incomplete
+observations, refused complete candidates, and groups older than the last one."
+`CHN-R7` also says "Within the
+current installation, a complete
+candidate MUST contain every fingerprint previously observed there: a partial reading can
+become complete, but no observation can be contradicted or forgotten."
+
+No other discriminator is admitted. `STG-20` owns the installation's dispatch boundary;
+`CHN-R7` owns publication-history retention, candidate admission and host-key pin admission.
+Image id, power/uptime changes and a reinstall 2xx establish no completion. Timeout or lost
+wait establishes neither failed nor ended. A clear can be intermediate and does not confirm
+reinstall. An empty prior group can admit a pin under `CHN-R7` but cannot confirm this
+reinstall; the cloud barrier and existing permitted-read rules still apply independently.
+For pin admission, `CHN-R7` says "a complete
+publication satisfying these comparisons can do so here."
+
+An old-key observation retained after dispatch can prevent later confirmation in that
+installation; the quoted publication-history rules are retained, with no recovery promised.
+`CHN-R7` also owns the wait maximum and vendor/address-scan trust
+residual; the cloud barrier permits no SSH to manufacture cloud evidence.
+
+**Deletion.** Complete authenticated inventory absence alone establishes only absence from
+that account. Ordinary transfer returning 403 does not establish deletion. No stopped state,
+elapsed `deleting_on`, loss of SSH, wrong-account/partial/malformed listing, transport/auth error,
+standalone 404/500 or operator assumption/disposition establishes completed deletion.
+
+Vendor deletion is confirmed when, under the machine's recorded key, `GET /api/v1/account` reads the operator's verified address, the complete `GET /api/v1/vm` listing omits the machine's associated id, and `GET /api/v1/vm/{id}` answers 404. None of these confirms it: a 403 (another owner), a 5xx, a transport or decode failure, a passed `deleting_on`, `stopped`, or lost SSH. Without the key, no read confirms deletion, and the placed-secret duties continue.
+
+The account body must read `email` equal to the recorded operator address byte for byte with
+`email_verified=true`. The 404 must carry the vendor API's decoded JSON error body over
+browser-terminated vendor TLS under the recorded key; a bare or undecodable 404 is insufficient.
+Refuse 401 or 403, whether caused by another owner or authentication. `STA-24` owns the durable
+constituent evidence record; `ARC-22` and `SEC-5` own the consequences.
+
+The combined reads are admitted despite the verified administrative transfer/purge races
+recorded in `TRU-E1` and ADR-0042, on the accepted assumption that a staff transfer is improbable.
+This is accepted vendor risk, not proof of host destruction in every source-permitted execution.
+No operator-carried vendor-evidence path, including attestation retention/display, is admitted.
+A later settled subscription payment can un-delete the same id and queue a rebuild. No
+post-confirmation reappearance handling is specified: the resulting billing-display gap remains,
+and completion does not claim permanent id absence or coverage of that gap. This adds no pin,
+placement, association or contact authority for a reappearing id.
 
 **STG-22 Stage 2 is a vendor with no adapter, where the browser can reach its API.** Such a
 vendor is reached through an untyped vendor scope on `SEC-4`'s conditions, and no further than

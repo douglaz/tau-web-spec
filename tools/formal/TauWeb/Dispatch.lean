@@ -8,10 +8,15 @@ predicates. What this module encodes was decided by a two-reader panel on 2026-0
 attempted and observed — and `External` is external state, what a vendor or machine may actually
 have done. Every dispatch function below takes the journal alone — external state reaches the
 trace only as what a read reported — so no dispatch decision reads it and no theorem's statement
-speaks for it (`CONTEXT.md`, *Formal companion*). A response is
-not modelled at all, which is the assumption a lost response leaves the effect done or not done:
-the harness learns an outcome from a read and from nothing else, since `STG-4` confirms every
-Robot mutation "by observable state, never by its own response and never by a clock".
+speaks for it (`CONTEXT.md`, *Formal companion*). A lost response leaves the effect done or not done. `STG-4` confirms every Robot mutation
+"by observable state, never by its own response and never by a clock". The LNVPS amendment
+adds a distinct receipt record with browser-vendor-TLS provenance, validated operation result
+and exact call/signed-request/account/target correlation. Its approved binding is harness-owned.
+Validation and authenticated transport enter as assumptions, not proofs about network bytes.
+Read observations retain their separate provenance; no receipt is renamed a read. The detailed
+`STG-21a` predicates, subscription/publication histories, deletion constituent records, accepted
+administrative races and reappearance gap remain Markdown-only. In particular this module does
+not infer host destruction or discharge secret duties.
 
 **The barrier is derived.** `unresolved` is an intent with no terminal record, computed from the
 journal, never an event of its own — "an event recording 'became unresolved' is exactly what a
@@ -217,6 +222,49 @@ structure Observation where
   standing : Standing
   deriving DecidableEq, Repr
 
+/-- Receipt operations; for evidence authority, see `STA-24` and `STG-21a`. Stop uses `destroy`,
+which already carries the LNVPS stop standing in for destruction; restart uses `reset`.
+This typing grants no receipt authority to Robot's reset. -/
+inductive ReceiptOperation
+  | order
+  | stop
+  | restart
+  deriving DecidableEq, Repr
+
+def ReceiptOperation.kind : ReceiptOperation → Kind
+  | .order => .create
+  | .stop => .destroy
+  | .restart => .reset
+
+/-- Expected LNVPS identity and signed request, ordinal abstractions of the approved facts.
+Only an LNVPS dispatched operation carries this binding; Robot approvals leave it absent. -/
+structure ReceiptBinding where
+  operation : ReceiptOperation
+  account : Nat
+  signedRequest : Nat
+  deriving DecidableEq, Repr
+
+/-- Provenance is kept distinct from read observations, including refusal sources. -/
+inductive ReceiptSource
+  | browserVendorTls
+  | arbitraryResponse
+  | jobOutput
+  | notifyEvent
+  | proposedText
+  deriving DecidableEq, Repr
+
+/-- A received result, not a read. `validated` is the external validation assumption: the
+operation-specific result was decoded and checked, rather than a generic successful status. -/
+structure Receipt where
+  source : ReceiptSource
+  call : CallId
+  resource : Resource
+  target : Target
+  binding : ReceiptBinding
+  validated : Bool
+  returnedVendor : Option Nat := none
+  deriving DecidableEq, Repr
+
 /-- The approval decision journaled with the intent (`STA-4`). `SEC-4` makes it two properties
 rather than one: a typed operation naming an existing machine is "authorized against the calling
 session's binding", and "What is dispatched is the approved record" — the facts as they were
@@ -224,6 +272,7 @@ approved and journaled, "never a request rebuilt at dispatch". -/
 structure Approval where
   session : SessionId
   facts : Facts
+  receiptBinding : Option ReceiptBinding := none
   deriving DecidableEq, Repr
 
 /-- `STA-4`'s record: "A side-effecting call MUST have a durable record, an approval decision,
@@ -273,6 +322,7 @@ system. -/
 inductive Rec
   | intent (i : Intent)
   | observation (o : Observation)
+  | receipt (r : Receipt)
   | deliveryRebootResult (call : CallId) (resource : Resource) (recordBoot : Option Nat) (observedBoot : Nat)
   | disposition (d : Disposition)
   | association (t : Target) (e : Entry)
@@ -415,6 +465,10 @@ authority is per clause and this structure is not one. -/
   /-- `ARC-43`, 2026-10-18: a reboot's own collection needs a different boot.
   Pair: `delivery_reboot_same_boot_refused` / `delivery_reboot_same_boot_admitted_without_guard`. -/
   rebootBootChange : Bool := true
+  /-- `STG-21a` says "A validated recorded response correlated to the order confirms its returned VM id, durably associated with the approved entry."
+  Pair: `order_receipt_association_required` /
+  `order_receipt_without_association_admitted`. -/
+  orderAssociation : Bool := true
   deriving DecidableEq, Repr
 
 /-- The rules as they stand. -/
@@ -460,6 +514,22 @@ clears nothing either. -/
   | .jobRecord => !cloudPlane o.kind
   | .notifyEvent | .modelText => false
 
+/-- Receipt settlement requires the approved LNVPS binding and exact dispatched call,
+resource and target, plus browser-vendor TLS and operation-specific validated success. -/
+@[req "STA-24"] def receiptMatches (i : Intent) (r : Receipt) : Bool :=
+  r.source == .browserVendorTls && r.validated && r.call == i.call &&
+    r.resource == i.resource && r.target == i.target &&
+    i.approval.receiptBinding == some r.binding && r.binding.operation.kind == i.kind
+
+/-- The returned order id and its association must both be durable before settlement.
+Receipt arrival alone is not an association. Other receipt operations return no new id. -/
+@[req "STG-21a"] def orderAssociated (j : Journal) (i : Intent) (r : Receipt) : Bool :=
+  match r.binding.operation with
+  | .order => match r.returnedVendor, i.resource with
+    | some id, .machine e => associated j (.vendor id) == some e
+    | _, _ => false
+  | .stop | .restart => true
+
 /-- `ARC-43`'s reboot result: the collection names the approved call and machine, and reads
 another boot than the job record's own. A missing boot settles nothing. The approval is carried
 by the durable intent and must bind its session. No generic observation settles this kind.
@@ -476,13 +546,14 @@ resource and operation whose standing confirms it (excluding `deliveryReboot`), 
 `deliveryRebootResult`, or a disposition on the intent's resource
 naming the call — `STA-24`: "**A disposition is a terminal record of its own kind**: it ends the
 call's unresolved state with the outcome recorded as unknown, so the barrier stays one derivation
-— an intent with no terminal record — and a disposed call is not an open one." This reads one
-record; whether a disposition counts at all is not decided from the record alone, and every
-reader below takes a journal `inEffect` has already read. -/
-@[req "STA-8"] def settles (p : Params) (i : Intent) : Rec → Bool
+— an intent with no terminal record — and a disposed call is not an open one." Order receipts
+also read the durable association in `j`; whether a disposition counts at all is not decided
+from the record alone. Every reader below takes a journal `inEffect` has already read. -/
+@[req "STA-8"] def settles (p : Params) (i : Intent) (j : Journal) : Rec → Bool
   | .observation o =>
     admissible o && o.resource == i.resource && o.kind == i.kind && confirms p o.standing &&
       i.kind != .deliveryReboot
+  | .receipt r => receiptMatches i r && (!p.orderAssociation || orderAssociated j i r)
   | .deliveryRebootResult c r boot observed => deliveryRebootResult p i c r boot observed
   | .disposition d =>
     (d.resource == i.resource || !p.dispositionOwnResource) && d.calls.contains i.call
@@ -496,18 +567,18 @@ reader below takes a journal `inEffect` has already read. -/
 /-- The unresolved intents of a journal's tail, given `later`, the records appended after it. An
 intent is unresolved while nothing appended **after** it settles it: a read settles the calls that
 were outstanding when it was taken, never one dispatched afterwards. Newest first. -/
-def openFrom (p : Params) (r : Resource) (later : Journal) : Journal → List Intent
+def openFrom (p : Params) (r : Resource) (whole : Journal) (later : Journal) : Journal → List Intent
   | [] => []
   | rec :: rest =>
-    let tail := openFrom p r (rec :: later) rest
+    let tail := openFrom p r whole (rec :: later) rest
     match rec with
     | .intent i =>
-      if i.resource == r && sideEffecting i.kind && !later.any (settles p i) then i :: tail
+      if i.resource == r && sideEffecting i.kind && !later.any (settles p i whole) then i :: tail
       else tail
     | _ => tail
 
 /-- The unresolved intents naming a resource, in a journal `inEffect` has read. -/
-def openIn (p : Params) (e : Journal) (r : Resource) : List Intent := openFrom p r [] e
+def openIn (p : Params) (e : Journal) (r : Resource) : List Intent := openFrom p r e [] e
 
 /-- Whether a call is unresolved on a resource, in a journal `inEffect` has read. -/
 def unresolvedIn (p : Params) (e : Journal) (r : Resource) (c : CallId) : Bool :=
@@ -525,6 +596,7 @@ def disposes (r : Resource) : Rec → Bool
   | .disposition d => d.resource == r
   | .intent _ => false
   | .observation _ => false
+  | .receipt _ => false
   | .association _ _ => false
   | .resetPrereqs _ _ _ => false
   | .reinstallApproval _ _ _ => false
@@ -561,6 +633,7 @@ where
     | .observation o :: rest =>
       go (if read.isNone && admissible o && o.resource == r && o.kind == .activate
           then some o.standing else read) rest
+    | .receipt _ :: rest => go read rest
     | .disposition _ :: rest => go read rest
     | .association _ _ :: rest => go read rest
     | .resetPrereqs _ _ _ :: rest => go read rest
@@ -619,6 +692,7 @@ def standingIn (p : Params) (r : Resource) : Journal → Option (Disposition × 
     | some s =>
       if i.resource == r && lapsesAt p rest r s.1.continuation i.kind then none else some s
   | .observation _ :: rest => standingIn p r rest
+  | .receipt _ :: rest => standingIn p r rest
   | .association _ _ :: rest => standingIn p r rest
   | .resetPrereqs _ _ _ :: rest => standingIn p r rest
   | .reinstallApproval _ _ _ :: rest => standingIn p r rest
@@ -648,6 +722,7 @@ disposition is tested against the reading of what came before it. -/
     else inEffect p rest
   | .intent i :: rest => .intent i :: inEffect p rest
   | .observation o :: rest => .observation o :: inEffect p rest
+  | .receipt r :: rest => .receipt r :: inEffect p rest
   | .association t e :: rest => .association t e :: inEffect p rest
   | .resetPrereqs e n keys :: rest => .resetPrereqs e n keys :: inEffect p rest
   | .reinstallApproval e c ap :: rest => .reinstallApproval e c ap :: inEffect p rest
@@ -984,6 +1059,8 @@ inductive Event
   /-- A read of the far side: its provenance, the resource and the operation it is a predicate
   for, and the storage outcome of its append. What it reports is external state's. -/
   | observe (provenance : Provenance) (resource : Resource) (kind : Kind) (appended : Bool)
+  /-- The received exact-call result and the storage outcome of its append. -/
+  | receive (receipt : Receipt) (appended : Bool)
   /-- The reboot's own record, collected on the external boot; no boot is a missing record
   or one that never recorded its boot. -/
   | collectReboot (call : CallId) (resource : Resource) (recordBoot : Option Nat) (appended : Bool)
@@ -1022,6 +1099,7 @@ the journal (`STA-2`, `STA-7`). -/
       else { w with verdict := some (.refused .append) }
   | .observe prov r k ok =>
     { append p w (.observation ⟨prov, r, k, x.reports r k⟩) ok with verdict := none }
+  | .receive r ok => { append p w (.receipt r) ok with verdict := none }
   | .collectReboot c r boot ok =>
     { append p w (.deliveryRebootResult c r boot (x.boot r)) ok with verdict := none }
   | .dispose d ok =>
@@ -1169,11 +1247,12 @@ standing." Over every journal, every read and every resource: the step changes n
     simp only [step, append_failed p hp]
   rw [h]
 
-/-- **Only an adapter read or a pin-checked handshake confirms a cloud-plane intent.** `STA-24`:
+/-- **A read observation confirms a cloud-plane intent only from an adapter read or pin-checked handshake.**
+Exact-call receipts use the separate `receiptMatches` predicate. `STA-24`:
 a job record "cannot clear a cloud-plane barrier, and neither can model text (`SEC-8`)", and
 `CHN-17`'s notify event is the machine's word as well. -/
-@[req "STA-24"] theorem cloud_confirmed_by_read_only (p : Params) (i : Intent)
-    (hc : cloudPlane i.kind = true) (o : Observation) (h : settles p i (.observation o) = true) :
+@[req "STA-24"] theorem cloud_observation_sources (p : Params) (i : Intent) (j : Journal)
+    (hc : cloudPlane i.kind = true) (o : Observation) (h : settles p i j (.observation o) = true) :
     o.provenance = .adapterRead ∨ o.provenance = .pinCheckedHandshake := by
   simp only [settles, Bool.and_eq_true, admissible] at h
   obtain ⟨h, _⟩ := h
@@ -1189,6 +1268,15 @@ a job record "cannot clear a cloud-plane barrier, and neither can model text (`S
     exact Bool.noConfusion hadm
   | notifyEvent => rw [hp] at hadm; exact Bool.noConfusion hadm
   | modelText => rw [hp] at hadm; exact Bool.noConfusion hadm
+
+/-- Every admitted receipt has the exact approved LNVPS context, call and target.
+An arbitrary response or an operation outside the narrow exception cannot settle by receipt. -/
+@[req "STA-24"] theorem cloud_receipt_correlated (i : Intent) (r : Receipt)
+    (h : receiptMatches i r = true) :
+    r.source = .browserVendorTls ∧ r.validated = true ∧ r.call = i.call ∧
+    r.resource = i.resource ∧ r.target = i.target ∧
+    i.approval.receiptBinding = some r.binding ∧ r.binding.operation.kind = i.kind := by
+  simpa only [receiptMatches, Bool.and_eq_true, beq_iff_eq, and_assoc] using h
 
 /-- **The inference request is unbarred**, and an unresolved one bars nothing. `STA-24`: it
 "keeps its unresolved intent under `STA-8`, shown as unaccounted spend against the session key's
@@ -1216,6 +1304,7 @@ theorem step_memory_eq (p : Params) (hp : p.durableBeforeApply = true) (x : Exte
       · exact append_memory_eq p hp w hw _ ok
       · exact hw
   | observe prov r k ok => exact append_memory_eq p hp w hw _ ok
+  | receive r ok => exact append_memory_eq p hp w hw _ ok
   | collectReboot c r boot ok => exact append_memory_eq p hp w hw _ ok
   | dispose d ok =>
     simp only [step]
@@ -1814,7 +1903,7 @@ still ends the restriction. A replacement can still end the abandonment: it is a
     (k = .destroy → restricted current w.memory machineA k = some .abandon) ∧
     restriction current
       (.intent { call := 0, target := .entry entryA, resource := machineA, kind := k,
-                 session := 0, approval := ⟨0, 0⟩ } :: w.memory) machineA =
+                 session := 0, approval := ⟨0, 0, none⟩ } :: w.memory) machineA =
       (if k = .destroy then none else some .abandon) := by decide +kernel
 
 /-- With the restriction ended at any later intent, the read's own intent ends it: the command
@@ -2756,9 +2845,9 @@ def invalidRebootCollections : List Event :=
     let w := run current rebootDone.external init invalidRebootCollections
     w.dispatched.map (·.call) = [30] ∧
     w.verdict = some (.refused (.barrier [30])) ∧
-    settles current (intentOf resetRequest1 machineA approvalReset)
+    settles current (intentOf resetRequest1 machineA approvalReset) []
       (.deliveryRebootResult 1 machineA (some 1) 2) = false ∧
-    settles current (intentOf rebootRequest machineA approvalExecB)
+    settles current (intentOf rebootRequest machineA approvalExecB) []
       (.deliveryRebootResult 30 machineA (some 1) 2) = false := by decide +kernel
 
 /-- A failed approval check records no intent for a later collection to settle. -/
@@ -2804,6 +2893,102 @@ def alphabet : List Event :=
 def tracesOf : Nat → List (List Event)
   | 0 => [[]]
   | n + 1 => (tracesOf n).flatMap fun es => alphabet.map (es ++ [·])
+
+/-! ## LNVPS receipt provenance and correlation -/
+
+def restartBinding : ReceiptBinding := ⟨.restart, 41, 73⟩
+def restartApproval : Approval := { approvalReset with receiptBinding := some restartBinding }
+def restartReceipt : Receipt :=
+  { source := .browserVendorTls, call := resetRequest1.call, resource := machineA,
+    target := resetRequest1.target, binding := restartBinding, validated := true }
+def receiptEvents (r : Receipt) (ok : Bool) : List Event :=
+  [.request resetRequest1 restartApproval true, .receive r ok, .replay]
+
+/-- Exact-call receipt survives replay without a confirming status read. -/
+@[req "STA-24"] theorem lnvps_receipt_confirms :
+    unresolved current (run current farDone.external init (receiptEvents restartReceipt true)).memory
+      machineA = [] := by decide +kernel
+
+/-- Failed append, wrong call/account/request/target/resource, invalid body and non-TLS sources
+leave the original call unresolved after replay. No unbound Robot approval admits a receipt. -/
+def refusedReceipts : List Receipt :=
+  [{ restartReceipt with call := 999 },
+   { restartReceipt with binding := { restartBinding with account := 42 } },
+   { restartReceipt with binding := { restartBinding with signedRequest := 74 } },
+   { restartReceipt with target := .entry 999 },
+   { restartReceipt with resource := .machine 999 },
+   { restartReceipt with binding := { restartBinding with operation := .stop } },
+   { restartReceipt with validated := false },
+   { restartReceipt with source := .arbitraryResponse },
+   { restartReceipt with source := .jobOutput },
+   { restartReceipt with source := .notifyEvent },
+   { restartReceipt with source := .proposedText }]
+
+@[req "STA-24"] theorem lnvps_receipt_refusals :
+    refusedReceipts.all (fun r => unresolved current
+      (run current farDone.external init (receiptEvents r true)).memory machineA == [resetRequest1.call])
+      = true ∧
+    unresolved current (run current farDone.external init (receiptEvents restartReceipt false)).memory
+      machineA = [resetRequest1.call] ∧
+    receiptMatches (intentOf resetRequest1 machineA approvalReset) restartReceipt = false := by
+  decide +kernel
+
+def operationReceipt (op : ReceiptOperation) : Receipt :=
+  { restartReceipt with binding := { restartBinding with operation := op }, returnedVendor := if op == .order then some 307 else none }
+
+def operationReceiptEvents (op : ReceiptOperation) : List Event :=
+  let binding := { restartBinding with operation := op }
+  [.request { resetRequest1 with kind := op.kind }
+      { restartApproval with receiptBinding := some binding } true] ++
+  (if op == .order then [.associate (.vendor 307) entryA] else []) ++
+  [.receive (operationReceipt op) true, .replay]
+
+def orderWithoutAssociationEvents : List Event :=
+  (operationReceiptEvents .order).take 1 ++ [.receive (operationReceipt .order) true, .replay]
+def orderWithoutIdEvents : List Event :=
+  (operationReceiptEvents .order).take 1 ++ [.associate (.vendor 307) entryA,
+   .receive { restartReceipt with binding := { restartBinding with operation := .order } } true,
+   .replay]
+
+def orderFailedReceiptEvents : List Event :=
+  (operationReceiptEvents .order).take 1 ++
+  [.associate (.vendor 307) entryA,
+   .receive (operationReceipt .order) false, .replay]
+
+def orderWrongAssociationEvents : List Event :=
+  (operationReceiptEvents .order).take 1 ++
+  [.associate (.vendor 307) entryB, .receive (operationReceipt .order) true, .replay]
+
+/-- Receipt and association may be journaled separately; neither half alone settles the order.
+Wrong-entry association and failed receipt append also leave it unresolved after replay. -/
+@[req "STG-21a"] theorem order_receipt_association_required :
+    unresolved current (run current farDone.external init orderWithoutAssociationEvents).memory
+      machineA = [resetRequest1.call] ∧
+    unresolved current (run current farDone.external init orderWithoutIdEvents).memory
+      machineA = [resetRequest1.call] ∧
+    unresolved current (run current farDone.external init orderWrongAssociationEvents).memory
+      machineA = [resetRequest1.call] ∧
+    unresolved current (run current farDone.external init orderFailedReceiptEvents).memory
+      machineA = [resetRequest1.call] := by decide +kernel
+
+def noOrderAssociation : Params := { current with orderAssociation := false }
+
+@[req "STG-21a"] theorem order_receipt_without_association_admitted :
+    unresolved noOrderAssociation
+      (run noOrderAssociation farDone.external init orderWithoutAssociationEvents).memory
+      machineA = [] ∧
+    unresolved noOrderAssociation
+      (run noOrderAssociation farDone.external init orderWithoutIdEvents).memory
+      machineA = [] := by decide +kernel
+
+/-- All three operation classes settle through the same exact-context checks; no reinstall
+receipt can match even an incorrectly annotated reinstall approval. -/
+@[req "STA-24"] theorem receipt_operation_limit :
+    ([ReceiptOperation.order, .stop, .restart].all fun op =>
+      (unresolved current (run current farDone.external init (operationReceiptEvents op)).memory
+        machineA).isEmpty) = true ∧
+    receiptMatches { intentOf resetRequest1 machineA restartApproval with kind := .reinstall }
+      restartReceipt = false := by decide +kernel
 
 /-- Fresh request identities, including requests refused before dispatch. -/
 def freshRequests (es : List Event) : Bool :=
