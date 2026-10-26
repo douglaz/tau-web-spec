@@ -262,4 +262,4 @@ signed relay revocation follow their own milestones in `07-conformance.md`'s app
 table. These are required implementation demonstrations, not claims that this specification
 has run them.
 
-[relay-source]: https://github.com/douglaz/paid-tcp-relay/tree/ba316fc4f734deb93d76561d8703551377987654
+[relay-source]: https://github.com/douglaz/paid-tcp-relay/tree/49309df54dea3841f3cb1a37527f8d4ec9b5f1ab

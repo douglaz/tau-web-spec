@@ -312,4 +312,4 @@ an ADR is where *why* lives.
 | [0049](./docs/adr/0049-running-at-delivery-binds-until-the-boot-changes.md) | Running-at-delivery binds until the boot changes |
 | [0050](./docs/adr/0050-destructive-dispositions-stop-every-box-plane-job.md) | A destructive disposition stops every box-plane job and offers the local paste at once |
 
-[relay-source]: https://github.com/douglaz/paid-tcp-relay/tree/ba316fc4f734deb93d76561d8703551377987654
+[relay-source]: https://github.com/douglaz/paid-tcp-relay/tree/49309df54dea3841f3cb1a37527f8d4ec9b5f1ab

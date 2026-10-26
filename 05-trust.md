@@ -310,4 +310,4 @@ The party that would otherwise pick every entry in the elective tier and hold th
 besides: **the service operator.** That is the whole of the claim. It is a smaller claim than
 "trustless" and it is one that survives contact with the regress above.
 
-[relay-source]: https://github.com/douglaz/paid-tcp-relay/tree/ba316fc4f734deb93d76561d8703551377987654
+[relay-source]: https://github.com/douglaz/paid-tcp-relay/tree/49309df54dea3841f3cb1a37527f8d4ec9b5f1ab

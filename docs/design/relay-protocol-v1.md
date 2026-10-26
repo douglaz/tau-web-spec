@@ -78,4 +78,4 @@ one address (v1 dials the first admitted answer and refuses if any answer is for
 `CHN-16a`), and the purchase and revocation messages of `CHN-15`/`CHN-16`, which arrive with
 the paid relay.
 
-[relay-source]: https://github.com/douglaz/paid-tcp-relay/tree/ba316fc4f734deb93d76561d8703551377987654
+[relay-source]: https://github.com/douglaz/paid-tcp-relay/tree/49309df54dea3841f3cb1a37527f8d4ec9b5f1ab

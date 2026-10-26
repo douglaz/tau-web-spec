@@ -516,8 +516,44 @@ requirement is tau-web's decision to adopt that default.
 The publisher default is located through CHN-19. Bring-your-own uses an explicitly entered direct
 relay URL, independently of publisher discovery and its availability.
 
+**Publisher-operated hosting profile.** The default MUST run as a pod in the publisher's k3s
+cluster, on a separate domain whose name remains unselected. TLS MUST terminate in the relay
+process, reached through end-to-end L4 TLS passthrough or a dedicated public port. A dedicated
+port alone establishes neither termination location nor absence of logs. No destination-logging
+proxy or traffic/logging sidecar is permitted. The admitted pod/init configuration, forwarding
+path, operator-controlled host collectors and retention surfaces are all in scope. For the
+shared operated-path privacy and WSS rules, see [paid-tcp-relay][relay-source] OPR-5 and OPR-8;
+for their demonstrations, see its CNF-16 and CNF-19. This profile adopts OPR-5 without an
+additional retained-state allowance.
+
+The publisher MUST adopt the `/v2/` DST-4 environment-exclusion mechanism for cluster pod/service
+ranges, node/control-plane/metadata addresses and shared-host services, including globally routed
+addresses. Declare the actual addresses/ranges, keep their required inventory complete and
+current, and exclude whole destination hosts. For the shared self-address inventory and
+registration/every-dial enforcement, see DST-4; for address resolution, see DST-5. An excluded
+target MUST be shown as unavailable coverage, never as closed ports or a successful outside-in
+verification. For external-route demonstrations, source privilege and equal-view claims, see
+`ARC-41`.
+
+This publisher profile MUST enforce an independent workload-selecting egress barrier against
+non-global, self and declared environment tunnel routes in both address families, preserving
+arbitrary ports to eligible public destinations. The only permitted forbidden TCP exception is
+one precisely declared private resolver endpoint on TCP port 53. Declare its exact address,
+protocol, port and whether the tunnel connector's network identity can use it. When usable by
+that identity, this exact route is **outside the egress-policy second wall**; never claim
+universal independent denial or call the exception safe merely because it serves DNS. No broad
+private-subnet, neighboring-address, other-port or all-port exception is permitted. This
+exception never authorizes a tunnel destination; for relay-side eligibility, see DST-4 and
+DST-5. For shared barrier coverage and exception accounting, see DST-7. A policy object alone
+establishes no enforcement.
+
+Admission of the publisher default requires `CNF-113`, including effective deployment evidence;
+source inspection and isolated results alone cannot admit it. This hosting profile does not
+impose process-local TLS or this mandatory independent barrier on bring-your-own or a future
+self-hosted migration target. For those relays, see the shared requirements and `CHN-16a`.
+
 That move retains an **external relay route for the relay-host machine itself**, for SSH,
-recovery and outside-in scans. `CHN-16a` forbids a relay from dialing its own addresses.
+recovery and outside-in scans. For destination eligibility, see `CHN-16a`.
 Before switching the default, configure and demonstrate that external route and preserve its
 access metadata. It may remain the publisher's relay or another operator-chosen relay; its
 availability and metadata visibility remain in the trust display. Do not claim that one
@@ -620,7 +656,7 @@ handshake and check order are carried in Lean under `TauWeb.Relay` (ADR-0032) un
 `relay-witnesses-v1.json` do not certify the `/v2/` additions. The consumer uses `/v2/` for
 CHN-19 connections; shared behavior remains [paid-tcp-relay][relay-source]'s rather than a second wire contract
 here. All references to that set in this specification use merged source revision
-[`ba316fc4f734deb93d76561d8703551377987654`](https://github.com/douglaz/paid-tcp-relay/commit/ba316fc4f734deb93d76561d8703551377987654).
+[`49309df54dea3841f3cb1a37527f8d4ec9b5f1ab`](https://github.com/douglaz/paid-tcp-relay/commit/49309df54dea3841f3cb1a37527f8d4ec9b5f1ab).
 The selected wire profile is `/v2/`; `/v1/` and the historical companion remain explicitly scoped
 to v1.
 
@@ -634,20 +670,20 @@ destination set, which `CHN-13` already prices.
 ([paid-tcp-relay][relay-source] `PAS-4`, `DST-1`, moved 2026-09-24). A pass is bought before the machines exist,
 so its destination list grows as the operator creates them — the moment the relay learns
 topology, already priced at `CHN-13` — and recording a destination requires the relay key's
-signature, so nobody but the key holder can widen a pass. A recorded destination is reachable
-**on any port** (`DST-2`, that set's ADR 0003), which is what `ARC-41`'s equality needs and what
-`ARC-26`'s surface scan relies on. The record is read at the host and not at the port, as
+signature, so nobody but the key holder can widen a pass. For reachability,
+[paid-tcp-relay][relay-source] DST-2 says "A recorded destination eligible under DST-4 is
+reachable on **any port**, never on one port alone (`ADR-0003`)." For equal-view claims and
+unavailable coverage, see `ARC-41`; for surface scans, see `ARC-26`. The record is read at the
+host and not at the port, as
 `TauWeb.Relay.recorded` (ADR-0032) carries it until T30; `TauWeb.Relay.recorded_any_port` and
 `TauWeb.Relay.unrecorded_destination_refused` are that reading and its refusal. A revoked pass
 closes its live connections and refuses new ones (`PAS-5`), which is the teardown rule `CNF-60`
-was waiting for; what revocation protects is money and attribution, since under `ARC-41` the
-relay's view equals the world's.
+was waiting for. For revocation's rationale, see that set's ADR 0003; for eligible-target
+equality and unavailable coverage, see `ARC-41`.
 
 **CHN-16a Destination authorization never grants access to the relay's private network.**
-The policy — public unicast only, at registration and on every outbound connection; the refused
-address classes; the resolver rule; the pinned IANA tables; unknown forms failing closed; an
-egress firewall as defence in depth — is [paid-tcp-relay][relay-source]'s (`DST-4`–`DST-7`, moved 2026-09-24)
-and applies to the first stage's hand-recorded relay key unchanged (`PAS-6`).
+For the destination policy, see [paid-tcp-relay][relay-source] DST-4–DST-7; for stage 1's
+hand-recorded pass, see PAS-6. For the publisher-specific hosting adoption, see `CHN-11`.
 
 The check on every outbound connection is carried as `TauWeb.Relay.parse`,
 `TauWeb.Relay.classify` and `TauWeb.Relay.dial` (ADR-0032), whose argument is by type the
@@ -731,8 +767,7 @@ bite it.
 
 **CHN-14** Self-hosting has its own honest price, named rather than hidden: the hosting
 machine's **bound model** has box-plane reach over whatever the relay retains, so the
-relay-install brief configures no connection logging — a relay keeps none, [paid-tcp-relay][relay-source]
-`OPR-5` — and the trust display prices the host machine's model as a potential metadata observer
-regardless.
+relay-install brief adopts [paid-tcp-relay][relay-source] OPR-5, and the trust display prices
+the host machine's model as a potential metadata observer regardless.
 
-[relay-source]: https://github.com/douglaz/paid-tcp-relay/tree/ba316fc4f734deb93d76561d8703551377987654
+[relay-source]: https://github.com/douglaz/paid-tcp-relay/tree/49309df54dea3841f3cb1a37527f8d4ec9b5f1ab

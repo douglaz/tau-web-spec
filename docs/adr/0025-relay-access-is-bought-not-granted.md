@@ -40,13 +40,11 @@ whatever that machine's firewall is doing. It would confirm `ARC-39`'s declarati
 construction and show the operator a manufactured observation of their own vault. A check that
 cannot fail is worse than no check, because no check is visibly absent.
 
-It also broke `ARC-41` from the side ARC-41 did not guard. That requirement forbids the firewall
-*privileging* relay sources, so the relay-side surface is never **larger** than the world's —
-which is the whole no-access argument. The port restriction made it **smaller**. The argument
-needs equality, and only one side of it was written down.
+It also broke `ARC-41` from the side that requirement did not guard at the time. For the
+current equality, source-privilege and unavailable-coverage rules, see `ARC-41`.
 
-**A recorded destination is therefore reachable on any port, and pacing carries the weight the
-port restriction used to.** Per-run and per-target limits already exist in ADR-0021's tool
+**For recorded-destination eligibility and ports, see [paid-tcp-relay][relay-source] DST-2
+and DST-4; for pacing, see DST-3.** Per-run and per-target limits already exist in ADR-0021's tool
 contract; they stop being politeness and become the anti-abuse control. The narrowing that keeps
 `CHN-8` true is now: recorded destinations only, capped in number, paced per destination, billed,
 revocable.
@@ -82,10 +80,10 @@ operator supplies. What changes is that a lost phone no longer loses the pass �
 re-derives — so "re-bought rather than recovered" was true of the string and is not true of
 the key.
 
-**Revocation is re-priced.** Under `ARC-41` the relay's view equals the world's, so a pass in the
-wrong hands reaches nothing the public internet does not. It spends the operator's paid quota
-and gets their pass blamed for the traffic. Revocation protects money and attribution, not
-machines, and `CHN-16` now says so.
+**Revocation is re-priced.** For eligible-target equality and unavailable coverage, see
+`ARC-41`. A pass in the wrong hands spends the operator's paid quota and gets their pass blamed
+for the traffic. For revocation and its rationale, see `CHN-16` and
+[paid-tcp-relay][relay-source] PAS-5 and its ADR 0003.
 
 **The L402 objections below, re-read against this.** The first — the browser cannot run a
 `402` challenge on a WebSocket upgrade — does not apply to a challenge that runs *inside* the
@@ -232,4 +230,4 @@ For derivation and the encryption envelope, see `STA-22a` and that companion.
 For `/v2/` conformance, see `CNF-87`. For the historical formal module's proof scope, see
 `CHN-15` and ADR-0032; for its port, see `T30`.
 
-[relay-source]: https://github.com/douglaz/paid-tcp-relay/tree/ba316fc4f734deb93d76561d8703551377987654
+[relay-source]: https://github.com/douglaz/paid-tcp-relay/tree/49309df54dea3841f3cb1a37527f8d4ec9b5f1ab
