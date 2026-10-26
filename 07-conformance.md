@@ -1123,8 +1123,10 @@ Not pass/fail. Required to be recorded.
       development proxy (`STG-18`); purchase and quota accounting are outside this check.
       Boundary-crossed.
 
-      For the `/v2/` profile, also pass [paid-tcp-relay][relay-source] `CNF-3`–`CNF-5`, `CNF-9`, `CNF-10`
-      and, for publisher discovery, `CNF-21`. Shared wire duties and fixtures have their single
+      For the `/v2/` profile, also pass [paid-tcp-relay][relay-source] `CNF-3`–`CNF-5`, `CNF-10`
+      and, for publisher discovery, `CNF-21`. At stage 1, apply `CNF-9` to hand retirement and
+      destination removal; require its signed-revocation demonstration before paid/public relay
+      access, as the admission table specifies. Shared wire duties and fixtures have their single
       home in that set. For STA-17's manual replacement, confirm publisher retirement of the
       old pass; do not substitute hand retirement for the signed-revocation demonstration.
 
