@@ -34,7 +34,7 @@ implementation's CI runs; `bundle/` holds the publisher-chosen values the build 
 | [`docs/adr/`](./docs/adr/) | The decisions, and for most of them the alternatives rejected and why |
 | [`docs/review/`](./docs/review/) | Review records, kept as history |
 | [`docs/tenants/`](./docs/tenants/) | One profile per tenant, and the built-in ad-hoc profile a machine with no tenant runs under, on ADR-0030's schema |
-| [`docs/design/`](./docs/design/) | Design sessions, kept as history — and two normative companions, `credential-format-v1.md` (`STA-22a`) and `delivery-declaration-v1.md` (`ARC-39`); `relay-protocol-v1.md` is retained as history since its move to paid-tcp-relay |
+| [`docs/design/`](./docs/design/) | Design sessions, kept as history — and two normative companions, `credential-format-v1.md` (`STA-22a`) and `delivery-declaration-v1.md` (`ARC-39`); `relay-protocol-v1.md` is retained as history since its move to [paid-tcp-relay][relay-source] |
 | [`bundle/`](./bundle/) | Publisher-chosen inputs the implementation compiles in: artifact pin and signers, inference target, timings, the CORS probe (ADR-0031) |
 | [`docs/briefs/`](./docs/briefs/) | Draft briefs written from real runs, not yet in any bundle |
 | [`docs/findings/`](./docs/findings/) | What the prototypes found when they ran |
@@ -311,3 +311,5 @@ an ADR is where *why* lives.
 | [0048](./docs/adr/0048-an-unresolved-command-holds-its-machine.md) | An unresolved command holds its machine |
 | [0049](./docs/adr/0049-running-at-delivery-binds-until-the-boot-changes.md) | Running-at-delivery binds until the boot changes |
 | [0050](./docs/adr/0050-destructive-dispositions-stop-every-box-plane-job.md) | A destructive disposition stops every box-plane job and offers the local paste at once |
+
+[relay-source]: https://github.com/douglaz/paid-tcp-relay/tree/ba316fc4f734deb93d76561d8703551377987654

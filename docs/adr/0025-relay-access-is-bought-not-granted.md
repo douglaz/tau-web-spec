@@ -1,8 +1,8 @@
 # Relay access is bought, not granted
 
 **Moved 2026-09-24.** The rule this record adopted, with both amendments below, is
-paid-tcp-relay's (its ADRs 0001 and 0003, `PAS-1`–`PAS-8`, `DST-2`, `DST-3`;
-github.com/douglaz/paid-tcp-relay). This record stays as the history of why tau-web adopted it
+[paid-tcp-relay][relay-source]'s (its ADRs 0001 and 0003, `PAS-1`–`PAS-8`, `DST-2`, `DST-3`;
+[source revision][relay-source]). This record stays as the history of why tau-web adopted it
 and is no longer the rule's home; `CHN-15` and `CHN-16` are tau-web's adoption.
 
 An operator obtains relay access by **paying for a pass**, not by holding an account. The
@@ -235,3 +235,5 @@ key or migrates a pass. Derivation version 1 and the envelope remain unchanged.
 CNF-87 demonstrates the selected shared `/v2/` profile and the consumer's discovery, trust and
 recovery boundary. The historical v1 formal module and witnesses remain scoped to v1 pending
 T30's port; they provide no proof of the new wire or discovery behavior.
+
+[relay-source]: https://github.com/douglaz/paid-tcp-relay/tree/ba316fc4f734deb93d76561d8703551377987654

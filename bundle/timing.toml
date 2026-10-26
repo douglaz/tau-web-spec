@@ -21,6 +21,7 @@ published_key_wait_max = "3h"
 
 # [relay] moved to paid-tcp-relay's bundle/timing.toml on 2026-09-24 (its OPR-7): auth_skew,
 # min_spacing, window, window_cap are that set's to name. CNF-87 cites it there.
+# Source: https://github.com/douglaz/paid-tcp-relay/tree/ba316fc4f734deb93d76561d8703551377987654/bundle/timing.toml
 
 [relay_discovery]
 fetch_max = "10s" # placeholder; CHN-19; replace from the first integrated measurement

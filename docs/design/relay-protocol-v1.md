@@ -1,7 +1,7 @@
 # Relay protocol v1
 
-**Moved 2026-09-24** to paid-tcp-relay's `01-wire-protocol.md` (`WIR-1`–`WIR-11`;
-github.com/douglaz/paid-tcp-relay), which is now normative. This note is retained verbatim as
+**Moved 2026-09-24** to [paid-tcp-relay][relay-source]'s `01-wire-protocol.md` (`WIR-1`–`WIR-11`;
+[source revision][relay-source]), which is now normative. This note is retained verbatim as
 history, and because `tools/check-controls.sh` and the formal companion's witness file name it;
 it is no longer normative. It was the companion to `CHN-15`, `CHN-16`, `CHN-16a` and `CNF-87`. The TCP bridge the browser
 opens to reach a machine or a vendor API (`CHN-9`). Three messages, then bytes. The publisher
@@ -77,3 +77,5 @@ Multiplexing several TCP streams over one socket, DNS-name destinations resolved
 one address (v1 dials the first admitted answer and refuses if any answer is forbidden, per
 `CHN-16a`), and the purchase and revocation messages of `CHN-15`/`CHN-16`, which arrive with
 the paid relay.
+
+[relay-source]: https://github.com/douglaz/paid-tcp-relay/tree/ba316fc4f734deb93d76561d8703551377987654

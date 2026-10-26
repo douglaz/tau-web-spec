@@ -127,7 +127,7 @@ In payload version 4, a pass allocation's resource identity is the member `relay
 one of `{"publisher":"<P>"}` and `{"url":"<R>"}`. P has CHN-19's public-key encoding; R is the
 direct relay base URL. Its expected public key remains the holder's derived relay key. Reject
 unknown locator tags, extra members, both alternatives, missing values and wrong types; never
-infer an alternative from a URL. Before contact require paid-tcp-relay WIR-14's URL form for a
+infer an alternative from a URL. Before contact require [paid-tcp-relay][relay-source] WIR-14's URL form for a
 `/v2/` attempt; normalize newly entered direct URLs before first recording under CHN-19, but
 preserve historical direct locator values exactly; a historical locator that cannot be used stays
 recorded and blocked pending an explicit correction.
@@ -266,3 +266,5 @@ Restore and Replace for maintained cloud; `CNF-20`'s relabel cases, Robot rescue
 signed relay revocation follow their own milestones in `07-conformance.md`'s applicability
 table. These are required implementation demonstrations, not claims that this specification
 has run them.
+
+[relay-source]: https://github.com/douglaz/paid-tcp-relay/tree/ba316fc4f734deb93d76561d8703551377987654

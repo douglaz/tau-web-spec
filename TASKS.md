@@ -30,11 +30,11 @@ gated on it.
       `CNF-85` and `CNF-86` for the test bed, on the integrated
       harness. Non-destructive example checks are not a completed hardware rehearsal.
 - [ ] **T27 — Build the first-stage relay** (publisher; `CNF-87`). *Moved 2026-09-24: the relay
-      is paid-tcp-relay's product (github.com/douglaz/paid-tcp-relay) and its checklist is the
+      is [paid-tcp-relay][relay-source]'s product ([source revision][relay-source]) and its checklist is the
       build's gate; what stays here is integrating a relay that passes it, with a hand-recorded
       pass (its `PAS-6`).* Ahead of harness integration: nothing over the channel can be tested
       without it.
-- [ ] **T30 — Port `TauWeb.Relay` to paid-tcp-relay** (its `F4`). The module, its witness file
+- [ ] **T30 — Port `TauWeb.Relay` to [paid-tcp-relay][relay-source]** (its `F4`). The module, its witness file
       `docs/design/relay-witnesses-v1.json` and the controls that read them move when that set
       grows a formal layer; until then `CHN-15`, `CHN-16` and `CHN-16a` keep their `@[req]` tags
       and tau-web's index is the proof of record for the handshake and the destination pipeline.
@@ -204,7 +204,7 @@ gated on it.
       successor federations, or more; its drift checks and required software are still T28.
       **lnrent:** its declaration (lnrent#87) now gates stage 3, and the project decides with
       the publisher whether it is a tenant or a vendor the operator buys from (`OPN-27`).
-      **paid-tcp-relay:** wherever its text describes a client that accepts a first contact
+      **[paid-tcp-relay][relay-source]:** wherever its text describes a client that accepts a first contact
       through the relay on trust, this client no longer does (`CHN-R4`); a jump host is an
       ordinary recorded destination and should need nothing new, which is to be confirmed
       against that set and not assumed.
@@ -763,3 +763,5 @@ implementation/tenant evidence, not claims that the harness already exists.
       `CNF-56` cover the rest. `OPN-18` closes on implementation.
 - [x] **T20 — What the first stage does not test.** `STG-18`: acquisition, relay enrolment,
       inference funding, and a phone-only operator getting started at all.
+
+[relay-source]: https://github.com/douglaz/paid-tcp-relay/tree/ba316fc4f734deb93d76561d8703551377987654

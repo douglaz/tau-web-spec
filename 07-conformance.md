@@ -589,29 +589,29 @@ an item that tests a mode's conditions or its label is tiered by them like any o
 
 ## Relay access — `CHN-15`, `CHN-16`
 
-These items are paid-tcp-relay's since 2026-09-24 (github.com/douglaz/paid-tcp-relay,
+These items are [paid-tcp-relay][relay-source]'s since 2026-09-24 ([source revision][relay-source],
 `05-conformance-checklist.md`); each below names the relay rule it depends on, and the harness's
 evidence is that set's test run against the relay the harness uses.
 
 - [ ] **CNF-57 · BLOCKING** An unpaid caller is refused: the relay the harness uses is not usable
       without a valid, unexpired, unrevoked pass bound to the key that signs the challenge, and a
-      replayed challenge signature is refused (`CHN-15`; paid-tcp-relay `PAS-1`, `PAS-3`,
+      replayed challenge signature is refused (`CHN-15`; [paid-tcp-relay][relay-source] `PAS-1`, `PAS-3`,
       `WIR-6`).
 - [ ] **CNF-58 · BLOCKING** A pass reaches only the destinations recorded against it, on **any**
       port, since `ARC-41` requires the relay-side view to equal the world's (`CHN-16`;
-      paid-tcp-relay `DST-1`, `DST-2`).
+      [paid-tcp-relay][relay-source] `DST-1`, `DST-2`).
 - [ ] **CNF-65 · BLOCKING** Probing a recorded destination is **paced**, and `ARC-26`'s per-run and
-      per-target limits hold against the rate the relay actually allows (`CHN-16`; paid-tcp-relay
+      per-target limits hold against the rate the relay actually allows (`CHN-16`; [paid-tcp-relay][relay-source]
       `DST-3`). BLOCKING because pacing is the whole of what stops a wide port range being the
       open proxy `CHN-8` forbids.
 - [ ] **CNF-59 · PRE-SCALE** Obtaining a pass requires no account, no email address and no
       identifier the operator supplies beyond a derived public key, and the relay holds nothing
-      that links two purchases (`CHN-15`; paid-tcp-relay `PAS-1`, `PAS-2`).
+      that links two purchases (`CHN-15`; [paid-tcp-relay][relay-source] `PAS-1`, `PAS-2`).
 - [ ] **CNF-60 · PRE-SCALE** A revoked pass stops working immediately, including on a
       connection already open, and revocation is a message signed by the pass's key (`CHN-16`;
-      paid-tcp-relay `PAS-5`).
+      [paid-tcp-relay][relay-source] `PAS-5`).
 - [ ] **CNF-76 · BLOCKING** Recording a destination against a pass requires that pass's key's
-      signature (`CHN-16`; paid-tcp-relay `PAS-4`). Boundary-crossed: without it, anyone who
+      signature (`CHN-16`; [paid-tcp-relay][relay-source] `PAS-4`). Boundary-crossed: without it, anyone who
       learns a pass's public key can widen it.
 
 ## Approval and recording — `SEC-4`, `SEC-12`
@@ -946,10 +946,10 @@ Not pass/fail. Required to be recorded.
 ## Additional contracts from the September 9 review
 
 - [ ] **CNF-81 · BLOCKING** A recorded destination still cannot reach relay-private services:
-      the destination policy of `CHN-16a` holds on the relay the harness uses (paid-tcp-relay
+      the destination policy of `CHN-16a` holds on the relay the harness uses ([paid-tcp-relay][relay-source]
       `DST-4`–`DST-7`, its checklist's private-network item, moved 2026-09-24). Before enabling
       self-host migration, demonstrate SSH re-entry and scanning of the relay host through a
-      retained external relay; migration without that route is refused (`CHN-11`; paid-tcp-relay
+      retained external relay; migration without that route is refused (`CHN-11`; [paid-tcp-relay][relay-source]
       `OPR-4`). Boundary-crossed: a pass must not grant the relay's private network position.
 - [ ] **CNF-82 · BLOCKING** Local storage follows `STA-23`: wrong passphrases, modified
       envelopes/records, cross-store substitution and unknown formats fail closed; no new
@@ -1114,7 +1114,7 @@ Not pass/fail. Required to be recorded.
       refused by the freshness backstop, including overlap with earlier observations.
       Disjoint successor keys can establish the new pin and offer the reset. `STG-20` says
       "The label steers the model; nothing checks it". Destroyed-data.
-- [ ] **CNF-87 · BLOCKING** The first-stage relay is a paid-tcp-relay relay with a hand-recorded
+- [ ] **CNF-87 · BLOCKING** The first-stage relay is a [paid-tcp-relay][relay-source] relay with a hand-recorded
       pass (its `PAS-6`): it passes that set's handshake items — fresh challenge, unknown key and
       replayed signature refused, only the recorded destination set reachable, its
       `bundle/timing.toml` limits applied, the order challenge, AUTH, OK, a binary frame before
@@ -1123,7 +1123,7 @@ Not pass/fail. Required to be recorded.
       development proxy (`STG-18`); purchase and quota accounting are outside this check.
       Boundary-crossed.
 
-      For the `/v2/` profile, also pass paid-tcp-relay `CNF-3`–`CNF-5`, `CNF-9`, `CNF-10`
+      For the `/v2/` profile, also pass [paid-tcp-relay][relay-source] `CNF-3`–`CNF-5`, `CNF-9`, `CNF-10`
       and, for publisher discovery, `CNF-21`. Shared wire duties and fixtures have their single
       home in that set. For STA-17's manual replacement, confirm publisher retirement of the
       old pass; do not substitute hand retirement for the signed-revocation demonstration.
@@ -1218,3 +1218,5 @@ distinction between being ready to construct and ready to deliver.
 Every BLOCKING addition must name an irreversible family: escaped secret, crossed boundary,
 destroyed data or money out. Tier labels and applicability are separate: a federation blocker
 can remain deferred while a first-stage PRE-SCALE behavior is required by that stage.
+
+[relay-source]: https://github.com/douglaz/paid-tcp-relay/tree/ba316fc4f734deb93d76561d8703551377987654

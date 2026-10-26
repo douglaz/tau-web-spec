@@ -478,8 +478,8 @@ or it spends seconds looking up optional keys on the network before an inbox exi
 
 ## The relay
 
-**CHN-8** The relay MUST NOT be a generic open proxy — paid-tcp-relay's `OPR-1`
-(github.com/douglaz/paid-tcp-relay), where the combination that makes a relay defensible —
+**CHN-8** The relay MUST NOT be a generic open proxy — [paid-tcp-relay][relay-source]'s `OPR-1`
+([source revision][relay-source]), where the combination that makes a relay defensible —
 paid, recorded, capped, paced, revocable — is stated once. The archived specification's §21
 requirements were the origin; the rule moved there on 2026-09-24, and the harness relies on
 that set and adds nothing.
@@ -503,7 +503,7 @@ probes, the pinned vendor tunnel where a vendor refuses CORS (`CHN-12a`), and wh
 profile's post-harness credential speaks to its machines after delivery (`ARC-19a`) — and, if
 `CHN-12b` is ever built, untyped calls whose destination refuses browser CORS.
 The machine-originated attest post no longer crosses it at all. Minimum usage is a design
-property, not an accident; the relay-side statement of the same property is paid-tcp-relay's
+property, not an accident; the relay-side statement of the same property is [paid-tcp-relay][relay-source]'s
 `OPR-2`.
 
 **CHN-11** The relay's operator is the **publisher** by default, with bring-your-own as the
@@ -511,7 +511,7 @@ escape hatch ([ADR-0019](./docs/adr/0019-the-publisher-operates-the-default-rela
 publisher's seat is a **bootstrap**: before the operator has any machine, someone must carry
 the bytes that provision the first one. The product actively offers the move to a relay on
 the operator's own maintained machine once one exists. Who runs a relay and what a self-hosted
-one still depends on is stated once in paid-tcp-relay (`OPR-3`, `OPR-4`, its ADR 0002); this
+one still depends on is stated once in [paid-tcp-relay][relay-source] (`OPR-3`, `OPR-4`, its ADR 0002); this
 requirement is tau-web's decision to adopt that default.
 
 The publisher default is located through CHN-19. Bring-your-own uses an explicitly entered direct
@@ -535,11 +535,11 @@ stays a denial of service.
 public key P and a nonempty public Nostr discovery starting set B from
 `bundle/relay-discovery.toml` at its pinned specification commit. P is a lowercase hex BIP-340
 x-only public key. B contains records pairing `wss` Nostr URLs with their operators' names for the
-trust display; those endpoints permit anonymous reads of paid-tcp-relay WIR-14; at least one is
+trust display; those endpoints permit anonymous reads of [paid-tcp-relay][relay-source] WIR-14; at least one is
 hosted independently of the TCP service. B is separate from CHN-18's private notify-inbox set. The
 build's pin delegates only the locator authority defined by SEC-8. It inherits the glossary's
 signed-bundle qualification; no runtime bundle signature is claimed. The publisher's publication
-and continuity duties are paid-tcp-relay OPR-10.
+and continuity duties are [paid-tcp-relay][relay-source] OPR-10.
 
 Before a new publisher-default connection, query every endpoint in B for the WIR-14 address, using
 a NIP-01 filter with `authors:[P]`, `kinds:[30079]`, `#d:["paid-tcp-relays"]` and `limit:1`. Bound
@@ -574,7 +574,7 @@ publisher default and offer explicitly entered bring-your-own under CHN-11. Neve
 compiled or formerly selected TCP URL. A signature and unexpired validity do not establish that a
 fresh restore has seen the publisher's newest event. Store loss, older sheets, incomplete
 publication or an endpoint withholding a successor can leave that successor unknown.
-paid-tcp-relay `OPR-10` says "Each newly issued replacement announcement, including an empty
+[paid-tcp-relay][relay-source] `OPR-10` says "Each newly issued replacement announcement, including an empty
 withdrawal or expiration renewal, MUST have a `created_at` strictly greater than every earlier
 announcement issued at this address, and an expiration no earlier than any announcement it
 supersedes." This removes the case where a correctly published successor disappears solely by
@@ -584,7 +584,7 @@ maximum announcement lifetime is specified here; the residual window lasts until
 signed expiration. The interface MUST not claim otherwise.
 
 Try the selected event's TCP URLs in listed order, with the same holder pass identity and
-admission checks. Pin R for each connection before opening the paid-tcp-relay `/v2/` request.
+admission checks. Pin R for each connection before opening the [paid-tcp-relay][relay-source] `/v2/` request.
 Before sending AUTH, require the challenge's `relay` to equal R byte for byte, and sign exactly R
 in AUTH's `relay` tag. On mismatch close with 4002 and send no AUTH. Do not follow a redirect to a
 different base URL as discovery. List updates and expiration affect future attempts, never
@@ -609,19 +609,21 @@ notify rules and inputs.
 **CHN-15** Relay access is **bought, not granted**, and what is bought is recorded against a
 **relay key** the browser derives from the seed (`STA-22`), one per purchase. The model — the
 `402` purchase, the key-bound pass, the challenge the browser signs in the NIP-42 shape it
-already implements for the Nostr relay, and the wire with its check order — is paid-tcp-relay's
-(`PAS-1`–`PAS-8`, `WIR-1`–`WIR-11`; github.com/douglaz/paid-tcp-relay), adopted by
+already implements for the Nostr relay, and the wire with its check order — is [paid-tcp-relay][relay-source]'s
+(`PAS-1`–`PAS-8`, `WIR-1`–`WIR-14`; [source revision][relay-source]), adopted by
 [ADR-0025](./docs/adr/0025-relay-access-is-bought-not-granted.md) and moved there on
 2026-09-24; `docs/design/relay-protocol-v1.md` is retained as history. What tau-web owns: the
 key derives from the seed and re-derives from the seed plus its exported pass index (`STA-22b`),
 so **nothing bearer is stored** and missing allocation metadata can lose access to paid quota;
 and the operator's own wallet pays the invoice (`ARC-30`, `SEC-13`). The historical `/v1/`
 handshake and check order are carried in Lean under `TauWeb.Relay` (ADR-0032) until the port to
-paid-tcp-relay lands (T30); that note names the declarations. Those declarations and
+[paid-tcp-relay][relay-source] lands (T30); that note names the declarations. Those declarations and
 `relay-witnesses-v1.json` do not certify the `/v2/` additions. The consumer uses `/v2/` for
-CHN-19 connections; shared behavior remains paid-tcp-relay's rather than a second wire contract
-here. The source reference for adopting that profile must identify its merged specification
-revision before this amendment is published; an unmerged branch tip cannot supply that pin.
+CHN-19 connections; shared behavior remains [paid-tcp-relay][relay-source]'s rather than a second wire contract
+here. All references to that set in this specification use merged source revision
+[`ba316fc4f734deb93d76561d8703551377987654`](https://github.com/douglaz/paid-tcp-relay/commit/ba316fc4f734deb93d76561d8703551377987654).
+The selected wire profile is `/v2/`; `/v1/` and the historical companion remain explicitly scoped
+to v1.
 
 **No account, and therefore no identity party.** That is the point: an account system is a party
 that knows every operator and can deny them service, which `SEC-10` prices as a schema
@@ -630,7 +632,7 @@ purchase, and the relay cannot link two purchases by their keys. What it can lin
 destination set, which `CHN-13` already prices.
 
 **CHN-16** A pass's **destination record is the authorization**, not a separate system
-(paid-tcp-relay `PAS-4`, `DST-1`, moved 2026-09-24). A pass is bought before the machines exist,
+([paid-tcp-relay][relay-source] `PAS-4`, `DST-1`, moved 2026-09-24). A pass is bought before the machines exist,
 so its destination list grows as the operator creates them — the moment the relay learns
 topology, already priced at `CHN-13` — and recording a destination requires the relay key's
 signature, so nobody but the key holder can widen a pass. A recorded destination is reachable
@@ -645,7 +647,7 @@ relay's view equals the world's.
 **CHN-16a Destination authorization never grants access to the relay's private network.**
 The policy — public unicast only, at registration and on every outbound connection; the refused
 address classes; the resolver rule; the pinned IANA tables; unknown forms failing closed; an
-egress firewall as defence in depth — is paid-tcp-relay's (`DST-4`–`DST-7`, moved 2026-09-24)
+egress firewall as defence in depth — is [paid-tcp-relay][relay-source]'s (`DST-4`–`DST-7`, moved 2026-09-24)
 and applies to the first stage's hand-recorded relay key unchanged (`PAS-6`).
 
 The check on every outbound connection is carried as `TauWeb.Relay.parse`,
@@ -659,7 +661,7 @@ address, `TauWeb.Relay.mapped_forbidden_refused` closes the IPv4-mapped spelling
 tables enter the companion as an assumption it quantifies over, never as data it owns. The
 any-port rationale, pacing as the anti-abuse control, and the economic bound on a destination
 the relay cannot verify are that set's `DST-2`, `DST-3`, `DST-8` and ADR 0003; `ARC-26`'s
-per-target limit is the same figure paid-tcp-relay names as pacing.
+per-target limit is the same figure [paid-tcp-relay][relay-source] names as pacing.
 
 **CHN-12** A tunnel terminates TLS **inside the browser** and carries ciphertext over the
 relay, so the relay stays a carrier and learns nothing of the contents. Browsers do not expose
@@ -695,7 +697,7 @@ arbitrary service refusing browser CORS is out of reach for untyped calls.**
 
 ## What the relay learns
 
-**CHN-13** The relay learns the **machine topology** (paid-tcp-relay `OPR-6`), and the product
+**CHN-13** The relay learns the **machine topology** ([paid-tcp-relay][relay-source] `OPR-6`), and the product
 MUST say so. Which
 operator, which destination, when, accumulated over time, *is* the machine set for a
 federation. That is the same knowledge `TRU-E5` prices as a named trust row for the scanner,
@@ -730,6 +732,8 @@ bite it.
 
 **CHN-14** Self-hosting has its own honest price, named rather than hidden: the hosting
 machine's **bound model** has box-plane reach over whatever the relay retains, so the
-relay-install brief configures no connection logging — a relay keeps none, paid-tcp-relay
+relay-install brief configures no connection logging — a relay keeps none, [paid-tcp-relay][relay-source]
 `OPR-5` — and the trust display prices the host machine's model as a potential metadata observer
 regardless.
+
+[relay-source]: https://github.com/douglaz/paid-tcp-relay/tree/ba316fc4f734deb93d76561d8703551377987654
