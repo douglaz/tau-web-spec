@@ -28,7 +28,10 @@ Treat any unchecked box below as a green check next to an empty test suite.
       The table includes the LNVPS VM route with requested POST and account route with
       requested PATCH. Fixture cases check OPTIONS success, origin, requested method and
       requested headers independently of GET's origin header; POST is the default requested
-      method, PATCH is uppercase on request and lowercase in comparison. Missing origin,
+      method, and requested methods are compared case-sensitively. For the uppercase PATCH
+      preflight, otherwise identical fixtures with `Access-Control-Allow-Methods: PATCH` pass
+      and `Access-Control-Allow-Methods: patch` fail. Header-name comparison remains
+      case-insensitive. Missing origin,
       method or headers and transport failure each fail; a readable authentication-refused
       GET with the required header passes. Assert only unauthenticated OPTIONS and GET are
       sent, with no signed mutation or verification-link fetch. The probe establishes declared
