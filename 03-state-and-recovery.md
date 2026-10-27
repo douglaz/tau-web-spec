@@ -68,13 +68,16 @@ that state without establishing the earlier call's outcome, and what it restrict
 read through `TauWeb.Dispatch.inEffect` (ADR-0032).
 
 **STA-9 The journal records what was sent, not what the machine did with it.** This is the
-honest limit of `STA-2` across the channel. A phone that locks mid-install kills the worker
-and the SSH session with it; on reconnect the journal knows exactly which commands were
+honest limit across the channel: `STA-2` says "Canonical state MUST be an **append-only event journal** with replayable transitions, held in origin-private storage."
+If a mid-install interruption kills the worker
+or drops SSH, on reconnect the journal knows exactly which commands were
 recorded before transmission — and so may have been sent (`STA-4`) — and nothing about which
 arrived or completed. Four outcomes are indistinguishable from the
 journal alone: never arrived, started and died with the session, **still running**, or finished
 with the output lost. Re-running is safe for three of them and is the corruption case for the
 third.
+`STA-23` says "An ordinary visibility-only hide MUST NOT end or pause an unlocked session, clear its runtime authority, or invalidate its approvals."
+Hiding is therefore not itself proof that a worker or SSH session died.
 
 **STA-20 Every box-plane command runs as a tracked job**, and on an installed system the
 machine keeps a record on persistent disk (`/var/lib/tau-web/jobs`, root-only) holding:
@@ -380,6 +383,14 @@ On the dedicated path only, the screen MUST say that, with the activation's stat
 a reset other than a standing approval's own reset may boot the installed system. It MUST
 there offer the likely intent, a disposition of the activation with the reinstall continuation:
 "retry the activation, keep the reinstall".
+
+Visibility alone changes none of these approval choices. `STA-23` says "An ordinary visibility-only hide MUST NOT end or pause an unlocked session, clear its runtime authority, or invalidate its approvals."
+`STG-20` says "An approval **stands** from its record until its reset is dispatched, a matching withdrawal is recorded, or the session it was rendered for ends; several approvals for an entry stand independently."
+The keep/withdraw presentation above therefore still applies to a surviving session after an
+ordinary hide. A previously chosen destructive continuation may remain eligible while
+hidden; the permission is neither dispatch nor proof of an unknown outcome. Before each
+dispatch the barrier and all other checks still apply, with no automatic replay of an
+uncertain mutation.
 
 **What a disposition reaches.** A standing disposition restricts, to its continuation, what the
 calls it names barred while they were unresolved. An operation outside that reach is neither
@@ -780,17 +791,94 @@ be durably appended before it takes effect (`STA-3`: "A canonical event MUST be 
 appended **before** it is applied to in-memory state"). A failed append leaves no completion.
 Neither completion is displayed as a verified backup (`SEC-2`).
 
-Key derivation gives a session only its permitted child credentials. Explicit lock, page
-hide/backgrounding, or worker shutdown stops dispatch, ends session workers and closes
-channels; the worker clears its keys and credential buffers and returns locked. No unload
-callback is relied on for journaling. A killed worker restarts locked; after unlock it follows
-`STA-7`, requiring memory-only credentials to be supplied or minted again. Clearing buffers
-is best effort in a browser, not a claim of physical memory erasure. Wrong passphrases,
-tampered envelopes or unsupported versions fail closed without creating a replacement store.
-Lost local passphrases require seed/sheet/vendor recovery; the publisher cannot reset them.
-The browser MUST request persistent storage and visibly report a refusal. This is a request,
-not a promise that storage will be granted or that eviction, device loss or corruption cannot
-lose it; recovery remains necessary.
+Key derivation gives a session only its permitted child credentials. **Explicit app Lock**
+is the operator's local lock action. An ordinary visibility-only hide is a visibility change
+without pagehide, reload or worker loss, outside the seed-backup ceremony. Device screen lock
+is not explicit app Lock; the harness makes no portable promise to distinguish it from an
+ordinary hide.
+
+An ordinary visibility-only hide MUST NOT end or pause an unlocked session, clear its runtime authority, or invalidate its approvals.
+While the browser schedules the surviving worker, its model loop and permitted tool work
+MUST be allowed to continue under the same dispatch checks as foreground work. A required
+operator decision waits for the operator; absence supplies no approval. There is no new idle
+or hidden-time lock deadline. A surviving eligible return uses the same session and needs no
+passphrase merely because of the hide.
+
+Phones may freeze or discard the page without a final callback; no background execution window, memory survival, socket continuity or timely cleanup is promised.
+Freezing is loss of scheduling, not proof of termination, erasure or revocation. If a freeze
+notification can be processed, the harness MUST close or cancel ordinary transport work where
+safe, retain bindings and writer ownership, and leave possibly sent effects uncertain until
+their ordinary reconciliation establishes an outcome. A begun durable append MUST finish
+whole rather than be cancelled partway. No cleanup handler is assumed to run before freezing
+or discard.
+
+Before further ordinary sends or actionable result publication after a processed suspension or interruption, the surviving worker MUST validate its current authority, bindings, holds, connection state and scan readiness.
+This check precedes continued work whether execution resumes hidden or visible. A transport
+object or reconnection alone supplies no evidence about an earlier effect. The worker MUST
+admit only an identifiable safe unsent continuation; if it cannot identify one it MUST show
+reconciliation or required operator action and wait. Lifecycle messages, approvals and results
+MUST be ordered against current worker/session authority at every relevant pre-send and
+post-await boundary, including probes, document reads, connects, authentication, rekey,
+approval consumption, model results and delivery publication. A stale message or late result
+MUST NOT revive ended authority or publish an actionable result under stale authority. A
+processed lifecycle transition is the observable worker boundary; no instantaneous fence at
+the physical app switch or physical resumption is claimed. Current authority and dispatch
+checks still apply when no lifecycle notification arrives.
+
+`STA-8` says "It MUST NOT be retried automatically and no timer may clear it."
+`STA-7` says "**No model turn is silently resumed from an uncertain destructive operation.**"
+Neither visibility, timeout, connection loss, abort, a fresh call id nor return establishes
+non-execution. Already accepted remote work may continue even after local Lock or loss.
+
+`STA-1` says "A single **harness worker** MUST be the only writer of durable state."
+Hiding or freezing MUST NOT release writer ownership to another instance while the original
+worker can still act. A second tab or instance MUST show in-use and wait; missing heartbeat
+or a timeout is not confirmed predecessor termination. The original live session retains its
+bindings and context; hiding cannot free its machines for a successor.
+
+Explicit app Lock, pagehide including entry to the back-forward cache, reload, or worker shutdown MUST stop dispatch, end session workers and close channels; the worker clears its keys and credential buffers and returns locked.
+During the seed-backup ceremony an ordinary hide MUST take this full Lock path too, clear
+displayed words and input, leave an interrupted ceremony owed, and never re-display words
+automatically. Individual session end destroys that session's runtime authority and pending
+approvals; it does not revive on return. The actual end fence is irreversible and MUST NOT be
+reset to implement continuation. A killed or discarded worker restarts locked with journal
+replay and fresh session admission, never durable resurrection of memory-only credentials or
+an unjournaled continuation. No unload callback is relied on for journaling.
+
+Ordinary hiding, suspension and return MUST NOT extend a procured session key's original absolute expiry, replenish its remaining cap, mint a replacement key or renew that key.
+Account funding or payment settlement MUST NOT renew a session, replenish or raise its key's cap, extend its expiry, or revive an ended session.
+At expiry or cap exhaustion, that session MUST end at the next execution opportunity before
+further ordinary dispatch or actionable continuation. Uncertain clock validity MUST withhold
+further authority until validity is established or the session ends. A new session requires
+separately confirmed limits and admission. In-flight uncertainty remains recorded; expiry
+does not turn an unknown outcome into failure or authorize retry. This is the continuity
+interaction, not a selection of limit units, expiry origin, clock source or in-flight
+accounting semantics. No procured-key expiry is imputed to bring-your-own or local paths.
+An inference expiry does not expire SSH, seed, data-key or account authority or stop arbitrary
+remote commands. Ending one session does not by itself lock the whole store or end another
+eligible session.
+
+`ARC-31a` says "A **session inference key** is minted per session with a spend cap and an expiry, and revoked when the session ends."
+Actual end retains that revocation; an ordinary hide is no longer that end.
+It also says "**A session MUST NOT receive the account credential, and no model sees either tier.**"
+`SEC-12` says "**Every off-machine call made with an operator credential MUST be recorded before it is sent.**"
+No new credential persistence or off-device executor is authorized by continuity.
+
+Before session admission, and beside the app Lock action, the harness MUST plainly show that
+switching apps or locking the device screen may leave data-key, seed, account and machine
+authority unlocked in memory indefinitely; permitted work, including already approved
+destructive actions such as a disk wipe, may run unseen. It MUST state that explicit app Lock
+ends local sessions, while already accepted remote work may continue, and that the phone may
+freeze or discard the page. This is a standing disclosure, not a new acknowledgement on
+every return or a promise of time to withdraw before an eligible approved action dispatches.
+The UI MUST show the actual running, reconciling, ended, expired, locked or lost state on return.
+
+Clearing buffers is best effort in a browser, not a claim of physical memory erasure.
+Wrong passphrases, tampered envelopes or unsupported versions fail closed without creating a
+replacement store. Lost local passphrases require seed/sheet/vendor recovery; the publisher
+cannot reset them. The browser MUST request persistent storage and visibly report a refusal.
+This is a request, not a promise that storage will be granted or that eviction, device loss or
+corruption cannot lose it; recovery remains necessary.
 
 ## Recovery, by access model and vendor
 

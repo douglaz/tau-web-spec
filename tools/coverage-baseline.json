@@ -1,6 +1,6 @@
 {
-  "max_uncovered_ratcheted": 73,
-  "recorded": "2026-10-26",
-  "reason": "CNF-112 adds STA-5 coverage; STG-21a is covered at introduction",
+  "max_uncovered_ratcheted": 71,
+  "recorded": "2026-10-27",
+  "reason": "Lifecycle cases add SEC-12 and STA-8 coverage",
   "note": "Lower is better. Raise only deliberately, with a reason."
 }

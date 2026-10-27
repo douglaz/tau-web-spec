@@ -95,6 +95,11 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       and index journaled before any create is sent; and no machine leaves a set while its
       session lives. After a predecessor ends, a later session re-enters any subset of its
       maintained machines (`SEC-1`).
+
+      `STA-23` says "An ordinary visibility-only hide MUST NOT end or pause an unlocked session, clear its runtime authority, or invalidate its approvals."
+      Repeat binding/succession cases with the predecessor hidden and with a frozen surviving
+      writer. A second tab cannot bind its machines or steal writer ownership; after confirmed
+      predecessor loss, locked recovery and a separately admitted successor are required.
 - [ ] **CNF-8 · BLOCKING** The profile-declared post-harness machinery holds **no channel to any
       machine, at any point** (`ARC-19a`), and holds no reach beyond what the profile's handoff
       slot declares. Verified by inspecting what that machinery is given — as `CNF-9` does for
@@ -250,6 +255,14 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       read-only job visible only in the transcript; only output to neither sink is exempt.
       The post-export question has nothing preselected, "Not sure" yields unknown coverage,
       and known armed references allow work despite that unknown inventory.
+
+      `STA-23` says "An ordinary visibility-only hide MUST NOT end or pause an unlocked session, clear its runtime authority, or invalidate its approvals."
+      Repeat split-output scanning while scheduled hidden and after freeze/return. Use the
+      original independent scan key/reference; if a working copy needs reload, decrypt that
+      same stored material before output reaches either sink. Hide never derives a scan key
+      from the seed, arms from machine bytes or replaces the intact reference. App Lock/end
+      clear working copies, while encrypted references retain their stated lifetime.
+      `SEC-5` says "For row 23, retained or reloaded scan material is the same independent random key and encrypted reference already recorded, never seed-derived, regenerated on hide or replaced by machine-reported bytes."
 - [ ] **CNF-17 · BLOCKING** An untyped response containing a harness-held credential is
       redacted before it reaches the model or the record. Exact-value scan.
 - [ ] **CNF-18 · BLOCKING** The attest introduction is **single-use**, and single-use is the
@@ -336,6 +349,20 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       bring-your-own key has no minting to test. Verified by using the key
       after the session closes and confirming refusal. Without this, `SEC-5` row 2's "one
       session" lifetime is an assertion rather than a bound.
+
+      `STA-23` says "Ordinary hiding, suspension and return MUST NOT extend a procured session key's original absolute expiry, replenish its remaining cap, mint a replacement key or renew that key."
+      Check unchanged key identity and original absolute expiry across hide/freeze/return,
+      with all consumption preserved and no replenishment of remaining cap; withhold
+      expired/exhausted or clock-uncertain authority before new dispatch, end the affected
+      session when required, and admit no silent replacement mint.
+      `SEC-12` says "**Every off-machine call made with an operator credential MUST be recorded before it is sent.**"
+      `STA-8` says "It MUST NOT be retried automatically and no timer may clear it."
+      Exercise end racing a mint or response and an unresolved revoke through journal
+      replay without inventing successful revocation. Inference expiry leaves other eligible
+      sessions and the unlocked store distinct; no claim of SSH/seed/account expiry is made. A fixture
+      account-credit change cannot renew the old limits or revive an ended session and is not
+      evidence authorizing a funding feature.
+      `STA-23` says "Account funding or payment settlement MUST NOT renew a session, replenish or raise its key's cap, extend its expiry, or revive an ended session." No live issuer request is needed for these cases.
 - [ ] **CNF-70 · BLOCKING** Automatic top-up is **not enabled** on the inference account
       (`ARC-31a`). Verified by reading the account's configuration. It converts the prepaid cap
       — the only thing bounding a leaked key — into an open draw on a connected wallet.
@@ -558,6 +585,14 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       bound. A fetched document's source is recorded with the goal, and its text authorizes
       nothing (`CNF-35`). Boundary crossed: one instruction steering machines a tenant counts
       as independent.
+
+      `STA-23` says "An ordinary visibility-only hide MUST NOT end or pause an unlocked session, clear its runtime authority, or invalidate its approvals."
+      Continue an eligible goal loop while hidden and scheduled; a pending operator approval
+      waits without self-approval. Freeze and return with the same worker, then check ordered
+      document/result/approval validation before further actions. Race app Lock or worker
+      replacement with document, proposal, approval and delivery completion: no stale grant or
+      late publication authorizes work for an ended or different session. Preserve safe
+      terminal/accounting evidence without unscanned body publication or silent replay.
 - [ ] **CNF-103 · PRE-SCALE** A machine carrying an operator's application says so (`ARC-1a`):
       the delivery card carries the application's sentence with its name, explains Delivered's
       coverage and says "It does not mean <app> works" with that name substituted; the declaration
@@ -776,6 +811,14 @@ to the relay evidence in `CNF-81`, `CNF-87` and `CNF-113`.
       purchase. For LNVPS operation evidence, failed append and replay pairs, see `CNF-112`.
       Stage 1: the create, box-plane and inference cases; the Robot cases run on the
       dedicated test bed; the untyped-scope cases pass before that capability is enabled.
+
+      `STA-23` says "Before further ordinary sends or actionable result publication after a processed suspension or interruption, the surviving worker MUST validate its current authority, bindings, holds, connection state and scan readiness."
+      Lose the response before hiding or freezing, then return with the same worker: no timer,
+      fresh id, reconnect or visibility change repeats the mutation, clears the barrier or
+      turns unknown into failure. A permitted reconciliation read whose append fails still
+      releases nothing. Keep the separate inference unaccounted-spend case rather than
+      imposing a resource barrier on the next eligible inference request.
+      `STA-24` says "The inference request (`ARC-31a`) keeps its unresolved intent under `STA-8`, shown as unaccounted spend against the session key's cap, and does **not** bar the next request: its only effect is bounded spend, and the next request is the session's only way to continue."
 - [ ] **CNF-110 · BLOCKING** A standing operator disposition restricts what the calls it names
       barred and, under a destructive continuation, every box-plane job to the machine,
       whoever starts it, and apart from the untyped-scope hold (`CNF-105`) nothing else (`STA-24`).
@@ -967,6 +1010,12 @@ to the relay evidence in `CNF-81`, `CNF-87` and `CNF-113`.
       appends no second result; a held harness-initiated job is issued once after release under
       one intent, and a stopped wait issues nothing, across replay too; another machine is
       unaffected. This is the corruption case, which is why it blocks.
+
+      `STA-23` says "Before further ordinary sends or actionable result publication after a processed suspension or interruption, the surviving worker MUST validate its current authority, bindings, holds, connection state and scan readiness."
+      Repeat with an ordinary hide that allows scheduled progress, then a freeze/socket loss
+      and surviving return. Collect by original job identity and boot; do not run the command
+      again to resume it. `STA-20` says "Record the boot identity with the job; a PID from another boot cannot establish liveness."
+      A previously sent remote job may finish after local app Lock or worker loss; its completion does not recreate an ended local session.
 - [ ] **CNF-54 · PRE-SCALE** A completed command's exit code and output are read from the job
       record after a session drop, not inferred from machine state.
 - [ ] **CNF-55 · PRE-SCALE** An installed-system job record survives a reboot. Its boot identity
@@ -1111,8 +1160,32 @@ Not pass/fail. Required to be recorded.
       enabled. Boundary-crossed: a pass must not grant the relay's private network position.
 - [ ] **CNF-82 · BLOCKING** Local storage follows `STA-23`: wrong passphrases, modified
       envelopes/records, cross-store substitution and unknown formats fail closed; no new
-      empty store replaces failed decryption. Reload and background/explicit lock require
-      unlock again, session workers lose access, and replay preserves unresolved actions.
+      empty store replaces failed decryption. `STA-23` says "An ordinary visibility-only hide MUST NOT end or pause an unlocked session, clear its runtime authority, or invalidate its approvals."
+      and "Explicit app Lock, pagehide including entry to the back-forward cache, reload, or worker shutdown MUST stop dispatch, end session workers and close channels; the worker clears its keys and credential buffers and returns locked."
+      Reload/full end require unlock again, session workers lose access, and replay preserves
+      unresolved actions. An ordinary hide retains the session, binding, original approvals,
+      goal/context and runtime scan material, with permitted fixture work continuing while
+      scheduled. Return alone neither unlocks a locked worker nor needs a passphrase for the
+      surviving unlocked worker. Explicit app Lock still ends it. During the seed ceremony,
+      hide takes the full Lock path and clears displayed words/input.
+      Exercise hidden→visible, hidden→freeze→hidden/visible, repeated hides/returns,
+      suppressed/delayed lifecycle notifications, pagehide/bfcache, reload, worker
+      discard/restart, a second instance and a late old-worker result. Check the worker's
+      ordered validation before sends and actionable publication; invalid authority, stale
+      grants, scan unavailability and uncertain continuation withhold work. A second instance
+      shows in-use while the original writer can act; timeout/heartbeat loss grants no takeover.
+      A begun append completes whole; failed append and actual end cannot publish an actionable
+      continuation. Late mint/result/proposal and delivery races cannot revive ended authority.
+      Check the admission/Lock disclosure of indefinite unlocked authority, device-screen-lock
+      retention, unseen approved destructive actions and phone freeze/discard. Show actual
+      state on return; a held/expired/lost session is not presented as running.
+      `STG-14` says "All of the above pass on a physical Android Chrome, through a normal HTTPS URL, with no install."
+      and "iOS Safari is not a test target (`OVR-1`)."
+      Physical Android Chrome investigation MUST record wallet round-trip pagehide behavior,
+      whether the same instance/worker survives and whether conditional continuation actually
+      works. No positive background runtime or survival duration is required or claimed;
+      desktop fixture success is not phone evidence. iOS remains investigation, not a newly
+      added acceptance target.
       Inspect persisted bytes and worker inputs for forbidden plaintext keys. Exercise the
       persistent-storage request and visible refusal; the UI promises no immunity from loss.
       Exercise the generated-seed ceremony at create, creation-finishing unlock and Replace:
@@ -1272,6 +1345,15 @@ Not pass/fail. Required to be recorded.
       refused by the freshness backstop, including overlap with earlier observations.
       Disjoint successor keys can establish the new pin and offer the reset. `STG-20` says
       "The label steers the model; nothing checks it". Destroyed-data.
+
+      `STA-23` says "An ordinary visibility-only hide MUST NOT end or pause an unlocked session, clear its runtime authority, or invalidate its approvals."
+      Preserve a standing dedicated reinstall approval while hidden, satisfy its original
+      activation/read/binding checks and show its eligible reset can dispatch unseen. Leave
+      any prerequisite unsatisfied and show refusal; hide/return supplies no confirmation.
+      On return show standing approval/withdrawal accurately without inventing a new consent
+      wait. Contrast explicit app Lock and worker restart, which end the rendering session
+      and make its approval unusable, with no withdrawal offer. Exercise a separate destructive
+      disposition too; visibility changes neither its own authority nor its dispatch checks.
 - [ ] **CNF-87 · BLOCKING** The first-stage relay uses the selected `/v2/` profile and a
       hand-recorded pass (`STG-18`; [paid-tcp-relay][relay-source] PAS-6). Demonstrate fresh
       challenge, unknown-key and replayed-signature refusal, recorded-only destination

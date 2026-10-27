@@ -95,3 +95,14 @@ one session hold a bound set of more than one machine as a weaker mode the opera
 its label, and inside such a session the machines share one model context: `SEC-1` says "A
 bound set is one unit of harm and one model context". The body above is unchanged and records
 what was decided then.
+
+## Amended 2026-10-27: ordinary hiding and actual loss are distinct
+
+`STA-23` says "An ordinary visibility-only hide MUST NOT end or pause an unlocked session, clear its runtime authority, or invalidate its approvals."
+and "Explicit app Lock, pagehide including entry to the back-forward cache, reload, or worker shutdown MUST stop dispatch, end session workers and close channels; the worker clears its keys and credential buffers and returns locked."
+It also says "Phones may freeze or discard the page without a final callback; no background execution window, memory survival, socket continuity or timely cleanup is promised."
+The earlier closed/suspended/phone-awake examples record interruption costs; they supply no
+promise that hiding always kills the worker or that a phone will keep working in the
+background. Keeping the browser worker retains unlocked local authority and permits unseen
+work, including previously approved destructive operations. Genuine loss still requires
+recovery. No hosted or machine-resident harness executor is added by this amendment.

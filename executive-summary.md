@@ -64,10 +64,12 @@ whole point. What the harness does is **minimize** what the model can reach and 
 remains — and where a tenant genuinely needs the model kept away from secrets, that tenant
 designs its procedure for it, as Bitcoin custody does by sealing its nodes after setup.
 
-The consequence is accepted rather than worked around: nothing runs while the app is closed, so
-every step must survive a locked phone. Durable state is an append-only journal, and an
-interrupted brief is re-run from the top and converges rather than resuming a step it cannot
-identify.
+A hidden surviving page is distinct from a closed or lost one. `STA-23` says "An ordinary visibility-only hide MUST NOT end or pause an unlocked session, clear its runtime authority, or invalidate its approvals."
+and "Phones may freeze or discard the page without a final callback; no background execution window, memory survival, socket continuity or timely cleanup is promised."
+Durable progress must survive actual interruption; continuing after loss requires recovery,
+never guessing or automatically repeating an uncertain command. App Lock remains the
+operator's way to end local sessions; permitted work and previously approved destructive
+actions may otherwise run unseen while the browser schedules them.
 
 **Actions split into two planes, off-machine and on.** The **cloud plane** is anything done off
 the operator's machines with a credential they supplied. Where an adapter types the action it is

@@ -49,12 +49,12 @@ about one:
   the application's name: "It does not mean Hermes works". The card carries `ARC-43`'s evidence
   labels beside Delivered where applicable.
 
-**ARC-2** Nothing runs while the app is closed. This is accepted rather than worked around. It
-is a statement about the harness: an operator's application on a machine runs as the operator
-installed it, and is outside what the harness claims (`ARC-1a`).
-Every step MUST be resumable across a locked phone, and progress MUST survive the harness
-worker being killed — which is what `03-state-and-recovery.md` specifies and `STA-9`
-constrains.
+**ARC-2** The harness has no executor outside the operator's browser. Closing or losing its
+page/worker stops browser work; already accepted remote work can outlive it. A merely hidden
+surviving page is distinct from a closed app. `STA-23` says "An ordinary visibility-only hide MUST NOT end or pause an unlocked session, clear its runtime authority, or invalidate its approvals."
+It also says "Phones may freeze or discard the page without a final callback; no background execution window, memory survival, socket continuity or timely cleanup is promised."
+Every step MUST be recoverable across actual interruption, with durable progress surviving
+worker loss. `STA-9` states the limit: "The journal records what was sent, not what the machine did with it."
 
 ## What the harness does not do
 
@@ -647,12 +647,13 @@ party that was not already trusted. Requiring five devices would defend against 
 compromised phone while guaranteeing that an operator who owns one phone never finishes
 setup.
 
-**Why concurrent.** Nothing runs while the app is closed, so sequential provisioning would
-multiply the time the operator must hold a phone awake by the machine count. A twenty-minute
-install becomes a hundred-minute one. Concurrency *between sessions* adds no reach: `SEC-1`
-gives each session the keys of its own bound set and no other, and simultaneity does not change
-which session touches which machine. Inside one session it is otherwise — a set of more than
-one machine is one model context, and that is the weaker mode `SEC-1` names.
+**Why concurrent.** Sequential provisioning multiplies elapsed setup time by the machine
+count; concurrency can reduce that cost while the browser is scheduled. `STA-23` says
+"Phones may freeze or discard the page without a final callback; no background execution window, memory survival, socket continuity or timely cleanup is promised."
+Concurrency grants no background execution window or phone-awake requirement.
+`SEC-1` says "A session is given exactly the keys of the machines in its bound set and no other, so a session cannot authenticate to a machine outside its set, and the refusal comes from SSH rather than from the harness declining to call its own transport."
+Simultaneity does not change which session touches which machine. Inside one session it is
+otherwise: `SEC-1` says "**A bound set is one unit of harm and one model context.**"
 
 **ARC-13** Concurrency MUST be bounded for mobile. The archived specification already rates
 mobile memory pressure as a high risk and defaults its command-worker pool to one on
@@ -1257,6 +1258,10 @@ the publisher from model selection and, locally, the proxy layer entirely.
   and the aggregator's request id. Prompt bodies are not
   journaled — the action transcript already records every command the model chose. `ARC-6`'s
   redirect rule and `CNF-32`'s route probe apply to the aggregator origin as to any other.
+
+`STA-23` says "Ordinary hiding, suspension and return MUST NOT extend a procured session key's original absolute expiry, replenish its remaining cap, mint a replacement key or renew that key."
+This changes none of the spend-cap, expiry, per-session minting, account/session
+separation or session-end revocation rules above. It authorizes no funding alongside sessions.
 
 The exposure from a leaked session key is the lesser of the remaining balance and that key's
 cap. That bound is the whole reason the tiering is worth building, and it holds only while
