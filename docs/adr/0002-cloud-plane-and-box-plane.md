@@ -48,3 +48,12 @@ owns. The plane now covers any action taken **off** the operator's machines with
 credential they supplied, and carries a second approval mode for the ones no adapter types.
 The reasoning above is unchanged and the axis it was reaching for is stated plainly there:
 off-machine versus on-machine, each side with its own bound rather than a shared one.
+
+*Amended 2026-10-27: the unpinned package-policy promise is bounded.* `ARC-25a` says
+"This filter does not evaluate shell or establish effective package policy." Its literal
+command filter is a bounded syntactic guard, not classification of arbitrary shell effects.
+Package verification observations do not constrain the authority of free shell. Universal
+package-policy enforcement would require a separate decision changing that authority and
+defining a protected enforcement boundary. The amendment keeps `CNF-67` BLOCKING.
+`CNF-67` says "Fixture cases precede the live run; native evidence is owed during that separately authorized run, not asserted before it."
+It also says "Demonstrate completed unsigned-local admission under the lenient allowance and completed trusted-signed local admission."

@@ -1070,11 +1070,52 @@ accepted; it does not remove those key holders' authority over later packages. C
 Alpine does not avoid this party. Pinning the entire installed package closure would be a
 separate design, and the construction test bed's brief does not implement it. The trust display
 names the distribution, bootstrap hash, package policy and accepted signers rather than
-calling the resulting installation hash-pinned. An unpinned installation (`ARC-25`) has neither
-layer, and the display says **unpinned** rather than naming a hash or a signer set nothing
-checked. Its distribution's own package-signature checking still stays on: the unpinned mode
-waives the bundle's pin, never signature enforcement, and the harness never sends a command
-that lowers it (an untrusted-repository flag, a signature level of never).
+calling the resulting installation hash-pinned.
+
+An unpinned installation (`ARC-25`) has no bundle-checked bootstrap hash or package signer
+set and MUST be displayed as **unpinned** without claiming either. Its package-manager baseline is
+the distribution release's stock policy, distinguished by repository packages, local package
+files, remote package files, repository databases, signature presence and signer trust.
+That baseline MUST require a package signature for repository packages. Missing
+repository-database signatures, and missing signatures on local or remote package files,
+that it permits — including local files under `LocalFileSigLevel=Optional` — are permitted
+by this unpinned policy. Optional presence MUST NOT be described as accepting invalid
+signatures or arbitrary signing keys.
+
+Under the lenient plain-Arch baseline, unsigned local package files are permitted when the
+recorded effective local-file policy permits missing signatures. No package-policy or
+installed-package-validation read is required at delivery or re-entry by this baseline,
+and absent recorded signature validation creates no package-inventory finding.
+
+For every box-plane command targeting a machine with durable unpinned-installation history,
+the harness MUST apply the following filter after binding admission and before
+command-related relay or SSH contact, and repeat it under the command-intent append writer
+before the hold and intent creation. Split raw bytes at LF. For this filter, ASCII whitespace
+is HT, LF, FF, CR and space (bytes 0x09, 0x0A, 0x0C, 0x0D and 0x20). Ignore lines whose first
+non-whitespace byte is `#`. Words are maximal ASCII letter, digit or underscore runs,
+compared case-sensitively. A whole `SigLevel`, `LocalFileSigLevel` or `RemoteFileSigLevel`
+word followed later on that line by `=` opens a suffix through line end. A later `Never`,
+`PackageNever` or `DatabaseNever` word selects `signature_level_never`; `TrustAll`,
+`PackageTrustAll` or `DatabaseTrustAll` selects `untrusted_repository`. The first matching
+word in input order determines the form. Punctuation and later directives do not close
+the suffix.
+
+A match MUST prevent transmission and command-intent creation. Commit exactly one refusal
+containing the target and form before reporting signature refusal. If recording fails,
+report storage failure and send nothing; a storage-write failure halts further appends
+until recovery. Replay preserves the recorded refusal and its target qualification.
+
+This filter does not evaluate shell or establish effective package policy. Nonmatches remain
+subject to other admissions. Bare `Optional` and `PackageOptional`, reconstructed tokens,
+substitutions, encodings, included or alternate configurations, existing or fetched scripts,
+and concurrent changes can evade the filter. Harmless matching text is refused. No command
+text the harness composes contains a literal lowering form or lowers package-signature
+checking; the session command a harness launch wrapper carries and executes is the session's
+own bytes, not harness-composed text, and carries no such guarantee. Beside **unpinned**,
+the trust display states that unsigned local package files are permitted, that free shell
+can lower checking or install unsigned code without refusal, and that harmless text naming
+a lowering form is refused; it also discloses the indirect bypasses above. Neither persistent
+signature enforcement nor universal unsigned-package refusal is guaranteed.
 
 ## Ongoing operation
 
