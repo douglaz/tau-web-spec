@@ -49,8 +49,9 @@ durable read. Only a matching withdrawal since that approval withdraws it; dispo
 not. Dispatch remains subject to the barrier and standing disposition. Other resets retain
 their checks and the single reset kind is unchanged. The companion cannot carry immediately
 preceding reads or refusal after a failed read append.
-An approval binds its rendering session. Lock, page hide, worker shutdown or replay ends that
-session (`STA-23`); the end is not journaled or modelled. Traces assume the convention that an
+An approval binds its rendering session. `STA-23` says "An ordinary visibility-only hide MUST NOT end or pause an unlocked session, clear its runtime authority, or invalidate its approvals."
+and "Explicit app Lock, pagehide including entry to the back-forward cache, reload, or worker shutdown MUST stop dispatch, end session workers and close channels; the worker clears its keys and credential buffers and returns locked."
+Replay ends the rendering session; the end is not journaled or modelled. Traces assume the convention that an
 ended session sends no request, and after replay only successor sessions act. The companion
 assumes this convention and does not prove session termination. `ended_session_approval_refused`
 and `successor_reapproval_opens_installation` carry the rule through `SEC-4`'s binding check.
@@ -1075,8 +1076,9 @@ inductive Event
   /-- The operator's withdrawal of a dedicated reinstall approval (`STG-20`). -/
   | withdrawReinstall (e : Entry) (call : CallId) (approval : Approval) (appended : Bool)
   /-- The worker is killed and replays the journal (`STA-7`). An approval binds its rendering
-  session; lock, page hide, worker shutdown or replay ends it (`STA-23`). That end is not
-  journaled or modelled: traces assume an ended session sends no request, and this companion
+  session. `STA-23` says "An ordinary visibility-only hide MUST NOT end or pause an unlocked session, clear its runtime authority, or invalidate its approvals."
+  and "Explicit app Lock, pagehide including entry to the back-forward cache, reload, or worker shutdown MUST stop dispatch, end session workers and close channels; the worker clears its keys and credential buffers and returns locked."
+  Replay ends it. That end is not journaled or modelled: traces assume an ended session sends no request, and this companion
   does not prove termination. The two successor traces use `SEC-4`'s binding check. Showing the
   approval as no longer usable with no withdrawal offer remains Markdown-only;
   `acceptsWithdrawal` therefore does not read the session. -/

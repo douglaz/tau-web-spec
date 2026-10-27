@@ -408,18 +408,22 @@ outside the encrypted-at-rest store `SEC-5` names. A placed application secret m
 on the way in (`CNF-16`); once on the machine it is within reach of every model with root
 there, and only its exact copies are redacted from output, under `SEC-5` row 12's caveat and
 its scan's stated limits. What a model reads under an untyped vendor scope is `SEC-4`'s to
-state, and this stage has no such scope. The local store unlocks and locks under `STA-23`; killing the worker
-requires a new unlock and replay, never a plaintext fallback.
+state, and this stage has no such scope. `STA-23` says "An ordinary visibility-only hide MUST NOT end or pause an unlocked session, clear its runtime authority, or invalidate its approvals."
+and "Explicit app Lock, pagehide including entry to the back-forward cache, reload, or worker shutdown MUST stop dispatch, end session workers and close channels; the worker clears its keys and credential buffers and returns locked."
+Killing the worker requires a new unlock and replay, never a plaintext fallback.
 
 **STG-11** A rescue activation or its reset, interrupted between intent and confirmation,
 then resumed, results in exactly one rescue session and one install.
 
-**STG-12** An install interrupted mid-run — by a phone lock, a killed worker, a dropped session
-— and resumed, a brief re-run from the top included, **converges** rather than duplicating
-(`ARC-10`). This is the
-predicate most likely to fail under tab suspension — Android's, which is tested, and iOS's,
-which would be harsher if it were — and the one the by-hand rehearsal should be designed to
-stress.
+**STG-12** An install interrupted mid-run by app Lock, page/worker loss, browser suspension
+or a dropped session, then continued or recovered, MUST **converge** rather than duplicate.
+`ARC-10` says "A brief MUST be safe to re-run from the top."
+`STA-23` says "Phones may freeze or discard the page without a final callback; no background execution window, memory survival, socket continuity or timely cleanup is promised."
+`STG-14` says "All of the above pass on a physical Android Chrome, through a normal HTTPS URL, with no install."
+and "iOS Safari is not a test target (`OVR-1`)."
+Exercise both a surviving worker after suspension and genuine worker loss; an ordinary hide
+alone is not evidence of either interruption. Required target-device evidence remains physical
+Android Chrome; investigation on iOS supplies no acceptance predicate here.
 
 **STG-13** A channel access that does not present the bound machine's own keypair — however
 well-formed the attempt — is **refused, by SSH**. With one machine, nothing exercises the
@@ -544,9 +548,8 @@ An approval **stands** from its record until its reset is dispatched, a matching
 is recorded, or the session it was rendered for ends; several approvals for an entry stand
 independently. Unlike a disposition's standing, this reads both the journal and whether the
 rendering session still runs. `SEC-4` says "A typed operation that names an existing machine
-MUST be authorized against the calling session's binding". `STA-23` says "Explicit lock,
-page hide/backgrounding, or worker shutdown stops dispatch, ends session workers and closes
-channels" and "No unload callback is relied on for journaling". The rendering session's end
+MUST be authorized against the calling session's binding". `STA-23` says "Explicit app Lock, pagehide including entry to the back-forward cache, reload, or worker shutdown MUST stop dispatch, end session workers and close channels; the worker clears its keys and credential buffers and returns locked."
+and "No unload callback is relied on for journaling." The rendering session's end
 is not journaled; after a restart, every earlier session's approval is no longer usable,
 needs no withdrawal and opens nothing. A withdrawal of an approval whose reset was already
 dispatched is refused and records nothing. A re-approval is newer and
@@ -555,6 +558,20 @@ Never issuing the reset is not a withdrawal. A replay ends the session, so its a
 then no longer usable, not withdrawn. A withdrawal whose append fails is not recorded (`STA-3`),
 so the approval still stands. Choosing to keep
 the reinstall approval journals nothing further.
+
+`STA-23` says "An ordinary visibility-only hide MUST NOT end or pause an unlocked session, clear its runtime authority, or invalidate its approvals."
+A standing undispatched approval of the surviving rendering session therefore remains usable
+while hidden, including for a disk-wiping reinstall. No new approval is required merely for
+hiding or return. Its reset still requires the original approved facts, binding, standing
+approval, a rescue activation dispatched since that approval and the immediately preceding
+durably journaled read confirming that activation. `STG-4` says "Immediately before **every** reset into rescue, including the ordinary install ceremony's reset with no disposition, the harness MUST read the activation predicate again and durably journal the read (`STA-3`)."
+It also says "It MUST dispatch the reset only if that immediately preceding read still confirms the activation; a non-confirming read or a failed append is shown as the refusal."
+Hiding, transport loss or return supplies
+none of these facts and does not clear an unresolved call. The standing-approval/withdrawal
+display remains accurate on return; there is no new acknowledgement or guaranteed withdrawal
+interval before an otherwise eligible reset. A separately chosen destructive disposition
+retains its own flow and dispatch checks. Actual session end still makes its approval no
+longer usable, not withdrawn; no return revives it.
 
 Wherever an undispatched reinstall approval stands, the harness MUST show it with a withdrawal
 offer, for each such approval whose rendering session still runs. The harness MUST show an

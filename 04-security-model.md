@@ -295,7 +295,7 @@ outgrown, because adding a credential means adding a row.
 | 20 | Data-encryption key (local store or sheet) | Browser CSPRNG, independent per store/export | Harness-worker memory; only an authenticated wrapped copy persists | Local store unlocked; sheet import/export operation | Decrypts the named local store or sheet, never another purpose | Cleared on lock/end; replaced on re-encryption |
 | 21 | **Jump-vendor credential**: a vendor credential supplied separately from the target's (`CHN-R6`) | Operator | Browser memory only, held by the jump-host flow; never given to a session | One jump-host flow, from the create to the confirmed destroy | Creating one jump host, reading its address and destroying it, through the jump vendor's adapter | Flow ends |
 | 22 | **Derived vendor identity** — not derivable today | — | — | — | — | No role exists for it. `STA-22` says "an implementation must not choose paths independently", and credential format v1 (`STA-22a`) defines no role, index family or known-answer vector for a vendor identity; until it does, none is derived or used (`OPN-26`) |
-| 23 | **Placed-secret scan key and reference**, per secret | Fresh independent browser-CSPRNG key `K` on placement or re-arm; reference `HMAC-SHA-256(K, SHA-256(value))` plus byte length `L` | Encrypted local store under `STA-23`; working copy only in browser memory. Neither key nor reference goes to the machine, sheet, model, transcript or app origin | Until rotation, machine destruction (at LNVPS, the vendor's confirmed deletion, not the stop that stands in for a destroy, `ARC-22`) or local-store loss; re-arm replaces it with a fresh key/reference | Local exact-value comparison only; no external authority | Cleared from working memory on lock, page hide, worker shutdown or session end; persistent copy removed on rotation/destruction, lost with the store |
+| 23 | **Placed-secret scan key and reference**, per secret | Fresh independent browser-CSPRNG key `K` on placement or re-arm; reference `HMAC-SHA-256(K, SHA-256(value))` plus byte length `L` | Encrypted local store under `STA-23`; working copy only in browser memory. Neither key nor reference goes to the machine, sheet, model, transcript or app origin | Until rotation, machine destruction (at LNVPS, the vendor's confirmed deletion, not the stop that stands in for a destroy, `ARC-22`) or local-store loss; re-arm replaces it with a fresh key/reference | Local exact-value comparison only; no external authority | Cleared from working memory on explicit app Lock, worker shutdown or session end; an ordinary hide retains the working copy while its worker survives (`STA-23`: "An ordinary visibility-only hide MUST NOT end or pause an unlocked session, clear its runtime authority, or invalidate its approvals."); persistent copy removed on rotation/destruction, lost with the store |
 
 For rows 5, 6, 12 and 23, LNVPS destruction means the durably recorded deletion confirmation.
 For its predicate, see `STG-21a`; for abandonment, see `ARC-22`.
@@ -375,6 +375,12 @@ outside this table's reach; the moment such a secret is supplied *to* the harnes
 credential, it is covered. **One redaction is enforceable and mandatory**: every untyped
 response is scanned for the harness's own held credentials before it reaches the model or the
 record, because a service can echo the key it was sent. The scan sees exact values only.
+
+For row 23, retained or reloaded scan material is the same independent random key and
+encrypted reference already recorded, never seed-derived, regenerated on hide or replaced by
+machine-reported bytes. No output may reach the transcript or model through an unscanned path
+because the page was hidden or resumed. The data-key, seed and other credential rows retain
+their own lifetimes; no inference cap or expiry is a lifetime for those holdings.
 
 ### SEC-6 — minimize what the model can reach, and count the rest
 

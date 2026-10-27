@@ -9,6 +9,15 @@ by a requirement, the requirement's identifier is given and the rule lives there
 
 ## Language
 
+### Local lifecycle
+
+**Explicit app Lock** · `STA-23`
+The operator's local app-lock action, distinct from locking the device screen.
+
+**Ordinary visibility-only hide** · `STA-23`
+A visibility change without pagehide, reload or worker loss, outside the seed-backup ceremony.
+_Avoid_: closed, ended or lost for a merely hidden surviving page.
+
 ### Execution planes
 
 **Cloud plane** · `ARC-3`
