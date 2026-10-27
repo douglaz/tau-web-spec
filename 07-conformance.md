@@ -421,9 +421,39 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       and installed versions; NixOS checks the pinned revision and cache keys. The display
       distinguishes bootstrap hash from package signatures. The build verifies that the
       declared key list in `bundle/artifact-alpine.toml` equals the keyring extracted from the
-      pinned minirootfs, and fails otherwise. On an unpinned installation (`ARC-25`), the
-      distribution's own signature checking stays on: an unsigned package is refused, and a
-      command lowering the check is refused before it is sent. Boundary-crossed: otherwise
+      pinned minirootfs, and fails otherwise. For unpinned installations,
+      `ARC-25a` says "A match MUST prevent transmission and command-intent creation."
+      Fixtures demonstrate its literal byte outcomes and target qualification, both admission
+      hooks and ordering, durable target/form refusal, replay and failed-storage behavior.
+      Include admitted controls, deliberate bypasses and harmless over-refusals. Review and
+      exercise fixed housekeeping instructions separately from submitted payloads:
+      `ARC-25a` says "No command text the harness composes contains a literal lowering form or lowers package-signature checking; the session command a harness launch wrapper carries and executes is the session's own bytes, not harness-composed text, and carries no such guarantee."
+      Demonstrate that no harness-composed command text matches the filter; a literal scan
+      alone does not establish the effects of its instructions.
+
+      During the separately authorized native-policy run, record distribution and
+      package-manager versions, package identities and signature conditions, effective
+      relevant policy including includes, overrides and inheritance, applicable trust,
+      diagnostics and transaction results for each case. Demonstrate a completed
+      trusted-signed repository transaction and an otherwise installable unsigned repository
+      package refused specifically for missing package signature under recorded stock
+      repository policy. `ARC-25a` says "That baseline MUST require a package signature for repository packages."
+      A repository policy lacking required package signatures fails this baseline; silently
+      strengthening it does not establish stock-policy evidence.
+
+      Demonstrate completed unsigned-local admission under the lenient allowance and
+      completed trusted-signed local admission. `ARC-25a` says "Under the lenient plain-Arch baseline, unsigned local package files are permitted when the recorded effective local-file policy permits missing signatures."
+      Neither local row is a refusal owed. Distinguish database-signature presence from
+      package-signature presence. Recording effective levels for these demonstrations
+      creates no recurrent delivery or re-entry read obligation: `ARC-25a` says "No package-policy or installed-package-validation read is required at delivery or re-entry by this baseline, and absent recorded signature validation creates no package-inventory finding."
+
+      Native invalid-signature, unaccepted-key, remote-file and warm-cache cases require a
+      separately adopted extension. Fixture command refusal, configuration equality, another
+      rejection reason and a nonzero exit alone satisfy no native signature-refusal case.
+      Fixture cases precede the live run; native evidence is owed during that separately
+      authorized run, not asserted before it. Native evidence establishes behavior under its
+      recorded conditions, not universal preservation or authentic installation history.
+      Boundary-crossed: otherwise
       a repository can substitute the kernel or SSH server outside the stated admission policy.
 - [ ] **CNF-62 · BLOCKING** A typed vendor call over the tunnel **refuses a certificate that
       does not match the pin** (`CHN-12a`). Verified by presenting a valid certificate from a
