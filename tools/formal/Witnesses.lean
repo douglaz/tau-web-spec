@@ -158,7 +158,7 @@ structure Module where
 
 /-- The schema version of each emitted module. Allocation, pins and dispatch changed shape. -/
 def schemaVersion (name : String) : Nat :=
-  if name == "allocation" then 2 else if name == "pins" then 5 else if name == "dispatch" then 7 else 1
+  if name == "allocation" then 2 else if name == "pins" then 5 else if name == "dispatch" then 8 else 1
 
 /-- The header pretty, one trace per line: a diff names the trace that moved. -/
 def fileText (name : String) (ns : Name) (bound : Json) (witnesses enumeration : List Json) :
@@ -570,9 +570,10 @@ def receiptJson (r : Receipt) : Json := Json.mkObj [
   ("source", receiptSourceName r.source), ("call", toJson r.call),
   ("resource", resourceJson r.resource), ("target", targetJson r.target),
   ("binding", receiptBindingJson r.binding), ("validated", toJson r.validated),
-  ("returned_vendor", toJson r.returnedVendor)]
+  ("returned_vendor", toJson r.returnedVendor), ("returned_withheld", toJson r.returnedWithheld)]
 
 def refusalJson : Refusal → Json
+  | .identityExclusion records => Json.mkObj [("reason", "identity_exclusion"), ("records", toJson records)]
   | .unmapped => Json.mkObj [("reason", "unmapped")]
   | .binding => Json.mkObj [("reason", "binding")]
   | .facts => Json.mkObj [("reason", "facts")]
@@ -589,7 +590,7 @@ def refusalJson : Refusal → Json
 /-- The entries the journal names, so that `reset_offer` is read over the entries in play. -/
 def entriesOf (j : TauWeb.Dispatch.Journal) : List TauWeb.Dispatch.Entry :=
   (j.filterMap fun rec => match rec with
-    | .association _ e => some e
+    | .association _ e | .quarantined _ e => some e
     | .resetPrereqs e _ _ => some e
     | .resetCollection e _ => some e
     | .reinstallApproval e _ _ => some e
@@ -645,6 +646,11 @@ def knowledgeJson (p : TauWeb.Dispatch.Params) (w : TauWeb.Dispatch.World) : Jso
     ("associations", Json.arr ((j.filterMap fun rec => match rec with
       | .association t e => some (Json.mkObj [("target", targetJson t), ("entry", toJson e)])
       | _ => none).reverse).toArray),
+    ("quarantined", toJson ((j.reverse.filterMap fun rec => match rec with
+      | .quarantined vendor e => some (Json.mkObj [("vendor", toJson vendor), ("entry", toJson e)])
+      | _ => none))),
+    ("identity_exclusions", toJson ((entriesOf j).map fun e =>
+      Json.mkObj [("entry", toJson e), ("records", toJson (identityRisks j e))])) ,
     ("calls", Json.arr ((callsJson p (inEffect p j)).reverse).toArray),
     ("unresolved", Json.arr ((resourcesOf j).map fun r =>
       Json.mkObj [("resource", resourceJson r),
@@ -717,6 +723,9 @@ def eventJson (x : External) : TauWeb.Dispatch.Event → Json
       ("kind", "dispose"), ("provenance", "disposition"),
       ("resource", resourceJson d.resource), ("calls", toJson d.calls),
       ("continuation", continuationName d.continuation), ("appended", toJson ok)]
+  | .associateEvidence id e withheld ok => Json.mkObj [
+      ("kind", "associate_evidence"), ("provenance", "adapter observation"),
+      ("vendor", toJson id), ("entry", toJson e), ("withheld", toJson withheld), ("appended", toJson ok)]
   | .associate t e => Json.mkObj [
       ("kind", "associate"), ("provenance", "operator act"),
       ("target", targetJson t), ("entry", toJson e)]
@@ -800,7 +809,8 @@ def assumptionsJson (p : TauWeb.Dispatch.Params) : Json :=
               ("resetOfferFreshKeys", toJson p.resetOfferFreshKeys),
               ("reinstallWithdrawalEffective", toJson p.reinstallWithdrawalEffective),
               ("commandHold", toJson p.commandHold), ("rebootBootChange", toJson p.rebootBootChange),
-              ("orderAssociation", toJson p.orderAssociation)]
+              ("orderAssociation", toJson p.orderAssociation),
+              ("identityExclusion", toJson p.identityExclusion)]
 
 def Trace.json (t : Trace) : Json :=
   let segments := if t.segments.isEmpty then [(t.far, t.events)] else t.segments
@@ -812,6 +822,22 @@ def Trace.json (t : Trace) : Json :=
   traceJson t.decls (assumptionsJson t.params) t.pair (knowledgeJson t.params t.start) steps
 
 def witnesses : List Trace := [
+  { decls := ["TauWeb.Dispatch.excluded_order_refused"], events := excludedOrderEvents,
+    pair := some (.refused, "TauWeb.Dispatch.excluded_order_sent_without_guard") },
+  { decls := ["TauWeb.Dispatch.excluded_order_sent_without_guard"], events := excludedOrderEvents,
+    params := exclusionDisabled, pair := some (.admitted, "TauWeb.Dispatch.excluded_order_refused") },
+  { decls := ["TauWeb.Dispatch.quarantine_has_no_target", "TauWeb.Dispatch.retained_quarantine_conflict"],
+    events := quarantineEvents ++ [.associateEvidence 707 entryA false true,
+      .associateEvidence 708 entryA false true, .replay] },
+  { decls := ["TauWeb.Dispatch.withheld_association_excludes"], events := withheldAssociationEvents },
+  { decls := ["TauWeb.Dispatch.failed_quarantine_append_changes_nothing"],
+    events := unavailableEvents ++ [.associateEvidence 707 entryB false false, .replay] },
+  { decls := ["TauWeb.Dispatch.unavailable_receipt_never_settles"],
+    events := unavailableEvents ++ [.associateEvidence 710 entryA false true, .replay] },
+  { decls := ["TauWeb.Dispatch.unavailable_uncorrelated_creates_no_risk"],
+    events := [.receive unavailableOrder true, .replay] },
+  { decls := ["TauWeb.Dispatch.unavailable_risk_survives_disposition"],
+    events := unavailableEvents ++ [.dispose ⟨machineA, [901], .asIfDone⟩ true, .replay] },
   { decls := ["TauWeb.Dispatch.order_receipt_association_required"],
     events := orderWithoutAssociationEvents,
     pair := some (.refused, "TauWeb.Dispatch.order_receipt_without_association_admitted") },

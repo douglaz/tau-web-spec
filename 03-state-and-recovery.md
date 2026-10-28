@@ -292,14 +292,18 @@ taken from the model.** For a machine it is the **approved machine entry** of th
 (`ARC-15`'s batch), to which the reserved allocation index (`STA-22b`) and, once learned, the
 immutable vendor machine id are associated — so a create and the machine it produced are one
 resource, and a second attempt at the same entry sits behind the same barrier even if it would
-reserve another index. A different approved entry is independent, and creating it while a
-sibling is unresolved is permitted under its own approval, whose card shows the unresolved
-sibling and that it may be billing. For an untyped call it is the **scope** itself, since no
+reserve another index. A different approved entry is independent, and creating it while a sibling is unresolved is permitted under its own approval, whose card shows the unresolved sibling and that it may be billing, unless the unavailable-identity exclusion below bars its order. For an untyped call it is the **scope** itself, since no
 adapter can say what the call touched (`SEC-4`): no further call under that scope is dispatched
 while it is unresolved, and once the operator disposes of it only as the disposition permits
 (below); nothing under a scope counts as a read, because nothing types it. A scope re-approved
 for the same origin and credential inherits the outstanding call. An untyped vendor scope
 (`SEC-4`) is a scope like any other here.
+
+A received-present but withheld vendor identity keeps the approved-entry barrier until independently admissible operation evidence or disposition. Its confirmation, settlement, targeting and disposition effects are specified in Protected browser evidence v1 §3a.
+
+A different entry remains a separate resource. New vendor identity admission, including quarantine, refusal and existing admitted-map authority, is governed by Protected browser evidence v1 §3a.
+
+While the unavailable-identity exclusion in Protected browser evidence v1 §3a applies to an entry, an order for it refuses before send with a typed identity-exclusion reason naming the risk records; reads, dispositions and operations through already admitted mappings are unaffected.
 
 **What stays permitted.** Reads naming the resource — the adapter's status queries, the pinned
 SSH attempt that is `STG-4`'s third predicate, the collection of job records — are permitted
@@ -870,9 +874,8 @@ At expiry or cap exhaustion, that session MUST end at the next execution opportu
 further ordinary dispatch or actionable continuation. Uncertain clock validity MUST withhold
 further authority until validity is established or the session ends. A new session requires
 separately confirmed limits and admission. In-flight uncertainty remains recorded; expiry
-does not turn an unknown outcome into failure or authorize retry. This is the continuity
-interaction, not a selection of limit units, expiry origin, clock source or in-flight
-accounting semantics. No procured-key expiry is imputed to bring-your-own or local paths.
+does not turn an unknown outcome into failure or authorize retry. The procured-key units, selection, confirmation, expiry-origin, clock-validity and in-flight
+accounting contract has its single home in `ARC-31a`. No procured-key expiry is imputed to bring-your-own or local paths.
 An inference expiry does not expire SSH, seed, data-key or account authority or stop arbitrary
 remote commands. Ending one session does not by itself lock the whole store or end another
 eligible session.

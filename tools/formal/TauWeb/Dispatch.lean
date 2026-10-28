@@ -16,7 +16,11 @@ Validation and authenticated transport enter as assumptions, not proofs about ne
 Read observations retain their separate provenance; no receipt is renamed a read. The detailed
 `STG-21a` predicates, subscription/publication histories, deletion constituent records, accepted
 administrative races and reappearance gap remain Markdown-only. In particular this module does
-not infer host destruction or discharge secret duties.
+not infer host destruction or discharge secret duties. Canonical returned-ID withholding,
+quarantine, retained-evidence conflict and the new-order exclusion are carried below. Exact
+protected encodings, projection custody and listing candidate selection remain Markdown-only.
+The inference-limit clock contract also remains Markdown-only; this module’s inference
+resource represents the unresolved-request exception, not session admission or expiry.
 
 **The barrier is derived.** `unresolved` is an intent with no terminal record, computed from the
 journal, never an event of its own — "an event recording 'became unresolved' is exactly what a
@@ -264,6 +268,8 @@ structure Receipt where
   binding : ReceiptBinding
   validated : Bool
   returnedVendor : Option Nat := none
+  /-- Canonical received-present withholding, distinct from absence and display projection. -/
+  returnedWithheld : Bool := false
   deriving DecidableEq, Repr
 
 /-- The approval decision journaled with the intent (`STA-4`). `SEC-4` makes it two properties
@@ -327,6 +333,8 @@ inductive Rec
   | deliveryRebootResult (call : CallId) (resource : Resource) (recordBoot : Option Nat) (observedBoot : Nat)
   | disposition (d : Disposition)
   | association (t : Target) (e : Entry)
+  /-- Canonical unavailable evidence; a retained literal still supplies no mapping. -/
+  | quarantined (vendor : Option Nat) (e : Entry)
   | resetPrereqs (e : Entry) (installation : Nat) (keys : Nat)
   | reinstallApproval (e : Entry) (call : CallId) (approval : Approval)
   | resetCollection (e : Entry) (installation : Nat)
@@ -466,10 +474,13 @@ authority is per clause and this structure is not one. -/
   /-- `ARC-43`, 2026-10-18: a reboot's own collection needs a different boot.
   Pair: `delivery_reboot_same_boot_refused` / `delivery_reboot_same_boot_admitted_without_guard`. -/
   rebootBootChange : Bool := true
-  /-- `STG-21a` says "A validated recorded response correlated to the order confirms its returned VM id, durably associated with the approved entry."
+  /-- `STG-21a` says "A validated recorded response correlated to the order confirms its retained returned VM id, durably associated with the approved entry."
   Pair: `order_receipt_association_required` /
   `order_receipt_without_association_admitted`. -/
   orderAssociation : Bool := true
+  /-- Refuse an excluded entry’s new order before send. Pair: `excluded_order_refused` /
+  `excluded_order_sent_without_guard`. Association admission remains independently guarded. -/
+  identityExclusion : Bool := true
   deriving DecidableEq, Repr
 
 /-- The rules as they stand. -/
@@ -522,12 +533,63 @@ resource and target, plus browser-vendor TLS and operation-specific validated su
     r.resource == i.resource && r.target == i.target &&
     i.approval.receiptBinding == some r.binding && r.binding.operation.kind == i.kind
 
+/-- The correlated entry of a qualifying order receipt, using only its earlier prefix.
+Canonical conversion and genuine pre-omission comparisons are assumed; this abstraction keeps
+retained typed operands and the returned-ID presence distinction, not the protection encoding. -/
+@[req "STA-24"] def receiptOwner (earlier : Journal) (r : Receipt) : Option Entry :=
+  if r.binding.operation != .order then none else
+  earlier.findSome? fun rec => match rec with
+    | .intent i => if receiptMatches i r then match i.resource with
+        | .machine e => some e
+        | .inference => none
+      else none
+    | _ => none
+
+/-- Canonical risk record ordinals, ascending in this abstract journal. Display projections
+never enter it. No disposition, later evidence or reference-lifetime event discharges a risk. -/
+@[req "STA-24"] def identityRisks : Journal → Entry → List Nat
+  | [], _ => []
+  | rec :: rest, entry =>
+    let owner := match rec with
+      | .receipt r => if r.returnedWithheld then receiptOwner rest r else none
+      | .quarantined none e => some e
+      | _ => none
+    identityRisks rest entry ++ (if owner.any (· != entry) then [rest.length] else [])
+
+/-- Retained qualifying evidence restricts cross-entry admission without resolving a target.
+A quarantined retained literal is evidence even though it supplies no operational mapping. -/
+@[req "STA-24"] def identityConflict : Journal → Nat → Entry → Bool
+  | [], _, _ => false
+  | rec :: rest, vendor, entry =>
+    (match rec with
+      | .association (.vendor id) e => id == vendor && e != entry
+      | .quarantined (some id) e => id == vendor && e != entry
+      | .receipt r => !r.returnedWithheld && r.returnedVendor == some vendor &&
+          (receiptOwner rest r).any (· != entry)
+      | _ => false) || identityConflict rest vendor entry
+
+/-- Genuine admitted-map checks precede omission; duplicates append nothing. A new unavailable
+identity is quarantined. Retained qualifying conflicts refuse rather than becoming mappings.
+Approved-entry existence and allocation reservation are inputs assumed checked by the harness;
+wire decoding, setup references, alias-check arrays and projections remain Markdown-only. -/
+@[req "STA-24"] def associationRecord (j : Journal) (target : Target) (entry : Entry)
+    (withheld : Bool) : Option Rec :=
+  if (associated j target).isSome then none else
+  match target with
+  | .vendor id =>
+    if identityConflict j id entry then none
+    else if withheld then some (.quarantined none entry)
+    else if !(identityRisks j entry).isEmpty then some (.quarantined (some id) entry)
+    else some (.association target entry)
+  | .index _ => if withheld then none else some (.association target entry)
+  | .entry _ | .inferenceCap => none
+
 /-- The returned order id and its association must both be durable before settlement.
 Receipt arrival alone is not an association. Other receipt operations return no new id. -/
 @[req "STG-21a"] def orderAssociated (j : Journal) (i : Intent) (r : Receipt) : Bool :=
   match r.binding.operation with
   | .order => match r.returnedVendor, i.resource with
-    | some id, .machine e => associated j (.vendor id) == some e
+    | some id, .machine e => !r.returnedWithheld && associated j (.vendor id) == some e
     | _, _ => false
   | .stop | .restart => true
 
@@ -560,6 +622,7 @@ from the record alone. Every reader below takes a journal `inEffect` has already
     (d.resource == i.resource || !p.dispositionOwnResource) && d.calls.contains i.call
   | .intent _ => false
   | .association _ _ => false
+  | .quarantined _ _ => false
   | .resetPrereqs _ _ _ => false
   | .reinstallApproval _ _ _ => false
   | .resetCollection _ _ => false
@@ -599,6 +662,7 @@ def disposes (r : Resource) : Rec → Bool
   | .observation _ => false
   | .receipt _ => false
   | .association _ _ => false
+  | .quarantined _ _ => false
   | .resetPrereqs _ _ _ => false
   | .reinstallApproval _ _ _ => false
   | .resetCollection _ _ => false
@@ -637,6 +701,7 @@ where
     | .receipt _ :: rest => go read rest
     | .disposition _ :: rest => go read rest
     | .association _ _ :: rest => go read rest
+    | .quarantined _ _ :: rest => go read rest
     | .resetPrereqs _ _ _ :: rest => go read rest
     | .reinstallApproval _ _ _ :: rest => go read rest
     | .resetCollection _ _ :: rest => go read rest
@@ -695,6 +760,7 @@ def standingIn (p : Params) (r : Resource) : Journal → Option (Disposition × 
   | .observation _ :: rest => standingIn p r rest
   | .receipt _ :: rest => standingIn p r rest
   | .association _ _ :: rest => standingIn p r rest
+  | .quarantined _ _ :: rest => standingIn p r rest
   | .resetPrereqs _ _ _ :: rest => standingIn p r rest
   | .reinstallApproval _ _ _ :: rest => standingIn p r rest
   | .resetCollection _ _ :: rest => standingIn p r rest
@@ -725,6 +791,7 @@ disposition is tested against the reading of what came before it. -/
   | .observation o :: rest => .observation o :: inEffect p rest
   | .receipt r :: rest => .receipt r :: inEffect p rest
   | .association t e :: rest => .association t e :: inEffect p rest
+  | .quarantined id e :: rest => .quarantined id e :: inEffect p rest
   | .resetPrereqs e n keys :: rest => .resetPrereqs e n keys :: inEffect p rest
   | .reinstallApproval e c ap :: rest => .reinstallApproval e c ap :: inEffect p rest
   | .resetCollection e n :: rest => .resetCollection e n :: inEffect p rest
@@ -978,6 +1045,8 @@ inductive Refusal
   | approvalActivation
   /-- `STG-20`: the refusal names the matching withdrawal, not an activation. -/
   | withdrawnApproval (resource : Resource) (call : CallId) (approval : Approval)
+  /-- Canonical earlier unavailable-ID evidence excludes this entry’s new order. -/
+  | identityExclusion (records : List Nat)
   deriving DecidableEq, Repr
 
 inductive Verdict
@@ -1003,6 +1072,11 @@ structure Request where
 def intentOf (rq : Request) (r : Resource) (ap : Approval) : Intent :=
   { call := rq.call, target := rq.target, resource := r, kind := rq.kind,
     session := rq.session, approval := ap }
+
+/-- Identity-exclusion evidence for a resolved resource; inference has no vendor mapping. -/
+def resourceIdentityRisks (j : Journal) : Resource → List Nat
+  | .machine e => identityRisks j e
+  | .inference => []
 
 /-- The dispatch check, in the order the requirements put it: the harness resolves what the model
 named (`STA-24`), `SEC-4`'s binding and approved record are checked, and only then `STA-24`'s
@@ -1031,6 +1105,9 @@ The flow's authorization is `SEC-4`'s and is not carried here. -/
         | none =>
           if p.approvalResetRequiresRescue && approvalBound j (intentOf rq r ap) &&
               !approvedRescueReset p j (intentOf rq r ap) then .refused .approvalActivation
+          else if p.identityExclusion && rq.kind == .create &&
+              !(resourceIdentityRisks j r).isEmpty then
+            .refused (.identityExclusion (resourceIdentityRisks j r))
           else .dispatched (intentOf rq r ap)
 
 /-! ## The trace -/
@@ -1069,6 +1146,8 @@ inductive Event
   | dispose (d : Disposition) (appended : Bool)
   /-- The harness associates what a model may name with the approved entry. -/
   | associate (t : Target) (e : Entry)
+  /-- Genuine received vendor input, conversion withholding, and append outcome. -/
+  | associateEvidence (vendor : Nat) (entry : Entry) (withheld : Bool) (appended : Bool)
   /-- `ready_to_reset` (`ARC-43`) records the installed pins and the reset intent (`STA-20b`). -/
   | resetPrereqs (e : Entry) (keys : Nat) (appended : Bool)
   /-- The existing journaled typed approval of a destructive reinstall, bound to its reset. -/
@@ -1084,6 +1163,13 @@ inductive Event
   `acceptsWithdrawal` therefore does not read the session. -/
   | replay
   deriving DecidableEq, Repr
+
+/-- Preview the derived evidence; failed append changes neither map nor quarantine. -/
+def appendAssociation (p : Params) (w : World) (t : Target) (e : Entry)
+    (withheld ok : Bool) : World :=
+  match associationRecord w.memory t e withheld with
+  | none => { w with verdict := none }
+  | some rec => { append p w rec ok with verdict := none }
 
 /-- One event. A request that `admit` accepts is journaled "immediately before the bytes leave"
 (`STA-4`) and dispatched; if that append fails the transition does not occur and nothing leaves
@@ -1107,7 +1193,8 @@ the journal (`STA-2`, `STA-7`). -/
   | .dispose d ok =>
     if accepts p w.memory d then { append p w (.disposition d) ok with verdict := none }
     else { w with verdict := none }
-  | .associate t e => { append p w (.association t e) true with verdict := none }
+  | .associate t e => appendAssociation p w t e false true
+  | .associateEvidence id e withheld ok => appendAssociation p w (.vendor id) e withheld ok
   | .resetPrereqs e keys ok =>
     let n := installationOf p w.memory e
     let started := append p w (.resetCollection e n) true
@@ -1166,10 +1253,12 @@ theorem admit_dispatched (p : Params) (j : Journal) (rq : Request) (ap : Approva
             · rename_i hnone
               split at h
               · exact nomatch h
-              · injection h with h
-                subst h
-                refine ⟨rfl, rfl, rfl, ?_, hfacts, hblock, hnone⟩
-                simp_all only [intentOf]
+              · split at h
+                · exact nomatch h
+                · injection h with h
+                  subst h
+                  refine ⟨rfl, rfl, rfl, ?_, hfacts, hblock, hnone⟩
+                  simp_all only [intentOf]
 
 /-- What it is for a standing disposition not to restrict an operation: the destructive stop does
 not apply to it, and if it is within the reach the continuation permits it. -/
@@ -1313,7 +1402,16 @@ theorem step_memory_eq (p : Params) (hp : p.durableBeforeApply = true) (x : Exte
     split
     · exact append_memory_eq p hp w hw _ ok
     · exact hw
-  | associate t e => exact append_memory_eq p hp w hw _ true
+  | associate t e =>
+    simp only [step, appendAssociation]
+    split
+    · exact hw
+    · exact append_memory_eq p hp w hw _ true
+  | associateEvidence id e withheld ok =>
+    simp only [step, appendAssociation]
+    split
+    · exact hw
+    · exact append_memory_eq p hp w hw _ ok
   | resetPrereqs e keys ok =>
     exact append_memory_eq p hp _ (append_memory_eq p hp w hw _ true) _ ok
   | approveReinstall e c ap ok => exact append_memory_eq p hp w hw _ ok
@@ -2870,6 +2968,86 @@ def disposedRebootEvents : List Event :=
     let w := run current farDone.external init disposedRebootEvents
     w.verdict = some (.refused (.continuation .reinstall)) ∧
     restriction current w.memory machineA = some .reinstall := by decide +kernel
+
+/-! ## Canonical unavailable identity -/
+
+def unavailableOrder : Receipt :=
+  { source := .browserVendorTls, call := 901, resource := machineA, target := .entry entryA,
+    binding := ⟨.order, 41, 901⟩, validated := true, returnedWithheld := true }
+
+def unavailableApproval : Approval :=
+  { session := 1, facts := 1, receiptBinding := some unavailableOrder.binding }
+
+def unavailableRequest : Request :=
+  { call := 901, target := .entry entryA, kind := .create, session := 1, facts := 1 }
+
+def unavailableEvents : List Event :=
+  [.request unavailableRequest unavailableApproval true, .receive unavailableOrder true]
+
+def otherOrder : Request :=
+  { unavailableRequest with call := 902, target := .entry entryB, session := sessionB }
+
+def excludedOrderEvents : List Event := unavailableEvents ++ [.replay,
+  .request otherOrder { unavailableApproval with session := sessionB } true]
+
+def exclusionDisabled : Params := { current with identityExclusion := false }
+
+@[req "STA-24"] theorem excluded_order_refused :
+    (run current farDone.external init excludedOrderEvents).verdict =
+      some (.refused (.identityExclusion [init.journal.length + 1])) := by decide +kernel
+
+@[req "STA-24"] theorem excluded_order_sent_without_guard :
+    ((run exclusionDisabled farDone.external init excludedOrderEvents).verdict.any fun v =>
+      match v with | .dispatched _ => true | _ => false) = true := by decide +kernel
+
+def quarantineEvents : List Event := unavailableEvents ++
+  [.associateEvidence 707 entryB false true, .replay]
+
+@[req "STA-24"] theorem quarantine_has_no_target :
+    let w := run current farDone.external init quarantineEvents
+    resolve w.memory (.vendor 707) = none ∧
+    (identityRisks w.memory entryB).isEmpty = false ∧
+    (w.memory.contains (.quarantined (some 707) entryB)) = true := by decide +kernel
+
+/-- The risk-owning entry may independently adopt, but cannot take another entry’s retained
+qualifying literal, including a literal held in quarantine. -/
+@[req "STA-24"] theorem retained_quarantine_conflict :
+    let w := run current farDone.external init quarantineEvents
+    associationRecord w.memory (.vendor 707) entryA false = none ∧
+    associationRecord w.memory (.vendor 708) entryA false =
+      some (.association (.vendor 708) entryA) := by decide +kernel
+
+def withheldAssociationEvents : List Event :=
+  [.associateEvidence 709 entryA true true, .replay,
+   .request otherOrder { unavailableApproval with session := sessionB } true]
+
+@[req "STA-24"] theorem withheld_association_excludes :
+    let w := run current farDone.external init withheldAssociationEvents
+    resolve w.memory (.vendor 709) = none ∧
+    w.verdict = some (.refused (.identityExclusion [init.journal.length])) := by decide +kernel
+
+@[req "STA-24"] theorem failed_quarantine_append_changes_nothing :
+    let w := run current farDone.external init unavailableEvents
+    appendAssociation current w (.vendor 707) entryB false false = { w with verdict := none } := by
+  decide +kernel
+
+@[req "STA-24"] theorem unavailable_receipt_never_settles :
+    let w := run current farDone.external init
+      (unavailableEvents ++ [.associateEvidence 710 entryA false true, .replay])
+    (unresolved current w.memory machineA).contains unavailableOrder.call = true ∧
+    resolve w.memory (.vendor 710) = some machineA := by decide +kernel
+
+@[req "STA-24"] theorem unavailable_uncorrelated_creates_no_risk :
+    identityRisks [.receipt unavailableOrder] entryB = [] ∧
+    identityRisks [.receipt { unavailableOrder with source := .arbitraryResponse },
+      .intent (intentOf unavailableRequest machineA unavailableApproval)] entryB = [] := by
+  decide +kernel
+
+@[req "STA-24"] theorem unavailable_risk_survives_disposition :
+    let w := run current farDone.external init (unavailableEvents ++
+      [.dispose ⟨machineA, [901], .asIfDone⟩ true, .replay])
+    (unresolved current w.memory machineA).contains 901 = false ∧
+    (identityRisks w.memory entryB).isEmpty = false := by decide +kernel
 
 /-! ## The bound -/
 

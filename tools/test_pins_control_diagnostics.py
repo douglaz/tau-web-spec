@@ -94,3 +94,27 @@ for name, diagnostic, expected, allowed in cases:
         print(f"FAIL: {name}: exit {result.returncode}: {result.stdout}{result.stderr}")
         sys.exit(1)
 print(f"pin diagnostic parser: {len(cases)} cases passed")
+
+# Dispatch retains the exact residual equality after the additional refusal branch. A
+# neighboring case or arbitrary equality is still rejected; no generic open-goal rule exists.
+source_path = root / "tools/formal/TauWeb/Dispatch.lean"
+source = source_path.read_text().splitlines()
+binding_goal = (f"error: TauWeb/Dispatch.lean:{location('admit_dispatched')}:1: unsolved goals\n"
+                "case h_2.isFalse.isFalse\np : Params\n⊢ rq.session = ap.session\n")
+dispatch_cases = [
+    ("exact binding goal", binding_goal, True),
+    ("binding goal with build output", binding_goal + noise, True),
+    ("old binding case", binding_goal.replace("h_2.isFalse.isFalse", "h_2.isFalse"), False),
+    ("arbitrary binding goal", binding_goal.replace("rq.session = ap.session", "False"), False),
+    ("additional binding goal", binding_goal + "⊢ False\n", False),
+    ("duplicate binding diagnostic", binding_goal + binding_goal, False),
+]
+for name, diagnostic, allowed in dispatch_cases:
+    log = scratch / "dispatch-diagnostic.log"
+    log.write_text(diagnostic)
+    result = subprocess.run([sys.executable, str(parser_path), str(source_path),
+                             str(log), "admit_dispatched"], capture_output=True, text=True)
+    if (result.returncode == 0) != allowed:
+        print(f"FAIL: {name}: exit {result.returncode}: {result.stdout}{result.stderr}")
+        sys.exit(1)
+print(f"dispatch diagnostic parser: {len(dispatch_cases)} cases passed")
