@@ -52,3 +52,34 @@ ceremony on a repository that has no builds, buying nothing a commit pin does no
 `00-overview.md` says the repository holds no harness code and never will. `ARC-32` points
 here for where the served build comes from. `CNF-4`'s build gate is named as the
 implementation's. TASKS T29 creates the implementation repository with the pin.
+
+
+## Dated addendum — protected browser evidence, 2026-10-28
+
+The occurrence amendment in ADR-0041 records: "No credential class, entropy assessment,
+new format, value-derived sheet material or machine-held scan key is introduced."
+That sentence describes that amendment. This later representation decision explicitly
+adds versioned protected browser payloads, authenticated intrinsic substitution facts,
+a transient atomic outcome-repair batch, immutable runtime-release addressing, scan-blob
+storage, authenticated fenced-key local envelopes and counted append-attempt fences. It is a follow-up, not part of the occurrence amendment.
+
+[Protected browser evidence v1](../design/protected-evidence-v1.md) is their single design
+home. Raw facts are omitted with named withholding and genuine pre-removal outcomes,
+rather than plausible numeric placeholders. Span facts distinguish new inserted markers
+from identical external content; ambiguous legacy payload remains conservative. An atomic
+batch repairs all affected retained outcomes before one render. Deterministic index markers
+terminate name-conflicting repairs while retaining name association. The attempt fence
+durably counts unresolved encryption attempts across restart. Fresh local-key birth uses
+the credential-format extension; unprovable legacy-key history permits read-only replay,
+never invented budget. The machine/vendor input grammar, record AAD, chain, nonce generation
+and canonical numbered RecordJson remain unchanged. Under the data key it adds encrypted
+scan blobs `scan-<id>` with AAD `tau-web/local/v1/<id>/scan/<scan-id>`, counted within the same
+2^32 bound, and permanent attempt-fence files containing no additional secret. Envelope
+version/AAD changes and creation/legacy eligibility are explicit in the credential companion
+and STA-23; no old key is silently migrated.
+
+This is forward reading of legacy stores, not downgrade compatibility. Older binaries can
+reject new payloads; older pages cannot receive a batch-producing worker. Old journal
+bytes are never resealed. Immutable addressed runtime closures prevent mixed receivers.
+The decision records no implementation or conformance acceptance and no practical latency
+claim. The pin and all affected lifetime/operation behavior require their own reconciliation.

@@ -1,8 +1,8 @@
 # Credential format v1
 
 Normative companion to `STA-22a`, `STA-22b` and `STA-23`. These are the identities and
-storage formats new implementations must reproduce; there is no deployed legacy format to
-migrate. The fixtures beside this document contain public test secrets, never operator data.
+storage formats implementations must reproduce. The dated fenced-key extension below
+distinguishes newly born local keys from pre-protocol local stores; no migration is implied. The fixtures beside this document contain public test secrets, never operator data.
 
 ## Seed and child keys
 
@@ -101,6 +101,28 @@ Only the harness worker holds the unwrapped data/wrapping keys. Clear the passph
 wrapping key after unlocking; hold the data key only until lock. No local unlock material
 is derived from the recoverable seed: doing so would require persisting the seed in order
 to unlock itself. Credential inventory rows 18–20 cover this boundary.
+
+## Fenced local-key birth extension, 2026-10-28
+
+Fresh local-store creation uses an envelope with the same exact fields, types, binary
+lengths, KDF and wrapping algorithm as the local envelope above, except `version:2` and
+wrapping AAD exactly `tau-web/local/v2/<id>`. This authenticated distinction certifies the
+private constructor's fresh data-key birth under the attempt-counting protocol in
+[Protected browser evidence v1](protected-evidence-v1.md#5-scan-reservations-and-attempt-fences).
+The constructor generates a new data key, commits this envelope, and performs no data-key
+AEAD before that commit; every later data-key AEAD follows that protocol, including the
+first seed append. A v1 key is never upgraded or rewrapped into v2. A passphrase rewrap
+preserves the version and its AAD. Unknown versions fail before the KDF. No extra field is
+accepted in either version. The distinction remains authenticated even with no seed record.
+
+RecordJson, record/snapshot AAD under `tau-web/local/v1/`, canonical chain bytes, nonce
+generation, derivation and sheet v1 envelopes remain unchanged. V1 local envelopes remain
+readable with their original AAD but carry no provable remaining encryption budget; their
+nonempty prefix is read-only, and a seedless v1 envelope is operationally refused. Exact
+recovery/eligibility transitions and the combined journal/scan/attempt bound are owned by
+the linked protocol. No records or old keys are silently migrated. Old local bytes stay
+unchanged; an old binary rejects a v2 local envelope. For the extension's known-answer
+demonstrations, see `CNF-82` in `07-conformance.md`.
 
 ## Recovery sheet
 
