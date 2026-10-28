@@ -352,7 +352,8 @@ Permitted provenance comprises:
 - public identities and counters generated without taking their bytes from the entered
   value or its secret-derived material, and independently generated random fields; and
 - outputs of the cryptographic operations prescribed by this inventory and
-  [credential format v1](./docs/design/credential-format-v1.md), only through their
+  [credential format v1](./docs/design/credential-format-v1.md) and
+  [Protected browser evidence v1](docs/design/protected-evidence-v1.md#5-scan-reservations-and-attempt-fences), only through their
   prescribed generation paths and at the fields and sinks those contracts authorize.
 
 Selecting the truthful typed outcome or the specified named marker does not carry the
@@ -377,7 +378,34 @@ fact first known only after its act's effects is mutable carried content when cu
 requires its marker: compute each required comparison on the genuine value first, record
 its truthful outcome, and give the fact the named marker in each listed final representation
 that would otherwise contain a carried occurrence. This forges no equality and omits no
-required evidence. Required facts
+required evidence. This includes vendor- or relay-reported facts first known only after the
+request's effects.
+
+Browser-held evidence may omit a post-effect received fact's raw display token only while
+showing its visible named withholding and retaining every genuine relation and outcome
+needed by admission, replay and reporting, computed on the validated facts before omission.
+Received absence, withholding and retention remain distinct. No numeric placeholder or
+masked equality stands for a received fact. The protected browser form is not accepted as
+a machine or vendor wire record. Canonical facts copied from the intent remain pre-effect required facts. Their newly
+composed post-effect display copies may be visibly withheld while preserving their genuine
+comparison and association. A canonical placement name remains unchanged; an unsafe name
+display in a final projection, including a refused entering callback, may be unavailable
+with typed association and payload-local index lookup. No length-derived guard or scan
+material enters that lookup. This representation grants no new operation or settlement
+authority. The exact
+payload, association, deterministic name-conflict fallback, scan-attempt reservation and
+atomic page-transition rules have one home in
+[Protected browser evidence v1](docs/design/protected-evidence-v1.md).
+
+New substituted payloads retain authenticated intrinsic facts distinguishing inserted
+marker literals from preserved external bytes through their actual encodings. Only
+constructor-demonstrated literals receive marker provenance; interpolated names and
+unlisted external content retain their origins. Legacy records are not rewritten, and
+marker spelling or authentication alone does not recover erased payload provenance.
+Ambiguous legacy payload remains carried and may refuse a new placement or re-arm before
+effects. New demonstrated wholly permitted coincidences retain the progress rule.
+
+Required facts
 recorded unchanged, identity comparisons and truthful evidence MUST remain truthful. If
 custody cannot be satisfied without changing such a required fact, refuse the affected act
 before its effects; the same applies to later acts introducing such facts while a reference

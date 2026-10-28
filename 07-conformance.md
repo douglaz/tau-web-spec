@@ -291,6 +291,51 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       cancellation and encryption-budget failures without invented success, evidence
       omission or collision retries.
 
+      Exercise [Protected browser evidence v1](docs/design/protected-evidence-v1.md): compare
+      original and replayed State/Agreement for all job variants and precedence branches;
+      distinguish absent and withheld exits through every report/tool/delivery copy; preserve
+      successful (status 200) and unsuccessful (status 500) inference, top-up absent/true/false
+      and unavailable mint-identifier outcomes, preserving expiry uncertainty both live and
+      after replay. Reject protected raw machine/vendor forms and invalid browser slot,
+      relation, association, version, span, range and terminal-consistency claims. Pair identical inserted
+      and external marker histories for new records and conservative unchanged legacy
+      twins, including both credential-substitution stages and hex/JSON/lossy encodings.
+      Demonstrate singleton, overlapping and combined-name markers, the deterministic
+      index-form fallback, logical/encoded/name-metadata junctions, actual protected name-row
+      junctions (including refused entering values equal to canonical names), and refused/stale
+      pre-registration repairs without arming a reference. Seal a transient row whose live
+      card name contains an armed value and equals another entering value; replay accepts
+      the withheld name row and later projections keep it unavailable.
+
+      Exercise each create/reserve/attempt/commit/failure/restart/budget transition in the
+      design, including an AEAD attempt with no committed file, landed-then-error and an
+      unused reservation; no attempt or reservation regains budget. Demonstrate the staged
+      attempt fence's counted restart, authenticated key-birth eligibility and safe continuation.
+      Kill before and after AEAD, with empty/torn/complete staged seed and later records;
+      finish exact authentic staged records without AEAD and count every abandoned attempt.
+      Interrupt after seed-attempt archival and before the next seed fence; a second restart
+      preserves the permanent attempt count before admitting another encryption.
+      A valid legacy prefix is protected read-only, a seedless legacy envelope never becomes
+      an initialized Store, and no clean legacy directory invents a remaining budget.
+      Capture one actual callback that repairs two retained outcomes and renders once,
+      preserving entries, ordering, semantic outcomes and controls. Corrupt its second
+      repair and require the intended actual-DOM assertion to fail. On receiver-side
+      rejection verify that the live cache and entry order remain unchanged, no partial
+      batch is committed or rendered, and all reporting roots are replaced with only
+      `Harness failed: inconsistent report.`, with stale reporting text unmounted. Cover every publisher
+      ordering, local persistent-storage and redisplay state, and the store-post then
+      seed-display-post aggregates including clearing. Verify that immutable addressed
+      assets exclude an old page/new worker pairing under real cache faults and fail closed
+      on a missing dependency.
+      Independent assertions inspect actual stored files and decrypted payloads, actual posted
+      objects and actual DOM, rather than trusting the constructor's own provenance labels.
+      Deliberately mislabelled carried bytes, wrong replay comparisons, missing second repairs,
+      shifted spans, skipped reservation/fence, resumed used reservation, mixed assets and a carried
+      copy inserted after an earlier check must each fail their intended assertion. Ordinary safe
+      admissions remain alongside every refusal control. Serializer agreement and served completion
+      require execution. Practical performance and full-source verification are empirical requirements;
+      selecting this representation supplies neither.
+
       In these cases reject model requests for `digest_secret`; inspect its command and
       destination for no harness key and no placement write, its captured output for hash
       and count only, and both sinks for no raw digest or file bytes. A symlink or traversed
@@ -1201,7 +1246,18 @@ Not pass/fail. Required to be recorded.
       host through a retained external relay; migration without that route is refused
       (`CHN-11`; shared OPR-4). This migration case remains deferred until that capability is
       enabled. Boundary-crossed: a pass must not grant the relay's private network position.
-- [ ] **CNF-82 · BLOCKING** Local storage follows `STA-23`: wrong passphrases, modified
+- [ ] **CNF-82 · BLOCKING** Exercise the credential format's authenticated fenced-key
+      birth distinction and Protected browser evidence v1's creation/restart/legacy eligibility
+      transitions. Preserve killed-creation cases: fenced stores complete a valid staged seed
+      without AEAD or count an unresolved attempt before the next seed AEAD; they never report
+      seedless initialized state. Nonempty legacy prefixes remain protected read-only and
+      seedless legacy envelopes receive structured operational refusal. Read-only reports
+      carry exactly `encryption_eligibility:"legacy_read_only"`; the seedless refusal reason
+      is exactly `legacy encryption budget unprovable`. No v1 key acquires
+      fenced status by rewrapping, adding a payload marker or finding a clean directory.
+      New known-answer tests cover both local wrapping AADs, cross-version substitution
+      refusal, unchanged record bytes, and the unchanged sheet-purpose isolation.
+      Local storage follows `STA-23`: wrong passphrases, modified
       envelopes/records, cross-store substitution and unknown formats fail closed; no new
       empty store replaces failed decryption. `STA-23` says "An ordinary visibility-only hide MUST NOT end or pause an unlocked session, clear its runtime authority, or invalidate its approvals."
       and "Explicit app Lock, pagehide including entry to the back-forward cache, reload, or worker shutdown MUST stop dispatch, end session workers and close channels; the worker clears its keys and credential buffers and returns locked."

@@ -92,6 +92,10 @@ disposition (`STA-24`), and a continuation that continues then converges as `ARC
 proof of death.
 Record the boot identity with the job; a PID from another boot cannot establish liveness.
 
+Browser-held copies use the representation in
+[Protected browser evidence v1](docs/design/protected-evidence-v1.md#2-job-schema-and-replay);
+the raw machine record keeps the layout above.
+
 **A record names its machine, and holds no job's input.** Every record carries the machine the
 command named (`ARC-7`); one machine's record settles nothing about a command sent to another.
 A harness job that takes a value on standard input — `place_secret` (`ARC-43`) — is recorded by
@@ -267,6 +271,10 @@ happened next. Comparing the two catches truncation, quoting damage and a mangle
 command — the honest-mistake class, and a real one. It catches nothing against a machine that
 lies, because such a machine writes whatever it likes. This stands exactly where the
 deterministic verifier stands and MUST NOT be reported as more (`SEC-2`).
+
+The protected browser copy and its genuine comparison outcomes are represented by
+[Protected browser evidence v1](docs/design/protected-evidence-v1.md#2-job-schema-and-replay).
+This does not add machine-truth or settlement authority.
 
 **STA-24 The unresolved barrier holds per resource, not per call.** While any call naming a
 resource is unresolved (`STA-8`), the harness worker MUST NOT dispatch a side-effecting
@@ -764,8 +772,8 @@ backup service. Export is recommended after each allocation, including on dedica
 passphrase, separate from the seed backup and the recovery-sheet passphrase. A random data
 key encrypts the journal, snapshots, seed, pins, ledger, inference account credential and
 placed-secret scan references (`SEC-5` row 23);
-only a passphrase-wrapped data key persists. The v1 envelope, KDF and authentication rules
-are defined in the credential format. There is no plaintext or device-synced fallback.
+only a passphrase-wrapped data key persists. The credential format defines the local envelopes, KDF and authentication rules,
+including the authenticated fenced-key birth extension for fresh local stores. There is no plaintext or device-synced fallback.
 
 The harness worker alone unwraps and holds the data key and seed. The UI passes the
 passphrase once and clears its input; it never receives the unwrapped data key. The mnemonic
@@ -776,11 +784,22 @@ running. The ceremony starts by stopping dispatch, ending session workers and cl
 channels, as lock below does.
 
 A generated seed with no journaled ceremony record for its seed id owes this ceremony: at
-create, at the unlock that finishes creation (an envelope with no record generates the
-seed there), and for Replace's fresh seed. An imported seed owes none: a sheet's seed is
+create, at the unlock that finishes eligible fenced creation (after staged-attempt
+recovery, an authenticated fenced envelope with no seed record generates the seed there),
+and for Replace's fresh seed. An imported seed owes none: a sheet's seed is
 typed, while a local-store backup carries the ceremony record, if any, it was exported with.
 Regardless of that record, `STA-22b` says "every imported seed may
 restore listed identities but MUST NOT allocate new ones".
+Local encryption eligibility and counted attempt/creation recovery have one home in
+[Protected browser evidence v1](docs/design/protected-evidence-v1.md#5-scan-reservations-and-attempt-fences).
+An unprovable legacy-key budget permits a protected nonempty read-only prefix, with no
+append or ordinary send requiring a durable intent; a seedless legacy envelope receives a
+structured operational refusal and never becomes an initialized Store. This is the explicit
+legacy exception to creation-finishing unlock and append continuation. It neither invents
+budget nor replaces a key. Authenticated fresh fenced stores instead complete valid staged
+appends or durably count unresolved attempts and resume creation/ordinary appends within
+the existing bound. No ordinary interruption permanently disables such a fresh store.
+
 This is a state, not a step in a flow. A closed tab, hidden page or killed worker interrupting
 it leaves it owed at the next unlock.
 
