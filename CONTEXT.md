@@ -555,6 +555,14 @@ Replace, because an old export cannot prove the latest allocation counter (`STA-
 A browser-held per-secret random key, keyed digest and byte length used for exact-value
 redaction of output. Encrypted local state, not recovery-sheet content or a machine credential.
 
+**Carried occurrence** · `SEC-5`
+`SEC-5` says "a complete exact matching window is a carried occurrence unless every byte
+has demonstrated permitted provenance below."
+An exact matching window of a placed secret, at a sink `SEC-5` lists, that contains any
+byte without the permitted provenance `SEC-5` defines. A window wholly of permitted
+provenance is a coincidence, not a carried occurrence; raw machine-output matching keeps
+its separate exact-value rule.
+
 **Re-arm** · `ARC-43`
 Rebuilding a placed-secret scan reference after it is lost or unusable, from a machine report
 or an operator's local paste. A machine-derived reference describes the reported current

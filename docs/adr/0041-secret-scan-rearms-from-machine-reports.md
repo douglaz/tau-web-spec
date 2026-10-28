@@ -77,3 +77,19 @@ named markers bound misleading output; T48's remaining questions are unchanged.
 *Amended 2026-10-19:* ADR-0050 extends B′'s timing: `ARC-43` says "`STA-24` refuses it,
 a disposition leaves its outcome unknown" among the fallback triggers, and "the card is offered
 at once" under a standing destructive disposition. B′ remains the fallback, not the default.
+
+*Amended 2026-10-28:* The occurrence amendment adopts the complete-window provenance rule
+in `SEC-5`: "This rule permits visible byte coincidences at the listed final representations;
+it is not a literal-absence guarantee there." Literal search alone no longer establishes a
+custody violation at a harness-composed representation. Carried payload remains protected,
+including mixed windows; exact machine-output redaction is unchanged. Cryptographic output
+qualifies only through its already authorized construction and sink, not merely its label.
+
+Serializer-language admission was rejected as this resolution because it leaves future-state,
+refusal-reply and digest-only recovery construction obligations, and conservative recovery
+would make ordinary restores depend on paste. A value-dependent persistent/reporting codec
+was rejected as a wider protocol change. The adopted digest-first path, local-paste fallback,
+reference construction, machine-report provenance label and residual machine trust remain.
+No credential class, entropy assessment, new format, value-derived sheet material or machine-
+held scan key is introduced. This changes the earlier literal-occurrence interpretation; it
+records no implementation acceptance.

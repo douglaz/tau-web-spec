@@ -338,6 +338,65 @@ refused value typed into a model `exec` would sit in context and transcript. The
 visible named markers bound misleading output (ADR-0041); this is output legibility, never an
 entropy claim. Placement and recovery arming are `ARC-43`'s procedures.
 
+For application-secret custody in the journal and other origin-private storage, local
+storage and service-worker caches, recovery-sheet payloads, job artifacts, logs,
+diagnostics, requests, harness reports, final worker/page messages, rendered reporting
+text and harness-composed model/transcript framing, a complete exact matching window is a
+carried occurrence unless every byte has demonstrated permitted provenance below. This interprets custody at those
+sinks; it changes neither authorized holders and lifetimes nor the later-output scan's
+exact-value limitation.
+
+Permitted provenance comprises:
+- harness-owned serializer keys and punctuation, assets compiled into the signed bundle, fixed labels, truthful typed statuses,
+  fixed refusal text and named redaction markers;
+- public identities and counters generated without taking their bytes from the entered
+  value or its secret-derived material, and independently generated random fields; and
+- outputs of the cryptographic operations prescribed by this inventory and
+  [credential format v1](./docs/design/credential-format-v1.md), only through their
+  prescribed generation paths and at the fields and sinks those contracts authorize.
+
+Selecting the truthful typed outcome or the specified named marker does not carry the
+value's bytes. Selecting or assembling literals to spell or encode those bytes does.
+Cryptographic output in the last class is an authorized protected representation, not a
+claim of independence from its plaintext or of impossible coincidence. Covered logical
+content and plaintext MUST satisfy custody before encoding or encryption, and the final
+representation MUST be checked too. This permission introduces no value-derived field,
+encryption of the raw application value into a journal event, bare-digest retention,
+raw-digest release or export of scan material. A field called hash, nonce or ciphertext
+qualifies only by its prescribed construction, never by its name.
+
+Bytes supplied by an operator, model, machine, vendor or relay, reflected requests,
+interpolated names or diagnostics, and any encoding of such content retain custody
+protection. Unknown provenance receives no exception. Evaluate every complete matching
+window, including windows across fields, delimiters, encodings, wrappers, markers and later
+composition. Any byte without permitted provenance makes the whole window a carried
+occurrence; safe leaves alone establish no safe composition.
+
+Mutable carried content may take the visible marker naming the secret. A machine-reported
+fact first known only after its act's effects is mutable carried content when custody
+requires its marker: compute each required comparison on the genuine value first, record
+its truthful outcome, and give the fact the named marker in each listed final representation
+that would otherwise contain a carried occurrence. This forges no equality and omits no
+required evidence. Required facts
+recorded unchanged, identity comparisons and truthful evidence MUST remain truthful. If
+custody cannot be satisfied without changing such a required fact, refuse the affected act
+before its effects; the same applies to later acts introducing such facts while a reference
+is live. A match consisting wholly of permitted provenance MUST NOT by itself refuse
+placement, re-arm or a required operation. Required appends, replay, evidence and useful
+structured reports remain possible, subject to genuine operational failures and the
+existing encryption bound. No collision-driven retry or reference retirement is introduced.
+
+Every exact match in raw machine output MUST still be redacted before decoding or release
+to model or transcript, including across chunks and regardless of any claim about its
+origin. Subsequent harness framing and markers receive the complete-window evaluation
+above; a match joining output payload and framing receives no structural exception.
+
+This rule permits visible byte coincidences at the listed final representations; it is
+not a literal-absence guarantee there. It introduces no serializer-language admission test,
+credential classification, entropy assessment, secret kind or additional minimum. All other
+placement and re-arm gates remain. It does not extend detection to encoded, partial or
+transformed machine output or remove the machine-side-output limitation below.
+
 The scan sees exact values only: an encoded, partial or transformed copy passes. It covers
 only placements whose reference the browser holds — none known only as "unknown since export"
 (`STA-16`) — and a reference re-armed from a machine report covers the bytes the machine

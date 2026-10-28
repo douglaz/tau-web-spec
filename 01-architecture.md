@@ -410,11 +410,25 @@ here is non-waivable:
 - **The job wrapper's duty is `STA-20`'s.** `STA-20` says "the job wrapper MUST NOT write that
   input to any file but the job's destination". The destination receives exactly the entered
   bytes: no added newline, wrapper, or `KEY=` prefix.
-- **The value never enters model context on the way in**, and never appears in cleartext in the
-  journal, the transcript, the job record, a log or a request to the app's origin. What is
-  recorded before the bytes leave (`ARC-8`) is the command, the machine, the application name,
-  the distinct secret name, the destination and the approval — and that a value was sent, not
-  the value.
+- **The value never enters model context on the way in**, and a carried occurrence of it never
+  appears in cleartext in the journal, the transcript, the job record, a log or a request to
+  the app's origin. `SEC-5` says "a complete exact matching window is a
+  carried occurrence unless every byte has demonstrated permitted provenance below."
+  What is recorded before the bytes leave (`ARC-8`) is the command, the
+  machine, the application name, the distinct secret name, the destination and the approval —
+  and that a value was sent, not the value.
+- **Custody at each final representation, the preceding bullet's cleartext rule included, uses
+  the occurrence rule in `SEC-5`.** Before any
+  reservation, persistence or placement dispatch, check actual kept records and required
+  placement facts, including the machine, application name, distinct secret name, path,
+  purpose and approval. Refuse a placement if a kept record already contains a carried
+  occurrence of its value, or if its required recorded facts would carry that value and
+  cannot satisfy custody without changing those facts. Independent structure supplies no
+  refusal. The card says to mint or choose a different value at the service and offers no
+  override or route through command text. Refusal wording and parser diagnostics MUST NOT
+  quote or interpolate entered bytes. Malformed, stale, rejected and cancelled transfers
+  retain protection through final answer construction and clear at their required boundary.
+  Preserve the ordinary callback, report object, state, cards, sessions and placement listing.
 - **A value equal to a credential the harness holds is refused** (`SEC-5`). Without that, a
   steered model asks for the vendor credential or the seed to be written where it has root, and
   `CNF-12` has something to send after all.
@@ -455,6 +469,16 @@ raw digest output MUST reach neither model context nor transcript, which receive
 The browser constructs the reference with a fresh browser-only key under `SEC-5` row 23;
 no harness secret is sent to the machine. An entry known only from machine records requires
 an explicit operator act before arming its reference.
+
+Re-arming uses `SEC-5`'s occurrence rule: "It introduces no serializer-language admission test,
+credential classification, entropy assessment, secret kind or additional minimum." A
+machine hash and byte count require no syntax certificate or classifier result. Apply
+custody to actual kept records before arming: a carried occurrence leaves the reference
+unarmed, the machine path offering the local paste and a refused paste leaving rotation
+through `place_secret` as the way on once its placement gates admit it. A wholly permitted
+coincidence supplies no refusal. The digest path remains the default, with the existing
+minimum, fallback, disposition and reference-preservation rules. The local paste writes
+nothing to the machine; no scan material goes to the page, machine or sheet.
 
 The same job MUST run immediately after placement, cross-checking the browser-held value's
 hash and byte count. A mismatch is visible and MUST NOT silently replace the browser's
