@@ -160,10 +160,19 @@ an item that tests a mode's conditions or its label is tiered by them like any o
 - [ ] **CNF-16 · BLOCKING** An application secret (`SEC-5` row 12) reaches a machine only
       through `place_secret` (`ARC-43`): approved on a card, entered on that card, sent as the
       job's standard input and never as an argument, and never persisted by the job wrapper
-      (`STA-20`). Verified by placing a marked value and searching for it: it is absent from
-      model context, the journal, the transcript, the machine's job record and job directory,
-      the logs and every request to the app's origin, and present only in the destination
-      file. The card states plainly that a model with root can read it afterwards, restates
+      (`STA-20`). Verified by placing marked values and searching the actual model input,
+      journal, transcript, machine job record and directory, logs and requests to the app's
+      origin. Evaluate every matching window under `SEC-5`; a carried occurrence fails, and a window
+      remains only when every byte has demonstrated permitted provenance.
+      Inspect actual outer journal bytes and independently decrypted events separately.
+      For generated structure, repeat with an unrelated value of the same length under the
+      same relevant state and truthful outcome: the structural bytes must remain unchanged.
+      Retain actual bytes from both runs and complete-window provenance from the production
+      encoders. Repetition alone does not establish provenance. Random or protected
+      cryptographic fields require evidence of their prescribed construction and authorized
+      sink rather than equality between runs or a field-name exemption. Independently
+      inspect the destination for exactly the entered bytes, with no added newline or prefix.
+      The card states plainly that a model with root can read it afterwards, restates
       every acceptable weaker mode standing on the machine's bound set, shows the application
       name, distinct secret name and purpose as the model's request, and says that a key the
       operator minted at its service with a cap, or one the operator can revoke there, is the
@@ -172,6 +181,8 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       credential the harness holds — among them the vendor credential, the seed, either
       inference tier, the relay key and a machine's client key —
       a value below `SEC-5`'s minimum byte length (with its no-override refusal),
+      a value for which a kept record already contains a carried occurrence, or whose required
+      recorded placement facts cannot satisfy custody unchanged (`ARC-43`),
       a destination mode that lets another account read the file, a path that is or passes
       through a symbolic link, an existing file not recorded as this placement, an application
       name not recorded on the named machine (including one recorded only on another machine),
@@ -248,6 +259,38 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       P1's digest is never re-issued automatically, and M's traffic shows nothing
       sent for the paste. Stage 1 runs the assertions on M alone; the A/B output-release assertions
       run at stage 2.
+      (g) Occurrence provenance (`SEC-5`): admit otherwise eligible values equal to journal
+      framing at a reachable future number, populated report-collection framing, a specified
+      generated status or sentinel, worker-message and model-request framing, and fixed
+      refusal/error text. Keep the existing ordinary, binary, long and near-miss controls.
+      Reach those future states through required appends and replay; retain truthful
+      immediate and late digest evidence, report objects, state, cards, sessions and listings.
+      Inspect actual outer journal bytes, independently decrypted events, logical statuses
+      before encoding, machine job artifacts, final posted objects, rendered reporting text,
+      actual model input, transcript and requests. Attribute every permitted matching window
+      using `CNF-16`'s production provenance and repetition evidence.
+
+      Pair generated matches with identical bytes carried through a model argument, recorded
+      placement fact, reflected malformed input, interpolated diagnostic and payload beside
+      a structural delimiter. Verify redaction or refusal before the first forbidden write
+      or release, and the pre-effect required-fact refusal in `CNF-94`. Include actual kept
+      records and a later act introducing a colliding required fact. Exercise malformed,
+      stale, rejected and cancelled transfers before registration, multiple references,
+      marker junctions and prescribed cryptographic fields. A control that mislabels a
+      carried byte as permitted MUST fail. Each final-boundary check also has a distinct
+      carried-copy control introduced after earlier protection, failing the intended
+      actual-file or actual-posted-message assertion, with safe admission controls retained.
+
+      Print an admitted value across raw machine-output chunks and confirm named markers
+      in both actual sinks regardless of the value's shape. Exercise digest-only recovery
+      of a framing-shaped value; a machine report whose digest matches a carried occurrence
+      in a kept record, which leaves the reference unarmed and offers the paste; and, in
+      separate unarmed cases, the local paste fallback.
+      Preserve intact/pasted references, unarmed-reference barriers, disposed reports that
+      arm nothing, late cross-checks, listing and clearing. Exercise RNG, storage,
+      cancellation and encryption-budget failures without invented success, evidence
+      omission or collision retries.
+
       In these cases reject model requests for `digest_secret`; inspect its command and
       destination for no harness key and no placement write, its captured output for hash
       and count only, and both sinks for no raw digest or file bytes. A symlink or traversed
