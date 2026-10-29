@@ -119,7 +119,7 @@ their existing admission refusal and truthful visibility.
 
 ## 3. Protected inference terminals
 
-The legacy terminal remains readable. A protected terminal has exactly `kind:"protected"`,
+The legacy terminal remains readable. A version-1 protected terminal has exactly `kind:"protected"`,
 `version:1`, `call`, `intent_kind`, `outcomes`, `facts`, `withheld`, and optional `custody`.
 `intent_kind` is `account_read | mint | completion | revoke` and must equal the causal
 intent. `call` must identify that intent and have no previous terminal. Field presence
@@ -151,11 +151,28 @@ identifier is invalid. The existing credential boundary can reject an identifier
 application-secret conversion; that remains received-absence for this terminal. A new
 application-secret withholding instead records `identifier:withheld` and its named entry.
 
+### Mint acceptance extension
+
+New mint terminals use `kind:"protected"`, `version:2`. Other terminal kinds remain version 1. A version-2 mint terminal has exactly `kind`, `version`, `call`, `intent_kind:"mint"`, `requested`, `outcomes`, `facts`, `provenance`, `withheld`, and optional `custody`. Its causal-call and common HTTP checks remain those above. `requested` has exactly `cap:string`, `unit:string`, `expires:u64`, copied from and checked against the immutable mint intent; these are request facts, never observations. They retain the intent's exact canonical values and have no whole-fact withholding slot in stored evidence.
+
+The closed `facts` inventory is `status:u16`, unless withheld, and optional `key_id:string`, `accepted_cap:string`, `accepted_unit:string`, `accepted_expires:u64`. The identifier retains the existing nonempty, HTTP-success and credential-containment checks. Each accepted field is an independently obtained, profile-decoded issuer fact, never a copy of `requested`; cap preserves its exact decimal text, unit its exact text and expiry its exact whole Unix UTC second. Broader or different parseable values remain representable even when outside the application's supported envelope. A missing or malformed acceptance value supplies no invented accepted fact. `provenance` is a closed object with exactly one entry for each received accepted field, including a withheld one, and no others. Its keys are `accepted_cap`, `accepted_unit`, `accepted_expires`; values are `response | readback`, with `profile` additionally permitted for `accepted_unit` only when the pinned profile evidences that fixed unit. Response and authenticated readback facts must concern the same minted identifier and the causal intent's pinned profile. Provenance identifies that source under that exact profile; it asserts neither independent enforcement nor a request value's observation.
+
+`outcomes` has exactly `http:success|non_success`, `valid_status:true`, `identifier:absent|available|withheld`, and `acceptance:absent|exact|different|unverifiable`. The private constructor computes acceptance before withholding: a genuine comparable mismatch gives `different`; otherwise all three accepted facts with evidenced semantics equal to the immutable requested tuple give `exact`; genuine absence of all acceptance fields gives `absent`; missing, malformed or unverifiable acceptance gives `unverifiable`. A malformed received value is not genuine absence. Retained accepted fields must agree with that assessment and their provenance; a withheld field retains its genuine presence and assessment, not a fabricated value. Copied request bounds cannot satisfy `exact`.
+
+The version-2 whole-fact withholding allowlist is exactly `status`, `key_id`, `accepted_cap`, `accepted_unit`, `accepted_expires`; entries use §1's form and slots, with complete §4 custody names and empty substitutions. No accepted field is byte-substituted. Canonical stored decoding checks closed members, types, field/provenance presence, retained comparisons, source applicability and the exact version-2 round trip. All reports, exports and later display copies preserve the requested/accepted distinction, provenance and unavailable presence. A later display omission changes no historical admission. An original withheld acceptance field supplies no usable session authority, even with an authenticated `exact` assessment. The requested tuple, old copied bounds, HTTP success or a marker alone supplies none either. A retained identifier remains available for the existing revocation path when acceptance fails; its withholding keeps the unavailable-identifier behavior below.
+
+Version-1 mint records remain readable in their original canonical shape; their copied bounds are labeled requested and establish no independent issuer acceptance or new session authority. No old record is rewritten or silently promoted to version 2. Both versions retain their causal mint attempt and one-attempt barrier. The procured session-limit policy remains in ARC-31a.
+
+### Shared terminal behavior
+
 A withheld minted identifier cannot install a usable session key, name a completion or
 name a revoke. It retains the originating mint association and the no-second-mint barrier.
 The live session credential is cleared. End/sweep reports identifier unavailability and
-that revocation is unconfirmed; the requested expiry remains visible as the remaining
-limit. It never claims revocation, erases the outstanding mint or starts a substitute mint.
+that revocation is unconfirmed. The requested expiry remains visible, labeled requested,
+and is never evidence of issuer acceptance or enforcement. For version 2, also show retained
+`accepted_expires` with its provenance, or explicitly show that the issuer expiry is withheld,
+absent or unverifiable; preserve any discrepancy and uncertainty. It never claims revocation,
+erases the outstanding mint or starts a substitute mint.
 Later operations needing the literal refuse before send. This is the same operational
 unavailability boundary as a lost identifier, with truthful received-present evidence.
 
@@ -194,6 +211,109 @@ still admits the mint; a withheld 500, or top-up enabled or absent, still refuse
 absence is not success. `finish` emits no raw status or raw automatic_top_up whose fact
 is withheld. These fields convey no new provider-equality or token-sum gate.
 
+## 3a. Protected operation evidence
+
+### Identity and confirmation boundary
+
+A received-present vendor identity withheld in canonical evidence confirms and settles no order, including when a genuine equality was observed before withholding. Preserve truthful received-present evidence, named withholding and the approved-entry barrier. Absence, unavailable presence and a retained identity are distinct. Neither an authenticated relation, a marker, a generated handle, an operator disposition nor a later association reconstructs an erased identity. Disposition records an unknown outcome and supplies no successful confirmation, usable identity or cross-entry uniqueness.
+
+The namespace is the global VendorMachine literal namespace. No account namespace or vendor-ID format assumption narrows it. An unavailable-identity risk is derived only from canonical committed evidence satisfying the following predicate. Withholding introduced solely in a later projection creates no risk record and changes no historical admission. Receipt qualification does not require its call still to be unresolved.
+
+Qualifying identity evidence is an earlier durable BrowserVendorTls validated order receipt whose genuine call names an earlier typed intent for an approved entry, whose call/resource/target/operation/account/signed-request comparisons all pass, or an earlier otherwise-valid VendorMachine association for an approved entry. Every such receipt with durably withheld returned_vendor and every such association with durably withheld VendorMachine target is an unavailable-identity risk record attributed to that approved entry. Arbitrary, unvalidated, uncorrelated or mismatched receipts create no ownership exclusion.
+
+A risk attributed to an entry excludes every different entry. Every applicable earlier risk remains relevant after disposition, reference termination, restart, operator inspection and same-entry independent adoption. No current predicate discharges it. The exclusion applies to new mappings: it neither revokes an existing mapping nor grants that mapping authority over another entry. An idempotent repetition of an already admitted mapping introduces no new mapping.
+
+Before admitting a new retained literal Y for entry B, perform the ordinary genuine-input target-kind, approved-entry, allocation-reservation and retained admitted-map checks. Unknown entry, invalid target or equality to another entry's admitted mapping refuses association admission before append, without preventing separately required receipt evidence. Equality to this entry's admitted mapping is an idempotent duplicate: no second append, operational mapping or AssociationRecord. A duplicate legacy journal event remains readable and replays as an idempotent mapping no-op.
+
+For a withheld vendor target, first compare the genuine literal with every retained admitted mapping before omission. Equality with another entry's mapping is the ordinary conflict refusal before append; equality with this entry's mapping is the ordinary idempotent duplicate with no record. Otherwise the association is recorded quarantined/identity_withheld. For a new retained target facing an applicable earlier unavailable-identity risk, record quarantined/alias_unavailable. Then apply the retained-evidence identity-conflict rule below before recording the new outcome.
+
+Before admitting literal Y for entry B, check retained qualifying identity evidence as well as admitted mappings. Equality to retained qualifying evidence attributed to another entry is a known identity conflict, including when that evidence's association was quarantined. It grants no mapping; refuse admission with fixed reason `identity_conflict`, preserving every separately required receipt append. Existing conflicts against admitted mappings retain their existing refusal. Only mapped or admissible legacy associations supply operational resolution or receipt-association constituents. A retained identity recorded for another entry cannot be classified as an unassociated listing candidate. A repeated same-entry quarantine is additional evidence, not cumulative identity proof or an admitted duplicate.
+
+Only a mapped or legacy association record can be an order's settlement constituent or the association member of a Receipt settling record; a quarantined record never enters either lookup, even when its retained literal equals a receipt's. Resolve and the ordinary duplicate/conflict check read only the operational map; admission additionally applies the retained-evidence identity-conflict rule above. Quarantined evidence remains in association_records for inspection and grants no confirmation or target. Recording a receipt and an association from one response adds no independent-source authority.
+
+Association first with a durably withheld target: append quarantine; a later receipt, before or after restart, cannot match the unknown target. Receipt first with a durably withheld ID: append it with a historical settled vector permanently empty for that order; a later association cannot settle it by reconstructed equality. Both retained admissible literals preserve exact equality and approved-entry correspondence in either arrival order, including across restart. A receipt protected only in a display operand may settle if all original eligibility relations hold and required vendor identities remain retained and durably mapped. A later association never rewrites an earlier receipt's historical settled vector.
+
+Wrong source, validation, call, resource, target, entry, operation, account or signed request never gains authority through protection. A receipt preceding its claimed intent cannot settle it. Missing identity remains absent and unresolved. Known conflict supplies no map; unknown alias remains quarantined. Replay derives historical outcomes from the authenticated prefix in journal order and never promotes quarantine because references end or other evidence arrives. New independently admissible evidence appends its own durable outcome before changing operational state; no in-place rewrite or new quarantine-clear event is introduced.
+
+Preview before commit, and replace live dispatch only after successful append. Failed append changes no live map or settlement. Landed-then-error latches the old writer; fresh authenticated replay applies the landed evidence once without resend. Operational append errors are distinct from custody-driven refusal of required evidence. Protected uncommitted evidence is diagnostic only, with no committed journal number, no null number and no operational state change.
+
+Protected uncommitted evidence has exactly `{committed:false,receipt:<payload>}` or `{committed:false,association:<payload>}`: no number, no historical `settled`, no operational admission. These are diagnostic types, never journal events or replay inputs.
+
+Late receipts remain visible without reopening disposed calls, removing standing dispositions or restoring session authority. Unavailable or quarantined evidence creates no target. Separately admissible retained association evidence must pass every ordinary and §3a check; any resulting future mapping does not turn a disposed call into success, remove its standing restrictions or erase risk records. No automatic reorder, retry, session restoration or ending of reference duties follows.
+
+### Closed raw and stored grammars
+
+Raw Receipt remains exactly `{source,call,resource,target,binding,validated,returned_vendor}`. Raw Association remains exactly `{target,entry}`. These are closed internal abstractions; their types alone do not perform TLS or vendor validation, and browser metadata is not a vendor response extension. Raw decoding rejects nonobjects, duplicate or unknown members and protected objects where raw scalars or envelopes are required. Vendor data supplies no custody, withholding or browser relation authority.
+
+The exact existing spellings and types are:
+
+- Receipt source: `browser_vendor_tls`, `arbitrary_response`, `job_output`, `notify_event`, `proposed_text`.
+- Receipt binding: exactly `{operation,account,signed_request}`, with operation `order`, `stop` or `restart` and two u64 values; these operations map respectively to create, destroy and reset.
+- Resource: `{"entry":string}` or `"inference"`.
+- Target: `{"entry":string}`, `{"allocation_index":u32}`, `{"vendor_machine":string}` or `"inference"`.
+- Receipt call is u64; validated is bool; legacy returned_vendor is a string or canonical null absence. Association entry is string.
+
+Outer journal event kinds remain `operation_receipt` and `association`. Each accepts its exact legacy payload or a distinct browser-produced protected payload with exactly `kind:"protected"`, `version:1`, `facts`, `relations`, `withheld` and optional `custody`. No other member or version, raw duplicate, sentinel, concealed original, raw hash, `settles`, forward equality or positional binding array is valid. Bounded unsigned types are unchanged.
+
+Protected Receipt facts preserve raw member names and types. Source, validated, binding and binding/operation remain truthful and present. Call, resource, target, binding/account and binding/signed_request are retained or represented exactly once in withheld. The whole-fact withholding allowlist is exactly `call`, `resource`, `target`, `binding/account`, `binding/signed_request`, `returned_vendor`. Returned_vendor has exactly three states: absent from facts and withholding, retained string, or withheld-present with no raw member. Null never means withholding in a protected payload. Its optional presence is representable for all three receipt operations; only order uses it as a settlement requirement. Stop/restart acquire no returned-ID requirement. Mismatched received claims and copied post-effect display operands are covered; canonical intent, setup and approval records retain their authority unchanged.
+
+Receipt relations are exactly:
+
+```text
+intent: {kind:"none"} | {kind:"earlier",call:u64}
+call: no_intent | same | different
+resource: no_intent | same | different
+target: no_intent | same | different
+operation: no_intent | same | different
+account: no_intent | same | different
+signed_request: no_intent | same | different
+returned_vendor: absent | retained | withheld
+```
+
+Enum words are JSON strings. None is valid only when the genuine call had no earlier typed intent, and requires all comparison relations to be no_intent. An earlier reference identifies the genuine received call's actual preceding typed intent; the call relation is same, and different is rejected there. Resource and target compare genuine typed operands before omission.
+
+Operation is same exactly when the intent's receipt_binding is present with the receipt's binding operation and that operation maps to the intent's operation by STA-24's receipt table. Account and signed_request are each same exactly when that receipt_binding is present with the equal value. A missing receipt_binding gives different for all three; any other mismatch gives different. Failed comparisons remain failed evidence. Eligibility independently requires BrowserVendorTls and validated=true. Retained operands must agree with the genuine comparison outcomes; outer authentication authenticates the browser's statement, not vendor truth.
+
+An order additionally requires a retained returned_vendor and an admitted durable VendorMachine association with that exact literal and the intent's approved entry. A withheld operand equals nothing in later comparisons. No pair-comparison array or forward equality is introduced; no browser relation reconstructs a withheld identity. A source-withheld order identity prevents receipt settlement even when a comparison had completed before conversion.
+
+Protected Association facts are required target and entry, retained or exactly once withheld. The whole-fact slots are exactly `target` and `entry`. Relations are exactly:
+
+```text
+approved_entry: {setup:u64,index:u32}
+target_kind: allocation_index | vendor_machine
+admission: mapped | quarantined
+reason: none | identity_withheld | alias_unavailable
+alias_checks: [{record:u64,result:"unavailable"}, ...]
+```
+
+The setup reference names the earlier SetupRecord::Approval journal number and the actual reserved u32 machine-family index, never an array position. Its canonical approved entry must equal the genuine raw entry before omission. Retained target kind must agree. Copied entry display withholding preserves that checked canonical reference. Unknown entry, invalid target kind or invalid allocation reservation acquires no protected authority.
+
+For new VendorMachine evidence, the only valid combinations are mapped/none with retained target and empty alias_checks, quarantined/identity_withheld with withheld target, and quarantined/alias_unavailable with retained target and nonempty alias_checks. Every quarantine carries exactly all applicable earlier risk records once in ascending journal-number order, including for identity_withheld; no future, duplicate, irrelevant or missing record is accepted. Apply the risk predicate and retained-evidence identity-conflict rule above. No active-reference shortcut proves equality or distinctness.
+
+From the first risk record onward every VendorMachine association is appended in the protected arm with explicit admission; a raw VendorMachine association appended or replayed after a risk record is rejected as noncanonical and replay stops there. Earlier legacy mappings retain their prior meaning. All arms obey the same historical admission guard; selecting the legacy arm cannot bypass quarantine. No admission field is retrofitted into legacy journal records.
+
+AllocationIndex associations keep the legacy arm. `STA-22b` says "Machine roles share one machine index." `STA-22b` says "Reserve it durably before any external effect, including registering a key for an already-rented server." The genuine target must pass the existing allocation-reservation check, a machine-family index the allocation core holds. It may differ from approved_entry's setup index, since a later attempt for the same entry may reserve another index. A read-only protected projection may omit an obligated copied target or entry, preserving the canonical setup reference and checked mapping; that projection is never new stored evidence.
+
+A stored protected Association whose target_kind is allocation_index is rejected as noncanonical. Projected through the protected fact shell, a legacy AllocationIndex association carries admission mapped, reason none and empty alias_checks.
+
+Required facts occur retained or exactly once withheld; slots are applicable, unique and disjoint from retained fields. Whole-fact entries use §1's exact `{slot,marker,associations}` form and ordering. These owners have no byte-substitution slots. A stored payload with nonempty withheld requires custody with empty substitutions and §4's complete names table. A protected quarantine payload with empty withheld may omit custody; if present, empty substitutions and complete names are validated. Secret-marker associations are distinct from vendor-resource mappings.
+
+Committed record wrappers remain exactly `{number:u64,receipt,settled:Vec<u64>}` and `{number:u64,association}`. Stored decoding selects one arm, validates closed objects, member uniqueness, applicability, original bounded types, presence, complete custody coverage, causal references, historical admission and all retained comparisons, then reproduces that same canonical event. Reject duplicate/unknown members, invalid versions/types/slots, overlap, missing presence, contradictory retained facts, invalid references and noncanonical round trips. Historical proofs use the authenticated earlier prefix, never today's armed set. Raw constructors and stored constructors remain separate.
+
+### Independent recovery and exact targeting
+
+The recovery predicate has its sole operative home in [STG-21a](../../06-first-stage.md). Applying it afresh establishes its own durable identity and approved-entry association; it asserts no equality to an erased returned ID. Same-entry recovery may succeed only when the selected retained identity passes all admission checks. It never erases the old cross-entry risk. While a different-entry risk applies, no recovery predicate in this construction can satisfy that exclusion.
+
+Resolve(VendorMachine(id)) succeeds only through an admitted durable exact-literal mapping. A withheld ID, quarantine, marker, receipt or association number, or independently generated handle resolves nothing. Entry and reserved allocation index still identify the resource and barrier but cannot synthesize a vendor literal. An operation requiring an unavailable literal refuses before send, including stop, restart, renewal-off, deletion and reads whose wire path needs it. Bare Association input, ordinary by-ID read, operator claim, disposition, new handle or same-account guess supplies no independent recovery predicate. Existing retained exact-call receipt/association confirmation remains available.
+
+End or abandonment reports possible continued existence and billing, unavailable identity and unconfirmed stop/deletion. It claims neither successful cleanup nor ended billing or duties.
+
+### Originating input lifetime
+
+A newly received genuine literal may remain in the originating private input/conversion scope only through raw validation, genuine comparisons and protected construction. When that construction withholds it, clear its recoverable input buffers and aliases before returning the protected object, awaiting its append or scheduling a continuation. Neither Dispatch nor a side cache retains the withheld received original. Failure/cancellation clears that scope too; subsequent diagnostics use protected evidence.
+
+This rule concerns initial received-evidence conversion. Withholding a later display copy does not erase independently retained canonical facts or authorize reconstructing an originally withheld identity. Existing canonical facts retain their own custody and pre-send checks. No retention until worker termination, pending map, error-value copy, retry copy, callback handoff, alternate encoding, concealed encryption/hash or release/send authority is added. A completed historical comparison cannot reconstruct a withheld identity. Prescribed K/R/L storage and adopted lifecycle duties remain unchanged. No separate physical-memory zeroization guarantee is asserted.
+
 ## 4. Intrinsic substitution facts and names
 
 Each payload has at most one `custody` object with exactly `version:1`, `substitutions`
@@ -216,6 +336,36 @@ by `withheld`; its slot cannot also have substitution facts.
 | OperationResponse | `/body` (decoded from its lowercase hex) |
 | InferenceTerminal, legacy | `/reported_provider`, `/request_id` |
 | InferenceTerminal, protected | `/facts/reported_provider`, `/facts/request_id` |
+| OperationReceipt, protected | none; whole-fact slots defined in §3a only |
+| Association, protected | none; whole-fact slots defined in §3a only |
+
+Receipt whole-fact slot locations are `/facts/call`, `/facts/resource`, `/facts/target`, `/facts/binding/account`, `/facts/binding/signed_request`, `/facts/returned_vendor`. Association locations are `/facts/target`, `/facts/entry`. Each omission has exactly one owner-relative named withholding entry and no substitution span.
+
+Stored-evidence validation and read-only projection validation are distinct contexts. A projection may withhold an additional display field of an already committed record while preserving historical relations, admission, reason, alias_checks, number and settled vector. A source-retained returned_vendor relation may accompany a newly withheld display token, and a source-mapped VendorMachine association may have its target display withheld. These combinations are permitted only in projections, never new stored evidence. AllocationIndex storage and read-only projections follow §3a’s AllocationIndex rule.
+
+Projection-only omissions use the same member names, allowlists and single withheld array. Existing withholding remains withholding; retained neighbors remain equal; original absence remains absent. Legacy records needing protection are projected through the protected fact shell, with historical relations derived from their genuine facts and actual earlier prefix, never a future intent. Projection objects are never submitted to settlement, resolution, association admission or journal constructors.
+
+An order receipt whose canonical identity was withheld cannot settle that order or be its settling constituent. Later display withholding cannot undo an already recorded settlement or create an unavailable-identity risk. Historically settling retained-identity receipts and mapped associations may therefore have protected displays. Stop/restart keep their own exact-call predicates.
+
+Apply the payload locations under these exact source-bound prefixes:
+
+| Representation | Payload prefix |
+|---|---|
+| Journal event | `/operation_receipt`, `/association` |
+| Inspect/direct export | `/receipts/{i}/receipt`, `/association_records/{i}/association` |
+| Disposition receipt constituent | `/issues/{i}/settling_record/record/receipt/receipt` |
+| Optional disposition association constituent | `/issues/{i}/settling_record/record/association/association`, only when present |
+| Nested inspect disposition report | prepend `/dispositions/{j}/report`, only when its report carries issues |
+
+Live committed wrappers preserve their numbers and receipt historical settled vectors. Uncommitted diagnostic payloads use the §3a `{committed:false,…}` wrapper and never acquire an invented number. Flattened `/typed_calls/{i}/receipt` and `/typed_calls/{i}/association` references are generated record numbers, not vendor identities.
+
+In `/typed_calls/{i}`, and in each OperationIntent at `/calls/{i}` of a typed-barrier result, the additional display-withholding allowlist is exactly resource, target, receipt_binding/account, receipt_binding/signed_request, approved/resource, approved/target, approved/receipt_binding/account and approved/receipt_binding/signed_request. Each omitted field has its owner-relative slot in that object's single optional withheld array. The resource, target, approved/resource and approved/target slots apply independently of receipt-binding presence. The receipt_binding/account and receipt_binding/signed_request slots apply only when the intent's original receipt_binding exists; the approved/receipt_binding/account and approved/receipt_binding/signed_request slots apply only when the original approved.receipt_binding exists. Existing binding objects and all operation discriminants remain present; absent bindings remain absent.
+
+These read-only copies are identified by the unchanged generated call number; nested approved fields belong to that call's recorded approval. They do not modify canonical intents or approvals, introduce a binding, change state or authorize dispatch. The projection receiver accepts precisely these omissions and rejects contradictory retained fields. The final name table owns their marker associations. This inventory covers these copied resource, target and binding fields; it does not replace other protected-object inventories.
+
+Every actual enclosing report, direct store_state export, tool result, model history, transcript, worker post, page cache or DOM representation containing these objects preserves useful structured records, entry identity, calls, controls and the live attributed tree, then re-finalizes at the actual release after wrapping. Direct store_state export is an independent sink. Propagation through enclosing publishers is conditional on their existence; no receipt-specific production adapter or page publisher is asserted.
+
+Each final object emits one complete creation-ordered/reindexed top-level withheld_names union and omits nested serialized custody while retaining live origin trees. Apply the existing logical/hex/JSON/lossy/rendered-join construction, actual serialized and DOM joins, nested JSON strings and page-cache repair. Re-finalization never restores a withheld token. External marker spellings remain Carried; equal strings or matching markers create no identity authority. Safe neighbors and useful records stay visible. Canonical intent/setup/approval records remain unchanged by display conversion.
 
 Goal tool-result history in this construction is transient context, not a new durable
 event. It retains the same live origin tree through its untrusted-content wrapper and is

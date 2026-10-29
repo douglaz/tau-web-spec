@@ -313,7 +313,7 @@ for i, line in enumerate(lines):
              "⊢ Source.published = Source.rescueLast"),
             ("attest_acceptance_consumes", "case isTrue", "⊢ m ∈ k.consumed"),
             ("consumed_step", "case restart", "⊢ m ∈ []"),
-            ("admit_dispatched", "case h_2.isFalse", "⊢ rq.session = ap.session"),
+            ("admit_dispatched", "case h_2.isFalse.isFalse", "⊢ rq.session = ap.session"),
         }
         if (not body or (decl, body[0], body[-1]) not in open_goals or
                 sum(text.lstrip().startswith("case ") for text in body) != 1 or
@@ -358,6 +358,12 @@ if python3 tools/test_pins_control_diagnostics.py "$scratch_root"; then
 else
   echo "::error::formal: pin diagnostic parser regressions"; fail=1
 fi
+
+# The order-exclusion guard is separate from association admission. Its removal sends the
+# excluded order, while both canonical receipt and association risks remain in evidence.
+dispatch_control "formal: unavailable-identity order exclusion dropped" \
+  "sed -i 's/identityExclusion : Bool := true/identityExclusion : Bool := false/' $DISP && grep -q 'identityExclusion : Bool := false' $DISP" \
+  excluded_order_refused withheld_association_excludes
 
 # Collapsing source admission permits model text and bypasses author matching as well.
 # The dedicated ceremony and valid attest traces must remain green; only these refusals and
@@ -877,10 +883,10 @@ control "witnesses: obsolete pins v3 orphan" "$WIT" \
   "cp $PINSWIT docs/design/pins-witnesses-v3.json" \
   "WITNESS DRIFT" "pins-witnesses-v3.json is committed but no module emits it"
 
-# Each obsolete dispatch schema is an orphan of the current schema 7.
+# Each obsolete dispatch schema is an orphan of the current schema 8.
 # The dispatch file was renamed with its schema too: its old name is an orphan.
 control "witnesses: obsolete dispatch v1 orphan" "$WIT" \
-  "cp docs/design/dispatch-witnesses-v7.json docs/design/dispatch-witnesses-v1.json" \
+  "cp docs/design/dispatch-witnesses-v8.json docs/design/dispatch-witnesses-v1.json" \
   "WITNESS DRIFT" "dispatch-witnesses-v1.json is committed but no module emits it"
 
 control "witnesses: obsolete pins v4 orphan" "$WIT" \
@@ -888,24 +894,28 @@ control "witnesses: obsolete pins v4 orphan" "$WIT" \
   "WITNESS DRIFT" "pins-witnesses-v4.json is committed but no module emits it"
 
 control "witnesses: obsolete dispatch v2 orphan" "$WIT" \
-  "cp docs/design/dispatch-witnesses-v7.json docs/design/dispatch-witnesses-v2.json" \
+  "cp docs/design/dispatch-witnesses-v8.json docs/design/dispatch-witnesses-v2.json" \
   "WITNESS DRIFT" "dispatch-witnesses-v2.json is committed but no module emits it"
 
 control "witnesses: obsolete dispatch v3 orphan" "$WIT" \
-  "cp docs/design/dispatch-witnesses-v7.json docs/design/dispatch-witnesses-v3.json" \
+  "cp docs/design/dispatch-witnesses-v8.json docs/design/dispatch-witnesses-v3.json" \
   "WITNESS DRIFT" "dispatch-witnesses-v3.json is committed but no module emits it"
 
 control "witnesses: obsolete dispatch v4 orphan" "$WIT" \
-  "cp docs/design/dispatch-witnesses-v7.json docs/design/dispatch-witnesses-v4.json" \
+  "cp docs/design/dispatch-witnesses-v8.json docs/design/dispatch-witnesses-v4.json" \
   "WITNESS DRIFT" "dispatch-witnesses-v4.json is committed but no module emits it"
 
 control "witnesses: obsolete dispatch v5 orphan" "$WIT" \
-  "cp docs/design/dispatch-witnesses-v7.json docs/design/dispatch-witnesses-v5.json" \
+  "cp docs/design/dispatch-witnesses-v8.json docs/design/dispatch-witnesses-v5.json" \
   "WITNESS DRIFT" "dispatch-witnesses-v5.json is committed but no module emits it"
 
 control "witnesses: obsolete dispatch v6 orphan" "$WIT" \
-  "cp docs/design/dispatch-witnesses-v7.json docs/design/dispatch-witnesses-v6.json" \
+  "cp docs/design/dispatch-witnesses-v8.json docs/design/dispatch-witnesses-v6.json" \
   "WITNESS DRIFT" "dispatch-witnesses-v6.json is committed but no module emits it"
+
+control "witnesses: obsolete dispatch v7 orphan" "$WIT" \
+  "cp docs/design/dispatch-witnesses-v8.json docs/design/dispatch-witnesses-v7.json" \
+  "WITNESS DRIFT" "dispatch-witnesses-v7.json is committed but no module emits it"
 
 control "witnesses: pins v5 emission carrying a CNF identifier" "$WIT" \
   "sed -i 's/\"module\": \"pins\"/\"module\": \"pins\", \"exercised_by\": \"CNF-18\"/' $PINSEMIT && grep -q CNF-18 $PINSEMIT" \
