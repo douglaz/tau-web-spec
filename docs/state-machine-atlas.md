@@ -142,6 +142,9 @@ rescue's persistence exception and reset prerequisites are dedicated-route mater
 Owners: [STA-20/20b](../03-state-and-recovery.md#durable-state),
 [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular).
 
+LNVPS root access: [STG-21](../06-first-stage.md#the-stages),
+[STA-20](../03-state-and-recovery.md#durable-state).
+
 - **Recorded knowledge / identity:** browser command intent and the machine's
   advisory job record name the machine and command; boot identity distinguishes
   process liveness across boots. `STA-20` says “A missing record is unresolved,
@@ -746,11 +749,10 @@ inspect a named record with `br show ID --json --no-auto-flush --no-auto-import`
 
 - **Not specified:** older restored journal versus a possibly live pre-loss command
   ([tw-ub7](../.beads/issues.jsonl)); untyped destructive hold versus harness-started
-  jobs in stage 2 ([tw-pgp](../.beads/issues.jsonl)); stage-1 Arch login to root-only
-  jobs ([tw-yuo](../.beads/issues.jsonl)). At the reviewed `d00c735` baseline, the
-  requirement amendments for these recovery and privilege decisions remain
+  jobs in stage 2 ([tw-pgp](../.beads/issues.jsonl)). At the reviewed `d00c735`
+  baseline, the requirement amendments for these recovery decisions remain
   outstanding. These entries describe that baseline, rather than amendments on
-  other branches. No post-Restore sweep/hold or privilege route is added.
+  other branches. No post-Restore sweep/hold is added by this atlas.
 - **Not specified:** LNVPS's third recovery rung ([tw-ae7](../.beads/issues.jsonl));
   destruction/output ([tw-pkn](../.beads/issues.jsonl)); rescue activation beside
   delivery reboot ([tw-z99](../.beads/issues.jsonl)). The recovery figures are

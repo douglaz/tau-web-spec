@@ -172,6 +172,13 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       cryptographic fields require evidence of their prescribed construction and authorized
       sink rather than equality between runs or a field-name exemption. Independently
       inspect the destination for exactly the entered bytes, with no added newline or prefix.
+      Repeat on LNVPS through `STG-21`'s elevation route, including with a fresh connection
+      and no cached sudo authentication. Trace standard input through elevation to the
+      authorized destination: no prompt consumes it, no extra copy is persisted or captured,
+      no extra logging or argument exposes it, and the destination receives exactly the
+      entered bytes. Induce a password/terminal requirement and confirm no secret is supplied
+      as an elevation response. Retain the actual-byte and provenance evidence above for
+      these runs too; destination refusal cases remain `CNF-94`'s.
       The card states plainly that a model with root can read it afterwards, restates
       every acceptable weaker mode standing on the machine's bound set, shows the application
       name, distinct secret name and purpose as the model's request, and says that a key the
@@ -413,6 +420,16 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       complete revocation. The screen names application-secret rotation at its service,
       the unrevocable inference account credential, and possible thief persistence with a
       destroy/rebuild offer; scan re-arm is never described as a remedy for any of these.
+      On LNVPS, exercise `STG-21`'s route to the `arch` account with fresh old-key entry and
+      fresh privilege acquisition, new-key installation, a fresh connection authenticated by
+      the new key before old-key removal, and new-sheet export. Failed new-key confirmation
+      keeps the old key and migration incomplete. Repeat while a command hold, destructive
+      reinstall or abandonment disposition stands: the machine is shown not yet migrated
+      with its reason and keeps its old key, while other machines migrate independently.
+      After the hold or reinstall restriction ends, migration starts with key installation
+      as a first issue in the same order. Inject elevation failure or unavailable job
+      collection during migration: no unsupported completed migration or revocation is shown.
+      No dedicated-path relabel is dispatched to LNVPS.
       The following relabel cases are **dedicated-path evidence** under the applicability
       table, including the fixture for a non-dedicated vendor:
       (a) On a dedicated machine, after the connection authenticated by the new key succeeds
@@ -660,7 +677,13 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       a new one to the machine, and confirming no new first contact is made, a changed host key
       halts, and the re-check's verdict replaces the earlier one only through findings it
       raises or clears. The machine's unpinned installation is shown at binding and not
-      accepted again. Where the session acts on a goal — necessarily a new one (`ARC-11a`) —
+      accepted again. On LNVPS, use `STG-21`'s route on a genuinely fresh authenticated SSH
+      connection and acquire privilege afresh with no surviving shell or cached sudo
+      authentication. Repeat with locked and disabled password fields, after a successful
+      lockdown, after disconnect and after reboot; the root check jobs and their
+      collection still work without any password, prompt or login fallback. A connection
+      alone or unavailable collection supplies no successful check verdict.
+      Where the session acts on a goal — necessarily a new one (`ARC-11a`) —
       acting with no brief is accepted with it before the model's first command; a session
       that only re-runs the check accepts no mode (`SEC-14`).
 - [ ] **CNF-99 · BLOCKING** A machine on which a finding stands is **handed over with
@@ -1123,17 +1146,74 @@ to the relay evidence in `CNF-81`, `CNF-87` and `CNF-113`.
       Repeat with an ordinary hide that allows scheduled progress, then a freeze/socket loss
       and surviving return. Collect by original job identity and boot; do not run the command
       again to resume it. `STA-20` says "Record the boot identity with the job; a PID from another boot cannot establish liveness."
+      On LNVPS, drop the connection with the command live and separately with its runner
+      live through sudo (`STG-21`, `STA-20a`); neither is mistaken for completion or retried.
+      A daemon-launching command whose daemon holds output descriptors completes without
+      waiting for the daemon, using file-redirection capture, and its real result is collected.
       A previously sent remote job may finish after local app Lock or worker loss; its completion does not recreate an ended local session.
 - [ ] **CNF-54 · PRE-SCALE** A completed command's exit code and output are read from the job
-      record after a session drop, not inferred from machine state.
+      record after a session drop, not inferred from machine state. Include a completed
+      root-only job record with a nonzero exit through the LNVPS route (`STG-21`): report
+      its real output and exit under existing admission rules, distinguishing it from failure
+      before any record exists. SSH/sudo status is no substitute (`STA-20`, `STA-20a`).
 - [ ] **CNF-55 · PRE-SCALE** An installed-system job record survives a reboot. Its boot identity
       establishes that an unfinished old command ended; it stays unresolved until disposition.
       `ARC-43`'s `delivery_reboot` settles by its boot change; an ordinary finished record settles
       by its exit code.
-      A missing record remains unresolved. Rescue follows `CNF-86`, not a persistence claim.
+      A missing record remains unresolved. On LNVPS, collect through a fresh authenticated
+      connection and fresh elevation after reboot (`STG-21`); the root-only record retains
+      its boot identity, and a reused PID on the new boot supplies no old-command liveness.
+      Rescue follows `CNF-86`, not a persistence claim.
 - [ ] **CNF-56 · PRE-SCALE** The command recorded by the machine matches the command the
       browser journal recorded before sending. A mismatch is surfaced as a finding, and is
-      never described as verification (`STA-21`).
+      never described as verification (`STA-21`). Use the actual command bytes committed
+      before transmission (`ARC-8`), including launcher, privilege acquisition and payload,
+      and compare against actual received bytes before protected fact removal. Include
+      multiline and quoting-sensitive payloads through LNVPS sudo (`STG-21`); deliberately
+      alter a launcher byte and separately a payload byte and expose each mismatch.
+      Comparing only an inner payload, a reconstructed command or a normalized surrogate
+      must fail this test. The record remains advisory against a lying machine.
+- [ ] **CNF-114 · BLOCKING** Tracked startup and privileged collection preserve uncertainty
+      (`STA-20`, `STG-21`, `ARC-43`). Destroyed data: a second payload launched after an
+      unrecorded first attempt can repeat an irreversible disk write. Exercise the production
+      launch and collection paths with observable payload dispatch and record creation:
+      (a) Refuse before transmission: show refusal, infer no dispatched payload and preserve
+      the existing journal/dispatch distinction. With successful admission, one journaled
+      launcher acquires privilege, creates and uses its root-only persistent directory and
+      own root-only record before payload work; no separately dispatched untracked setup
+      command occurs. Verify directory and record protection on the installed system.
+      (b) After dispatch, inject sudo denial, authorization error, password requirement,
+      terminal requirement, directory creation failure and record setup failure, each with
+      no root-only job record. Each remains unresolved and holds the machine; diagnostics
+      and SSH/sudo exit statuses supply no terminal result, successful check or automatic retry.
+      Contrast the real completed nonzero record in `CNF-54`.
+      (c) Disconnect before, during and after root-only job record creation. Exercise
+      missing and partial records, then failed and malformed reads as distinct truthful kinds under
+      the protected-evidence representation linked from `STA-20`. Reconnection success,
+      timeout and diagnostics release no hold and authorize no payload retry or successful
+      check. Preserve `CNF-40`'s command/runner waits and `CNF-55`'s reboot distinctions.
+      (d) While ordinary `exec` and harness jobs are held, collect the existing record through
+      a fresh privileged connection. Collection remains available without writer deadlock,
+      ordinary command admission or a setup job. When the original dispatch still awaits its
+      record, share that result without a separate collection or duplicate append (`CNF-40`).
+      Attempts to relabel arbitrary `exec`, repair or model commands as collection are refused. A reachable machine refusing
+      privileged reading or an unreadable record returns prompt visible unavailable
+      collection; an incomplete read is promptly shown as incomplete, with collection
+      unavailable to establish liveness or completion. Neither causes a live-command wait
+      without liveness evidence, nor loses its truthful read kind.
+      Unavailability settles nothing, supplies no unsupported liveness or completion and
+      leaves the hold intact. Other machines remain independent. Host-pin and authority checks
+      and protected-evidence handling still apply; neither unavailable collection nor elevation
+      diagnostics can establish lockdown or delivery success.
+      (e) After operator-confirmed destructive LNVPS reinstall, enforce the existing
+      confirmation, installation/publication-history and new-pin admission rules (`STG-20`,
+      `STG-21a`, `CHN-R7`, `CNF-109`, `CNF-112`) before first entry. The retired pin authorizes
+      no entry. On the newly admitted image, the first root job uses `STG-21`'s route and
+      creates/uses its root-only directory and job record; fresh collection uses the same route.
+      Inject sudo denial and disconnect before record creation: both dispatched attempts
+      remain unresolved, with no successful job/check evidence from reinstall success.
+      With changed host keys, both launch and collection halt before root work (`SEC-11`).
+      This item records obligations, not an observed fresh-image or integrated result.
 - [ ] **CNF-80 · PRE-SCALE** An installed system that does not answer on the channel within
       `installed.wait_max` (`bundle/timing.toml`) of its boot reset is declared failed, the operator is told, and a separately approved destructive reinstall
       returns to rescue from the brief (`STG-20`). Test a missing bootloader and a relay outage: neither a timeout nor
@@ -1594,7 +1674,7 @@ promotion rule above.
 
 | Applies when | CNF items | Interpretation |
 |---|---|---|
-| Stage 1: required | 1–7, 10–17, 21, 23–26, 28–30, 32, 34–35, 37, 39–44, 49–56, 66–73, 78–79, 81–83, 87–91, 93–95, 99–104, 109–111, 112 | One live LNVPS machine on catalogue plain Arch with no tenant, an initial session from the owner's goal and the later session `STG-9` requires (item 108) with a goal of its own, created through a typed adapter. First contact uses `CHN-R7`'s published-key route; item 23 requires no contact during its wait and item 109 requires published-pin admission, freshness, pin checking and disclosure on the integrated harness. Its new job-read pin admission, initial-group opening by a job read, and job-read attempt after a published pin belong to the dedicated row; its unused attest admission, initial-group opening by an attest, and consumed-introduction case belong to the attest row. Stage 1 keeps every case against earlier job-read and attest pins, on pins a Restore brings in, including item 84's "an initial empty group opened by a job read or attest". Synthetic unbound identities exercise 6 and 26. Item 7's growth and subset cases, and item 91's two-machine case, use fixtures until stage 2. Item 110 runs here the cases its own text assigns to stage 1. Item 12 is exercised with a hostile goal and a hostile fetched document; its untyped-scope restatement, and item 14's, wait for stage 2. Item 14 covers any root password the typed adapter's response carries. Item 23 covers unpinned-first-contact refusal; its attest-window case applies where attest is enabled, and its jump-host label waits for stage 2. Items 18 and 61 remain route-specific attest checks, required before enabling that route, not stage-1 requirements. Items 24 and 66 apply wherever the installation is pinned, and item 67's and item 93's unpinned cases wherever it is not; NixOS evidence is required before enabling NixOS. Interrupted resume (`STG-12`) is carried here by items 37, 39, 40 and 54–56; item 86's cases are a rescue boot's, and stay the test bed's. Item 95's stage-1 cases all require integrated evidence (`OPN-28`); cases (e) and (f) run here on M alone: every assertion but their A/B output-release assertions and case (e)'s copied-key assertions, which belong to stage 2. Item 53's `delivery_reboot` cases belong to the dedicated row: the own-record settlement and its append/replay cases; the hold after the journaled yes, including after the reboot settled; the missing-yes and wrong-call settlement refusals; the command in flight at the yes and its held unjournaled yes; the stopped pending-check case; and the late new-boot record under a destructive disposition. LNVPS's typed-restart survival evidence, its typed-restart settlement refusal, its typed-restart hold after the journaled yes including after the reboot settled, its typed-restart stopped pending-check case, the `exec` of the same reboot bytes and every other item-53 case stay here. Item 55's `delivery_reboot` settlement belongs to the dedicated row; the rest stays here. Item 50 covers the delivery check; its scanner half waits for scanner enablement. Item 10 covers local ledger persistence; its sheet-export half is the recovery row's. Item 72 covers local allocation; imported-state cases are 84. Item 81's migration case waits for self-host migration, which no stage yet offers. Item 32 covers the typed adapter's origin. Items 68–71, 78 and 88–90 apply to the procured inference path; bring-your-own and local inference have no aggregator to test. Item 88 uses injected list fixtures the way 17 uses an injected response. Item 42 covers placed secrets; its untyped-scope half waits for stage 2. Item 104 covers the LNVPS invoice and `ARC-30`'s TLS provenance, with no exemption; its untyped-scope case belongs to the stage-2 row. |
+| Stage 1: required | 1–7, 10–17, 21, 23–26, 28–30, 32, 34–35, 37, 39–44, 49–56, 66–73, 78–79, 81–83, 87–91, 93–95, 99–104, 109–111, 112, 114 | One live LNVPS machine on catalogue plain Arch with no tenant, an initial session from the owner's goal and the later session `STG-9` requires (item 108) with a goal of its own, created through a typed adapter. First contact uses `CHN-R7`'s published-key route; item 23 requires no contact during its wait and item 109 requires published-pin admission, freshness, pin checking and disclosure on the integrated harness. Its new job-read pin admission, initial-group opening by a job read, and job-read attempt after a published pin belong to the dedicated row; its unused attest admission, initial-group opening by an attest, and consumed-introduction case belong to the attest row. Stage 1 keeps every case against earlier job-read and attest pins, on pins a Restore brings in, including item 84's "an initial empty group opened by a job read or attest". Synthetic unbound identities exercise 6 and 26. Item 7's growth and subset cases, and item 91's two-machine case, use fixtures until stage 2. Item 110 runs here the cases its own text assigns to stage 1. Item 12 is exercised with a hostile goal and a hostile fetched document; its untyped-scope restatement, and item 14's, wait for stage 2. Item 14 covers any root password the typed adapter's response carries. Item 23 covers unpinned-first-contact refusal; its attest-window case applies where attest is enabled, and its jump-host label waits for stage 2. Items 18 and 61 remain route-specific attest checks, required before enabling that route, not stage-1 requirements. Items 24 and 66 apply wherever the installation is pinned, and item 67's and item 93's unpinned cases wherever it is not; NixOS evidence is required before enabling NixOS. Interrupted resume (`STG-12`) is carried here by items 37, 39, 40 and 54–56; item 86's cases are a rescue boot's, and stay the test bed's. Item 95's stage-1 cases all require integrated evidence (`OPN-28`); cases (e) and (f) run here on M alone: every assertion but their A/B output-release assertions and case (e)'s copied-key assertions, which belong to stage 2. Item 53's `delivery_reboot` cases belong to the dedicated row: the own-record settlement and its append/replay cases; the hold after the journaled yes, including after the reboot settled; the missing-yes and wrong-call settlement refusals; the command in flight at the yes and its held unjournaled yes; the stopped pending-check case; and the late new-boot record under a destructive disposition. LNVPS's typed-restart survival evidence, its typed-restart settlement refusal, its typed-restart hold after the journaled yes including after the reboot settled, its typed-restart stopped pending-check case, the `exec` of the same reboot bytes and every other item-53 case stay here. Item 55's `delivery_reboot` settlement belongs to the dedicated row; the rest stays here. Item 50 covers the delivery check; its scanner half waits for scanner enablement. Item 10 covers local ledger persistence; its sheet-export half is the recovery row's. Item 72 covers local allocation; imported-state cases are 84. Item 81's migration case waits for self-host migration, which no stage yet offers. Item 32 covers the typed adapter's origin. Items 68–71, 78 and 88–90 apply to the procured inference path; bring-your-own and local inference have no aggregator to test. Item 88 uses injected list fixtures the way 17 uses an injected response. Item 42 covers placed secrets; its untyped-scope half waits for stage 2. Item 104 covers the LNVPS invoice and `ARC-30`'s TLS provenance, with no exemption; its untyped-scope case belongs to the stage-2 row. |
 | Stage 1: publisher-default hosting | 113 | Required before admitting the publisher default and before stage 1 completes with it. Include the effective-deployment and live-origin evidence, with the precise resolver TCP/53 route outside the independent-denial guarantee where connector-usable. Isolated results remain recordable while required deployment assertions are pending; pending does not pass admission. This row does not impose the publisher profile on bring-your-own or a self-hosted migration target. |
 | Stage 1: record measurements | 45–47 | Require the integrated browser channel, not the rehearsal's timings. |
 | Stage 1: model-written check reports | 107 | The report label, verdict isolation and absence of automatic re-execution are required before stage 1 completes. |

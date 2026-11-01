@@ -246,8 +246,14 @@ In Replace's model-free flow (`STA-17`, `SEC-1`), which no session holds, the ha
 the one machine it is migrating; that flow's commands and jobs go to that machine alone, and
 their records and captured values belong to that machine and satisfy no check about another.
 
-**ARC-8** Recording commits **per command**, before transmission. "Every byte recorded
-before transmission" would otherwise imply a granularity nobody chose, resting on an
+**ARC-8** Recording commits **per command**, before transmission. For a tracked launch,
+the committed command MUST contain the actual command bytes to be transmitted, including the
+launcher, any privilege acquisition and the payload as transmitted. Recording only the inner
+payload, or reconstructing or normalizing the command afterwards, does not meet this rule.
+Secret standard input is separate from these command bytes (`STA-20`, `SEC-5`).
+
+Without the per-command granularity above, "Every byte recorded before transmission" would
+imply a granularity nobody chose, resting on an
 execution model nobody had stated, and the two plausible readings differ by orders of
 magnitude in cost on a phone. Command granularity also produces a transcript an operator
 can read, which is what an action transcript is for.
