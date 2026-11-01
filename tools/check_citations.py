@@ -58,7 +58,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from check_ids import DEF_RE, DEFINING, ID, POINTER_RE, ROOT, files  # noqa: E402
 
 BASELINE = os.path.join(ROOT, "tools", "citation-baseline.json")
-CITING = ["*.md", "docs/adr/*.md", "docs/tenants/*/*.md", "docs/design/*.md"]
+CITING = ["*.md", "docs/adr/*.md", "docs/tenants/*/*.md", "docs/design/*.md",
+          "docs/state-machine-atlas.md"]
 
 # Direct-speech attribution only, present tense. Two shapes: the verb form
 # ("`STA-24` says ...") and the possessive form ("`STA-24`'s rule that ..."),

@@ -43,7 +43,8 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from check_ids import ROOT, files  # noqa: E402
 
-JSON_FILES = ["*.md", "docs/design/*.md", "docs/tenants/*/profile.md"]
+JSON_FILES = ["*.md", "docs/design/*.md", "docs/tenants/*/profile.md",
+              "docs/state-machine-atlas.md"]
 JSON_WHOLE_FILES = ["docs/design/*.json"]
 MERMAID_FILES = JSON_FILES + ["docs/adr/*.md", "docs/review/*.md"]
 

@@ -24,6 +24,7 @@
           packages = [
             pkgs.lean4        # lean, lake
             pkgs.python3      # tools/check_*.py
+            pkgs.cmark-gfm    # atlas literal-display tests and positive control
           ];
         };
       });

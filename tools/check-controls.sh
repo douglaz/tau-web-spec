@@ -1091,6 +1091,60 @@ control "obligations: a duty naming machinery its target never mentions" "$OBL" 
 FIX=tools/check_fixtures.py
 DECL=docs/design/delivery-declaration-v1.md
 
+# The informational atlas is in docs/, outside these gates' older globs. Prove
+# that both newly included scanners actually read it.
+control "citations: atlas quotation coverage" "$CITES" \
+  "printf '\n\`STA-8\` says \"a phrase its target never contained anywhere\".\n' >> docs/state-machine-atlas.md" \
+  "UNVERIFIED QUOTES" "docs/state-machine-atlas.md:STA-8"
+
+control "fixtures: atlas JSON coverage" "$FIX" \
+  "printf '\n\`\`\`json\n{invalid}\n\`\`\`\n' >> docs/state-machine-atlas.md" \
+  "BAD JSON" "docs/state-machine-atlas.md"
+
+control "fixtures: atlas Mermaid coverage" "$FIX" \
+  "printf '\n\`\`\`mermaid\nflowchat LR\n\`\`\`\n' >> docs/state-machine-atlas.md" \
+  "BAD MERMAID" "docs/state-machine-atlas.md"
+
+ATLAS_GATE=tools/render_state_machine_atlas.py
+# Shape mutations are valid JSON; they must be refused by this gate, not by
+# incidental fixture failures. Every check below names the specific changed
+# source location, document, or index and requires exactly one finding.
+while IFS='|' read -r atlas_case atlas_label atlas_target; do
+  control "atlas: $atlas_case" "$ATLAS_GATE" \
+    "python3 tools/tests/atlas_cases.py $atlas_case" "$atlas_label" "$atlas_target"
+done <<'ATLAS_CONTROLS'
+stale|ATLAS DRIFT|docs/state-machine-atlas.md
+schema|ATLAS HEADER|docs/design/dispatch-witnesses-v8.json
+module|ATLAS HEADER|docs/design/dispatch-witnesses-v8.json
+namespace|ATLAS HEADER|docs/design/dispatch-witnesses-v8.json
+missing|ATLAS SELECTION|same_action_new_call_id_refused
+ambiguous|ATLAS SELECTION|same_action_new_call_id_refused
+unresolved|ATLAS DECLARATIONS|absent_atlas_declaration
+index|ATLAS DECLARATIONS|index.jsonl
+outcome|ATLAS DRIFT|docs/design/dispatch-witnesses-v8.json
+shape|ATLAS INPUT|same_action_new_call_id_refused.start
+nested|ATLAS INPUT|receipt_binding
+missing_data|ATLAS INPUT|knowledge
+unknown_event|ATLAS INPUT|event
+missing_outcome|ATLAS INPUT|refusal
+boolean_ordinal|ATLAS INPUT|event.call
+unsupported_collection|ATLAS INPUT|start.standing
+continuation_token|ATLAS INPUT|bound.alphabet
+false_tag|ATLAS INPUT|inference_cap
+duplicate_member|ATLAS INPUT|schema
+conformance_id|ATLAS INPUT|docs/design/dispatch-witnesses-v8.json
+evidence|ATLAS LABELS|docs/state-machine-atlas.md
+step_evidence|ATLAS LABELS|docs/state-machine-atlas.md
+applicability|ATLAS LABELS|docs/state-machine-atlas.md
+pair|ATLAS PAIRS|same_action_new_call_id_refused
+pair_side|ATLAS PAIRS|same_action_new_call_id_refused
+partner|ATLAS PAIRS|same_action_new_call_id_refused
+markers|ATLAS REGIONS|docs/state-machine-atlas.md
+ATLAS_CONTROLS
+
+passes "atlas: adversarial label accepted, escaped and preserved" "$ATLAS_GATE" \
+  "python3 tools/tests/atlas_cases.py safe_label"
+
 control "fixtures: a JSON example with a placeholder" "$FIX" \
   "sed -i 's/^  \"drift_checks\": \[\],/  \"drift_checks\": ...,/' $DECL && grep -q '\"drift_checks\": \.\.\.,' $DECL" \
   "BAD JSON" "placeholder"
