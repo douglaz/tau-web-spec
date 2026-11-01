@@ -1214,6 +1214,54 @@ to the relay evidence in `CNF-81`, `CNF-87` and `CNF-113`.
       remain unresolved, with no successful job/check evidence from reinstall success.
       With changed host keys, both launch and collection halt before root work (`SEC-11`).
       This item records obligations, not an observed fresh-image or integrated result.
+- [ ] **CNF-115 · BLOCKING** Recovery preserves journal-only command protection, including
+      its knowledge limit. `STA-20` says "The command hold is journal-only." `STA-24` says
+      "recovery alone settles no retained unresolved intent, clears no retained resource
+      barrier or command hold, erases no standing disposition and authorizes no automatic retry."
+      These are downstream implementation obligations. Use production dispatch and collection
+      with injected loss/backup histories and an independently observed earlier remote command;
+      do not disable the command hold. Exercise each new-work case in a separate history so
+      its own newly recorded intent still governs subsequent work.
+      (a) Lose the entire journal, then recover from seed and sheet while an earlier command
+      still runs. With all other admission requirements satisfied, begin ordinary/model work,
+      harness-composed check/delivery work and model-free Replace key migration in separate
+      cases. No added recovery sweep, enumeration prerequisite, check, advisory wait or hold
+      for the omitted send precedes them; their dispatch may overlap it. Exercise both an
+      earlier command with a surviving machine record and one that left no record. An
+      arbitrary machine record without a journal intent creates no recovery hold or approval.
+      No completeness, old-phone quiescence or remote concurrency-safety claim is shown.
+      (b) Import a stale local-store backup retaining unresolved command A. Use a valid
+      original history: take the backup after A's send but before its terminal append, then
+      append A's terminal record and send B on the same machine; the backup omits both later
+      records. Restore it while B still runs. A still holds the machine against ordinary/model
+      commands and harness jobs; recovery alone records no settlement or automatic retry.
+      Collect A through the existing privileged collection path while work is held, as in
+      `CNF-114`. Repeat with omitted B on another machine; A's hold remains local.
+      (c) Collect genuine terminal evidence for A under its own contract, with failed terminal
+      append and successful durable append/replay variants. The former keeps A held; the latter
+      settles only A and can admit otherwise-permitted new work while omitted B still runs.
+      `STA-24` says "Settlement of one retained call under its own contract supplies no
+      completeness or completion evidence about omitted sends". Neither variant claims B
+      finished or manufactures its intent, approval or terminal evidence. For sent/received-byte
+      comparison and protected-evidence cases, see `CNF-56` and `CNF-114`;
+      `STA-21` says "The job record is machine-reported and advisory."
+      (d) Import valid backups with retained terminal records and standing dispositions while
+      omitting later sends on independent machines. Preserve the terminal outcomes and the
+      unknown outcomes of disposed calls; repeat `CNF-110`'s replay, late-evidence and standing
+      destructive-stop cases against the imported history. Use `CNF-20`'s partial-Replace
+      cases for old-key retention, visible not-yet-migrated reasons and independent migration;
+      omitted sends release no retained hold or destructive restriction. `STA-24` says
+      "The disposition releases the named command's hold; unnamed unresolved commands retain theirs."
+      (e) Retain a dispatched startup intent whose machine record is missing: `STA-20` says
+      "After dispatch, privilege or setup failure without the root-only job record MUST leave
+      the call unresolved and its machine held." Run `CNF-114`'s startup/collection refusals
+      against the imported history, contrasting (a)'s absent intent. Existing permitted reads
+      remain available; arbitrary repair, model commands and ordinary `exec` cannot become
+      collection. Independently failing authority, host-pin, protected-evidence or output-release
+      checks still refuse or withhold as their owners require (`CNF-20`, `CNF-56`, `CNF-84`,
+      `CNF-95`, `CNF-114`); an unchecked restored label supplies no replacement for those checks.
+      Destroyed data: dropping a retained barrier can admit another disk write; the permitted
+      overlap with an omitted send is a knowledge limit, not evidence that concurrent work is safe.
 - [ ] **CNF-80 · PRE-SCALE** An installed system that does not answer on the channel within
       `installed.wait_max` (`bundle/timing.toml`) of its boot reset is declared failed, the operator is told, and a separately approved destructive reinstall
       returns to rescue from the brief (`STG-20`). Test a missing bootloader and a relay outage: neither a timeout nor
@@ -1679,7 +1727,7 @@ promotion rule above.
 | Stage 1: record measurements | 45–47 | Require the integrated browser channel, not the rehearsal's timings. |
 | Stage 1: model-written check reports | 107 | The report label, verdict isolation and absence of automatic re-execution are required before stage 1 completes. |
 | Stage 1: re-entry | 108 | `STG-9`'s later session, re-entering over the same pin and re-running the check, is required before stage 1 completes. Item 93's re-entry case runs with it, using a placement or rotation in the re-entering session. |
-| Stage 1: recovery export/import and Replace | 19–20, 84 | Before maintained cloud delivery: export, Restore, allocation refusal, cloud destroy/recreate and partial-Replace cases pass, with item 10's export case. At LNVPS, `ARC-22` owns both forms: a destroy is a stop with renewal off, and a recreate is a reinstall that is a new first contact and cannot reuse the old pin. Item 84 checks `CHN-R7` provenance, earlier and refused publication knowledge, and pending pin retirement through sheet export and Restore; item 109 checks fresh admission after reinstall. Item 20 uses the manual publisher-confirmed pass retirement/enrollment route. Only item 20's relabel cases and item 84's Robot rescue case wait for the dedicated row; signed pass revocation waits for the paid/public row. |
+| Stage 1: recovery export/import and Replace | 19–20, 84, 115 | Before maintained cloud delivery: export, Restore, allocation refusal, cloud destroy/recreate and partial-Replace cases pass, with item 10's export case. At LNVPS, `ARC-22` owns both forms: a destroy is a stop with renewal off, and a recreate is a reinstall that is a new first contact and cannot reuse the old pin. Item 84 checks `CHN-R7` provenance, earlier and refused publication knowledge, and pending pin retirement through sheet export and Restore; item 109 checks fresh admission after reinstall. Item 20 uses the manual publisher-confirmed pass retirement/enrollment route. Item 115 covers journal loss and stale local-store backups on the maintained-cloud path, using item 20's migration cases; it adds no dedicated relabel, rescue, `delivery_reboot` or attest case. Only item 20's relabel cases and item 84's Robot rescue case wait for the dedicated row; signed pass revocation waits for the paid/public row. |
 | Attest first-contact route | 18, 23 (attest-window case), 61, 74–75, 109 (attest admission) | Before enabling attest at any vendor that accepts boot configuration, including one used for a jump host. This row does not gate LNVPS stage 1. |
 | The dedicated path: the construction test bed | 20 (relabel cases), 22, 38, 48, 53 (`delivery_reboot` cases), 55 (`delivery_reboot` case), 62–64, 80, 84, 85–86, 109 (job-read admission), 110 | The Robot dedicated path's own checks, including item 20's relabel cases, only item 84's Robot rescue case, item 53's `delivery_reboot` cases, as the stage-1 row lists them, item 55's `delivery_reboot` settlement case, and item 110's reset-into-rescue, harness-composed `delivery_reboot` and `replace_root_label` refusal cases. Their by-hand evidence stands (48 is recorded), construction exercises them on the test bed, and they pass on the integrated harness before a dedicated-server path is offered to an operator, which no stage before the third does. Items 62–64 also apply to any typed adapter that rides the pinned tunnel, stage 1's included if its vendor refuses a browser origin. |
 | Stage 2: a vendor with no adapter whose API the browser can reach (`CHN-12b`), the jump host, sets above one | 7, 12, 14, 23, 27, 29, 31, 33, 42, 91–93, 95 (cases (e) and (f)'s A/B assertions), 96–98, 104–106 | Before enabling an untyped scope, an untyped vendor scope, the jump-host route or a bound set of more than one machine. Item 95's cases (e) and (f) cover A/B output release only after both pastes; case (e) also covers the copied key on A redacted. Items 7 and 91 cover set growth, subsets and two-machine sets; items 12, 14 and 29 their untyped-scope cases; item 23 the jump-host label; item 42 the untyped-scope half of the trust display; item 93 the jump-host, untyped-scope and larger-set modes, each accepted at the act it governs and restated, with their re-entry and reinstall cases; item 104 an invoice decoded from an untyped response, where the vendor invoices. Item 92's multi-tenant case gates sets above one; its independence-bound case gates the first profile that declares a bound. Repeat item 17 against real untyped responses. |

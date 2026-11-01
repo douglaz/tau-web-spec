@@ -159,6 +159,16 @@ again. A held harness job is not queued: the flow that needs it stays shown and 
 afresh once the hold lifts, a first issue and not a retry; after a stopped wait only the
 operator resumes that flow, and nothing left armed survives replay.
 
+**The command hold is journal-only.** It derives from unresolved command intents in the
+surviving journal. For an earlier command whose send the restored journal does not record,
+the harness worker MUST NOT add a recovery-time record-enumeration prerequisite, recovery
+check, advisory wait or hold. New work after recovery — ordinary/model commands,
+harness-composed check and delivery jobs, and Replace's model-free key migration included —
+may therefore overlap that earlier command while it still runs. This is a limit of journal
+knowledge, with no promise of remote concurrency safety and no exception to any other
+admission requirement. For complete journal loss versus an imported local-store backup and
+the effects of retained records, see `STA-24`; for machine evidence, see `STA-21`.
+
 The admission guard is `TauWeb.Dispatch.commandHold`, consulted by
 `TauWeb.Dispatch.barring` beside the cloud-plane barrier (ADR-0032). Its parameter's pair is
 `TauWeb.Dispatch.second_command_held` / `TauWeb.Dispatch.second_command_without_hold`;
@@ -319,6 +329,11 @@ deterministic verifier stands and MUST NOT be reported as more (`SEC-2`).
 The protected browser copy and its genuine comparison outcomes are represented by
 [Protected browser evidence v1](docs/design/protected-evidence-v1.md#2-job-schema-and-replay).
 This does not add machine-truth or settlement authority.
+
+Enumerating machine records cannot reconstruct lost journal intents or approvals, establish
+completeness against a hostile machine, discover a command that left no record, or promise
+that an old phone cannot issue further work. A machine record without a journal intent
+creates neither an intent nor an approval; the recovery command-hold boundary is `STA-20`'s.
 
 **STA-24 The unresolved barrier holds per resource, not per call.** While any call naming a
 resource is unresolved (`STA-8`), the harness worker MUST NOT dispatch a side-effecting
@@ -557,9 +572,22 @@ most one cloud-plane call is unresolved at a time, it is older than every box-pl
 unresolved beside it, and a call that changes what the machine is running is unresolved alone;
 at most one box-plane command is unresolved (`STA-20`'s hold). Admission,
 reservation and the dispatch check are serialized by the single writer (`STA-1`), so two
-requests cannot both pass before either is unresolved. What this rule cannot reach is a journal
-that is lost with the phone: `STA-14` states that transcripts are gone, and a recovery sheet is
-not an outstanding-call record.
+requests cannot both pass before either is unresolved.
+
+**Lost journal and stale backup.** With complete journal loss, recovery from the seed and
+sheet supplies no outstanding-call record: `STA-14` says "Transcripts and provenance are
+gone and stated as gone." An imported local-store backup differs: it can retain unresolved
+intents, terminal records and standing dispositions while omitting later sends. Every retained
+record MUST keep its interpretation under the replay rules above; recovery alone settles no
+retained unresolved intent, clears no retained resource barrier or command hold, erases no
+standing disposition and authorizes no automatic retry. The effects of every retained
+unresolved intent and standing restriction remain in force. Settlement of one retained call
+under its own contract supplies no completeness or completion evidence about omitted sends;
+an omitted send is not terminal evidence. For new work's possible overlap with an omitted
+command, including Replace, and the absence of an added recovery check or hold, see `STA-20`.
+`STA-16` says "after store loss each maintained machine is shown as **unchecked**, its findings
+unknown, until a re-check runs". That label supplies no command-concurrency protection;
+for re-check and reapproval, see `STA-16`; for output release, see `SEC-5` and `ARC-43`.
 
 *The trap.* `STA-8` speaks of a call, and a model does not retry a call: it requests the action
 again, and every request carries a fresh call id. `POST /reset` returns `running` with no
@@ -957,6 +985,8 @@ its remaining limits live at [OPN-3](./08-open-questions.md#gates-by-milestone),
 [Stage applicability and admission](./07-conformance.md#stage-applicability-and-admission).
 The separate authority boundaries are indexed in the
 [atlas recovery region](./docs/state-machine-atlas.md#allocation-and-recovery).
+For journal-only command protection and the lost-journal/backup boundary, see `STA-20` and
+`STA-24` in [Durable state](#durable-state).
 
 ```mermaid
 flowchart TD
@@ -1124,6 +1154,9 @@ A machine under `STA-20`'s hold or a standing destructive reinstall or abandonme
 Replace migrates the others. After the hold, or a destructive reinstall's restriction,
 ends, its migration steps are first issues, starting with the key install in the order
 above; the completion refusal above applies.
+
+For the journal-knowledge and overlap boundary during Replace, see `STA-20` and `STA-24`
+in [Durable state](#durable-state).
 
 For the direct re-entry in Replace's bullet above, a dedicated machine MUST have its root
 filesystem's label rewritten after the connection authenticated by the new key is confirmed
