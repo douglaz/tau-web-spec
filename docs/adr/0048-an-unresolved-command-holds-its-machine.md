@@ -100,6 +100,6 @@ remain assumptions; collection/wait procedures and the pending-delivery-check ho
 prose boundaries in the module's opening notes.
 
 For implementation obligations, see `CNF-115` and the existing cases it references in
-[`07-conformance.md`](../../07-conformance.md#state-and-recovery). Consistent specification
+[`07-conformance.md`](../../07-conformance.md#state-and-recovery--sta-). Consistent specification
 gates supply no integrated recovery, fresh-image, remote-completeness or production-safety
 evidence. T42's live-image work and T44's credential/recovery amendment remain outstanding.
