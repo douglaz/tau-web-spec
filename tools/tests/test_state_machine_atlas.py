@@ -2,22 +2,16 @@
 
 from contextlib import redirect_stdout
 import copy
-import html
 import io
 import json
 from pathlib import Path
-import re
 import sys
 import tempfile
 import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import render_state_machine_atlas as atlas
-from atlas_cases import ADVERSARIAL, CASES, mutate
-
-
-def decoded_cells(text):
-    return [json.loads(html.unescape(value)) for value in re.findall(r"<code>(.*?)</code>", text)]
+from atlas_cases import ADVERSARIAL, LABELS, CASES, mutate, rendered_cells
 
 
 class SourceAgreement(unittest.TestCase):
@@ -31,7 +25,7 @@ class SourceAgreement(unittest.TestCase):
         # Decode the actual committed artifact, not the renderer's expected
         # output. Compare each column directly with the source JSON members.
         region = self.document.split(atlas.BEGIN)[1].split(atlas.END)[0]
-        cells = decoded_cells(region)
+        cells = rendered_cells(region)
         self.assertEqual(cells.pop(0), {k: self.source[k] for k in ("schema", "module", "namespace", "bound")})
         steps = 0
         for name in atlas.SELECTION:
@@ -94,12 +88,31 @@ class SourceAgreement(unittest.TestCase):
             self.assertEqual(atlas.project(source, self.index)["bound"]["alphabet"][4]["continuation"], token)
 
     def test_safe_encoding_preserves_adversarial_data(self):
-        for value in (ADVERSARIAL, {ADVERSARIAL: [ADVERSARIAL]}, "\r\n\t\\`|<>&\"'", "&#96;", "λ"):
+        for value in (*LABELS, {ADVERSARIAL: list(LABELS)}):
             with self.subTest(value=value):
                 cell = atlas.cell(value)
-                self.assertEqual(decoded_cells(cell), [value])
-                for forbidden in ("|", "`", "<script>", "<!--", "\n"):
+                self.assertEqual(rendered_cells("| Value |\n|---|\n| " + cell + " |\n"), [value])
+                for forbidden in ("<script>", "<!--", "\n"):
                     self.assertNotIn(forbidden, cell)
+
+    def test_gfm_displays_accepted_labels_literally(self):
+        for label in LABELS:
+            with self.subTest(label=label):
+                source = copy.deepcopy(self.source)
+                witness = next(w for w in source["witnesses"] if atlas.NS + atlas.SELECTION[0] in w["declarations"])
+                witness["steps"][0]["event"]["provenance"] = label
+                event = atlas.project(source, self.index)["witnesses"][0]["steps"][0]["event"]
+                table = "| Event |\n|---|\n| " + atlas.cell(event) + " |\n"
+                self.assertEqual(rendered_cells(table), [event])
+        value = {ADVERSARIAL: list(LABELS)}
+        self.assertEqual(rendered_cells("| Value |\n|---|\n| " + atlas.cell(value) + " |\n"), [value])
+
+    def test_gfm_oracle_rejects_nested_markup_in_raw_code(self):
+        for value, tag in (("~~atlas-label~~", "del"), ("https://example.com/atlas-label", "a")):
+            with self.subTest(value=value):
+                table = '| Value |\n|---|\n| <code>"' + value + '"</code> |\n'
+                with self.assertRaisesRegex(AssertionError, f"unexpected <{tag}>"):
+                    rendered_cells(table)
 
 
 class GateControls(unittest.TestCase):
@@ -163,8 +176,10 @@ class GateControls(unittest.TestCase):
         self.assertEqual(self.run_gate("--check")[0], 0)
         text = (self.root / atlas.ATLAS).read_text()
         self.assertEqual(text.count(atlas.END), 1)
-        values = decoded_cells(text)
-        self.assertTrue(any(type(v) is dict and v.get("provenance") == ADVERSARIAL for v in values))
+        region = text.split(atlas.BEGIN)[1].split(atlas.END)[0]
+        values = rendered_cells(region)
+        for label in LABELS:
+            self.assertTrue(any(type(v) is dict and v.get("provenance") == label for v in values), repr(label))
 
 
 if __name__ == "__main__":

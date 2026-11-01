@@ -1,13 +1,68 @@
 """Scratch-only mutations shared by atlas tests and discriminating gate controls."""
 
 import json
+from html.parser import HTMLParser
 from pathlib import Path
+import subprocess
+import string
 import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import render_state_machine_atlas as atlas
 
 ADVERSARIAL = 'label | `tick` **bold** _word_ [link](javascript:bad) <script>x</script> & &#124;\n<!-- /atlas-info -->\n```json\n{}'
+LABELS = (ADVERSARIAL, "~~atlas-label~~", "https://example.com/atlas-label",
+          "www.example.com/atlas-label", "atlas@example.com",
+          "\r\n\t\x00\x1f\\`|<>&\"'", "&#96; &amp; &lt;code&gt;", "λ",
+          string.punctuation, '</code><a href="https://example.com">link</a>',
+          r'| \| \\| \\\| ` `` ``` ````  repeated  spaces')
+
+
+def rendered_cells(markdown):
+    """Decode JSON from actual GFM table cells, refusing nested inline markup.
+
+    Raw HTML is enabled as in the viewer that exposed the bug. Missing parser
+    tooling is an error; flake.nix supplies the pinned cmark-gfm for tests/CI.
+    """
+    rendered = subprocess.run(
+        ["cmark-gfm", "--unsafe", "-e", "table", "-e", "strikethrough", "-e", "autolink"],
+        input=markdown, text=True, capture_output=True, check=True).stdout
+
+    class Cells(HTMLParser):
+        def __init__(self):
+            super().__init__(convert_charrefs=True)
+            self.stack = []
+            self.parts = None
+            self.values = []
+
+        def handle_starttag(self, tag, attrs):
+            assert self.parts is None, f"unexpected <{tag}> inside literal code cell"
+            if tag == "code":
+                assert self.stack and self.stack[-1] == "td", "code must remain in a table cell"
+                assert not attrs, "unexpected code attributes"
+                self.parts = []
+            self.stack.append(tag)
+
+        def handle_endtag(self, tag):
+            assert self.stack and self.stack.pop() == tag, f"unbalanced </{tag}>"
+            if tag == "code":
+                self.values.append(json.loads("".join(self.parts)))
+                self.parts = None
+
+        def handle_data(self, data):
+            if self.parts is not None:
+                self.parts.append(data)
+
+        def handle_comment(self, data):
+            assert self.parts is None, "unexpected comment inside literal code cell"
+
+    cells = Cells()
+    cells.feed(rendered)
+    cells.close()
+    assert not cells.stack and cells.parts is None, "unclosed HTML"
+    return cells.values
+
+
 CASES = {
     "stale": "ATLAS DRIFT", "schema": "ATLAS HEADER", "module": "ATLAS HEADER",
     "namespace": "ATLAS HEADER", "missing": "ATLAS SELECTION", "ambiguous": "ATLAS SELECTION",
@@ -75,10 +130,14 @@ def mutate(name, root):
         # no longer selected with this trace. No dangling-name incidental red.
         witness["pair"]["with"] = atlas.NS + "ceremony_trace"
     elif name == "safe_label":
-        witness["steps"][0]["event"]["provenance"] = ADVERSARIAL
+        events = (s["event"] for w in source["witnesses"]
+                  if any(atlas.NS + name in w["declarations"] for name in atlas.SELECTION)
+                  for s in w["steps"])
+        for label in LABELS:
+            next(events)["provenance"] = label
     elif name in ("stale", "evidence", "step_evidence", "applicability", "markers"):
         if name == "stale":
-            document = document.replace("| 1 | <code>", "| 999 | <code>", 1)
+            document = document.replace("| 1 | ", "| 999 | ", 1)
         elif name == "evidence":
             document = document.replace("Evidence: generated witness projection — same_action_new_call_id_refused.", "", 1)
         elif name == "step_evidence":
@@ -101,9 +160,9 @@ if __name__ == "__main__":
         # The control requires positive acceptance and data preservation, not
         # just that the malicious syntax was absent because everything vanished.
         assert atlas.main(["--write"]) == 0
-        import html
-        import re
-        cells = re.findall(r"<code>(.*?)</code>", (atlas.ROOT / atlas.ATLAS).read_text())
-        values = [json.loads(html.unescape(cell)) for cell in cells]
-        assert any(type(v) is dict and v.get("provenance") == ADVERSARIAL for v in values)
+        document = (atlas.ROOT / atlas.ATLAS).read_text()
+        region = document.split(atlas.BEGIN)[1].split(atlas.END)[0]
+        values = rendered_cells(region)
+        for label in LABELS:
+            assert any(type(v) is dict and v.get("provenance") == label for v in values), repr(label)
         assert "<script>" not in (atlas.ROOT / atlas.ATLAS).read_text()

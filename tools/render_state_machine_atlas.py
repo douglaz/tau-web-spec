@@ -8,7 +8,6 @@ emission equality; corpus-wide pair validation belongs to tw-316).
 """
 
 import argparse
-import html
 import json
 from pathlib import Path
 import re
@@ -276,12 +275,12 @@ def project(source, names, selection=SELECTION):
 
 def cell(value):
     # JSON gives newlines/control bytes a visible, reversible representation.
-    # Encode Markdown metacharacters too: inline HTML alone does not isolate them
-    # inside a GitHub table. Entities decode to the exact source JSON, never markup.
-    text = html.escape(json.dumps(value, ensure_ascii=True, sort_keys=True), quote=True)
-    for char in "|`*_[]\\":
-        text = text.replace(char, f"&#{ord(char)};")
-    return "<code>" + text + "</code>"
+    # Escape '<' as JSON too, so data cannot spell an informational marker.
+    text = json.dumps(value, ensure_ascii=True, sort_keys=True).replace("<", r"\u003c")
+    # A real code span prevents GFM inline parsing, including late autolinking.
+    # The table extension removes the extra backslash before each literal pipe.
+    fence = "`" * (1 + max((len(run) for run in re.findall(r"`+", text)), default=0))
+    return fence + text.replace("|", r"\|") + fence
 
 
 def render(projection):
