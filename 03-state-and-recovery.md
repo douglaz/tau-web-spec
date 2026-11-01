@@ -92,6 +92,24 @@ disposition (`STA-24`), and a continuation that continues then converges as `ARC
 proof of death.
 Record the boot identity with the job; a PID from another boot cannot establish liveness.
 
+**Startup is part of the tracked launch.** A single journaled launcher MUST acquire any
+required privilege, create and use the root-only installed-system directory and its own
+root-only job record, and only then begin ordinary payload work. A separately dispatched,
+untracked setup command MUST NOT be used to make tracking possible. The record's command
+as received includes the launcher, privilege acquisition and payload, not merely the inner
+payload; for sent/received comparison, see `STA-21`. The rescue exception remains `STA-20b`'s.
+For LNVPS access, see `STG-21`.
+
+A refusal before transmission MUST be shown as a refusal, without inferring a dispatched
+payload; the journal and dispatch rules of `STA-4` still apply. After dispatch, privilege or
+setup failure without the root-only job record MUST leave the call unresolved and its
+machine held. This includes sudo denial, authorization error, a password or terminal requirement,
+and directory or record creation failure. An elevation or setup diagnostic, SSH/sudo exit
+status or connection success supplies no terminal job evidence and authorizes no payload
+retry. A completed root-only job record, including a nonzero job exit, MUST instead supply
+its real output and exit under the existing settlement and admission rules; `delivery_reboot`
+retains its `ARC-43` exception.
+
 Browser-held copies use the representation in
 [Protected browser evidence v1](docs/design/protected-evidence-v1.md#2-job-schema-and-replay);
 the raw machine record keeps the layout above.
@@ -101,13 +119,22 @@ command named (`ARC-7`); one machine's record settles nothing about a command se
 A harness job that takes a value on standard input — `place_secret` (`ARC-43`) — is recorded by
 its command like any other, and the job wrapper MUST NOT write that input to any file but the
 job's destination: the input is not part of the command as received, and a spooled copy in the
-job directory would be a second cleartext secret on the machine.
+job directory would be a second cleartext secret on the machine. Through privilege
+acquisition, that standard input MUST reach exactly the authorized destination, with no added
+bytes, argument exposure, extra capture, spooling or logging, or consumption by an elevation
+prompt. Destination checks and `SEC-5`'s provenance and redaction rules still apply.
 
 **An unresolved command holds its machine.** While a box-plane command to a machine is
 unresolved (`STA-8`), the harness worker MUST NOT dispatch another box-plane command to that
 machine, whatever its call id, tool, requester or session; a read through `exec` is a command,
 and a job the harness composes is held too. Collecting a job record is not held, and other
-machines are unaffected. Only a terminal record releases the hold: a finished record of any
+machines are unaffected. Collection MUST remain an available fresh privileged read of the
+existing record, including while ordinary commands and harness jobs are held. It MUST NOT
+require a new setup job or pass through ordinary `exec` admission. Only harness-composed
+record collection qualifies: arbitrary repair, payload execution or a model-supplied command
+MUST NOT be relabeled as collection. Collection bypasses no host-pin or authority check,
+protected-evidence handling or other existing restriction; LNVPS access is `STG-21`'s.
+Only a terminal record releases the hold: a finished record of any
 command but `delivery_reboot`, `delivery_reboot`'s boot change (`ARC-43`), or a disposition,
 which `STA-24` says "is a terminal record of its own kind"; otherwise an ended, missing or
 incomplete record does not, and no timeout does. A disposition's continuation still restricts
@@ -118,7 +145,14 @@ records no intent. The harness collects the calls holding it, waiting while a co
 process or its runner is alive; a call whose own dispatch is still awaiting its record is not
 collected separately, the held request waits on that same result. The wait does not hold the
 writer, is shown to the operator and may be stopped; stopping settles nothing, and a machine
-that cannot be reached is answered at once. A held model request's result names the holding
+that cannot be reached is answered at once. Missing, incomplete or unreadable records supply
+no unsupported liveness or completion evidence. Unavailable collection MUST be shown promptly,
+including when the machine is reachable but refuses privileged reading; it MUST NOT wait as
+though an unreadable record established a live command. Failed or malformed reads retain
+those truthful kinds under the protected-evidence representation linked above, rather than
+being converted to missing records. Neither unavailable collection nor an elevation diagnostic
+releases the hold, supplies successful check evidence or permits automatic payload retry.
+A held model request's result names the holding
 calls, carries what collection read, and says what can release them (a finished record or a
 disposition; for `delivery_reboot`, a boot change or a disposition); the model then decides
 again. A held harness job is not queued: the flow that needs it stays shown and composes it
@@ -154,6 +188,12 @@ returns after twenty seconds when captured through a pipe and immediately when r
 file. This is not a liveness subtlety — it is `STA-20`'s "its output" field hanging, and it
 inverts the failure mode in the damaging direction, since the record then reads *still running*
 indefinitely and `CNF-40` requires the returning session to wait on exactly that.
+
+The command and its runner MUST remain detached from the SSH connection through any
+privilege acquisition, with command/runner liveness observable through the same route on
+reconnect. A live runner MUST NOT be mistaken for terminal completion, and SSH or sudo process
+status MUST NOT substitute for job evidence. This remains stateless execution with persistent
+job files, not a surviving interactive shell or a new resident service.
 
 **No orphan test may rest on a reparented process's new parent.** Verified: an orphan reparents
 to PID 1 on one declared distribution and to a user-level subreaper on the other, so `PPID == 1`
@@ -267,7 +307,11 @@ pin is the reset's confirmation rather than an error is
 
 **STA-21 The job record is machine-reported and advisory.** The browser journal is authoritative
 for what was **sent** (`STA-3`, `ARC-8`); the machine's record says what it **received** and what
-happened next. Comparing the two catches truncation, quoting damage and a mangled multi-line
+happened next. Comparison MUST use the actual journaled command bytes and actual received
+command bytes, including the launcher, privilege acquisition and transmitted payload. Comparing
+only an inner payload, a reconstructed command or a normalized surrogate is insufficient;
+secret standard input remains separate. This comparison precedes protected removal of facts
+under the representation linked below. Comparing the two catches truncation, quoting damage and a mangled multi-line
 command — the honest-mistake class, and a real one. It catches nothing against a machine that
 lies, because such a machine writes whatever it likes. This stands exactly where the
 deterministic verifier stands and MUST NOT be reported as more (`SEC-2`).
@@ -1054,6 +1098,7 @@ distinct, and the screen says which one is happening
 **Direct Replace needs both seeds and the old allocation metadata, and MUST say so before
 it starts.** Re-entering a machine to remove
 the old key uses the old key; signed revocation on the paid/public path uses the old pass key.
+For LNVPS entry and the key-install/removal jobs on its login account, see `STG-21`.
 Both derive from the seed being retired, so the operator needs its backup *during* Replace and abandons it after.
 If the old seed or an index is missing, direct re-entry and pass revocation cannot finish.
 Robot machines can still be rekeyed through vendor-authenticated rescue (`STA-15`); cloud

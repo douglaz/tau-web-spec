@@ -98,7 +98,11 @@ gated on it.
       enabled-survives-reboot services; `ARC-43` owns running-at-delivery's boot anchor,
       stopped-since-restart note and persistence of lifecycle findings.
       When the checklist exists, run it against a fresh LNVPS catalogue image; if the image
-      fails a fixed check, `tw-i55` is due before stage 1 completes.
+      fails a fixed check, `tw-i55` is due before stage 1 completes. The persistent LNVPS
+      access decision is recorded in ADR-0051, with its rule in `STG-21` and startup/collection
+      in `STA-20`. Its fresh-image run and integrated evidence remain outstanding, including
+      the newly admitted image after destructive reinstall; specification completion supplies
+      no image or checklist pass.
 - [ ] **T43 — Stage 1's build list**. Implement `STG-21`'s corrected LNVPS/plain-Arch
       definition and the stage-1 applicability rows in `07-conformance.md` at tau-web-rust's
       next spec pin. These include recovery, scanning, reports and re-entry; specification

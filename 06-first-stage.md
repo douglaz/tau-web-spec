@@ -41,6 +41,26 @@ in ADR-0042 and paid for by a Lightning invoice from the operator's own wallet (
 That identity is unavailable until T44's coordinated format and recovery amendment;
 `SEC-5` row 22 still says "not derivable today".
 
+**LNVPS root access.** The harness MUST enter as `arch` over pin-checked SSH,
+authenticated by the existing per-machine client key, and acquire root through password-free,
+non-interactive sudo for each job. This authorizes that route for jobs and for fresh privileged
+collection of their root-only job records (`STA-20`), through the same login and elevation
+route.
+It introduces no elevation credential. The harness MUST NOT use an elevation password,
+interactive prompt, direct-root login or alternate-login fallback, or depend on cached sudo
+authentication to make a fresh connection work.
+
+This route MUST remain usable with locked or disabled account password fields, after
+lockdown, disconnect and reboot, on a fresh later-session authenticated connection with fresh
+privilege acquisition (`STG-9`), and during model-free Replace (`STA-17`). In Replace it applies
+to the `arch` account under that flow's existing old-key entry, key migration and held-machine
+rules; it adds no dedicated-path relabel. After destructive reinstall, this route MUST be
+usable on the new image once the existing reinstall confirmation, installation and
+publication-history, new-pin admission and dispatch rules admit entry (`STG-20`, `STG-21a`,
+`CHN-R7`). The retired pin grants no shortcut. Launch and collection both remain subject to
+`SEC-11`'s host-key halt before root work. Neither reinstall success nor elevation diagnostics
+supply successful job or check evidence; startup and collection outcomes belong to `STA-20`.
+
 Before the first order under each machine's identity, the typed LNVPS adapter MUST submit the
 operator's own email address to that account at the vendor. The harness MUST NOT submit that
 address anywhere except to the vendor. The same operator address serves every machine's
