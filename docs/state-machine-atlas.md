@@ -194,29 +194,33 @@ Owners: [STA-17](../03-state-and-recovery.md#recovery-by-access-model-and-vendor
 
 ## Combined matrix
 
-Evidence: conceptual navigation, checked owner quotations below; no executable
-guard logic. Applicability: same approved resource, typed vendor and current
-installed machine unless qualified. Other resources are independent only under
-their own guards. The restrictions in different columns **accumulate**.
-The columns describe recorded harness knowledge and current authority; external
-outcomes remain unknown without admissible evidence. Each cell describes only
-the permitted next action through that restriction.
+Evidence: conceptual navigation, with checked owner quotations below.
+Applicability: same approved resource, typed vendor and current installed
+machine unless qualified. External outcomes remain unknown without admissible
+evidence.
 
-**Allowed subject to other guards** means this restriction supplies a permission,
-not dispatch authority. **Refused** means the owner refuses the request. **Held**
-means STA-20's command wait, with no intent for the held request. **Not specified**
-marks a boundary, not a refusal or permission.
+Each cell points directly to the defining document for the relevant requirement,
+or to the existing decision record. It contains no separately maintained dispatch
+decision. Read all applicable owners together; the [quoted passages](#authority)
+below help locate their authority, barrier, command-hold and disposition clauses.
+Publication routes to its own owners rather than acquiring a dispatch decision
+from the witness projection.
+
+The reading vocabulary remains distinct: **allowed subject to other guards**,
+**refused**, **held**, and **not specified**. The owners supply permissions,
+refusals and waits; the [open records](#open-owners-and-deliberate-boundaries)
+retain undecided cases. A pointer in this matrix supplies no permission by itself.
 
 | Action class | Current session / binding / approval authority | Unresolved create/order, activation or key registration | Unresolved reset / reinstall / destroy or stand-in stop | Unresolved box-plane command | Standing destructive disposition |
 |---|---|---|---|---|---|
-| Typed mutation on the approved entry, including create/order | **Refused** when approved facts/authority are unusable or an existing machine is outside binding; account-level creation requires its own approval [A](#authority), and new-order exclusions still apply [P](#pins-output-and-pending-check); abandonment uses its own dispatch authorization | **Refused** [B](#cloud-barrier) | **Refused** [B](#cloud-barrier) | **Refused** [B](#cloud-barrier), [C](#command-hold) | **Refused** within the disposed calls' reach except the permitted continuation/preparation; session destroy under abandonment is refused [D](#destructive-disposition) |
-| Adapter reconciliation read | **Allowed subject to other guards**, under its current authorized session or named harness flow [A](#authority) | **Allowed subject to other guards** [B](#cloud-barrier) | **Allowed subject to other guards** [B](#cloud-barrier) | **Allowed subject to other guards** [C](#command-hold) | **Allowed subject to other guards** [D](#destructive-disposition) |
-| Ordinary `exec`, including a read through `exec` | **Refused** under ended/stale session authority or outside binding [A](#authority) | **Allowed subject to other guards** [B](#cloud-barrier) | **Refused** while cloud stop stands [B](#cloud-barrier) | **Held**, source Dispatch refusal is `barrier` [C](#command-hold) | **Refused** [D](#destructive-disposition) |
-| Harness-owned box-plane job, including a harness-composed read | **Allowed subject to other guards** only through its owner's authorized flow; session work meets [A](#authority) | **Allowed subject to other guards** [B](#cloud-barrier) | **Refused** while cloud stop stands [B](#cloud-barrier) | **Held** regardless of requester [C](#command-hold) | **Refused** regardless of requester [D](#destructive-disposition) |
-| Job-record collection (not a new job) | **Allowed subject to other guards** under current collection authority [A](#authority) | **Allowed subject to other guards** [B](#cloud-barrier) | **Allowed subject to other guards** [B](#cloud-barrier) | **Allowed subject to other guards** [C](#command-hold) | **Allowed subject to other guards** [D](#destructive-disposition) |
-| Pin-checked connection (not permission to execute) | **Allowed subject to other guards** only after binding or the exact named key-holding exception [A](#authority), [P](#pins-output-and-pending-check) | **Allowed subject to other guards** [B](#cloud-barrier) | **Allowed subject to other guards**, including the dedicated confirming pinned SSH attempt [B](#cloud-barrier) | **Allowed subject to other guards** for collection [C](#command-hold) | **Allowed subject to other guards** for permitted reads [D](#destructive-disposition) |
-| Inference request | **Refused** under ended/stale session authority; procured limits remain separate [A](#authority) | **Allowed subject to other guards** [B](#cloud-barrier) | **Allowed subject to other guards** [B](#cloud-barrier) | **Allowed subject to other guards** [C](#command-hold) | **Allowed subject to other guards** [D](#destructive-disposition) |
-| Actionable publication | **Refused** under stale authority [A](#authority); output fences [P](#pins-output-and-pending-check) | **Not specified** by Dispatch; publication is outside its trace contract [P](#pins-output-and-pending-check) | **Not specified** by Dispatch; [P](#pins-output-and-pending-check) | **Not specified** by Dispatch; [P](#pins-output-and-pending-check) | **Not specified** by Dispatch; destruction/output question remains tw-pkn [open owners](#open-owners-and-deliberate-boundaries), with SEC-5 fences still applicable |
+| Typed mutation on the approved entry, including create/order | [SEC-1](../04-security-model.md#sec-1--a-session-reaches-only-its-bound-set-enforced-by-a-lock), [SEC-4](../04-security-model.md#sec-4--how-cloud-plane-actions-are-approved), [STA-23](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state), [STA-20](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) |
+| Adapter reconciliation read | [SEC-4](../04-security-model.md#sec-4--how-cloud-plane-actions-are-approved), [STA-23](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) | [STA-20](../03-state-and-recovery.md#durable-state), [STA-24](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) |
+| Ordinary `exec`, including a read through `exec` | [SEC-1](../04-security-model.md#sec-1--a-session-reaches-only-its-bound-set-enforced-by-a-lock), [STA-23](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) | [STA-20](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) |
+| Harness-owned box-plane job, including a harness-composed read | [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular), [STA-23](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) | [STA-20](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) |
+| Job-record collection (not a new job) | [STA-20](../03-state-and-recovery.md#durable-state), [STA-23](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) | [STA-20](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) |
+| Pin-checked connection (not permission to execute) | [SEC-1](../04-security-model.md#sec-1--a-session-reaches-only-its-bound-set-enforced-by-a-lock), [SEC-11](../04-security-model.md#sec-11--the-host-key-is-checked), [STA-23](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state), [SEC-11](../04-security-model.md#sec-11--the-host-key-is-checked) | [STA-24](../03-state-and-recovery.md#durable-state), [SEC-11](../04-security-model.md#sec-11--the-host-key-is-checked) | [STA-20](../03-state-and-recovery.md#durable-state), [SEC-11](../04-security-model.md#sec-11--the-host-key-is-checked) | [STA-24](../03-state-and-recovery.md#durable-state), [SEC-11](../04-security-model.md#sec-11--the-host-key-is-checked) |
+| Inference request | [ARC-31a](../01-architecture.md#money), [STA-23](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) | [ARC-31a](../01-architecture.md#money), [STA-20](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state), [ARC-31a](../01-architecture.md#money) |
+| Actionable publication | [STA-23](../03-state-and-recovery.md#durable-state), [SEC-5](../04-security-model.md#sec-5--the-credential-inventory) | [STA-23](../03-state-and-recovery.md#durable-state), [SEC-5](../04-security-model.md#sec-5--the-credential-inventory), [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular) | [STA-23](../03-state-and-recovery.md#durable-state), [SEC-5](../04-security-model.md#sec-5--the-credential-inventory), [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular) | [STA-23](../03-state-and-recovery.md#durable-state), [SEC-5](../04-security-model.md#sec-5--the-credential-inventory), [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular) | [STA-23](../03-state-and-recovery.md#durable-state), [SEC-5](../04-security-model.md#sec-5--the-credential-inventory), [tw-pkn](../.beads/issues.jsonl) |
 
 ### Authority
 

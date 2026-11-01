@@ -5,13 +5,42 @@ import copy
 import io
 import json
 from pathlib import Path
+import re
 import sys
 import tempfile
 import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import render_state_machine_atlas as atlas
+from check_ids import DEF_RE, ID
 from atlas_cases import ADVERSARIAL, LABELS, CASES, mutate, rendered_cells
+
+
+class OwnerNavigation(unittest.TestCase):
+    def test_matrix_cells_point_directly_to_owners_without_local_decisions(self):
+        document = (atlas.ROOT / atlas.ATLAS).read_text()
+        matrix = document.split("## Combined matrix\n", 1)[1].split("### Authority\n", 1)[0]
+        rows = [line for line in matrix.splitlines() if line.startswith("| ")]
+        self.assertGreater(len(rows), 1, "missing action-to-owner matrix")
+        columns = len(rows[0].strip("|").split("|"))
+        link = re.compile(r"\[(" + ID + r"|tw-[a-z0-9.]+)\]\((\.\./[^)#]+)(?:#[^)]*)?\)")
+        for row in rows[1:]:
+            action, *cells = [cell.strip() for cell in row.strip("|").split("|")]
+            self.assertEqual(len(cells), columns - 1, "missing restriction cells")
+            for cell in cells:
+                with self.subTest(action=action, cell=cell):
+                    matches = list(link.finditer(cell))
+                    self.assertTrue(matches, "matrix cells must point directly to owners")
+                    self.assertEqual(link.sub("", cell).replace(", ", ""), "",
+                                     "matrix cells must not maintain local dispatch decisions")
+                    for match in matches:
+                        owner, target = match.groups()
+                        text = (atlas.ROOT / atlas.ATLAS.parent / target).read_text()
+                        if owner.startswith("tw-"):
+                            self.assertIn(owner, {json.loads(line)["id"] for line in text.splitlines()})
+                        else:
+                            self.assertIn(owner, {m.group(1) or m.group(2) for m in DEF_RE.finditer(text)},
+                                          "matrix links must reach the rule's defining document")
 
 
 class SourceAgreement(unittest.TestCase):
