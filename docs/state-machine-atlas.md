@@ -279,7 +279,9 @@ Remote-key replacement: [STA-17](../03-state-and-recovery.md#recovery-by-access-
 Restore labels/findings and LNVPS pin contact:
 [STA-16](../03-state-and-recovery.md#recovery-by-access-model-and-vendor).
 Scan re-arm: [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular).
-Unknown pre-loss commands: [tw-ub7](../.beads/issues.jsonl).
+Journal-only command protection and lost-journal/backup boundary:
+[STA-20/STA-24](../03-state-and-recovery.md#durable-state).
+`STA-20` says “The command hold is journal-only.”
 `STA-16` says “Only a complete set equal to the pin keeps it active”. The
 current-publication re-read reference is [below](#pin-retirement-and-admission).
 
@@ -717,7 +719,7 @@ For overlapping restrictions, follow these owner routes together:
 - Failure/successor allocation:
   [tw-sfu/tw-hwl/tw-nj8](../.beads/issues.jsonl). Installation/recovery:
   [tw-l1l/tw-lq8/tw-yhd](../.beads/issues.jsonl). Restored-command boundary:
-  [tw-ub7](../.beads/issues.jsonl).
+  [STA-20/STA-24](../03-state-and-recovery.md#durable-state).
 
 These are navigation routes, not additional checked traces or a first-error order.
 
@@ -745,16 +747,16 @@ is that ended sessions send no requests and successor sessions act after replay.
 
 ### Open owners and deliberate boundaries
 
-Evidence: conceptual navigation. Applicability: unresolved design questions, not
+Evidence: conceptual navigation. Applicability: open questions and settled boundaries, not
 new permissions. The source records are the [committed tracker](../.beads/issues.jsonl);
 inspect a named record with `br show ID --json --no-auto-flush --no-auto-import`.
 
-- **Not specified:** older restored journal versus a possibly live pre-loss command
-  ([tw-ub7](../.beads/issues.jsonl)); untyped destructive hold versus harness-started
-  jobs in stage 2 ([tw-pgp](../.beads/issues.jsonl)). At the reviewed `d00c735`
-  baseline, the requirement amendments for these recovery decisions remain
-  outstanding. These entries describe that baseline, rather than amendments on
-  other branches. No post-Restore sweep/hold is added by this atlas.
+- Journal-only recovery boundary:
+  [STA-20/STA-24](../03-state-and-recovery.md#durable-state).
+  `STA-24` says “Settlement of one retained call under its own contract supplies no
+  completeness or completion evidence about omitted sends”.
+- **Not specified:** untyped destructive hold versus harness-started jobs in stage 2
+  ([tw-pgp](../.beads/issues.jsonl)).
 - **Not specified:** LNVPS's third recovery rung ([tw-ae7](../.beads/issues.jsonl));
   destruction/output ([tw-pkn](../.beads/issues.jsonl)); rescue activation beside
   delivery reboot ([tw-z99](../.beads/issues.jsonl)). The recovery figures are
