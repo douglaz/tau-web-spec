@@ -78,13 +78,194 @@ CASES = {
 }
 
 
+TARGETS = {
+    'stale': 'docs/state-machine-atlas.md',
+    'schema': 'docs/design/dispatch-witnesses-v8.json',
+    'module': 'docs/design/dispatch-witnesses-v8.json',
+    'namespace': 'docs/design/dispatch-witnesses-v8.json',
+    'missing': 'same_action_new_call_id_refused',
+    'ambiguous': 'same_action_new_call_id_refused',
+    'unresolved': 'absent_atlas_declaration',
+    'index': 'index.jsonl',
+    'outcome': 'docs/design/dispatch-witnesses-v8.json',
+    'shape': 'same_action_new_call_id_refused.start',
+    'nested': 'receipt_binding',
+    'missing_data': 'knowledge',
+    'unknown_event': 'event',
+    'missing_outcome': 'refusal',
+    'boolean_ordinal': 'event.call',
+    'unsupported_collection': 'start.standing',
+    'continuation_token': 'bound.alphabet',
+    'false_tag': 'inference_cap',
+    'duplicate_member': 'schema',
+    'conformance_id': 'docs/design/dispatch-witnesses-v8.json',
+    'evidence': 'docs/state-machine-atlas.md',
+    'step_evidence': 'docs/state-machine-atlas.md',
+    'applicability': 'docs/state-machine-atlas.md',
+    'pair': 'same_action_new_call_id_refused',
+    'pair_side': 'same_action_new_call_id_refused',
+    'partner': 'same_action_new_call_id_refused',
+    'markers': 'docs/state-machine-atlas.md',
+}
+
+# Every newly supported module gets its own malformed header, selected case,
+# context, nested/collection/step shape, pair, emission drift and label controls.
+for module in ("allocation", "pins", "declaration"):
+    first = atlas.SELECTIONS[module][0]
+    for case, label in {
+        "schema": "ATLAS HEADER", "module": "ATLAS HEADER", "namespace": "ATLAS HEADER",
+        "missing": "ATLAS SELECTION", "ambiguous": "ATLAS SELECTION",
+        "unresolved": "ATLAS DECLARATIONS", "bound": "ATLAS INPUT", "nested": "ATLAS INPUT",
+        "collection": "ATLAS INPUT", "step": "ATLAS INPUT", "missing_data": "ATLAS INPUT", "unknown_event": "ATLAS INPUT", "pair": "ATLAS PAIRS", "partner": "ATLAS PAIRS",
+        "outcome": "ATLAS DRIFT", "start": "ATLAS DRIFT", "evidence": "ATLAS LABELS",
+        "step_evidence": "ATLAS LABELS", "applicability": "ATLAS LABELS", "conformance_id": "ATLAS INPUT",
+    }.items():
+        name = module + "_" + case
+        CASES[name] = label
+        TARGETS[name] = (str(atlas.source_path(module)) if label == "ATLAS HEADER" or case == "conformance_id" else
+                         "bound" if case == "bound" else
+                         "state-machine-atlas.md" if label in ("ATLAS DRIFT", "ATLAS LABELS") else
+                         "absent_atlas_declaration" if case == "unresolved" else
+                         atlas.SELECTIONS[module][-3] if module == "declaration" and case in ("pair", "partner") else first)
+for case, label, target in (
+    ("case_absent", "ATLAS SELECTION", "receipt_operation_limit"),
+    ("case_ambiguous", "ATLAS SELECTION", "receipt_operation_limit"),
+    ("secondary_declaration", "ATLAS DECLARATIONS", "absent_atlas_declaration"),
+    ("quarantine_shape", "ATLAS INPUT", "quarantine_has_no_target"),
+    ("reboot_result_shape", "ATLAS INPUT", "delivery_reboot_failed_append_holds"),
+    ("standing_shape", "ATLAS INPUT", "destructive_choice_stops_delivery_reboot"),
+    ("marker_unknown", "ATLAS REGIONS", "state-machine-atlas.md"),
+    ("marker_nested", "ATLAS REGIONS", "state-machine-atlas.md"),
+    ("marker_duplicate", "ATLAS REGIONS", "state-machine-atlas.md"),
+    ("marker_inline", "ATLAS REGIONS", "state-machine-atlas.md"),
+    ("marker_reversed", "ATLAS REGIONS", "state-machine-atlas.md"),
+):
+    CASES[case] = label
+    TARGETS[case] = target
+
+
+def mutate_module(case, module, root):
+    path = root / atlas.source_path(module)
+    source = json.loads(path.read_text())
+    namespace = source["namespace"] + "."
+    name = atlas.SELECTIONS[module][0]
+    witness = next(w for w in source["witnesses"] if namespace + name in w["declarations"])
+    if case in ("schema", "module", "namespace"):
+        source[case] = 999 if case == "schema" else "unsupported"
+    elif case == "missing":
+        source["witnesses"].remove(witness)
+    elif case == "ambiguous":
+        source["witnesses"].append(witness)
+    elif case == "unresolved":
+        witness["declarations"].append(namespace + "absent_atlas_declaration")
+    elif case == "bound":
+        source["bound"]["unexpected"] = True
+    elif case == "nested":
+        if module == "allocation":
+            witness["start"]["next_unused"]["machines"] = True
+        elif module == "pins":
+            witness["steps"][0]["knowledge"]["publication_groups"][0]["observations"] = [[{}]]
+        else:
+            witness["start"]["machine"]["observed"]["services"] = [{}]
+    elif case == "collection":
+        if module == "allocation":
+            witness["start"]["entries"] = [{}]
+        elif module == "pins":
+            witness["start"]["pending_reinstall"] = [{}]
+        else:
+            witness["start"]["record"]["verdicts"]["services"] = {}
+    elif case == "missing_data":
+        del witness["steps"][0][atlas.PROJECTIONS[module]]
+    elif case == "unknown_event":
+        witness["steps"][0]["event"]["kind"] = "invented_transition"
+    elif case == "step":
+        witness["steps"][0]["invented"] = True
+    elif case in ("pair", "partner"):
+        if module == "declaration":
+            witness = next(w for w in source["witnesses"] if namespace + "empty_inbound_refused" in w["declarations"])
+        if case == "pair":
+            del witness["pair"]
+        else:
+            witness["pair"]["with"] = namespace + atlas.SELECTIONS[module][-1]
+    elif case == "outcome":
+        if module == "allocation":
+            witness["steps"][0]["recorded"] = False
+        elif module == "pins":
+            witness["steps"][0]["pinned"] = False
+        else:
+            witness["steps"][0]["verdict"] = "finding"
+    elif case == "start":
+        if module == "allocation":
+            witness["start"]["seed"] = 999
+        elif module == "pins":
+            witness["start"]["planted_senders"][0]["sender"] = 999
+        else:
+            witness["start"]["machine"]["multi_tenant"] = True
+    elif case == "conformance_id":
+        witness["steps"][0]["event"]["provenance"] = "CNF-999"
+    elif case == "safe_label":
+        for label, step in zip(LABELS, (s for w in source["witnesses"]
+                                      if any(namespace + n in w["declarations"] for n in atlas.SELECTIONS[module])
+                                      for s in w["steps"])):
+            step["event"]["provenance"] = label
+    elif case in ("evidence", "step_evidence", "applicability"):
+        document_path = root / atlas.ATLAS
+        document = document_path.read_text()
+        region = document.split(atlas.begin(module))[1].split(atlas.END)[0]
+        line = next(line for line in region.splitlines() if
+                    (line == f"Evidence: generated witness projection — {name}." if case == "evidence" else
+                     line == f"Evidence: generated witness projection — {name} steps." if case == "step_evidence" else
+                     line.startswith("Applicability:") and f"View: {name}." in line))
+        document_path.write_text(document.replace(line, "", 1))
+        return
+    else:
+        raise ValueError(case)
+    path.write_text(json.dumps(source))
+
+
 def mutate(name, root):
+    for module in ("allocation", "pins", "declaration"):
+        if name.startswith(module + "_"):
+            return mutate_module(name[len(module) + 1:], module, root)
     source_path = root / atlas.SOURCE
     source = json.loads(source_path.read_text())
     document_path = root / atlas.ATLAS
     document = document_path.read_text()
     witness = next(w for w in source["witnesses"] if atlas.NS + atlas.SELECTION[0] in w["declarations"])
-    if name in ("schema", "module", "namespace"):
+    if name in ("case_absent", "case_ambiguous"):
+        chosen = next(w for w in source["witnesses"] if atlas.NS + "receipt_operation_limit" in w["declarations"]
+                      and any(s["event"].get("operation") == "create" for s in w["steps"]))
+        if name == "case_absent":
+            source["witnesses"].remove(chosen)
+        else:
+            source["witnesses"].append(chosen)
+    elif name == "secondary_declaration":
+        chosen = next(w for w in source["witnesses"] if atlas.NS + "quarantine_has_no_target" in w["declarations"])
+        chosen["declarations"][1] = atlas.NS + "absent_atlas_declaration"
+    elif name in ("quarantine_shape", "reboot_result_shape", "standing_shape"):
+        field, decl = {"quarantine_shape": ("quarantined", "quarantine_has_no_target"),
+                       "reboot_result_shape": ("reboot_results", "delivery_reboot_failed_append_holds"),
+                       "standing_shape": ("standing", "destructive_choice_stops_delivery_reboot")}[name]
+        chosen = next(w for w in source["witnesses"] if atlas.NS + decl in w["declarations"])
+        step = next(s for s in chosen["steps"] if s["knowledge"][field])
+        step["knowledge"][field][0]["unexpected"] = True
+    elif name.startswith("marker_"):
+        marker = atlas.begin("declaration")
+        if name == "marker_unknown":
+            document += "\n<!-- atlas-info: unknown-v99 -->\n<!-- /atlas-info -->\n"
+        elif name == "marker_nested":
+            document = document.replace(atlas.END, marker + "\n" + atlas.END, 1)
+        elif name == "marker_duplicate":
+            document += "\n" + marker + "\n" + atlas.END + "\n"
+        elif name == "marker_inline":
+            document = document.replace(marker, "prefix " + marker)
+        elif name == "marker_reversed":
+            document = document.replace(marker, atlas.END, 1)
+        else:
+            raise ValueError(name)
+        document_path.write_text(document)
+        return
+    elif name in ("schema", "module", "namespace"):
         source[name] = 9 if name == "schema" else "unsupported"
     elif name == "missing":
         source["witnesses"].remove(witness)
@@ -155,14 +336,18 @@ def mutate(name, root):
 
 
 if __name__ == "__main__":
+    if sys.argv[1] == "--controls":
+        for name, label in CASES.items():
+            print(f"{name}|{label}|{TARGETS[name]}")
+        sys.exit(0)
     mutate(sys.argv[1], atlas.ROOT)
-    if sys.argv[1] == "safe_label":
-        # The control requires positive acceptance and data preservation, not
-        # just that the malicious syntax was absent because everything vanished.
+    if sys.argv[1].endswith("safe_label"):
+        # Acceptance also requires decoded values; stripping labels cannot pass.
         assert atlas.main(["--write"]) == 0
         document = (atlas.ROOT / atlas.ATLAS).read_text()
-        region = document.split(atlas.BEGIN)[1].split(atlas.END)[0]
+        module = sys.argv[1].removesuffix("_safe_label") if sys.argv[1] != "safe_label" else "dispatch"
+        region = document.split(atlas.begin(module))[1].split(atlas.END)[0]
         values = rendered_cells(region)
         for label in LABELS:
             assert any(type(v) is dict and v.get("provenance") == label for v in values), repr(label)
-        assert "<script>" not in (atlas.ROOT / atlas.ATLAS).read_text()
+        assert "<script>" not in document

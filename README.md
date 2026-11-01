@@ -47,7 +47,7 @@ The specification is split by topic, and every requirement carries a stable iden
 profile a machine with no tenant runs under (`ADR-0030`).
 
 The [state-machine atlas](./docs/state-machine-atlas.md) connects the owning rules,
-overlapping dispatch restrictions and informational Dispatch witness projections,
+overlapping dispatch restrictions and informational witness projections,
 starting with typed LNVPS and maintained-cloud recovery.
 
 [`executive-summary.md`](./executive-summary.md) is a shorter read for the shape without the

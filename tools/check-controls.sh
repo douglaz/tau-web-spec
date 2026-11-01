@@ -1140,10 +1140,85 @@ pair|ATLAS PAIRS|same_action_new_call_id_refused
 pair_side|ATLAS PAIRS|same_action_new_call_id_refused
 partner|ATLAS PAIRS|same_action_new_call_id_refused
 markers|ATLAS REGIONS|docs/state-machine-atlas.md
+allocation_schema|ATLAS HEADER|docs/design/allocation-witnesses-v2.json
+allocation_module|ATLAS HEADER|docs/design/allocation-witnesses-v2.json
+allocation_namespace|ATLAS HEADER|docs/design/allocation-witnesses-v2.json
+allocation_missing|ATLAS SELECTION|stale_sheet_refused
+allocation_ambiguous|ATLAS SELECTION|stale_sheet_refused
+allocation_unresolved|ATLAS DECLARATIONS|absent_atlas_declaration
+allocation_bound|ATLAS INPUT|bound
+allocation_nested|ATLAS INPUT|stale_sheet_refused
+allocation_collection|ATLAS INPUT|stale_sheet_refused
+allocation_step|ATLAS INPUT|stale_sheet_refused
+allocation_missing_data|ATLAS INPUT|stale_sheet_refused
+allocation_unknown_event|ATLAS INPUT|stale_sheet_refused
+allocation_pair|ATLAS PAIRS|stale_sheet_refused
+allocation_partner|ATLAS PAIRS|stale_sheet_refused
+allocation_outcome|ATLAS DRIFT|state-machine-atlas.md
+allocation_start|ATLAS DRIFT|state-machine-atlas.md
+allocation_evidence|ATLAS LABELS|state-machine-atlas.md
+allocation_step_evidence|ATLAS LABELS|state-machine-atlas.md
+allocation_applicability|ATLAS LABELS|state-machine-atlas.md
+allocation_conformance_id|ATLAS INPUT|docs/design/allocation-witnesses-v2.json
+pins_schema|ATLAS HEADER|docs/design/pins-witnesses-v5.json
+pins_module|ATLAS HEADER|docs/design/pins-witnesses-v5.json
+pins_namespace|ATLAS HEADER|docs/design/pins-witnesses-v5.json
+pins_missing|ATLAS SELECTION|old_pin_refused_pending_reinstall
+pins_ambiguous|ATLAS SELECTION|old_pin_refused_pending_reinstall
+pins_unresolved|ATLAS DECLARATIONS|absent_atlas_declaration
+pins_bound|ATLAS INPUT|bound
+pins_nested|ATLAS INPUT|old_pin_refused_pending_reinstall
+pins_collection|ATLAS INPUT|old_pin_refused_pending_reinstall
+pins_step|ATLAS INPUT|old_pin_refused_pending_reinstall
+pins_missing_data|ATLAS INPUT|old_pin_refused_pending_reinstall
+pins_unknown_event|ATLAS INPUT|old_pin_refused_pending_reinstall
+pins_pair|ATLAS PAIRS|old_pin_refused_pending_reinstall
+pins_partner|ATLAS PAIRS|old_pin_refused_pending_reinstall
+pins_outcome|ATLAS DRIFT|state-machine-atlas.md
+pins_start|ATLAS DRIFT|state-machine-atlas.md
+pins_evidence|ATLAS LABELS|state-machine-atlas.md
+pins_step_evidence|ATLAS LABELS|state-machine-atlas.md
+pins_applicability|ATLAS LABELS|state-machine-atlas.md
+pins_conformance_id|ATLAS INPUT|docs/design/pins-witnesses-v5.json
+declaration_schema|ATLAS HEADER|docs/design/declaration-witnesses-v1.json
+declaration_module|ATLAS HEADER|docs/design/declaration-witnesses-v1.json
+declaration_namespace|ATLAS HEADER|docs/design/declaration-witnesses-v1.json
+declaration_missing|ATLAS SELECTION|undeclared_listener_finding
+declaration_ambiguous|ATLAS SELECTION|undeclared_listener_finding
+declaration_unresolved|ATLAS DECLARATIONS|absent_atlas_declaration
+declaration_bound|ATLAS INPUT|bound
+declaration_nested|ATLAS INPUT|undeclared_listener_finding
+declaration_collection|ATLAS INPUT|undeclared_listener_finding
+declaration_step|ATLAS INPUT|undeclared_listener_finding
+declaration_missing_data|ATLAS INPUT|undeclared_listener_finding
+declaration_unknown_event|ATLAS INPUT|undeclared_listener_finding
+declaration_pair|ATLAS PAIRS|empty_inbound_refused
+declaration_partner|ATLAS PAIRS|empty_inbound_refused
+declaration_outcome|ATLAS DRIFT|state-machine-atlas.md
+declaration_start|ATLAS DRIFT|state-machine-atlas.md
+declaration_evidence|ATLAS LABELS|state-machine-atlas.md
+declaration_step_evidence|ATLAS LABELS|state-machine-atlas.md
+declaration_applicability|ATLAS LABELS|state-machine-atlas.md
+declaration_conformance_id|ATLAS INPUT|docs/design/declaration-witnesses-v1.json
+case_absent|ATLAS SELECTION|receipt_operation_limit
+case_ambiguous|ATLAS SELECTION|receipt_operation_limit
+secondary_declaration|ATLAS DECLARATIONS|absent_atlas_declaration
+quarantine_shape|ATLAS INPUT|quarantine_has_no_target
+reboot_result_shape|ATLAS INPUT|delivery_reboot_failed_append_holds
+standing_shape|ATLAS INPUT|destructive_choice_stops_delivery_reboot
+marker_unknown|ATLAS REGIONS|state-machine-atlas.md
+marker_nested|ATLAS REGIONS|state-machine-atlas.md
+marker_duplicate|ATLAS REGIONS|state-machine-atlas.md
+marker_inline|ATLAS REGIONS|state-machine-atlas.md
+marker_reversed|ATLAS REGIONS|state-machine-atlas.md
 ATLAS_CONTROLS
 
 passes "atlas: adversarial label accepted, escaped and preserved" "$ATLAS_GATE" \
   "python3 tools/tests/atlas_cases.py safe_label"
+for atlas_module in allocation pins declaration; do
+  passes "atlas: $atlas_module adversarial labels accepted and preserved" "$ATLAS_GATE" \
+    "python3 tools/tests/atlas_cases.py ${atlas_module}_safe_label"
+done
 
 control "fixtures: a JSON example with a placeholder" "$FIX" \
   "sed -i 's/^  \"drift_checks\": \[\],/  \"drift_checks\": ...,/' $DECL && grep -q '\"drift_checks\": \.\.\.,' $DECL" \
