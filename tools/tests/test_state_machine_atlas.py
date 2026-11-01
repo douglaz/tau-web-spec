@@ -7,13 +7,14 @@ import json
 from pathlib import Path
 import re
 import sys
+from unittest.mock import patch
 import tempfile
 import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import render_state_machine_atlas as atlas
 from check_ids import DEF_RE, ID
-from atlas_cases import ADVERSARIAL, LABELS, CASES, mutate, rendered_cells
+from atlas_cases import ADVERSARIAL, LABELS, CASES, TARGETS, mutate, rendered_cells
 
 
 class OwnerNavigation(unittest.TestCase):
@@ -54,21 +55,41 @@ class SourceAgreement(unittest.TestCase):
         # Decode the actual committed artifact, not the renderer's expected
         # output. Compare each column directly with the source JSON members.
         region = self.document.split(atlas.BEGIN)[1].split(atlas.END)[0]
-        cells = rendered_cells(region)
-        self.assertEqual(cells.pop(0), {k: self.source[k] for k in ("schema", "module", "namespace", "bound")})
         steps = 0
-        for name in atlas.SELECTION:
-            with self.subTest(declaration=name):
-                trace = next(w for w in self.source["witnesses"] if atlas.NS + name in w["declarations"])
-                self.assertEqual(cells.pop(0), {k: v for k, v in trace.items() if k not in ("start", "steps")})
-                self.assertEqual(cells.pop(0), trace["start"])
-                for step in trace["steps"]:
-                    self.assertEqual(cells.pop(0), step["event"])
-                    self.assertEqual(cells.pop(0), {k: v for k, v in step.items() if k not in ("event", "knowledge")})
-                    self.assertEqual(cells.pop(0), step["knowledge"])
-                    steps += 1
-        self.assertEqual(steps, 19)
-        self.assertEqual(cells, [])
+        for module in atlas.VERSIONS:
+            source = json.loads((atlas.ROOT / atlas.source_path(module)).read_text())
+            region = self.document.split(atlas.begin(module))[1].split(atlas.END)[0]
+            cells = rendered_cells(region)
+            self.assertEqual(cells.pop(0), {"source": str(atlas.source_path(module)),
+                                           **{k: source[k] for k in ("schema", "module", "namespace", "bound")}})
+            for name in atlas.SELECTIONS[module]:
+                with self.subTest(module=module, declaration=name):
+                    matches = [w for w in source["witnesses"] if source["namespace"] + "." + name in w["declarations"]]
+                    if name == "receipt_operation_limit":
+                        # Independent source lookup: the order case, never the
+                        # stop/restart/activation cases sharing its declaration.
+                        matches = [w for w in matches if any(s["event"].get("operation") == "create" for s in w["steps"])
+                                   and any(s["event"].get("target") == {"vendor_machine_id": 307}
+                                           and s["event"]["kind"] == "associate" for s in w["steps"])]
+                    self.assertEqual(len(matches), 1)
+                    trace = matches[0]
+                    provenance = cells.pop(0)
+                    self.assertEqual(provenance["source"], str(atlas.source_path(module)))
+                    self.assertEqual(provenance["declaration"], source["namespace"] + "." + name)
+                    self.assertEqual(provenance["case"], [
+                        {"kind": "request", "operation": "create"},
+                        {"kind": "associate", "entry": 1, "target": {"vendor_machine_id": 307}}]
+                        if name == "receipt_operation_limit" else None)
+                    self.assertEqual(cells.pop(0), {k: v for k, v in trace.items() if k not in ("start", "steps")})
+                    self.assertEqual(cells.pop(0), trace["start"])
+                    state = {"dispatch": "knowledge", "allocation": "journal", "pins": "knowledge", "declaration": "record"}[module]
+                    for step in trace["steps"]:
+                        self.assertEqual(cells.pop(0), step["event"])
+                        self.assertEqual(cells.pop(0), {k: v for k, v in step.items() if k not in ("event", state)})
+                        self.assertEqual(cells.pop(0), step[state])
+                        steps += 1
+            self.assertEqual(cells, [])
+        self.assertEqual(steps, 197)
 
     def test_required_pair_differences_and_progress_are_preserved(self):
         traces = {name: next(w for w in self.source["witnesses"] if atlas.NS + name in w["declarations"])
@@ -87,7 +108,7 @@ class SourceAgreement(unittest.TestCase):
         fresh = traces[atlas.SELECTION[0]]
         self.assertEqual([s["event"]["kind"] for s in fresh["steps"]], ["request", "request"])
         self.assertEqual([s["event"]["call"] for s in fresh["steps"]], [1, 2])
-        progress = traces[atlas.SELECTION[-1]]["steps"]
+        progress = traces["hold_reads_and_other_machines"]["steps"]
         self.assertEqual([s["event"].get("call") for s in progress], [7, None, 12, 13, 14, 17, None, 20])
         self.assertEqual(progress[2]["event"]["session"], 2)
         self.assertEqual(progress[2]["refusal"], {"reason": "barrier", "calls": [7]})
@@ -104,7 +125,52 @@ class SourceAgreement(unittest.TestCase):
         source = copy.deepcopy(self.source)
         receipt = next(w for w in source["witnesses"] if atlas.NS + "lnvps_receipt_refusals" in w["declarations"])
         source["witnesses"].append(receipt)
-        self.assertEqual(len(atlas.project(source, self.index)["witnesses"]), 6)
+        self.assertEqual(len(atlas.project(source, self.index)["witnesses"]), len(atlas.SELECTION))
+
+    def test_every_selected_pair_keeps_source_events_start_and_guard_difference(self):
+        guards = {"dispatch": ("resourceKey", "commandHold", "durableBeforeApply", "commandHold",
+                               "destructiveStops", "destructiveStops", "identityExclusion"),
+                  "allocation": ("restoredAllocatesNone",),
+                  "pins": ("reinstallRetiresPin", "publishedFresh"),
+                  "declaration": ("emptyMeansPerField",)}
+        for module, pairs in atlas.PAIR_NAMES.items():
+            source = json.loads((atlas.ROOT / atlas.source_path(module)).read_text())
+            selected = atlas.project(source, self.index, module=module)["witnesses"]
+            for (left, right), guard in zip(pairs, guards[module]):
+                with self.subTest(module=module, left=left):
+                    a, b = [next(w for w in selected if source["namespace"] + "." + name in w["declarations"])
+                            for name in (left, right)]
+                    self.assertEqual(a["start"], b["start"])
+                    self.assertEqual([s["event"] for s in a["steps"]], [s["event"] for s in b["steps"]])
+                    self.assertEqual([k for k in a["assumptions"] if a["assumptions"][k] != b["assumptions"][k]], [guard])
+                    self.assertEqual(a["pair"], {"side": "refused", "with": source["namespace"] + "." + right})
+                    self.assertEqual(b["pair"], {"side": "admitted", "with": source["namespace"] + "." + left})
+
+    def test_reused_declaration_requires_case_and_is_independent_of_source_order(self):
+        source = copy.deepcopy(self.source)
+        source["witnesses"].reverse()
+        unselected = next(w for w in source["witnesses"] if atlas.NS + "receipt_operation_limit" in w["declarations"]
+                          and w["steps"][0]["event"].get("operation") == "destroy")
+        source["witnesses"].append(copy.deepcopy(unselected))
+        selected = atlas.project(source, self.index)["witnesses"]
+        receipt = selected[-1]
+        self.assertEqual(receipt["steps"][0]["event"]["operation"], "create")
+        self.assertEqual(receipt["steps"][2]["settled"], [1])
+        with patch.dict(atlas.CASES, {}, clear=True):
+            with self.assertRaisesRegex(atlas.Invalid, "receipt_operation_limit: expected one selected witness"):
+                atlas.project(source, self.index)
+
+    def test_multideclaration_quarantine_and_progress_preserve_risk(self):
+        selected = atlas.project(self.source, self.index)["witnesses"]
+        quarantine = next(w for w in selected if atlas.NS + "quarantine_has_no_target" in w["declarations"])
+        self.assertEqual(quarantine["declarations"], [atlas.NS + "quarantine_has_no_target", atlas.NS + "retained_quarantine_conflict"])
+        progress = next(w for w in selected if atlas.NS + "unavailable_receipt_never_settles" in w["declarations"])
+        last = progress["steps"][-1]["knowledge"]
+        self.assertIn({"entry": 1, "target": {"vendor_machine_id": 710}}, last["associations"])
+        self.assertEqual(last["receipts"][0]["returned_vendor"], None)
+        self.assertTrue(last["receipts"][0]["returned_withheld"])
+        self.assertIn(901, last["unresolved"][0]["calls"])
+        self.assertTrue(last["identity_exclusions"][1]["records"])
 
     def test_duplicate_selection_fails(self):
         with self.assertRaisesRegex(atlas.Invalid, "duplicate selection"):
@@ -149,7 +215,7 @@ class GateControls(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory(prefix="tau-atlas-")
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
-        for path in (atlas.SOURCE, atlas.ATLAS, atlas.INDEX):
+        for path in (*[atlas.source_path(m) for m in atlas.VERSIONS], atlas.ATLAS, atlas.INDEX):
             (self.root / path).parent.mkdir(parents=True, exist_ok=True)
             (self.root / path).write_bytes((atlas.ROOT / path).read_bytes())
 
@@ -160,7 +226,7 @@ class GateControls(unittest.TestCase):
         return code, out.getvalue()
 
     def test_each_mutation_has_exactly_its_own_finding_and_names_target(self):
-        originals = {p: (self.root / p).read_bytes() for p in (atlas.SOURCE, atlas.ATLAS, atlas.INDEX)}
+        originals = {p: (self.root / p).read_bytes() for p in (*[atlas.source_path(m) for m in atlas.VERSIONS], atlas.ATLAS, atlas.INDEX)}
         for case, label in CASES.items():
             with self.subTest(case=case):
                 for path, data in originals.items():
@@ -170,16 +236,14 @@ class GateControls(unittest.TestCase):
                 self.assertEqual(code, 1, output)
                 self.assertEqual(len(output.splitlines()), 1, output)
                 self.assertTrue(output.startswith(label + ":"), output)
-                self.assertIn("atlas" if case in ("stale", "evidence", "step_evidence", "applicability", "markers", "index")
-                              else ("schema" if case == "duplicate_member" else
-                                    "absent_atlas_declaration" if case == "unresolved" else
-                                    "dispatch-witnesses" if case in ("schema", "module", "namespace", "conformance_id") else
-                                    "state-machine-atlas" if case == "outcome" else
-                                    "bound.alphabet" if case == "continuation_token" else "same_action_new_call_id_refused"), output)
+                self.assertIn(TARGETS[case], output)
+
 
     def test_write_does_not_repair_invalid_source_or_malformed_markers(self):
-        originals = {p: (self.root / p).read_bytes() for p in (atlas.SOURCE, atlas.ATLAS, atlas.INDEX)}
-        for case in ("schema", "missing", "ambiguous", "unresolved", "nested", "missing_data", "pair", "partner", "markers", "index"):
+        originals = {p: (self.root / p).read_bytes() for p in (*[atlas.source_path(m) for m in atlas.VERSIONS], atlas.ATLAS, atlas.INDEX)}
+        for case, label in CASES.items():
+            if label in ("ATLAS DRIFT", "ATLAS LABELS"):
+                continue
             with self.subTest(case=case):
                 for path, data in originals.items():
                     (self.root / path).write_bytes(data)
@@ -200,15 +264,18 @@ class GateControls(unittest.TestCase):
         self.assertEqual(self.run_gate("--check")[0], 0)
 
     def test_positive_adversarial_source_is_accepted_and_preserved(self):
-        mutate("safe_label", self.root)
-        self.assertEqual(self.run_gate("--write")[0], 0)
-        self.assertEqual(self.run_gate("--check")[0], 0)
-        text = (self.root / atlas.ATLAS).read_text()
-        self.assertEqual(text.count(atlas.END), 1)
-        region = text.split(atlas.BEGIN)[1].split(atlas.END)[0]
-        values = rendered_cells(region)
-        for label in LABELS:
-            self.assertTrue(any(type(v) is dict and v.get("provenance") == label for v in values), repr(label))
+        for module in atlas.VERSIONS:
+            with self.subTest(module=module):
+                mutate("safe_label" if module == "dispatch" else module + "_safe_label", self.root)
+                self.assertEqual(self.run_gate("--write")[0], 0)
+                self.assertEqual(self.run_gate("--check")[0], 0)
+                text = (self.root / atlas.ATLAS).read_text()
+                self.assertEqual(text.count(atlas.END), len(atlas.VERSIONS))
+                region = text.split(atlas.begin(module))[1].split(atlas.END)[0]
+                values = rendered_cells(region)
+                for label in LABELS:
+                    self.assertTrue(any(type(v) is dict and v.get("provenance") == label for v in values), repr(label))
+
 
 
 if __name__ == "__main__":
