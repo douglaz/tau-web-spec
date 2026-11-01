@@ -46,6 +46,10 @@ The specification is split by topic, and every requirement carries a stable iden
 [`docs/tenants/`](./docs/tenants/) holds one profile per tenant, and the built-in ad-hoc
 profile a machine with no tenant runs under (`ADR-0030`).
 
+The [state-machine atlas](./docs/state-machine-atlas.md) connects the owning rules,
+overlapping dispatch restrictions and informational Dispatch witness projections,
+starting with typed LNVPS and maintained-cloud recovery.
+
 [`executive-summary.md`](./executive-summary.md) is a shorter read for the shape without the
 detail. [`CONTEXT.md`](./CONTEXT.md) is the glossary. [`TASKS.md`](./TASKS.md) is the open
 work.

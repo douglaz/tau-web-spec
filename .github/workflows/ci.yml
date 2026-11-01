@@ -23,11 +23,13 @@ jobs:
 
       - uses: cachix/install-nix-action@v31
 
-      - name: Exercise candidate selection and proposals offline
-        run: nix develop --command python3 -m unittest discover -s tools/tests -v
-
       - name: Run all gates
         run: nix develop --command bash tools/check-all.sh
+
+      # Atlas tests read the current formal-gate index, never a skipped or
+      # hand-maintained declaration list. check-all above produces it.
+      - name: Exercise specification tools and candidate proposals offline
+        run: nix develop --command python3 -m unittest discover -s tools/tests -v
 
       - name: Prove each gate can fail, one control per refusal
         run: nix develop --command bash tools/check-controls.sh

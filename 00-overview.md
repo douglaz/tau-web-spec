@@ -43,6 +43,8 @@ implementation's CI runs; `bundle/` holds the publisher-chosen values the build 
 
 [`executive-summary.md`](./executive-summary.md) is a shorter read for someone who wants
 the shape without the detail. [`TASKS.md`](./TASKS.md) is the open work.
+The [state-machine atlas](./docs/state-machine-atlas.md) routes state, authority and
+recovery questions to their owners and displays selected Dispatch witnesses.
 
 **Requirements carry stable identifiers.** `OVR-4` means the same requirement forever,
 wherever it moves. Cross-references go by identifier, never by position in a list, because
