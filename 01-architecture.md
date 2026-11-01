@@ -739,6 +739,14 @@ modal fatigue in its purest form, and the operator cannot tell which machine is 
 **ARC-16** Recovery is a ladder. Retry; then escalate to a stronger model behind the same
 proxy; then destroy the machine and restart under a different domain, which costs a server.
 
+Conceptual recovery navigation: “Retry” routes through [STA-5/STA-6](./03-state-and-recovery.md#durable-state)
+and [STA-8/STA-24](./03-state-and-recovery.md#durable-state).
+`STA-5` says “No retry classification bypasses STA-8/STA-24.” `STA-6` says
+“Box-plane work is never-retry-automatically.” `STA-8` says “It MUST NOT be retried
+automatically and no timer may clear it.” `STA-24` says “A re-issue under either is the
+operator's explicit choice”. The LNVPS third-rung question remains
+[tw-ae7](./.beads/issues.jsonl); the vendor stand-ins remain [ARC-22](#post-harness-machinery-and-finishing-a-setup).
+
 ```mermaid
 stateDiagram-v2
     [*] --> Working

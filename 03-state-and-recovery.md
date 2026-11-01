@@ -904,6 +904,16 @@ corruption cannot lose it; recovery remains necessary.
 
 ## Recovery, by access model and vendor
 
+Conceptual recovery navigation. In this figure, “Zero downtime” describes the intended
+key/pin recovery route, not preserved live-session authority, command completion, scan
+readiness, a delivery verdict or permission for new allocations. “Always works” names the
+design's dedicated-vendor rescue route, not integrated device/vendor evidence. Evidence and
+its remaining limits live at [OPN-3](./08-open-questions.md#gates-by-milestone),
+[OPN-28](./08-open-questions.md#design-level-still-open) and
+[Stage applicability and admission](./07-conformance.md#stage-applicability-and-admission).
+The separate authority boundaries are indexed in the
+[atlas recovery region](./docs/state-machine-atlas.md#allocation-and-recovery).
+
 ```mermaid
 flowchart TD
     LOST([New phone, no local state]) --> AM{The machine's access model}

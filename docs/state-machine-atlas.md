@@ -10,7 +10,9 @@ from the authority-bearing `formal:` marked regions defined in
 [CONTEXT.md](../CONTEXT.md#the-specifications-own-artifacts).
 
 Use the [region outline](#region-outline) to find an owner, the
-[combined matrix](#combined-matrix) to identify overlapping restrictions, and the
+[transition reference](#transition-reference) to follow an event, the
+[combined matrix](#combined-matrix) to identify overlapping restrictions, the
+[observation-to-authority reference](#observation-to-authority-reference) to interpret evidence, and the
 [Dispatch traces](#dispatch-traces) to inspect serialized harness knowledge.
 There is no global Ready/Blocked/Completed state: journal authority, session
 authority, remote uncertainty, command hold, pins, scan readiness and delivery
@@ -50,6 +52,14 @@ Owner: [STA-1–STA-3 and STA-7](../03-state-and-recovery.md#durable-state),
   fences before ordinary work. `STA-23` says “A second tab or instance MUST show
   in-use and wait”.
 
+The identity here is the origin-local store and its one live writer, not a session
+or a recovered seed. The authoritative sources are the owners above and
+[protected evidence §5](design/protected-evidence-v1.md#5-scan-reservations-and-attempt-fences)
+for append eligibility and counted restart. Durable journal/snapshot knowledge is
+replayed; unresolved calls are derived. Passphrase access does not establish writer
+ownership. Authority invalidation routes to STA-23's Lock/shutdown and confirmed
+predecessor-termination boundary, not a heartbeat or successful decrypt.
+
 ### Sessions and approvals
 
 Evidence: conceptual navigation. Applicability: stage-1 single-machine sessions;
@@ -72,10 +82,24 @@ Owners: [STA-23](../03-state-and-recovery.md#durable-state),
   authority, or invalidate its approvals.”
 - **Permitted next actions / retirement:** `STA-23` says “Individual session end
   destroys that session's runtime authority and pending approvals; it does not
-  revive on return.” Use its pre-send/post-await fences and ARC-31a's admission,
-  cap and absolute-expiry contract; durable approval history is not live authority.
+  revive on return.” Use STA-23's pre-send/post-await fences on every path.
+  ARC-31a's admission, cap and absolute-expiry contract applies on the procured
+  inference path only. Durable approval history is not live authority.
   SEC-1's jump-host and Replace key-holding exceptions and SEC-4's abandonment
   authorization have their own owners, not a generic session bypass.
+
+The identity is the rendering session and its bound machine entries; a typed
+approval also names its approved facts. ARC-12 is the session owner, SEC-1 the
+binding owner, SEC-4 the approval owner, and STA-23 the live-authority owner.
+Journaled approval history survives as history; pending approvals and runtime
+credentials do not survive session end. Dedicated-path standing reinstall approvals
+route also to [STG-20](../06-first-stage.md#what-the-first-stage-does-not-test), which says “An approval **stands** from
+its record until its reset is dispatched, a matching withdrawal is recorded, or
+the session it was rendered for ends”. Its route limit is “This approval exists
+only on the dedicated path; at LNVPS the reinstall call is itself the dispatch, so
+no approval waits.” Eligibility is derived from those owners,
+not from merely finding an old approval in the store. Procured-key limits are the
+conditional ARC-31a dimension, never seed or SSH-key expiry.
 
 ### Cloud and reconciliation
 
@@ -102,6 +126,17 @@ Owners: [STA-4, STA-8, STA-24](../03-state-and-recovery.md#durable-state),
   also controls unavailable identity, exact targeting, quarantine and new-order
   exclusion. No matrix permission grants an unavailable vendor literal.
 
+For authoritative identity and acceptance use STA-24's approved entry plus
+[protected evidence §3a](design/protected-evidence-v1.md#identity-and-confirmation-boundary);
+unavailable literals, risk records and admitted mappings are distinct. Durable
+intents and accepted evidence outlive transient adapter requests. Unresolved,
+blocking, settlement and the standing continuation are derived journal views.
+Confirmation/disposition retires the named open call under STA-24; it does not
+retire independent identity exclusions, pins, delivery duties or session fences.
+`STA-24` says “it
+neither reopens the call nor removes the disposition” (see *When the restriction
+ends*).
+
 ### Commands
 
 Evidence: conceptual navigation. Applicability: installed systems in stage 1;
@@ -123,6 +158,16 @@ Owners: [STA-20/20b](../03-state-and-recovery.md#durable-state),
   record releases the hold”. See ARC-43 for the dedicated delivery-reboot result;
   LNVPS typed restart confirmation is separate. The command hold does not subsume
   destructive dispositions or the pending delivery check.
+
+The command key is machine plus tracked call/job, with the record's boot identity;
+it is not the service the command launched. Browser intent and durably collected
+advisory evidence differ from the transient collector and remotely reported process
+state. STA-20/20b and [protected job replay](design/protected-evidence-v1.md#2-job-schema-and-replay)
+own these representations. Liveness and hold are derived, not a universal completion
+state. Terminal acceptance retires only that command's hold; ended-without-exit,
+missing records and stopped collection retain uncertainty. Replay leaves no queued
+harness job armed: `STA-20` says “after a stopped wait only the operator resumes that
+flow, and nothing left armed survives replay.”
 
 ### Identity and pins
 
@@ -148,6 +193,20 @@ Owners: [CHN-R* routes](../02-channel.md#the-routes-to-a-fingerprint),
   connection still grants no command permission. The protected companion §3a
   owns unavailable identity; §§1–5 own protected encoding and scan boundaries.
 
+The key is machine, installation group and pin source; rescue additionally keys
+its pin by boot. Durable publication history, admitted pins and active/retired
+status differ from transient polling and SSH connection state. CHN-R7 and SEC-11
+are authoritative; [ADR-0043](adr/0043-lnvps-published-host-keys-admit-installed-system-pins.md)
+and [ADR-0045](adr/0045-the-installation-label-moves-at-reinstall-dispatch.md)
+route the installation decision and dispatch timing. Candidate completeness,
+freshness, containment and active-pin eligibility are derived from retained
+history. `CHN-R7` says “Without a reinstall, no installed-system pin from any
+source replaces an active pin on that machine”. Vendor-resource mapping is the
+separate §3a identity, not a host pin. Restored LNVPS pin contact additionally
+routes to [STA-16](../03-state-and-recovery.md#recovery-by-access-model-and-vendor)
+and the [pin re-entry reference](#pin-retirement-and-admission) below; restored
+active status alone does not admit that contact.
+
 ### Delivery and secrets
 
 Evidence: conceptual navigation. Applicability: stage-1 LNVPS and re-entry;
@@ -168,7 +227,23 @@ Owners: [ARC-17/39](../01-architecture.md#what-a-session-delivers),
 - **Permitted next actions / retirement:** follow ARC-43's pending-check hold and
   SEC-5's output restrictions even after a command settles. `SEC-5` says “Unscanned
   bytes MUST be withheld”. Placement, finding clearance and delivery are separate;
-  the matrix does not waive any of them. Expanded composition belongs to tw-237.2.
+  the matrix does not waive any of them.
+
+The keys are the machine's declaration in force, each declared service/boot, and
+placement identity (machine, application, secret name and path). ARC-39 and the
+[declaration format](design/delivery-declaration-v1.md#shape) own the declaration;
+ARC-17/43 own findings, placement gates, evidence labels and the pending check;
+SEC-5 and [protected evidence §§1–5](design/protected-evidence-v1.md#1-decoder-boundary-and-facts)
+own references, custody and release. Scan material is encrypted local state,
+excluded from the sheet, and live arming is not inferred from an orphan scan blob.
+Delivery, placement permission and scan readiness are separate derived predicates.
+Finding retirement is a re-check. Placement inventory and its reference duty route
+to ARC-43 and protected evidence §5's rotation/destruction boundary; stop, absent
+file and re-arm do not end that inventory. Each scan key/reference has its separate
+[SEC-5 row 23](../04-security-model.md#sec-5--the-credential-inventory) lifetime:
+local-store loss loses it, and `SEC-5` says “re-arm replaces it with a fresh
+key/reference”. `ARC-43` says “Re-arming neither reapproves the restored declaration
+nor any weaker mode”.
 
 ### Allocation and recovery
 
@@ -192,6 +267,255 @@ Owners: [STA-17](../03-state-and-recovery.md#recovery-by-access-model-and-vendor
   identity and removal of old remote keys are separate from local seed retirement.
   Missing metadata and LNVPS's third recovery rung stay with their open owners below.
 
+STA-22b and the [seed/child-key format](design/credential-format-v1.md#seed-and-child-keys)
+own the seed-id, derivation-version, family/index association; the
+[recovery sheet format](design/credential-format-v1.md#recovery-sheet) owns its
+export representation. Counters, tombstones and recovered metadata are durable;
+unwrapped keys, bindings and session authority are transient. Allocation
+eligibility is derived from generated/imported origin, ceremony record and consumed
+indices. `STA-22b` says “old records are retained until migration is complete”.
+Replace's fresh seed does not by itself remove the old remote keys. Restore's
+knowledge labels and findings remain STA-16's, scan re-arm remains ARC-43's, and
+unknown pre-loss commands remain [tw-ub7](../.beads/issues.jsonl). For restored
+LNVPS pin contact use [STA-16](../03-state-and-recovery.md#recovery-by-access-model-and-vendor),
+which says “Only a complete set equal to the pin keeps it active”; the required
+current-publication re-read is indexed [below](#pin-retirement-and-admission).
+
+## Transition reference
+
+Evidence: conceptual navigation in every entry below. Applicability is local to
+each entry. These are routes to owner clauses, not a transition schema or checked
+composite trace. Available per-step Dispatch outcomes remain generated in
+[Dispatch traces](#dispatch-traces); no prose guard is computed here.
+
+### Dispatch and re-entry
+
+Applicability: typed stage-1 requests and maintained-cloud re-entry; named operator flows retain their own authorization.
+
+Event/key: a session request names a machine, or an operator flow names its target;
+the worker resolves the approved entry under [STA-24, *The resource*](../03-state-and-recovery.md#durable-state).
+Preconditions route to [SEC-1/4](../04-security-model.md#sec-4--how-cloud-plane-actions-are-approved),
+STA-23 and [the applicable matrix owners](#combined-matrix). A newly composed read
+is box-plane work; adapter reconciliation and record collection have their own
+permission. `STA-4` says “The record is appended immediately before the bytes
+leave”. `STA-3` says “If the append fails, the transition does not occur.” This
+boundary changes recorded intent/derived holds, not knowledge of remote execution.
+
+Lost reply/interruption/re-entry route to STA-7/8 and STA-24's dispatch recheck;
+`STA-5` says “No unresolved mutation is automatically replayed”. Neither a new call,
+index nor successor bypasses the entry barrier. A held command records no intent
+(STA-20); a duplicate request identity is not a new retry permission. Evidence:
+`TauWeb.Dispatch.dispatched_only_if` is the general admission property, while
+`TauWeb.Dispatch.same_action_new_call_id_refused` and its generated pair expose the
+resource-key trap. `TauWeb.Dispatch.replay_same_unresolved` assumes durable-before-apply
+and initially matching memory/journal. Single writer, session termination and
+external transmission ordering remain assumptions, not browser proofs.
+
+### Result acceptance
+
+Applicability: LNVPS operation evidence and installed jobs; Robot evidence only on its dedicated route.
+
+Event/key: an adapter observation or exact-call receipt targets an earlier intent,
+or an advisory machine record targets its own command. Preconditions/evidence
+route to [STA-24, *What clears it*](../03-state-and-recovery.md#durable-state),
+[STG-21a](../06-first-stage.md#the-stages), and
+[protected evidence §3a](design/protected-evidence-v1.md#identity-and-confirmation-boundary);
+dedicated Robot reads use [STG-4](../06-first-stage.md#acceptance).
+`STA-24` says “Confirmation evidence MUST identify the expected account, machine
+and operation and be durably appended before taking effect.” It also says “Failed
+append, timeout and operator disposition establish no success.” Only accepted
+durable evidence changes settlement or an admitted mapping; independent pending
+checks, scan readiness, session authority and pin admission retain their owners.
+
+Failed append/lost reply retain uncertainty unless authenticated replay establishes
+a landed record. §3a specifies “Landed-then-error latches the old writer; fresh
+authenticated replay applies the landed evidence once without resend.” Duplicate,
+withheld, quarantined,
+stale and replayed evidence route to §3a's historical admission and idempotence,
+not reconstructed operands or rewritten receipts. After disposition, late evidence
+is visible without reopening the call or undoing the standing choice; after session
+end, STA-23 forbids stale actionable publication. Coverage:
+`TauWeb.Dispatch.failed_append_keeps_barrier`,
+`TauWeb.Dispatch.cloud_observation_sources`,
+`TauWeb.Dispatch.cloud_receipt_correlated` and
+`TauWeb.Dispatch.evidence_after_disposition_changes_nothing` carry their named
+properties. Authenticated transport and genuine validation are assumptions;
+operation-specific listing, subscription, deletion and freshness predicates and
+protected byte encodings remain prose-only in the Dispatch opening boundary.
+
+### Job-record collection
+
+Applicability: installed stage-1 jobs; the rescue persistence and non-LNVPS delivery-reboot exceptions apply only on their named routes.
+
+Event/key: collection on reconnect or while a held request waits, for the original
+machine/call/job and its boot. [STA-20/20b/21](../03-state-and-recovery.md#durable-state)
+and [protected job schema/replay](design/protected-evidence-v1.md#2-job-schema-and-replay)
+own preconditions, machine agreement and advisory classification. `STA-20` says
+“Only a terminal record releases the hold”. Missing/incomplete, running and proven
+ended without exit are different; only the permitted terminal form durably accepted
+can change that hold. `STA-21` says “The job record is machine-reported and advisory.”
+Its command outcome supplies neither service survival nor cloud confirmation.
+
+Failed/malformed read is not Missing; failed append supplies no durable terminal
+result. Duplicate/late/already-settled records retain ordinary admission and
+truthful visibility under the protected companion §2. `STA-20` says “stopping
+settles nothing, and a machine that cannot be reached is answered at once”.
+Re-entry collects rather than automatically repeating the job;
+ordinary commands and rescue have different persistence. Coverage:
+`TauWeb.Dispatch.hold_reads_and_other_machines` and the generated held pair show
+collection versus new commands. The wait, stopped flow and collection procedure
+are prose-only. The dedicated exception is
+`TauWeb.Dispatch.deliveryRebootResult`, with
+`TauWeb.Dispatch.delivery_reboot_new_boot_settles` and
+`TauWeb.Dispatch.delivery_reboot_failed_append_holds`: the own-record/new-boot
+result settles the dedicated reboot, not LNVPS's typed restart.
+
+### Operator disposition
+
+Applicability: typed stage-1 resources; dedicated preparation only where explicitly named; untyped boundaries remain separate.
+
+Event/key: the operator names unresolved calls on one resource, or replaces its
+standing disposition. Preconditions and replay validity live at
+[STA-24, *What a disposition may name* / *On replay*](../03-state-and-recovery.md#durable-state).
+`STA-24` says “A disposition keeps the outcome *unknown*” and “A disposition is a
+terminal record of its own kind”. Its durable append settles the named open calls
+as unknown and establishes/replaces the continuation; unnamed calls and independent
+identity exclusions remain. A failed append changes neither. A request racing
+terminal evidence is re-evaluated against the journal before it, not accepted as
+an unconditional duplicate disposition.
+
+Effects route to *What a disposition reaches*, *A destructive continuation stops
+every box-plane job* and *When the restriction ends*, with
+[ADR-0044's amendments](adr/0044-a-disposition-limits-what-its-calls-barred.md),
+[ADR-0048](adr/0048-an-unresolved-command-holds-its-machine.md) and
+[ADR-0050](adr/0050-destructive-dispositions-stop-every-box-plane-job.md).
+`STA-24` says “The restriction ends when the continuation it names is dispatched,
+its intent durably appended”. Preparation and permitted reads do not end it;
+interrupted continuation dispatch leaves its own barrier. Late evidence does not
+remove it. Coverage: `TauWeb.Dispatch.replayed_invalid_disposition_means_nothing`,
+`TauWeb.Dispatch.read_and_inference_unrestricted`,
+`TauWeb.Dispatch.preparation_keeps_restriction` and
+`TauWeb.Dispatch.destructive_choice_stops_commands` name the relevant properties.
+They do not carry untyped pause/hold, re-arm or the entire continuation flow.
+
+### Session end
+
+Applicability: every local session; procured-key limits only on the procured inference path.
+
+Event/key: individual session end or the processed Lock/pagehide/reload/shutdown
+boundary in [STA-23](../03-state-and-recovery.md#durable-state); session, bindings,
+pending approvals and channels route also to [SEC-1/4](../04-security-model.md#sec-1--a-session-reaches-only-its-bound-set-enforced-by-a-lock)
+and [ARC-12](../01-architecture.md#sessions-binding-and-diversity) /
+[ARC-31a](../01-architecture.md#money).
+`STA-23` says “The actual end fence is irreversible and MUST NOT be reset to
+implement continuation.” Ending is a live-authority boundary, not an append that
+settles remote work; no unload callback is assumed for journaling. Begun appends
+and possibly sent effects retain STA-3/8's durability/uncertainty boundaries.
+`STA-23` says “Already accepted remote work may continue even after local Lock or
+loss.” Ending one session does not itself lock the store or end another eligible
+session. Procured-key expiry/cap/clock fences apply only on that inference path.
+
+Lost reply, stale result or repeated lifecycle notification cannot restore ended
+authority; killed/discarded workers restart locked with replay and fresh session
+admission. Durable approval history is no substitute. Coverage: prose-only end
+fence; Dispatch assumes ended sessions send no requests and successor sessions
+act after replay. `TauWeb.Dispatch.ended_session_approval_refused` exercises an
+approval bound to an ended rendering session under that convention; it is no
+proof of browser termination. The separate assurance owner is
+[tw-237.4](../.beads/issues.jsonl).
+
+### Processed suspension and validated continuation
+
+Applicability: every surviving local worker/session; the backup ceremony has its separate hide behavior.
+
+Event/key: a processed freeze/suspension or interruption, then continuation of the
+same surviving worker/session. [STA-23](../03-state-and-recovery.md#durable-state)
+owns the distinction from ordinary hide, the backup ceremony's exceptional hide,
+and actual session end. `STA-23` says “A begun durable append MUST finish whole
+rather than be cancelled partway.” It retains bindings/writer ownership; possibly
+sent work stays uncertain. Continuation validates “current authority, bindings,
+holds, connection state and scan readiness” before sends or actionable publication.
+That validation changes permission to continue safely; it supplies no remote
+terminal evidence, pin or renewed procured-key limit.
+
+`STA-23` says “if it cannot identify one it MUST show reconciliation or required
+operator action and wait.” Failed append remains STA-3's, lost replies remain
+STA-8's, and duplicate/stale messages remain ordered at the pre-send/post-await
+fences. No physical freeze callback, precise physical switch fence or memory
+survival is assumed. Coverage: prose-only lifecycle validation; Dispatch's session
+convention and the separate tw-237.4 assurance seam are the limits, not a checked
+suspension/dispatch composition.
+
+### Pin retirement and admission
+
+Applicability: stage-1 LNVPS reinstall/Restore; the reset-into-rescue and other pin-source routes remain route-specific.
+
+Event/key: dispatch of the operator-chosen destructive reinstall opens the
+machine's next installation; vendor publication or an eligible route supplies a
+candidate pin. Preconditions, evidence and authority route to
+[STG-20](../06-first-stage.md#what-the-first-stage-does-not-test),
+[CHN-R7 and the other routes](../02-channel.md#the-routes-to-a-fingerprint),
+[SEC-11](../04-security-model.md#sec-11--the-host-key-is-checked),
+[ADR-0045](adr/0045-the-installation-label-moves-at-reinstall-dispatch.md) and
+STA-3. `STG-20` says the reinstall “opens a new installation when it is
+**dispatched**”. The intent's durable boundary changes installation identity and
+retires old contact authority, not when approval is rendered or a later key appears.
+`CHN-R7` says “restart and Restore do not” open a new group. Its comparison-before-
+retention and complete/fresh/contained candidate rules govern admission separately
+from reinstall confirmation. Pin admission permits a checked handshake, no job.
+
+Failed append cannot apply the transition; lost reinstall reply leaves its barrier.
+Duplicate/refused publications retain history without rewriting the active pin;
+re-entry retains active/retired groups and cannot reuse the old pin during the wait.
+`CHN-R7` says “A refused or repeated observation cannot rewrite the active pin or
+its provenance.” Route-specific waits and unavailable-wire identity retain their
+own refusals. Restored active LNVPS pins have an additional
+[STA-16 re-read boundary](../03-state-and-recovery.md#recovery-by-access-model-and-vendor):
+“before an active `lnvps_retrieve` pin restored from it admits a contact, the harness
+MUST read the machine's current published set by `CHN-R7`'s direct fetch.”
+`STA-16` says “Only a complete set equal to the pin keeps it active.” Empty, partial,
+different or failed reads admit no contact; the first contact stays unresolved.
+The reading alone opens no installation and retires no pin; the operator's
+reinstall/abandonment routes remain at STA-16/ARC-22. This restored-sheet contact
+check is prose-only, not added to the Pins properties below.
+
+Coverage: `TauWeb.Pins.retired_pin_not_active`,
+`TauWeb.Pins.installed_pin_from_authorized_source`,
+`TauWeb.Pins.complete`, `TauWeb.Pins.fresh` and
+`TauWeb.Pins.withinInstallation` carry symbolic history/source/handshake properties;
+they do not prove a vendor publication true. No cross-module composition with
+Dispatch is asserted, and jump-host first contact is outside Pins's sources.
+
+### Delivery publication, placement and re-check
+
+Applicability: stage-1 LNVPS delivery/re-entry; non-LNVPS delivery reboot remains its separate route.
+
+Event/key: harness-composed check observations for the machine's declaration in
+force and declared service/boot; operator declaration amendment/placement approval
+have separate provenance. [ARC-17/39](../01-architecture.md#what-a-session-delivers),
+[ARC-43](../01-architecture.md#box-plane-execution-is-command-granular),
+[SEC-5](../04-security-model.md#sec-5--the-credential-inventory) and
+[protected evidence](design/protected-evidence-v1.md#1-decoder-boundary-and-facts)
+own authority, durable verdict, scan/custody and publication preconditions.
+`ARC-43` says the pending hold runs “until the delivery check's verdict is durably
+journaled”; it also says “A stop settles no verdict and is shown as a stopped
+check, never as a pass.” Failed verdict append therefore supplies no release by
+verdict. Lost/interrupted read, refused/held read or no record supplies no pass;
+duplicate/stale observations gain no current publication authority from history
+(STA-23), and re-entry uses ARC-43's service reads and STA-16's restored labels.
+
+Findings, lifecycle labels, scan arming and permission to place remain independent.
+`ARC-17` says “Every other finding, a lockdown finding included, still refuses
+placement” and “placement itself clears no finding.” The lifecycle-only case may
+permit placement after fixed lockdown checks; its finding still needs re-check,
+and the placing session owes its post-placement demonstration. Labels route to
+the [observation reference](#boot-and-service-observations) below, not a universal
+failure/Delivered conversion. A model-written report is not a verdict.
+Coverage: `TauWeb.Declaration.delivered_specified` covers field presence under
+Declaration's own transitions, not real service evidence. Pending-check hold,
+lifecycle reads/labels, placement, re-arm and publication fences remain prose-only;
+neither Dispatch nor Declaration proves this combined flow.
+
 ## Combined matrix
 
 Evidence: conceptual navigation, with checked owner quotations below.
@@ -211,16 +535,16 @@ The reading vocabulary remains distinct: **allowed subject to other guards**,
 refusals and waits; the [open records](#open-owners-and-deliberate-boundaries)
 retain undecided cases. A pointer in this matrix supplies no permission by itself.
 
-| Action class | Current session / binding / approval authority | Unresolved create/order, activation or key registration | Unresolved reset / reinstall / destroy or stand-in stop | Unresolved box-plane command | Standing destructive disposition |
+| Action class | Current session / binding / approval authority | Unresolved create/order, activation, key registration or renewal-off | Unresolved reset / reinstall / destroy or stand-in stop | Unresolved box-plane command | Standing destructive disposition |
 |---|---|---|---|---|---|
-| Typed mutation on the approved entry, including create/order | [SEC-1](../04-security-model.md#sec-1--a-session-reaches-only-its-bound-set-enforced-by-a-lock), [SEC-4](../04-security-model.md#sec-4--how-cloud-plane-actions-are-approved), [STA-23](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state), [STA-20](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) |
-| Adapter reconciliation read | [SEC-4](../04-security-model.md#sec-4--how-cloud-plane-actions-are-approved), [STA-23](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) | [STA-20](../03-state-and-recovery.md#durable-state), [STA-24](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) |
-| Ordinary `exec`, including a read through `exec` | [SEC-1](../04-security-model.md#sec-1--a-session-reaches-only-its-bound-set-enforced-by-a-lock), [STA-23](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) | [STA-20](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) |
-| Harness-owned box-plane job, including a harness-composed read | [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular), [STA-23](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) | [STA-20](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) |
-| Job-record collection (not a new job) | [STA-20](../03-state-and-recovery.md#durable-state), [STA-23](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) | [STA-20](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) |
-| Pin-checked connection (not permission to execute) | [SEC-1](../04-security-model.md#sec-1--a-session-reaches-only-its-bound-set-enforced-by-a-lock), [SEC-11](../04-security-model.md#sec-11--the-host-key-is-checked), [STA-23](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state), [SEC-11](../04-security-model.md#sec-11--the-host-key-is-checked) | [STA-24](../03-state-and-recovery.md#durable-state), [SEC-11](../04-security-model.md#sec-11--the-host-key-is-checked) | [STA-20](../03-state-and-recovery.md#durable-state), [SEC-11](../04-security-model.md#sec-11--the-host-key-is-checked) | [STA-24](../03-state-and-recovery.md#durable-state), [SEC-11](../04-security-model.md#sec-11--the-host-key-is-checked) |
-| Inference request | [ARC-31a](../01-architecture.md#money), [STA-23](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) | [ARC-31a](../01-architecture.md#money), [STA-20](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state), [ARC-31a](../01-architecture.md#money) |
-| Actionable publication | [STA-23](../03-state-and-recovery.md#durable-state), [SEC-5](../04-security-model.md#sec-5--the-credential-inventory) | [STA-23](../03-state-and-recovery.md#durable-state), [SEC-5](../04-security-model.md#sec-5--the-credential-inventory), [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular) | [STA-23](../03-state-and-recovery.md#durable-state), [SEC-5](../04-security-model.md#sec-5--the-credential-inventory), [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular) | [STA-23](../03-state-and-recovery.md#durable-state), [SEC-5](../04-security-model.md#sec-5--the-credential-inventory), [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular) | [STA-23](../03-state-and-recovery.md#durable-state), [SEC-5](../04-security-model.md#sec-5--the-credential-inventory), [tw-pkn](../.beads/issues.jsonl) |
+| Typed mutation on the approved entry, including create/order | Refused without applicable authority; otherwise allowed subject to other guards: [SEC-1](../04-security-model.md#sec-1--a-session-reaches-only-its-bound-set-enforced-by-a-lock), [SEC-4](../04-security-model.md#sec-4--how-cloud-plane-actions-are-approved), [STA-23](../03-state-and-recovery.md#durable-state) | Refused: [STA-24](../03-state-and-recovery.md#durable-state) | Refused: [STA-24](../03-state-and-recovery.md#durable-state) | Refused: [STA-24](../03-state-and-recovery.md#durable-state), [STA-20](../03-state-and-recovery.md#durable-state) | Refused except the authorized continuation/preparation, allowed subject to other guards: [STA-24](../03-state-and-recovery.md#durable-state) |
+| Adapter reconciliation read | Allowed subject to other guards, under the read/flow authority: [SEC-4](../04-security-model.md#sec-4--how-cloud-plane-actions-are-approved), [STA-23](../03-state-and-recovery.md#durable-state) | Allowed subject to other guards: [STA-24](../03-state-and-recovery.md#durable-state) | Allowed subject to other guards: [STA-24](../03-state-and-recovery.md#durable-state) | Allowed subject to other guards: [STA-20](../03-state-and-recovery.md#durable-state), [STA-24](../03-state-and-recovery.md#durable-state) | Allowed subject to other guards: [STA-24](../03-state-and-recovery.md#durable-state) |
+| Ordinary `exec`, including a read through `exec` | Refused without live binding authority; otherwise allowed subject to other guards: [SEC-1](../04-security-model.md#sec-1--a-session-reaches-only-its-bound-set-enforced-by-a-lock), [STA-23](../03-state-and-recovery.md#durable-state) | Allowed subject to other guards: [STA-24](../03-state-and-recovery.md#durable-state) | Refused: [STA-24](../03-state-and-recovery.md#durable-state) | Held: [STA-20](../03-state-and-recovery.md#durable-state) | Refused: [STA-24](../03-state-and-recovery.md#durable-state) |
+| Harness-owned box-plane job, including a harness-composed read | Applicable session or named flow authority required; allowed subject to other guards: [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular), [STA-23](../03-state-and-recovery.md#durable-state) | Allowed subject to other guards: [STA-24](../03-state-and-recovery.md#durable-state) | Refused: [STA-24](../03-state-and-recovery.md#durable-state) | Held: [STA-20](../03-state-and-recovery.md#durable-state) | Refused: [STA-24](../03-state-and-recovery.md#durable-state) |
+| Job-record collection (not a new job) | Allowed subject to other guards and current read/flow authority: [STA-20](../03-state-and-recovery.md#durable-state), [STA-23](../03-state-and-recovery.md#durable-state) | Allowed subject to other guards: [STA-24](../03-state-and-recovery.md#durable-state) | Allowed subject to other guards: [STA-24](../03-state-and-recovery.md#durable-state) | Allowed subject to other guards: [STA-20](../03-state-and-recovery.md#durable-state) | Allowed subject to other guards: [STA-24](../03-state-and-recovery.md#durable-state) |
+| Pin-checked connection (not permission to execute) | Refused on binding/pin failure; otherwise allowed subject to other guards: [SEC-1](../04-security-model.md#sec-1--a-session-reaches-only-its-bound-set-enforced-by-a-lock), [SEC-11](../04-security-model.md#sec-11--the-host-key-is-checked), [STA-23](../03-state-and-recovery.md#durable-state) | Allowed subject to other guards; no new command permission: [STA-24](../03-state-and-recovery.md#durable-state), [SEC-11](../04-security-model.md#sec-11--the-host-key-is-checked) | Not specified as a general connection permission; named reconciliation contact only: [STA-24](../03-state-and-recovery.md#durable-state), [SEC-11](../04-security-model.md#sec-11--the-host-key-is-checked) | Allowed subject to other guards for collection, no new command: [STA-20](../03-state-and-recovery.md#durable-state), [SEC-11](../04-security-model.md#sec-11--the-host-key-is-checked) | Not specified as a general connection permission; named reconciliation contact only: [STA-24](../03-state-and-recovery.md#durable-state), [SEC-11](../04-security-model.md#sec-11--the-host-key-is-checked) |
+| Inference request | Refused without eligible session authority; otherwise allowed subject to other guards (procured limits conditional): [ARC-31a](../01-architecture.md#money), [STA-23](../03-state-and-recovery.md#durable-state) | Allowed subject to other guards: [STA-24](../03-state-and-recovery.md#durable-state) | Allowed subject to other guards: [STA-24](../03-state-and-recovery.md#durable-state) | Allowed subject to other guards: [ARC-31a](../01-architecture.md#money), [STA-20](../03-state-and-recovery.md#durable-state) | Allowed subject to other guards: [STA-24](../03-state-and-recovery.md#durable-state), [ARC-31a](../01-architecture.md#money) |
+| Actionable publication | Refused under stale authority; output held until protected release; otherwise allowed subject to other guards: [STA-23](../03-state-and-recovery.md#durable-state), [SEC-5](../04-security-model.md#sec-5--the-credential-inventory) | Not specified by this restriction; publication owners: [STA-23](../03-state-and-recovery.md#durable-state), [SEC-5](../04-security-model.md#sec-5--the-credential-inventory), [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular) | Not specified by this restriction; publication owners: [STA-23](../03-state-and-recovery.md#durable-state), [SEC-5](../04-security-model.md#sec-5--the-credential-inventory), [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular) | Not specified by this restriction; publication owners: [STA-23](../03-state-and-recovery.md#durable-state), [SEC-5](../04-security-model.md#sec-5--the-credential-inventory), [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular) | Not specified for destruction/output interaction; existing publication guards still apply: [STA-23](../03-state-and-recovery.md#durable-state), [SEC-5](../04-security-model.md#sec-5--the-credential-inventory), [tw-pkn](../.beads/issues.jsonl) |
 
 ### Authority
 
@@ -300,7 +624,7 @@ and [ADR-0050](adr/0050-destructive-dispositions-stop-every-box-plane-job.md).
 ### Pins, output and pending check
 
 Evidence: conceptual navigation. Applicability: all apparent permissions in the
-matrix; detailed composition is deferred to tw-237.2.
+matrix, with the local qualifications in the extension below.
 
 For pin admission use [CHN-R7](../02-channel.md#the-routes-to-a-fingerprint)
 and [SEC-11](../04-security-model.md#sec-11--the-host-key-is-checked), not a cleared
@@ -316,6 +640,67 @@ That hold, scan readiness and actionable publication are outside the Dispatch
 projection below. A settled restart or command supplies none of their release
 conditions. LNVPS vendor restart confirmation, guest boot observation, service
 survival, final durable verdict and pin admission remain separate.
+
+### Pending check, scanning and identity overlaps
+
+Evidence: conceptual navigation, prose-only except §3a's symbolic identity guards
+carried by Dispatch. Applicability: typed stage-1 installed machine in the first
+three columns; the last column is deferred untyped-vendor material. A cell's
+outcome applies only to the named restriction, never as an overall admission.
+
+| Action class | Pending post-restart delivery check | Required scan reference unarmed / protected release | Vendor identity unavailable, quarantined or excluded | Untyped vendor pause / destructive hold |
+|---|---|---|---|---|
+| Typed mutation | Not specified by this hold; [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular), [STA-24](../03-state-and-recovery.md#durable-state) still govern | Not specified as a blanket mutation hold; actual custody/pre-send guards at [SEC-5](../04-security-model.md#sec-5--the-credential-inventory) and [§§1–5](design/protected-evidence-v1.md#1-decoder-boundary-and-facts) apply | Refused when wire literal is unavailable; excluded new orders refused; already admitted mappings retain their treatment at [§3a](design/protected-evidence-v1.md#independent-recovery-and-exact-targeting) | Not a typed route. Further calls under the affected scope are refused by [STA-24](../03-state-and-recovery.md#durable-state); nothing there is typed as a read |
+| Adapter reconciliation read | Allowed subject to other guards at [STA-24](../03-state-and-recovery.md#durable-state); clears no pending check | Allowed subject to other guards, protected evidence/release at [§§1–5](design/protected-evidence-v1.md#1-decoder-boundary-and-facts) | Refused if its wire path needs unavailable literal; other reads unaffected by order exclusion at [§3a](design/protected-evidence-v1.md#independent-recovery-and-exact-targeting) | Refused for calls under the affected scope; no typed read exemption, [STA-24](../03-state-and-recovery.md#durable-state) |
+| Ordinary `exec` | Held for the model's box-plane commands, [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular) | Held across bound set while any known required reference is unarmed; output withheld by [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular), [SEC-5](../04-security-model.md#sec-5--the-credential-inventory) | Not specified as an independent box-plane hold; quarantine supplies no mapping, [§3a](design/protected-evidence-v1.md#independent-recovery-and-exact-targeting) | Held on the affected bound set/vendor, [STA-24](../03-state-and-recovery.md#durable-state) |
+| Harness-owned job | Reach beyond the named model commands is not specified as a blanket hold; delivery reads have their own flow, [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular) | Allowed subject to other guards only for neither-sink jobs; output to either sink has no exemption, [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular) | Not specified as a separate job hold; quarantine grants no target, [§3a](design/protected-evidence-v1.md#identity-and-confirmation-boundary) | Held during the open-call pause; destructive hold's harness-started reach is not specified, [tw-pgp](../.beads/issues.jsonl), [STA-24](../03-state-and-recovery.md#durable-state) |
+| Job-record collection | Allowed subject to other guards at [STA-20/24](../03-state-and-recovery.md#durable-state); no verdict from collection alone | Collection can proceed subject to other guards; output release held until known references armed, [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular) | Allowed subject to other guards; unavailable literal grants no targeting, [§3a](design/protected-evidence-v1.md#independent-recovery-and-exact-targeting) | Allowed subject to other guards; collection is distinct from a call under the scope or a new command, [STA-20/24](../03-state-and-recovery.md#durable-state) |
+| Pin-checked connection | Allowed subject to other guards; no command permission, [SEC-11](../04-security-model.md#sec-11--the-host-key-is-checked) | Not specified as a connection hold; output still protected by [SEC-5](../04-security-model.md#sec-5--the-credential-inventory) | Not specified as an independent connection hold; quarantine admits no mapping or pin, [§3a](design/protected-evidence-v1.md#independent-recovery-and-exact-targeting), [CHN-R7](../02-channel.md#the-routes-to-a-fingerprint) | Not specified as a connection hold; no command permission, [STA-24](../03-state-and-recovery.md#durable-state), [SEC-11](../04-security-model.md#sec-11--the-host-key-is-checked) |
+| Inference request | Not held by the named box-plane hold; allowed subject to other guards, [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular), [ARC-31a](../01-architecture.md#money) | Allowed subject to other guards, including actual request/framing custody and release, [SEC-5](../04-security-model.md#sec-5--the-credential-inventory), [§3](design/protected-evidence-v1.md#3-protected-inference-terminals) | Allowed subject to other guards; mapping grants no inference authority, [ARC-31a](../01-architecture.md#money) retains its guards | Allowed subject to other guards; inference's separate exception remains [STA-24](../03-state-and-recovery.md#durable-state), [ARC-31a](../01-architecture.md#money), not a vendor-scope read |
+| Actionable publication | Not specified by this hold; stopped check supplies no verdict or pass ([ARC-43 quotation above](#pins-output-and-pending-check)). Publication authority and protected release still follow [STA-23](../03-state-and-recovery.md#durable-state), [SEC-5](../04-security-model.md#sec-5--the-credential-inventory) | Held for unscanned bytes; checked verdict/findings only for neither-sink delivery reads, [SEC-5](../04-security-model.md#sec-5--the-credential-inventory), [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular) | Refused as confirmation or usable target from quarantine; protected reporting allowed subject to other guards, [§3a](design/protected-evidence-v1.md#identity-and-confirmation-boundary) | Not specified as a universal publication decision; [STA-23](../03-state-and-recovery.md#durable-state), [SEC-5](../04-security-model.md#sec-5--the-credential-inventory), [tw-pkn](../.beads/issues.jsonl) retain their boundaries |
+
+The decisive owner passages, rather than the matrix pointers, are:
+
+- [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular): “holds the model's
+  box-plane commands to that machine”. Its pending-check hold and lifecycle reads
+  are **prose-only**. STA-20's broader command hold is not silently substituted.
+- `ARC-43` says “Model `exec` across the bound set MUST wait while any known required
+  placement reference is unarmed” and “Only harness jobs whose output goes to
+  **neither** model nor transcript are exempt”. Its delivery reads “release their
+  verdict and findings, never their raw output”. That exemption removes only the
+  unarmed-reference barrier; STA-20/24 can still hold/refuse a newly composed read.
+  [SEC-5](../04-security-model.md#sec-5--the-credential-inventory) says “Unscanned bytes
+  MUST be withheld”; protective encoding supplies no extra settlement authority.
+- [STA-24](../03-state-and-recovery.md#durable-state) says “reads, dispositions and
+  operations through already admitted mappings are unaffected” by the unavailable-
+  identity order exclusion. [Protected evidence §3a](design/protected-evidence-v1.md#identity-and-confirmation-boundary)
+  states “No current predicate discharges it.” Its exact-target boundary states
+  “A withheld ID, quarantine, marker, receipt or association number, or independently
+  generated handle resolves nothing.” Same-entry independent recovery is not
+  erasure of different-entry risk. Known retained identity conflict is refusal;
+  unknown alias is quarantine, not permission.
+- `STA-24` says “nothing under a scope counts as a read, because nothing types it”
+  and, for destructive untyped hold, “keeps the model's box-plane commands to the
+  machines of the session's bound set at that vendor stopped until the operator
+  replaces it”. The typed every-requester stop does not settle
+  [tw-pgp](../.beads/issues.jsonl). These untyped restrictions are prose-only and
+  retain the later-route applicability in the admission list.
+
+For overlaps, read each applicable restriction separately. A terminal command can
+release its command hold while an older LNVPS renewal-off remains unresolved; an accepted
+restart can clear its cloud barrier while the pending check remains. A stopped
+check has no verdict. A paste can arm a reference without lifting a destructive
+stop. These are conceptual owner routes, not a universal first-error order or
+additional checked traces. The renewal-off case follows
+[STG-21's post-order operation](../06-first-stage.md#the-stages) and
+[STA-24's box-plane carve-out](../03-state-and-recovery.md#durable-state):
+“Box-plane dispatch to the machine is governed by `STA-20` and `STA-20b`, not by this
+rule”, subject to its running-system exception; renewal-off is not a reset,
+reinstall, destroy or stand-in stop. Dedicated activation/key-registration overlap
+retains its own route. The existing failure/successor allocation questions
+[tw-sfu/tw-hwl/tw-nj8](../.beads/issues.jsonl), installation/recovery questions
+[tw-l1l/tw-lq8/tw-yhd](../.beads/issues.jsonl), and restored-command boundary
+[tw-ub7](../.beads/issues.jsonl) still qualify the affected action.
 
 ### Admission ordering and replay
 
@@ -348,17 +733,135 @@ inspect a named record with `br show ID --json --no-auto-flush --no-auto-import`
 - **Not specified:** older restored journal versus a possibly live pre-loss command
   ([tw-ub7](../.beads/issues.jsonl)); untyped destructive hold versus harness-started
   jobs in stage 2 ([tw-pgp](../.beads/issues.jsonl)); stage-1 Arch login to root-only
-  jobs ([tw-yuo](../.beads/issues.jsonl)). No privilege escalation is implied here.
+  jobs ([tw-yuo](../.beads/issues.jsonl)). At the reviewed `d00c735` baseline, the
+  requirement amendments for these recovery and privilege decisions remain
+  outstanding. These entries describe that baseline, rather than amendments on
+  other branches. No post-Restore sweep/hold or privilege route is added.
 - **Not specified:** LNVPS's third recovery rung ([tw-ae7](../.beads/issues.jsonl));
   destruction/output ([tw-pkn](../.beads/issues.jsonl)); rescue activation beside
-  delivery reboot ([tw-z99](../.beads/issues.jsonl)). The existing recovery figures
-  remain unchanged in this slice.
+  delivery reboot ([tw-z99](../.beads/issues.jsonl)). The recovery figures are
+  conceptual navigation, with their existing policy and stand-ins retained.
 - Allocation questions stay with [tw-sfu, tw-hwl, tw-nj8](../.beads/issues.jsonl);
   installation/recovery questions with [tw-lq8, tw-l1l, tw-yhd](../.beads/issues.jsonl).
   This outline chooses no answers to them.
 - [tw-316](../.beads/issues.jsonl) owns corpus-wide witness-pair validation;
   [tw-itv](../.beads/issues.jsonl) retains approval-facts and bounded-description
   work. The renderer below validates only the selected projection inputs.
+
+## Observation-to-authority reference
+
+Evidence: conceptual navigation throughout this reference. Applicability: typed
+LNVPS unless a route is explicitly named. Every observation still meets its
+owner's source, identity, validation, custody and durable-acceptance conditions.
+A successful-looking sequence supplies no additional authority.
+
+### Vendor receipts and status reads
+
+| Observation | Admissible predicate / owner | Boundary it cannot establish |
+|---|---|---|
+| Exact-call vendor receipt | [STA-24, *What clears it*](../03-state-and-recovery.md#durable-state) and [STG-21a's operation predicates](../06-first-stage.md#the-stages): order, stop, restart have different interpretations | No generic 2xx confirmation, reconstructed withheld identity, host pin or delivery verdict |
+| Authenticated status/listing | [STG-21/21a](../06-first-stage.md#the-stages): verified account, qualifying order adoption, registration, renewal-off, reinstall or combined deletion, each under its own predicate | No status-only restart confirmation or fresh stop confirmation from a cached state; deletion requires its combined contract |
+| Protected receipt/association | [§3a](design/protected-evidence-v1.md#identity-and-confirmation-boundary): historical eligibility and admitted exact-literal mapping only | Quarantine grants no operational target or order settlement; disposition grants no identity/uniqueness; protection grants no vendor truth |
+
+`STA-24` says “A generic 2xx, an unrelated response or an unvalidated/malformed body
+is insufficient.” `STG-21a` says order confirmation “establishes no host creation,
+IP allocation, invoice production, payment, boot or contact readiness.” Its
+restart clause says “Only a recorded successful response correlated to this exact
+restart request confirms the vendor’s report of successful hard-reset task
+completion” and “It does not establish a completed guest boot or service survival.”
+The subsequent guest-boot read is a separate box-plane job and cannot confirm the
+restart. `ARC-43` says “Operation-confirmation evidence admitted by STA-24 supplies
+authority only for that operation’s result, not for delivery checks or host-key
+pins.” For stop, `STG-21a` says “no currently identified status-read-only predicate
+qualifies”. Dedicated Robot's observable-state predicates remain
+[STG-4's](../06-first-stage.md#acceptance), not replacement LNVPS evidence.
+
+Coverage boundary: Dispatch carries abstract source/correlation and symbolic
+identity guards. Its opening assumptions leave the detailed STG-21a predicates,
+protected encodings and listing selection in prose. The generated receipt trace
+below establishes no live vendor or device evidence.
+
+### Job records and model-written reports
+
+[STA-20/21](../03-state-and-recovery.md#durable-state) own command/boot classification,
+and [protected evidence §2](design/protected-evidence-v1.md#2-job-schema-and-replay)
+owns retained/withheld facts and truthful advisory comparison. `STA-20` says “A
+record with no exit code and a proven-ended command means it died; the call stays
+unresolved”. A terminal record can settle its own command subject to those owners;
+its output can supply an ARC-43 checked value only from the appropriate harness-
+composed job. `STA-24` says a job record “cannot clear a cloud-plane barrier”.
+Service liveness is the declaration's question; command exit is not its answer.
+
+Model-written checks remain reports. [ARC-39](../01-architecture.md#what-a-session-delivers)
+says “Neither success nor failure counts toward Delivered, creates or clears a
+finding, or blocks delivery or secret placement.” `ARC-43` says checked values
+come “never from model text”. The [declaration format](design/delivery-declaration-v1.md#shape)
+separates proposed typed values from the signed-bundle measuring procedures.
+Coverage: Dispatch carries selected command classification/settlement; actual
+job truth, output protection, delivery authority and report-only treatment remain
+prose/implementation obligations, not proven by the command witnesses.
+
+### Host-key publications
+
+[CHN-R7](../02-channel.md#the-routes-to-a-fingerprint) owns complete/fresh/contained
+publication history and installed-pin admission. Its source is the recorded vendor
+status direct fetch over browser-terminated TLS; `CHN-R7` says “This is a
+vendor-published observation, not an attestation.” [STG-21a's reinstall predicate](../06-first-stage.md#the-stages)
+needs its prior complete baseline plus post-dispatch publication/status contract.
+An empty prior installation group can admit a pin without confirming reinstall;
+the independent cloud barrier still applies. A publication supplies no general
+operation confirmation, session authority or service evidence. Rescue publication
+and attest retain [CHN-R1/R5's](../02-channel.md#the-routes-to-a-fingerprint)
+separate producers, boot/sender identity and acceptance boundaries. Pins carries
+symbolic admission/history; vendor/address-scan truth and integrated absence of
+contact remain outside that property.
+
+### Boot and service observations
+
+`STA-20` says “a PID from another boot cannot establish liveness”. Ordinary
+changed-boot evidence establishes old-command end, not successful effects.
+The separate non-LNVPS `delivery_reboot` has ARC-43's own-job/own-machine/new-boot
+terminal exception; `ARC-43` says it “claims the observed boot change, never an
+exit status or a cause.” The same reboot bytes through `exec` remain an ordinary
+command. This exception grants no LNVPS restart confirmation.
+
+For delivery, use [ARC-43's evidence clauses](../01-architecture.md#box-plane-execution-is-command-granular)
+and [ARC-17's placing-session demonstration](../01-architecture.md#what-a-session-delivers):
+
+| Observation or local condition | Owner's evidence treatment | Independent boundary |
+|---|---|---|
+| Enablement read without demonstrated reboot | ARC-43's **“enabled, restart not demonstrated”**, beside Delivered if other checks pass; no lifecycle finding from that label | No claim of survival; re-entry/re-check follows its evidence clause |
+| New guest boot plus active unit after the approved reboot | ARC-43's survival evidence, followed by the delivery check | Not the cloud restart's confirmation or the durable final verdict |
+| `running-at-delivery` found running | ARC-43 journals that boot with the result, anchoring the promise there | Stopped on that boot is a lifecycle finding; boot change does not clear a standing finding |
+| Stopped after a changed boot, previously running there | ARC-43's **“stopped since a restart, as approved”** under its stated conditions | The note is not a placing session's post-placement demonstration |
+| Failed/held/refused/no-record check | ARC-43's finding for an actual read with unexpected status/missing binary, versus no settlement for held/refused/no record | No fabricated pass; stopped pending check supplies no verdict |
+| Lifecycle finding versus another finding | ARC-17's lifecycle placement exception, fixed lockdown prerequisites and re-check | Placement permission is not placement, placement clears no finding, and delivery needs the demonstration |
+
+`ARC-43` says “That labelled state is no difference from the declaration, raises
+no lifecycle finding, and leaves the machine Delivered when its checks otherwise
+pass.” For `running-at-delivery` it says “A boot change never clears a standing
+lifecycle finding”. `ARC-17` says “A finding is cleared by a re-check and by
+nothing else” and “placement itself clears no finding.” Re-arm is a local scan
+reference boundary; [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular)
+labels a machine-derived reference **“re-armed from the machine's report”** and
+says “It covers no forgotten placement.” It is no restored-state reapproval,
+original-value proof or rotation. Coverage: these lifecycle/placement/re-arm
+boundaries are prose-only, distinct from Declaration's coarse field predicates
+and Dispatch's dedicated-reboot terminal property.
+
+### Notifications
+
+Applicability: notify/attest routes; stage-1 LNVPS uses no notify channel.
+[CHN-17](../02-channel.md#the-attest-sequence) says “a machine may send the harness
+an event, and an event is an observation.” Its ordinary events “never gates a
+step, never triggers an action”, with the single attest introduction exception
+owned by [CHN-R5](../02-channel.md#the-routes-to-a-fingerprint) /
+[CHN-5](../02-channel.md#the-attest-sequence). That exception gates
+the awaited first contact for the planted sender and single-use browser acceptance,
+not command completion or delivery. Candidate notification uses in CHN-17 are
+not adopted sources. The relay companion's historical profile is not a proof of
+current relay `/v2/`, notify delivery or these composition boundaries; the port
+remains [TASKS.md T30](../TASKS.md).
 
 ## Dispatch traces
 
