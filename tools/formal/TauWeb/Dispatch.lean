@@ -57,7 +57,10 @@ An approval binds its rendering session. `STA-23` says "An ordinary visibility-o
 and "Explicit app Lock, pagehide including entry to the back-forward cache, reload, or worker shutdown MUST stop dispatch, end session workers and close channels; the worker clears its keys and credential buffers and returns locked."
 Replay ends the rendering session; the end is not journaled or modelled. Traces assume the convention that an
 ended session sends no request, and after replay only successor sessions act. The companion
-assumes this convention and does not prove session termination. `ended_session_approval_refused`
+assumes this convention and does not prove session termination. The separate `TauWeb.Authority.step`
+checking interpretation gates ordinary requests and publication over processed symbolic events,
+delegating admitted requests here unchanged; it does not prove browser termination either.
+`ended_session_approval_refused`
 and `successor_reapproval_opens_installation` carry the rule through `SEC-4`'s binding check.
 The display duties (shown as no longer usable, with no withdrawal offer) remain Markdown-only;
 `acceptsWithdrawal` does not read the running session, because those duties are outside it.

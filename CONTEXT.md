@@ -130,7 +130,8 @@ _Avoid_: example (a witness is checked; an example is illustrated), sample, test
 **Witness file** · ADR-0032
 The companion's serialized witnesses and bounded traces for one module, one file under
 `docs/design/` — `allocation-witnesses-v2.json`, `declaration-witnesses-v1.json`,
-`relay-witnesses-v1.json`, `dispatch-witnesses-v8.json` and `pins-witnesses-v5.json`, with
+`relay-witnesses-v1.json`, `dispatch-witnesses-v8.json`, `pins-witnesses-v5.json` and
+`authority-witnesses-v1.json`, with
 `witness-file-v1.md` describing their schemas — emitted by `lake exe witnesses` and held equal to the emission by
 `tools/check_witnesses.py`. Future implementation tests are to read them from the pinned tree;
 nothing outside this repository reads witness files today. Never compiled into the build. It
@@ -149,7 +150,9 @@ Declaration's is `TauWeb.Declaration.bound`: a sweep of every field through its 
 observations over a base declaration and machine. Relay's is `TauWeb.Relay.bound`: a number of
 events over a closed alphabet, from one opened connection. Dispatch's is
 `TauWeb.Dispatch.bound`: a number of events over a closed alphabet, from one journal. Pins's is
-`TauWeb.Pins.bound`: the same, from a harness holding no pin.
+`TauWeb.Pins.bound`: the same, from a harness holding no pin. Authority's
+`TauWeb.Authority.witnessBound` caps the lengths of its named finite histories only; it has no
+exhaustive alphabet or enumeration.
 _Avoid_: depth, budget, sample size
 
 **Companion comparison** · ADR-0032

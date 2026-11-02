@@ -98,6 +98,10 @@ exists to prevent, and the ledger would only record it after the fact. Once a pr
 ended, a later session MAY re-enter any subset of its maintained machines; the machines it
 leaves out stay unbound until some session is bound to them.
 
+The symbolic binding and predecessor-retirement checks in `TauWeb.Authority.step` are part of
+[STA-23's checking interpretation](./03-state-and-recovery.md#durable-state), with its stated
+assumptions; they are not evidence of cryptographic separation or multi-instance exclusion.
+
 **That the keypairs derive from one seed does not weaken this.** Derivation is how the browser
 *obtains* machine 3's key; what reaches machine 3 is still machine 3's public key alone, and
 a session whose set does not hold machine 3 is still refused by SSH. The seed is a root the *browser* holds — one thing to back
@@ -217,6 +221,11 @@ bound, the bundle commit — never a request rebuilt at dispatch from session st
 arguments the model supplies afterwards. `STA-24` says an approval is checked again at
 dispatch; this says what is checked. "There was an approval" and "the approved thing is what
 ran" are two different properties, and only the second is worth proving.
+
+`TauWeb.Authority.ordinary_refinement` composes live symbolic authority with Dispatch's existing
+approved-session and facts check. Its assumptions and publication interface are described at
+[STA-23](./03-state-and-recovery.md#durable-state); separately authorized non-session flows remain
+outside that ordinary-request interface.
 
 **Untyped, at a vendor with no adapter — an acceptable weaker mode (`SEC-14`), under
 conditions no operator act sets aside.** A typed adapter is the best practice: used where the

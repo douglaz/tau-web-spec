@@ -5,3 +5,4 @@ import TauWeb.Relay
 import TauWeb.Dispatch
 import TauWeb.Pins
 import TauWeb.Render
+import TauWeb.Authority
