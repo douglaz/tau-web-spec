@@ -36,6 +36,7 @@ run "witnesses    (a committed witness file under docs/design/ that differs from
 run "regions      (a marked region in a document that is not what its declaration emits)" python3 tools/check_regions.py
 run "atlas        (informational selected witness projections and source agreement)" python3 tools/render_state_machine_atlas.py --check
 run "identifiers  (duplicates, dangling, pointers, gaps, ADR refs, CNF tiers)" python3 tools/check_ids.py
+run "comment ids  (global uniqueness in the tracked issue export)" python3 tools/check_comment_ids.py
 run "fixtures     (every JSON example parses; every Mermaid block is structurally whole)" python3 tools/check_fixtures.py
 run "obligations  (a duty assigned to a requirement whose own text names none of the machinery)" python3 tools/check_obligations.py
 run "citations    (a quoted attribution its target does not contain; unquoted ones ratcheted; TauWeb.* names)" python3 tools/check_citations.py
