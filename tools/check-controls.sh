@@ -1263,6 +1263,51 @@ control "fixtures: a Mermaid block with an unclosed subgraph" "$FIX" \
   "sed -i '0,/^    end$/{/^    end$/d}' 05-trust.md && [ \$(grep -c '^    end$' 05-trust.md) -eq 2 ]" \
   "BAD MERMAID" "unclosed subgraph"
 
+COMMENTS=tools/check_comment_ids.py
+
+control "comment ids: across issues, including closed issues" "$COMMENTS" \
+  'printf "%s\n" '\''{"id":"tw-a","comments":[{"id":7}]}'\'' '\''{"id":"tw-b","status":"closed","comments":[{"id":7}]}'\'' > .beads/issues.jsonl' \
+  "DUPLICATE COMMENT IDS" '7 -> "tw-a" comments\[1\], "tw-b" comments\[1\]'
+
+control "comment ids: repeated within one issue" "$COMMENTS" \
+  'printf "%s\n" '\''{"id":"tw-a","comments":[{"id":7},{"id":7},{"id":7}]}'\'' > .beads/issues.jsonl' \
+  "DUPLICATE COMMENT IDS" '7 -> "tw-a" comments\[1\], "tw-a" comments\[2\], "tw-a" comments\[3\]'
+
+control "comment ids: unreadable export" "$COMMENTS" \
+  'rm .beads/issues.jsonl' \
+  "COMMENT EXPORT ERROR" '.beads/issues.jsonl: cannot read comment identifiers'
+
+control "comment ids: malformed JSON" "$COMMENTS" \
+  'printf "%s\n" "{" > .beads/issues.jsonl' \
+  "COMMENT EXPORT ERROR" '.beads/issues.jsonl: cannot read comment identifiers'
+
+control "comment ids: invalid encoding" "$COMMENTS" \
+  'printf "\377\n" > .beads/issues.jsonl' \
+  "COMMENT EXPORT ERROR" '.beads/issues.jsonl: cannot read comment identifiers'
+
+control "comment ids: missing identifier" "$COMMENTS" \
+  'printf "%s\n" '\''{"id":"tw-a","comments":[{}]}'\'' > .beads/issues.jsonl' \
+  "COMMENT EXPORT ERROR" '.beads/issues.jsonl: cannot read comment identifiers'
+
+control "comment ids: null identifier" "$COMMENTS" \
+  'printf "%s\n" '\''{"id":"tw-a","comments":[{"id":null}]}'\'' > .beads/issues.jsonl' \
+  "COMMENT EXPORT ERROR" '.beads/issues.jsonl: cannot read comment identifiers'
+
+control "comment ids: boolean identifier" "$COMMENTS" \
+  'printf "%s\n" '\''{"id":"tw-a","comments":[{"id":true}]}'\'' > .beads/issues.jsonl' \
+  "COMMENT EXPORT ERROR" '.beads/issues.jsonl: cannot read comment identifiers'
+
+control "comment ids: unreadable comments array" "$COMMENTS" \
+  'printf "%s\n" '\''{"id":"tw-a","comments":null}'\'' > .beads/issues.jsonl' \
+  "COMMENT EXPORT ERROR" '.beads/issues.jsonl: cannot read comment identifiers'
+
+control "comment ids: unreadable issue record" "$COMMENTS" \
+  'printf "%s\n" "null" > .beads/issues.jsonl' \
+  "COMMENT EXPORT ERROR" '.beads/issues.jsonl: cannot read comment identifiers'
+
+passes "comment ids: distinct identifiers with identical text and absent or empty comments" "$COMMENTS" \
+  'printf "%s\n" '\''{"id":"tw-a","comments":[{"id":7,"text":"same"},{"id":8,"text":"same"}]}'\'' '\''{"id":"tw-b","status":"closed","comments":[{"id":9,"text":"same"}]}'\'' '\''{"id":"tw-c"}'\'' '\''{"id":"tw-d","comments":[]}'\'' > .beads/issues.jsonl'
+
 echo
 if [ "$passed" -ne "$expected" ]; then
   echo "::error::$passed of $expected controls passed"; fail=1
