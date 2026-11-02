@@ -61,14 +61,21 @@ BASELINE = os.path.join(ROOT, "tools", "citation-baseline.json")
 CITING = ["*.md", "docs/adr/*.md", "docs/tenants/*/*.md", "docs/design/*.md",
           "docs/state-machine-atlas.md"]
 
-# Direct-speech attribution only, present tense. Two shapes: the verb form
+# Direct-speech attribution only, present tense. The existing shapes are the verb form
 # ("`STA-24` says ...") and the possessive form ("`STA-24`'s rule that ..."),
 # which claims what a requirement contains just as directly.
+# Also accept "`SEC-5`'s [own] [label] row says/states/reads ...". A row label
+# is at most two words, each 1-32 ASCII letters/digits/hyphens starting with a
+# letter. Whitespace permits ordinary source wraps; SPLIT bounds the match to
+# one sentence/list item/table row. No punctuation or arbitrary prose bridges
+# the identifier, row label and present-tense speech verb.
 SPEECH = r"says|states|reads"
 NOUN = r"rule|claim|wording|statement|sentence|words|text"
+ROW = r"(?:[A-Za-z][A-Za-z0-9-]{0,31}\s+){0,2}row"
 ATTRIB = re.compile(
     r"`(%s)`\s+(?:own\s+)?(%s)\b|`(%s)`'s\s+(?:own\s+)?(%s)\s+that\b"
-    % (ID, SPEECH, ID, NOUN)
+    r"|`(%s)`'s\s+(?:own\s+)?%s\s+(%s)\b"
+    % (ID, SPEECH, ID, NOUN, ID, ROW, SPEECH)
 )
 # "reads" is two verbs. "`STA-20` reads \"...\"" attributes text; "`STA-16`
 # reads it from the sheet" means CONSULTS, which never carries a quote. Checked
@@ -165,8 +172,8 @@ def find():
         for sent in SPLIT.split(open(f).read()):
             attribs = list(ATTRIB.finditer(sent))
             for m, nxt in zip(attribs, attribs[1:] + [None]):
-                rid = m.group(1) or m.group(3)
-                verb = (m.group(2) or "").lower()
+                rid = m.group(1) or m.group(3) or m.group(5)
+                verb = (m.group(2) or m.group(6) or "").lower()
                 # The verb introduces the first quote after it and before the
                 # next attribution, and no other: a quote earlier in the chunk
                 # belongs to whatever introduced it, and a later one to whatever

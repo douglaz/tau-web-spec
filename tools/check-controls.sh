@@ -1056,6 +1056,20 @@ control "citations: a quoted phrase its target never contained" "$CITES" \
   "printf '\n\`STA-24\` says \"a phrase its target never contained anywhere\".\n' >> 00-overview.md" \
   "UNVERIFIED QUOTES" "00-overview.md:STA-24"
 
+control "citations: a fabricated possessive seed-row quotation" "$CITES" \
+  "printf '\n\`SEC-5\`\047s seed row says \"a thief who unlocks the store has it\".\n' >> 00-overview.md" \
+  "UNVERIFIED QUOTES" "00-overview.md:SEC-5"
+
+passes "citations: an authentic possessive seed-row quotation" "$CITES" \
+  "printf '\n\`SEC-5\`\047s seed row says \"in the operator\047s head or seed backup\".\n' >> 00-overview.md"
+
+control "citations: a fabricated wrapped possessive seed-row quotation" "$CITES" \
+  "printf '\n\`SEC-5\`\047s seed\nrow says \"a thief who unlocks the store has it\".\n' >> 00-overview.md" \
+  "UNVERIFIED QUOTES" "00-overview.md:SEC-5"
+
+passes "citations: an authentic wrapped possessive seed-row quotation" "$CITES" \
+  "printf '\n\`SEC-5\`\047s seed\nrow says \"in the operator\047s head or seed backup\".\n' >> 00-overview.md"
+
 control "citations: a new unquoted attribution above the baseline" "$CITES" \
   "printf '\n\`STA-24\` says something this sentence does not quote.\n' >> 00-overview.md" \
   "NEW UNQUOTED ATTRIBUTIONS" "00-overview.md:STA-24"
