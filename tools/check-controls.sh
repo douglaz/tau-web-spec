@@ -995,6 +995,7 @@ while IFS='|' read -r case token; do
   [ "$case" != repeated ] || declaration=TauWeb.Dispatch.order_receipt_association_required
   [ "$case" != invalid_json ] || declaration=allocation-witnesses-v2.json
   [ "$case" != malformed_utf8 ] || declaration=allocation-witnesses-v2.json
+  [ "$case" != numeric_conversion ] || declaration=allocation-witnesses-v2.json
   control "witness pairs: $case with equal emitted/committed bytes" "$WIT" \
     "python3 tools/tests/witness_pair_cases.py $case" \
     "WITNESS PAIRS" "$token" "$declaration"
@@ -1020,6 +1021,7 @@ malformed_declarations|malformed declarations
 invalid_json|malformed JSON corpus
 numeric_start|changed complete start
 numeric_events|changed ordered event inputs
+numeric_conversion|numeric conversion failed
 malformed_utf8|malformed UTF-8 emission
 PAIR_CASES
 

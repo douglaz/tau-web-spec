@@ -16,13 +16,14 @@ missing emission is a red gate, not a skipped one (`AGENTS.md`).
 WITNESS PAIRS checks the pair structure owned by ADR-0032 and witness-file-v1.md;
 it compares inputs, never evaluates protocol outcomes or strengthens the emitter's
 name-based theorem tie. Locations identify occurrences, including repeated declarations.
-Decimal inputs retain their exact values; malformed UTF-8 is a labeled finding.
+Decimal inputs retain their exact values; unrepresentable numbers and malformed
+UTF-8 produce labeled findings.
 
 Exit 0 = emission equality and valid pairs, 1 = findings, 2 = emission missing.
 """
 
 import difflib
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 import glob
 import json
 import os
@@ -214,6 +215,9 @@ def main():
                 # Retain decimal/exponent values exactly, separately from integer
                 # literals; binary floats can hide changed inputs and assumptions.
                 pairs.extend(pair_findings(json.loads(emission, parse_float=Decimal), name))
+            except InvalidOperation:
+                pairs.append(f"docs/design/{name}: numeric conversion failed: "
+                             "JSON number cannot be represented as Decimal")
             except (ValueError, RecursionError) as exc:
                 pairs.append(f"docs/design/{name}: malformed JSON corpus: {exc}")
         c = os.path.join(COMMITTED, name)

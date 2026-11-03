@@ -28,12 +28,13 @@ NEGATIVE = {
     'invalid_json': 'malformed JSON corpus',
     'numeric_start': 'changed complete start',
     'numeric_events': 'changed ordered event inputs',
+    'numeric_conversion': 'numeric conversion failed',
     'malformed_utf8': 'malformed UTF-8 emission',
 }
 POSITIVE = ('unchanged', 'reordered', 'repeated_valid', 'multiple_assumptions',
             'outputs', 'object_keys', 'unmarked', 'nonproduction', 'elsewhere', 'nested_pair_input',
             'numeric_equal', 'numeric_assumptions')
-SERIALIZED = ('invalid_json', 'malformed_utf8', 'numeric_start', 'numeric_events',
+SERIALIZED = ('invalid_json', 'malformed_utf8', 'numeric_start', 'numeric_events', 'numeric_conversion',
               'numeric_equal', 'numeric_assumptions')
 
 
@@ -48,12 +49,14 @@ def serialized_mutation(corpus, case):
         targets = [t['start'] for t in (a, b)]
         key = 'seed'
         literals = ('9007199254740992e0', '9007199254740993e0')
-    elif case in ('numeric_events', 'numeric_equal'):
+    elif case in ('numeric_events', 'numeric_equal', 'numeric_conversion'):
         targets = [t['steps'][0]['event'] for t in (a, b)]
         key = 'precise'
         literals = ('9007199254740992.0', '9007199254740993.0')
         if case == 'numeric_equal':
             literals = ('9007199254740993.0000000000000000001',) * 2
+        elif case == 'numeric_conversion':
+            literals = ('1e9999999999999999999', '2e9999999999999999999')
     elif case == 'numeric_assumptions':
         a['assumptions'], b['assumptions'] = {}, {}
         targets = [t['assumptions'] for t in (a, b)]
@@ -196,7 +199,7 @@ def verify(output, token, location):
     assert type(items) is list and len(items) == 1 and type(items[0]) is str, output
     assert token in items[0] and location in items[0], output
     assert 'docs/design/' in items[0], output
-    if token not in ('malformed JSON corpus', 'malformed UTF-8 emission'):
+    if token not in ('malformed JSON corpus', 'malformed UTF-8 emission', 'numeric conversion failed'):
         assert 'declarations=' in items[0] and '$[' in items[0], output
 
 

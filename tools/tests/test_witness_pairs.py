@@ -185,6 +185,26 @@ class WitnessPairs(unittest.TestCase):
                 status, output = self.run_main(content)
                 self.assertEqual(status, 0, output)
 
+    def test_unrepresentable_numeric_inputs_through_main(self):
+        source, = (ROOT / 'docs/design').glob('allocation-witnesses-v*.json')
+        for field in ('start', 'event'):
+            for literals in (('1e9223372036854775808',) * 2,
+                             ('1e9999999999999999999', '2e9999999999999999999')):
+                corpus = json.loads(source.read_text())
+                markers = ('tw316_extreme_left', 'tw316_extreme_right')
+                for trace, marker in zip(corpus['witnesses'][:2], markers):
+                    target = trace['start'] if field == 'start' else trace['steps'][0]['event']
+                    target['seed'] = marker
+                content = json.dumps(corpus)
+                for marker, literal in zip(markers, literals):
+                    self.assertEqual(content.count(json.dumps(marker)), 1)
+                    content = content.replace(json.dumps(marker), literal)
+                with self.subTest(field=field, literals=literals):
+                    status, output = self.run_main(content.encode())
+                    self.assertEqual(status, 1, output)
+                    verify(output, 'numeric conversion failed', 'test-witnesses-v1.json')
+                    self.assertIn('Decimal', output)
+
     def test_scalar_type_distinctions_through_main(self):
         for first, second in ((True, 1), (False, 0), (1, 1.0)):
             a, b = pair()
