@@ -456,8 +456,10 @@ gated on it.
       from the emission.
       *Amended 2026-10-18:* Module 4 gains `STA-20`'s command-hold guard and pair, and
       `ARC-43`'s `deliveryReboot` kind and boot-change settlement arm with its guard and pair.
-      The alphabet gains a second fresh command; the restated bounded property admits at most
-      one unresolved box-plane command per resource. Dispatch schema 6 carries the operation,
+      The alphabet gains a second fresh exec command; the restated bounded property checks at most
+      one unresolved box-plane command per resource over that exec alphabet. The named
+      `TauWeb.Dispatch.command_holds_delivery_reboot` / `TauWeb.Dispatch.delivery_reboot_without_hold`
+      pair covers reboot outside the enumeration. Dispatch schema 6 carries the operation,
       collection, guards and reboot-result projection (ADR-0048).
       *Amended 2026-10-19:* Module 4 widens `TauWeb.Dispatch.stops` to `deliveryReboot`, with
       `TauWeb.Dispatch.destructive_choice_stops_delivery_reboot` /

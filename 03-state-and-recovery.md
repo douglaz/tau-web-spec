@@ -622,8 +622,10 @@ pairs are `TauWeb.Dispatch.same_action_new_call_id_refused` and
 `TauWeb.Dispatch.second_index_same_entry_refused` and
 `TauWeb.Dispatch.second_index_same_entry_admitted` for the index one level up. What may be
 unresolved together is `TauWeb.Dispatch.unresolvedTogether`, decided over the bound by
-`TauWeb.Dispatch.bounded`. `TauWeb.Dispatch.tracesUpTo` filters out every sequence whose requests
-repeat a call id; the bounded property also checks that freshness.
+`TauWeb.Dispatch.bounded`. Its alphabet exercises exec requests;
+`TauWeb.Dispatch.command_holds_delivery_reboot` / `TauWeb.Dispatch.delivery_reboot_without_hold`
+cover reboot as named witnesses. `TauWeb.Dispatch.tracesUpTo` filters out every sequence whose
+requests repeat a call id; the bounded property also checks that freshness.
 
 A disposition's four choices are `TauWeb.Dispatch.Continuation`. What it may name is
 `TauWeb.Dispatch.acceptable`: `TauWeb.Dispatch.step` refuses one that fails it, and

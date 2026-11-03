@@ -36,6 +36,7 @@ SELECTION = (
     "command_holds_delivery_reboot",
     "delivery_reboot_without_hold",
     "delivery_reboot_failed_append_holds",
+    "delivery_reboot_exec_approval_refused",
     "destructive_choice_stops_delivery_reboot",
     "delivery_reboot_dispatched_without_destructive_stop",
     "destructive_choice_stops_commands",
@@ -91,6 +92,7 @@ SCOPES = {
     "command_holds_delivery_reboot": "Dedicated reboot held behind exec; not stage-1 typed-restart evidence. Collection progress is a separate history below.",
     "delivery_reboot_without_hold": "Withdrawn commandHold trap for a dedicated harness reboot. Never a production-success target.",
     "delivery_reboot_failed_append_holds": "Dedicated boot-change result: failed append, replay/successor refusal, durable collection and later exec. That exec assumes the omitted delivery verdict; no pending-check proof.",
+    "delivery_reboot_exec_approval_refused": "Dedicated harness reboot refuses same-session ordinary exec approval facts at the request, with no intent or journal change. Unpaired: valid reboot approval is a different input under the same assumptions; the separate failed-append history carries admitted progress. Symbolic facts do not prove fresh consent or re-asking after a held first issue.",
     "destructive_choice_stops_delivery_reboot": "Dedicated harness reboot under standing destructive reinstall; outcome unknown. Reinstall/evidence progress is a separate command history below.",
     "delivery_reboot_dispatched_without_destructive_stop": "Withdrawn destructiveStops trap; requester cannot make this production success.",
     "destructive_choice_stops_commands": "Separate destructive-command history: reinstall dispatch then confirmation then exec; no waiter or automatic harness-flow resumption evidence.",
@@ -395,11 +397,13 @@ def trace_shape(trace, at, module="dispatch"):
                 if step["dispatch"] == "refused":
                     reason = step.get("refusal", {}).get("reason") if type(step.get("refusal")) is dict else None
                     refusals = {
+                        "facts": {"reason": enum("facts")},
                         "barrier": {"reason": enum("barrier"), "calls": [int]},
                         "continuation": {"reason": enum("continuation"), "in_force": CONTINUATION},
                         "identity_exclusion": {"reason": enum("identity_exclusion"), "records": [int]},
                     }
-                    require(reason in refusals, "ATLAS INPUT", loc + ".refusal", "unsupported refusal")
+                    require(type(reason) is str and reason in refusals,
+                            "ATLAS INPUT", loc + ".refusal", "unsupported refusal")
                     outcomes["refusal"] = refusals[reason]
             elif kind in ("read", "receive", "collect_reboot"):
                 outcomes["settled"] = [int]

@@ -886,6 +886,7 @@ def witnesses : List Trace := [
   { decls := ["TauWeb.Dispatch.delivery_reboot_failed_append_holds"], events := failedRebootAppendEvents },
   { decls := ["TauWeb.Dispatch.delivery_reboot_collection_identity"], events := invalidRebootCollections,
     far := rebootDone },
+  { decls := ["TauWeb.Dispatch.delivery_reboot_exec_approval_refused"], events := execApprovedRebootEvents },
   { decls := ["TauWeb.Dispatch.delivery_reboot_requires_approval"], events := unapprovedRebootEvents },
   { decls := ["TauWeb.Dispatch.delivery_reboot_late_result_keeps_disposition"], events := disposedRebootEvents },
   { decls := ["TauWeb.Dispatch.approval_reset_requires_rescue_refused"], events := approvalResetGuardEvents,

@@ -94,10 +94,11 @@ boot read enters only through `step`. Record completeness and exit status are im
 that settlement and are not fields here. The request shape represents the harness flow for
 `deliveryReboot`; the prohibition on a model requesting that job remains Markdown-only. The
 durable intent's approval represents the explicit yes; re-asking after a held first issue is
-not carried.
+not carried. Canonical reboot facts distinguish that approval from ordinary exec approval;
+this symbolic distinction proves neither fresh consent nor a universal operation-to-facts policy.
 
 ponytail: `openIntents` rescans the journal for every intent it reads, which is quadratic in the
-trace, and `inEffect` reads the journal again for every disposition; the bound is three events,
+trace, and `inEffect` reads the journal again for every disposition; `bound` caps the enumeration,
 and an index from call id to terminal record arrives when a longer enumeration needs one. -/
 
 namespace TauWeb.Dispatch
@@ -1497,6 +1498,7 @@ def factsCreateB : Facts := 7
 def factsReinstall : Facts := 8
 def factsRead : Facts := 9
 def factsInference : Facts := 10
+def factsReboot : Facts := 11
 
 /-- The associations the harness journaled: the reserved allocation indices and the immutable
 vendor machine id, each against the approved entry. The mapping is the harness's — `STA-24`: the
@@ -1533,6 +1535,8 @@ def approvalCreateB : Approval := { session := sessionA, facts := factsCreateB }
 def approvalExec : Approval := { session := sessionA, facts := factsExec }
 def approvalExecB : Approval := { session := sessionB, facts := factsExec }
 def approvalExecC : Approval := { session := sessionC, facts := factsExec }
+def approvalReboot : Approval := { session := sessionA, facts := factsReboot }
+def approvalRebootB : Approval := { session := sessionB, facts := factsReboot }
 def approvalRegister : Approval := { session := sessionA, facts := factsRegister }
 def approvalActivate : Approval := { session := sessionA, facts := factsActivate }
 def approvalActivateB : Approval := { session := sessionB, facts := factsActivate }
@@ -2843,11 +2847,12 @@ def holdIsolationEvents : List Event :=
     w.dispatched.map (·.call) = [20, 17, 14, 13, 7] ∧
     unresolved current w.memory machineA = [20] := by decide +kernel
 
-def rebootRequest : Request := { execRequest with call := 30, kind := .deliveryReboot }
+def rebootRequest : Request :=
+  { execRequest with call := 30, kind := .deliveryReboot, facts := factsReboot }
 
 /-- A harness reboot requested while a command is unresolved on the machine. -/
 def commandRebootEvents : List Event :=
-  [.request execRequest approvalExec true, .request rebootRequest approvalExec true]
+  [.request execRequest approvalExec true, .request rebootRequest approvalReboot true]
 
 /-- An unresolved command holds the harness's reboot too, without recording its intent. -/
 @[req "STA-20"] theorem command_holds_delivery_reboot :
@@ -2865,7 +2870,7 @@ def commandRebootEvents : List Event :=
 def destructiveRebootEvents : List Event :=
   [.request execRequest approvalExec true,
    .dispose reinstallAfterCommand true,
-   .request rebootRequest approvalExec true]
+   .request rebootRequest approvalReboot true]
 
 /-- The destructive stop refuses the harness's reboot, just as it refuses a session's command. -/
 @[req "STA-24"] theorem destructive_choice_stops_delivery_reboot :
@@ -2877,13 +2882,13 @@ def destructiveRebootEvents : List Event :=
 @[req "STA-24"] theorem delivery_reboot_dispatched_without_destructive_stop :
     let w := run noDestructiveStop farDone.external init destructiveRebootEvents
     w.dispatched.map (·.call) = [30, 7] ∧
-    w.verdict = some (.dispatched (intentOf rebootRequest machineA approvalExec)) := by decide +kernel
+    w.verdict = some (.dispatched (intentOf rebootRequest machineA approvalReboot)) := by decide +kernel
 
 /-- A harness reboot requested while the disposed command's abandonment stands. -/
 def abandonmentRebootEvents : List Event :=
   [.request execRequest approvalExec true,
    .dispose { reinstallAfterCommand with continuation := .abandon } true,
-   .request rebootRequest approvalExec true]
+   .request rebootRequest approvalReboot true]
 
 /-- Abandonment refuses the harness's reboot while its destructive stop stands. -/
 @[req "STA-24"] theorem abandonment_stops_delivery_reboot :
@@ -2893,7 +2898,7 @@ def abandonmentRebootEvents : List Event :=
 
 /-- The collection on the record's own boot, even alongside a generic success observation. -/
 def sameBootRebootEvents : List Event :=
-  [.request rebootRequest approvalExec true,
+  [.request rebootRequest approvalReboot true,
    .observe .jobRecord machineA .deliveryReboot true,
    .collectReboot 30 machineA (some 2) true, .request execRequest approvalExec true]
 
@@ -2913,7 +2918,7 @@ def rebootDone : Far := { farDone with succeeded := (machineA, .deliveryReboot) 
     w.dispatched.map (·.call) = [7, 30] := by decide +kernel
 
 def newBootRebootEvents : List Event :=
-  [.request rebootRequest approvalExec true,
+  [.request rebootRequest approvalReboot true,
    .collectReboot 30 machineA (some 1) true, .replay,
    .request { execRequest with session := sessionB } approvalExecB true]
 
@@ -2925,7 +2930,7 @@ def newBootRebootEvents : List Event :=
     changesRunning .deliveryReboot = false := by decide +kernel
 
 def failedRebootAppendEvents : List Event :=
-  [.request rebootRequest approvalExec true, .collectReboot 30 machineA (some 1) false,
+  [.request rebootRequest approvalReboot true, .collectReboot 30 machineA (some 1) false,
    .replay, .request { execRequest with session := sessionB } approvalExecB true,
    .collectReboot 30 machineA (some 1) true, .replay,
    .request { execRequest2 with session := sessionC } approvalExecC true]
@@ -2939,7 +2944,7 @@ def failedRebootAppendEvents : List Event :=
 
 /-- Wrong call, machine, missing recorded boot and generic observations settle nothing. -/
 def invalidRebootCollections : List Event :=
-  [.request rebootRequest approvalExec true,
+  [.request rebootRequest approvalReboot true,
    .collectReboot 31 machineA (some 1) true, .collectReboot 30 machineB (some 1) true,
    .collectReboot 30 machineA none true, .observe .adapterRead machineA .deliveryReboot true,
    .request execRequest approvalExec true]
@@ -2950,12 +2955,24 @@ def invalidRebootCollections : List Event :=
     w.verdict = some (.refused (.barrier [30])) ∧
     settles current (intentOf resetRequest1 machineA approvalReset) []
       (.deliveryRebootResult 1 machineA (some 1) 2) = false ∧
-    settles current (intentOf rebootRequest machineA approvalExecB) []
+    settles current (intentOf rebootRequest machineA approvalRebootB) []
       (.deliveryRebootResult 30 machineA (some 1) 2) = false := by decide +kernel
+
+/-- Same-session ordinary exec approval does not approve the canonical harness reboot. -/
+def execApprovedRebootEvents : List Event :=
+  [.request rebootRequest approvalExec true]
+
+/-- The request itself refuses the facts, dispatches nothing and changes neither journal
+nor in-memory intents. Distinct approval inputs are unpaired, not a guard-off trap. -/
+@[req "ARC-43"] theorem delivery_reboot_exec_approval_refused :
+    let w := run current farDone.external init execApprovedRebootEvents
+    w.verdict = some (.refused .facts) ∧
+    w.dispatched = [] ∧ intentsOf w.memory = [] ∧
+    w.journal = init.journal ∧ w.memory = init.memory := by decide +kernel
 
 /-- A failed approval check records no intent for a later collection to settle. -/
 def unapprovedRebootEvents : List Event :=
-  [.request rebootRequest approvalExecB true, .collectReboot 30 machineA (some 1) true,
+  [.request rebootRequest approvalRebootB true, .collectReboot 30 machineA (some 1) true,
    .request execRequest approvalExec true]
 
 @[req "ARC-43"] theorem delivery_reboot_requires_approval :
@@ -2963,7 +2980,7 @@ def unapprovedRebootEvents : List Event :=
     w.dispatched.map (·.call) = [7] ∧ (intentsOf w.memory).length = 1 := by decide +kernel
 
 def disposedRebootEvents : List Event :=
-  [.request rebootRequest approvalExec true,
+  [.request rebootRequest approvalReboot true,
    .dispose ⟨machineA, [30], .reinstall⟩ true,
    .collectReboot 30 machineA (some 1) true, .request execRequest approvalExec true]
 
@@ -3060,8 +3077,10 @@ statements, not the file's. -/
 @[req "STA-24"] def bound : Nat := 3
 
 /-- The events the bounded enumeration draws from: the destructive call and the same action under
-a fresh call id, box-plane work on the same machine, the vendor read that settles the reset, the
-operator's disposition, a replay, a second fresh box-plane command and a rescue activation.
+a fresh call id, exec work on the same machine, the vendor read that settles the reset, the
+operator's disposition, a replay, a second fresh exec command and a rescue activation.
+It contains no deliveryReboot request; `command_holds_delivery_reboot` /
+`delivery_reboot_without_hold` carry the reboot command-hold case as named witnesses.
 An unresolved activation may precede one command; an unresolved command bars an activation.
 This alphabet includes pre-replay sessions acting after replay, a superset of realizable
 traces; a universal theorem over that superset is stronger. Named witnesses follow the
@@ -3185,7 +3204,9 @@ shortest first. Both the decided property and the emitter read this filter. -/
 
 /-- What may be unresolved together on one resource. `STA-24` permits an older activation
 or key registration beside one box-plane command; `STA-20` admits at most one such command.
-Stated without the admission guards, so the bounded check independently checks their result. -/
+Stated without the admission guards, so the bounded check independently checks their result
+for `alphabet`, whose box-plane requests are exec only; the reboot command-hold case is
+`command_holds_delivery_reboot` / `delivery_reboot_without_hold`. -/
 @[req "STA-24"] def unresolvedTogether (p : Params) (j : Journal) : Bool :=
   (resourcesOf j).all fun r =>
     let open_ := openIntents p j r
@@ -3195,7 +3216,9 @@ Stated without the admission guards, so the bounded check independently checks t
 
 /-- What may be unresolved together, decided within the bound, with distinct request call ids
 checked independently of the filter. Restated 2026-10-18: the predicate also requires at most
-one unresolved box-plane command per resource, over the alphabet with a second fresh command.
+one unresolved box-plane command per resource. The alphabet exercises exec requests, including
+a second fresh exec; `command_holds_delivery_reboot` / `delivery_reboot_without_hold` cover
+reboot as named witnesses outside this enumeration.
 Narrowed 2026-10-16 to reachable request identities: the
 enumeration the witness file carries is one the companion itself closed over. -/
 @[req "STA-24"] theorem bounded :
