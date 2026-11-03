@@ -1369,6 +1369,15 @@ Real session end retains its journaled revocation attempt, including late mint i
 
 Cap exhaustion is established when the exact decimal sum of the key's observed spend reaches or exceeds its cap, or by an issuer response that the profile evidences as that key's cap exhaustion; unaccounted spend never establishes that allowance remains. An account-balance refusal is not by itself key-cap exhaustion: it refuses that request and is recorded and shown, and it neither ends, renews nor extends the session. An expiry or cap-exhaustion end is that session's own end; it does not lock the store or end another eligible session.
 
+The conditional symbolic eligibility check is `TauWeb.Authority.keyEligible`, within
+[STA-23's checking interpretation](./03-state-and-recovery.md#durable-state).
+Its current issuer/clock evidence includes both discrepancy checks as distinct hypotheses;
+it establishes no arithmetic, real issuer behavior or production inference admission.
+`TauWeb.Authority.request_original_limits_refused` /
+`TauWeb.Authority.request_original_limits_without_check` retain changed evidence presented at
+the request boundary after a valid original assessment, with
+`TauWeb.Authority.request_unchanged_limits_progress` as the unchanged-evidence continuation.
+
 **Display.**
 
 Before confirmation, show the exact cap with its truthful account unit and supported range, selected whole-minute lifetime, the visible offered defaults 0.10 and 15 minutes, and a clear confirm/start action naming both limits for this session. Explain the chosen lifetime origin, that delays and hidden time after that origin consume it, that there is one mint and no renewal, and that a cap is neither reserved balance nor a guarantee of useful work. Show the account's local display identity without exposing its bearer credential. Cancellation before the mint intent sends no mint; edits or changed binding invalidate the earlier confirmation.

@@ -967,6 +967,38 @@ freeze or discard the page. This is a standing disclosure, not a new acknowledge
 every return or a promise of time to withdraw before an eligible approved action dispatches.
 The UI MUST show the actual running, reconciling, ended, expired, locked or lost state on return.
 
+The processed-authority checking interpretation is `TauWeb.Authority.step` (ADR-0032),
+composed with the unchanged Dispatch request transition. `TauWeb.Authority.ordinary_refinement`
+establishes current symbolic eligibility and the delegated Dispatch result, including its
+durable-intent and approval premises. `TauWeb.Authority.fence_history` quantifies over symbolic
+histories. `TauWeb.Authority.ended_no_send` and `TauWeb.Authority.ended_no_publication` are
+single-step statements over arbitrary states; composing them with the history theorem preserves
+the fence through subsequent events, under their explicit guard hypotheses.
+`TauWeb.Authority.hide_identity` leaves the whole state unchanged for a processed ordinary hide
+outside the ceremony; `TauWeb.Authority.lifecycle_knowledge` leaves Dispatch
+knowledge untouched, while `TauWeb.Authority.replay_knowledge` rebuilds memory from the journal.
+The named finite histories in [the authority witness file](docs/design/authority-witnesses-v2.json)
+include the shared Robot read-confirmation seam, suspension validation, exclusive succession,
+ceremony hide and conditional procured eligibility. They are decided witnesses, not an exhaustive
+lifecycle proof. The generated declaration index remains the inventory.
+
+This interpretation represents processed events, worker/session incarnations, abstract authorized
+bindings, current readiness evidence, immutable symbolic key/limit identities and publication to
+its original call. Connection, scan, identifiable safe-unsent continuation and the full procured
+clock/issuer contract are hypotheses; validation neither finds a continuation nor grants Dispatch
+permission. After processed interruption this narrow interface validates each proposed work
+individually; it represents no universal resumed-Ready state. Publication represents an already
+approved proposed continuation, including outside interruption; pending operator decisions remain
+prose-only. The original completed request and proposed unsent continuation are separate inputs.
+The interpretation rejects a proposed continuation whose call is already in its issued/dispatch
+history; absence from those histories is not itself safe-unsent evidence.
+Origin correlation is an interface convention, not a prohibition on later authorized historical
+use. Single-writer/store custody and stopped predecessors are assumed; browser notification,
+physical timing, cryptography, buffer clearing, actual pre-send/post-await fences, storage ordering,
+clock arithmetic, issuer enforcement and cleanup remain outside these results. Received-evidence
+recording requires explicit current custody and authorization and admits no new query transmission.
+No rendering region covers these clauses, so the Markdown remains authoritative.
+
 Clearing buffers is best effort in a browser, not a claim of physical memory erasure.
 Wrong passphrases, tampered envelopes or unsupported versions fail closed without creating a
 replacement store. Lost local passphrases require seed/sheet/vendor recovery; the publisher

@@ -351,6 +351,145 @@ decl_control "$ALLOC" "formal: the generated-seed ceremony gate dropped" \
 pins_control() { decl_control "$PINS" "$@"; }
 dispatch_control() { decl_control "$DISP" "$@"; }
 
+# Processed authority: exact semantic failures, including progress properties.
+AUTH=tools/formal/TauWeb/Authority.lean
+authority_control() { decl_control "$AUTH" "$@"; }
+
+# Delete each concrete predicate at its own boundary; flipping a broader parameter is
+# insufficient to show that the source check itself remains covered.
+authority_control "formal: authority actor request session check removed" \
+  "sed -i 's/(!p.requestSession || work.request.session == a.who.session)/true/' $AUTH" \
+  borrowed_session_refused
+
+authority_control "formal: authority machine membership check removed" \
+  "sed -i 's/!p.machineMembership || a.bound.contains e/true/' $AUTH" \
+  unbound_entry_refused live_entry_growth_refused
+
+authority_control "formal: authority growth exclusivity check removed" \
+  "sed -i 's/(!p.exclusiveBinding || !p.growthExclusive || bindingFree w who \[entry\])/true/' $AUTH" \
+  live_entry_growth_refused
+
+authority_control "formal: authority request original limits check removed" \
+  "sed -i 's/(!p.requestOriginal || k.original == original)/true/' $AUTH" \
+  request_original_limits_refused
+
+authority_control "formal: authority unsentContinuation" \
+  "sed -i 's/  unsentContinuation : Bool := true/  unsentContinuation : Bool := false/' $AUTH" \
+  issued_continuation_refused
+
+authority_control "formal: authority validationTerminal" \
+  "sed -i 's/  validationTerminal : Bool := true/  validationTerminal : Bool := false/' $AUTH" \
+  validation_terminal_ends
+
+authority_control "formal: authority publicationDispatch" \
+  "sed -i 's/  publicationDispatch : Bool := true/  publicationDispatch : Bool := false/' $AUTH" \
+  publication_barrier_refused publication_after_durable_confirmation
+
+authority_control "formal: authority endFence" \
+  "sed -i 's/  endFence : Bool := true/  endFence : Bool := false/' $AUTH" \
+  ended_refused late_publication_refused validation_and_readmission_cannot_revive global_end_paths_and_replay_fence historical_record_without_revival cap_end_cannot_repair validation_terminal_ends
+
+authority_control "formal: authority workerIdentity" \
+  "sed -i 's/  workerIdentity : Bool := true/  workerIdentity : Bool := false/' $AUTH" \
+  stale_worker_refused
+
+authority_control "formal: authority hidePreserves" \
+  "sed -i 's/  hidePreserves : Bool := true/  hidePreserves : Bool := false/' $AUTH" \
+  hidden_progress
+
+authority_control "formal: authority ceremonyHideLocks" \
+  "sed -i 's/  ceremonyHideLocks : Bool := true/  ceremonyHideLocks : Bool := false/' $AUTH" \
+  ceremony_hide_locks
+
+authority_control "formal: authority validationRequired" \
+  "sed -i 's/  validationRequired : Bool := true/  validationRequired : Bool := false/' $AUTH" \
+  suspension_refused wrong_continuation_refused invalidation_requires_new_validation unsafe_validation_refused changed_dispatch_requires_current_validation unsafe_boundary_refused
+
+authority_control "formal: authority validationMatches" \
+  "sed -i 's/  validationMatches : Bool := true/  validationMatches : Bool := false/' $AUTH" \
+  wrong_continuation_refused changed_dispatch_requires_current_validation
+
+authority_control "formal: authority publicationOrigin" \
+  "sed -i 's/  publicationOrigin : Bool := true/  publicationOrigin : Bool := false/' $AUTH" \
+  stale_origin_refused
+
+authority_control "formal: authority individualOnly" \
+  "sed -i 's/  individualOnly : Bool := true/  individualOnly : Bool := false/' $AUTH" \
+  ended_admitted_without_fence late_publication_without_fence stale_origin_transferred_without_guard individual_end_keeps_sibling
+
+authority_control "formal: authority exclusiveBinding" \
+  "sed -i 's/  exclusiveBinding : Bool := true/  exclusiveBinding : Bool := false/' $AUTH" \
+  live_predecessor_refuses_successor live_entry_growth_refused
+
+authority_control "formal: authority procuredEligibility" \
+  "sed -i 's/  procuredEligibility : Bool := true/  procuredEligibility : Bool := false/' $AUTH" \
+  expired_session_ssh_refused expiry_spreads_without_scope uncertain_clock_then_unchanged_repair repair_cannot_renew both_clock_discrepancies_required cap_end_cannot_repair incompatible_acceptance_withheld validation_terminal_ends request_original_limits_refused
+
+authority_control "formal: authority scopedExpiry" \
+  "sed -i 's/  scopedExpiry : Bool := true/  scopedExpiry : Bool := false/' $AUTH" \
+  procured_expiry_keeps_independent_session independent_has_no_procured_deadline
+
+authority_control "formal: authority preserveKnowledge" \
+  "sed -i 's/  preserveKnowledge : Bool := true/  preserveKnowledge : Bool := false/' $AUTH" \
+  successor_barrier_refused failed_confirmation_keeps_barrier validation_preserves_uncertainty changed_dispatch_requires_current_validation publication_barrier_refused publication_after_durable_confirmation
+
+authority_control "formal: authority anchor" \
+  "sed -i 's/&& e.anchorCheck//' $AUTH" \
+  both_clock_discrepancies_required
+
+authority_control "formal: authority pair" \
+  "sed -i 's/&& e.pairCheck//' $AUTH" \
+  both_clock_discrepancies_required
+
+authority_control "formal: authority custody" \
+  "sed -i 's/&& custody.writerOwnsStore//' $AUTH" \
+  historical_record_requires_custody
+
+authority_control "formal: authority connection" \
+  "sed -i 's/ev.connected &&//' $AUTH" \
+  current_connection_and_scan_required
+
+authority_control "formal: authority scan" \
+  "sed -i 's/ev.scanReady &&//' $AUTH" \
+  current_connection_and_scan_required
+
+authority_control "formal: authority unsent_validation" \
+  "sed -i 's/&& ev.safeUnsent then/then/' $AUTH" \
+  unsafe_validation_refused
+
+authority_control "formal: authority unsent_boundary" \
+  "sed -i 's/ev.safeUnsent && match a.validation with/match a.validation with/' $AUTH" \
+  unsafe_boundary_refused
+
+authority_control "formal: authority record_authorized" \
+  "sed -i 's/custody.authorized &&//' $AUTH" \
+  historical_record_requires_authorization
+
+authority_control "formal: authority store_access" \
+  "sed -i 's/&& custody.storeAccess//' $AUTH" \
+  historical_record_requires_store_access
+
+authority_control "formal: authority ceremony_owed" \
+  "sed -i 's/if p.ceremonyHideLocks then endAll w else w/if p.ceremonyHideLocks then { endAll w with ceremonyOwed := false } else w/' $AUTH" \
+  ceremony_hide_locks
+
+# A valid continuation remains accepted after harmless ordinary hide/return insertion.
+expected=$((expected + 1))
+authority_positive="$(mktemp -d -p "$scratch_root")"
+copy_tree "$authority_positive"
+if (cd "$authority_positive/repo" &&
+    sed -i 's/\.lifecycle (.admit candidateB true), \.lifecycle (.suspend bob)/.lifecycle (.admit candidateB true), .lifecycle .hide, .lifecycle .visible, .lifecycle (.suspend bob)/' "$AUTH" &&
+    grep -qxF '  .lifecycle (.admit candidateB true), .lifecycle .hide, .lifecycle .visible, .lifecycle (.suspend bob), .lifecycle (.validate execB ready)]' "$AUTH" &&
+    bash "$FORMAL") > "$authority_positive/output" 2>&1; then
+  echo "ok: formal: authority valid hidden successor continuation -> stays green"
+  passed=$((passed + 1))
+else
+  echo "::error::formal: authority valid hidden successor continuation went red"
+  cat "$authority_positive/output"
+  fail=1
+fi
+rm -rf -- "$authority_positive"
+
 expected=$((expected + 1))
 if python3 tools/test_pins_control_diagnostics.py "$scratch_root"; then
   echo "ok: formal: pin diagnostic parser regressions"

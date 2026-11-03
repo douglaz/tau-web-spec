@@ -61,10 +61,70 @@ Both arrays hold traces of one shape:
 | `start` | The state before the first event, in the projection below. Allocation: the `journal` — most traces start from the fresh seed; the exhaustion witness starts one below the index limit. Declaration: the `declaration` and the `machine` the check reads, and the empty `record`. Relay: the `challenge` as an ordinal, the `destination` the path parsed to, what the pipeline `classified` it as, the `pass` the operator's key holds, and the opened `connection`. Dispatch: the `knowledge` below, which every trace starts with the harness's associations in and nothing else, but for one witness: `TauWeb.Dispatch.replayed_invalid_disposition_means_nothing` starts from a journal a replay finds already written, holding an unresolved call and a disposition recorded against another resource, which no trace under the rules in force can write since such a disposition is refused. Pins: the `knowledge` below — for the witnesses, empty apart from `planted_senders`, which lists every machine the trace names; and `bound.start` for the enumeration. |
 | `steps` | One object per event, in order: `event`, the outcome members for that event kind, and the projection after the step — `journal` for allocation, `record` for declaration, `connection` for relay, `knowledge` for dispatch and for pins. |
 
+## Authority schema 2
+
+[`authority-witnesses-v2.json`](./authority-witnesses-v2.json) is the separate processed-authority
+checking interpretation. Dispatch's schema 8 and its meanings are unchanged. The authority
+file has the common header/trace envelope, an empty `enumeration`, and a `bound` naming
+`TauWeb.Authority.witnessBound`: a checked length cap for named finite histories, not an
+exhaustive alphabet. All identities and original key/origin/cap/expiry fields are symbolic
+ordinals, never credentials or actual clock values.
+
+Schema 2 adds the explicit `requestSession`, `machineMembership`, `growthExclusive` and
+`requestOriginal` guard assumptions for isolated counterfactuals of existing checks. The event,
+knowledge and pair shapes are unchanged from schema 1. Fresh-admission `exclusiveBinding`
+also governs growth; `growthExclusive` bypasses only the growth-side check. `requestOriginal`
+bypasses only the current evidence comparison in `keyEligible`, leaving assessment unchanged.
+
+Each trace's assumptions carry the authority guards, unchanged nested Dispatch parameters and
+explicit external hypotheses. A `work` names a worker/session/incarnation, request and approval;
+it contains no resolved resource. A recorded issued origin additionally carries the resolved
+resource returned by Dispatch. An actionable-publication event keeps this original call separate
+from its proposed continuation and evidence. Only that continuation's evidence says `safe_unsent`.
+The continuation call cannot already occur in the issued/dispatch history. Absence there supplies
+no safe-unsent evidence by itself. The positive late-result histories use distinct continuation
+calls; the marked issued-call counterfactual retains the unsafe reuse.
+These booleans stand for current evidence under STA-23 and ARC-31a, not measured browser or
+issuer behavior; both anchor and adjacent-pair discrepancy checks are present separately. False
+means a fact has not been established, not proof of its negation. Established upper-bound equality
+or passage beyond the original expiry is `expired`; established cap exhaustion is `exhausted`.
+Those terminal assessments apply at validation as well as request/publication boundaries.
+
+This schema explicitly extends ADR-0032's witness provenance vocabulary with
+`processed lifecycle notification`, for already processed hide, visible, suspension and
+non-operator global-end events, and `harness publication`, for the harness's actionable
+publication attempt. These labels are symbolic inputs, not evidence that a browser notification
+arrived or an adapter supplied a publication. Other events retain `operator act`, `model request`, `adapter observation`,
+`disposition` or `replay`; current readiness/issuer facts remain abstract hypotheses even where
+their provenance is `adapter observation`. This extension affects only authority schema 2.
+
+Events distinguish processed `hide`, `visible`, `suspend`, invalidation, operation-specific
+validation, individual/global end (including pagehide/bfcache, reload and shutdown), ceremony
+entry, authorized unlock/fresh admission/binding growth, key assessment, ordinary request,
+actionable publication, separately authorized received record, and replay. A received record
+uses Dispatch's existing observation/receipt/reboot/disposition shape and carries authorization,
+writer ownership and store access; it is not a new query send or a universal harness exemption.
+The ordinary-request event alone carries its actual intent-append outcome.
+
+Every step is evaluated by `TauWeb.Authority.step`. Its `knowledge` contains the existing
+Dispatch knowledge projection plus actors/bindings, interruption revisions, particular validation,
+key withholding, irreversible fences, store/ceremony flags, issued origins and publications.
+A request reports `authority_eligible`, actual new `sent` and, when delegated, the actual
+`delegated_verdict`; absence of delegation assigns no cross-layer runtime refusal precedence.
+A publication reports whether the publication list grew; recording reports whether the durable
+journal changed. The file retains each strong/counterfactual pair whole, including positive
+progress properties where the counterfactual wrongly refuses work. In authority pairs, `side:
+"refused"` identifies the strong baseline that rejects the retained trap and `side: "admitted"`
+identifies the counterfactual that admits the trap. These labels are not event outcomes:
+`sent`, `published` and `delegated_verdict` carry those, including a strong baseline's required
+progress and a counterfactual's unjustified refusal. It is not an implementation
+comparison or evidence of scheduling, physical fencing, durability or issuer enforcement.
+
 ## Events
 
-Each `event` has a `kind` and a `provenance` from ADR-0032's closed vocabulary; the members
-beside them are the event's arguments.
+For the existing module schemas in the table below, each `event` has a `kind` and a
+`provenance` from ADR-0032's closed vocabulary; the members beside them are the event's
+arguments. Authority schema 2's explicit extension and event shapes are described above.
 
 | `kind` | `provenance` | Arguments | Outcome members on the step |
 |---|---|---|---|

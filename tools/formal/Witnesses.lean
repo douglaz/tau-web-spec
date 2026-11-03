@@ -158,7 +158,7 @@ structure Module where
 
 /-- The schema version of each emitted module. Allocation, pins and dispatch changed shape. -/
 def schemaVersion (name : String) : Nat :=
-  if name == "allocation" then 2 else if name == "pins" then 5 else if name == "dispatch" then 8 else 1
+  if name == "authority" then 2 else if name == "allocation" then 2 else if name == "pins" then 5 else if name == "dispatch" then 8 else 1
 
 /-- The header pretty, one trace per line: a diff names the trace that moved. -/
 def fileText (name : String) (ns : Name) (bound : Json) (witnesses enumeration : List Json) :
@@ -1443,8 +1443,198 @@ def module : Module :=
 
 end Pins
 
+/-! ## Processed session authority and its explicit Dispatch seam -/
+namespace Authority
+open TauWeb.Authority
+
+def identityJson (i : TauWeb.Authority.Identity) : Json := Json.mkObj [
+  ("incarnation", toJson i.incarnation), ("worker", toJson i.worker), ("session", toJson i.session)]
+def limitsJson (l : Limits) : Json := Json.mkObj [
+  ("key", toJson l.key), ("origin", toJson l.origin), ("cap", toJson l.cap), ("expiry", toJson l.expiry)]
+def keyStateName : KeyState → String
+  | .valid => "valid" | .uncertain => "uncertain" | .expired => "expired"
+  | .exhausted => "exhausted" | .incompatible => "incompatible"
+def keyJson (k : KeyEvidence) : Json := Json.mkObj [
+  ("original", limitsJson k.original), ("state", keyStateName k.state),
+  ("issuer_acceptance", toJson k.issuerAcceptance), ("authenticated_interval", toJson k.authenticatedInterval),
+  ("evidenced_rates", toJson k.evidencedRates), ("monotonic_continuity", toJson k.monotonicContinuity),
+  ("exact_arithmetic", toJson k.exactArithmetic), ("anchor_check", toJson k.anchorCheck),
+  ("pair_check", toJson k.pairCheck), ("upper_before_expiry", toJson k.upperBeforeExpiry),
+  ("allowance_established", toJson k.allowanceEstablished)]
+def evidenceJson (e : Evidence) : Json := Json.mkObj [
+  ("connected", toJson e.connected), ("scan_ready", toJson e.scanReady), ("safe_unsent", toJson e.safeUnsent),
+  ("key", e.key.map keyJson |>.getD Json.null)]
+def pathJson : Path → Json
+  | .independent => Json.mkObj [("kind", "bring_your_own_or_local")]
+  | .procured l => Json.mkObj [("kind", "procured"), ("original", limitsJson l)]
+def workJson (work : Work) : Json := Json.mkObj [
+  ("authority", identityJson work.who),
+  ("request", Json.mkObj [("call", toJson work.request.call), ("target", Dispatch.targetJson work.request.target),
+    ("operation", Dispatch.kindName work.request.kind), ("session", toJson work.request.session),
+    ("facts", toJson work.request.facts), ("approved", Json.mkObj [("session", toJson work.approval.session),
+      ("facts", toJson work.approval.facts), ("receipt_binding", work.approval.receiptBinding.map Dispatch.receiptBindingJson |>.getD Json.null)])])]
+def issuedJson (i : Issued) : Json := Json.mkObj [("work", workJson i.work), ("resource", Dispatch.resourceJson i.resource)]
+def verdictJson : TauWeb.Dispatch.Verdict → Json
+  | .dispatched _ => Json.mkObj [("dispatch", "dispatched")]
+  | .refused r => Json.mkObj [("dispatch", "refused"), ("reason", Dispatch.refusalJson r)]
+def validationJson (v : Validation) : Json := Json.mkObj [
+  ("work", workJson v.work), ("resource", Dispatch.resourceJson v.resource),
+  ("revision", toJson v.revision), ("checked", verdictJson v.checked)]
+def actorJson (a : Actor) : Json := Json.mkObj [
+  ("authority", identityJson a.who), ("bound", toJson a.bound), ("path", pathJson a.path),
+  ("interrupted", toJson a.interrupted), ("revision", toJson a.revision),
+  ("validation", a.validation.map validationJson |>.getD Json.null), ("key_withheld", toJson a.keyWithheld)]
+def knowledgeJson (dp : TauWeb.Dispatch.Params) (w : TauWeb.Authority.World) : Json := Json.mkObj [
+  ("dispatch", Dispatch.knowledgeJson dp w.dispatch), ("actors", toJson (w.actors.map actorJson)),
+  ("fenced", toJson (w.fenced.map identityJson)), ("locked", toJson w.locked),
+  ("ceremony", toJson w.ceremony), ("ceremony_owed", toJson w.ceremonyOwed),
+  ("issued", toJson (w.issued.map issuedJson)), ("published", toJson (w.published.map issuedJson))]
+def candidateJson (c : Candidate) : Json := Json.mkObj [
+  ("authority", identityJson c.who), ("bound", toJson c.bound), ("path", pathJson c.path)]
+def reasonName : EndReason → String
+  | .lock => "lock" | .pagehide => "pagehide_bfcache" | .reload => "reload" | .shutdown => "shutdown"
+def localJson : Local → Json
+  | .hide => Json.mkObj [("kind", "hide"), ("provenance", "processed lifecycle notification")]
+  | .visible => Json.mkObj [("kind", "visible"), ("provenance", "processed lifecycle notification")]
+  | .suspend i => Json.mkObj [("kind", "suspend"), ("provenance", "processed lifecycle notification"), ("authority", identityJson i)]
+  | .invalidate i => Json.mkObj [("kind", "invalidate"), ("provenance", "adapter observation"), ("authority", identityJson i)]
+  | .validate w e => Json.mkObj [("kind", "validate_continuation"), ("provenance", "adapter observation"), ("work", workJson w), ("evidence", evidenceJson e)]
+  | .endSession i => Json.mkObj [("kind", "end_session"), ("provenance", "operator act"), ("authority", identityJson i)]
+  | .globalEnd r => Json.mkObj [("kind", "global_end"), ("provenance", if r == .lock then "operator act" else "processed lifecycle notification"), ("reason", reasonName r)]
+  | .enterCeremony => Json.mkObj [("kind", "enter_ceremony"), ("provenance", "operator act")]
+  | .unlock ok => Json.mkObj [("kind", "unlock"), ("provenance", "operator act"), ("authorized", toJson ok)]
+  | .admit c ok => Json.mkObj [("kind", "fresh_admission"), ("provenance", "operator act"), ("candidate", candidateJson c), ("authorized", toJson ok)]
+  | .grow i e ok => Json.mkObj [("kind", "grow_binding"), ("provenance", "operator act"), ("authority", identityJson i), ("entry", toJson e), ("authorized", toJson ok)]
+  | .assessKey i k => Json.mkObj [("kind", "assess_key"), ("provenance", "adapter observation"), ("authority", identityJson i), ("evidence", keyJson k)]
+def eventJson : TauWeb.Authority.Event → Json
+  | .lifecycle l => localJson l
+  | .request w e ok => Json.mkObj [("kind", "ordinary_request"), ("provenance", "model request"), ("work", workJson w), ("evidence", evidenceJson e), ("appended", toJson ok)]
+  | .publish origin w e => Json.mkObj [("kind", "actionable_publication"), ("provenance", "harness publication"), ("origin", issuedJson origin), ("continuation", workJson w), ("evidence", evidenceJson e)]
+  | .record r c => Json.mkObj [("kind", "received_record"), ("provenance", match r with | .disposition _ _ => "disposition" | _ => "adapter observation"),
+      ("record", Dispatch.eventJson TauWeb.Dispatch.farDone.external r.event),
+      ("custody", Json.mkObj [("authorized", toJson c.authorized), ("writer_owns_store", toJson c.writerOwnsStore), ("store_access", toJson c.storeAccess)])]
+  | .replay => Json.mkObj [("kind", "replay"), ("provenance", "replay")]
+def stepJson (p : TauWeb.Authority.Params) (dp : TauWeb.Dispatch.Params) (w : TauWeb.Authority.World) (e : TauWeb.Authority.Event) : Json × TauWeb.Authority.World :=
+  let next := TauWeb.Authority.step p dp TauWeb.Dispatch.farDone.external w e
+  let outcome := match e with
+    | .request work ev _ =>
+      let delegated := eligible p dp (boundary p w work ev) work ev
+      [("authority_eligible", toJson delegated),
+       ("sent", toJson (decide (next.dispatch.dispatched.length > w.dispatch.dispatched.length))),
+       ("delegated_verdict", if delegated then next.dispatch.verdict.map verdictJson |>.getD Json.null else Json.null)]
+    | .publish _ _ _ => [("published", toJson (decide (next.published.length > w.published.length)))]
+    | .record _ _ => [("journal_changed", toJson (next.dispatch.journal != w.dispatch.journal))]
+    | _ => []
+  (Json.mkObj ([("event", eventJson e)] ++ outcome ++ [("knowledge", knowledgeJson dp next)]), next)
+
+def assumptionsJson (p : TauWeb.Authority.Params) (dp : TauWeb.Dispatch.Params) : Json := Json.mkObj [
+  ("endFence", toJson p.endFence), ("workerIdentity", toJson p.workerIdentity),
+  ("requestSession", toJson p.requestSession), ("machineMembership", toJson p.machineMembership),
+  ("growthExclusive", toJson p.growthExclusive), ("requestOriginal", toJson p.requestOriginal),
+  ("hidePreserves", toJson p.hidePreserves), ("ceremonyHideLocks", toJson p.ceremonyHideLocks),
+  ("unsentContinuation", toJson p.unsentContinuation), ("validationTerminal", toJson p.validationTerminal), ("validationRequired", toJson p.validationRequired), ("validationMatches", toJson p.validationMatches),
+  ("publicationDispatch", toJson p.publicationDispatch), ("publicationOrigin", toJson p.publicationOrigin), ("individualOnly", toJson p.individualOnly),
+  ("exclusiveBinding", toJson p.exclusiveBinding), ("procuredEligibility", toJson p.procuredEligibility),
+  ("scopedExpiry", toJson p.scopedExpiry), ("preserveKnowledge", toJson p.preserveKnowledge),
+  ("dispatch", Dispatch.assumptionsJson dp),
+  ("external_hypotheses", toJson (["single writer and current store custody", "processed-event ordering only",
+    "operator admission and binding authorization", "fresh symbolic identities", "end represents stopped workers and closed channels",
+    "current connection, scan and safe-unsent evidence", "full current issuer/clock/limits evidence including both discrepancy checks",
+    "original-call to continuation correlation is an interface convention"] : List String))]
+
+structure Trace where
+  declarations : List String
+  events : List TauWeb.Authority.Event
+  params : TauWeb.Authority.Params := TauWeb.Authority.current
+  dispatchParams : TauWeb.Dispatch.Params := TauWeb.Dispatch.current
+  pair : Option (Side × String) := none
+
+def named (short : String) : String := "TauWeb.Authority." ++ short
+
+def paired (good bad : String) (events : List TauWeb.Authority.Event) (p : TauWeb.Authority.Params)
+    (dp : TauWeb.Dispatch.Params := TauWeb.Dispatch.current) : List Trace := [
+  { declarations := [named good], events, pair := some (.refused, named bad) },
+  { declarations := [named bad], events, params := p, dispatchParams := dp, pair := some (.admitted, named good) }]
+
+def witnesses : List Trace :=
+  paired "borrowed_session_refused" "borrowed_session_without_check" borrowedSessionEvents { TauWeb.Authority.current with requestSession := false } ++
+  paired "unbound_entry_refused" "unbound_entry_without_check" unboundEvents { TauWeb.Authority.current with machineMembership := false } ++
+  paired "live_entry_growth_refused" "live_entry_growth_without_check" contestedGrowthEvents { TauWeb.Authority.current with growthExclusive := false } ++
+  paired "request_original_limits_refused" "request_original_limits_without_check" changedRequestLimitsEvents { TauWeb.Authority.current with requestOriginal := false } ++
+  [ { declarations := [named "matching_session_bound_entry_progress"], events := matchingRequestEvents },
+    { declarations := [named "free_entry_growth_progress"], events := freeGrowthEvents },
+    { declarations := [named "request_unchanged_limits_progress"], events := originalRequestLimitsEvents } ] ++
+  paired "issued_continuation_refused" "issued_continuation_without_guard" issuedContinuationEvents { TauWeb.Authority.current with unsentContinuation := false } ++
+  paired "validation_terminal_ends" "validation_terminal_without_guard" (validationEndEvents .expired) { TauWeb.Authority.current with validationTerminal := false } ++
+  paired "validation_terminal_ends" "validation_terminal_without_guard" (validationEndEvents .exhausted) { TauWeb.Authority.current with validationTerminal := false } ++
+  paired "publication_barrier_refused" "publication_barrier_without_dispatch" publicationBarrierEvents { TauWeb.Authority.current with publicationDispatch := false } ++
+  [ { declarations := [named "publication_after_durable_confirmation"], events := publicationReleasedEvents },
+    { declarations := [named "unsafe_boundary_refused"], events := unsafeBoundaryEvents } ] ++
+  paired "ended_refused" "ended_admitted_without_fence" endEvents { TauWeb.Authority.current with endFence := false } ++
+  paired "late_publication_refused" "late_publication_without_fence" lateEvents { TauWeb.Authority.current with endFence := false } ++
+  paired "stale_origin_refused" "stale_origin_transferred_without_guard" transferEvents { TauWeb.Authority.current with publicationOrigin := false } ++
+  paired "stale_worker_refused" "stale_worker_without_guard" workerEvents { TauWeb.Authority.current with workerIdentity := false } ++
+  paired "hidden_progress" "hide_ends_without_preservation" hideEvents { TauWeb.Authority.current with hidePreserves := false } ++
+  paired "suspension_refused" "suspension_without_validation_guard" suspensionEvents { TauWeb.Authority.current with validationRequired := false } ++
+  paired "wrong_continuation_refused" "wrong_continuation_without_match" wrongContinuationEvents { TauWeb.Authority.current with validationMatches := false } ++
+  paired "live_predecessor_refuses_successor" "live_predecessor_without_exclusion" doubleBindingEvents { TauWeb.Authority.current with exclusiveBinding := false } ++
+  paired "individual_end_keeps_sibling" "individual_end_global_without_guard" isolationEvents { TauWeb.Authority.current with individualOnly := false } ++
+  paired "ceremony_hide_locks" "ceremony_hide_without_lock" ceremonyEvents { TauWeb.Authority.current with ceremonyHideLocks := false } ++
+  paired "successor_barrier_refused" "successor_barrier_without_entry_key" seamEvents TauWeb.Authority.current { TauWeb.Dispatch.current with resourceKey := .call } ++
+  paired "failed_confirmation_keeps_barrier" "failed_confirmation_without_durability" (settlementEvents false) TauWeb.Authority.current { TauWeb.Dispatch.current with durableBeforeApply := false } ++
+  paired "validation_preserves_uncertainty" "fabricated_validation_settles_without_guard" seamPrefix { TauWeb.Authority.current with preserveKnowledge := false } ++
+  paired "expired_session_ssh_refused" "expired_session_ssh_without_gate" expiryEvents { TauWeb.Authority.current with procuredEligibility := false } ++
+  paired "procured_expiry_keeps_independent_session" "expiry_spreads_without_scope" expiryIsolationEvents { TauWeb.Authority.current with scopedExpiry := false } ++
+  paired "ordinary_append_failure_refused" "ordinary_append_failure_without_durability" failedIntentEvents TauWeb.Authority.current { TauWeb.Dispatch.current with durableBeforeApply := false } ++
+  [ { declarations := [named "current_connection_and_scan_required"], events := readinessEvents },
+    { declarations := [named "changed_dispatch_requires_current_validation"], events := holdChangeEvents } ] ++
+  [ { declarations := [named "hidden_cross_session_approval_refused"], events := pendingEvents },
+    { declarations := [named "validated_progress_and_publication"], events := validatedEvents },
+    { declarations := [named "invalidation_requires_new_validation"], events := invalidatedEvents },
+    { declarations := [named "unsafe_validation_refused"], events := unsafeEvents },
+    { declarations := [named "validation_and_readmission_cannot_revive"], events := endedValidationEvents },
+    { declarations := [named "bound_growth_preserves_applicable_approval"], events := growthEvents },
+    { declarations := [named "durable_confirmation_opens_successor"], events := settlementEvents true },
+    { declarations := [named "historical_record_without_revival"], events := historicalEvents },
+    { declarations := [named "historical_record_requires_custody"], events := noCustodyEvents },
+    { declarations := [named "historical_record_requires_authorization"], events := recordCustodyEvents { custody with authorized := false } },
+    { declarations := [named "historical_record_requires_store_access"], events := recordCustodyEvents { custody with storeAccess := false } },
+    { declarations := [named "uncertain_clock_then_unchanged_repair"], events := repairEvents },
+    { declarations := [named "repair_cannot_renew"], events := changedLimitsEvents },
+    { declarations := [named "cap_end_cannot_repair"], events := capEvents },
+    { declarations := [named "incompatible_acceptance_withheld"], events := incompatibleEvents },
+    { declarations := [named "independent_has_no_procured_deadline"], events := independentExpiryEvents },
+    { declarations := [named "inference_uncertainty_not_machine_barrier"], events := inferenceEvents } ] ++
+  ([EndReason.lock, .pagehide, .reload, .shutdown].map fun r =>
+    { declarations := [named "global_end_paths_and_replay_fence"], events := globalEvents r }) ++
+  [ { declarations := [named "global_end_paths_and_replay_fence"], events := startEvents ++ [.replay, .lifecycle (.unlock true), .request readA ready true] } ] ++
+  ([(false, true), (true, false), (true, true)].map fun (a, b) =>
+    { declarations := [named "both_clock_discrepancies_required"], events := clockCheckEvents a b })
+
+theorem witness_lengths : (witnesses.all fun t => t.events.length ≤ witnessBound) = true := by decide +kernel
+
+/-- Counterfactual traces are marked as comparison controls, including required progress traps. -/
+theorem counterfactuals_marked : (witnesses.all fun t =>
+    (t.params == TauWeb.Authority.current && t.dispatchParams == TauWeb.Dispatch.current) ||
+      t.pair.isSome) = true := by decide +kernel
+
+def Trace.json (t : Trace) : Json :=
+  let steps := (t.events.foldl (fun (js, w) e =>
+    let (j, next) := stepJson t.params t.dispatchParams w e; (js.push j, next)) (#[], initial)).1
+  traceJson t.declarations (assumptionsJson t.params t.dispatchParams) t.pair (knowledgeJson t.dispatchParams initial) steps
+
+def module : Module :=
+  let boundDecl := "TauWeb.Authority.witnessBound"
+  let bound := Json.mkObj [("declaration", boundDecl), ("events", toJson witnessBound),
+    ("coverage", "named finite histories only; no exhaustive alphabet or enumeration")]
+  { name := "authority", ns := `TauWeb.Authority,
+    text := fileText "authority" `TauWeb.Authority bound (witnesses.map (·.json)) [],
+    named := witnesses.flatMap (·.declarations),
+    refs := boundDecl :: witnesses.filterMap fun t => t.pair.map (·.2) }
+end Authority
+
 def modules : List Module :=
-  [allocationModule, Declaration.module, Relay.module, Dispatch.module, Pins.module]
+  [allocationModule, Declaration.module, Relay.module, Dispatch.module, Pins.module, Authority.module]
 
 /-- A statement that binds no variable: a decided proposition about a concrete trace, `let`s
 and non-dependent arrows (`¬P`, `A → B`) included. -/

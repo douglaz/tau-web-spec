@@ -425,9 +425,9 @@ loss.” Individual-session versus store-wide end:
 
 Lost replies, stale results, repeated lifecycle notifications, worker restart and
 historical approvals: [STA-23](../03-state-and-recovery.md#durable-state) and the
-[session/approval region](#sessions-and-approvals). Coverage: prose-only end
-fence; Dispatch assumes ended sessions send no requests and successor sessions
-act after replay. `TauWeb.Dispatch.ended_session_approval_refused` exercises an
+[session/approval region](#sessions-and-approvals). Coverage: the [processed-authority composition](#processed-authority-composition)
+checks the symbolic end fence; standalone Dispatch still assumes ended sessions send no requests
+and successor sessions act after replay. `TauWeb.Dispatch.ended_session_approval_refused` exercises an
 approval bound to an ended rendering session under that convention; it is no
 proof of browser termination. The separate assurance owner is
 [tw-237.4](../.beads/issues.jsonl).
@@ -451,9 +451,33 @@ limits: [ARC-31a](../01-architecture.md#money).
 operator action and wait.” Failure/re-entry references: [STA-3/8/23](../03-state-and-recovery.md#durable-state)
 for failed append, lost reply and duplicate/stale messages. `STA-23` says “Phones
 may freeze or discard the page without a final callback; no background execution
-window, memory survival, socket continuity or timely cleanup is promised.” Coverage: prose-only lifecycle validation; Dispatch's session
-convention and the separate tw-237.4 assurance seam are the limits, not a checked
-suspension/dispatch composition.
+window, memory survival, socket continuity or timely cleanup is promised.” Coverage:
+[processed-authority composition](#processed-authority-composition) checks particular symbolic
+continuations. Actual notification, readiness and browser fences remain downstream evidence.
+
+### Processed-authority composition
+
+Evidence: general theorems and named finite witnesses in a checking interpretation, not browser
+or implementation evidence. Authority remains per clause under
+[ADR-0032](adr/0032-the-formal-companion-follows-provisiond-spec.md).
+The interpretation, its assumptions and omitted facts have one description at
+[STA-23](../03-state-and-recovery.md#durable-state); binding and approved-record owners remain
+[SEC-1/4](../04-security-model.md#sec-1--a-session-reaches-only-its-bound-set-enforced-by-a-lock),
+and conditional procured limits remain [ARC-31a](../01-architecture.md#money).
+
+`TauWeb.Authority.ordinary_refinement` checks the explicit shared request interface: symbolic
+eligibility and the unchanged Dispatch transition, with Dispatch's durable-before-apply premise.
+The [authority witness file](design/authority-witnesses-v2.json) contains the finite Robot
+reset/read-confirmation composition. Its successor passes authority validation while Dispatch
+refuses behind the predecessor's unresolved reset. A failed confirmation append retains that
+refusal; durable qualifying confirmation and current validation admit fresh successor work.
+Changing only Dispatch's resource key to call id exposes the bad send. The same file retains
+stale-publication, hide/progress, suspension, succession and conditional-key counterfactual pairs.
+This extends no claim to LNVPS receipts, browser termination or production inference admission.
+
+The [witness schema](design/witness-file-v1.md#authority-schema-2) labels the hypotheses and
+finite-history bound. Downstream acceptance remains in [CNF-7/69/82/102](../07-conformance.md):
+there is no new comparison result, phone test or conformance completion here.
 
 ### Pin retirement and admission
 
@@ -989,8 +1013,9 @@ Applicability: surviving stage-1 worker and session, under
 [STA-23](../03-state-and-recovery.md#durable-state),
 [SEC-1](../04-security-model.md#sec-1--a-session-reaches-only-its-bound-set-enforced-by-a-lock)
 and [SEC-4](../04-security-model.md#sec-4--how-cloud-plane-actions-are-approved).
-Dispatch assumes session termination and one writer; [tw-237.4](../.beads/issues.jsonl)
-owns future session assurance. Real scheduling, callbacks and mobile cleanup are not proved.
+Standalone Dispatch assumes session termination and one writer. The
+[processed-authority composition](#processed-authority-composition) records the checked symbolic
+boundary and its limits. Real scheduling, callbacks and mobile cleanup are not proved.
 
 Start with an unlocked eligible session and an ordinary visibility-only hide outside
 seed backup. `STA-23` says “An ordinary visibility-only hide MUST NOT end or pause
