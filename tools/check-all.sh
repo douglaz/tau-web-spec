@@ -32,7 +32,7 @@ run() {
 # The formal gate runs first: the citations gate resolves `TauWeb.*` names against the
 # index it writes, and a stale index is a gate reading last week's truth.
 run "formal       (Lean build, axiom policy, @[req] index, witness emission; needs the nix develop shell)" bash tools/check_formal.sh
-run "witnesses    (a committed witness file under docs/design/ that differs from the emission)" python3 tools/check_witnesses.py
+run "witnesses    (emission equality and corpus-wide marked pair structure)" python3 tools/check_witnesses.py
 run "regions      (a marked region in a document that is not what its declaration emits)" python3 tools/check_regions.py
 run "atlas        (informational selected witness projections and source agreement)" python3 tools/render_state_machine_atlas.py --check
 run "identifiers  (duplicates, dangling, pointers, gaps, ADR refs, CNF tiers)" python3 tools/check_ids.py

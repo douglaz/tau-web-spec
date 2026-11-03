@@ -104,8 +104,8 @@ any axiom beyond `propext`, `Classical.choice` and `Quot.sound` — so a `sorry`
 The index it writes, one line per tagged declaration, is the list of what is carried;
 `tools/check_citations.py` refuses a backticked `TauWeb.*` name the index does not resolve.
 The same run emits the witness files (`docs/design/witness-file-v1.md`), and
-`tools/check_witnesses.py` refuses a committed one under `docs/design/` that differs from
-the emission.
+`tools/check_witnesses.py` checks emission equality under `docs/design/` and marked pair
+structure across the emitted corpus (ADR-0032; `docs/design/witness-file-v1.md`).
 
 It also emits the **marked regions**, and `tools/check_regions.py` refuses a table between
 `<!-- formal: TauWeb.Render.… -->` and `<!-- /formal -->` that is not what its declaration
