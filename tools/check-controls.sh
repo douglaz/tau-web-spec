@@ -478,8 +478,8 @@ expected=$((expected + 1))
 authority_positive="$(mktemp -d -p "$scratch_root")"
 copy_tree "$authority_positive"
 if (cd "$authority_positive/repo" &&
-    sed -i 's/def seamPrefix : List Event := startEvents ++/def seamPrefix : List Event := startEvents ++ [.lifecycle .hide, .lifecycle .visible] ++/' "$AUTH" &&
-    grep -q 'def seamPrefix : List Event := startEvents ++ \[.lifecycle .hide, .lifecycle .visible\]' "$AUTH" &&
+    sed -i 's/\.lifecycle (.admit candidateB true), \.lifecycle (.suspend bob)/.lifecycle (.admit candidateB true), .lifecycle .hide, .lifecycle .visible, .lifecycle (.suspend bob)/' "$AUTH" &&
+    grep -qxF '  .lifecycle (.admit candidateB true), .lifecycle .hide, .lifecycle .visible, .lifecycle (.suspend bob), .lifecycle (.validate execB ready)]' "$AUTH" &&
     bash "$FORMAL") > "$authority_positive/output" 2>&1; then
   echo "ok: formal: authority valid hidden successor continuation -> stays green"
   passed=$((passed + 1))
