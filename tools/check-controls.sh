@@ -717,6 +717,12 @@ dispatch_control "formal: the command hold leaves the reboot out" \
   "sed -i \"s/^    (k' == .exec || k' == .deliveryReboot)\$/    (k' == .exec)/\" $DISP && grep -q \"^    (k' == .exec)\$\" $DISP" \
   command_holds_delivery_reboot
 
+# Matching reboot approvals follow factsReboot, so aliasing only the canonical facts
+# preserves accepted histories and isolates the same-session exec-approval refusal.
+dispatch_control "formal: delivery reboot facts aliased to exec facts" \
+  "sed -i 's/^def factsReboot : Facts := 11$/def factsReboot : Facts := factsExec/' $DISP && grep -q '^def factsReboot : Facts := factsExec$' $DISP" \
+  delivery_reboot_exec_approval_refused
+
 # Rehearsed 2026-10-18: treating the record's own boot as a result releases the command.
 dispatch_control "formal: same-boot delivery reboot settled" \
   "sed -i 's/rebootBootChange : Bool := true/rebootBootChange : Bool := false/' $DISP && grep -q 'rebootBootChange : Bool := false' $DISP" \

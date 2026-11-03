@@ -89,7 +89,21 @@ class SourceAgreement(unittest.TestCase):
                         self.assertEqual(cells.pop(0), step[state])
                         steps += 1
             self.assertEqual(cells, [])
-        self.assertEqual(steps, 197)
+        self.assertEqual(steps, 198)
+
+    def test_exec_approved_reboot_refusal_is_unpaired_and_preserves_knowledge(self):
+        witness = next(w for w in atlas.project(self.source, self.index)["witnesses"]
+                       if atlas.NS + "delivery_reboot_exec_approval_refused" in w["declarations"])
+        self.assertNotIn("pair", witness)
+        self.assertEqual(len(witness["steps"]), 1)
+        step = witness["steps"][0]
+        event = step["event"]
+        self.assertEqual(event["operation"], "delivery_reboot")
+        self.assertEqual(event["session"], event["approved"]["session"])
+        self.assertNotEqual(event["facts"], event["approved"]["facts"])
+        self.assertEqual(step["dispatch"], "refused")
+        self.assertEqual(step["refusal"], {"reason": "facts"})
+        self.assertEqual(step["knowledge"], witness["start"])
 
     def test_required_pair_differences_and_progress_are_preserved(self):
         traces = {name: next(w for w in self.source["witnesses"] if atlas.NS + name in w["declarations"])
@@ -224,6 +238,26 @@ class GateControls(unittest.TestCase):
         with redirect_stdout(out):
             code = atlas.main(["--root", str(self.root), *options])
         return code, out.getvalue()
+
+    def test_facts_refusal_accepts_only_its_closed_shape(self):
+        path = self.root / atlas.SOURCE
+        original = json.loads(path.read_text())
+        for refusal in (None, {}, {"reason": "facts", "calls": []},
+                        {"reason": ["facts"]}, {"reason": "unsupported"}):
+            with self.subTest(refusal=refusal):
+                source = copy.deepcopy(original)
+                witness = next(w for w in source["witnesses"]
+                               if atlas.NS + "delivery_reboot_exec_approval_refused" in w["declarations"])
+                witness["steps"][0]["refusal"] = refusal
+                path.write_text(json.dumps(source))
+                before = (self.root / atlas.ATLAS).read_bytes()
+                for option in ("--check", "--write"):
+                    code, output = self.run_gate(option)
+                    self.assertEqual(code, 1, output)
+                    self.assertEqual(len(output.splitlines()), 1, output)
+                    self.assertTrue(output.startswith("ATLAS INPUT:"), output)
+                    self.assertIn("delivery_reboot_exec_approval_refused.steps[1].refusal", output)
+                    self.assertEqual((self.root / atlas.ATLAS).read_bytes(), before)
 
     def test_each_mutation_has_exactly_its_own_finding_and_names_target(self):
         originals = {p: (self.root / p).read_bytes() for p in (*[atlas.source_path(m) for m in atlas.VERSIONS], atlas.ATLAS, atlas.INDEX)}
