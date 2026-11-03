@@ -34,7 +34,7 @@ gated on it.
       build's gate; what stays here is integrating a relay that passes it, with a hand-recorded
       pass (its `PAS-6`).* Ahead of harness integration: nothing over the channel can be tested
       without it.
-- [ ] **T30 — Port `TauWeb.Relay` to [paid-tcp-relay][relay-source]** (its `F4`). The module, its witness file
+- [ ] **T30 — Port `TauWeb.Relay` to [paid-tcp-relay][relay-source]** <a id="open-t30-relay-port"></a> (its `F4`). The module, its witness file
       `docs/design/relay-witnesses-v1.json` and the controls that read them move when that set
       grows a formal layer; until then `CHN-15`, `CHN-16` and `CHN-16a` keep their `@[req]` tags
       and tau-web's index is the proof of record for the handshake and the destination pipeline.

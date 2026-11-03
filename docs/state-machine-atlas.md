@@ -16,6 +16,9 @@ Use the [region outline](#region-outline) to find an owner, the
 [Dispatch traces](#dispatch-traces), [Allocation traces](#allocation-traces),
 [Pins traces](#pins-traces) and [Declaration traces](#declaration-traces) to inspect
 serialized harness knowledge.
+The [source-finding record](review/2026-11-03-atlas-source-finding.md) records checked
+answers and dispositions; the [implementation evidence handoff](design/atlas-implementation-handoff.md)
+names the immutable fixture contract and downstream evidence still owed.
 There is no global Ready/Blocked/Completed state: journal authority, session
 authority, remote uncertainty, command hold, pins, scan readiness and delivery
 are separate dimensions.
@@ -39,7 +42,7 @@ Evidence vocabulary used locally in each view:
 Evidence: conceptual navigation. Applicability: every local store, including recovery.
 
 Owner: [STA-1–STA-3 and STA-7](../03-state-and-recovery.md#durable-state),
-[STA-23](../03-state-and-recovery.md#durable-state).
+[STA-23](../03-state-and-recovery.md#what-survives-a-lost-phone).
 
 - **Recorded knowledge / identity:** the local store's append-only journal and
   snapshots; the live worker's memory is transient. `STA-1` says “A single
@@ -59,14 +62,14 @@ or a recovered seed. The authoritative sources are the owners above and
 [protected evidence §5](design/protected-evidence-v1.md#5-scan-reservations-and-attempt-fences)
 for append eligibility and counted restart. Replay/derived-view references:
 [STA-7/8](../03-state-and-recovery.md#durable-state). Access, writer ownership and
-retirement reference: [STA-23](../03-state-and-recovery.md#durable-state).
+retirement reference: [STA-23](../03-state-and-recovery.md#what-survives-a-lost-phone).
 
 ### Sessions and approvals
 
 Evidence: conceptual navigation. Applicability: stage-1 single-machine sessions;
 multi-machine admission belongs to the separate stage-2 row in the admission list.
 
-Owners: [STA-23](../03-state-and-recovery.md#durable-state),
+Owners: [STA-23](../03-state-and-recovery.md#what-survives-a-lost-phone),
 [SEC-1](../04-security-model.md#sec-1--a-session-reaches-only-its-bound-set-enforced-by-a-lock),
 [SEC-4](../04-security-model.md#sec-4--how-cloud-plane-actions-are-approved),
 [ARC-12](../01-architecture.md#sessions-binding-and-diversity),
@@ -84,7 +87,7 @@ Owners: [STA-23](../03-state-and-recovery.md#durable-state),
 - **Permitted next actions / retirement:** `STA-23` says “Individual session end
   destroys that session's runtime authority and pending approvals; it does not
   revive on return.” Pre-send/post-await fences and historical approvals:
-  [STA-23](../03-state-and-recovery.md#durable-state). Procured-inference admission,
+  [STA-23](../03-state-and-recovery.md#what-survives-a-lost-phone). Procured-inference admission,
   cap and expiry: [ARC-31a](../01-architecture.md#money). Jump-host/Replace exceptions:
   [SEC-1](../04-security-model.md#sec-1--a-session-reaches-only-its-bound-set-enforced-by-a-lock).
   Abandonment authorization: [SEC-4](../04-security-model.md#sec-4--how-cloud-plane-actions-are-approved).
@@ -92,7 +95,7 @@ Owners: [STA-23](../03-state-and-recovery.md#durable-state),
 The identity is the rendering session and its bound machine entries; a typed
 approval also names its approved facts. ARC-12 is the session owner, SEC-1 the
 binding owner, SEC-4 the approval owner, and STA-23 the live-authority owner.
-Durable history versus live authority: [STA-23](../03-state-and-recovery.md#durable-state).
+Durable history versus live authority: [STA-23](../03-state-and-recovery.md#what-survives-a-lost-phone).
 Dedicated-path standing reinstall approvals:
 [STG-20](../06-first-stage.md#what-the-first-stage-does-not-test).
 `STG-20` says “An approval **stands** from its record until its reset is dispatched,
@@ -298,8 +301,9 @@ Applicability: typed stage-1 requests and maintained-cloud re-entry; named opera
 
 Event/key: a session request names a machine, or an operator flow names its target;
 the worker resolves the approved entry under [STA-24, *The resource*](../03-state-and-recovery.md#durable-state).
-Preconditions route to [SEC-1/4](../04-security-model.md#sec-4--how-cloud-plane-actions-are-approved),
-[STA-23](../03-state-and-recovery.md#durable-state) and
+Preconditions route to [SEC-1](../04-security-model.md#sec-1--a-session-reaches-only-its-bound-set-enforced-by-a-lock) and
+[SEC-4](../04-security-model.md#sec-4--how-cloud-plane-actions-are-approved),
+[STA-23](../03-state-and-recovery.md#what-survives-a-lost-phone) and
 [the applicable matrix owners](#combined-matrix). Newly composed reads, adapter
 reconciliation and record collection route to [STA-20/24](../03-state-and-recovery.md#durable-state). `STA-4` says “The record is appended immediately before the bytes
 leave”. `STA-3` says “If the append fails, the transition does not occur.”
@@ -411,8 +415,9 @@ They do not carry untyped pause/hold, re-arm or the entire continuation flow.
 Applicability: every local session; procured-key limits only on the procured inference path.
 
 Event/key: individual session end or the processed Lock/pagehide/reload/shutdown
-boundary in [STA-23](../03-state-and-recovery.md#durable-state); session, bindings,
-pending approvals and channels route also to [SEC-1/4](../04-security-model.md#sec-1--a-session-reaches-only-its-bound-set-enforced-by-a-lock)
+boundary in [STA-23](../03-state-and-recovery.md#what-survives-a-lost-phone); session, bindings,
+pending approvals and channels route also to [SEC-1](../04-security-model.md#sec-1--a-session-reaches-only-its-bound-set-enforced-by-a-lock) and
+[SEC-4](../04-security-model.md#sec-4--how-cloud-plane-actions-are-approved)
 and [ARC-12](../01-architecture.md#sessions-binding-and-diversity) /
 [ARC-31a](../01-architecture.md#money).
 `STA-23` says “The actual end fence is irreversible and MUST NOT be reset to
@@ -420,11 +425,11 @@ implement continuation.” Begun appends and possibly sent effects:
 [STA-3/8](../03-state-and-recovery.md#durable-state).
 `STA-23` says “Already accepted remote work may continue even after local Lock or
 loss.” Individual-session versus store-wide end:
-[STA-23](../03-state-and-recovery.md#durable-state). Procured-key expiry/cap/clock:
+[STA-23](../03-state-and-recovery.md#what-survives-a-lost-phone). Procured-key expiry/cap/clock:
 [ARC-31a](../01-architecture.md#money).
 
 Lost replies, stale results, repeated lifecycle notifications, worker restart and
-historical approvals: [STA-23](../03-state-and-recovery.md#durable-state) and the
+historical approvals: [STA-23](../03-state-and-recovery.md#what-survives-a-lost-phone) and the
 [session/approval region](#sessions-and-approvals). Coverage: the [processed-authority composition](#processed-authority-composition)
 checks the symbolic end fence; standalone Dispatch still assumes ended sessions send no requests
 and successor sessions act after replay. `TauWeb.Dispatch.ended_session_approval_refused` exercises an
@@ -437,18 +442,19 @@ proof of browser termination. The separate assurance owner is
 Applicability: every surviving local worker/session; the backup ceremony has its separate hide behavior.
 
 Event/key: a processed freeze/suspension or interruption, then continuation of the
-same surviving worker/session. [STA-23](../03-state-and-recovery.md#durable-state)
+same surviving worker/session. [STA-23](../03-state-and-recovery.md#what-survives-a-lost-phone)
 owns the distinction from ordinary hide, the backup ceremony's exceptional hide,
 and actual session end. `STA-23` says “A begun durable append MUST finish whole
 rather than be cancelled partway.” Binding/writer ownership and continuation
-fences: [STA-23](../03-state-and-recovery.md#durable-state). Its validation list
+fences: [STA-23](../03-state-and-recovery.md#what-survives-a-lost-phone). Its validation list
 is quoted in [Authority](#authority). Remote uncertainty:
 [STA-8/24](../03-state-and-recovery.md#durable-state). Pin admission:
 [SEC-11](../04-security-model.md#sec-11--the-host-key-is-checked). Procured-key
 limits: [ARC-31a](../01-architecture.md#money).
 
 `STA-23` says “if it cannot identify one it MUST show reconciliation or required
-operator action and wait.” Failure/re-entry references: [STA-3/8/23](../03-state-and-recovery.md#durable-state)
+operator action and wait.” Failure/re-entry references: [STA-3/8](../03-state-and-recovery.md#durable-state) and
+[STA-23](../03-state-and-recovery.md#what-survives-a-lost-phone)
 for failed append, lost reply and duplicate/stale messages. `STA-23` says “Phones
 may freeze or discard the page without a final callback; no background execution
 window, memory survival, socket continuity or timely cleanup is promised.” Coverage:
@@ -461,8 +467,9 @@ Evidence: general theorems and named finite witnesses in a checking interpretati
 or implementation evidence. Authority remains per clause under
 [ADR-0032](adr/0032-the-formal-companion-follows-provisiond-spec.md).
 The interpretation, its assumptions and omitted facts have one description at
-[STA-23](../03-state-and-recovery.md#durable-state); binding and approved-record owners remain
-[SEC-1/4](../04-security-model.md#sec-1--a-session-reaches-only-its-bound-set-enforced-by-a-lock),
+[STA-23](../03-state-and-recovery.md#what-survives-a-lost-phone); binding and approved-record owners remain
+[SEC-1](../04-security-model.md#sec-1--a-session-reaches-only-its-bound-set-enforced-by-a-lock) and
+[SEC-4](../04-security-model.md#sec-4--how-cloud-plane-actions-are-approved),
 and conditional procured limits remain [ARC-31a](../01-architecture.md#money).
 
 `TauWeb.Authority.ordinary_refinement` checks the explicit shared request interface: symbolic
@@ -534,12 +541,13 @@ journaled”; it also says “A stop settles no verdict and is shown as a stoppe
 check, never as a pass.” Failed verdict append: [STA-3](../03-state-and-recovery.md#durable-state).
 Lost/interrupted, refused/held or missing reads:
 [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular).
-Duplicate/stale publication: [STA-23](../03-state-and-recovery.md#durable-state).
+Duplicate/stale publication: [STA-23](../03-state-and-recovery.md#what-survives-a-lost-phone).
 Re-entry service reads/restored labels: [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular)
 and [STA-16](../03-state-and-recovery.md#recovery-by-access-model-and-vendor).
 
 Findings, lifecycle labels, scan arming and permission-to-place references:
-[ARC-17/43](../01-architecture.md#what-a-session-delivers) and
+[ARC-17](../01-architecture.md#what-a-session-delivers),
+[ARC-43](../01-architecture.md#box-plane-execution-is-command-granular) and
 [SEC-5](../04-security-model.md#sec-5--the-credential-inventory).
 `ARC-17` says “Every other finding, a lockdown finding included, still refuses
 placement” and “placement itself clears no finding.” Lifecycle-only placement,
@@ -572,14 +580,14 @@ retain undecided cases. A pointer in this matrix supplies no permission by itsel
 
 | Action class | Current session / binding / approval authority | Unresolved create/order, activation, key registration or renewal-off | Unresolved reset / reinstall / destroy or stand-in stop | Unresolved box-plane command | Standing destructive disposition |
 |---|---|---|---|---|---|
-| Typed mutation on the approved entry, including create/order | [SEC-1](../04-security-model.md#sec-1--a-session-reaches-only-its-bound-set-enforced-by-a-lock), [SEC-4](../04-security-model.md#sec-4--how-cloud-plane-actions-are-approved), [STA-23](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state), [STA-20](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) |
-| Adapter reconciliation read | [SEC-4](../04-security-model.md#sec-4--how-cloud-plane-actions-are-approved), [STA-23](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) | [STA-20](../03-state-and-recovery.md#durable-state), [STA-24](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) |
-| Ordinary `exec`, including a read through `exec` | [SEC-1](../04-security-model.md#sec-1--a-session-reaches-only-its-bound-set-enforced-by-a-lock), [STA-23](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) | [STA-20](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) |
-| Harness-owned box-plane job, including a harness-composed read | [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular), [STA-23](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) | [STA-20](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) |
-| Job-record collection (not a new job) | [STA-20](../03-state-and-recovery.md#durable-state), [STA-23](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) | [STA-20](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) |
-| Pin-checked connection (not permission to execute) | [SEC-1](../04-security-model.md#sec-1--a-session-reaches-only-its-bound-set-enforced-by-a-lock), [SEC-11](../04-security-model.md#sec-11--the-host-key-is-checked), [STA-23](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state), [SEC-11](../04-security-model.md#sec-11--the-host-key-is-checked) | [STA-24](../03-state-and-recovery.md#durable-state), [SEC-11](../04-security-model.md#sec-11--the-host-key-is-checked) | [STA-20](../03-state-and-recovery.md#durable-state), [SEC-11](../04-security-model.md#sec-11--the-host-key-is-checked) | [STA-24](../03-state-and-recovery.md#durable-state), [SEC-11](../04-security-model.md#sec-11--the-host-key-is-checked) |
-| Inference request | [ARC-31a](../01-architecture.md#money), [STA-23](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) | [ARC-31a](../01-architecture.md#money), [STA-20](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state), [ARC-31a](../01-architecture.md#money) |
-| Actionable publication | [STA-23](../03-state-and-recovery.md#durable-state), [SEC-5](../04-security-model.md#sec-5--the-credential-inventory) | [STA-23](../03-state-and-recovery.md#durable-state), [SEC-5](../04-security-model.md#sec-5--the-credential-inventory), [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular) | [STA-23](../03-state-and-recovery.md#durable-state), [SEC-5](../04-security-model.md#sec-5--the-credential-inventory), [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular) | [STA-23](../03-state-and-recovery.md#durable-state), [SEC-5](../04-security-model.md#sec-5--the-credential-inventory), [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular) | [STA-23](../03-state-and-recovery.md#durable-state), [SEC-5](../04-security-model.md#sec-5--the-credential-inventory), [tw-pkn](../.beads/issues.jsonl) |
+| Typed mutation on the approved entry, including create/order | [SEC-1](../04-security-model.md#sec-1--a-session-reaches-only-its-bound-set-enforced-by-a-lock), [SEC-4](../04-security-model.md#sec-4--how-cloud-plane-actions-are-approved), [STA-23](../03-state-and-recovery.md#what-survives-a-lost-phone) | [STA-24](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state), [STA-20](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) |
+| Adapter reconciliation read | [SEC-4](../04-security-model.md#sec-4--how-cloud-plane-actions-are-approved), [STA-23](../03-state-and-recovery.md#what-survives-a-lost-phone) | [STA-24](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) | [STA-20](../03-state-and-recovery.md#durable-state), [STA-24](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) |
+| Ordinary `exec`, including a read through `exec` | [SEC-1](../04-security-model.md#sec-1--a-session-reaches-only-its-bound-set-enforced-by-a-lock), [STA-23](../03-state-and-recovery.md#what-survives-a-lost-phone) | [STA-24](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) | [STA-20](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) |
+| Harness-owned box-plane job, including a harness-composed read | [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular), [STA-23](../03-state-and-recovery.md#what-survives-a-lost-phone) | [STA-24](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) | [STA-20](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) |
+| Job-record collection (not a new job) | [STA-20](../03-state-and-recovery.md#durable-state), [STA-23](../03-state-and-recovery.md#what-survives-a-lost-phone) | [STA-24](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) | [STA-20](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) |
+| Pin-checked connection (not permission to execute) | [SEC-1](../04-security-model.md#sec-1--a-session-reaches-only-its-bound-set-enforced-by-a-lock), [SEC-11](../04-security-model.md#sec-11--the-host-key-is-checked), [STA-23](../03-state-and-recovery.md#what-survives-a-lost-phone) | [STA-24](../03-state-and-recovery.md#durable-state), [SEC-11](../04-security-model.md#sec-11--the-host-key-is-checked) | [STA-24](../03-state-and-recovery.md#durable-state), [SEC-11](../04-security-model.md#sec-11--the-host-key-is-checked) | [STA-20](../03-state-and-recovery.md#durable-state), [SEC-11](../04-security-model.md#sec-11--the-host-key-is-checked) | [STA-24](../03-state-and-recovery.md#durable-state), [SEC-11](../04-security-model.md#sec-11--the-host-key-is-checked) |
+| Inference request | [ARC-31a](../01-architecture.md#money), [STA-23](../03-state-and-recovery.md#what-survives-a-lost-phone) | [STA-24](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state) | [ARC-31a](../01-architecture.md#money), [STA-20](../03-state-and-recovery.md#durable-state) | [STA-24](../03-state-and-recovery.md#durable-state), [ARC-31a](../01-architecture.md#money) |
+| Actionable publication | [STA-23](../03-state-and-recovery.md#what-survives-a-lost-phone), [SEC-5](../04-security-model.md#sec-5--the-credential-inventory) | [STA-23](../03-state-and-recovery.md#what-survives-a-lost-phone), [SEC-5](../04-security-model.md#sec-5--the-credential-inventory), [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular) | [STA-23](../03-state-and-recovery.md#what-survives-a-lost-phone), [SEC-5](../04-security-model.md#sec-5--the-credential-inventory), [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular) | [STA-23](../03-state-and-recovery.md#what-survives-a-lost-phone), [SEC-5](../04-security-model.md#sec-5--the-credential-inventory), [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular) | [STA-23](../03-state-and-recovery.md#what-survives-a-lost-phone), [SEC-5](../04-security-model.md#sec-5--the-credential-inventory), [tw-pkn](../.beads/issues.jsonl) |
 
 ### Authority
 
@@ -588,7 +596,7 @@ flows keep their own authorization.
 
 Owners: [SEC-1](../04-security-model.md#sec-1--a-session-reaches-only-its-bound-set-enforced-by-a-lock),
 [SEC-4](../04-security-model.md#sec-4--how-cloud-plane-actions-are-approved),
-[STA-23](../03-state-and-recovery.md#durable-state).
+[STA-23](../03-state-and-recovery.md#what-survives-a-lost-phone).
 
 `SEC-1` says “Binding is an operator act in the browser, made before any channel access
 to that machine.” `SEC-4` says “A typed operation that names an existing machine MUST be authorized against
@@ -600,7 +608,7 @@ account-level creation, nothing else.”
 result MUST NOT revive ended authority or publish an actionable result under stale
 authority.” `STA-23` says “current authority, bindings, holds, connection state
 and scan readiness.” Continuation validation reference:
-[STA-23](../03-state-and-recovery.md#durable-state).
+[STA-23](../03-state-and-recovery.md#what-survives-a-lost-phone).
 
 ### Cloud barrier
 
@@ -693,7 +701,7 @@ the checked quotations below; the table maintains no separate classifications.
 | Job-record collection | [STA-20](../03-state-and-recovery.md#durable-state), [STA-24](../03-state-and-recovery.md#durable-state) | [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular) | [§3a](design/protected-evidence-v1.md#independent-recovery-and-exact-targeting) | [STA-20](../03-state-and-recovery.md#durable-state), [STA-24](../03-state-and-recovery.md#durable-state) |
 | Pin-checked connection | [SEC-11](../04-security-model.md#sec-11--the-host-key-is-checked) | [SEC-5](../04-security-model.md#sec-5--the-credential-inventory) | [§3a](design/protected-evidence-v1.md#independent-recovery-and-exact-targeting), [CHN-R7](../02-channel.md#the-routes-to-a-fingerprint) | [STA-24](../03-state-and-recovery.md#durable-state), [SEC-11](../04-security-model.md#sec-11--the-host-key-is-checked) |
 | Inference request | [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular), [ARC-31a](../01-architecture.md#money) | [SEC-5](../04-security-model.md#sec-5--the-credential-inventory), [§3](design/protected-evidence-v1.md#3-protected-inference-terminals) | [ARC-31a](../01-architecture.md#money) | [STA-24](../03-state-and-recovery.md#durable-state), [ARC-31a](../01-architecture.md#money) |
-| Actionable publication | [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular), [STA-23](../03-state-and-recovery.md#durable-state), [SEC-5](../04-security-model.md#sec-5--the-credential-inventory) | [SEC-5](../04-security-model.md#sec-5--the-credential-inventory), [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular) | [§3a](design/protected-evidence-v1.md#identity-and-confirmation-boundary) | [STA-23](../03-state-and-recovery.md#durable-state), [SEC-5](../04-security-model.md#sec-5--the-credential-inventory), [tw-pkn](../.beads/issues.jsonl) |
+| Actionable publication | [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular), [STA-23](../03-state-and-recovery.md#what-survives-a-lost-phone), [SEC-5](../04-security-model.md#sec-5--the-credential-inventory) | [SEC-5](../04-security-model.md#sec-5--the-credential-inventory), [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular) | [§3a](design/protected-evidence-v1.md#identity-and-confirmation-boundary) | [STA-23](../03-state-and-recovery.md#what-survives-a-lost-phone), [SEC-5](../04-security-model.md#sec-5--the-credential-inventory), [tw-pkn](../.beads/issues.jsonl) |
 
 The decisive owner passages, rather than the matrix pointers, are:
 
@@ -906,7 +914,7 @@ planted-sender identity and single-use browser acceptance:
 [CHN-5](../02-channel.md#the-attest-sequence). Candidate notification uses:
 [CHN-17](../02-channel.md#the-attest-sequence). The relay companion's historical profile is not a proof of
 current relay `/v2/`, notify delivery or these composition boundaries; the port
-remains [TASKS.md T30](../TASKS.md).
+remains [TASKS.md open T30](../TASKS.md#open-t30-relay-port).
 
 ## Dispatch traces
 
@@ -1010,7 +1018,7 @@ receipt table.
 
 Evidence: illustrative prose-only narrative; no lifecycle transition table is generated.
 Applicability: surviving stage-1 worker and session, under
-[STA-23](../03-state-and-recovery.md#durable-state),
+[STA-23](../03-state-and-recovery.md#what-survives-a-lost-phone),
 [SEC-1](../04-security-model.md#sec-1--a-session-reaches-only-its-bound-set-enforced-by-a-lock)
 and [SEC-4](../04-security-model.md#sec-4--how-cloud-plane-actions-are-approved).
 Standalone Dispatch assumes session termination and one writer. The
@@ -1580,7 +1588,7 @@ removing old machine keys nor handling commands missing from a backup.
 seed may restore listed identities but MUST NOT allocate new ones” and “MUST be
 refused until that seed id has the journaled ceremony record of `STA-23`.”
 Imported-identity knowledge, allocation authority and generated-seed ceremony are
-separate. Migration stays with [STA-17](../03-state-and-recovery.md#what-survives-a-lost-phone);
+separate. Migration stays with [STA-17](../03-state-and-recovery.md#recovery-by-access-model-and-vendor);
 pre-loss command handling remains outside this selection and with its existing
 [owner record](../.beads/issues.jsonl) (`tw-ub7`).
 
@@ -2074,11 +2082,12 @@ External possibilities: unknown beyond recorded observations. Permitted next act
 ## Historical Relay boundary
 
 Evidence: conceptual navigation, historical companion only; no Relay trace is selected.
-Applicability: [Relay schema 1](design/relay-witnesses-v1.json) and
+Applicability: [Relay schema 1](design/witness-file-v1.md#relay),
+[its witnesses](design/relay-witnesses-v1.json) and
 [Relay.lean](../tools/formal/TauWeb/Relay.lean)'s historical profile. Its symbolic
 challenge, signature-verifier answer, resolver and address-table assumptions prove
 no current `/v2/` connection binding, termination, discovery or migration result.
-[TASKS.md open T30](../TASKS.md) owns the port. Neither the module's historical
+[TASKS.md open T30](../TASKS.md#open-t30-relay-port) owns the port. Neither the module's historical
 illustration nor the independent pin/dispatch views form a checked current relay
 composition. Current stage applicability remains the
 [admission table](../07-conformance.md#stage-applicability-and-admission).
