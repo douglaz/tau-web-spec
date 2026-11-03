@@ -121,6 +121,10 @@ structure Issued where
 @[req "STA-23"] structure Params where
   endFence : Bool := true
   workerIdentity : Bool := true
+  requestSession : Bool := true
+  machineMembership : Bool := true
+  growthExclusive : Bool := true
+  requestOriginal : Bool := true
   hidePreserves : Bool := true
   ceremonyHideLocks : Bool := true
   unsentContinuation : Bool := true
@@ -174,9 +178,10 @@ def updateActor (w : World) (who : Identity) (f : Actor → Actor) : World :=
   !w.locked && !w.ceremony &&
   match actor p w work.who, Dispatch.resolve w.dispatch.memory work.request.target with
   | some a, some r =>
-    (!p.endFence || !w.fenced.contains a.who) && work.request.session == a.who.session &&
+    (!p.endFence || !w.fenced.contains a.who) &&
+    (!p.requestSession || work.request.session == a.who.session) &&
     match r with
-    | .machine e => a.bound.contains e
+    | .machine e => !p.machineMembership || a.bound.contains e
     | .inference => true
   | _, _ => false
 
@@ -186,7 +191,7 @@ def updateActor (w : World) (who : Identity) (f : Actor → Actor) : World :=
   | .independent => true
   | .procured original => !a.keyWithheld &&
     match ev.key with
-    | some k => k.original == original && k.valid
+    | some k => (!p.requestOriginal || k.original == original) && k.valid
     | none => false
 
 @[req "STA-23"] def validationCurrent (p : Params) (dp : Dispatch.Params) (w : World)
@@ -309,7 +314,7 @@ def localAuthorityStep (p : Params) (dp : Dispatch.Params) (w : World) : Local �
       { w with actors := { who := c.who, bound := c.bound, path := c.path, keyWithheld := (match c.path with | .independent => false | .procured _ => true) } :: w.actors }
     else w
   | .grow who entry ok =>
-    if ok && !w.fenced.contains who && (!p.exclusiveBinding || bindingFree w who [entry]) then
+    if ok && !w.fenced.contains who && (!p.exclusiveBinding || !p.growthExclusive || bindingFree w who [entry]) then
       updateActor w who fun a => { a with bound := (entry :: a.bound).eraseDups }
     else w
   | .assessKey who ev => assess p w who ev
@@ -620,6 +625,57 @@ def result (events : List Event) (p : Params := current) (dp : Dispatch.Params :
 
 def sent (w : World) (call : Dispatch.CallId) : Bool := w.dispatch.dispatched.any (·.call == call)
 
+/-- The actor remains Alice; request and approval agree with each other on Bob. -/
+def borrowedSessionWork : Work := { readB with who := alice }
+def borrowedSessionEvents : List Event := startEvents ++ [.request borrowedSessionWork ready true]
+@[req "SEC-4"] theorem borrowed_session_refused :
+    (actor current (result startEvents) alice).map (·.bound) = some [Dispatch.entryA] ∧
+    Dispatch.admit Dispatch.current (result startEvents).dispatch.memory
+      borrowedSessionWork.request borrowedSessionWork.approval =
+        .dispatched (Dispatch.intentOf borrowedSessionWork.request Dispatch.machineA borrowedSessionWork.approval) ∧
+    sent (result borrowedSessionEvents) borrowedSessionWork.request.call = false := by decide +kernel
+@[req "SEC-4"] theorem borrowed_session_without_check :
+    sent (result borrowedSessionEvents { current with requestSession := false }) borrowedSessionWork.request.call = true := by decide +kernel
+
+/-- The other approved entry is already mapped in the shared starting journal. -/
+def unboundWork : Work := { readA with request := { readA.request with target := .index Dispatch.index2 } }
+def unboundEvents : List Event := startEvents ++ [.request unboundWork ready true]
+@[req "SEC-1"] theorem unbound_entry_refused :
+    Dispatch.resolve (result startEvents).dispatch.memory unboundWork.request.target = some Dispatch.machineB ∧
+    (actor current (result startEvents) alice).map (·.bound) = some [Dispatch.entryA] ∧
+    sent (result unboundEvents) unboundWork.request.call = false := by decide +kernel
+@[req "SEC-1"] theorem unbound_entry_without_check :
+    sent (result unboundEvents { current with machineMembership := false }) unboundWork.request.call = true := by decide +kernel
+
+def matchingRequestEvents : List Event := startEvents ++ [.request readA ready true]
+@[req "SEC-4"] theorem matching_session_bound_entry_progress :
+    sent (result matchingRequestEvents) readA.request.call = true := by decide +kernel
+
+/-- Both admissions succeed on disjoint entries before any growth attempt. -/
+def disjointStart : List Event := startEvents ++ [
+  .lifecycle (.admit { candidateB with bound := [Dispatch.entryB] } true)]
+def contestedGrowthEvents : List Event := disjointStart ++ [
+  .lifecycle (.grow bob Dispatch.entryA true), .request readB ready true]
+@[req "SEC-1"] theorem live_entry_growth_refused :
+    (actor current (result disjointStart) alice).map (·.bound) = some [Dispatch.entryA] ∧
+    (actor current (result disjointStart) bob).map (·.bound) = some [Dispatch.entryB] ∧
+    (result disjointStart).fenced = [] ∧
+    (actor current (result contestedGrowthEvents) bob).map (·.bound) = some [Dispatch.entryB] ∧
+    sent (result contestedGrowthEvents) readB.request.call = false := by decide +kernel
+@[req "SEC-1"] theorem live_entry_growth_without_check :
+    (actor { current with growthExclusive := false }
+      (result contestedGrowthEvents { current with growthExclusive := false }) bob).map (·.bound) =
+        some [Dispatch.entryA, Dispatch.entryB] ∧
+    sent (result contestedGrowthEvents { current with growthExclusive := false }) readB.request.call = true := by decide +kernel
+
+/-- With the same live actors, a further authorized binding to a free entry permits work. -/
+def freeGrowthWork : Work := { readB with request := { readB.request with target := .entry 3 } }
+def freeGrowthEvents : List Event := disjointStart ++ [
+  .lifecycle (.grow bob 3 true), .request freeGrowthWork ready true]
+@[req "SEC-1"] theorem free_entry_growth_progress :
+    (actor current (result freeGrowthEvents) bob).map (·.bound) = some [3, Dispatch.entryB] ∧
+    sent (result freeGrowthEvents) freeGrowthWork.request.call = true := by decide +kernel
+
 def endEvents : List Event := startEvents ++ [.lifecycle (.endSession alice), .request readA ready true]
 @[req "STA-23"] theorem ended_refused :
     sent (result endEvents) readA.request.call = false ∧
@@ -780,6 +836,21 @@ def keyReady : Evidence := { ready with key := some validKey }
 def procuredStart : List Event := [.lifecycle (.unlock true),
   .lifecycle (.admit { candidateA with path := .procured originalLimits } true),
   .lifecycle (.assessKey alice validKey)]
+/-- Valid assessment uses the original tuple; only the later request presents a changed cap. -/
+def changedRequestKey : KeyEvidence := { validKey with original := { originalLimits with cap := 2 } }
+def changedRequestLimitsEvents : List Event := procuredStart ++ [
+  .request readA { keyReady with key := some changedRequestKey } true]
+@[req "ARC-31a"] theorem request_original_limits_refused :
+    (actor current (result procuredStart) alice).map (·.keyWithheld) = some false ∧
+    changedRequestKey.valid = true ∧
+    sent (result changedRequestLimitsEvents) readA.request.call = false := by decide +kernel
+@[req "ARC-31a"] theorem request_original_limits_without_check :
+    sent (result changedRequestLimitsEvents { current with requestOriginal := false }) readA.request.call = true := by decide +kernel
+
+def originalRequestLimitsEvents : List Event := procuredStart ++ [.request readA keyReady true]
+@[req "ARC-31a"] theorem request_unchanged_limits_progress :
+    sent (result originalRequestLimitsEvents) readA.request.call = true := by decide +kernel
+
 def expiryEvents : List Event := procuredStart ++ [.request execA { keyReady with key := some (keyEvidenceFor .expired) } true]
 @[req "ARC-31a"] theorem expired_session_ssh_refused :
     sent (result expiryEvents) execA.request.call = false ∧ (result expiryEvents).fenced.contains alice = true := by decide +kernel

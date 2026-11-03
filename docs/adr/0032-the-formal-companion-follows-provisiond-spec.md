@@ -213,7 +213,7 @@ cloud theorem becomes the read-observation provenance theorem, alongside the rec
 theorem. Robot read confirmation, arbitrary-output refusal and durable-before-apply remain.
 
 *Amended 2026-11-02:* the processed-authority checking interpretation composes ordinary
-requests with module 4 without changing Dispatch schema 8. Its separate authority schema 1,
+requests with module 4 without changing Dispatch schema 8. Its separate authority schema 2,
 including its explicit provenance extension, is defined in
-[witness-file-v1](../design/witness-file-v1.md#authority-schema-1). These are symbolic checking
+[witness-file-v1](../design/witness-file-v1.md#authority-schema-2). These are symbolic checking
 inputs; no browser observation, implementation comparison or behavior amendment is recorded.

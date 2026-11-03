@@ -1373,6 +1373,10 @@ The conditional symbolic eligibility check is `TauWeb.Authority.keyEligible`, wi
 [STA-23's checking interpretation](./03-state-and-recovery.md#durable-state).
 Its current issuer/clock evidence includes both discrepancy checks as distinct hypotheses;
 it establishes no arithmetic, real issuer behavior or production inference admission.
+`TauWeb.Authority.request_original_limits_refused` /
+`TauWeb.Authority.request_original_limits_without_check` retain changed evidence presented at
+the request boundary after a valid original assessment, with
+`TauWeb.Authority.request_unchanged_limits_progress` as the unchanged-evidence continuation.
 
 **Display.**
 

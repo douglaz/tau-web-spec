@@ -977,7 +977,7 @@ the fence through subsequent events, under their explicit guard hypotheses.
 `TauWeb.Authority.hide_identity` leaves the whole state unchanged for a processed ordinary hide
 outside the ceremony; `TauWeb.Authority.lifecycle_knowledge` leaves Dispatch
 knowledge untouched, while `TauWeb.Authority.replay_knowledge` rebuilds memory from the journal.
-The named finite histories in [the authority witness file](docs/design/authority-witnesses-v1.json)
+The named finite histories in [the authority witness file](docs/design/authority-witnesses-v2.json)
 include the shared Robot read-confirmation seam, suspension validation, exclusive succession,
 ceremony hide and conditional procured eligibility. They are decided witnesses, not an exhaustive
 lifecycle proof. The generated declaration index remains the inventory.

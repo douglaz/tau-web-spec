@@ -355,6 +355,24 @@ dispatch_control() { decl_control "$DISP" "$@"; }
 AUTH=tools/formal/TauWeb/Authority.lean
 authority_control() { decl_control "$AUTH" "$@"; }
 
+# Delete each concrete predicate at its own boundary; flipping a broader parameter is
+# insufficient to show that the source check itself remains covered.
+authority_control "formal: authority actor request session check removed" \
+  "sed -i 's/(!p.requestSession || work.request.session == a.who.session)/true/' $AUTH" \
+  borrowed_session_refused
+
+authority_control "formal: authority machine membership check removed" \
+  "sed -i 's/!p.machineMembership || a.bound.contains e/true/' $AUTH" \
+  unbound_entry_refused live_entry_growth_refused
+
+authority_control "formal: authority growth exclusivity check removed" \
+  "sed -i 's/(!p.exclusiveBinding || !p.growthExclusive || bindingFree w who \[entry\])/true/' $AUTH" \
+  live_entry_growth_refused
+
+authority_control "formal: authority request original limits check removed" \
+  "sed -i 's/(!p.requestOriginal || k.original == original)/true/' $AUTH" \
+  request_original_limits_refused
+
 authority_control "formal: authority unsentContinuation" \
   "sed -i 's/  unsentContinuation : Bool := true/  unsentContinuation : Bool := false/' $AUTH" \
   issued_continuation_refused
@@ -401,11 +419,11 @@ authority_control "formal: authority individualOnly" \
 
 authority_control "formal: authority exclusiveBinding" \
   "sed -i 's/  exclusiveBinding : Bool := true/  exclusiveBinding : Bool := false/' $AUTH" \
-  live_predecessor_refuses_successor
+  live_predecessor_refuses_successor live_entry_growth_refused
 
 authority_control "formal: authority procuredEligibility" \
   "sed -i 's/  procuredEligibility : Bool := true/  procuredEligibility : Bool := false/' $AUTH" \
-  expired_session_ssh_refused expiry_spreads_without_scope uncertain_clock_then_unchanged_repair repair_cannot_renew both_clock_discrepancies_required cap_end_cannot_repair incompatible_acceptance_withheld validation_terminal_ends
+  expired_session_ssh_refused expiry_spreads_without_scope uncertain_clock_then_unchanged_repair repair_cannot_renew both_clock_discrepancies_required cap_end_cannot_repair incompatible_acceptance_withheld validation_terminal_ends request_original_limits_refused
 
 authority_control "formal: authority scopedExpiry" \
   "sed -i 's/  scopedExpiry : Bool := true/  scopedExpiry : Bool := false/' $AUTH" \

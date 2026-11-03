@@ -61,14 +61,20 @@ Both arrays hold traces of one shape:
 | `start` | The state before the first event, in the projection below. Allocation: the `journal` — most traces start from the fresh seed; the exhaustion witness starts one below the index limit. Declaration: the `declaration` and the `machine` the check reads, and the empty `record`. Relay: the `challenge` as an ordinal, the `destination` the path parsed to, what the pipeline `classified` it as, the `pass` the operator's key holds, and the opened `connection`. Dispatch: the `knowledge` below, which every trace starts with the harness's associations in and nothing else, but for one witness: `TauWeb.Dispatch.replayed_invalid_disposition_means_nothing` starts from a journal a replay finds already written, holding an unresolved call and a disposition recorded against another resource, which no trace under the rules in force can write since such a disposition is refused. Pins: the `knowledge` below — for the witnesses, empty apart from `planted_senders`, which lists every machine the trace names; and `bound.start` for the enumeration. |
 | `steps` | One object per event, in order: `event`, the outcome members for that event kind, and the projection after the step — `journal` for allocation, `record` for declaration, `connection` for relay, `knowledge` for dispatch and for pins. |
 
-## Authority schema 1
+## Authority schema 2
 
-[`authority-witnesses-v1.json`](./authority-witnesses-v1.json) is the separate processed-authority
+[`authority-witnesses-v2.json`](./authority-witnesses-v2.json) is the separate processed-authority
 checking interpretation. Dispatch's schema 8 and its meanings are unchanged. The authority
 file has the common header/trace envelope, an empty `enumeration`, and a `bound` naming
 `TauWeb.Authority.witnessBound`: a checked length cap for named finite histories, not an
 exhaustive alphabet. All identities and original key/origin/cap/expiry fields are symbolic
 ordinals, never credentials or actual clock values.
+
+Schema 2 adds the explicit `requestSession`, `machineMembership`, `growthExclusive` and
+`requestOriginal` guard assumptions for isolated counterfactuals of existing checks. The event,
+knowledge and pair shapes are unchanged from schema 1. Fresh-admission `exclusiveBinding`
+also governs growth; `growthExclusive` bypasses only the growth-side check. `requestOriginal`
+bypasses only the current evidence comparison in `keyEligible`, leaving assessment unchanged.
 
 Each trace's assumptions carry the authority guards, unchanged nested Dispatch parameters and
 explicit external hypotheses. A `work` names a worker/session/incarnation, request and approval;
@@ -90,7 +96,7 @@ non-operator global-end events, and `harness publication`, for the harness's act
 publication attempt. These labels are symbolic inputs, not evidence that a browser notification
 arrived or an adapter supplied a publication. Other events retain `operator act`, `model request`, `adapter observation`,
 `disposition` or `replay`; current readiness/issuer facts remain abstract hypotheses even where
-their provenance is `adapter observation`. This extension affects only authority schema 1.
+their provenance is `adapter observation`. This extension affects only authority schema 2.
 
 Events distinguish processed `hide`, `visible`, `suspend`, invalidation, operation-specific
 validation, individual/global end (including pagehide/bfcache, reload and shutdown), ceremony
@@ -118,7 +124,7 @@ comparison or evidence of scheduling, physical fencing, durability or issuer enf
 
 For the existing module schemas in the table below, each `event` has a `kind` and a
 `provenance` from ADR-0032's closed vocabulary; the members beside them are the event's
-arguments. Authority schema 1's explicit extension and event shapes are described above.
+arguments. Authority schema 2's explicit extension and event shapes are described above.
 
 | `kind` | `provenance` | Arguments | Outcome members on the step |
 |---|---|---|---|

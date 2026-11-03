@@ -467,7 +467,7 @@ and conditional procured limits remain [ARC-31a](../01-architecture.md#money).
 
 `TauWeb.Authority.ordinary_refinement` checks the explicit shared request interface: symbolic
 eligibility and the unchanged Dispatch transition, with Dispatch's durable-before-apply premise.
-The [authority witness file](design/authority-witnesses-v1.json) contains the finite Robot
+The [authority witness file](design/authority-witnesses-v2.json) contains the finite Robot
 reset/read-confirmation composition. Its successor passes authority validation while Dispatch
 refuses behind the predecessor's unresolved reset. A failed confirmation append retains that
 refusal; durable qualifying confirmation and current validation admit fresh successor work.
@@ -475,7 +475,7 @@ Changing only Dispatch's resource key to call id exposes the bad send. The same 
 stale-publication, hide/progress, suspension, succession and conditional-key counterfactual pairs.
 This extends no claim to LNVPS receipts, browser termination or production inference admission.
 
-The [witness schema](design/witness-file-v1.md#authority-schema-1) labels the hypotheses and
+The [witness schema](design/witness-file-v1.md#authority-schema-2) labels the hypotheses and
 finite-history bound. Downstream acceptance remains in [CNF-7/69/82/102](../07-conformance.md):
 there is no new comparison result, phone test or conformance completion here.
 

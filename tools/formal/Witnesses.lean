@@ -158,7 +158,7 @@ structure Module where
 
 /-- The schema version of each emitted module. Allocation, pins and dispatch changed shape. -/
 def schemaVersion (name : String) : Nat :=
-  if name == "authority" then 1 else if name == "allocation" then 2 else if name == "pins" then 5 else if name == "dispatch" then 8 else 1
+  if name == "authority" then 2 else if name == "allocation" then 2 else if name == "pins" then 5 else if name == "dispatch" then 8 else 1
 
 /-- The header pretty, one trace per line: a diff names the trace that moved. -/
 def fileText (name : String) (ns : Name) (bound : Json) (witnesses enumeration : List Json) :
@@ -1529,6 +1529,8 @@ def stepJson (p : TauWeb.Authority.Params) (dp : TauWeb.Dispatch.Params) (w : Ta
 
 def assumptionsJson (p : TauWeb.Authority.Params) (dp : TauWeb.Dispatch.Params) : Json := Json.mkObj [
   ("endFence", toJson p.endFence), ("workerIdentity", toJson p.workerIdentity),
+  ("requestSession", toJson p.requestSession), ("machineMembership", toJson p.machineMembership),
+  ("growthExclusive", toJson p.growthExclusive), ("requestOriginal", toJson p.requestOriginal),
   ("hidePreserves", toJson p.hidePreserves), ("ceremonyHideLocks", toJson p.ceremonyHideLocks),
   ("unsentContinuation", toJson p.unsentContinuation), ("validationTerminal", toJson p.validationTerminal), ("validationRequired", toJson p.validationRequired), ("validationMatches", toJson p.validationMatches),
   ("publicationDispatch", toJson p.publicationDispatch), ("publicationOrigin", toJson p.publicationOrigin), ("individualOnly", toJson p.individualOnly),
@@ -1555,6 +1557,13 @@ def paired (good bad : String) (events : List TauWeb.Authority.Event) (p : TauWe
   { declarations := [named bad], events, params := p, dispatchParams := dp, pair := some (.admitted, named good) }]
 
 def witnesses : List Trace :=
+  paired "borrowed_session_refused" "borrowed_session_without_check" borrowedSessionEvents { TauWeb.Authority.current with requestSession := false } ++
+  paired "unbound_entry_refused" "unbound_entry_without_check" unboundEvents { TauWeb.Authority.current with machineMembership := false } ++
+  paired "live_entry_growth_refused" "live_entry_growth_without_check" contestedGrowthEvents { TauWeb.Authority.current with growthExclusive := false } ++
+  paired "request_original_limits_refused" "request_original_limits_without_check" changedRequestLimitsEvents { TauWeb.Authority.current with requestOriginal := false } ++
+  [ { declarations := [named "matching_session_bound_entry_progress"], events := matchingRequestEvents },
+    { declarations := [named "free_entry_growth_progress"], events := freeGrowthEvents },
+    { declarations := [named "request_unchanged_limits_progress"], events := originalRequestLimitsEvents } ] ++
   paired "issued_continuation_refused" "issued_continuation_without_guard" issuedContinuationEvents { TauWeb.Authority.current with unsentContinuation := false } ++
   paired "validation_terminal_ends" "validation_terminal_without_guard" (validationEndEvents .expired) { TauWeb.Authority.current with validationTerminal := false } ++
   paired "validation_terminal_ends" "validation_terminal_without_guard" (validationEndEvents .exhausted) { TauWeb.Authority.current with validationTerminal := false } ++
