@@ -16,11 +16,13 @@ missing emission is a red gate, not a skipped one (`AGENTS.md`).
 WITNESS PAIRS checks the pair structure owned by ADR-0032 and witness-file-v1.md;
 it compares inputs, never evaluates protocol outcomes or strengthens the emitter's
 name-based theorem tie. Locations identify occurrences, including repeated declarations.
+Decimal inputs retain their exact values; malformed UTF-8 is a labeled finding.
 
 Exit 0 = emission equality and valid pairs, 1 = findings, 2 = emission missing.
 """
 
 import difflib
+from decimal import Decimal
 import glob
 import json
 import os
@@ -195,28 +197,43 @@ def main():
     for e in emitted:
         name = os.path.basename(e)
         module = name.split("-witnesses-v", 1)[0]
-        with open(e) as source:
-            emission = source.read()
-        if CNF.search(emission):
+        with open(e, "rb") as source:
+            emission_bytes = source.read()
+        try:
+            emission = emission_bytes.decode("utf-8")
+        except UnicodeDecodeError as exc:
+            emission = None
+            pairs.append(f"docs/design/{name}: malformed UTF-8 emission "
+                         f"(tools/formal/.lake/witnesses/{name}): {exc}")
+        if emission is not None and CNF.search(emission):
             drift.append(f"the emission for module {module} carries a CNF identifier "
                          f"({CNF.search(emission).group()}); a theorem is never conformance")
             continue
-        try:
-            pairs.extend(pair_findings(json.loads(emission), name))
-        except (ValueError, RecursionError) as exc:
-            pairs.append(f"docs/design/{name}: malformed JSON corpus: {exc}")
+        if emission is not None:
+            try:
+                # Retain decimal/exponent values exactly, separately from integer
+                # literals; binary floats can hide changed inputs and assumptions.
+                pairs.extend(pair_findings(json.loads(emission, parse_float=Decimal), name))
+            except (ValueError, RecursionError) as exc:
+                pairs.append(f"docs/design/{name}: malformed JSON corpus: {exc}")
         c = os.path.join(COMMITTED, name)
         if not os.path.exists(c):
             drift.append(f"docs/design/{name} is not committed (module {module}; "
                          f"tools/check_witnesses.py --write)")
             continue
-        with open(c) as source:
-            committed_text = source.read()
-        if committed_text != emission:
-            diff = difflib.unified_diff(committed_text.splitlines(), emission.splitlines(),
-                                        f"docs/design/{name}", "emission", lineterm="", n=0)
-            for line in list(diff)[:12]:
-                print(f"  {line[:160]}")
+        with open(c, "rb") as source:
+            committed_bytes = source.read()
+        if committed_bytes != emission_bytes:
+            try:
+                committed_text = committed_bytes.decode("utf-8")
+            except UnicodeDecodeError as exc:
+                committed_text = None
+                pairs.append(f"docs/design/{name}: malformed UTF-8 committed copy: {exc}")
+            if committed_text is not None and emission is not None:
+                diff = difflib.unified_diff(committed_text.splitlines(), emission.splitlines(),
+                                            f"docs/design/{name}", "emission", lineterm="", n=0)
+                for line in list(diff)[:12]:
+                    print(f"  {line[:160]}")
             drift.append(f"docs/design/{name} differs from the emission (module {module}; "
                          f"tools/check_witnesses.py --write after review)")
     emitted_names = {os.path.basename(e) for e in emitted}

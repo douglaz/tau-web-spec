@@ -26,9 +26,51 @@ NEGATIVE = {
     'malformed_assumptions': 'malformed assumptions',
     'malformed_declarations': 'malformed declarations',
     'invalid_json': 'malformed JSON corpus',
+    'numeric_start': 'changed complete start',
+    'numeric_events': 'changed ordered event inputs',
+    'malformed_utf8': 'malformed UTF-8 emission',
 }
 POSITIVE = ('unchanged', 'reordered', 'repeated_valid', 'multiple_assumptions',
-            'outputs', 'object_keys', 'unmarked', 'nonproduction', 'elsewhere', 'nested_pair_input')
+            'outputs', 'object_keys', 'unmarked', 'nonproduction', 'elsewhere', 'nested_pair_input',
+            'numeric_equal', 'numeric_assumptions')
+SERIALIZED = ('invalid_json', 'malformed_utf8', 'numeric_start', 'numeric_events',
+              'numeric_equal', 'numeric_assumptions')
+
+
+def serialized_mutation(corpus, case):
+    """Write raw number tokens, never passing the new values through a float."""
+    if case == 'invalid_json':
+        return b'{ invalid JSON\n'
+    if case == 'malformed_utf8':
+        return bytes.fromhex('ff fe 7b 7d')
+    a, b = corpus['witnesses'][:2]
+    if case == 'numeric_start':
+        targets = [t['start'] for t in (a, b)]
+        key = 'seed'
+        literals = ('9007199254740992e0', '9007199254740993e0')
+    elif case in ('numeric_events', 'numeric_equal'):
+        targets = [t['steps'][0]['event'] for t in (a, b)]
+        key = 'precise'
+        literals = ('9007199254740992.0', '9007199254740993.0')
+        if case == 'numeric_equal':
+            literals = ('9007199254740993.0000000000000000001',) * 2
+    elif case == 'numeric_assumptions':
+        a['assumptions'], b['assumptions'] = {}, {}
+        targets = [t['assumptions'] for t in (a, b)]
+        key = 'precise'
+        literals = ('0.10000000000000000001', '0.10000000000000000002')
+    else:
+        raise ValueError(case)
+    markers = ('tw316_raw_left', 'tw316_raw_right')
+    for target, marker in zip(targets, markers):
+        target[key] = marker
+    content = json.dumps(corpus)
+    for marker, literal in zip(markers, literals):
+        assert content.count(json.dumps(marker)) == 1
+        content = content.replace(json.dumps(marker), literal)
+    for literal in set(literals):
+        assert content.count(literal) == literals.count(literal)
+    return content.encode('utf-8') + b'\n'
 
 
 def mutate(corpus, case):
@@ -130,8 +172,8 @@ def apply(case):
     assert before == emitted.read_bytes(), 'control needs equal starting copies'
     corpus = json.loads(before)
     original = deepcopy(corpus)
-    if case == 'invalid_json':
-        content = before[:-1] + b' invalid JSON\n'
+    if case in SERIALIZED:
+        content = serialized_mutation(corpus, case)
         assert content != before
     else:
         mutate(corpus, case)
@@ -154,7 +196,7 @@ def verify(output, token, location):
     assert type(items) is list and len(items) == 1 and type(items[0]) is str, output
     assert token in items[0] and location in items[0], output
     assert 'docs/design/' in items[0], output
-    if token != 'malformed JSON corpus':
+    if token not in ('malformed JSON corpus', 'malformed UTF-8 emission'):
         assert 'declarations=' in items[0] and '$[' in items[0], output
 
 

@@ -1,6 +1,8 @@
 """Offline structural pair checks; no protocol outcomes are recomputed."""
 
 import json
+from contextlib import redirect_stdout
+from io import StringIO
 from pathlib import Path
 import sys
 import tempfile
@@ -9,7 +11,7 @@ from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import check_witnesses as gate
-from witness_pair_cases import NEGATIVE, POSITIVE, mutate, verify
+from witness_pair_cases import NEGATIVE, POSITIVE, SERIALIZED, mutate, serialized_mutation, verify
 
 ROOT = Path(gate.ROOT)
 
@@ -31,8 +33,8 @@ class WitnessPairs(unittest.TestCase):
 
     def test_corpus_and_controls(self):
         for case in (*NEGATIVE, *POSITIVE):
-            if case == 'invalid_json':
-                continue  # Exercised through main: there is no decoded corpus.
+            if case in SERIALIZED:
+                continue  # Raw serialized cases exercise decoding through main.
             module = 'dispatch' if case in ('repeated', 'repeated_valid') else 'allocation'
             source, = (ROOT / 'docs/design').glob(f'{module}-witnesses-v*.json')
             corpus = json.loads(source.read_text())
@@ -137,23 +139,81 @@ class WitnessPairs(unittest.TestCase):
         self.assertEqual(len(self.findings([a, b, c, d])), 2)
 
     def test_matching_bytes_do_not_bypass_main_and_invalid_json_is_actionable(self):
-        from contextlib import redirect_stdout
-        from io import StringIO
+        for text, token in (('{', 'malformed JSON corpus'),
+                            (json.dumps(pair()[:1]), 'missing marked counterpart')):
+            with self.subTest(token=token):
+                status, output = self.run_main(text.encode())
+                self.assertEqual(status, 1)
+                verify(output, token, 'test-witnesses-v1.json')
+
+    def run_main(self, emitted_bytes, committed_bytes=None):
+        if committed_bytes is None:
+            committed_bytes = emitted_bytes
         with tempfile.TemporaryDirectory(prefix='tau-web-witness-pairs-') as scratch:
             emitted, committed = Path(scratch) / 'emitted', Path(scratch) / 'committed'
             emitted.mkdir()
             committed.mkdir()
-            for text, token in (('{', 'malformed JSON corpus'),
-                                (json.dumps(pair()[:1]), 'missing marked counterpart')):
-                for directory in (emitted, committed):
-                    (directory / 'test-witnesses-v1.json').write_text(text)
-                output = StringIO()
-                with patch.object(gate, 'EMITTED', str(emitted)), \
-                        patch.object(gate, 'COMMITTED', str(committed)), \
-                        patch.object(sys, 'argv', ['check_witnesses.py']), redirect_stdout(output):
-                    self.assertEqual(gate.main(), 1)
-                self.assertIn('WITNESS DRIFT: none', output.getvalue())
-                self.assertIn(token, output.getvalue())
+            for directory, content in ((emitted, emitted_bytes), (committed, committed_bytes)):
+                (directory / 'test-witnesses-v1.json').write_bytes(content)
+            output = StringIO()
+            with patch.object(gate, 'EMITTED', str(emitted)), \
+                    patch.object(gate, 'COMMITTED', str(committed)), \
+                    patch.object(sys, 'argv', ['check_witnesses.py']), redirect_stdout(output):
+                status = gate.main()
+            return status, output.getvalue()
+
+    def test_serialized_controls_through_main(self):
+        for case in SERIALIZED:
+            content = serialized_mutation({'witnesses': pair()}, case)
+            with self.subTest(case=case):
+                status, output = self.run_main(content)
+                if case in NEGATIVE:
+                    self.assertEqual(status, 1)
+                    verify(output, NEGATIVE[case], 'test-witnesses-v1.json')
+                else:
+                    self.assertEqual(status, 0, output)
+                    self.assertIn('WITNESS PAIRS: none', output)
+
+    def test_equal_precise_numeric_inputs_through_main(self):
+        for literal in ('9007199254740993.0', '9007199254740993e0',
+                        '0.10000000000000000001', '1e400', '1e-400'):
+            corpus = pair('raw_numeric_input')
+            for trace in corpus:
+                trace['steps'][0]['event']['nested']['value'] = 'raw_numeric_input'
+            content = json.dumps(corpus).replace('"raw_numeric_input"', literal).encode()
+            with self.subTest(literal=literal):
+                status, output = self.run_main(content)
+                self.assertEqual(status, 0, output)
+
+    def test_scalar_type_distinctions_through_main(self):
+        for first, second in ((True, 1), (False, 0), (1, 1.0)):
+            a, b = pair()
+            a['start']['value'], b['start']['value'] = first, second
+            with self.subTest(first=first, second=second):
+                status, output = self.run_main(json.dumps([a, b]).encode())
+                self.assertEqual(status, 1)
+                verify(output, 'changed complete start', 'test-witnesses-v1.json')
+
+    def test_malformed_bytes_in_either_copy_keep_drift_check(self):
+        good, bad = json.dumps(pair()).encode(), bytes.fromhex('ff fe 7b 7d')
+        for emitted, committed, token in ((bad, good, 'malformed UTF-8 emission'),
+                                          (good, bad, 'malformed UTF-8 committed copy')):
+            with self.subTest(token=token):
+                status, output = self.run_main(emitted, committed)
+                self.assertEqual(status, 1)
+                self.assertIn(token, output)
+                self.assertIn('test-witnesses-v1.json', output)
+                self.assertIn('invalid start byte', output)
+                self.assertIn('differs from the emission', output)
+                self.assertNotIn('declarations=', output)
+                self.assertNotIn('Traceback', output)
+
+    def test_emission_equality_is_byte_for_byte(self):
+        content = (json.dumps(pair()) + '\n').encode()
+        status, output = self.run_main(content, content.replace(b'\n', b'\r\n'))
+        self.assertEqual(status, 1)
+        self.assertIn('differs from the emission', output)
+        self.assertIn('WITNESS PAIRS: none', output)
 
     def test_control_assertion_counts_items_and_rejects_unrelated_output(self):
         output = "witness files checked: 1\nWITNESS DRIFT: none\nWITNESS PAIRS: "
