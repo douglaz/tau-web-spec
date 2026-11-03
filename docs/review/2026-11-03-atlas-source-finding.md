@@ -182,7 +182,10 @@ Verified distinctions:
   The stage-2 harness-started-job boundary remains with tw-pgp; token-rotation
   and scope-succession questions route to [TASKS.md T47](../../TASKS.md#open),
   which lists “the hold across a re-approved scope or a rotated token”. Recorded
-  decision comments do not amend the current normative paragraphs.
+  decision comments do not amend the current normative paragraphs. After this
+  record's source baseline, the owner's rotation and succession decisions were
+  recorded on tw-pgp in tracker comment 46000001; they await normative implementation at STA-24, coordinated with
+  T47, and leave the quoted T47 entry and the current paragraphs unchanged.
   STA-24's untyped pause is inside *What stays permitted*, whose opening sentence
   permits “Reads naming the resource” and explicitly includes “the collection of
   job records”, as quoted above. Whether that resource-naming permission reaches
