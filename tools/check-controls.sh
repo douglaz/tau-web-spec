@@ -42,6 +42,7 @@ copy_tree() {
 #   TOKEN; every other finding line must read "none".
 control() {
   local name="$1" gate="$2" mutate="$3" label="$4" token="$5"
+  local location="${6:-docs/design/}"
   expected=$((expected + 1))
   local tmp
   tmp="$(mktemp -d -p "$scratch_root")"
@@ -61,6 +62,8 @@ control() {
     echo "::error::$name: the red is not under '$label' naming $token"; echo "$out"; fail=1
   elif [ "$findings" -ne 1 ]; then
     echo "::error::$name: $findings findings, expected exactly one"; echo "$out"; fail=1
+  elif [ "$label" = 'WITNESS PAIRS' ] && ! python3 tools/tests/witness_pair_cases.py verify "$token" "$location" <<<"$out"; then
+    echo "::error::$name: expected exactly one pair finding item and no unrelated output"; echo "$out"; fail=1
   else
     echo "ok: $name -> $label names $token"
     passed=$((passed + 1))
@@ -984,6 +987,41 @@ WIT=tools/check_witnesses.py
 WITFILE=docs/design/allocation-witnesses-v2.json
 PINSWIT=docs/design/pins-witnesses-v5.json
 PINSEMIT=tools/formal/.lake/witnesses/pins-witnesses-v5.json
+
+# Pair defects are written to BOTH copies, with mutation/equality assertions in
+# the helper. The stricter assertion above counts finding items, not output lines.
+while IFS='|' read -r case token; do
+  declaration=TauWeb.Allocation.backup_missing_refused
+  [ "$case" != repeated ] || declaration=TauWeb.Dispatch.order_receipt_association_required
+  [ "$case" != invalid_json ] || declaration=allocation-witnesses-v2.json
+  control "witness pairs: $case with equal emitted/committed bytes" "$WIT" \
+    "python3 tools/tests/witness_pair_cases.py $case" \
+    "WITNESS PAIRS" "$token" "$declaration"
+done <<'PAIR_CASES'
+metadata|malformed pair metadata
+missing|missing marked counterpart
+nonreciprocal|nonreciprocal declaration references
+same_side|same-side counterparts
+start|changed complete start
+events|changed ordered event inputs
+nested|changed ordered event inputs
+provenance|changed ordered event inputs
+event_order|changed ordered event inputs
+scalar|changed ordered event inputs
+assumptions|equal assumptions
+ambiguous|ambiguous counterparts
+accounting|one-to-one accounting failed
+repeated|changed ordered event inputs
+malformed_steps|malformed steps
+malformed_start|malformed start
+malformed_assumptions|malformed assumptions
+malformed_declarations|malformed declarations
+invalid_json|malformed JSON corpus
+PAIR_CASES
+
+for case in unchanged reordered repeated_valid multiple_assumptions outputs object_keys unmarked nonproduction elsewhere nested_pair_input; do
+  passes "witness pairs: $case" "$WIT" "python3 tools/tests/witness_pair_cases.py $case"
+done
 
 # Compared against the emission the formal gate wrote before this script ran: one expected
 # outcome flipped by hand in the committed file is red, naming the module.

@@ -4,7 +4,7 @@
 Only selected exact-schema slices and their complete bound contexts are supported.
 Unused collections stay empty until their shapes are explicitly supported.
 Unselected witnesses/enumeration are not validated here (the witness gate owns
-emission equality; corpus-wide pair validation belongs to tw-316).
+emission equality and corpus-wide marked pair validation).
 """
 
 import argparse

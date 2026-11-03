@@ -4,7 +4,8 @@ The schemas of the files the formal companion emits, one per module, committed b
 document as `<module>-witnesses-v<schema>.json` (ADR-0032, "How the implementation is compared" —
 what a witness file carries, what it never carries, and how the implementation reads it are
 decided there and not restated here). `lake exe witnesses` writes them from `tools/formal/`;
-`tools/check_witnesses.py` refuses a committed file that differs from the emission, and
+`tools/check_witnesses.py` checks emission equality and marked pair structure across the
+emitted corpus under this schema and ADR-0032, and
 `tools/check_fixtures.py` parses each as a document. Allocation uses schema 2 in
 [`allocation-witnesses-v2.json`](./allocation-witnesses-v2.json) from `TauWeb.Allocation`:
 the ceremony event, journal record and backup-gate assumption replace schema 1.

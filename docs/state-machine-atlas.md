@@ -796,7 +796,9 @@ inspect a named record with `br show ID --json --no-auto-flush --no-auto-import`
 - Allocation questions stay with [tw-sfu, tw-hwl, tw-nj8](../.beads/issues.jsonl);
   installation/recovery questions with [tw-lq8, tw-l1l, tw-yhd](../.beads/issues.jsonl).
   This outline chooses no answers to them.
-- [tw-316](../.beads/issues.jsonl) owns corpus-wide witness-pair validation;
+- [The witness gate](../tools/check_witnesses.py) checks corpus-wide marked pair
+  structure under [ADR-0032](adr/0032-the-formal-companion-follows-provisiond-spec.md) and the
+  [witness schema](design/witness-file-v1.md).
   [tw-itv](../.beads/issues.jsonl) retains approval-facts and bounded-description
   work. The renderer below validates only the selected projection inputs.
 
