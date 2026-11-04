@@ -1609,6 +1609,28 @@ control "comment ids: unreadable issue record" "$COMMENTS" \
 passes "comment ids: distinct identifiers with identical text and absent or empty comments" "$COMMENTS" \
   'printf "%s\n" '\''{"id":"tw-a","comments":[{"id":7,"text":"same"},{"id":8,"text":"same"}]}'\'' '\''{"id":"tw-b","status":"closed","comments":[{"id":9,"text":"same"}]}'\'' '\''{"id":"tw-c"}'\'' '\''{"id":"tw-d","comments":[]}'\'' > .beads/issues.jsonl'
 
+PATHS=tools/check_tracker_paths.py
+
+# Appended to the real export: exactly one finding also proves the rest of it is clean.
+control "local paths: the source_repo_path br create records" "$PATHS" \
+  'printf "%s\n" '\''{"id":"tw-probe","source_repo":"tau-web","source_repo_path":"/home/alice/p/tau-web"}'\'' >> .beads/issues.jsonl' \
+  "SOURCE REPO PATH" '"tw-probe" source_repo_path$'
+
+control "local paths: a home-directory path in a comment" "$PATHS" \
+  'printf "%s\n" '\''{"id":"tw-probe","comments":[{"id":1,"text":"see /home/alice/notes"}]}'\'' >> .beads/issues.jsonl' \
+  "LOCAL PATH" '"tw-probe" comments\[1\]\.text$'
+
+control "local paths: a scratch path in a description" "$PATHS" \
+  'printf "%s\n" '\''{"id":"tw-probe","description":"logs in /var/tmp/lane-1/out"}'\'' >> .beads/issues.jsonl' \
+  "LOCAL PATH" '"tw-probe" description$'
+
+control "local paths: unreadable export" "$PATHS" \
+  'printf "%s\n" "{" > .beads/issues.jsonl' \
+  "TRACKER EXPORT ERROR" '.beads/issues.jsonl: cannot read the issue export'
+
+passes "local paths: machine paths, relative paths, URLs and the portable source_repo" "$PATHS" \
+  'printf "%s\n" '\''{"id":"tw-probe","source_repo":"tau-web","description":"/root/.ssh/authorized_keys /var/lib/tau lib/tmp/x https://example.com/home/alice ~/tmp/x"}'\'' >> .beads/issues.jsonl'
+
 echo
 if [ "$passed" -ne "$expected" ]; then
   echo "::error::$passed of $expected controls passed"; fail=1
