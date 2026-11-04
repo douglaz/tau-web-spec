@@ -295,9 +295,9 @@ version-3 compatibility input; the envelope and derivation stay unchanged.
 Export asks the operator to retain both the seed backup and the separate sheet passphrase.
 For maintained cloud, setup completion requires confirmation that the current sheet was
 saved (`STA-15`). A stale or absent sheet may lose newer machines' metadata and relay quota.
-The dedicated test bed covers local storage and derivation. Stage 1 also requires export,
+The dedicated test bed covers local storage and derivation. The LNVPS path also requires export,
 Restore and Replace for maintained cloud; `CNF-20`'s relabel cases, Robot rescue and paid/public
-signed relay revocation follow their own milestones in `07-conformance.md`'s applicability
+signed relay revocation follow their own rows in `07-conformance.md`'s applicability
 table. These are required implementation demonstrations, not claims that this specification
 has run them.
 

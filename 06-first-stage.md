@@ -1,38 +1,30 @@
-# 06 — The stages, and what the first must demonstrate
+# 06 — The paths, and what each must demonstrate
 
-## The stages
+## The paths and their gates
+<a id="the-stages"></a>
 
-The work is staged as the list below sets out, re-drawn on 2026-10-05 around the general case:
-an operator with a goal and no tenant
-([ADR-0034](./docs/adr/0034-general-case-first-tenants-are-optional-skills.md)).
-
-- **Stage 0 — the probes**, run alongside construction. The LNVPS probe follows `OPN-24`;
-  its paid phase B ran on 2026-10-11 and LNVPS passed; `CHN-R7` admits its route. The Omarchy question
-  closed by restating stage 1 on plain Arch (`OPN-25`). The separate attest first-boot experiment
-  (`OPN-3`) informs vendors that accept boot configuration, but does not gate stage 1.
-- **Stage 1 — the owner's scenario, with no tenant** (`STG-21`).
-- **Stage 2 — a vendor with no adapter** (`STG-22`).
-- **Stage 3 — tenants, as skills** (`STG-23`).
-
-Typed comes before untyped for a reason of order, not of preference: an untyped vendor scope
-needs the jump host for its machines' first contact (`SEC-4`), and the jump host needs a jump
-vendor whose creation the harness composes through a typed adapter and whose host key it can
-pin by a route `CHN-R6` admits.
+This file describes the paths the system offers, around the general case: an operator with a
+goal and no tenant
+([ADR-0034](./docs/adr/0034-general-case-first-tenants-are-optional-skills.md)). It sets no
+implementation order; that is decided elsewhere, and the stage list this file once kept is
+archived, non-normative, in
+[`docs/archive/2026-11-04-implementation-order.md`](./docs/archive/2026-11-04-implementation-order.md).
+Each path and capability is admitted by its own rows in `07-conformance.md`.
 
 **What each identifier below gates.** No identifier was renumbered when the stages were
-re-drawn; the ones written for the dedicated path say so here.
+re-drawn or removed; the ones written for the dedicated path say so here.
 
 | Identifiers | Gate |
 |---|---|
-| `STG-21`; `STG-5`, `STG-6` where the installation is pinned, `STG-7`, `STG-9`, `STG-10`, `STG-12`, `STG-13`, `STG-14` | Stage 1. `STG-14` covers the stage-1 items in this row, not the dedicated path's |
-| `STG-15`, `STG-16`, `STG-17` | Stage 1, as recorded measurements and provenance |
-| `STG-1`, `STG-3`, `STG-3a`, `STG-4`, `STG-11`, `STG-20` | The dedicated path — the construction test bed now, and a path offered to an operator no earlier than stage 3 |
+| `STG-21`; `STG-5`, `STG-6` where the installation is pinned, `STG-7`, `STG-9`, `STG-10`, `STG-12`, `STG-13`, `STG-14` | The LNVPS path. `STG-14` covers the LNVPS-path items in this row, not the dedicated path's |
+| `STG-15`, `STG-16`, `STG-17` | The LNVPS path, as recorded measurements and provenance |
+| `STG-1`, `STG-3`, `STG-3a`, `STG-4`, `STG-11`, `STG-20` | The dedicated path — the construction test bed now, and a path offered to an operator only with the admission group (`STG-23`) |
 | `STG-2` | Nothing further: construction admission, closed 2026-09-08 |
-| `STG-18`, `STG-19` | Nothing: they state what a passing stage does not show |
-| `STG-22`, `STG-23` | Stages 2 and 3 |
+| `STG-18`, `STG-19` | Nothing: they state what a passing path does not show |
+| `STG-22`, `STG-23` | The capabilities each names, each under its own rows in `07-conformance.md`; `STG-23` also defines the admission group |
 
-**STG-21 Stage 1 is the owner's scenario: one machine, no tenant.** "Launch a VPS paid in
-Bitcoin on plain Arch and install Hermes with its own installer." An initial session works
+**STG-21 The LNVPS path is the owner's scenario: one machine on one invoice, no tenant.**
+"Launch a VPS paid in Bitcoin on plain Arch and install Hermes with its own installer." An initial session works
 from that goal alone (`ARC-11a`), under the ad-hoc profile (`ARC-44`), and the later session `STG-9` requires
 re-enters the same machine with a goal of its own — each session carries its own, never the
 first one reused — so the placement or rotation it performs has a goal to act on. The machine
@@ -89,15 +81,15 @@ The phase-B finding records matching presented and published keys before and aft
 conformance cases. LNVPS accepts no buyer boot configuration
 (`docs/findings/2026-10-08-lnvps-research.md` §1), so attest cannot run there. The vendor's
 own catalogue supplies plain Arch; Hermes is installed with its own installer as the
-operator's application (`ARC-1a`). Another operator's goal may name Omarchy; this stage-1
-run uses the plain-Arch goal above (`OPN-25`). This machine uses no
+operator's application (`ARC-1a`). Another operator's goal may name Omarchy; the LNVPS
+path's acceptance run uses the plain-Arch goal above (`OPN-25`). This machine uses no
 notify channel (`CHN-17`) and needs no publisher Nostr relay for attest (`CHN-18`). Beyond
-the channel and the journal, the stage needs:
+the channel and the journal, the path needs:
 
 - **goal input, and the harness's own questions** for machine class and the declaration
   (`ARC-36a`, `ARC-39`);
 - **`place_secret` and its scan/re-arm paths**, for the application's key (`ARC-43`, `SEC-5`):
-  `CNF-95`'s stage-1 cases pass before completion (`OPN-28`);
+  `CNF-95`'s LNVPS-path cases pass before the path delivers a machine to an operator (`OPN-28`);
 - **the unpinned label, or a publisher pin for Arch** (`ARC-25`);
 - **delivered against handed over with findings**, and a generic signed lockdown checklist
   (`ARC-17`, `OPN-14`), with the harness-composed listener and service-lifecycle evidence
@@ -108,13 +100,13 @@ the channel and the journal, the stage needs:
 - **interrupted resume** (`STG-12`); and
 - **one re-entry** (`STG-9`).
 
-LNVPS met `OPN-24`'s stage-1 target criteria in the phase-B finding, and `CHN-R7` admits the
-route. Stage 1 still waits for the integrated conformance in `07-conformance.md`; a failure
-there blocks stage completion. No replacement vendor or card account is selected.
+LNVPS met `OPN-24`'s target criteria in the phase-B finding, and `CHN-R7` admits the
+route. The LNVPS path still waits for the integrated conformance in `07-conformance.md`; a
+failure there blocks its delivery to an operator. No replacement vendor or card account is selected.
 At the 2026-10-09 amendment this criterion read "If LNVPS fails `OPN-24`'s target criteria,
 stage 1 waits"; the phase-B result satisfied it.
 The live Hetzner Cloud catalogue lacks Arch (`docs/findings/2026-10-08-lnvps-research.md`,
-last section). The TCP relay and stage-1 manual enrollment and retirement keep their existing
+last section). The TCP relay and the LNVPS path's manual enrollment and retirement keep their existing
 checks.
 
 **STG-21a LNVPS operation confirmation MUST use the following operation-specific predicates.**
@@ -206,31 +198,42 @@ post-confirmation reappearance handling is specified: the resulting billing-disp
 and completion does not claim permanent id absence or coverage of that gap. This adds no pin,
 placement, association or contact authority for a reappearing id.
 
-**STG-22 Stage 2 is a vendor with no adapter, where the browser can reach its API.** Such a
-vendor is reached through an untyped vendor scope on `SEC-4`'s conditions, and no further than
+**STG-22 The untyped capabilities: a vendor with no adapter, where the browser can reach its
+API.** Such a vendor is reached through an untyped vendor scope on `SEC-4`'s conditions, and no further than
 the channel goes: `CHN-12b` says "an arbitrary service refusing browser CORS is out of reach for
 untyped calls". Beside it: the jump-host route (`CHN-R6`), with LNVPS as the jump vendor if
 it meets that route's conditions (`CHN-R6`, `OPN-24`); bound sets of more than one machine (`SEC-1`); and a second vendor, which is what closes
-`OPN-5`.
+`OPN-5`. An untyped vendor scope needs the jump host for its machines' first contact (`SEC-4`),
+and the jump host needs a jump vendor whose creation the harness composes through a typed
+adapter and whose host key it can pin by a route `CHN-R6` admits. None of these is enabled
+before its row in `07-conformance.md` passes.
 
-**STG-23 Stage 3 is tenants, as skills.** lnrent's skill, on the dedicated path. And
+**STG-23 The admission group: tenants, as skills, the dedicated path offered to an operator, and a post-harness handoff.** lnrent's skill, on the dedicated path. And
 btc-policy's vault, with everything it brings: a declared independence bound, sealing, the
 coordinator, concurrent sessions and the trust panel. What shape those take is `OPN-27`.
+Tenants (lnrent, btc-policy), offering the dedicated-server path to an operator, and a
+post-harness handoff profile form one admission group. None is enabled until lnrent's
+delivery declaration, briefs 2–3, the Robot lockdown checklist and `OPN-27`'s closure all
+exist, the dedicated row passes on the integrated harness, and the conditions
+`07-conformance.md` sets before the LNVPS path delivers a machine to an operator hold.
+btc-policy's own rows (sets above one, its declared bound, sealing, the coordinator) also
+apply to it.
 
 ## The construction test bed: one machine on a dedicated server
 
 **STG-1** The construction test bed is **one machine on a dedicated server, over the full
 channel**: rescue, a pinned host key at both hops, an install through the box plane, one
 re-entry. It is where construction exercises the channel, the pinning chain, the box plane and
-the transcript before any stage's vendor is ready, and its rehearsal evidence and brief 1
-stand. It gates no stage by itself; it gates offering a dedicated-server path to an operator.
+the transcript before any path's vendor is ready, and its rehearsal evidence and brief 1
+stand. It gates no path by itself; it gates offering a dedicated-server path to an operator,
+which is in the admission group (`STG-23`).
 
 *What this requirement used to say* was that the first stage provisions one lnrent box on a
 dedicated server — one session, one machine, one real tenant
 ([ADR-0018](./docs/adr/0018-first-stage-is-one-lnrent-box-on-dedicated.md), superseded by
 [ADR-0034](./docs/adr/0034-general-case-first-tenants-are-optional-skills.md)). The
-first stage is now `STG-21`'s. Neither the tenant's daemon, nor brief 3, nor lnrent's
-declaration gates it.
+owner's scenario is now `STG-21`'s LNVPS path. Neither the tenant's daemon, nor brief 3, nor
+lnrent's declaration gates it.
 
 **Dedicated came first because it was the only place the identity chain closed.** On Cloud
 there was no way to obtain a host key without trusting first contact — `CHN-R2` is dead,
@@ -238,8 +241,8 @@ there was no way to obtain a host key without trusting first contact — `CHN-R2
 is that Robot offers no boot-time user-data at all, so nothing can be done to the machine
 except through the channel: a cost the test bed accepts, not a benefit it seeks. What changed
 is not that argument but what is refused: a first contact with no pin is no longer a route of
-last resort (`CHN-R4`), so the cloud path's own route has to run before anything ships there,
-and stage 0 is where it does.
+last resort (`CHN-R4`), so the cloud path's own route has to run before anything ships there;
+at LNVPS that route is `CHN-R7`, admitted from `OPN-24`'s probe.
 
 **STG-2 Construction gates on the installation and identity-chain rehearsal, once, first.** Activate rescue on a
 disposable dedicated server; read what `host_key` actually returns; read what the automatic
@@ -260,7 +263,7 @@ host-key pin are **not** brief content: they are the harness's typed ceremony (`
 brief 1 has evidence today and is written
 ([`docs/briefs/01-install.md`](./docs/briefs/01-install.md)); briefs 2 and 3 wait on a
 lock-down checklist (`OPN-14`) and a delivery declaration that do not yet exist, and they gate
-stage 3, not stage 1.
+the admission group (`STG-23`), not the LNVPS path.
 
 The reason is that the two risks are wildly mismatched, and research has widened the gap
 rather than narrowed it. The SSH client is no longer a bet: a deployed Rust implementation
@@ -268,9 +271,9 @@ exists on the same target, with the same UI and build stack this design specifie
 configuration is published
 ([ADR-0024](./docs/adr/0024-the-ssh-client-is-rust-following-a-known-good-configuration.md)).
 The unknown was Robot's rescue response (`OPN-6`); the September 8 rehearsal closed it.
-Harness construction can now start. Completing stage 1 requires what `STG-21` lists and the
-integrated acceptance checks in `07-conformance.md`. A successful installation rehearsal is not
-completion of any stage.
+Harness construction can now start. Delivering on the LNVPS path requires what `STG-21` lists
+and the integrated acceptance checks in `07-conformance.md`. A successful installation
+rehearsal admits no path and no capability.
 
 ## Why the install runs from inside rescue
 
@@ -328,7 +331,7 @@ sequenceDiagram
 ## Acceptance
 
 The identifiers in this section were written for the dedicated path. The table under *The
-stages* says which of them gate stage 1.
+paths and their gates* says which of them gate the LNVPS path.
 
 **STG-3a Every Robot call rides the tunnel, not `fetch`.** Robot serves no CORS
 headers at all, so no browser origin can read its responses (`CHN-R1`, verified 2026-08-31).
@@ -336,7 +339,7 @@ The typed adapter therefore opens a TLS session inside the browser, pinned to Ro
 authority, and carries it over the relay as ciphertext (`CHN-12a`). The relay learns a
 destination and nothing else, and no trusted party is added.
 
-This is a prerequisite the stage did not previously have; it gated as `OPN-21` until the spike
+This is a prerequisite the dedicated path did not previously have; it gated as `OPN-21` until the spike
 of 2026-09-07 closed it, and `CNF-62` carries it for the real build.
 
 **STG-4** The session registers its SSH client public key with Robot as a **typed
@@ -405,7 +408,7 @@ from the signed bundle** (`ARC-25`), and a mismatch halts the install. The URL p
 immutable versioned one, never a moving alias. The download and the comparison are the
 harness's `fetch_artifact` job (`ARC-43`); the model requests it and never reports a hash.
 
-**The stage MUST record the distribution and both layers of artifact admission** (`ARC-25a`):
+**The harness MUST record the distribution and both layers of artifact admission** (`ARC-25a`):
 the bootstrap URL/hash and the package/cache signing keys and repository policy. On Alpine,
 record the repository branch, index digests and installed versions; on NixOS, record the
 source revision and cache keys. Neither path may report the bootstrap hash as covering the
@@ -413,8 +416,8 @@ complete installed system. Reject untrusted package signatures before delivery (
 unpinned installation records that it is unpinned, and names neither layer (`ARC-25`).
 
 **STG-7** The machine ends **delivered**: locked down and demonstrated, the deliverable of
-`ARC-17`, with the software its declaration calls for running. In stage 1 that is the
-operator's application; a tenant's daemon is stage 3's.
+`ARC-17`, with the software its declaration calls for running. On the LNVPS path that is
+the operator's application; a tenant's daemon is in the admission group (`STG-23`).
 
 *`STG-8` retired.* It required a real tenant outcome — a published listing and a delivered
 order — or a written statement of why not. Both halves were wrong. The first tested **lnrent**
@@ -434,7 +437,7 @@ outside the encrypted-at-rest store `SEC-5` names. A placed application secret m
 on the way in (`CNF-16`); once on the machine it is within reach of every model with root
 there, and only its exact copies are redacted from output, under `SEC-5` row 12's caveat and
 its scan's stated limits. What a model reads under an untyped vendor scope is `SEC-4`'s to
-state, and this stage has no such scope. `STA-23` says "An ordinary visibility-only hide MUST NOT end or pause an unlocked session, clear its runtime authority, or invalidate its approvals."
+state, and the LNVPS path has no such scope. `STA-23` says "An ordinary visibility-only hide MUST NOT end or pause an unlocked session, clear its runtime authority, or invalidate its approvals."
 and "Explicit app Lock, pagehide including entry to the back-forward cache, reload, or worker shutdown MUST stop dispatch, end session workers and close channels; the worker clears its keys and credential buffers and returns locked."
 Killing the worker requires a new unlock and replay, never a plaintext fallback.
 
@@ -465,8 +468,8 @@ with no install. iOS Safari is not a test target (`OVR-1`).
 **STG-15** Peak memory of one session during a full install, on Android Chrome, with
 the five-session projection stated against that platform's tab budget. The concurrency
 decision (`ARC-13`) rests on five sessions sharing a phone, chosen against an acknowledged
-high memory risk, and no number has ever been taken. One session is what this stage runs,
-which makes it the only cheap opportunity to learn whether five is possible.
+high memory risk, and no number has ever been taken. One session is what the LNVPS path's
+acceptance runs, which makes it the only cheap opportunity to learn whether five is possible.
 
 **STG-16** Wall-clock duration of a full install over the channel, and the transcript size it
 produces. *Measured by hand 2026-09-08, not yet over the channel:* rescue activation to a
@@ -475,14 +478,14 @@ rescue pin 82 s; install 60 s; reset → installed sshd 69 s), transcript 16.9 K
 rehearsal itself took 2 h 27 min, because a machine that does not boot is invisible over the
 network and the recipe was wrong four times; see `STG-20`.
 
-## Provenance in the first stage
+## Provenance on the LNVPS path
 
 **STG-17** Provenance is still recorded — vendor, model, requested provider, surviving reload
 and restart — and the per-layer counts are still shown per `SEC-9`. On the procured path the
 model recorded is the candidate `ARC-31b`'s session-start selection took, never the first slug
 of the order. All three read one: one set of weights, one proxy on the procured path, one
 requested provider, and no proxy entry at all under local inference. The provider column
-carries its *requested* label even at one machine, because a first stage that shows the label
+carries its *requested* label even at one machine, because a path that shows the label
 correctly is worth more than one that shows a number nothing produced. The smaller claim,
 stated as numbers.
 
@@ -491,46 +494,53 @@ display and the operable panel arrive with the tenant that needs them. And
 `bundle/inference.toml` carries a candidate order (`ARC-31b`) ordered for availability and not
 for strength, so `ARC-16`'s middle rung has no stronger model to escalate to. `ARC-16` says
 "then escalate to a stronger model behind the same proxy", and the harness **MUST NOT** use the
-candidate order as that rung: the first stage offers rungs one and three only, and says so. An
+candidate order as that rung. At LNVPS, while the in-setup replacement order is not
+enabled, the harness offers rung one only; abandonment and a separately approved new setup
+stay outside the setup (`tw-ae7` C). Once that order is admitted (`07-conformance.md`,
+"Before enabling the in-setup replacement order at LNVPS"), `ARC-16`'s third rung at LNVPS
+takes `ARC-22`'s form. An
 availability fallback on a successor session is new weights on that machine and stays inside
 `SEC-1` like any other configured model — `SEC-1` says "A model that has touched a machine
 counts as touching it until that machine is destroyed".
 
-## What the first stage does not test
+## What the LNVPS path does not test
 
-**STG-18** Stated because a passing stage would otherwise read as a working product.
+**STG-18** Stated because a passing LNVPS path would otherwise read as a working product.
 
-- **Acquisition beyond one invoice.** Stage 1 buys one LNVPS machine by one invoice through
-  the per-machine identity decided in ADR-0042. It tests no second vendor (`OPN-5`); on the
-  dedicated test bed the server is already rented.
+- **Acquisition beyond one invoice.** The LNVPS path buys one machine by one invoice through
+  ADR-0042's per-machine identity. An in-setup replacement order and a second vendor
+  (`OPN-5`) are not enabled until their `07-conformance.md` rows pass; on the dedicated test
+  bed the server is already rented.
 - **Relay enrolment.** The operator's relay **public** key, derived from the seed (`CHN-15`),
   is handed to the publisher out of band and recorded by hand. Nothing secret crosses and
   nothing is pasted into the app. The publisher configures the allowed public destinations
   and connection/probe limits ([paid-tcp-relay][relay-source] `PAS-6`, its `bundle/timing.toml`); fresh
   challenge authentication, destination restriction and private-address refusal still apply
   (`CNF-81`, `CNF-87`). There is no purchase flow or automated reacquisition story;
-  that is `OPN-2`. Manual replacement follows `STA-17` and the stage-1 recovery row.
+  that is `OPN-2`. Manual replacement follows `STA-17` and the LNVPS path's recovery row.
   For publisher-default discovery, see `CHN-19`.
 - **That the application works.** Hermes's functional behavior, and whether its provider
-  answers, are not stage-1 gates; the delivery claim is bounded by `ARC-1a` and `ARC-17`.
+  answers, are not gates of the LNVPS path; the delivery claim is bounded by `ARC-1a` and `ARC-17`.
   Listing that provider in the trust display (`TRU-E12`, `CNF-103`) still is.
 - **Inference funding.** Assumed already funded.
 - **A vendor with no adapter, and any set but one machine.** Untyped vendor scopes, the jump host and
-  bound sets above one are stage 2's (`STG-22`); tenants are stage 3's (`STG-23`).
+  bound sets above one are `STG-22`'s, under their own row; tenants are the admission
+  group's (`STG-23`).
 - **The general tunnel.** Only the **pinned** kind is built (`CHN-12a`), for a vendor known at
   build time. Reaching an arbitrary CORS-refusing service needs `CHN-12b`'s certificate-authority
-  store, which `OPN-20` still prices and this stage does not touch.
+  store, which `OPN-20` still prices and the LNVPS path does not touch.
 - **A phone-only non-technical operator getting started at all.** A developer can pass every
   predicate above while the target operator still cannot begin. That gap is the product
-  thesis, and nothing in this stage measures it.
+  thesis, and nothing on the LNVPS path measures it.
 
 **STG-19 "If the maximal path works, the rest is subsetting" is too strong.** The dedicated
 test bed demonstrates the channel, the pinning chain, the box plane, the transcript and one
 re-entry. It demonstrates **none** of: attestation (`CHN-R5`), boot-time user-data,
 recovery-sheet handling, second-vendor reachability, concurrent sessions, federation formation,
-or threshold isolation. Those are orthogonal systems, not subsets of it: stage 1 walks
-recovery-sheet handling on its own evidence, attest remains a separate route's evidence, and
-the rest arrive with stages 2 and 3. The honest claim is
+or threshold isolation. Those are orthogonal systems, not subsets of it: the LNVPS path
+walks recovery-sheet handling on its own evidence, attest remains a separate route's
+evidence, and the rest arrive with `STG-22`'s capabilities and the admission group
+(`STG-23`). The honest claim is
 that the test bed de-risks the channel, which is the item everything else waits on.
 
 **STG-20 A machine that does not come back is reinstalled, not diagnosed.** A dedicated server
@@ -686,10 +696,5 @@ service set, and disk identifiers taken from the environment the command runs in
 those was a silent failure once. And a brief distinguishes **resuming** an interrupted
 install (`ARC-10`, `STG-12`: inspect what is there and continue) from this rung's
 **reinstall**, which wipes: the rehearsal's recipe only knew how to wipe.
-
-## After the first stage
-
-`STG-22` and `STG-23` say what stages 2 and 3 bring. Both reuse the channel, the journal and
-the delivery check that stage 1 proves; neither is a subset of it.
 
 [relay-source]: https://github.com/douglaz/paid-tcp-relay/tree/49309df54dea3841f3cb1a37527f8d4ec9b5f1ab

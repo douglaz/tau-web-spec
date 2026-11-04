@@ -84,3 +84,11 @@ bare-seed refusal then; no inventory-discovery mechanism is added here.
 `07-conformance.md`'s applicability table, because Replace's relabel runs only on dedicated
 machines (`STA-17`). The earlier assignment of item 84's Robot rescue case remains; stage 1's
 required row and all severity tiers are unchanged.
+
+## Amended 2026-11-04: the stages are removed
+
+The stages this record names are archived, non-normative
+([`docs/archive/2026-11-04-implementation-order.md`](../archive/2026-11-04-implementation-order.md)).
+What this record decided for stage 1 now applies to the LNVPS path: its recovery row is
+`07-conformance.md`'s "The LNVPS path: recovery export/import and Replace", with the same
+items and the same split between that row, the dedicated row and the paid/public row.

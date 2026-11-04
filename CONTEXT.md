@@ -38,7 +38,7 @@ A permission to act in a class, granted in advance. It names *where a credential
 what it can do.
 _Avoid_: permission, grant, allowance — and **"scope" in its ordinary sense**: what a rule
 binds is "what it binds" or "its reach", the extent of a task is its "extent", and a tier that
-applies to a stage "says which stage it gates". The word is reserved for the object above.
+applies to a capability "says which capability it gates". The word is reserved for the object above.
 
 **Untyped vendor scope** · `SEC-4`
 A scope naming the origin of a cloud vendor the bundle has no adapter for. One of the
@@ -104,7 +104,7 @@ about a machine; `SEC-2`)
 **Specification gate**
 A command in `tools/` that refuses an inconsistent or invalid specification artifact and is run
 by `tools/check-all.sh`. Bare *gate* means this in `README.md`, `AGENTS.md` and `tools/`; in a
-requirement it is qualified, because the corpus also uses *gate* for what a stage or a tier
+requirement it is qualified, because the corpus also uses *gate* for what a row or a tier
 gates, and those are requirements, not checks.
 _Avoid_: test (that is a conformance item's word), linter
 
@@ -456,7 +456,7 @@ pass" (one presents the key; the relay finds the pass)
 
 **Relay key** · `CHN-15`, `SEC-5` row 4; owned by [paid-tcp-relay][relay-source] (`PAS-2`)
 The keypair the browser derives from the seed for one relay pass. Its public half is what the
-relay binds a purchase to and what the first stage hands the publisher; its private half signs
+relay binds a purchase to and what the LNVPS path hands the publisher; its private half signs
 the connection challenge, destination records, and revocation. Never stored, never bearer.
 _Avoid_: relay credential (too vague), "the npub" (which of several)
 

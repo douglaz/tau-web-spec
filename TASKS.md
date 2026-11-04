@@ -13,23 +13,23 @@ gated on it.
 
 ## Open
 
-- [ ] **T21 — Stage-3 tenant delivery inputs** (`OPN-14`; tracked in lnrent as
+- [ ] **T21 — Admission-group tenant delivery inputs** (`OPN-14`; tracked in lnrent as
       [douglaz/lnrent#87](https://github.com/douglaz/lnrent/issues/87)). Obtain the lnrent-owned
       declaration, finish the Robot lockdown checklist and briefs 2–3, then exercise
       `CNF-49`–`CNF-53` on a tenant's machine. *Until 2026-10-05 this blocked completing the
-      first stage. It no longer does:* stage 1 has no tenant (`STG-21`), and what it needs from
-      `OPN-14` is T42's generic checklist. This task now gates stage 3 (`STG-23`).
+      first stage. It no longer does:* the LNVPS path has no tenant (`STG-21`), and what it needs from
+      `OPN-14` is T42's generic checklist. This task now gates the admission group (`STG-23`).
 - [ ] **T22 — Implement the clarified credential and recovery contracts** (`OPN-3`).
-      Local unlock and v1 derivation gate the first stage (`CNF-82`–`CNF-83`); recovery
-      export/import and Replace gate maintained-cloud stage-1 completion under the recovery
+      Local unlock and v1 derivation gate the LNVPS path (`CNF-82`–`CNF-83`); recovery
+      export/import and Replace gate maintained-cloud delivery on the LNVPS path under the recovery
       row of `07-conformance.md`. Implement `STA-17`'s manual relay retirement, with signed
       revocation, `CNF-20`'s relabel cases and Robot rescue following their separate
       applicability rows.
 - [ ] **T23 — Demonstrate interrupted rescue installation** (`OPN-18`). Implement the
-      `STA-20b` handoff and run `CNF-40` and `CNF-54`–`CNF-56` (stage 1's part of `OPN-18`), with
+      `STA-20b` handoff and run `CNF-40` and `CNF-54`–`CNF-56` (the LNVPS path's part of `OPN-18`), with
       `CNF-85` and `CNF-86` for the test bed, on the integrated
       harness. Non-destructive example checks are not a completed hardware rehearsal.
-- [ ] **T27 — Build the first-stage relay** (publisher; `CNF-87`). *Moved 2026-09-24: the relay
+- [ ] **T27 — Build the LNVPS path's relay** (publisher; `CNF-87`). *Moved 2026-09-24: the relay
       is [paid-tcp-relay][relay-source]'s product ([source revision][relay-source]) and its checklist is the
       build's gate; what stays here is integrating a relay that passes it, with a hand-recorded
       pass (its `PAS-6`).* Ahead of harness integration: nothing over the channel can be tested
@@ -56,7 +56,7 @@ gated on it.
       `bundle/inference.toml` has an empty model slug on purpose; the build fails until the
       publisher fills it.
 - [x] **T39 — Admit LNVPS published host keys.** The paid phase-B finding
-      (`docs/findings/2026-10-11-lnvps-phase-b.md`) met `OPN-24`'s stage-1 target criteria.
+      (`docs/findings/2026-10-11-lnvps-phase-b.md`) met `OPN-24`'s target criteria.
       `CHN-R7` owns the admitted route and wait; its formal companion, witnesses, sheet
       provenance and integrated conformance owners are recorded there and in `07-conformance.md`.
       The 2026-10-11 repair groups compact publication knowledge by installation, retires
@@ -75,7 +75,7 @@ gated on it.
       first-boot finding (`docs/findings/2026-10-09-attest-first-boot.md`) records the real
       vendor boot and its limits: it was not the harness browser, used public relays, and did
       not prove the Arch/static-tool, derivation, or browser-side checks. Finish those checks
-      for a route using attest. Stage 1 at LNVPS does not consume attest.
+      for a route using attest. The LNVPS path does not consume attest.
 - [x] **T41 — Restate stage 1 on plain Arch** (`OPN-25`). The code research
       (`docs/findings/2026-10-08-omarchy-headless-research.md`) and route-C prototype
       (`docs/findings/2026-10-08-omarchy-route-c-prototype.md`) support the accepted
@@ -91,39 +91,39 @@ gated on it.
       approves (`ARC-39`). Left: tau-web-rust's implementation of the checklist and `ARC-43`'s
       harness-composed listener, outbound-restriction, unit-state and enablement reads behind
       `CNF-50`, `CNF-53` and `CNF-103`, the fresh-image run below, and the integrated evidence. Decided 2026-10-16: `ARC-43`
-      owns stage 1's systemd service-name grammar and the delivery reboot opted into by the
+      owns the LNVPS path's systemd service-name grammar and the delivery reboot opted into by the
       declaration and again at delivery; the declaration format owns service scope and user
-      accounts. OpenRC waits for the dedicated path's stage. Decided 2026-10-18 (ADR-0049):
+      accounts. OpenRC waits for the dedicated path's row. Decided 2026-10-18 (ADR-0049):
       re-entry reads every declared service's unit and reads enablement only for
       enabled-survives-reboot services; `ARC-43` owns running-at-delivery's boot anchor,
       stopped-since-restart note and persistence of lifecycle findings.
       When the checklist exists, run it against a fresh LNVPS catalogue image; if the image
-      fails a fixed check, `tw-i55` is due before stage 1 completes. The persistent LNVPS
+      fails a fixed check, `tw-i55` is due before the LNVPS path delivers a machine to an operator. The persistent LNVPS
       access decision is recorded in ADR-0051, with its rule in `STG-21` and startup/collection
       in `STA-20`. Its fresh-image run and integrated evidence remain outstanding, including
       the newly admitted image after destructive reinstall; specification completion supplies
       no image or checklist pass.
-- [ ] **T43 — Stage 1's build list**. Implement `STG-21`'s corrected LNVPS/plain-Arch
-      definition and the stage-1 applicability rows in `07-conformance.md` at tau-web-rust's
+- [ ] **T43 — The LNVPS path's build list**. Implement `STG-21`'s corrected LNVPS/plain-Arch
+      definition and the LNVPS-path applicability rows in `07-conformance.md` at tau-web-rust's
       next spec pin. These include recovery, scanning, reports and re-entry; specification
       edits exercise no harness. The route is admitted in `CHN-R7`; completion still depends on its integrated
       conformance, T44's coordinated identity format/recovery change, the publisher's artifact-pin choice,
       and the integrated evidence those rows require.
-- [ ] **T48 — Stage 1: build placed-secret scanning and recovery re-arm** (`OPN-28`).
+- [ ] **T48 — The LNVPS path: build placed-secret scanning and recovery re-arm** (`OPN-28`).
       Implement `SEC-5` row 23 and scan semantics, `ARC-43`'s jobs and fallback, and `STA-16`'s
       sheet metadata, including each placement's application association and application/provider
       facts under the credential format's
       payload v3 and explicit refusal of payloads v1/v2; demonstrate `CNF-95` with `CNF-42` and
       `CNF-84`. The design permits construction now. Decided 2026-10-16: `SEC-5` owns the
       numeric minimum accepted secret byte length and no-override refusal; `CNF-94` exercises
-      it before stage-1 completion. Still open: any further changed-file detection policy after
+      it before the LNVPS path delivers a machine to an operator. Still open: any further changed-file detection policy after
       loss of the old reference; and compatibility
       policy beyond the adopted sheet-payload version bump, should it become necessary. No
       length/value-derived reference belongs on the sheet and no legacy migration is selected.
 - [ ] **T49 — Later best practice: a signed library of read-only typed checks** (`ARC-39`).
       Bundle-owned unit-state, TCP/HTTP on a declared listener, and binary-version checks whose
       results can count toward the declaration, using no secret and no third party. This is
-      later work, not a stage-1 gate or an acceptable weaker mode. It does not change the
+      later work, not a gate of the LNVPS path or an acceptable weaker mode. It does not change the
       declaration schema; model-written reports remain reports. Before it lands, the bundle
       classes each check as refusing placement or not: a TCP/HTTP check that counts would
       otherwise refuse the key of an application that only listens once it has its key — the
@@ -135,7 +135,7 @@ gated on it.
       and completion does not claim permanent id absence or coverage of that gap." This closes
       the specification task, not integrated implementation or live deletion evidence.
 - [ ] **T44 — Implement the decided derived vendor identity** (`OPN-26`, ADR-0042).
-      This is a coordinated change required before stage-1 completion, not a new design
+      This is a coordinated change required before the LNVPS path delivers a machine to an operator, not a new design
       question. Its eventual typed adapter follows `STG-21` and `ARC-30` for the accepted
       HTTP order, email verification and invoice path. Add per-machine role 5 at the machine's
       index and its Nostr BIP-340 x-only
@@ -157,12 +157,12 @@ gated on it.
       Revisit `STA-22b`'s bare-seed refusal once T44's bounded index scan can find LNVPS
       machines: the seed-derived vendor identity may then recover inventory (ADR-0040).
       Unrelated witness modules need no broad edits.
-- [ ] **T45 — Stage 2: the jump host and the untyped vendor scope** (`STG-22`, `CHN-R6`,
+- [ ] **T45 — The jump host and the untyped vendor scope** (`STG-22`, `CHN-R6`,
       `SEC-4`). Includes one thing the rules name and nothing yet carries: a jump-host source
       for a pin in the formal companion (`ARC-43` says "A pin taken at a jump-host first
       contact (`CHN-R6`) is not among `TauWeb.Pins.Source`'s cases"). The placed secret's
       digest key is not here: it is
-      stage 1's (T48). Also owed before an untyped vendor scope is enabled: how the target's
+      the LNVPS path's (T48). Also owed before an untyped vendor scope is enabled: how the target's
       address is taken from a response no adapter reads without passing through model text
       (`CHN-R6`), and how an unfinished machine at a vendor with no typed destroy is abandoned
       (`ARC-22`). `OPN-24` says "The jump-vendor question remains separate and open"; see its
@@ -178,7 +178,7 @@ gated on it.
       would let a compromise of either impersonate the other while each passes `SEC-11`.
       Decide whether a first contact refuses a key already pinned, or published, for another
       managed machine, keeping unrelated machines' histories otherwise separate. `CHN-R1`
-      already says "Host keys MUST NEVER be baked into a reusable image"; stage 1 has one
+      already says "Host keys MUST NEVER be baked into a reusable image"; the LNVPS path has one
       machine.
 - [ ] **T46 — What the sibling repositories now owe.** Recorded here; none of them was edited.
       **tau-web-rust:** at its next spec pin bump, implement as tests the new and restated
@@ -186,13 +186,14 @@ gated on it.
       `CNF-84` (including `STA-16` application/provider recovery, placement association,
       per-machine name uniqueness and old-payload refusal), and
       the untyped-scope restatements of `CNF-12`, `CNF-14` and `CNF-27`.
-      This prior cross-stage handoff debt remains open alongside T43's stage-1 recovery,
+      This prior handoff debt remains open alongside T43's LNVPS-path recovery,
       scan and report-only evidence. The applicability table in `07-conformance.md` still
-      assigns each case to its stage; stage-2 cases do not gate stage-1 completion.
+      assigns each case to its row; the untyped-scope, jump-host and sets-above-one row's cases
+      do not gate the LNVPS path's delivery.
       **btc-policy:** state its independence rule over configured models as `SEC-T5` records
       it, and say which members a footprint is counted across — one federation, overlapping
       successor federations, or more; its drift checks and required software are still T28.
-      **lnrent:** its declaration (lnrent#87) now gates stage 3, and the project decides with
+      **lnrent:** its declaration (lnrent#87) now gates the admission group (`STG-23`), and the project decides with
       the publisher whether it is a tenant or a vendor the operator buys from (`OPN-27`).
       **[paid-tcp-relay][relay-source]:** wherever its text describes a client that accepts a first contact
       through the relay on trust, this client no longer does (`CHN-R4`); a jump host is an
@@ -206,7 +207,7 @@ gated on it.
       - **A different model per machine is not deliverable on the procured path.** `ARC-31b`
         gives every session the highest-ranked candidate, so several one-machine sessions are
         one configured model, and `SEC-T5`'s footprint reaches quorum at once. Pre-existing;
-        stage 3 cannot ship past it (`OPN-27`).
+        the admission group cannot ship past it (`OPN-27`).
       - **Whether a multi-machine tenant fits the skill shape**, and whether atomic
         multi-vendor creation, sealing and the coordinator stay a harness capability
         (`OPN-27`). **Whether lnrent is a tenant or a vendor** (`OPN-27`).
@@ -263,15 +264,15 @@ gated on it.
         Whether a later rule should allow it is undecided.
       - **Found by the branch review of 2026-10-06.** The minimum byte length and `CNF-94`'s
         refusal case were settled 2026-10-16 (`SEC-5`); integrated evidence remains T48's. The sheet carries neither `SEC-4`'s two answers for an
-        untyped vendor scope nor `CHN-R6`'s jump vendor and date, both stage 2's.
+        untyped vendor scope nor `CHN-R6`'s jump vendor and date, both `STG-22`'s.
       - **Found by the pull request's review of 2026-10-07, not fixed there.** A renewal
         invoice at an invoicing vendor can be relayed only while the app is open (`ARC-30`,
-        `ARC-2`), while stage 1's application is always on. And `ARC-36a` lets the model
+        `ARC-2`), while the LNVPS path's application is always on. And `ARC-36a` lets the model
         propose a tightening to multi-tenant after binding, while a multi-tenant machine is
         always bound alone and a set never shrinks (`SEC-1`): whether such a tightening is
-        refused or deferred in a larger set is undecided (stage 2).
-      - **Left open by the weaker-modes-across-sessions decision (2026-10-07), all stage 2 or
-        later.** Whether an untyped vendor scope's permission ends with its session, the
+        refused or deferred in a larger set is undecided (`STG-22`).
+      - **Left open by the weaker-modes-across-sessions decision (2026-10-07), all under `STG-22`
+        or the admission group.** Whether an untyped vendor scope's permission ends with its session, the
         credential staying shown until revoked (`SEC-4`'s "while the scope stands"); whether
         escalation's successor (`ARC-16`) is a session that accepts modes; and whether `ARC-25`
         governs a later session's package fetches on an unpinned machine. And a reinstall at

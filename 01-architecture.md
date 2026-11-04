@@ -317,7 +317,7 @@ is that check's finding, never a pass; a read refused or held before dispatch, o
 record, settles nothing (`STA-20`, `STA-24`). The model proposes values, not the measuring
 procedure.
 
-For stage 1's **init-specific systemd case** (OpenRC waits for the dedicated path's stage),
+For the LNVPS path's **init-specific systemd case** (OpenRC waits for the dedicated path's row),
 a declared service name MUST be bare, match `^[A-Za-z0-9_][A-Za-z0-9:_.-]*$`, and be at most
 247 bytes. The harness appends `.service`, keeping the whole within systemd.unit(5)'s 255
 bytes, and passes `--` before it. No `@` instances, `.socket` or `.timer` entries are admitted
@@ -534,7 +534,7 @@ preselected; **"Not sure" is treated as yes**. It displays unknown coverage and 
 later irreversible acts under `STA-16`, but that unknown inventory does not itself block
 work once all known required references are armed.
 
-The model's tool set in the first stage is exactly four: `exec` (a box-plane command it composed),
+The model's tool set on the LNVPS path is exactly four: `exec` (a box-plane command it composed),
 `request_harness_job` (`fetch_artifact`, `ready_to_reset` or `place_secret`, by name, with the
 arguments that job admits),
 `request_typed_operation` (a cloud-plane operation, approved on facts), and `done`. Each names
@@ -690,7 +690,7 @@ otherwise: `SEC-1` says "**A bound set is one unit of harm and one model context
 mobile memory pressure as a high risk and defaults its command-worker pool to one on
 mobile; five concurrent sessions each holding a model stream and a remote session need the
 same treatment, and so does one session holding a channel to each machine of a larger bound
-set. **No number has ever been measured**, and the first stage runs exactly one
+set. **No number has ever been measured**, and the LNVPS path's acceptance runs exactly one
 session with one machine, which makes it the only cheap opportunity to learn whether five is
 possible — `CNF-45` requires the measurement.
 
@@ -751,8 +751,8 @@ and [STA-8/STA-24](./03-state-and-recovery.md#durable-state).
 `STA-5` says “No retry classification bypasses STA-8/STA-24.” `STA-6` says
 “Box-plane work is never-retry-automatically.” `STA-8` says “It MUST NOT be retried
 automatically and no timer may clear it.” `STA-24` says “A re-issue under either is the
-operator's explicit choice”. The LNVPS third-rung question remains
-[tw-ae7](./.beads/issues.jsonl); the vendor stand-ins remain [ARC-22](#post-harness-machinery-and-finishing-a-setup).
+operator's explicit choice”. The LNVPS third rung takes the form `STG-17` gives it
+([tw-ae7](./.beads/issues.jsonl)); the vendor stand-ins remain [ARC-22](#post-harness-machinery-and-finishing-a-setup).
 
 ```mermaid
 stateDiagram-v2
@@ -1031,7 +1031,7 @@ on the channel spike (`docs/findings/2026-09-07-wasm-spikes.md`).
 
 **ARC-24** The chosen distributions are **Alpine and NixOS**: the two the bundle is designed to
 pin. Today it carries Alpine's (`bundle/artifact-alpine.toml`); NixOS is not offered until the
-bundle carries its pin and its evidence exists (`07-conformance.md`'s stage-1 row). When another
+bundle carries its pin and its evidence exists (`07-conformance.md`'s LNVPS-path required row). When another
 distribution an operator's goal names — Arch or Omarchy — is installed, it is **unpinned**
 under `ARC-25`'s rule until the bundle carries a pin for it. Neither
 chosen distribution is offered by the
@@ -1041,7 +1041,7 @@ image installation is mandatory on that path**, not the optimisation ADR-0011 ca
 runs from inside a rescue session; the other is that rescue is what publishes the host key
 (`CHN-R1`).
 
-For stage 1's catalogue plain Arch (`STG-21`), that is the unpinned label until the publisher
+For the LNVPS path's catalogue plain Arch (`STG-21`), that is the unpinned label until the publisher
 adds an Arch pin, if it does; record that choice when taken.
 
 A declarative distribution also repays `ARC-10`: a system whose state is described rather
@@ -1407,7 +1407,7 @@ federation across distinct vendors means several of those. Without something lik
 `OVR-5` collides with the operator's willingness to open billing relationships, and vendor
 diversity quietly collapses to whatever account they already had. A vendor that sells machines
 by Lightning invoice with no account is the same escape seen from the buying side; the first
-candidate passed `OPN-24`'s stage-1 target criteria in its phase B; as a jump vendor it is still
+candidate passed `OPN-24`'s target criteria in its phase B; as a jump vendor it is still
 open.
 
 **ARC-31b The candidate order is chosen by rule at pin time, read for availability at session

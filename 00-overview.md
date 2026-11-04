@@ -27,7 +27,7 @@ implementation's CI runs; `bundle/` holds the publisher-chosen values the build 
 | [`03-state-and-recovery.md`](./03-state-and-recovery.md) | Durable state, crash recovery, and what survives a lost phone (`STA-*`) |
 | [`04-security-model.md`](./04-security-model.md) | The invariants, the credential inventory, and the security claim (`SEC-*`) |
 | [`05-trust.md`](./05-trust.md) | Who must still be trusted, in three tiers (`TRU-*`) |
-| [`06-first-stage.md`](./06-first-stage.md) | The stages, and what the first must demonstrate (`STG-*`) |
+| [`06-first-stage.md`](./06-first-stage.md) | The paths, and what each must demonstrate (`STG-*`) |
 | [`07-conformance.md`](./07-conformance.md) | What an implementation must show before touching a real account (`CNF-*`) |
 | [`08-open-questions.md`](./08-open-questions.md) | Everything still unknown (`OPN-*`) |
 | [`CONTEXT.md`](./CONTEXT.md) | The domain glossary. Definitions only |

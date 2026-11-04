@@ -39,7 +39,7 @@ The specification is split by topic, and every requirement carries a stable iden
 | [`03-state-and-recovery.md`](./03-state-and-recovery.md) | Surviving a killed worker, and a lost phone |
 | [`04-security-model.md`](./04-security-model.md) | The invariants, the credential inventory, the claim |
 | [`05-trust.md`](./05-trust.md) | Who must still be trusted, and who chose them |
-| [`06-first-stage.md`](./06-first-stage.md) | The stages, and what the first must show |
+| [`06-first-stage.md`](./06-first-stage.md) | The paths, and what each must show |
 | [`07-conformance.md`](./07-conformance.md) | What an implementation must demonstrate |
 | [`08-open-questions.md`](./08-open-questions.md) | Everything still unknown, and what would close it |
 
@@ -56,9 +56,9 @@ work.
 
 ## The general case, and the two intended tenants
 
-The harness works from an operator's goal with no tenant. `STG-21` gives the stage-1 goal:
+The harness works from an operator's goal with no tenant. `STG-21` gives the LNVPS path's goal:
 "Launch a VPS paid in Bitcoin on plain Arch and install Hermes with its own installer."
-`STG-21` also says "Another operator's goal may name Omarchy". Stage 1 uses one LNVPS machine;
+`STG-21` also says "Another operator's goal may name Omarchy". The LNVPS path uses one LNVPS machine;
 its published-key pin route is `CHN-R7`; integrated evidence remains open. A tenant is optional — briefs that make
 installing its software faster and more reliable, and presets for the facts its machines carry.
 Two are intended:
@@ -75,12 +75,13 @@ Two are intended:
 
 The installation rehearsal ran on a disposable dedicated server on September 8, 2026; both
 pinned SSH hops closed. Harness construction can start, with that dedicated path as its test
-bed. The stages and build list are in `06-first-stage.md`; the probe lists and evidence gaps
+bed. The paths and build list are in `06-first-stage.md`, and the archived implementation order is in
+[`docs/archive/2026-11-04-implementation-order.md`](./docs/archive/2026-11-04-implementation-order.md); the probe lists and evidence gaps
 are in `08-open-questions.md`. The October 6 recovery and secret-scan decisions are
 [ADR-0040](./docs/adr/0040-stage-one-includes-restore-and-replace.md) and
 [ADR-0041](./docs/adr/0041-secret-scan-rearms-from-machine-reports.md); model-written reports
 are clarified in ADR-0034. The integrated harness remains unproven, including recovery and
-scan re-arming; `07-conformance.md` defines each stage's completion.
+scan re-arming; `07-conformance.md` defines each path's and capability's admission.
 
 ## Requirement conventions
 
@@ -124,7 +125,7 @@ rendered twice, a malformed marker, and an emitted region no document renders.
 | `STA-n` | State and recovery |
 | `SEC-n` | Security model; `SEC-Tn` is a tenant rule in btc-policy's profile; `SEC-CLAIM` is the claim itself |
 | `TRU-Un`, `TRU-En`, `TRU-An` | Trust: unavoidable, elective, and added by this product |
-| `STG-n` | The stages |
+| `STG-n` | The paths and their gates |
 | `CNF-n` | Conformance items |
 | `OPN-n` | Open questions |
 
@@ -133,7 +134,7 @@ cited on its own. A conformance item carries a tier — **BLOCKING**, **PRE-SCAL
 **DEFERRED**, as `07-conformance.md`'s tiering section defines them — except under "Build and
 gate", which precedes the tiering rule, and "Measurements", which are recorded rather than
 passed. Tiers describe severity; `07-conformance.md`'s applicability table says what gates a
-stage.
+path or capability.
 
 ### Identifiers are append-only. Text is not.
 

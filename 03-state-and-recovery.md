@@ -754,7 +754,7 @@ recovery root**. It survives because it lives in their head or password manager 
 recoverable through the vendor's own processes, and it is the party that knows which machines
 exist. At LNVPS, the vendor identity is to derive from the seed under the decision in ADR-0042;
 inventory and credentials therefore share a root. T44 must make that decision operative in
-the credential format and recovery rules before stage-1 completion. The table below describes
+the credential format and recovery rules before the LNVPS path delivers a machine to an operator. The table below describes
 the separate-account case and the current credential format, not an available LNVPS Restore.
 
 | Dies with the phone | Survives |
@@ -1054,9 +1054,9 @@ Conceptual recovery navigation. In this figure, “Zero downtime” describes th
 key/pin recovery route, not preserved live-session authority, command completion, scan
 readiness, a delivery verdict or permission for new allocations. “Always works” names the
 design's dedicated-vendor rescue route, not integrated device/vendor evidence. Evidence and
-its remaining limits live at [OPN-3](./08-open-questions.md#gates-by-milestone),
+its remaining limits live at [OPN-3](./08-open-questions.md#gates-by-path-and-capability),
 [OPN-28](./08-open-questions.md#design-level-still-open) and
-[Stage applicability and admission](./07-conformance.md#stage-applicability-and-admission).
+[Capability applicability and admission](./07-conformance.md#capability-applicability-and-admission).
 The separate authority boundaries are indexed in the
 [atlas recovery region](./docs/state-machine-atlas.md#allocation-and-recovery).
 For journal-only command protection and the lost-journal/backup boundary, see `STA-20` and
@@ -1190,7 +1190,7 @@ distinct, and the screen says which one is happening
   remove the old public key; a failed confirmation leaves the old key in place. The old seed is
   not revocable; changing what the browser uses is not removing a thief's access. The old
   relay pass is revoked by its own key's signature and a new pass bought against a key from
-  the new seed on the paid/public path. Stage 1's manually enrolled relay instead requires
+  the new seed on the paid/public path. The LNVPS path's manually enrolled relay instead requires
   publisher confirmation that the old hand-recorded pass is retired and the new key recorded.
   The UI MUST NOT claim the old pass revoked before that confirmation. The old sheet belongs to
   the retired seed, so Replace ends with an export of the new seed's sheet (`STA-15`); until it

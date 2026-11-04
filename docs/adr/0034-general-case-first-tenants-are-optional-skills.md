@@ -54,7 +54,7 @@ goal escapes that reason only while it stays one operator's instruction to one s
 imported, shared or reused", and "A goal MUST be refused for a machine under a profile that
 declares an independence bound".
 
-**The roadmap follows.** `STG-21` says "Stage 1 is the owner's scenario: one machine, no
+**The roadmap follows.** `STG-21` said "Stage 1 is the owner's scenario: one machine, no
 tenant". The probes come before it, a vendor with no adapter after it — where the browser can reach
 its API, as `STG-22` words it — and tenants last
 (`06-first-stage.md`). The dedicated path ADR-0018 made the first stage is the construction
@@ -187,3 +187,16 @@ qualification, see `OPN-24` and T45.
 *Amended 2026-10-11:* The paid phase-B finding met the stage-1 target criteria and
 `CHN-R7` now admits LNVPS's published host keys. The jump-vendor qualification remains
 separate under `CHN-R6` and T45. Integrated stage-1 conformance remains open.
+
+## Amended 2026-11-04: the stages are removed
+
+The owner directed on 2026-11-04 that the stages be removed and the specification describe
+the system, with the implementation order decided elsewhere. The roadmap paragraph under
+*The decision* and the first-stage consequences above are history; the order they set is
+archived, non-normative, in
+[`docs/archive/2026-11-04-implementation-order.md`](../archive/2026-11-04-implementation-order.md).
+No gate was dropped with the order. `STG-21` is now the LNVPS path, and lnrent's delivery
+declaration, briefs 2–3, the Robot lockdown checklist and `OPN-27`'s closure gate the
+admission group (`STG-23`): the tenants, the dedicated path offered to an operator and a
+post-harness handoff profile. `07-conformance.md`'s applicability table admits each path and
+capability by its own rows.

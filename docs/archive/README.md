@@ -21,3 +21,12 @@ particular it assumes a scope —
 milestone-ordered delivery of a full kernel plus shell — that
 [the design session](../design/2026-08-07-office-hours.md) rejected in favour of a much
 smaller first move.
+
+## [`2026-11-04-implementation-order.md`](./2026-11-04-implementation-order.md)
+
+The stage list and implementation order the specification carried until 2026-11-04, when
+the owner directed that the specification describe the system and that the order be decided
+elsewhere. It keeps the text as it read then, so dated records that cite stages stay
+readable. It gates nothing: each path and capability is admitted by its own rows in
+[`07-conformance.md`](../../07-conformance.md), and the admission group is `STG-23` in
+[`06-first-stage.md`](../../06-first-stage.md).
