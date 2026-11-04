@@ -746,7 +746,7 @@ modal fatigue in its purest form, and the operator cannot tell which machine is 
 
 **ARC-16** Recovery is a ladder. Retry; then escalate to a stronger model behind the same
 proxy; then destroy the machine and restart under a different domain, which costs a server.
-Successor-set selection belongs to `SEC-1`; escalation alone is not reinstall.
+Successor-set selection belongs to `SEC-1`.
 
 Conceptual recovery navigation: “Retry” routes through [STA-5/STA-6](./03-state-and-recovery.md#durable-state)
 and [STA-8/STA-24](./03-state-and-recovery.md#durable-state).
@@ -1109,18 +1109,9 @@ carries an acceptable pin. The publisher must track releases and refresh this po
 
 **A failed pinned check halts; it never degrades into a weaker mode.** Installing a
 distribution the bundle carries no pin for is an acceptable weaker mode (`SEC-14`): the
-operator chooses it from what the bundle lacks, under `SEC-14`'s installation timing and
-fresh-reinstall acceptance rules, and the machine is recorded and shown as **unpinned** from
-then on. A machine that began under a pin and failed it MUST NOT continue
+operator chooses it up front, from what the bundle lacks, and the machine is recorded and shown
+as **unpinned** from then on. A machine that began under a pin and failed it MUST NOT continue
 unpinned, whoever asks.
-
-A declared independence bound alone MUST add neither prohibition nor extra acceptance for
-a new unpinned installation. Its ordinary named-mode acceptance remains `SEC-14`'s; all
-applicable pins and other guards remain in force. The accepted risk is a shared artifact
-source substituting bootstrap content and an unchecked signer set across members despite
-distinct configured models, singleton sessions and compliant footprint counts. Ordinary
-acceptances do not constrain that shared source. Pinned paths retain their publisher and
-package-signer dependencies. This adds no warning ceremony, profile permission or build gate.
 
 **ARC-25a Both pinned installation paths combine a pinned bootstrap with signature-admitted packages**
 ([ADR-0027](./docs/adr/0027-the-artifact-pin-is-per-distribution.md)). The construction test bed's

@@ -216,49 +216,41 @@ AAD, algorithms or known-answer vectors.
 ### Actual artifact history, payload version 5
 
 `artifact_history` is a required array with exactly one entry per non-jump machine, including
-retained destroyed-machine records: `{machine_index, known_unpinned, possible_unpinned}`.
-Both lists contain distinct increasing installation ordinals and are disjoint. Artifact
-history is independent of host-pin group creation: ordinal zero can record an actual initial
+retained destroyed-machine records: `{machine_index, known_unpinned, legacy}`.
+`known_unpinned` contains distinct increasing installation ordinals. Artifact history is
+independent of host-pin group creation: ordinal zero can record an actual initial
 installation/order dispatch before any publication, job-read or attest opens pin group zero.
-A later ordinal must follow an actual reinstall boundary; no ordinal is created by acceptance. `known_unpinned` records actual dispatched
-unpinned installations, never acceptance alone. `possible_unpinned` records only unresolved
-artifact-history origins. Empty lists are explicit. Current unpinned status requires its
-current ordinal in `known_unpinned`; pinned present does not erase either list. Reject missing,
-duplicate, overlapping, out-of-range or malformed entries before binding; the allowed initial
-zero with no pin group is not out of range. Preserve the lists
-on subsequent exports and migration to a new machine index; do not infer observations or pins
-from them. Their display and filtering meaning belongs to `STA-16` and `ARC-25a`.
+A later ordinal must follow an actual reinstall boundary; no ordinal is created by acceptance.
+`known_unpinned` records actual dispatched unpinned installations, never acceptance alone.
+`legacy` is exactly `"none"`, `"unpinned"` or `"unknown"`: what conversion from an older
+payload established about installations it recorded no ordinal for, and `"none"` on every
+entry a version-5 export creates; `"none"` records only that no conversion line below applied
+and asserts no clean past. An empty `known_unpinned` is explicit `[]`. Current unpinned status requires
+its current ordinal in `known_unpinned`; pinned present erases neither field. Reject missing,
+duplicate, out-of-range or malformed entries before binding; the allowed initial zero with no
+pin group is not out of range. Preserve both fields on subsequent exports and migration to a
+new machine index; do not infer observations or pins from them. Their display belongs to
+`STA-16`.
 
 Validate version 3 under its original rules before its explicit locator conversion above,
 and version 4 under all its original rules, before converting either to version 5 in memory.
-Preserve all genuine retained facts. For each machine, its current `unpinned` installation is
-a known unpinned ordinal; its current `pinned` ordinal is known pinned and is never marked
-possible merely because it is pinned. Every earlier actual group whose artifact status these
-older payloads do not retain is a possible unpinned ordinal. No group is created by conversion.
-For a retained destroyed machine with no `machine_states` entry, artifact status is absent
-even for its last retained group. Every retained actual group on that machine, including the
-last, becomes a possible unpinned ordinal unless retained artifact-status facts establish it
-as known pinned or known unpinned; preserve those known facts instead. Do not invent groups
-or ordinals, drop the machine's history entry or require a formerly optional destroyed-machine state.
-Current unpinned status with no pin group preserves the actual initial ordinal zero directly,
-with `host_pin_installations:[]` and `host_pins:[]` unchanged; conversion manufactures neither.
-A machine with no earlier group and a current pinned installation therefore has no possible
-unpinned past; a not-installed machine with no dispatched installation has none either.
-Standing set modes and unused acceptance cannot establish that an installation happened or
-identify its origin. Old versions lose per-installation artifact status: absence of a standing
-unpinned label cannot rule out an earlier unpinned dispatch, and a standing label cannot prove
-that a particular installation was dispatched unpinned. This is why retained groups without
-artifact-status facts remain possible rather than known positives or negatives.
-Where the same legacy bytes permit different originating machines, retain
-the possible ordinals on every such machine; do not choose an origin from set membership, a
-pin route, publication or current pinned status. Known facts remain known, unknown remains
-unknown, and the absence of an old history field supplies no assertion of a negative past.
-No journal-import operation or uncertainty-clearing authority is introduced.
+A machine's own recorded `installation` value keeps its meaning: a current `"unpinned"`
+installation is a known unpinned ordinal. An older payload's unpinned-installation label stands
+on the machine's bound set, not on a machine. That set is the one the exported exposure ledger's
+latest entry for the labelled machine records (`STA-10`: an entry "records the set that machine
+was bound in"), including any retained destroyed machine that entry names. When that label
+stands on a bound set of more than one machine, each machine of the set restores with `legacy:"unknown"`: history unknown, shown
+and restated at binding as `SEC-14` requires of installation history, and never unpinned or
+clean history for any of them. When the set has one machine, the history belongs to that
+machine: `legacy:"unpinned"`. Every other converted entry has `legacy:"none"`. Absent required
+data never becomes empty history: conversion creates no group, ordinal, observation or pin,
+and current unpinned status with no pin group preserves the actual initial ordinal zero with
+`host_pin_installations:[]` and `host_pins:[]` unchanged.
 
 The v3-to-v4 conversion remains exactly the locator conversion above. The v4-to-v5 history
 conversion changes no allocation, pin, observation, application, placement or seed-backup
 validation. Versions 1, 2 and unknown versions are still refused. New exports always retain
-the v5 lists, even after a pinned successor. Sheet envelope v1, derivation v1, algorithms,
+the v5 history, even after a pinned successor. Sheet envelope v1, derivation v1, algorithms,
 AAD and known-answer vectors stay unchanged.
 
 Each `host_pins` entry names the host-key route that produced it: `retrieve` (`CHN-R1`),
@@ -318,7 +310,7 @@ add no fact after separate partial observations, so no complete observation is
 required in the group. Later refused observations may add facts after that prefix;
 they remain recorded and MUST NOT invalidate an already admitted pin. Missing
 or invalid history MUST NOT become empty history. `STA-16` owns what Restore does with
-these facts. These fields remain required in the version-4 payload and in the version-3
+these facts. These fields remain required in payload version 4 and later and in the version-3
 compatibility input; the envelope and derivation are unchanged.
 
 `applications` is a required JSON array of objects, each with exactly the required members
@@ -353,7 +345,7 @@ An application recorded only on another machine cannot satisfy the reference. No
 value, digest, scan key, byte length or other value-derived reference is included. Payload
 versions 1 and 2 and unknown payload versions are unsupported: refuse them explicitly. Version 3
 has only the explicit compatibility conversion above, and missing placement or application lists
-are never interpreted as empty. The version-4 payload changes neither the v1 envelope, derivation
+are never interpreted as empty. Payload versions 4 and 5 change neither the v1 envelope, derivation
 paths, algorithms, AAD nor known-answer vectors.
 Reject unknown versions, duplicate identities/indices and malformed fields before binding
 anything; imported data never creates a binding without vendor reconciliation and an
@@ -366,7 +358,7 @@ operator act. Never merge two counters and call the result proof that a backup i
 missing, malformed or duplicate record, duplicate object members, an unknown completion,
 or a seed id different from the payload's. Restore brings it back into the journal; an
 imported seed owes no ceremony and allocates nothing regardless of this record (`STA-22b`).
-Replace clears it for the fresh seed. This member remains required in payload version 4 and the
+Replace clears it for the fresh seed. This member remains required in payload version 4 and later and the
 version-3 compatibility input; the envelope and derivation stay unchanged.
 
 Export asks the operator to retain both the seed backup and the separate sheet passphrase.

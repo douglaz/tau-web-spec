@@ -85,7 +85,10 @@ Execution freshness checks incarnation names against current and retired executi
 worker/session lookup remains independently required. Freshness is checked rather than
 assumed. Binding lifetime is
 session-level and independent of execution fences. The additional pairs cover these checks,
-resume authorization/unlock/validation, sticky lost-key state and owed ceremony completion.
+resume authorization/unlock/validation, sticky lost-key state, owed ceremony completion,
+ceremony entry while locked and binding growth while paused or locked. A successful `unlock`
+stands for the local passphrase entry; ceremony entry from an already unlocked store has no
+further passphrase event in this interpretation.
 Arbitrary-state boundary traces carry their complete `start` projection: an already fenced
 dormant actor still owns its binding, and an archived actor or a fresh execution identity
 cannot erase a retained session End. These inputs do not claim to be histories reachable
@@ -102,7 +105,7 @@ owning requirements and the prose below retain their authority. No key material 
 | schema | `4` |
 | events | `actionable_publication, assess_key, end_session, enter_ceremony, finish_ceremony, fresh_admission, grow_binding, hide, invalidate, ordinary_request, pause, received_record, replace_end, replay, resume, sealed_terminal, suspend, unlock, validate_continuation, visible` |
 | knowledge | `actors, ceremony, ceremony_owed, dispatch, ended_sessions, fenced, issued, locked, published` |
-| guards | `bindingSessionLifetime, ceremonyActive, ceremonyAppend, ceremonyCompletion, ceremonyHideLocks, ceremonyPending, ceremonyRelease, endFence, exclusiveBinding, executionFresh, growthExclusive, hidePreserves, individualOnly, lostKeySticky, machineMembership, pauseRequired, preserveKnowledge, procuredEligibility, publicationDispatch, publicationOrigin, requestOriginal, requestSession, resumeAuthorized, resumeTerminal, resumeUnlocked, resumeValidation, scopedExpiry, sealedTerminalRequired, unsentContinuation, validationMatches, validationRequired, validationTerminal, workerIdentity` |
+| guards | `bindingSessionLifetime, ceremonyActive, ceremonyAppend, ceremonyCompletion, ceremonyHideLocks, ceremonyPending, ceremonyRelease, ceremonyUnlocked, endFence, exclusiveBinding, executionFresh, growthAvailable, growthExclusive, hidePreserves, individualOnly, lostKeySticky, machineMembership, pauseRequired, preserveKnowledge, procuredEligibility, publicationDispatch, publicationOrigin, requestOriginal, requestSession, resumeAuthorized, resumeTerminal, resumeUnlocked, resumeValidation, scopedExpiry, sealedTerminalRequired, unsentContinuation, validationMatches, validationRequired, validationTerminal, workerIdentity` |
 <!-- /witness-vocabulary -->
 
 Schema 2 adds the explicit `requestSession`, `machineMembership`, `growthExclusive` and

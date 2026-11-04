@@ -134,9 +134,17 @@ act sets aside", and the operator's
 two answers disclose that reach rather than bound it. The quotation of `SEC-14`
 under "The list, the best practice each mode stands in for, and the rule" is history.
 
-*Amended 2026-11-04:* The independence-bound combination above is settled at `ARC-25`: it
-says "A declared independence bound alone MUST add neither prohibition nor extra acceptance
-for a new unpinned installation." The accepted shared-source and unchecked signer-set risk
-is recorded there. No extra warning ceremony, profile permission slot or build gate follows.
-Installation timing and newly approved reinstall acceptance belong to `SEC-14`; actual
-per-machine history and legacy uncertainty belong to `STA-16` and its versioned format.
+*Amended 2026-11-04:* whether an unpinned installation is admissible under a declared
+independence bound is decided: it is allowed, with the ordinary up-front acceptance. `ARC-25`
+says "the operator chooses it up front, from what the bundle lacks", and `SEC-14` says "A
+mode is accepted by the session that does what it governs, before doing it". The bound alone
+adds no prohibition and no further acceptance, and a failed pinned check still never falls
+back. The owner accepts a known risk: an unpinned artifact source can substitute bootstrap
+content and an unchecked package-signer set across several members together, despite
+distinct configured models, singleton sessions and compliant footprint counts, and separate
+ordinary acceptances do not constrain that shared source. Pinned paths still share publisher
+and package-signer dependencies, so this is an additional unchecked path, not a claim that
+pinning proves independence. No rule, mechanism or conformance case is added. Newly approved
+reinstall acceptance belongs to `SEC-14`; actual per-machine history belongs to `STA-16` and
+its versioned format. The sentence above that leaves this question open in `TASKS.md`, as one which
+nothing here settles, is history.

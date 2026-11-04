@@ -95,17 +95,14 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       first-contact route and the weaker modes standing on the set, with the machine's entry
       and index journaled before any create is sent; and no machine leaves a set while its
       session lives. After a predecessor ends, a later session re-enters any subset of its
-      maintained machines (`SEC-1`).
+      maintained machines (`SEC-1`); on escalation the operator chooses the successor's subset,
+      which always includes the escalated stuck machine.
 
       `STA-23` says "An ordinary visibility-only hide MUST NOT end or pause an unlocked session, clear its runtime authority, or invalidate its approvals."
       Repeat binding/succession cases with the predecessor hidden and with a frozen surviving
       writer. A second tab cannot bind its machines or steal writer ownership; after confirmed
       execution-incarnation loss, locked replay and eligible same-session resume are required.
       Only actual session End frees the binding for a separately admitted successor.
-      For genuine stronger escalation, refuse a selection omitting the stuck machine; admit
-      an eligible chosen subset including it and an explicitly chosen whole eligible set.
-      Refuse access to an excluded machine and preserve predecessor exposure/co-binding and
-      per-resource unresolved effects and holds (`SEC-1`, `STA-24`).
 - [ ] **CNF-8 · BLOCKING** The profile-declared post-harness machinery holds **no channel to any
       machine, at any point** (`ARC-19a`), and holds no reach beyond what the profile's handoff
       slot declares. Verified by inspecting what that machinery is given — as `CNF-9` does for
@@ -132,8 +129,7 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       whose class was answered "not sure" is multi-tenant for this purpose (`ARC-36a`). No
       operator act sets either refusal aside. Boundary crossed: one model context across
       members a tenant counts as independent, or across a host of strangers and another
-      machine. Under `ARC-25`, the independence bound alone adds no refusal or extra
-      acceptance for an ordinarily accepted unpinned install; all other guards still apply.
+      machine.
 
 ## The box plane cannot reach the cloud plane — `SEC-3`
 
@@ -1446,23 +1442,15 @@ to the relay evidence in `CNF-81`, `CNF-87` and `CNF-113`.
       before that goal's acceptance is refused; and, on the jump-host route, a reinstall is
       accepted again as an installation and a first contact before it is sent (`CHN-R6`). Escaped secret: a secret placed on a
       set whose standing modes the operator was never shown together.
-      Timing cases (`SEC-14`, `ARC-25`): accept after host-key-pinned dedicated rescue
-      inspection but before governed install work; accept catalogue Arch before its
-      image-selecting order and unpinned destructive reinstall before reset/reinstall dispatch.
-      Refuse missing required acceptance, acceptance after governed work, failed acceptance
-      append and failed-pin fallback. A rescue host pin makes no OS-artifact claim. A pinned
-      install with no no-pin record proceeds under ordinary authority; an approved typed image
-      argument cannot be changed, and no universal independently approved target fact, artifact-
-      evidence reset gate or extra fetch_artifact/ready_to_reset approval is invented.
       A newly approved reinstall with one explicit combined approval/labelled-acceptance act
-      passes; one that merely restates unused prior acceptance refuses. Compare actual End,
+      passes; one that merely restates unused prior acceptance refuses, and a failed acceptance
+      append refuses that dispatch. Compare actual End,
       ordinary hide, Lock, reload and worker loss: surviving same-session interruptions require
       no renewed acceptance and preserve otherwise standing approval. A refused send alone
       does not invalidate it. Neither acceptance nor approval opens an installation: dispatch
       alone opens it and retires the installed pin; a lost dispatch reply stays unresolved,
       with holds and no automatic retry. A newer bundle supplying an applicable pin gets no
-      permanent exemption from old acceptance. Under an independence bound ordinary acceptance
-      suffices, without an extra ceremony, profile policy or build gate. Dedicated withdrawal
+      permanent exemption from old acceptance. Dedicated withdrawal
       cases remain dedicated fixtures, with no current LNVPS reproduction claimed.
 
 - [ ] **CNF-43 · PRE-SCALE** The relay's row names its operator and states that it learns the
@@ -1676,24 +1664,18 @@ Not pass/fail. Required to be recorded.
       case waits for the dedicated milestone below. Boundary-crossed and destroyed-data.
       Round-trip payload v5's actual per-machine unpinned history separately from present
       artifact status, standing modes and unused acceptance (`STA-16`, credential format).
-      Test identical valid legacy bytes compatible with different origin machines: every
-      possible origin restores as history unknown, with no invented positive or negative past.
       Preserve a known unpinned past after a pinned successor, including later disclosure and
-      command filtering. An unused acceptance without a dispatched installation establishes
-      no positive history. Useful nonmatching commands remain eligible under unknown history;
-      a matching lowering command refuses on every possible origin. Keep a known current
-      unpinned installation known, and an initial pinned group without earlier installations
-      free of invented ambiguity. Export and convert an actual initial unpinned installation
-      before any host-pin group exists: preserve ordinal zero with both pin arrays empty,
-      without manufacturing a group or refusing formerly valid data. V3 and v4 retain all
-      original validation before conversion. Convert a valid retained destroyed-machine
-      record with a last installation group and no machine-state/artifact-status entry:
-      its last group, like earlier unknown groups, remains possible unpinned history, neither
-      a known positive nor a negative. Re-export retains the history entry and uncertainty,
-      without invented groups or changed old validation; contrast retained known artifact
-      facts and a pinned initial live install;
-      missing groups, observations or pins are never synthesized. A journal match clears no
-      unknown. Import restores ended session history only, with no usable key, approvals, live
+      restatement. An unused acceptance without a dispatched installation establishes no
+      positive history. Export and convert an actual initial unpinned installation before any
+      host-pin group exists: preserve ordinal zero with both pin arrays empty, without
+      manufacturing a group or refusing formerly valid data. V3 and v4 retain all original
+      validation before conversion. A version-3 payload whose two-machine set carries the
+      unpinned-installation label, with both machines now recorded as pinned, restores both
+      machines as history unknown, shows and restates it at the next binding of a set that
+      includes either machine, and records neither as unpinned nor as clean history. The same
+      label on a one-machine set restores as that machine's unpinned history. Re-export retains
+      the converted history; missing groups, observations or pins are never synthesized.
+      Import restores ended session history only, with no usable key, approvals, live
       binding or old-phone revocation; the old phone's own session remains independent.
 
 - [ ] **CNF-85 · BLOCKING** Disk selection in the install brief is checked without writes first:
@@ -1893,7 +1875,7 @@ promotion rule above.
 
 | Applies when | CNF items | Interpretation |
 |---|---|---|
-| The LNVPS path: required before the LNVPS path delivers a machine to an operator and before anything the delivery gate below lists is enabled | 1–7, 10–17, 21, 23–26, 28–30, 32, 34–35, 37, 39–44, 49–56, 66–73, 78–79, 81–83, 87–91, 93–95, 99–104, 109–111, 112, 114 | One live LNVPS machine on catalogue plain Arch with no tenant, an initial session from the owner's goal and the later session `STG-9` requires (item 108) with a goal of its own, created through a typed adapter. First contact uses `CHN-R7`'s published-key route; item 23 requires no contact during its wait and item 109 requires published-pin admission, freshness, pin checking and disclosure on the integrated harness. Its new job-read pin admission, initial-group opening by a job read, and job-read attempt after a published pin belong to the dedicated row; its unused attest admission, initial-group opening by an attest, and consumed-introduction case belong to the attest row. This row keeps every case against earlier job-read and attest pins, on pins a Restore brings in, including item 84's "an initial empty group opened by a job read or attest". Synthetic unbound identities exercise 6 and 26. Item 7's growth and subset cases, and item 91's two-machine case, use fixtures until the untyped-scope, jump-host and sets-above-one row passes. Item 110 runs here the cases its own text assigns to the LNVPS path. Item 12 is exercised with a hostile goal and a hostile fetched document; its untyped-scope restatement, and item 14's, wait for the untyped-scope, jump-host and sets-above-one row. Item 14 covers any root password the typed adapter's response carries. Item 23 covers unpinned-first-contact refusal; its attest-window case applies where attest is enabled, and its jump-host label waits for the untyped-scope, jump-host and sets-above-one row. Items 18 and 61 remain route-specific attest checks, required before enabling that route, not requirements of this row. Items 24 and 66 apply wherever the installation is pinned, and item 67's and item 93's unpinned cases wherever it is not; NixOS evidence is required before enabling NixOS. Interrupted resume (`STG-12`) is carried here by items 37, 39, 40 and 54–56; item 86's cases are a rescue boot's, and stay the test bed's. Item 95's LNVPS-path cases all require integrated evidence (`OPN-28`); cases (e) and (f) run here on M alone: every assertion but their A/B output-release assertions and case (e)'s copied-key assertions, which belong to the untyped-scope, jump-host and sets-above-one row. Item 53's `delivery_reboot` cases belong to the dedicated row: the own-record settlement and its append/replay cases; the hold after the journaled yes, including after the reboot settled; the missing-yes and wrong-call settlement refusals; the command in flight at the yes and its held unjournaled yes; the stopped pending-check case; the late new-boot record under a destructive disposition; and the rescue-return halt with its paired installed return, including its `exec` case. LNVPS's typed-restart survival evidence, its typed-restart settlement refusal, its typed-restart hold after the journaled yes including after the reboot settled, its typed-restart stopped pending-check case, the `exec` of the same reboot bytes and every other item-53 case stay here. Item 55's `delivery_reboot` settlement belongs to the dedicated row; the rest stays here. Item 50 covers the delivery check; its scanner half waits for scanner enablement. Item 10 covers local ledger persistence; its sheet-export half is the recovery row's. Item 72 covers local allocation; imported-state cases are 84. Item 81's migration case waits for self-host migration, which is not specified as offered. Item 32 covers the typed adapter's origin. Items 68–71, 78 and 88–90 apply to the procured inference path; bring-your-own and local inference have no aggregator to test. Item 88 uses injected list fixtures the way 17 uses an injected response. Item 42 covers placed secrets; its untyped-scope half waits for the untyped-scope, jump-host and sets-above-one row. Item 104 covers the LNVPS invoice and `ARC-30`'s TLS provenance, with no exemption; its untyped-scope case belongs to the untyped-scope, jump-host and sets-above-one row. |
+| The LNVPS path: required before the LNVPS path delivers a machine to an operator and before anything the delivery gate below lists is enabled | 1–7, 10–17, 21, 23–26, 28–30, 32, 34–35, 37, 39–44, 49–56, 66–73, 78–79, 81–83, 87–91, 93–95, 99–104, 109–111, 112, 114, 116 | One live LNVPS machine on catalogue plain Arch with no tenant, an initial session from the owner's goal and the later session `STG-9` requires (item 108) with a goal of its own, created through a typed adapter. First contact uses `CHN-R7`'s published-key route; item 23 requires no contact during its wait and item 109 requires published-pin admission, freshness, pin checking and disclosure on the integrated harness. Its new job-read pin admission, initial-group opening by a job read, and job-read attempt after a published pin belong to the dedicated row; its unused attest admission, initial-group opening by an attest, and consumed-introduction case belong to the attest row. This row keeps every case against earlier job-read and attest pins, on pins a Restore brings in, including item 84's "an initial empty group opened by a job read or attest". Synthetic unbound identities exercise 6 and 26. Item 7's growth and subset cases, and item 91's two-machine case, use fixtures until the untyped-scope, jump-host and sets-above-one row passes. Item 110 runs here the cases its own text assigns to the LNVPS path. Item 12 is exercised with a hostile goal and a hostile fetched document; its untyped-scope restatement, and item 14's, wait for the untyped-scope, jump-host and sets-above-one row. Item 14 covers any root password the typed adapter's response carries. Item 23 covers unpinned-first-contact refusal; its attest-window case applies where attest is enabled, and its jump-host label waits for the untyped-scope, jump-host and sets-above-one row. Items 18 and 61 remain route-specific attest checks, required before enabling that route, not requirements of this row. Items 24 and 66 apply wherever the installation is pinned, and item 67's and item 93's unpinned cases wherever it is not; NixOS evidence is required before enabling NixOS. Interrupted resume (`STG-12`) is carried here by items 37, 39, 40 and 54–56; item 86's cases are a rescue boot's, and stay the test bed's. Item 95's LNVPS-path cases all require integrated evidence (`OPN-28`); cases (e) and (f) run here on M alone: every assertion but their A/B output-release assertions and case (e)'s copied-key assertions, which belong to the untyped-scope, jump-host and sets-above-one row. Item 53's `delivery_reboot` cases belong to the dedicated row: the own-record settlement and its append/replay cases; the hold after the journaled yes, including after the reboot settled; the missing-yes and wrong-call settlement refusals; the command in flight at the yes and its held unjournaled yes; the stopped pending-check case; the late new-boot record under a destructive disposition; and the rescue-return halt with its paired installed return, including its `exec` case. LNVPS's typed-restart survival evidence, its typed-restart settlement refusal, its typed-restart hold after the journaled yes including after the reboot settled, its typed-restart stopped pending-check case, the `exec` of the same reboot bytes and every other item-53 case stay here. Item 55's `delivery_reboot` settlement belongs to the dedicated row; the rest stays here. Item 50 covers the delivery check; its scanner half waits for scanner enablement. Item 10 covers local ledger persistence; its sheet-export half is the recovery row's. Item 72 covers local allocation; imported-state cases are 84. Item 81's migration case waits for self-host migration, which is not specified as offered. Item 32 covers the typed adapter's origin. Items 68–71, 78 and 88–90 apply to the procured inference path; bring-your-own and local inference have no aggregator to test. Item 88 uses injected list fixtures the way 17 uses an injected response. Item 42 covers placed secrets; its untyped-scope half waits for the untyped-scope, jump-host and sets-above-one row. Item 104 covers the LNVPS invoice and `ARC-30`'s TLS provenance, with no exemption; its untyped-scope case belongs to the untyped-scope, jump-host and sets-above-one row. |
 | The LNVPS path: publisher-default hosting | 113 | Required before admitting the publisher default, and before the LNVPS path delivers a machine to an operator with it or anything the delivery gate below lists is enabled with it. Include the effective-deployment and live-origin evidence, with the precise resolver TCP/53 route outside the independent-denial guarantee where connector-usable. Isolated results remain recordable while required deployment assertions are pending; pending does not pass admission. This row does not impose the publisher profile on bring-your-own or a self-hosted migration target. |
 | The LNVPS path: record measurements | 45–47 | Require the integrated browser channel, not the rehearsal's timings. |
 | The LNVPS path: model-written check reports | 107 | The report label, verdict isolation and absence of automatic re-execution are required before the LNVPS path delivers a machine to an operator and before anything the delivery gate below lists is enabled. |

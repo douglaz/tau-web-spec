@@ -1670,12 +1670,12 @@ def assumptionsJson (p : TauWeb.Authority.Params) (dp : TauWeb.Dispatch.Params) 
   ("resumeValidation", toJson p.resumeValidation), ("lostKeySticky", toJson p.lostKeySticky),
   ("ceremonyPending", toJson p.ceremonyPending), ("ceremonyCompletion", toJson p.ceremonyCompletion),
   ("ceremonyAppend", toJson p.ceremonyAppend), ("ceremonyRelease", toJson p.ceremonyRelease),
-  ("ceremonyActive", toJson p.ceremonyActive),
+  ("ceremonyActive", toJson p.ceremonyActive), ("ceremonyUnlocked", toJson p.ceremonyUnlocked),
   ("resumeAuthorized", toJson p.resumeAuthorized), ("resumeUnlocked", toJson p.resumeUnlocked),
   ("pauseRequired", toJson p.pauseRequired), ("resumeTerminal", toJson p.resumeTerminal), ("sealedTerminalRequired", toJson p.sealedTerminalRequired),
   ("endFence", toJson p.endFence), ("workerIdentity", toJson p.workerIdentity),
   ("requestSession", toJson p.requestSession), ("machineMembership", toJson p.machineMembership),
-  ("growthExclusive", toJson p.growthExclusive), ("requestOriginal", toJson p.requestOriginal),
+  ("growthExclusive", toJson p.growthExclusive), ("growthAvailable", toJson p.growthAvailable), ("requestOriginal", toJson p.requestOriginal),
   ("hidePreserves", toJson p.hidePreserves), ("ceremonyHideLocks", toJson p.ceremonyHideLocks),
   ("unsentContinuation", toJson p.unsentContinuation), ("validationTerminal", toJson p.validationTerminal), ("validationRequired", toJson p.validationRequired), ("validationMatches", toJson p.validationMatches),
   ("publicationDispatch", toJson p.publicationDispatch), ("publicationOrigin", toJson p.publicationOrigin), ("individualOnly", toJson p.individualOnly),
@@ -1707,6 +1707,8 @@ def witnesses : List Trace :=
   paired "unauthorized_resume_refused" "unauthorized_resume_without_check" unauthorizedResumeEvents { TauWeb.Authority.current with resumeAuthorized := false } ++
   paired "locked_resume_refused" "locked_resume_without_check" lockedResumeEvents { TauWeb.Authority.current with resumeUnlocked := false } ++
   paired "fresh_actor_end_authority_refused" "fresh_actor_without_session_end" freshEndedRequest { TauWeb.Authority.current with endFence := false } TauWeb.Dispatch.current endedFreshActor ++
+  paired "locked_ceremony_entry_refused" "locked_ceremony_entry_without_check" (lockedCeremonyEvents false) { TauWeb.Authority.current with ceremonyUnlocked := false } ++
+  [{ declarations := [named "unlocked_ceremony_entry_progress"], events := lockedCeremonyEvents true }] ++
   paired "inactive_ceremony_completion_refused" "inactive_ceremony_without_guard" inactiveCompletionEvents { TauWeb.Authority.current with ceremonyActive := false } ++
   ([Completion.fullReentry true, .skipped].map fun c =>
     { declarations := [named "paid_ceremony_preserves_key_and_approval"], events := paidCeremonyEvents c }) ++
@@ -1737,6 +1739,8 @@ def witnesses : List Trace :=
   [ { declarations := [named "matching_session_bound_entry_progress"], events := matchingRequestEvents },
     { declarations := [named "free_entry_growth_progress"], events := freeGrowthEvents },
     { declarations := [named "request_unchanged_limits_progress"], events := originalRequestLimitsEvents } ] ++
+  paired "paused_growth_refused" "paused_growth_without_check" (pausedGrowthEvents false) { TauWeb.Authority.current with growthAvailable := false } ++
+  [{ declarations := [named "resumed_growth_progress"], events := pausedGrowthEvents true }] ++
   paired "issued_continuation_refused" "issued_continuation_without_guard" issuedContinuationEvents { TauWeb.Authority.current with unsentContinuation := false } ++
   paired "validation_terminal_ends" "validation_terminal_without_guard" (validationEndEvents .expired) { TauWeb.Authority.current with validationTerminal := false } ++
   paired "validation_terminal_ends" "validation_terminal_without_guard" (validationEndEvents .exhausted) { TauWeb.Authority.current with validationTerminal := false } ++

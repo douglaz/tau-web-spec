@@ -52,12 +52,10 @@ it, and no operator act sets either aside:
   commands on their host.
 
 A machine is bound to a session by provisioning it; by re-entry, on a maintained machine only;
-or by the recovery ladder's escalation, which re-binds an eligible machine to the
-successor session under `ARC-16`'s condition. For a genuinely stronger escalation, the operator
-MUST select eligible predecessor machines and include the stuck machine being escalated; other
-eligible peers may be included or excluded. Selection gives no access to excluded machines,
-cancels no remote work and establishes no outcome. Termination and exposure remain governed
-below, unresolved resources by `STA-24`, and applicable acceptance by `SEC-14`.
+or by the recovery ladder's escalation, which re-binds a half-provisioning machine to the
+successor session under `ARC-16`'s condition. On escalation, the operator chooses which other
+eligible machines of the predecessor set join the successor, as the subset rule below allows,
+and the escalated stuck machine is always included.
 
 For same-device continuation of unfinished setup after an actual session end (`ARC-22`),
 the fresh session has fresh limits and admission and explicit operator binding before contact;
@@ -689,17 +687,13 @@ no label, no answer and no operator act sets aside.
   machine — before the first contact it governs: with any machine of the set for a mode
   accepted as the set is bound, with the added machine for one accepted as the set grows
   (`SEC-1`).
-- **Installation timing and new reinstall acts.** No-pin acceptance MUST be durable before
-  the installation work it governs. On the dedicated path it MAY follow host-key-pinned
-  rescue inspection; that host pin does not verify the rescue OS artifact. Catalogue Arch
-  accepts before its image-selecting order, and destructive unpinned reinstall before its
-  reset/reinstall dispatch. Acceptance is never retroactive. Each newly approved reinstall
-  MUST have its new card's explicit labelled accepting act for that mode and bound set. One
-  affirmative action MAY both approve the operation and accept; merely restating unused
-  earlier acceptance is insufficient. Withdrawal alone does not establish expiry of a
-  separate acceptance. An unused acceptance is not dispatched installation history.
-  Applicable artifact pins remain `ARC-25`'s, including its independence-bound rule; actual
-  history and origin uncertainty are retained under `STA-16`.
+- **New reinstall acts.** Each newly approved unpinned reinstall MUST have its new card's
+  explicit labelled accepting act for its named no-pin mode and bound set, durably before its
+  reset/reinstall dispatch. One affirmative action MAY both approve
+  the operation and accept; merely restating unused earlier acceptance is insufficient.
+  Withdrawal alone does not establish expiry of a separate acceptance. An unused acceptance is
+  not dispatched installation history. Applicable artifact pins remain `ARC-25`'s; actual
+  history is retained under `STA-16`.
 - **Never entered by failing.** A failed check halts. An artifact that does not match its pin,
   an introduction that never arrives, a host key that does not match: none of them continues
   in the weaker mode (`ARC-25`, `CHN-R5`, `SEC-11`).

@@ -656,8 +656,8 @@ authority_control "formal: authority resumeTerminal" \
   resume_without_sealed_terminal_withholds lost_terminal_stays_withheld_until_end lost_key_second_resume_refused
 
 authority_control "formal: ceremony must pause rather than End" \
-  "sed -i 's/enterCeremony => { pauseAll w/enterCeremony => { endAll w/' $AUTH" \
-  ceremony_pause_preserves_session completed_ceremony_progress paid_ceremony_preserves_key_and_approval interrupted_ceremony_without_guard failed_ceremony_append_without_guard mismatched_ceremony_without_guard inactive_ceremony_without_guard
+  "sed -i 's/else { pauseAll w with locked := false, ceremony := true/else { endAll w with locked := false, ceremony := true/' $AUTH" \
+  ceremony_pause_preserves_session completed_ceremony_progress paid_ceremony_preserves_key_and_approval interrupted_ceremony_without_guard failed_ceremony_append_without_guard mismatched_ceremony_without_guard inactive_ceremony_without_guard locked_ceremony_entry_without_check unlocked_ceremony_entry_progress
 
 authority_control "formal: authority execution freshness" \
   "sed -i 's/  executionFresh : Bool := true/  executionFresh : Bool := false/' $AUTH" \
@@ -698,6 +698,14 @@ authority_control "formal: unauthorized resume" \
 authority_control "formal: resume while locked" \
   "sed -i 's/(!p.resumeUnlocked || !w.locked)/true/' $AUTH" \
   locked_resume_refused
+authority_control "formal: growth while paused or locked" \
+  "sed -i 's/(!p.growthAvailable || (available p w && !(w.actors.any fun a => a.who == who && a.paused)))/true/' $AUTH" \
+  paused_growth_refused
+
+authority_control "formal: ceremony entry while locked" \
+  "sed -i 's/(p.ceremonyUnlocked && w.locked)/false/' $AUTH" \
+  locked_ceremony_entry_refused
+
 authority_control "formal: unfinished ceremony bypasses authority" \
   "sed -i 's/(!p.ceremonyPending || !w.ceremonyOwed)/true/' $AUTH" \
   interrupted_ceremony_refused ceremony_pause_paths_refused inactive_ceremony_completion_refused completed_ceremony_without_release failed_ceremony_append_refused mismatched_ceremony_refused
@@ -715,7 +723,7 @@ authority_control "formal: inactive ceremony completion" \
   inactive_ceremony_completion_refused
 authority_control "formal: completed ceremony remains owed" \
   "sed -i 's/ceremonyOwed := !p.ceremonyRelease/ceremonyOwed := true/' $AUTH" \
-  ceremony_pause_preserves_session completed_ceremony_progress paid_ceremony_preserves_key_and_approval failed_ceremony_append_without_guard mismatched_ceremony_without_guard inactive_ceremony_without_guard
+  ceremony_pause_preserves_session completed_ceremony_progress paid_ceremony_preserves_key_and_approval failed_ceremony_append_without_guard mismatched_ceremony_without_guard inactive_ceremony_without_guard locked_ceremony_entry_without_check unlocked_ceremony_entry_progress
 
 # A valid continuation remains accepted after harmless ordinary hide/return insertion.
 authority_positive_continuation() {

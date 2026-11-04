@@ -147,9 +147,8 @@ and `CNF-45` now asks for the per-channel figure.
 `07-conformance.md` exercises `CNF-91` and `CNF-7`'s growth and subset cases by fixture, so
 "nothing here gates it" is history.
 
-*Amended 2026-11-04:* The larger-set middle rung above is settled at `SEC-1`: it says "For a
-genuinely stronger escalation, the operator MUST select eligible predecessor machines and
-include the stuck machine being escalated; other eligible peers may be included or excluded."
-This chooses neither mandatory whole-set transfer, exactly-stuck-only or half-finished-only
-selection, nor a universal larger-set refusal. Termination, exposure, holds and acceptance
-retain their owners. Exclusion cancels no remote work and proves no outcome.
+*Amended 2026-11-04:* the larger-set middle rung above is settled at `SEC-1`, on its subset
+rule: "On escalation, the operator chooses which other eligible machines of the predecessor set
+join the successor, as the subset rule below allows, and the escalated stuck machine is always
+included." The rules that already own termination, exclusion, exposure, resource holds and the
+singleton cases are unchanged.

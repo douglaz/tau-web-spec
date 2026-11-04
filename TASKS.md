@@ -212,9 +212,9 @@ gated on it.
         multi-vendor creation, sealing and the coordinator stay a harness capability
         (`OPN-27`). **Whether lnrent is a tenant or a vendor** (`OPN-27`).
       - **The recovery ladder's middle rung under a bound set of more than one.** Amended
-        2026-11-04 at `SEC-1`: the operator selects eligible predecessor machines including
-        the escalated stuck machine; eligible peers may be included or excluded. Termination,
-        exposure, resource holds and applicable acceptance retain their existing owners.
+        2026-11-04 at `SEC-1`: on escalation the operator chooses which other eligible machines
+        of the predecessor set join the successor, and the escalated stuck machine is always
+        included.
       - **`OVR-4` and the jump host.** The constraint stayed unconditional and the jump vendor is
         priced as `TRU-E11`. Whether `OVR-4`'s "**one** component in every session's path" should
         itself name the jump host is undecided.
@@ -233,9 +233,11 @@ gated on it.
         "shows when it happens", and a bound set is one unit of harm, shown as one (`SEC-1`).
         Whether harm crossing from one machine of a set to another meets that test, or the test
         needs wording for a set, is undecided.
-      - **An unpinned installation under an independence bound.** Amended 2026-11-04 at
-        `ARC-25`: the bound alone adds neither prohibition nor extra acceptance. Ordinary
-        named-mode acceptance and every other applicable guard remain.
+      - **An unpinned installation under an independence bound.** Amended 2026-11-04: allowed,
+        with the ordinary up-front acceptance (`ARC-25`, `SEC-14`); the bound alone adds no
+        prohibition and no further acceptance. The owner accepts the known risk that one
+        unpinned artifact source can substitute bootstrap content and an unchecked
+        package-signer set across several members together (ADR-0035).
       - **The untyped vendor scope's remaining edges.** `STA-24` keys an untyped call's barrier
         on "the same origin and credential", so a rotated token at the same origin starts with
         none. `ARC-22`'s abandonment destroys "through typed operations", which an untyped

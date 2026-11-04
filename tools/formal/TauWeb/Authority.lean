@@ -138,10 +138,12 @@ structure Issued where
   ceremonyAppend : Bool := true
   ceremonyActive : Bool := true
   ceremonyRelease : Bool := true
+  ceremonyUnlocked : Bool := true
   workerIdentity : Bool := true
   requestSession : Bool := true
   machineMembership : Bool := true
   growthExclusive : Bool := true
+  growthAvailable : Bool := true
   requestOriginal : Bool := true
   hidePreserves : Bool := true
   ceremonyHideLocks : Bool := true
@@ -385,7 +387,10 @@ def localAuthorityStep (p : Params) (dp : Dispatch.Params) (w : World) : Local �
   | .resume old incarnation ok => resume p w old incarnation ok
   | .sealTerminal who ok => if ok then updateActor w who fun a =>
       { a with sealedTerminal := true } else w
-  | .enterCeremony => { pauseAll w with locked := false, ceremony := true, ceremonyOwed := true }
+  -- `.unlock true` stands for the local passphrase entry; ceremony entry or re-display while
+  -- locked waits for it. Entry from an already unlocked store needs no further event here.
+  | .enterCeremony => if (p.ceremonyUnlocked && w.locked) then w
+    else { pauseAll w with locked := false, ceremony := true, ceremonyOwed := true }
   | .finishCeremony choice ok =>
     if (!p.ceremonyActive || w.ceremony) && (!p.ceremonyCompletion || choice.valid) && (!p.ceremonyAppend || ok) then
       { w with ceremony := false, ceremonyOwed := !p.ceremonyRelease }
@@ -399,7 +404,9 @@ def localAuthorityStep (p : Params) (dp : Dispatch.Params) (w : World) : Local �
       { w with actors := { who := c.who, bound := c.bound, path := c.path, keyWithheld := (match c.path with | .independent => false | .procured _ => true) } :: w.actors }
     else w
   | .grow who entry ok =>
-    if ok && !w.fenced.contains who && (!p.exclusiveBinding || !p.growthExclusive || bindingFree p w who [entry]) then
+    if ok && !w.fenced.contains who &&
+      (!p.growthAvailable || (available p w && !(w.actors.any fun a => a.who == who && a.paused))) &&
+      (!p.exclusiveBinding || !p.growthExclusive || bindingFree p w who [entry]) then
       updateActor w who fun a => { a with bound := (entry :: a.bound).eraseDups }
     else w
   | .assessKey who ev => assess p w who ev
@@ -824,6 +831,27 @@ def freeGrowthEvents : List Event := disjointStart ++ [
 @[req "SEC-1"] theorem free_entry_growth_progress :
     (actor current (result freeGrowthEvents) bob).map (·.bound) = some [3, Dispatch.entryB] ∧
     sent (result freeGrowthEvents) freeGrowthWork.request.call = true := by decide +kernel
+
+/-- Lock stops the old execution incarnation and returns locked: the dormant session keeps its
+machines, and its bound set grows only after it resumes. -/
+def pausedGrowthWho : Identity := { alice with incarnation := 100, worker := 100 }
+def pausedGrowthWork : Work := { readA with who := pausedGrowthWho, request := { readA.request with target := .entry 3 } }
+def pausedGrowthEvents (afterResume : Bool) : List Event := startEvents ++ [.lifecycle (.pause .lock)] ++
+  (if afterResume then [] else [.lifecycle (.grow alice 3 true)]) ++
+  [.lifecycle (.unlock true), .lifecycle (.resume alice 100 true)] ++
+  (if afterResume then [.lifecycle (.grow pausedGrowthWork.who 3 true)] else []) ++
+  [.lifecycle (.validate pausedGrowthWork ready), .request pausedGrowthWork ready true]
+@[req "STA-23"] theorem paused_growth_refused :
+    (actor current (result (pausedGrowthEvents false)) pausedGrowthWork.who).map (·.bound) = some [Dispatch.entryA] ∧
+    sent (result (pausedGrowthEvents false)) pausedGrowthWork.request.call = false := by decide +kernel
+@[req "STA-23"] theorem paused_growth_without_check :
+    (actor { current with growthAvailable := false }
+      (result (pausedGrowthEvents false) { current with growthAvailable := false }) pausedGrowthWork.who).map (·.bound) =
+        some [3, Dispatch.entryA] ∧
+    sent (result (pausedGrowthEvents false) { current with growthAvailable := false }) pausedGrowthWork.request.call = true := by decide +kernel
+@[req "STA-23"] theorem resumed_growth_progress :
+    (actor current (result (pausedGrowthEvents true)) pausedGrowthWork.who).map (·.bound) = some [3, Dispatch.entryA] ∧
+    sent (result (pausedGrowthEvents true)) pausedGrowthWork.request.call = true := by decide +kernel
 
 def endEvents : List Event := startEvents ++ [.lifecycle (.endSession alice .explicit), .request readA ready true]
 @[req "STA-23"] theorem ended_refused :
@@ -1380,6 +1408,19 @@ def inactiveCompletionEvents : List Event := (interruptedCeremonyEvents (.lifecy
     sent (result inactiveCompletionEvents) readA.request.call = false := by decide +kernel
 @[req "STA-23"] theorem inactive_ceremony_without_guard :
     sent (result inactiveCompletionEvents { current with ceremonyActive := false }) readA.request.call = true := by decide +kernel
+
+def lockedCeremonyEvents (ok : Bool) : List Event := startEvents ++ [
+  .lifecycle (.pause .lock), .lifecycle (.unlock ok), .lifecycle .enterCeremony,
+  .lifecycle (.finishCeremony .skipped true), .lifecycle (.resume alice 100 true),
+  .lifecycle (.validate resumedRead ready), .request resumedRead ready true]
+@[req "STA-23"] theorem locked_ceremony_entry_refused :
+    sent (result (lockedCeremonyEvents false)) readA.request.call = false ∧
+    (result (lockedCeremonyEvents false)).locked = true := by decide +kernel
+@[req "STA-23"] theorem locked_ceremony_entry_without_check :
+    sent (result (lockedCeremonyEvents false) { current with ceremonyUnlocked := false }) readA.request.call = true := by decide +kernel
+@[req "STA-23"] theorem unlocked_ceremony_entry_progress :
+    sent (result (lockedCeremonyEvents true)) readA.request.call = true ∧
+    (result (lockedCeremonyEvents true)).ended = [] := by decide +kernel
 
 def paidCeremonyEvents (choice : Completion) : List Event := procuredStart ++ [
   .lifecycle .enterCeremony, .lifecycle .hide, .lifecycle (.unlock true),

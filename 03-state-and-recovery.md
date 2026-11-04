@@ -1221,19 +1221,12 @@ An operator starts a new session and approves again; allocation remains `STA-22b
 
 Actual per-machine unpinned-installation history MUST survive export and Restore separately
 from current artifact status, standing modes and unused acceptance. A pinned successor retains
-that history and its disclosure, restatement and `ARC-25a` filter effects. Acceptance alone
-establishes no dispatched installation. The credential format versions the lossless export
-and conservative old-data conversion. Valid genuinely ambiguous legacy data restores as
-**history unknown**, naming every possible originating machine, without asserting any
-candidate actually ran unpinned or has a known negative history. Every candidate remains
-subject to the literal filter; otherwise authorized recovery and nonmatching commands remain
-available under their existing guards. Preserve known facts and all older-version validation;
-missing history never becomes empty history, invented earlier groups, observations or pins.
-A retained destroyed machine without a machine-state entry still has its retained groups
-converted under the credential format's conservative history rule; absent artifact status
-establishes neither unpinned installation nor a negative history. Export retains that uncertainty.
-A journal match does not clear this uncertainty. Fresh applicable reinstall acceptance remains
-`SEC-14`'s; Restore alone is no new installation.
+that history and its disclosure and restatement. Acceptance alone establishes no dispatched
+installation. The credential format versions the lossless export and the old-data conversion,
+whose history unknown is shown and restated at binding as `SEC-14` requires of installation
+history. Preserve known facts and all older-version validation; missing history never becomes
+empty history, invented earlier groups, observations or pins. Fresh applicable reinstall
+acceptance remains `SEC-14`'s; Restore alone is no new installation.
 
 In the maintained-machine Restore case above, operator binding can precede contact. Failed or
 unavailable restored-pin/publication readiness alone does not prevent an eligible session's
@@ -1349,7 +1342,7 @@ carry-forward and disclosure amendment remains T44's, not an available Replace b
 
 **STA-18** Inventory recovery makes the vendor list authoritative. Listing the account is how
 a new phone learns what exists. That listing is performed by the deterministic recovery flow
-under the operator's approval, **outside any session**, so it is not a session
+under the operator's approval, **before any session exists**, so it is not a session
 operation and `SEC-4`'s machine-binding rule for typed operations is not in play.
 
 **STA-19** Transcript retention has no policy yet. A maintained machine accumulates command
