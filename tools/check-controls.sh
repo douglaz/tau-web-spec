@@ -369,6 +369,12 @@ decl_control "$ALLOC" "formal: pending sender ignores terminalization" \
   "sed -i 's/senderFence : Bool := true/senderFence : Bool := false/' $ALLOC" \
   terminal_sender_refused terminal_intent_refused
 
+# Refusing at the shared readiness boundary must fail actual send progress and the
+# guard-removal admissions, while every terminalization refusal remains intact.
+decl_control "$ALLOC" "formal: create readiness refuses every sender" \
+  "sed -i '/^def createReady /{n;s/.*/  false/;}' $ALLOC && grep -A1 '^def createReady ' $ALLOC | grep -qx '  false'" \
+  terminal_sender_admitted terminal_intent_admitted replay_sender_no_resend failed_append_sender_progress
+
 decl_control "$ALLOC" "formal: imported prefix claims no later sends" \
   "sed -i 's/!w.journal.restored/true/' $ALLOC" \
   imported_failure_refused
@@ -395,6 +401,12 @@ dispatch_control "formal: deleted machine traffic allowed" \
   "sed -i 's/deletionContact : Bool := true/deletionContact : Bool := false/' $DISP" \
   deleted_command_refused deleted_reboot_refused deleted_collection_refused reused_connection_refused \
   opening_command_refused opening_collection_refused deleted_index_refused missing_contact_refused deletion_append_admitted
+
+# Remove only the missing exact mapping branch: deletion and read classification stay
+# checked, and all mapped-traffic progress and deleted-machine refusals must still prove.
+dispatch_control "formal: missing exact contact mapping accepted" \
+  "sed -i 's/(contactMachine j rq.target).isNone/false/' $DISP && grep -qF 'else if p.deletionContact && machineTraffic rq && false then' $DISP" \
+  missing_contact_refused
 
 dispatch_control "formal: collection confused with vendor evidence" \
   "sed -i 's/(rq.kind == .read \&\& rq.readRoute == .machine)/false/' $DISP" \
