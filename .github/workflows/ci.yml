@@ -13,7 +13,10 @@ name: gates
 # its pull_request run, and a second push run on the same commit checked nothing
 # new. Pushes made with GITHUB_TOKEN (the proposals/candidate-order branch) start
 # no push run either way; that branch is gated by its pull_request run. A branch
-# with no pull request runs the gates through workflow_dispatch.
+# with no pull request runs the gates through workflow_dispatch. GitHub starts no
+# pull_request run while a pull request has merge conflicts; such a pull request
+# cannot merge, and the push that resolves the conflict starts the run on the tip
+# that will merge. workflow_dispatch gates a conflicted branch before then.
 
 on:
   push:
