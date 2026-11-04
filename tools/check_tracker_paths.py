@@ -21,7 +21,11 @@ KEY = "source_repo_path"
 # A home directory or a scratch root followed by a name: "/home/alice", "/Users/alice",
 # "/tmp/run.1", "/var/tmp/lane". The character before the slash must not continue a word or
 # another path, so "lib/tmp/x" and "https://host/home/x" are not local paths of this machine.
-LOCAL = re.compile(r"(?<![\w.~/:-])/(?:home|Users|var/tmp|tmp)/[\w]")
+# Two forms put a local path right after such a character and are read anyway: a label
+# ("path:/home/alice", a colon with no slash before it) and a file URL ("file:///tmp/run",
+# "file://localhost/tmp/run").
+LOCAL = re.compile(r"(?:(?<![\w.~/:-])|(?<=(?<!/):)|(?i:(?<=file://)|(?<=file://localhost)))"
+                   r"/(?:home|Users|var/tmp|tmp)/\w")
 
 
 def walk(value, path, keyed, local):

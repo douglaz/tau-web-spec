@@ -67,7 +67,9 @@ class TrackerPaths(unittest.TestCase):
 
     def test_local_paths_in_any_string_field_are_named_by_field(self):
         for text in (PRIVATE, f"see `{PRIVATE}/notes`", "(/Users/alice/x)", "/tmp/run.1",
-                     "wrote /var/tmp/lane-1/out", "a\n/home/alice"):
+                     "wrote /var/tmp/lane-1/out", "a\n/home/alice", "path:/home/alice/notes",
+                     ":/tmp/x", "see (path:/Users/alice)", "file:///tmp/run/log",
+                     "FILE:///home/alice", "file://localhost/var/tmp/lane"):
             with self.subTest(text=text):
                 self.write([{"id": "tw-a", "description": "plain",
                              "comments": [{"id": 1, "text": "plain"}, {"id": 2, "text": text}]}])
@@ -78,7 +80,9 @@ class TrackerPaths(unittest.TestCase):
         # Machine paths the specification names, relative paths, URLs and bare roots.
         for text in ("/root/.ssh/authorized_keys", "/var/lib/tau", "/etc/hosts", "lib/tmp/x",
                      "https://example.com/home/alice", "~/tmp/x", "a-/tmp/x", "/home/", "/tmp",
-                     "/home/...", "tools/check-controls.sh"):
+                     "/home/...", "tools/check-controls.sh", "http://host:8080/tmp/x",
+                     "https://example.com:443/home/alice", "file://example.com/tmp/x",
+                     "https:/x/home/alice", "s3://bucket/tmp/x"):
             with self.subTest(text=text):
                 self.write([{"id": "tw-a", "description": text}])
                 self.assertEqual(self.run_gate(), (0, CLEAN))

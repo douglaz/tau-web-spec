@@ -24,7 +24,9 @@ Issues, specs and tickets for this repo live in beads: `.beads/issues.jsonl`, co
 - 2026-11-04: the key was removed from every record once, by that script's `jq` step and a
   rebuild import: the one edit of the export made outside `br`, and it changed no other field.
   Git history keeps the old values. A working database made before then still holds them: run
-  the script (or `br sync --import-only --rebuild`) once, before its next write.
+  the script once, before its next write. Not a bare `br sync --import-only --rebuild`: the
+  rebuild drops whatever the database holds that the export does not, and the script flushes
+  first.
 
 ## When a skill says "publish to the issue tracker"
 
