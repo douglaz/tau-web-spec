@@ -1127,35 +1127,21 @@ recorded effective local-file policy permits missing signatures. No package-poli
 installed-package-validation read is required at delivery or re-entry by this baseline,
 and absent recorded signature validation creates no package-inventory finding.
 
-For every box-plane command targeting a machine with durable unpinned-installation history,
-the harness MUST apply the following filter after binding admission and before
-command-related relay or SSH contact, and repeat it under the command-intent append writer
-before the hold and intent creation. Split raw bytes at LF. For this filter, ASCII whitespace
-is HT, LF, FF, CR and space (bytes 0x09, 0x0A, 0x0C, 0x0D and 0x20). Ignore lines whose first
-non-whitespace byte is `#`. Words are maximal ASCII letter, digit or underscore runs,
-compared case-sensitively. A whole `SigLevel`, `LocalFileSigLevel` or `RemoteFileSigLevel`
-word followed later on that line by `=` opens a suffix through line end. A later `Never`,
-`PackageNever` or `DatabaseNever` word selects `signature_level_never`; `TrustAll`,
-`PackageTrustAll` or `DatabaseTrustAll` selects `untrusted_repository`. The first matching
-word in input order determines the form. Punctuation and later directives do not close
-the suffix.
-
-A match MUST prevent transmission and command-intent creation. Commit exactly one refusal
-containing the target and form before reporting signature refusal. If recording fails,
-report storage failure and send nothing; a storage-write failure halts further appends
-until recovery. Replay preserves the recorded refusal and its target qualification.
-
-This filter does not evaluate shell or establish effective package policy. Nonmatches remain
-subject to other admissions. Bare `Optional` and `PackageOptional`, reconstructed tokens,
-substitutions, encodings, included or alternate configurations, existing or fetched scripts,
-and concurrent changes can evade the filter. Harmless matching text is refused. No command
-text the harness composes contains a literal lowering form or lowers package-signature
-checking; the session command a harness launch wrapper carries and executes is the session's
-own bytes, not harness-composed text, and carries no such guarantee. Beside **unpinned**,
-the trust display states that unsigned local package files are permitted, that free shell
-can lower checking or install unsigned code without refusal, and that harmless text naming
-a lowering form is refused; it also discloses the indirect bypasses above. Neither persistent
-signature enforcement nor universal unsigned-package refusal is guaranteed.
+The harness applies no command filter for package-signature lowering: free shell on an
+unpinned installation can lower checking or install unsigned code without refusal. Literal
+lowering forms are read in raw bytes split at LF. ASCII whitespace is HT, LF, FF, CR and space
+(bytes 0x09, 0x0A, 0x0C, 0x0D and 0x20), and a line whose first non-whitespace byte is `#`
+contains none. Words are maximal ASCII letter, digit or underscore runs, compared
+case-sensitively. A line contains a literal lowering form when a whole `SigLevel`,
+`LocalFileSigLevel` or `RemoteFileSigLevel` word is followed later on that line by `=` and
+then by a `Never`, `PackageNever`, `DatabaseNever`, `TrustAll`, `PackageTrustAll` or
+`DatabaseTrustAll` word; punctuation and other directives between them do not prevent the
+form. No command text the harness composes contains a literal lowering form or lowers
+package-signature checking; the session command a harness launch wrapper carries and executes
+is the session's own bytes, not harness-composed text, and carries no such guarantee. Beside
+**unpinned**, the trust display states that unsigned local package files are permitted and
+that free shell can lower checking or install unsigned code without refusal. Neither
+persistent signature enforcement nor universal unsigned-package refusal is guaranteed.
 
 ## Ongoing operation
 
