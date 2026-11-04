@@ -227,3 +227,13 @@ vocabulary is explicitly extended with **local writer decision**. Its event shap
 boundaries are in [Allocation schema 3](../design/witness-file-v1.md#allocation-schema-3) and
 [Dispatch schema 9](../design/witness-file-v1.md#dispatch-schema-9). Rules remain in `STA-22b`,
 `STA-20`, `STA-24` and `CHN-2`; this record adds no capability or implementation evidence.
+
+*Amended 2026-11-04:* "on every push" now means every push to `main` and every push to a pull
+request's branch. `.github/workflows/ci.yml` limits its `push` trigger to `main`, because a pull
+request's branch already runs the gates through its `pull_request` trigger and the second run on
+the same commit checked nothing new. A branch with no pull request runs them through
+`workflow_dispatch`. GitHub starts no `pull_request` run while a pull request has merge
+conflicts, so a push to a conflicted branch gets no automatic run. Such a pull request cannot
+merge, and the push that resolves the conflict starts the run on the tip that will merge;
+`workflow_dispatch` gates the branch before then. The gates, their order and their negative
+controls are unchanged.
