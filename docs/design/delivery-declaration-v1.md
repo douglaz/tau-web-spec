@@ -69,7 +69,7 @@ Each `services[]` entry MUST have `scope: {"kind": "system"}` or
 `^[a-z_][a-z0-9_-]{0,31}$`; a system entry has no account member. A user-scope read uses that
 account's manager and also requires `Linger=yes`. A system-scope read of a user unit MUST
 never be made: it would raise a false lifecycle finding. Hermes's own installer makes a
-lingering user unit. Service names use `ARC-43`'s stage-1 systemd grammar. A missing or
+lingering user unit. Service names use `ARC-43`'s LNVPS-path systemd grammar. A missing or
 malformed scope is an invalid declaration entry. This added required member is why the
 schema is version 2; the file name is retained.
 

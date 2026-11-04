@@ -1,6 +1,6 @@
 # The generic signed lockdown checklist, the harness's machine-class question and the
 # plain-language rendering of a proposed declaration (OPN-14, ARC-17, ARC-36a, ARC-39, ARC-43).
-# Keyed on no vendor and no tenant. Stage 1's case: systemd and OpenSSH.
+# Keyed on no vendor and no tenant. The LNVPS path's case: systemd and OpenSSH.
 #
 # Every read is a harness-composed box-plane job (ARC-43) under STA-20's record. Its command is
 # the bytes below with each {typed value} substituted single-quoted by the wrapper; the model

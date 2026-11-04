@@ -42,7 +42,7 @@ flowchart TD
     START([Need a host-key fingerprint]) --> PROD{Which product?}
     PROD -->|Dedicated / Robot| R1["CHN-R1 — retrieve<br/>rescue API publishes host_key<br/>✅ run by hand, the construction test bed"]
     PROD -->|Hetzner Cloud rescue| R2{"CHN-R2 — retrieve"}
-    PROD -->|LNVPS installed system| R7["CHN-R7 — retrieve<br/>published hypervisor scan<br/>✅ admitted for stage 1"]
+    PROD -->|LNVPS installed system| R7["CHN-R7 — retrieve<br/>published hypervisor scan<br/>✅ admitted for the LNVPS path"]
     R2 --> R2D["☠️ DEAD, verified<br/>rescue returns an action and a<br/>root password. No host key"]
     R2D --> BOOT{"Does the harness compose<br/>the machine's boot configuration?"}
     BOOT -->|"Yes — boot configuration"| R5["CHN-R5 — attest<br/>per-machine derived sender key in user-data;<br/>machine gift-wraps its fingerprints to a<br/>per-machine derived recipient over Nostr<br/>🔶 first-boot finding; browser checks open — OPN-3"]
@@ -690,13 +690,13 @@ was waiting for. For revocation's rationale, see that set's ADR 0003; for eligib
 equality and unavailable coverage, see `ARC-41`.
 
 **CHN-16a Destination authorization never grants access to the relay's private network.**
-For the destination policy, see [paid-tcp-relay][relay-source] DST-4–DST-7; for stage 1's
+For the destination policy, see [paid-tcp-relay][relay-source] DST-4–DST-7; for the LNVPS path's
 hand-recorded pass, see PAS-6. For the publisher-specific hosting adoption, see `CHN-11`.
 
 The check on every outbound connection is carried as `TauWeb.Relay.parse`,
 `TauWeb.Relay.classify` and `TauWeb.Relay.dial` (ADR-0032), whose argument is by type the
 classified numeric address, so a hostname cannot be passed to it; the check at registration is
-the recording message, which the first stage does not carry.
+the recording message, which the LNVPS path does not carry.
 `TauWeb.Relay.forbidden_answer_refuses` is the DNS rule above,
 `TauWeb.Relay.dialed_admitted` proves over every trace that the dialer receives only an admitted
 address, `TauWeb.Relay.mapped_forbidden_refused` closes the IPv4-mapped spelling and

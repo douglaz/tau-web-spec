@@ -1,30 +1,32 @@
 # 08 — Open questions
 
 This owns open decisions and empirical gaps. `TASKS.md` links execution work back here;
-`07-conformance.md` owns the acceptance evidence and stage applicability.
+`07-conformance.md` owns the acceptance evidence and capability applicability.
 
 Each entry says **what would close it**, because a question without a closure criterion is a
 worry rather than a work item, and because the gating set otherwise mixes a twenty-minute
 probe with a multi-week spike as though they were the same size.
 
-## Gates by milestone
+## Gates by path and capability
 
 Construction admission (`STG-2`) closed with the September 8 installation rehearsal, on the
 dedicated path that is now the construction test bed. The stages were re-drawn on 2026-10-05
-(`06-first-stage.md`). **Stage 0** records probes alongside construction:
-`OPN-24`, whose paid phase B ran on 2026-10-11, with LNVPS passing its target criteria; `CHN-R7` now admits its stage-1 route.
-`OPN-25` is closed by restating stage 1 on plain Arch. The real-first-boot attest evidence
-under `OPN-3` remains relevant to vendors accepting boot configuration, but does not gate stage 1.
-**Completing stage 1** gates on `CHN-R7`'s integrated conformance, on the generic lockdown checklist of `OPN-14`,
+and removed on 2026-11-04; the order they set is archived, non-normative, in
+[`docs/archive/2026-11-04-implementation-order.md`](./docs/archive/2026-11-04-implementation-order.md).
+**Probes** run alongside construction:
+`OPN-24`, whose paid phase B ran on 2026-10-11, with LNVPS passing its target criteria; `CHN-R7` now admits the LNVPS route.
+`OPN-25` is closed by restating the owner's scenario (`STG-21`) on plain Arch. The real-first-boot attest evidence
+under `OPN-3` remains relevant to vendors accepting boot configuration, but does not gate the LNVPS path.
+**Delivering a machine to an operator on the LNVPS path** gates on `CHN-R7`'s integrated conformance, on the generic lockdown checklist of `OPN-14`,
 on integrated resume
 (`OPN-18`), on integrated placed-secret scanning (`OPN-28`, closed by design), and on the
-stage-1 acceptance rows in `07-conformance.md`, including local unlock, derivation and
+LNVPS-path acceptance rows in `07-conformance.md`, including local unlock, derivation and
 maintained-cloud recovery, on T44's coordinated identity format and recovery change, and on the
-publisher's recorded Arch artifact choice (`ARC-24`). `OPN-3`'s evidence is split by milestone below. `OPN-5`
-gates stage 2. `OPN-26` is decided in ADR-0042, but T44's coordinated format change is still
+publisher's recorded Arch artifact choice (`ARC-24`). `OPN-3`'s evidence is split by path below. `OPN-5`
+gates `STG-22`'s capabilities, as it gated stage 2. `OPN-26` is decided in ADR-0042, but T44's coordinated format change is still
 required before the derived identity is usable. The jump-host route can use the separate
 credential in `SEC-5` row 21 while the format remains unavailable.
-`OPN-27` gates stage 3. `OPN-4` closed by restating `SEC-CLAIM`
+`OPN-27` gates the admission group (`STG-23`). `OPN-4` closed by restating `SEC-CLAIM`
 around configured weights; the vault claim stays conditional on `TRU-E2`.
 
 **OPN-3 — The recovery machinery is designed and unproven.** The design is recorded across
@@ -56,17 +58,17 @@ and nothing weaker is entered", so a window measured too short now costs a machi
 a displayed leap.
 
 *Amended 2026-10-09:* the preceding stage-1 claim is superseded. LNVPS accepts no buyer boot
-configuration (`docs/findings/2026-10-08-lnvps-research.md` §1), so stage 1 does not use
+configuration (`docs/findings/2026-10-08-lnvps-research.md` §1), so the LNVPS path does not use
 attest. The real-first-boot experiment
 (`docs/findings/2026-10-09-attest-first-boot.md`) established boot-time evidence at a different
 vendor within its stated limits. Attest remains a route for a vendor accepting boot
-configuration; the stage-1 first-contact probe is `OPN-24`'s.
+configuration; the LNVPS path's first-contact probe is `OPN-24`'s.
 
-*Closure evidence by milestone (amended 2026-10-06):*
+*Closure evidence by path (amended 2026-10-06; re-keyed 2026-11-04):*
 
 - The real-first-boot attest experiment supplies route-specific evidence, with browser-side
-  checks and the finding's remaining limits still open (`CNF-18`, T40); stage 1 does not consume it.
-- Stage 1 supplies the recovery row of `07-conformance.md`, including `CNF-10`'s export
+  checks and the finding's remaining limits still open (`CNF-18`, T40); the LNVPS path does not consume it.
+- The LNVPS path supplies its recovery row of `07-conformance.md`, including `CNF-10`'s export
   case, and local allocation/derivation evidence (`CNF-72`, `CNF-83`). Its relay replacement
   is the manual route in `STA-17`.
 - The dedicated path supplies `CNF-20`'s relabel cases and `CNF-84`'s Robot rescue case on
@@ -81,7 +83,7 @@ relationship, several times over, and invoice relay cannot fix it. This is what 
 structural rather than a second tenant, and what makes `OVR-5` hard.
 
 *2026-10-05.* A vendor paid in Bitcoin with no account is one such vendor if `OPN-24`'s probe
-passes; the second is stage 2's work.
+passes; the second is `STG-22`'s work.
 
 *Closes when:* an operator can obtain machines at two distinct vendors without opening two
 billing relationships.
@@ -102,7 +104,7 @@ base URLs, paths and assertions. The answer decides direct `fetch` versus the pi
 (`CHN-12a`), not whether the vendor is usable (ADR-0017). *Closes when:* the forked probe
 passes or fails against a named second vendor.
 
-**OPN-24 — Whether LNVPS can be the stage-1 machine, and separately the jump vendor.**
+**OPN-24 — Whether LNVPS can be `STG-21`'s machine, and separately the jump vendor.**
 The research (`docs/findings/2026-10-08-lnvps-research.md`) found a catalogue Arch image,
 published host keys, a listing, Lightning invoices, a month minimum, no buyer boot
 configuration and no destroy route the operator can call. Its CORS evidence is headers and a preflight,
@@ -112,7 +114,7 @@ refused for zero address count; this was reported upstream as LNVPS/api#422. Not
 an order was observed there. The paid HTTP phase B below, under `STG-21` and ADR-0042's
 2026-10-10 amendment, ran on 2026-10-11.
 
-**The stage-1 target fails** if any of these is observed: in phase B, the complete published
+**The target fails** if any of these is observed: in phase B, the complete published
 host-key set has not appeared three hours after the machine reaches `running` — a few of the
 hourly re-scans the research finding reads from the vendor's code; any published key
 differs from the key presented by the machine in that family; the vendor-catalogue Arch image
@@ -122,8 +124,9 @@ published ones; the operator-wallet Lightning payment does not settle into a boo
 the vendor listing omits it. A delayed fill **within** that window, a month minimum, need for
 `CHN-12a`'s pinned tunnel, and no destroy route the operator can call are recorded concessions, not target-vendor
 failures. The wait later runs use is a named timing set from phase B's measured fill time;
-neither a code-read retry interval nor attest timing supplies it. `ARC-22` owns the treatment of unavailable destroy. `STG-21` says "If LNVPS fails
-`OPN-24`'s target criteria, stage 1 waits"; the probe evidence reopens vendor selection.
+neither a code-read retry interval nor attest timing supplies it. `ARC-22` owns the treatment of unavailable destroy. `STG-21` records that its
+2026-10-09 criterion read "If LNVPS fails `OPN-24`'s target criteria, stage 1 waits"; a failure
+reopens vendor selection.
 
 **The jump-vendor question remains separate and open.** `CHN-R6` says "It is destroyed once
 the target is pinned"; LNVPS has no destroy route the operator can call
@@ -154,11 +157,11 @@ Apply the target criteria above to those results. Do not infer a route from docu
 set the later runs' wait before the fill time is measured. *Ran 2026-10-11*
 (`docs/findings/2026-10-11-lnvps-phase-b.md`): the renew response supplied the invoice and the
 order response none, every observation is recorded, and every target criterion above holds, so
-LNVPS passes as stage 1's machine. The measured fill was about an hour, after `running` and again
+LNVPS passes as `STG-21`'s machine. The measured fill was about an hour, after `running` and again
 after the reinstall; the named wait is set when T39 admits the route.
 
 *Closes when:* phase B records whether the recorded order or renew response supplied the invoice
-and the ordered observations, the stage-1 criteria have been applied, and the presented keys
+and the ordered observations, the target criteria have been applied, and the presented keys
 equal the published keys in every family before a first-contact route is accepted. *The target half closed 2026-10-11* on that run. The jump half
 closes separately only when `CHN-R6`'s conditions are met.
 
@@ -169,7 +172,7 @@ nobody has booted the file. *Closes when:* the file is booted once.
 
 ## Design-level, still open
 
-These do not block starting construction. `OPN-14` **does block completing the first stage**;
+These do not block starting construction. `OPN-14` **does block delivery on the LNVPS path**;
 the remaining entries gate the feature each names.
 
 **OPN-10 — The brief format schema.** Frontmatter fields, the local/remote block marker,
@@ -179,7 +182,7 @@ does not* — every model-issued command is a stateless job and values have name
 for an undefined format is premature until this exists. *First input 2026-09-08:*
 `docs/briefs/01-install.md`, plain prose with example commands and deliberately no format.
 A fourth brief, the relay-install brief that `CHN-14` and ADR-0019 rely on, is the harness's,
-and is owed when self-host migration is offered, which no stage yet does; nothing has been
+and is owed when self-host migration is offered, which nothing yet does; nothing has been
 written for it.
 *Closes when:* the three briefs named in `STG-2` are generalized into a schema.
 
@@ -195,7 +198,7 @@ artifact hash comparison against the bundle's value and the host-key fingerprint
 **OPN-14 — What "locked down" means, per vendor.** A pentest can only assert what it checks, so
 the checklist is part of the signed brief set — the generic one ships as
 `bundle/lockdown.toml`; no vendor's exists yet. The generic checks give `ARC-17`'s deliverable
-its stage-1 measure; the vendor-specific checks remain open.
+its LNVPS-path measure; the vendor-specific checks remain open.
 
 Two parts are no longer open. Who may run which check was settled by `ARC-26`. And the *shape* is
 settled: a delivery declaration (`ARC-39`) — a tenant's, or with no tenant the one the operator
@@ -210,21 +213,21 @@ That also makes the question per-**tenant** as much as per-vendor, which the tit
 every field present as a value, an explicit empty set, or `unspecified`, and the lnrent
 template shipped with every unstated field `unspecified` so the harness invents nothing.
 *Split 2026-10-05.* With no tenant the declaration is the one the operator approved
-(`ARC-39`), so no tenant's input gates stage 1. What stage 1 needs from this entry is a
+(`ARC-39`), so no tenant's input gates the LNVPS path. What the LNVPS path needs from this entry is a
 **generic signed lockdown checklist**: the fixed checks `ARC-17` names — default credentials
 and sshd posture — keyed on no vendor and no tenant, shipped in the bundle as
 `bundle/lockdown.toml` (decided 2026-10-25), with `ARC-36a`'s question and `ARC-39`'s rendering.
-lnrent's declaration, the Robot checklist and briefs 2–3 gate stage 3.
+lnrent's declaration, the Robot checklist and briefs 2–3 gate the admission group (`STG-23`).
 
 *Owed 2026-10-06; decisions updated 2026-10-16 and 2026-10-18:* the harness-composed reads behind
 `CNF-50`, `CNF-53` and `CNF-103` still need implementation. `ARC-43` now owns the service-name
-grammar and restart demonstration for stage 1's init-specific systemd case; OpenRC waits for
-the dedicated path's stage. Re-entry reads every declared service's unit and reads enablement
+grammar and restart demonstration for the LNVPS path's init-specific systemd case; OpenRC waits for
+the dedicated path's row. Re-entry reads every declared service's unit and reads enablement
 only for `enabled-survives-reboot` services (`ARC-43`, decided 2026-10-18, ADR-0049).
-T42 carries the implementation; stage 1 still owes integrated evidence.
+T42 carries the implementation; the LNVPS path still owes integrated evidence.
 
 *Closes when:* the generic checklist ships and `CNF-49`–`CNF-53`, `CNF-99` and `CNF-103` have integrated
-evidence against it — that much for stage 1; and, for stage 3, the lnrent owner fills that
+evidence against it — that much for the LNVPS path; and, for the admission group, the lnrent owner fills that
 template ([douglaz/lnrent#87](https://github.com/douglaz/lnrent/issues/87)), the Robot lockdown
 checklist exists, and briefs 2–3 are authored from them and exercised. The tenant half is a
 required tenant input, not permission to invent its operational contract inside the harness.
@@ -236,7 +239,11 @@ across vendors, sealing and the coordinator are profile slots and harness rules 
 is undecided. So is whether lnrent is a tenant at all, or a vendor the operator buys from. And
 one known gap sits under any declared independence bound: `ARC-31b` gives every session the
 highest-ranked candidate, so a different model per machine is not deliverable on the procured
-path. *Closes when:* stage 3 is designed.
+path. This entry also owns the selector for a setup with no declared bound: until a selection
+criterion for such a setup, and the capability to meet it, exist, the in-setup replacement
+order at LNVPS stays unavailable (`tw-ae7` comments 58000001 and 60000001; `07-conformance.md`,
+"Before enabling the in-setup replacement order at LNVPS"). *Closes when:* the shape of tenants
+in the admission group is decided.
 
 **OPN-28 — Placed-secret scanning after store loss.** *Closed by design; open as
 implementation, 2026-10-06.* `SEC-5` row 23 and its scan semantics define the browser-keyed
@@ -245,9 +252,10 @@ may be held immediately under that design; evidence is a completion gate, not au
 construct it. T48 carries the build; `SEC-5` now owns the settled minimum byte length.
 
 *Closes when:* `CNF-95`'s cases pass on the integrated harness, paired with `CNF-84` for
-Restore and `CNF-42` for the retained exposure display. Construction can proceed; stage 1
-requires that evidence for the stage-1 cases, including fallback and output boundaries;
-cases (e) and (f)'s A/B assertions wait for stage 2 under the applicability table.
+Restore and `CNF-42` for the retained exposure display. Construction can proceed; the LNVPS path
+requires that evidence for its cases, including fallback and output boundaries;
+cases (e) and (f)'s A/B assertions wait for the untyped-scope, jump-host and sets-above-one row
+of the applicability table.
 
 **OPN-15 — Reproducible builds and the watchdogs that would make them mean something.** Neither
 exists. Until they do, the bundle's integrity rests on trusting the host outright, and `TRU-A1`
@@ -286,7 +294,7 @@ changing issuing authority makes its API unreachable until a release ships.
 Kept rather than deleted, because a reader who remembers one of these open needs to
 know it was closed deliberately, and because the reasoning is worth more than the question was.
 
-**OPN-25 — Omarchy or plain Arch for stage 1.** *Closed 2026-10-09: restated on plain Arch.*
+**OPN-25 — Omarchy or plain Arch for the owner's scenario (`STG-21`).** *Closed 2026-10-09: restated on plain Arch.*
 The code research (`docs/findings/2026-10-08-omarchy-headless-research.md`) found no
 supported server edition or SSH install route; route C ran in a headless VM, with limitations
 recorded by its prototype finding
@@ -296,8 +304,8 @@ publisher's choice between the unpinned label and an Arch pin remains open under
 and `ARC-25`; record it when taken.
 
 **OPN-26 — The derived vendor identity's design.** *Closed as decided 2026-10-09 in
-[ADR-0042](./docs/adr/0042-the-vendor-identity-is-derived-per-machine.md).* Stage 1's typed
-LNVPS adapter uses a per-machine derived identity, at role 5 of that machine's family and
+[ADR-0042](./docs/adr/0042-the-vendor-identity-is-derived-per-machine.md).* The LNVPS path's typed
+adapter uses a per-machine derived identity, at role 5 of that machine's family and
 index. The Nostr key interpretation, Replace carry-forward and bounded Restore discovery are
 recorded there. For the accepted HTTP order and invoice path, see `STG-21` and `ARC-30`
 (ADR-0042's 2026-10-10 amendment). T44 owns the later coordinated format and recovery
@@ -358,8 +366,8 @@ is machine-reported and advisory, and comparing it against the browser journal c
 mistakes rather than a hostile machine.
 [ADR-0022](./docs/adr/0022-durable-state-is-an-append-only-journal.md)'s amendment carries the
 reasoning and the three rejected alternatives. *Closes when:* `CNF-40`, `CNF-54`–`CNF-56` pass
-on the integrated harness (T23) — the part stage 1 gates on — and `CNF-86` passes there too,
-which the dedicated row of `07-conformance.md` asks for, not stage 1.
+on the integrated harness (T23) — the part the LNVPS path gates on — and `CNF-86` passes there too,
+which the dedicated row of `07-conformance.md` asks for, not the LNVPS path.
 
 **OPN-22 — What "still alive" means in `STA-20`.** **Closed: the narrow reading binds.** `STA-20`
 tracks whether **the command** is alive, not everything the command spawned. Daemon and service
@@ -447,7 +455,7 @@ model would add an *observed* column; none has a candidate, and nothing waits on
 
 *Amended 2026-10-06.* The historical "distinct by construction" account above is not what
 the procured path currently delivers: `ARC-31b` says it "takes the highest-ranked candidate
-it finds there" at session start. The configured-diversity gap is `OPN-27`'s stage-3 question.
+it finds there" at session start. The configured-diversity gap is `OPN-27`'s question.
 This note does not reopen the served-weights observability question closed here.
 
 **OPN-1 — The SSH client.** *Closed 2026-09-08: the mechanism ran, and it ran on a phone.* An SSH implementation compiled to `wasm32-unknown-unknown` with
@@ -532,21 +540,3 @@ on every rescue boot. Both hops of the identity chain then closed with no trust-
 (`CHN-R1` rewritten, `STG-4` amended; `docs/findings/2026-09-08-first-stage-rehearsal.md`).
 The same run found that the first stage's real cost is a machine that does not come back —
 see `STG-20`.
-
-## Status and the next move
-
-The installation and identity-chain rehearsal ran on a disposable dedicated server on
-2026-09-08 (`docs/findings/2026-09-08-first-stage-rehearsal.md`). Both pinned SSH hops closed;
-`OPN-6` is closed. The Rust/WASM SSH and pinned-TLS spikes also ran, including physical
-Android evidence. Robot's browser route is the pinned TLS tunnel, not direct CORS fetch.
-
-Construct the integrated harness from those results and the v1 credential/storage contracts,
-using the dedicated path as the test bed. Both LNVPS probe phases are recorded, and LNVPS
-passed its stage-1 target criteria on 2026-10-11 (`OPN-24`); `CHN-R7` admits the route,
-and its integrated conformance remains open. No further probe is needed for admission. The attest first-boot
-finding stands for applicable routes (`OPN-3`), and the Omarchy question closed on plain Arch
-(`OPN-25`). Write the
-generic lockdown checklist (`OPN-14`). The live rehearsal has not demonstrated the harness, a
-goal-driven install, local unlock, or interrupted-install convergence. Complete the stage-1
-conformance subset before claiming delivery; do not repeat the already-closed identity-chain
-probe as a construction gate.

@@ -1,6 +1,6 @@
 # State-machine atlas
 
-An informational navigation aid for **stage-1 typed LNVPS and maintained-cloud
+An informational navigation aid for **the typed LNVPS path and maintained-cloud
 recovery**. The owning requirements remain the place to implement a rule. This
 atlas adds no behavior, dispatch authority or combined protocol. Authority stays
 per clause under [ADR-0032](adr/0032-the-formal-companion-follows-provisiond-spec.md#what-is-adopted):
@@ -33,7 +33,7 @@ Evidence vocabulary used locally in each view:
   the finite enumeration where its signature quantifies over all traces.
 - **Implementation evidence**: observations from an implementation or its companion
   comparison. None is produced by this change. The source list for admission is
-  [Stage applicability and admission](../07-conformance.md#stage-applicability-and-admission).
+  [Capability applicability and admission](../07-conformance.md#capability-applicability-and-admission).
 
 ## Region outline
 
@@ -66,8 +66,8 @@ retirement reference: [STA-23](../03-state-and-recovery.md#what-survives-a-lost-
 
 ### Sessions and approvals
 
-Evidence: conceptual navigation. Applicability: stage-1 single-machine sessions;
-multi-machine admission belongs to the separate stage-2 row in the admission list.
+Evidence: conceptual navigation. Applicability: LNVPS-path single-machine sessions;
+multi-machine admission belongs to the separate untyped-scope, jump-host and sets-above-one row in the admission list.
 
 Owners: [STA-23](../03-state-and-recovery.md#what-survives-a-lost-phone),
 [SEC-1](../04-security-model.md#sec-1--a-session-reaches-only-its-bound-set-enforced-by-a-lock),
@@ -97,7 +97,7 @@ approval also names its approved facts. ARC-12 is the session owner, SEC-1 the
 binding owner, SEC-4 the approval owner, and STA-23 the live-authority owner.
 Durable history versus live authority: [STA-23](../03-state-and-recovery.md#what-survives-a-lost-phone).
 Dedicated-path standing reinstall approvals:
-[STG-20](../06-first-stage.md#what-the-first-stage-does-not-test).
+[STG-20](../06-first-stage.md#what-the-lnvps-path-does-not-test).
 `STG-20` says “An approval **stands** from its record until its reset is dispatched,
 a matching withdrawal is recorded, or the session it was rendered for ends”.
 `STG-20` says “This approval exists only on the dedicated path; at LNVPS the reinstall
@@ -110,7 +110,7 @@ Evidence: conceptual navigation. Applicability: typed LNVPS now; Robot/rescue
 confirmation predicates are dedicated-route material, not LNVPS predicates.
 
 Owners: [STA-4, STA-8, STA-24](../03-state-and-recovery.md#durable-state),
-[STG-21/21a](../06-first-stage.md#the-stages), and dedicated
+[STG-21/21a](../06-first-stage.md#the-paths-and-their-gates), and dedicated
 [STG-4](../06-first-stage.md#acceptance).
 
 - **Recorded knowledge / identity:** approved setup entry, reserved index and
@@ -141,13 +141,13 @@ nor removes the disposition”.
 
 ### Commands
 
-Evidence: conceptual navigation. Applicability: installed systems in stage 1;
+Evidence: conceptual navigation. Applicability: installed systems on the LNVPS path;
 rescue's persistence exception and reset prerequisites are dedicated-route material.
 
 Owners: [STA-20/20b](../03-state-and-recovery.md#durable-state),
 [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular).
 
-LNVPS root access: [STG-21](../06-first-stage.md#the-stages),
+LNVPS root access: [STG-21](../06-first-stage.md#the-paths-and-their-gates),
 [STA-20](../03-state-and-recovery.md#durable-state).
 
 - **Recorded knowledge / identity:** browser command intent and the machine's
@@ -161,7 +161,7 @@ LNVPS root access: [STG-21](../06-first-stage.md#the-stages),
 - **Permitted next actions / retirement:** `STA-20` says “Collecting a job record
   is not held, and other machines are unaffected.” It also says “Only a terminal
   record releases the hold”. See ARC-43 for the dedicated delivery-reboot result;
-  LNVPS typed restart confirmation: [STG-21a](../06-first-stage.md#the-stages).
+  LNVPS typed restart confirmation: [STG-21a](../06-first-stage.md#the-paths-and-their-gates).
   Destructive dispositions and pending delivery check: [combined matrix](#combined-matrix).
 
 The command key is machine plus tracked call/job, with the record's boot identity;
@@ -176,9 +176,9 @@ left armed survives replay.”
 
 ### Identity and pins
 
-Evidence: conceptual navigation. Applicability: CHN-R7 for stage-1 LNVPS;
+Evidence: conceptual navigation. Applicability: CHN-R7 for the LNVPS path;
 CHN-R1 is dedicated/rescue, CHN-R5 attest is route-specific, CHN-R6 jump-host
-contact is later-stage material. CHN-R2/3/4 retain their rejected-route status.
+contact belongs to the jump-host row. CHN-R2/3/4 retain their rejected-route status.
 
 Owners: [CHN-R* routes](../02-channel.md#the-routes-to-a-fingerprint),
 [SEC-11](../04-security-model.md#sec-11--the-host-key-is-checked),
@@ -214,7 +214,7 @@ and the [pin re-entry reference](#pin-retirement-and-admission) below.
 
 ### Delivery and secrets
 
-Evidence: conceptual navigation. Applicability: stage-1 LNVPS and re-entry;
+Evidence: conceptual navigation. Applicability: the LNVPS path and re-entry;
 `delivery_reboot` is the distinct non-LNVPS route.
 
 Owners: [ARC-17/39](../01-architecture.md#what-a-session-delivers),
@@ -251,8 +251,8 @@ nor any weaker mode”.
 
 ### Allocation and recovery
 
-Evidence: conceptual navigation. Applicability: maintained-cloud recovery in
-stage 1; dedicated relabel/rescue migration is route-specific.
+Evidence: conceptual navigation. Applicability: maintained-cloud recovery on
+the LNVPS path; dedicated relabel/rescue migration is route-specific.
 
 Owners: [STA-17](../03-state-and-recovery.md#recovery-by-access-model-and-vendor),
 [STA-22/22a/22b](../03-state-and-recovery.md#what-survives-a-lost-phone),
@@ -297,7 +297,7 @@ composite trace. Available per-step Dispatch outcomes remain generated in
 
 ### Dispatch and re-entry
 
-Applicability: typed stage-1 requests and maintained-cloud re-entry; named operator flows retain their own authorization.
+Applicability: typed LNVPS-path requests and maintained-cloud re-entry; named operator flows retain their own authorization.
 
 Event/key: a session request names a machine, or an operator flow names its target;
 the worker resolves the approved entry under [STA-24, *The resource*](../03-state-and-recovery.md#durable-state).
@@ -326,7 +326,7 @@ Applicability: LNVPS operation evidence and installed jobs; Robot evidence only 
 Event/key: an adapter observation or exact-call receipt targets an earlier intent,
 or an advisory machine record targets its own command. Preconditions/evidence
 route to [STA-24, *What clears it*](../03-state-and-recovery.md#durable-state),
-[STG-21a](../06-first-stage.md#the-stages), and
+[STG-21a](../06-first-stage.md#the-paths-and-their-gates), and
 [protected evidence §3a](design/protected-evidence-v1.md#identity-and-confirmation-boundary);
 dedicated Robot reads use [STG-4](../06-first-stage.md#acceptance).
 `STA-24` says “Confirmation evidence MUST identify the expected account, machine
@@ -355,7 +355,7 @@ protected byte encodings remain prose-only in the Dispatch opening boundary.
 
 ### Job-record collection
 
-Applicability: installed stage-1 jobs; the rescue persistence and non-LNVPS delivery-reboot exceptions apply only on their named routes.
+Applicability: installed LNVPS-path jobs; the rescue persistence and non-LNVPS delivery-reboot exceptions apply only on their named routes.
 
 Event/key: collection on reconnect or while a held request waits, for the original
 machine/call/job and its boot. [STA-20/20b/21](../03-state-and-recovery.md#durable-state)
@@ -383,7 +383,7 @@ result settles the dedicated reboot, not LNVPS's typed restart.
 
 ### Operator disposition
 
-Applicability: typed stage-1 resources; dedicated preparation only where explicitly named; untyped boundaries remain separate.
+Applicability: typed LNVPS-path resources; dedicated preparation only where explicitly named; untyped boundaries remain separate.
 
 Event/key: the operator names unresolved calls on one resource, or replaces its
 standing disposition. Preconditions and replay validity live at
@@ -488,11 +488,11 @@ there is no new comparison result, phone test or conformance completion here.
 
 ### Pin retirement and admission
 
-Applicability: stage-1 LNVPS reinstall/Restore; the reset-into-rescue and other pin-source routes remain route-specific.
+Applicability: LNVPS-path reinstall/Restore; the reset-into-rescue and other pin-source routes remain route-specific.
 
 Event/key: operator-chosen destructive reinstall dispatch; candidate pin
 observation and its route provenance. Preconditions, evidence and authority route to
-[STG-20](../06-first-stage.md#what-the-first-stage-does-not-test),
+[STG-20](../06-first-stage.md#what-the-lnvps-path-does-not-test),
 [CHN-R7 and the other routes](../02-channel.md#the-routes-to-a-fingerprint),
 [SEC-11](../04-security-model.md#sec-11--the-host-key-is-checked),
 [ADR-0045](adr/0045-the-installation-label-moves-at-reinstall-dispatch.md) and
@@ -500,7 +500,7 @@ STA-3. `STG-20` says the reinstall “opens a new installation when it is
 **dispatched**”. Installation identity, retirement, comparison-before-retention
 and candidate completeness/freshness/containment:
 [CHN-R7](../02-channel.md#the-routes-to-a-fingerprint). Reinstall confirmation:
-[STG-21a](../06-first-stage.md#the-stages). Contact versus command admission:
+[STG-21a](../06-first-stage.md#the-paths-and-their-gates). Contact versus command admission:
 [SEC-11](../04-security-model.md#sec-11--the-host-key-is-checked) and
 [STA-20/24](../03-state-and-recovery.md#durable-state).
 
@@ -527,7 +527,7 @@ Dispatch is asserted, and jump-host first contact is outside Pins's sources.
 
 ### Delivery publication, placement and re-check
 
-Applicability: stage-1 LNVPS delivery/re-entry; non-LNVPS delivery reboot remains its separate route.
+Applicability: LNVPS-path delivery/re-entry; non-LNVPS delivery reboot remains its separate route.
 
 Event/key: harness-composed check observations for the machine's declaration in
 force and declared service/boot; operator declaration amendment/placement approval
@@ -626,7 +626,7 @@ dispatch to that machine from its intent until its confirmation.”
 SSH attempt that is `STG-4`'s third predicate, the collection of job records — are
 permitted”. For inference, `STA-24` says “does **not** bar the next request”.
 Operation-specific evidence and durable acceptance:
-[STG-21a](../06-first-stage.md#the-stages), dedicated
+[STG-21a](../06-first-stage.md#the-paths-and-their-gates), dedicated
 [STG-4](../06-first-stage.md#acceptance), and [STA-24](../03-state-and-recovery.md#durable-state).
 
 ### Command hold
@@ -687,7 +687,7 @@ pin admission references: [observation-to-authority reference](#observation-to-a
 ### Pending check, scanning and identity overlaps
 
 Evidence: conceptual navigation, prose-only except §3a's symbolic identity guards
-carried by Dispatch. Applicability: typed stage-1 installed machine in the first
+carried by Dispatch. Applicability: typed LNVPS-path installed machine in the first
 three columns; the last column is deferred untyped-vendor material. Each cell
 points to the owning clauses or existing decision record. Read their scope in
 the checked quotations below; the table maintains no separate classifications.
@@ -738,13 +738,13 @@ For overlapping restrictions, follow these owner routes together:
   [Command hold](#command-hold), [Cloud barrier](#cloud-barrier),
   [Destructive disposition](#destructive-disposition).
 - LNVPS restart confirmation versus pending delivery check:
-  [STG-21a](../06-first-stage.md#the-stages) and
+  [STG-21a](../06-first-stage.md#the-paths-and-their-gates) and
   [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular).
 - Scan re-arm/local paste versus destructive continuation:
   [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular) and
   [STA-24](../03-state-and-recovery.md#durable-state).
 - Renewal-off versus running-system mutations:
-  [STG-21](../06-first-stage.md#the-stages) and
+  [STG-21](../06-first-stage.md#the-paths-and-their-gates) and
   [STA-24](../03-state-and-recovery.md#durable-state).
   `STA-24` says “Box-plane dispatch to the machine is governed by `STA-20` and
   `STA-20b`, not by this rule”. For the exception, see [Cloud barrier](#cloud-barrier).
@@ -787,10 +787,13 @@ inspect a named record with `br show ID --json --no-auto-flush --no-auto-import`
   [STA-20/STA-24](../03-state-and-recovery.md#durable-state).
   `STA-24` says “Settlement of one retained call under its own contract supplies no
   completeness or completion evidence about omitted sends”.
-- **Not specified:** untyped destructive hold versus harness-started jobs in stage 2
+- **Not specified:** untyped destructive hold versus harness-started jobs for untyped scopes
   ([tw-pgp](../.beads/issues.jsonl)).
-- **Not specified:** LNVPS's third recovery rung ([tw-ae7](../.beads/issues.jsonl));
-  destruction/output ([tw-pkn](../.beads/issues.jsonl)). The recovery figures are
+- **Not enabled:** the in-setup replacement order at LNVPS, until its row of the
+  [admission table](../07-conformance.md#capability-applicability-and-admission) passes;
+  until then LNVPS's third recovery rung takes the form `STG-17` gives it
+  ([tw-ae7](../.beads/issues.jsonl)).
+- **Not specified:** destruction/output ([tw-pkn](../.beads/issues.jsonl)). The recovery figures are
   conceptual navigation, with their existing policy and stand-ins retained.
 - Rescue activation beside the delivery reboot: coverage, not new behavior
   ([tw-z99](../.beads/issues.jsonl)). The existing installed-pin halt owns it:
@@ -818,8 +821,8 @@ A successful-looking sequence supplies no additional authority.
 
 | Observation | Predicate owners | Boundary owners |
 |---|---|---|
-| Exact-call vendor receipt | [STA-24](../03-state-and-recovery.md#durable-state), [STG-21a](../06-first-stage.md#the-stages) | [§3a](design/protected-evidence-v1.md#identity-and-confirmation-boundary), [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular) |
-| Authenticated status/listing | [STG-21/21a](../06-first-stage.md#the-stages) | [STG-21a](../06-first-stage.md#the-stages), [STA-24](../03-state-and-recovery.md#durable-state) |
+| Exact-call vendor receipt | [STA-24](../03-state-and-recovery.md#durable-state), [STG-21a](../06-first-stage.md#the-paths-and-their-gates) | [§3a](design/protected-evidence-v1.md#identity-and-confirmation-boundary), [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular) |
+| Authenticated status/listing | [STG-21/21a](../06-first-stage.md#the-paths-and-their-gates) | [STG-21a](../06-first-stage.md#the-paths-and-their-gates), [STA-24](../03-state-and-recovery.md#durable-state) |
 | Protected receipt/association | [§3a](design/protected-evidence-v1.md#identity-and-confirmation-boundary) | [§3a](design/protected-evidence-v1.md#independent-recovery-and-exact-targeting), [STA-24](../03-state-and-recovery.md#durable-state) |
 
 `STA-24` says “A generic 2xx, an unrelated response or an unvalidated/malformed body
@@ -867,7 +870,7 @@ publication history and installed-pin admission. Direct-fetch provenance:
 [CHN-R7](../02-channel.md#the-routes-to-a-fingerprint).
 `CHN-R7` says “This is a vendor-published observation, not an attestation.”
 Reinstall baseline/post-dispatch evidence:
-[STG-21a](../06-first-stage.md#the-stages). Empty-group pin admission versus
+[STG-21a](../06-first-stage.md#the-paths-and-their-gates). Empty-group pin admission versus
 reinstall confirmation: [CHN-R7](../02-channel.md#the-routes-to-a-fingerprint)
 and [STA-24](../03-state-and-recovery.md#durable-state). Operation confirmation,
 session authority and service evidence: [combined matrix](#combined-matrix).
@@ -883,7 +886,7 @@ changed-boot evidence: [STA-20](../03-state-and-recovery.md#durable-state).
 Non-LNVPS `delivery_reboot`, own-job/own-machine/new-boot and ordinary `exec`:
 [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular).
 `ARC-43` says “claims the observed boot change, never an exit status or a cause.”
-LNVPS restart confirmation: [STG-21a](../06-first-stage.md#the-stages).
+LNVPS restart confirmation: [STG-21a](../06-first-stage.md#the-paths-and-their-gates).
 
 For delivery, use [ARC-43's evidence clauses](../01-architecture.md#box-plane-execution-is-command-granular)
 and [ARC-17's placing-session demonstration](../01-architecture.md#what-a-session-delivers):
@@ -891,7 +894,7 @@ and [ARC-17's placing-session demonstration](../01-architecture.md#what-a-sessio
 | Observation or local condition | Evidence owners | Independent-boundary owners |
 |---|---|---|
 | Enablement read without demonstrated reboot | [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular) | [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular) |
-| New guest boot plus active unit after the approved reboot | [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular) | [STG-21a](../06-first-stage.md#the-stages), [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular) |
+| New guest boot plus active unit after the approved reboot | [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular) | [STG-21a](../06-first-stage.md#the-paths-and-their-gates), [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular) |
 | `running-at-delivery` found running | [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular) | [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular) |
 | Stopped after a changed boot, previously running there | [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular) | [ARC-17](../01-architecture.md#what-a-session-delivers) |
 | Failed/held/refused/no-record check | [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular) | [STA-20/24](../03-state-and-recovery.md#durable-state), [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular) |
@@ -912,7 +915,7 @@ and Dispatch's dedicated-reboot terminal property.
 
 ### Notifications
 
-Applicability: notify/attest routes; stage-1 LNVPS uses no notify channel.
+Applicability: notify/attest routes; the LNVPS path uses no notify channel.
 Owner: [CHN-17](../02-channel.md#the-attest-sequence).
 `CHN-17` says “a machine may send the harness an event, and an event is an observation.”
 `CHN-17` says “never gates a step, never triggers an action”. Attest introduction,
@@ -945,7 +948,7 @@ LNVPS baseline, `STG-21a` says “Without that response,
 the available status predicate cannot confirm restart.” For missing receipt the
 operator's disposition, or genuinely qualifying future evidence, remains necessary;
 the receipt trace does not pretend a missing receipt arrived. See the
-[confirmation owner](../06-first-stage.md#the-stages).
+[confirmation owner](../06-first-stage.md#the-paths-and-their-gates).
 
 The command pair differs in `commandHold` (true versus false), with exec calls 7
 then 12. Its admitted side is another withdrawn-guard counterexample.
@@ -953,7 +956,7 @@ then 12. Its admitted side is another withdrawn-guard counterexample.
 replay, successor-session exec 12 refused, read request 13, inference 14, exec 17
 on entry 2, durable job-record observation settling 7, then exec 20 on the original
 machine. The read request does not itself collect a terminal record. The independent
-inference and entry-2 calls remain visible. Other-machine events are stage-1
+inference and entry-2 calls remain visible. Other-machine events are LNVPS-path
 fixtures under the admission list, not admission of multi-machine sessions.
 This named trace exceeds the three-event bound; it is not exhaustively covered by
 that enumeration. These are separate intact traces, not a checked composition.
@@ -1006,12 +1009,12 @@ is not LNVPS typed-restart evidence. Every selected trace remains intact.
 ### Restart receipt before delivery completion — illustrative prose-only
 
 Evidence: illustrative prose-only narrative, with a separate generated receipt view.
-Applicability: stage-1 typed LNVPS; Dispatch has no pending-check state or service
+Applicability: the typed LNVPS path; Dispatch has no pending-check state or service
 lifecycle events. This narrative extends no source verdict or checked composition.
 
 Read `lnvps_receipt_confirms` only through receipt settlement and replay. For a
 separate delivery narrative, suppose the operator approved the survival reboot.
-[STG-21a](../06-first-stage.md#the-stages) says “It does not establish a completed
+[STG-21a](../06-first-stage.md#the-paths-and-their-gates) says “It does not establish a completed
 guest boot or service survival.” Operation confirmation therefore leads the reader
 to [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular) for the
 subsequent guest boot and active-service observations, then the delivery verdict.
@@ -1024,7 +1027,7 @@ receipt table.
 ### Hide, suspension, Lock and late results — illustrative prose-only
 
 Evidence: illustrative prose-only narrative; no lifecycle transition table is generated.
-Applicability: surviving stage-1 worker and session, under
+Applicability: surviving LNVPS-path worker and session, under
 [STA-23](../03-state-and-recovery.md#what-survives-a-lost-phone),
 [SEC-1](../04-security-model.md#sec-1--a-session-reaches-only-its-bound-set-enforced-by-a-lock)
 and [SEC-4](../04-security-model.md#sec-4--how-cloud-plane-actions-are-approved).
@@ -1105,7 +1108,7 @@ External possibilities: unknown beyond recorded observations. Permitted next act
 ### lnvps receipt confirms
 
 Evidence: generated witness projection — lnvps_receipt_confirms.
-Applicability: Stage-1 typed LNVPS restart receipt only; no guest/service/delivery verdict. Replay is last, with no post-replay request. View: lnvps_receipt_confirms. Typed Dispatch; session termination and single writer assumed. No pending-check, lifecycle, untyped, protected encoding/listing or inference-clock coverage.
+Applicability: LNVPS-path typed restart receipt only; no guest/service/delivery verdict. Replay is last, with no post-replay request. View: lnvps_receipt_confirms. Typed Dispatch; session termination and single writer assumed. No pending-check, lifecycle, untyped, protected encoding/listing or inference-clock coverage.
 Named trace; bound alphabet membership and exhaustive coverage are not implied.
 
 | Source metadata | Value |
@@ -1115,7 +1118,7 @@ Named trace; bound alphabet membership and exhaustive coverage are not implied.
 | Starting projection (complete) | `{"associations": [{"entry": 2, "target": {"allocation_index": 2}}, {"entry": 1, "target": {"allocation_index": 0}}, {"entry": 1, "target": {"allocation_index": 1}}, {"entry": 1, "target": {"vendor_machine_id": 10}}], "calls": [], "contact_mappings": [{"target": {"entry": 2}, "vendor": 20}, {"target": {"allocation_index": 2}, "vendor": 20}, {"target": {"entry": 1}, "vendor": 10}, {"target": {"allocation_index": 1}, "vendor": 10}, {"target": {"allocation_index": 0}, "vendor": 10}], "current_installations": [{"entry": 1, "installation": 0}, {"entry": 2, "installation": 0}], "deleted_machines": [], "dispatched": [], "dispositions": [], "durable": true, "identity_exclusions": [{"entry": 1, "records": []}, {"entry": 2, "records": []}], "prerequisite_records": [], "quarantined": [], "reboot_results": [], "receipts": [], "reinstall_approvals": [], "reinstall_withdrawals": [], "reset_offer": [], "standing": [], "unresolved": [], "waiting_connections": []}` |
 
 Evidence: generated witness projection — lnvps_receipt_confirms steps.
-Applicability: Stage-1 typed LNVPS restart receipt only; no guest/service/delivery verdict. Replay is last, with no post-replay request. View: lnvps_receipt_confirms. Source steps. Typed Dispatch; session termination and single writer assumed. No pending-check, lifecycle, untyped, protected encoding/listing or inference-clock coverage.
+Applicability: LNVPS-path typed restart receipt only; no guest/service/delivery verdict. Replay is last, with no post-replay request. View: lnvps_receipt_confirms. Source steps. Typed Dispatch; session termination and single writer assumed. No pending-check, lifecycle, untyped, protected encoding/listing or inference-clock coverage.
 External possibilities: unknown beyond recorded observations. Permitted next actions: the owner matrix still applies; no checked composition with another trace.
 
 | Step | Source event | Source outcome members (empty means none) | Source knowledge after step (complete) |
@@ -1242,7 +1245,7 @@ External possibilities: unknown beyond recorded observations. Permitted next act
 ### command holds delivery reboot
 
 Evidence: generated witness projection — command_holds_delivery_reboot.
-Applicability: Dedicated reboot held behind exec; not stage-1 typed-restart evidence. Collection progress is a separate history below. View: command_holds_delivery_reboot. Typed Dispatch; session termination and single writer assumed. No pending-check, lifecycle, untyped, protected encoding/listing or inference-clock coverage.
+Applicability: Dedicated reboot held behind exec; not LNVPS-path typed-restart evidence. Collection progress is a separate history below. View: command_holds_delivery_reboot. Typed Dispatch; session termination and single writer assumed. No pending-check, lifecycle, untyped, protected encoding/listing or inference-clock coverage.
 Named trace; bound alphabet membership and exhaustive coverage are not implied.
 
 | Source metadata | Value |
@@ -1252,7 +1255,7 @@ Named trace; bound alphabet membership and exhaustive coverage are not implied.
 | Starting projection (complete) | `{"associations": [{"entry": 2, "target": {"allocation_index": 2}}, {"entry": 1, "target": {"allocation_index": 0}}, {"entry": 1, "target": {"allocation_index": 1}}, {"entry": 1, "target": {"vendor_machine_id": 10}}], "calls": [], "contact_mappings": [{"target": {"entry": 2}, "vendor": 20}, {"target": {"allocation_index": 2}, "vendor": 20}, {"target": {"entry": 1}, "vendor": 10}, {"target": {"allocation_index": 1}, "vendor": 10}, {"target": {"allocation_index": 0}, "vendor": 10}], "current_installations": [{"entry": 1, "installation": 0}, {"entry": 2, "installation": 0}], "deleted_machines": [], "dispatched": [], "dispositions": [], "durable": true, "identity_exclusions": [{"entry": 1, "records": []}, {"entry": 2, "records": []}], "prerequisite_records": [], "quarantined": [], "reboot_results": [], "receipts": [], "reinstall_approvals": [], "reinstall_withdrawals": [], "reset_offer": [], "standing": [], "unresolved": [], "waiting_connections": []}` |
 
 Evidence: generated witness projection — command_holds_delivery_reboot steps.
-Applicability: Dedicated reboot held behind exec; not stage-1 typed-restart evidence. Collection progress is a separate history below. View: command_holds_delivery_reboot. Source steps. Typed Dispatch; session termination and single writer assumed. No pending-check, lifecycle, untyped, protected encoding/listing or inference-clock coverage.
+Applicability: Dedicated reboot held behind exec; not LNVPS-path typed-restart evidence. Collection progress is a separate history below. View: command_holds_delivery_reboot. Source steps. Typed Dispatch; session termination and single writer assumed. No pending-check, lifecycle, untyped, protected encoding/listing or inference-clock coverage.
 External possibilities: unknown beyond recorded observations. Permitted next actions: the owner matrix still applies; no checked composition with another trace.
 
 | Step | Source event | Source outcome members (empty means none) | Source knowledge after step (complete) |
@@ -1717,7 +1720,7 @@ External possibilities: unknown beyond recorded observations. Permitted next act
 ## Pins traces
 
 Evidence: conceptual navigation to generated pin projections.
-Applicability: stage-1 LNVPS published installed keys and retained publication history;
+Applicability: LNVPS-path published installed keys and retained publication history;
 the source is [Pins schema 5](design/pins-witnesses-v5.json), with
 [Pins.lean](../tools/formal/TauWeb/Pins.lean)'s assumptions and omissions.
 A reinstall event is already dispatched; these traces decide no Dispatch admission.
@@ -1906,7 +1909,7 @@ and presence meanings remain in
 ### Findings, placement and re-check — illustrative prose-only
 
 Evidence: illustrative prose-only narrative, separate from Declaration field checks.
-Applicability: stage-1 delivery and placing sessions; no checked composition with
+Applicability: LNVPS-path delivery and placing sessions; no checked composition with
 Dispatch, Allocation or Pins. Owners:
 [ARC-17/39](../01-architecture.md#what-a-session-delivers),
 [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular) and
@@ -2116,5 +2119,5 @@ challenge, signature-verifier answer, resolver and address-table assumptions pro
 no current `/v2/` connection binding, termination, discovery or migration result.
 [TASKS.md open T30](../TASKS.md#open-t30-relay-port) owns the port. Neither the module's historical
 illustration nor the independent pin/dispatch views form a checked current relay
-composition. Current stage applicability remains the
-[admission table](../07-conformance.md#stage-applicability-and-admission).
+composition. Current capability applicability remains the
+[admission table](../07-conformance.md#capability-applicability-and-admission).

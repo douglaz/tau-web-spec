@@ -36,7 +36,7 @@ jobs and gives each to the party that can do it.
   zero-retention, each named by the publisher and probed by the job. The badge is computable
   from a committed snapshot (`ARC-31a`); the allowlist is the publisher's judgement (`TRU-A1a`). The list also carries an `e2e` tier; `ARC-31a` says
   "the strongest tier the browser can request, which is `zdr`".
-- *Able to call the harness's tools.* `ARC-43` says "The model's tool set in the first stage is
+- *Able to call the harness's tools.* `ARC-43` says "The model's tool set on the LNVPS path is
   exactly four", and a candidate that cannot call them cannot do the work. `ARC-43` owns the
   interface and says a candidate "MUST be able to call this tool set".
 - *Above a context floor.* The publisher value is `session.context_floor` in the bundle;
@@ -162,7 +162,7 @@ bump: consume the new schema and reject missing or empty candidate or allowlist 
 the existing empty candidate-list and context-floor gates, and enforce selection at runtime.
 No implementation build gate changed in this repository (ADR-0031).
 
-**The first-stage and conformance amendments landed with the rules.** `STG-17` says "the first
+**The first-stage and conformance amendments landed with the rules.** `STG-17` said "the first
 stage offers rungs one and three only, and says so". Fixtures: `CNF-88` (selection),
 `CNF-89` (comparison), `CNF-90` (same-party mark). These are conformance obligations, not evidence of a
 running harness. The same-party fixture requests a provider that is not the maker; with the

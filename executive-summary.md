@@ -139,7 +139,7 @@ assumption a threshold cannot survive losing.
 by other means, through a relay that carries ciphertext. On dedicated hardware the vendor API
 hands over the key. Where a vendor accepts boot configuration, *attest* can introduce a
 machine's key over Nostr; the real-first-boot experiment ran with the limits recorded in
-`docs/findings/2026-10-09-attest-first-boot.md`. Stage 1 at LNVPS cannot use it, because
+`docs/findings/2026-10-09-attest-first-boot.md`. The LNVPS path cannot use it, because
 that vendor takes no buyer boot configuration (`docs/findings/2026-10-08-lnvps-research.md`
 §1); its published keys equalled the presented keys in `OPN-24`'s phase B, and
 `CHN-R7` admits them as an installed-system pin retrieved from the vendor's hypervisor scan. A first
@@ -149,7 +149,7 @@ use moved off the relay, and labelled as that. **Every per-machine key the
 browser needs derives from a seed the operator holds**, so a lost phone re-derives them from
 twelve words plus exported derivation indices. `STA-16` lists the recovery sheet's contents,
 including placement metadata without secret matching material. `STA-17` distinguishes
-non-revoking Restore from Replace, including stage 1's manual relay retirement and the limits
+non-revoking Restore from Replace, including the LNVPS path's manual relay retirement and the limits
 of revocation. ADR-0042 decides the LNVPS recovery-root design, with the coordinated format
 and recovery change still owed by T44. The browser-only
 secret reference and its lost-store re-arm are defined in `SEC-5` and `ARC-43`; a machine
@@ -237,27 +237,28 @@ than "trustless" — but it survives the regress.
 ## What is not settled
 
 The maintained list is [`08-open-questions.md`](./08-open-questions.md), and each entry says what
-would close it. What gates completing the first stage is listed in that file's "Gates by
-milestone" paragraph and `07-conformance.md`'s applicability table. `OPN-3` splits first-boot,
-maintained-cloud recovery, dedicated rescue and signed relay-revocation evidence by milestone;
+would close it. What gates delivery on the LNVPS path is listed in that file's "Gates by
+path and capability" paragraph and `07-conformance.md`'s applicability table. `OPN-3` splits first-boot,
+maintained-cloud recovery, dedicated rescue and signed relay-revocation evidence by path;
 `OPN-28` is closed by design and open for integrated scan evidence. The cloud-account floor
 that makes rental structural gates the phone-only acquisition experience.
 
 ## Status
 
-The first stage is **the owner's own scenario, with no tenant**: one LNVPS machine bought by
+The LNVPS path is **the owner's own scenario, with no tenant**: one LNVPS machine bought by
 Lightning invoice from the operator's wallet, running catalogue plain Arch with Hermes
 installed by its own installer (`STG-21`). Its paid HTTP probe (`OPN-24`'s phase B) ran on
 2026-10-11 and LNVPS passed the target criteria; `CHN-R7` now admits its first-contact route. The path it
-replaced as first — one machine on a dedicated server, over the full channel — was rehearsed
+replaced as the owner's scenario — one machine on a dedicated server, over the full channel — was rehearsed
 **by hand, once**, on a
 disposable server on September 8, 2026: both pinned SSH hops closed, and the install brief was
 written from the transcript. It is now the construction test bed. Separately, the browser SSH
 client and the pinned TLS client ran on a physical Android phone. Harness construction can
-start; `STG-21`'s build list and the stage-1 conformance rows remain to be demonstrated on the
+start; `STG-21`'s build list and the LNVPS-path conformance rows remain to be demonstrated on the
 integrated harness. Specification decisions are not passing product evidence.
 
 A vendor with no adapter — where the browser can reach its API — the jump host and larger sets
-come after that; tenants come last — the vault among
-them, with its concurrent sessions, trust panel and federation — and all of it reuses the channel
-the first stage proves.
+are each admitted by their own rows; tenants are in the admission group (`STG-23`) — the vault
+among them, with its concurrent sessions, trust panel and federation — and all of it reuses the
+channel the LNVPS path proves. The specification sets no implementation order; the one it once
+kept is archived in `docs/archive/2026-11-04-implementation-order.md`.

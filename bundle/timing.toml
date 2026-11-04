@@ -1,4 +1,4 @@
-# Every cadence and timeout in the first-stage ceremony and relay, by name. Rules cite the name
+# Every cadence and timeout in the LNVPS-path ceremony and relay, by name. Rules cite the name
 # (STG-20, CNF-80, CNF-87, brief 1); the numbers live only here. Values marked placeholder are
 # replaced by the first integrated run's measurement, in one commit.
 

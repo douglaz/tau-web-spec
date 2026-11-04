@@ -683,9 +683,9 @@ def relayUrl : Nat := 1
 def operatorKey : Key := 1
 def strangerKey : Key := 2
 
-/-- The destinations the publisher recorded by hand — there is no purchase flow in the first
-stage (`STG-18`) — including, wrongly, the loopback address: "Private proxying is not a
-first-stage exception: the hand-recorded relay key obeys the same rule." -/
+/-- The destinations the publisher recorded by hand — the LNVPS path has no purchase flow
+(`STG-18`) — including, wrongly, the loopback address: a hand-recorded pass obeys the same
+private-address rule as a bought one (`CHN-16a`). -/
 def recordedHosts : List Host :=
   [.numeric recordedAddr, .dns cleanName, .dns mixedName, .numeric loopbackAddr]
 
