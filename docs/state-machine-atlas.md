@@ -790,9 +790,14 @@ inspect a named record with `br show ID --json --no-auto-flush --no-auto-import`
 - **Not specified:** untyped destructive hold versus harness-started jobs in stage 2
   ([tw-pgp](../.beads/issues.jsonl)).
 - **Not specified:** LNVPS's third recovery rung ([tw-ae7](../.beads/issues.jsonl));
-  destruction/output ([tw-pkn](../.beads/issues.jsonl)); rescue activation beside
-  delivery reboot ([tw-z99](../.beads/issues.jsonl)). The recovery figures are
+  destruction/output ([tw-pkn](../.beads/issues.jsonl)). The recovery figures are
   conceptual navigation, with their existing policy and stand-ins retained.
+- Rescue activation beside the delivery reboot: coverage, not new behavior
+  ([tw-z99](../.beads/issues.jsonl)). The existing installed-pin halt owns it:
+  [SEC-11](../04-security-model.md#sec-11--the-host-key-is-checked) and
+  [ARC-41](../01-architecture.md#machine-networking). `SEC-11` says “a key that does not
+  match MUST halt the session”; `ARC-41` says “the harness does not reconnect on its own”.
+  [CNF-53](../07-conformance.md)'s dedicated rescue-return case exercises it.
 - Allocation questions stay with [tw-sfu, tw-hwl, tw-nj8](../.beads/issues.jsonl);
   installation/recovery questions with [tw-lq8, tw-l1l, tw-yhd](../.beads/issues.jsonl).
   This outline chooses no answers to them.

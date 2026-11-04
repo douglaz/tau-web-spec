@@ -302,7 +302,8 @@ output. The jobs are:
   proven end read on the record's own boot, a missing record, an incomplete one that carries
   no boot of its own, and a record of another machine settle nothing (`STA-20`'s hold). The
   flow reconnects on the pin and collects until such a read lands, shown to the operator and
-  stoppable. The same bytes sent through `exec` are an ordinary `STA-20` command.
+  stoppable. A halted key check ends a reconnect attempt: `ARC-41` says "the harness does not
+  reconnect on its own". The same bytes sent through `exec` are an ordinary `STA-20` command.
 - `replace_root_label` — a harness-initiated rewrite of a dedicated machine's root label
   during Replace's model-free direct re-entry migration, outside any session. The model
   MUST NOT request it through `request_harness_job` or supply its command. Its rules are
