@@ -316,7 +316,8 @@ for i, line in enumerate(lines):
              "⊢ Source.published = Source.rescueLast"),
             ("attest_acceptance_consumes", "case isTrue", "⊢ m ∈ k.consumed"),
             ("consumed_step", "case restart", "⊢ m ∈ []"),
-            ("admit_dispatched", "case h_2.isFalse.isFalse", "⊢ rq.session = ap.session"),
+            # Exact branch after the contact guards; the required session equality stays fixed.
+            ("admit_dispatched", "case h_2.isFalse.isFalse.isFalse.isFalse", "⊢ rq.session = ap.session"),
         }
         if (not body or (decl, body[0], body[-1]) not in open_goals or
                 sum(text.lstrip().startswith("case ") for text in body) != 1 or
@@ -353,6 +354,80 @@ decl_control "$ALLOC" "formal: the generated-seed ceremony gate dropped" \
 
 pins_control() { decl_control "$PINS" "$@"; }
 dispatch_control() { decl_control "$DISP" "$@"; }
+
+# Local unsent proof, durable terminalization and pending sender fence. Each mutation has
+# its isolated refusal; legitimate progress is independently checked below.
+decl_control "$ALLOC" "formal: possibly-sent create treated as unsent" \
+  "sed -i 's/unsentFailure : Bool := true/unsentFailure : Bool := false/' $ALLOC" \
+  possibly_sent_failure_refused
+
+decl_control "$ALLOC" "formal: failed terminal append applied" \
+  "sed -i 's/failureDurable : Bool := true/failureDurable : Bool := false/' $ALLOC" \
+  failure_append_refused
+
+decl_control "$ALLOC" "formal: pending sender ignores terminalization" \
+  "sed -i 's/senderFence : Bool := true/senderFence : Bool := false/' $ALLOC" \
+  terminal_sender_refused terminal_intent_refused
+
+decl_control "$ALLOC" "formal: imported prefix claims no later sends" \
+  "sed -i 's/!w.journal.restored/true/' $ALLOC" \
+  imported_failure_refused
+
+decl_control "$ALLOC" "formal: stale failure proof sequence accepted" \
+  "sed -i 's/checkedSequence == w.journal.sequence/true/' $ALLOC" \
+  stale_sequence_refused
+
+decl_control "$ALLOC" "formal: old epoch supplies current unsent proof" \
+  "sed -i 's/i.epoch == w.journal.epoch/true/' $ALLOC" \
+  old_epoch_failure_refused
+
+decl_control "$ALLOC" "formal: non-reserved allocation gains failure proof" \
+  "sed -i 's/w.journal.entries.contains ⟨i, .reserved⟩ \&\& unsent w i checkedSequence/unsent w i checkedSequence/' $ALLOC" \
+  nonreserved_failure_refused
+
+decl_control "$ALLOC" "formal: all local terminalization refused" \
+  "sed -i 's/(!p.unsentFailure || failureEligible w i checkedSequence)/false/' $ALLOC" \
+  failed_create_keeps_index unsent_failure_durable possibly_sent_failure_admitted \
+  failure_append_admitted imported_failure_admitted \
+  stale_sequence_admitted failure_retains_lineage terminal_intent_refused terminal_sender_refused old_epoch_failure_admitted nonreserved_failure_admitted
+
+dispatch_control "formal: deleted machine traffic allowed" \
+  "sed -i 's/deletionContact : Bool := true/deletionContact : Bool := false/' $DISP" \
+  deleted_command_refused deleted_reboot_refused deleted_collection_refused reused_connection_refused \
+  opening_command_refused opening_collection_refused deleted_index_refused missing_contact_refused deletion_append_admitted
+
+dispatch_control "formal: collection confused with vendor evidence" \
+  "sed -i 's/(rq.kind == .read \&\& rq.readRoute == .machine)/false/' $DISP" \
+  deleted_collection_refused reused_connection_refused opening_collection_refused deleted_index_refused missing_contact_refused same_entry_contact_preserved deletion_append_admitted
+
+dispatch_control "formal: deletion blocks independently authorized vendor read" \
+  "sed -i 's/rq.kind == .read \&\& rq.readRoute == .machine/rq.kind == .read/' $DISP" \
+  deleted_vendor_read_authority
+
+dispatch_control "formal: connection readiness refuses every request" \
+  "sed -i '/| some (rq, ap) => sendRequest/s/rq ap ok/rq { ap with facts := ap.facts + 1 } ok/' $DISP" \
+  opening_command_refused opening_command_admitted opening_collection_refused \
+  opening_collection_admitted connection_progress replayed_connection_admitted closed_connection_admitted sibling_connection_progress
+
+dispatch_control "formal: pending connection survives replay or closure" \
+  "sed -i 's/pendingCleared : Bool := true/pendingCleared : Bool := false/' $DISP" \
+  replayed_connection_refused closed_connection_refused
+
+dispatch_control "formal: local closure drops sibling connection" \
+  "sed -i 's/pair.1.connection != some c/false/' $DISP" \
+  sibling_connection_progress
+
+dispatch_control "formal: deletion compared by shared entry" \
+  "sed -i 's/(contactMachine j t).any fun v => j.contains (.deleted v)/j.any fun rec => match rec with | .deleted v => resolve j t == resolve j (.vendor v) | _ => false/' $DISP" \
+  same_entry_contact_preserved
+
+dispatch_control "formal: unsuccessful deletion append treated as durable" \
+  "sed -i 's/append p w (.deleted v) ok/append p w (.deleted v) true/' $DISP" \
+  failed_deletion_append_progress deletion_append_refused
+
+dispatch_control "formal: deleted harness reboot omitted from machine traffic" \
+  "sed -i 's/rq.kind == .deliveryReboot || //' $DISP" \
+  deleted_reboot_refused
 
 # Processed authority: exact semantic failures, including progress properties.
 AUTH=tools/formal/TauWeb/Authority.lean
@@ -990,7 +1065,7 @@ else
 fi
 
 WIT=tools/check_witnesses.py
-WITFILE=docs/design/allocation-witnesses-v2.json
+WITFILE=docs/design/allocation-witnesses-v3.json
 PINSWIT=docs/design/pins-witnesses-v5.json
 PINSEMIT=tools/formal/.lake/witnesses/pins-witnesses-v5.json
 
@@ -999,9 +1074,9 @@ PINSEMIT=tools/formal/.lake/witnesses/pins-witnesses-v5.json
 while IFS='|' read -r case token; do
   declaration=TauWeb.Allocation.backup_missing_refused
   [ "$case" != repeated ] || declaration=TauWeb.Dispatch.order_receipt_association_required
-  [ "$case" != invalid_json ] || declaration=allocation-witnesses-v2.json
-  [ "$case" != malformed_utf8 ] || declaration=allocation-witnesses-v2.json
-  [ "$case" != numeric_conversion ] || declaration=allocation-witnesses-v2.json
+  [ "$case" != invalid_json ] || declaration=allocation-witnesses-v3.json
+  [ "$case" != malformed_utf8 ] || declaration=allocation-witnesses-v3.json
+  [ "$case" != numeric_conversion ] || declaration=allocation-witnesses-v3.json
   control "witness pairs: $case with equal emitted/committed bytes" "$WIT" \
     "python3 tools/tests/witness_pair_cases.py $case" \
     "WITNESS PAIRS" "$token" "$declaration"
@@ -1038,13 +1113,13 @@ done
 # Compared against the emission the formal gate wrote before this script ran: one expected
 # outcome flipped by hand in the committed file is red, naming the module.
 control "witnesses: a committed file edited by hand" "$WIT" \
-  "sed -i '0,/\"allocation\":\"admitted\"/s//\"allocation\":\"refused\"/' $WITFILE && ! cmp -s $WITFILE tools/formal/.lake/witnesses/allocation-witnesses-v2.json" \
+  "sed -i '0,/\"allocation\":\"admitted\"/s//\"allocation\":\"refused\"/' $WITFILE && ! cmp -s $WITFILE tools/formal/.lake/witnesses/allocation-witnesses-v3.json" \
   "WITNESS DRIFT" "module allocation"
 
 # The emission itself: a CNF identifier in it is refused before the comparison, so the one
 # finding is that and not the drift the mutation also causes.
 control "witnesses: an emission carrying a CNF identifier" "$WIT" \
-  "sed -i 's/\"module\": \"allocation\"/\"module\": \"allocation\", \"exercised_by\": \"CNF-83\"/' tools/formal/.lake/witnesses/allocation-witnesses-v2.json && grep -q CNF-83 tools/formal/.lake/witnesses/allocation-witnesses-v2.json" \
+  "sed -i 's/\"module\": \"allocation\"/\"module\": \"allocation\", \"exercised_by\": \"CNF-83\"/' tools/formal/.lake/witnesses/allocation-witnesses-v3.json && grep -q CNF-83 tools/formal/.lake/witnesses/allocation-witnesses-v3.json" \
   "WITNESS DRIFT" "module allocation carries a CNF identifier"
 
 control "witnesses: a committed file no module emits" "$WIT" \
@@ -1053,7 +1128,7 @@ control "witnesses: a committed file no module emits" "$WIT" \
 
 # The renamed pins file is checked in both directions; each obsolete name must be visible
 # as an orphan. Each mutation gives the witness gate exactly one finding.
-passes "witnesses: allocation v2 and pins v5" "$WIT" \
+passes "witnesses: allocation v3 and pins v5" "$WIT" \
   "test -f $WITFILE && test -f $PINSWIT && test -f $PINSEMIT"
 
 control "witnesses: pins v5 committed drift" "$WIT" \
@@ -1072,10 +1147,20 @@ control "witnesses: obsolete pins v3 orphan" "$WIT" \
   "cp $PINSWIT docs/design/pins-witnesses-v3.json" \
   "WITNESS DRIFT" "pins-witnesses-v3.json is committed but no module emits it"
 
-# Each obsolete dispatch schema is an orphan of the current schema 8.
+control "witnesses: obsolete allocation v2 orphan" "$WIT" \
+  "cp docs/design/allocation-witnesses-v3.json docs/design/allocation-witnesses-v2.json" \
+  "WITNESS DRIFT" "allocation-witnesses-v2.json is committed but no module emits it"
+control "witnesses: obsolete dispatch v8 orphan" "$WIT" \
+  "cp docs/design/dispatch-witnesses-v9.json docs/design/dispatch-witnesses-v8.json" \
+  "WITNESS DRIFT" "dispatch-witnesses-v8.json is committed but no module emits it"
+control "witnesses: obsolete authority v2 orphan" "$WIT" \
+  "cp docs/design/authority-witnesses-v3.json docs/design/authority-witnesses-v2.json" \
+  "WITNESS DRIFT" "authority-witnesses-v2.json is committed but no module emits it"
+
+# Each obsolete dispatch schema is an orphan of the current schema 9.
 # The dispatch file was renamed with its schema too: its old name is an orphan.
 control "witnesses: obsolete dispatch v1 orphan" "$WIT" \
-  "cp docs/design/dispatch-witnesses-v8.json docs/design/dispatch-witnesses-v1.json" \
+  "cp docs/design/dispatch-witnesses-v9.json docs/design/dispatch-witnesses-v1.json" \
   "WITNESS DRIFT" "dispatch-witnesses-v1.json is committed but no module emits it"
 
 control "witnesses: obsolete pins v4 orphan" "$WIT" \
@@ -1083,27 +1168,27 @@ control "witnesses: obsolete pins v4 orphan" "$WIT" \
   "WITNESS DRIFT" "pins-witnesses-v4.json is committed but no module emits it"
 
 control "witnesses: obsolete dispatch v2 orphan" "$WIT" \
-  "cp docs/design/dispatch-witnesses-v8.json docs/design/dispatch-witnesses-v2.json" \
+  "cp docs/design/dispatch-witnesses-v9.json docs/design/dispatch-witnesses-v2.json" \
   "WITNESS DRIFT" "dispatch-witnesses-v2.json is committed but no module emits it"
 
 control "witnesses: obsolete dispatch v3 orphan" "$WIT" \
-  "cp docs/design/dispatch-witnesses-v8.json docs/design/dispatch-witnesses-v3.json" \
+  "cp docs/design/dispatch-witnesses-v9.json docs/design/dispatch-witnesses-v3.json" \
   "WITNESS DRIFT" "dispatch-witnesses-v3.json is committed but no module emits it"
 
 control "witnesses: obsolete dispatch v4 orphan" "$WIT" \
-  "cp docs/design/dispatch-witnesses-v8.json docs/design/dispatch-witnesses-v4.json" \
+  "cp docs/design/dispatch-witnesses-v9.json docs/design/dispatch-witnesses-v4.json" \
   "WITNESS DRIFT" "dispatch-witnesses-v4.json is committed but no module emits it"
 
 control "witnesses: obsolete dispatch v5 orphan" "$WIT" \
-  "cp docs/design/dispatch-witnesses-v8.json docs/design/dispatch-witnesses-v5.json" \
+  "cp docs/design/dispatch-witnesses-v9.json docs/design/dispatch-witnesses-v5.json" \
   "WITNESS DRIFT" "dispatch-witnesses-v5.json is committed but no module emits it"
 
 control "witnesses: obsolete dispatch v6 orphan" "$WIT" \
-  "cp docs/design/dispatch-witnesses-v8.json docs/design/dispatch-witnesses-v6.json" \
+  "cp docs/design/dispatch-witnesses-v9.json docs/design/dispatch-witnesses-v6.json" \
   "WITNESS DRIFT" "dispatch-witnesses-v6.json is committed but no module emits it"
 
 control "witnesses: obsolete dispatch v7 orphan" "$WIT" \
-  "cp docs/design/dispatch-witnesses-v8.json docs/design/dispatch-witnesses-v7.json" \
+  "cp docs/design/dispatch-witnesses-v9.json docs/design/dispatch-witnesses-v7.json" \
   "WITNESS DRIFT" "dispatch-witnesses-v7.json is committed but no module emits it"
 
 control "witnesses: pins v5 emission carrying a CNF identifier" "$WIT" \
@@ -1317,14 +1402,14 @@ while IFS='|' read -r atlas_case atlas_label atlas_target; do
     "python3 tools/tests/atlas_cases.py $atlas_case" "$atlas_label" "$atlas_target"
 done <<'ATLAS_CONTROLS'
 stale|ATLAS DRIFT|docs/state-machine-atlas.md
-schema|ATLAS HEADER|docs/design/dispatch-witnesses-v8.json
-module|ATLAS HEADER|docs/design/dispatch-witnesses-v8.json
-namespace|ATLAS HEADER|docs/design/dispatch-witnesses-v8.json
+schema|ATLAS HEADER|docs/design/dispatch-witnesses-v9.json
+module|ATLAS HEADER|docs/design/dispatch-witnesses-v9.json
+namespace|ATLAS HEADER|docs/design/dispatch-witnesses-v9.json
 missing|ATLAS SELECTION|same_action_new_call_id_refused
 ambiguous|ATLAS SELECTION|same_action_new_call_id_refused
 unresolved|ATLAS DECLARATIONS|absent_atlas_declaration
 index|ATLAS DECLARATIONS|index.jsonl
-outcome|ATLAS DRIFT|docs/design/dispatch-witnesses-v8.json
+outcome|ATLAS DRIFT|docs/design/dispatch-witnesses-v9.json
 shape|ATLAS INPUT|same_action_new_call_id_refused.start
 nested|ATLAS INPUT|receipt_binding
 missing_data|ATLAS INPUT|knowledge
@@ -1335,7 +1420,7 @@ unsupported_collection|ATLAS INPUT|start.standing
 continuation_token|ATLAS INPUT|bound.alphabet
 false_tag|ATLAS INPUT|inference_cap
 duplicate_member|ATLAS INPUT|schema
-conformance_id|ATLAS INPUT|docs/design/dispatch-witnesses-v8.json
+conformance_id|ATLAS INPUT|docs/design/dispatch-witnesses-v9.json
 evidence|ATLAS LABELS|docs/state-machine-atlas.md
 step_evidence|ATLAS LABELS|docs/state-machine-atlas.md
 applicability|ATLAS LABELS|docs/state-machine-atlas.md
@@ -1343,9 +1428,9 @@ pair|ATLAS PAIRS|same_action_new_call_id_refused
 pair_side|ATLAS PAIRS|same_action_new_call_id_refused
 partner|ATLAS PAIRS|same_action_new_call_id_refused
 markers|ATLAS REGIONS|docs/state-machine-atlas.md
-allocation_schema|ATLAS HEADER|docs/design/allocation-witnesses-v2.json
-allocation_module|ATLAS HEADER|docs/design/allocation-witnesses-v2.json
-allocation_namespace|ATLAS HEADER|docs/design/allocation-witnesses-v2.json
+allocation_schema|ATLAS HEADER|docs/design/allocation-witnesses-v3.json
+allocation_module|ATLAS HEADER|docs/design/allocation-witnesses-v3.json
+allocation_namespace|ATLAS HEADER|docs/design/allocation-witnesses-v3.json
 allocation_missing|ATLAS SELECTION|stale_sheet_refused
 allocation_ambiguous|ATLAS SELECTION|stale_sheet_refused
 allocation_unresolved|ATLAS DECLARATIONS|absent_atlas_declaration
@@ -1362,7 +1447,7 @@ allocation_start|ATLAS DRIFT|state-machine-atlas.md
 allocation_evidence|ATLAS LABELS|state-machine-atlas.md
 allocation_step_evidence|ATLAS LABELS|state-machine-atlas.md
 allocation_applicability|ATLAS LABELS|state-machine-atlas.md
-allocation_conformance_id|ATLAS INPUT|docs/design/allocation-witnesses-v2.json
+allocation_conformance_id|ATLAS INPUT|docs/design/allocation-witnesses-v3.json
 pins_schema|ATLAS HEADER|docs/design/pins-witnesses-v5.json
 pins_module|ATLAS HEADER|docs/design/pins-witnesses-v5.json
 pins_namespace|ATLAS HEADER|docs/design/pins-witnesses-v5.json

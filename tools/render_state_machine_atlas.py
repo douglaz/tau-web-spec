@@ -16,10 +16,10 @@ import sys
 import tempfile
 
 ROOT = Path(__file__).resolve().parent.parent
-SOURCE = Path("docs/design/dispatch-witnesses-v8.json")
+SOURCE = Path("docs/design/dispatch-witnesses-v9.json")
 ATLAS = Path("docs/state-machine-atlas.md")
 INDEX = Path("tools/formal/.lake/index.jsonl")
-BEGIN = "<!-- atlas-info: dispatch-v8 -->"
+BEGIN = "<!-- atlas-info: dispatch-v9 -->"
 END = "<!-- /atlas-info -->"
 NS = "TauWeb.Dispatch."
 # Presentation selection, not a declaration registry: every name must resolve
@@ -72,7 +72,7 @@ SELECTIONS = {
     "declaration": ("undeclared_listener_finding", "template_blocked", "absent_field_refused",
                     "empty_inbound_refused", "empty_inbound_admitted", "adhoc_delivered"),
 }
-VERSIONS = {"dispatch": 8, "allocation": 2, "pins": 5, "declaration": 1}
+VERSIONS = {"dispatch": 9, "allocation": 3, "pins": 5, "declaration": 1}
 PROJECTIONS = {"dispatch": "knowledge", "allocation": "journal", "pins": "knowledge", "declaration": "record"}
 APPLICABILITY = {
     "dispatch": "Typed Dispatch; session termination and single writer assumed. No pending-check, lifecycle, untyped, protected encoding/listing or inference-clock coverage.",
@@ -248,6 +248,8 @@ KNOWLEDGE = {
     "dispatched": [int], "dispositions": [{"calls": [int], "continuation": enum(
         "destructive_reinstall", "abandonment", "as_if_done", "as_if_not_done"),
         "resource": RESOURCE, "valid": bool}], "durable": bool,
+    "contact_mappings": [{"target": TARGET, "vendor": int}],
+    "deleted_machines": [int], "waiting_connections": [{"call": int, "connection": optional(int)}],
     "identity_exclusions": [{"entry": int, "records": [int]}],
     "prerequisite_records": [], "quarantined": [{"entry": int, "vendor": optional(int)}],
     "reboot_results": [{"call": int, "observed_boot": int, "record_boot": int, "resource": RESOURCE}],
@@ -261,13 +263,14 @@ ASSUMPTIONS = dict.fromkeys((
     "dispositionBindsContinuation", "dispositionOwnResource", "durableBeforeApply", "endedBelowSucceeded",
     "failedPrerequisiteWithdraws", "identityExclusion", "newestActivationRead", "orderAssociation",
     "rebootBootChange", "reinstallWithdrawalEffective", "resetIntoRescueOnly",
-    "resetOfferCurrentInstallation", "resetOfferFreshKeys", "sessionDestroyRefused"), bool)
+    "resetOfferCurrentInstallation", "resetOfferFreshKeys", "sessionDestroyRefused", "deletionContact", "pendingCleared"), bool)
 ASSUMPTIONS.update(lapse=enum("continuation", "any_intent", "first_operation"),
                    reach=enum("disposed", "resource", "every_dispatch", "still_unresolved"),
                    resourceKey=enum("entry", "index", "call"))
 EVENTS = {
     "request": {"appended": bool, "approved": APPROVAL, "call": int, "facts": int,
-                "operation": OPERATION, "session": int, "target": TARGET},
+                "operation": OPERATION, "session": int, "target": TARGET,
+                "read_route": optional(enum("machine", "vendor_evidence")), "connection": optional(int)},
     "read": {"appended": bool, "operation": OPERATION,
              "reports": enum("unknown", "ended", "succeeded"), "resource": RESOURCE,
              "source": enum("adapter_read", "pin_checked_handshake", "job_record", "notify_event", "model_text")},
@@ -289,11 +292,15 @@ FAMILY = enum("machines", "passes", "handoffs")
 IDENTITY = {"derivation_version": int, "family": FAMILY, "index": int, "seed": int}
 JOURNAL = {"derivation_version": int, "entries": [dict(IDENTITY, status=enum("reserved", "created", "failed", "destroyed"))],
            "next_unused": dict.fromkeys(("machines", "passes", "handoffs"), int),
-           "restored_from_import": bool, "seed": int, "seed_backup": enum("none", "full_reentry", "skipped")}
+           "restored_from_import": bool, "seed": int, "seed_backup": enum("none", "full_reentry", "skipped"),
+           "sequence": int, "create_intents": [IDENTITY],
+           "failures": [{"identity": IDENTITY, "checked_sequence": int}],
+           "mappings": [{"identity": IDENTITY, "entry": int, "predecessor": optional(IDENTITY), "machine": optional(int)}]}
 APPEND = {"durable": bool, "provenance": str}
 ALLOCATION_EVENTS = {
     "allocate": {"family": FAMILY},
-    **dict.fromkeys(("created", "failed", "destroyed"), {"identity": IDENTITY}),
+    **dict.fromkeys(("created", "destroyed"), {"identity": IDENTITY}),
+    "failed": {"identity": IDENTITY, "checked_sequence": int, "append": APPEND},
     **dict.fromkeys(("export_sheet", "restore", "replace"), {}),
     "seed_backup": {"append": APPEND, "completion": enum("full_reentry", "skipped")},
 }
@@ -340,7 +347,7 @@ STATE_SHAPES = {"dispatch": KNOWLEDGE, "allocation": JOURNAL, "pins": PIN_KNOWLE
 START_SHAPES = dict(STATE_SHAPES, declaration={"declaration": DECLARATION, "machine": MACHINE, "record": RECORD})
 ASSUMPTION_SHAPES = {
     "dispatch": ASSUMPTIONS,
-    "allocation": {"backupRecorded": bool, "restoredAllocatesNone": bool},
+    "allocation": dict.fromkeys(("backupRecorded", "restoredAllocatesNone", "unsentFailure", "failureDurable", "senderFence"), bool),
     "pins": {**dict.fromkeys(("sourceAdmitsPin", "attestAuthorMatches", "attestSingleUse", "attestDurable",
                              "attestFirstContact", "publishedComplete", "publishedFresh", "publishedWithin",
                              "reinstallRetiresPin", "installedFirstContact", "readyAfterReinstallFresh"), bool),

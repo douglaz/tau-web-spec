@@ -80,14 +80,14 @@ CASES = {
 
 TARGETS = {
     'stale': 'docs/state-machine-atlas.md',
-    'schema': 'docs/design/dispatch-witnesses-v8.json',
-    'module': 'docs/design/dispatch-witnesses-v8.json',
-    'namespace': 'docs/design/dispatch-witnesses-v8.json',
+    'schema': 'docs/design/dispatch-witnesses-v9.json',
+    'module': 'docs/design/dispatch-witnesses-v9.json',
+    'namespace': 'docs/design/dispatch-witnesses-v9.json',
     'missing': 'same_action_new_call_id_refused',
     'ambiguous': 'same_action_new_call_id_refused',
     'unresolved': 'absent_atlas_declaration',
     'index': 'index.jsonl',
-    'outcome': 'docs/design/dispatch-witnesses-v8.json',
+    'outcome': 'docs/design/dispatch-witnesses-v9.json',
     'shape': 'same_action_new_call_id_refused.start',
     'nested': 'receipt_binding',
     'missing_data': 'knowledge',
@@ -98,7 +98,7 @@ TARGETS = {
     'continuation_token': 'bound.alphabet',
     'false_tag': 'inference_cap',
     'duplicate_member': 'schema',
-    'conformance_id': 'docs/design/dispatch-witnesses-v8.json',
+    'conformance_id': 'docs/design/dispatch-witnesses-v9.json',
     'evidence': 'docs/state-machine-atlas.md',
     'step_evidence': 'docs/state-machine-atlas.md',
     'applicability': 'docs/state-machine-atlas.md',
@@ -266,7 +266,7 @@ def mutate(name, root):
         document_path.write_text(document)
         return
     elif name in ("schema", "module", "namespace"):
-        source[name] = 9 if name == "schema" else "unsupported"
+        source[name] = 999 if name == "schema" else "unsupported"
     elif name == "missing":
         source["witnesses"].remove(witness)
     elif name == "ambiguous":
@@ -297,8 +297,8 @@ def mutate(name, root):
     elif name == "false_tag":
         witness["steps"][0]["event"]["target"] = {"inference_cap": False}
     elif name == "duplicate_member":
-        source_path.write_text(source_path.read_text().replace('"schema": 8', '"schema": 8, "schema": 8', 1))
-        assert source_path.read_text().count('"schema": 8') == 2
+        source_path.write_text(source_path.read_text().replace('"schema": 9', '"schema": 9, "schema": 9', 1))
+        assert source_path.read_text().count('"schema": 9') == 2
         return
     elif name == "conformance_id":
         witness["steps"][0]["event"]["provenance"] = "CNF-999"

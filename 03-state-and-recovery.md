@@ -92,6 +92,18 @@ disposition (`STA-24`), and a continuation that continues then converges as `ARC
 proof of death.
 Record the boot identity with the job; a PID from another boot cannot establish liveness.
 
+**Durably deleted machines.** Once the existing deletion evidence has been admitted by
+its reconciliation contract and durably recorded, the worker MUST refuse every new command
+and job-record collection send to that machine. The check uses its exact immutable machine
+identity through independently admitted mappings, not shared entry equality. This includes harness-started jobs; the
+per-request connection-opening and reuse boundary belongs to `CHN-2`. Previously sent work
+retains its recorded uncertainty; local transport closure establishes neither remote
+cancellation nor completion. A stopped machine, installation failure, loss, disposition or
+allocation status is not deletion evidence. An unsuccessful deletion append changes no admitted
+state. The retained membership and history and destruction's exposure accounting remain under
+`SEC-1`; output release remains under `SEC-5` and `ARC-43`. Separately authorized typed vendor
+evidence reads are qualified by `STA-24` and `SEC-4`, without new authority here.
+
 **Startup is part of the tracked launch.** A single journaled launcher MUST acquire any
 required privilege, create and use the root-only installed-system directory and its own
 root-only job record, and only then begin ordinary payload work. A separately dispatched,
@@ -366,7 +378,10 @@ While the unavailable-identity exclusion in Protected browser evidence v1 §3a a
 
 **What stays permitted.** Reads naming the resource — the adapter's status queries, the pinned
 SSH attempt that is `STG-4`'s third predicate, the collection of job records — are permitted
-and are how the barrier clears. Box-plane dispatch to the machine is governed by `STA-20` and
+and are how the barrier clears. Job-record collection remains subject to `STA-20`'s
+machine-traffic admission and the per-request channel boundary in `CHN-2`. A typed vendor
+evidence read retains its ordinary
+`SEC-4` authorization independently; this read exception grants none. Box-plane dispatch to the machine is governed by `STA-20` and
 `STA-20b`, not by this rule, with one exception stated here: a cloud-plane operation that
 **changes what the machine is running** — a reset, a reinstall, a destroy, or the stop that
 stands in for a destroy (`ARC-22`) — stops box-plane dispatch to that machine from its intent
@@ -817,6 +832,31 @@ the federation ID). Machine roles share one machine index. Reserve it
 durably before any external effect, including registering a key for an already-rented server.
 All this metadata is included in `STA-16` exports, with an export time and journal sequence.
 
+**Failed requires local proof that this allocation's create was never sent.** A new Failed
+terminal record MUST be admitted only by the sole writer, from a reserved allocation with
+complete local create history, before any approved create intent or transport handoff and with
+no earlier possibly sent create for that allocation. The writer checks a proof tied to that
+allocation and the current journal prefix, and durably appends it before applying Failed.
+A pending sender MUST be fenced against successful terminalization, with the final check and
+handoff serialized against the same writer; an earlier permission cannot survive terminalization.
+An unsuccessful terminal append changes no admitted state and grants no terminal status; replay preserves the
+admitted record without resend. Missing later send markers, vendor errors, lost responses,
+empty listings and dispositions supply no such proof. Imported or stale metadata cannot prove
+absence of later sends in another journal. Possibly sent orders retain their existing
+confirmation and disposition path under `STA-4`, `STA-8` and `STA-24`.
+
+A temporary held or refused request MAY remain reserved; it MUST NOT automatically become Failed
+or advance the index. Failed retains the consumed identity, approved-entry mapping and predecessor
+history, including older machine associations. It grants no allocation, automatic retry, binding,
+association or machine-target authority. Status is allocation-specific: a later Failed attempt
+supplies no entry-wide contact refusal against a distinct older actual machine. Existing
+abandonment-before-order remains under `ARC-21` and `SEC-4`; no recovery route is added.
+The proof record's representation is in the
+[credential format](docs/design/credential-format-v1.md#allocation-failure-record).
+The checking interpretation is `TauWeb.Allocation.failUnsent`; its index preservation is
+`TauWeb.Allocation.terminalization_keeps_metadata`. Real writer/append/transport races remain
+implementation evidence under `CNF-72`, independently of the serialized witnesses.
+
 Import checks the seed identifier, derives each listed public key and compares it, validates
 unique indices within each family and next-unused counters above all listed indices, and
 cross-checks vendor inventory before binding machines. A stale sheet cannot prove the latest
@@ -979,7 +1019,7 @@ the fence through subsequent events, under their explicit guard hypotheses.
 `TauWeb.Authority.hide_identity` leaves the whole state unchanged for a processed ordinary hide
 outside the ceremony; `TauWeb.Authority.lifecycle_knowledge` leaves Dispatch
 knowledge untouched, while `TauWeb.Authority.replay_knowledge` rebuilds memory from the journal.
-The named finite histories in [the authority witness file](docs/design/authority-witnesses-v2.json)
+The named finite histories in [the authority witness file](docs/design/authority-witnesses-v3.json)
 include the shared Robot read-confirmation seam, suspension validation, exclusive succession,
 ceremony hide and conditional procured eligibility. They are decided witnesses, not an exhaustive
 lifecycle proof. The generated declaration index remains the inventory.

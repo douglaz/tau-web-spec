@@ -12,21 +12,27 @@ index family, which decides index sharing, and child-secret interpretation. The 
 
 The rest is the allocator as a trace. A `World` is the journal — harness knowledge: the seed
 epoch, the derivation version, next-unused per family, the allocated entries with their
-tombstones, the ceremony record, and whether the seed was restored from a sheet or store — beside three things no
-loss of the journal rewinds: the last sheet the operator exported, the fresh seeds generated
+tombstones, the ceremony record, and whether the seed was restored from a sheet or store — beside evidence outside the journal: the last sheet the operator exported, the fresh seeds generated
 (entropy), and `issued`, every identity the trace has ever reserved, since a key derived from it
 may be on a machine. The theorems are over every trace from `init`; the witnesses are the
 inventory's retained traps, decided.
 
-`Params` lists the imported-seed and ceremony guards. Each can be removed independently;
+`Params` lists the imported-seed, ceremony and unsent-terminalization guards. Each can be removed independently;
 `tools/check-controls.sh` requires exactly its refused witness to turn red.
+
+The unsent-terminalization amendment checks a complete local allocation prefix before any
+approved create intent. `createReady` fences both approved intent and transport handoff against
+terminalization and earlier possible send. These are serialized writer decisions, assuming
+exclusive prefix custody, sole-writer exclusion and actual durable-append-before-handoff ordering;
+no witness proves a writer lock, transport race or browser scheduling. A create event assumes
+independent ordinary dispatch authorization; this module decides only its local allocation fence. Retained entry/predecessor
+and machine mappings are opaque already-admitted inputs, never authority conferred by failure.
 
 What the module omits: Replace's re-entry to remove the old keys from every maintained machine
 (`STA-17`); the sheet's import checks — seed identifier, derived public keys, unique indices,
 vendor inventory — beyond the counter rule the guard is, since a sheet here is always a copy of
 an earlier journal and passes them by construction; derivation-version upgrades, so `version`
-is `1` throughout; the vendor resource each entry maps to, since only the index rules are at
-stake; the ceremony models a completion and its durable append, not word entry, display,
+is `1` throughout; vendor association admission and session authority (retained mappings are opaque inputs); the ceremony models a completion and its durable append, not word entry, display,
 passphrase handling or interruption before that append. A fresh seed is 128 bits of CSPRNG entropy; its freshness is taken as given, as
 `nextSeed`, a counter outside the journal, rather than as a hypothesis on each theorem. -/
 
@@ -108,7 +114,7 @@ never an alias, so two allocations cannot share one by a type error. The epoch i
   index   : Nat
   deriving DecidableEq, Repr
 
-/-- What the journal knows of an allocation: reserved, with no external effect yet; created; or
+/-- What the journal knows of an allocation: reserved, possibly with an approved create intent; created; or
 a tombstone — failed or destroyed — that keeps its index. -/
 inductive Status
   | reserved | created | failed | destroyed
@@ -117,6 +123,15 @@ inductive Status
 structure Entry where
   id     : Identity
   status : Status
+  deriving DecidableEq, Repr
+
+/-- Already admitted entry/predecessor and machine associations. Allocation terminalization
+retains them; their independent admission and all session authority remain outside this module. -/
+structure Mapping where
+  allocation : Identity
+  entry : Nat
+  predecessor : Option Identity
+  machine : Option Nat
   deriving DecidableEq, Repr
 
 /-- `STA-22b`'s "next unused index for each role family (machines, passes, handoffs)". -/
@@ -152,6 +167,12 @@ local-store backup; import cannot prove that no other canonical journal exists. 
   entries  : List Entry
   restored : Bool
   ceremony : Option Completion
+  /-- Complete local approved-create history; absence after import proves nothing. -/
+  createIntents : List Identity := []
+  mappings : List Mapping := []
+  sequence : Nat := 0
+  /-- Admitted local terminal proofs, tied to identity and the checked sequence. -/
+  failures : List (Identity × Nat) := []
   deriving DecidableEq, Repr
 
 structure World where
@@ -163,6 +184,8 @@ structure World where
   /-- Every identity the trace has ever reserved, newest first. A key derived from it may be on
   a machine, so no loss of the journal rewinds this list either. -/
   issued   : List Identity
+  pending : List Identity := []
+  sent : List Identity := []
   deriving DecidableEq, Repr
 
 /-- The imported-seed bar, widened to every import on 2026-10-16, and the generated-seed
@@ -170,9 +193,12 @@ ceremony gate added that day. Each guard has its own refused/admitted pair. -/
 @[req "STA-22b"] structure Params where
   restoredAllocatesNone : Bool
   backupRecorded : Bool
+  unsentFailure : Bool := true
+  failureDurable : Bool := true
+  senderFence : Bool := true
   deriving DecidableEq, Repr
 
-/-- The allocator with both guards present; one exact line per control mutation. -/
+/-- The allocator with `Params`’ guards present; one exact line per control mutation. -/
 @[req "STA-22b"] def current : Params := {
   restoredAllocatesNone := true
   backupRecorded := true }
@@ -201,7 +227,8 @@ never reused". Refused, the world is unchanged. -/
   if admits p w.journal f then
     let id := w.journal.fresh f
     { w with journal := { w.journal with entries := ⟨id, .reserved⟩ :: w.journal.entries,
-                                         next := w.journal.next.set f (id.index + 1) },
+                                         next := w.journal.next.set f (id.index + 1),
+                                         sequence := w.journal.sequence + 1 },
              issued := id :: w.issued }
   else w
 
@@ -211,10 +238,55 @@ def mark (w : World) (i : Identity) (from_ to : Status) : World :=
   { w with journal := { w.journal with entries := w.journal.entries.map fun e =>
       if e.id = i ∧ e.status = from_ then { e with status := to } else e } }
 
-/-- The external effect's outcome on a reserved entry: created, or failed — a tombstone, since
-"a failed reserved allocation remains consumed" (`credential-format-v1.md`). -/
-@[req "STA-22b"] def settle (w : World) (i : Identity) (ok : Bool) : World :=
-  mark w i .reserved (if ok then .created else .failed)
+/-- A received create success changes only its reserved entry. -/
+@[req "STA-22b"] def settle (w : World) (i : Identity) : World :=
+  mark w i .reserved .created
+
+/-- Local proof checked by the sole writer against the complete current prefix, before any
+approved intent. An imported prefix or another epoch cannot establish absence of a later send.
+The sequence is an ordinal, not a portable non-execution certificate. -/
+@[req "STA-22b"] def unsent (w : World) (i : Identity) (checkedSequence : Nat) : Bool :=
+  !w.journal.restored && i.epoch == w.journal.epoch &&
+  checkedSequence == w.journal.sequence && !w.journal.createIntents.contains i
+
+/-- Full local terminal-proof eligibility, including the existing reserved-state boundary. -/
+@[req "STA-22b"] def failureEligible (w : World) (i : Identity) (checkedSequence : Nat) : Bool :=
+  w.journal.entries.contains ⟨i, .reserved⟩ && unsent w i checkedSequence
+
+/-- Terminalize a reservation only after checking its local proof and durably appending it.
+A waiting sender may exist; its final send check must observe the terminal status. -/
+@[req "STA-22b"] def failUnsent (p : Params) (w : World) (i : Identity)
+    (checkedSequence : Nat) (appended : Bool) : World :=
+  if (!p.unsentFailure || failureEligible w i checkedSequence) && (appended || !p.failureDurable) then
+    let next := mark w i .reserved .failed
+    { next with journal := { next.journal with
+        failures := (i, checkedSequence) :: w.journal.failures
+        sequence := w.journal.sequence + 1 } }
+  else w
+
+/-- Approved create intent is already possibly sent. A missing later handoff marker changes
+nothing. The storage outcome precedes both knowledge and the optional transport handoff. -/
+@[req "STA-4"] def createIntent (w : World) (i : Identity) (appended : Bool) : World :=
+  if appended then { w with journal := { w.journal with
+    createIntents := i :: w.journal.createIntents, sequence := w.journal.sequence + 1 } } else w
+
+/-- Both approval and handoff use the same allocation fence. Once an approved intent exists,
+absence of a later marker cannot admit another attempt from this local prefix. Ordinary create
+and retry authorization is assumed independently, not supplied by this fence; restored identity
+usability and old-epoch authority are not decided here. Import/epoch checks belong to the
+terminal proof, not to this status fence. -/
+def createReady (p : Params) (w : World) (i : Identity) : Bool :=
+  !p.senderFence || (w.journal.entries.contains ⟨i, .reserved⟩ && !w.journal.createIntents.contains i)
+
+def approveCreate (p : Params) (w : World) (i : Identity) (ok : Bool) : World :=
+  if createReady p w i then createIntent w i ok else w
+
+/-- The pending sender rechecks the allocation under the same writer serialization as failure.
+This symbolic step assumes the lock and actual append-before-handoff ordering. -/
+@[req "STA-22b"] def sendCreate (p : Params) (w : World) (i : Identity) (appended : Bool) : World :=
+  if w.pending.contains i && createReady p w i && appended then
+    { createIntent w i true with sent := i :: w.sent, pending := w.pending.erase i }
+  else w
 
 /-- A created machine destroyed: its entry becomes a tombstone and keeps its index. -/
 @[req "STA-22b"] def destroy (w : World) (i : Identity) : World := mark w i .created .destroyed
@@ -243,7 +315,13 @@ inductive Event
   | ceremony (completion : Completion) (appended : Bool)
   | allocate (f : Family)
   | created (i : Identity)
-  | failed (i : Identity)
+  | failed (i : Identity) (checkedSequence : Nat) (appended : Bool)
+  | beginCreate (i : Identity)
+  | createIntent (i : Identity) (appended : Bool)
+  | sendCreate (i : Identity) (appended : Bool)
+  /-- Vendor error, loss, empty listing and disposition supply no local proof. -/
+  | inconclusive (reason : Nat)
+  | replay
   | destroy (i : Identity)
   | exportSheet
   | restore
@@ -253,8 +331,13 @@ inductive Event
 def step (p : Params) (w : World) : Event → World
   | .ceremony c appended => ceremony w c appended
   | .allocate f => allocate p w f
-  | .created i  => settle w i true
-  | .failed i   => settle w i false
+  | .created i  => settle w i
+  | .failed i checkedSequence ok => failUnsent p w i checkedSequence ok
+  | .beginCreate i => { w with pending := i :: w.pending }
+  | .createIntent i ok => approveCreate p w i ok
+  | .sendCreate i ok => sendCreate p w i ok
+  | .inconclusive _ => w
+  | .replay => { w with pending := [] }
   | .destroy i  => destroy w i
   | .exportSheet => exportSheet w
   | .restore    => restore w
@@ -333,7 +416,16 @@ theorem inv_step (p : Params) (hp : p.restoredAllocatesNone = true) (w : World) 
     simp only [step, ceremony]; split <;> exact hw
   | allocate f => exact allocate_inv p hp w f hw
   | created i => exact entries_only_inv w _ hw
-  | failed i => exact entries_only_inv w _ hw
+  | failed i checkedSequence ok =>
+    simp only [step, failUnsent]; split <;> exact hw
+  | beginCreate i => exact hw
+  | createIntent i ok =>
+    simp only [step, approveCreate, createIntent]; split
+    · split <;> exact hw
+    · exact hw
+  | sendCreate i ok => simp only [step, sendCreate, createIntent]; split <;> exact hw
+  | inconclusive _ => exact hw
+  | replay => exact hw
   | destroy i => exact entries_only_inv w _ hw
   | exportSheet =>
     obtain ⟨hnd, hiss, hep, hsh, hnext⟩ := hw
@@ -403,7 +495,15 @@ and "No wraparound is allowed" (`credential-format-v1.md`). Needs no guard. -/
         · exact hw i hi
       · exact hw
     | created i => exact hw
-    | failed i => exact hw
+    | failed i checkedSequence ok => simp only [step, failUnsent]; split <;> exact hw
+    | beginCreate i => exact hw
+    | createIntent i ok =>
+      simp only [step, approveCreate, createIntent]; split
+      · split <;> exact hw
+      · exact hw
+    | sendCreate i ok => simp only [step, sendCreate, createIntent]; split <;> exact hw
+    | inconclusive _ => exact hw
+    | replay => exact hw
     | destroy i => exact hw
     | exportSheet => exact hw
     | restore => simp only [step, restore]; split <;> exact hw
@@ -505,7 +605,7 @@ def replaceAgainEvents : List Event := staleSheetEvents ++ [.replace, .ceremony 
   decide +kernel
 
 def failedCreateEvents : List Event :=
-  [.ceremony .skipped true, .allocate .machine, .failed m0, .allocate .machine]
+  [.ceremony .skipped true, .allocate .machine, .failed m0 1 true, .allocate .machine]
 
 /-- A failed create keeps its index: the next allocation takes index 1, and the tombstone stays. -/
 @[req "STA-22b"] theorem failed_create_keeps_index :
@@ -537,6 +637,118 @@ refused with the counter at the limit and not wrapped. -/
     w.issued = [⟨0, 1, .machine, 2147483647⟩] ∧ w.journal.next.machine = indexLimit := by
   decide +kernel
 
+/-! ## Local unsent terminalization witnesses -/
+
+def reservedEvents : List Event := [.ceremony .skipped true, .allocate .machine]
+def failureEvents : List Event := reservedEvents ++ [.failed m0 1 true, .replay]
+
+@[req "STA-22b"] theorem unsent_failure_durable :
+  let w := run current init failureEvents
+  w.journal.entries = [⟨m0, .failed⟩] ∧ w.journal.next.machine = 1 ∧
+  w.issued = [m0] ∧ w.journal.failures = [(m0, 1)] ∧ w.sent = [] := by decide +kernel
+
+def possiblySentEvents (reason : Nat) : List Event := reservedEvents ++
+  [.createIntent m0 true, .inconclusive reason, .failed m0 2 true]
+
+@[req "STA-22b"] theorem possibly_sent_failure_refused :
+  (run current init (possiblySentEvents 0)).journal.entries = [⟨m0, .reserved⟩] := by decide +kernel
+@[req "STA-22b"] theorem possibly_sent_failure_admitted :
+  (run { current with unsentFailure := false } init (possiblySentEvents 0)).journal.entries =
+    [⟨m0, .failed⟩] := by decide +kernel
+
+/-- The four reasons are error, lost response, empty listing and disposition respectively.
+No later send marker is present; the approved intent is enough to preserve uncertainty. -/
+@[req "STA-22b"] theorem inconclusive_never_proves_unsent :
+  ([0, 1, 2, 3].map fun reason =>
+    (run { current with unsentFailure := true } init (possiblySentEvents reason)).journal.entries) =
+      List.replicate 4 [⟨m0, .reserved⟩] := by decide +kernel
+
+def failedAppendEvents : List Event := reservedEvents ++ [.failed m0 1 false]
+@[req "STA-3"] theorem failure_append_refused :
+  (run current init failedAppendEvents).journal.entries = [⟨m0, .reserved⟩] := by decide +kernel
+@[req "STA-3"] theorem failure_append_admitted :
+  (run { current with failureDurable := false } init failedAppendEvents).journal.entries =
+    [⟨m0, .failed⟩] := by decide +kernel
+
+def fencedSenderEvents : List Event := reservedEvents ++
+  [.beginCreate m0, .failed m0 1 true, .sendCreate m0 true]
+@[req "STA-22b"] theorem terminal_sender_refused :
+  (run current init fencedSenderEvents).sent = [] := by decide +kernel
+@[req "STA-22b"] theorem terminal_sender_admitted :
+  (run { current with senderFence := false } init fencedSenderEvents).sent = [m0] := by decide +kernel
+
+def terminalIntentEvents : List Event := reservedEvents ++ [.failed m0 1 true, .createIntent m0 true]
+@[req "STA-22b"] theorem terminal_intent_refused :
+  (run current init terminalIntentEvents).journal.createIntents = [] := by decide +kernel
+@[req "STA-22b"] theorem terminal_intent_admitted :
+  (run { current with senderFence := false } init terminalIntentEvents).journal.createIntents = [m0] := by decide +kernel
+
+def replaySenderEvents : List Event := reservedEvents ++
+  [.beginCreate m0, .sendCreate m0 true, .replay, .beginCreate m0, .sendCreate m0 true]
+@[req "STA-22b"] theorem replay_sender_no_resend :
+  (run { current with senderFence := true } init replaySenderEvents).sent = [m0] := by decide +kernel
+
+def failedAppendSenderEvents : List Event := reservedEvents ++
+  [.beginCreate m0, .failed m0 1 false, .sendCreate m0 true]
+@[req "STA-22b"] theorem failed_append_sender_progress :
+  let w := run { current with failureDurable := true } init failedAppendSenderEvents
+  w.sent = [m0] ∧ w.journal.entries = [⟨m0, .reserved⟩] ∧ w.journal.failures = [] := by decide +kernel
+
+def heldReservationEvents : List Event := reservedEvents ++ [.beginCreate m0, .sendCreate m0 false]
+@[req "STA-22b"] theorem held_reservation_stays :
+  let w := run current init heldReservationEvents
+  w.journal.entries = [⟨m0, .reserved⟩] ∧ w.journal.next.machine = 1 ∧
+  w.pending = [m0] ∧ w.sent = [] := by decide +kernel
+
+def staleProofEvents : List Event := reservedEvents ++ [.exportSheet, .createIntent m0 true,
+  .restore, .failed m0 1 true]
+@[req "STA-22b"] theorem imported_failure_refused :
+  (run { current with unsentFailure := true } init staleProofEvents).journal.entries =
+    [⟨m0, .reserved⟩] := by decide +kernel
+
+@[req "STA-22b"] theorem imported_failure_admitted :
+  (run { current with unsentFailure := false } init staleProofEvents).journal.entries =
+    [⟨m0, .failed⟩] := by decide +kernel
+
+def staleSequenceEvents : List Event := reservedEvents ++ [.allocate .pass, .failed m0 1 true]
+@[req "STA-22b"] theorem stale_sequence_refused :
+  (run { current with unsentFailure := true } init staleSequenceEvents).journal.failures = [] := by decide +kernel
+@[req "STA-22b"] theorem stale_sequence_admitted :
+  (run { current with unsentFailure := false } init staleSequenceEvents).journal.failures = [(m0, 1)] := by decide +kernel
+
+/-- A stale import loses the possibly-sent intent; Replace clears only the import bar.
+It cannot turn the retained old-epoch reservation into a current local unsent proof. -/
+def oldEpochFailureEvents : List Event := reservedEvents ++
+  [.exportSheet, .createIntent m0 true, .restore, .replace, .failed m0 1 true]
+@[req "STA-22b"] theorem old_epoch_failure_refused :
+  (run { current with unsentFailure := true } init oldEpochFailureEvents).journal.failures = [] := by decide +kernel
+@[req "STA-22b"] theorem old_epoch_failure_admitted :
+  (run { current with unsentFailure := false } init oldEpochFailureEvents).journal.failures = [(m0, 1)] := by decide +kernel
+
+def nonreservedFailureEvents : List Event := reservedEvents ++ [.created m0, .failed m0 1 true]
+@[req "STA-22b"] theorem nonreserved_failure_refused :
+  let w := run { current with unsentFailure := true } init nonreservedFailureEvents
+  w.journal.entries = [⟨m0, .created⟩] ∧ w.journal.failures = [] := by decide +kernel
+@[req "STA-22b"] theorem nonreserved_failure_admitted :
+  (run { current with unsentFailure := false } init nonreservedFailureEvents).journal.failures = [(m0, 1)] := by decide +kernel
+
+def lineageStart : World :=
+  let w := run current init [.ceremony .skipped true, .allocate .machine, .created m0, .allocate .machine]
+  { w with journal := { w.journal with mappings :=
+    [⟨m0, 10, none, some 301⟩, ⟨m1, 10, some m0, none⟩] } }
+def lineageEvents : List Event := [.failed m1 2 true, .replay]
+@[req "STA-22b"] theorem failure_retains_lineage :
+  let w := run current lineageStart lineageEvents
+  w.journal.mappings = lineageStart.journal.mappings ∧
+  w.journal.entries = [⟨m1, .failed⟩, ⟨m0, .created⟩] ∧ w.issued = [m1, m0] := by decide +kernel
+
+@[req "STA-22b"] theorem terminalization_keeps_metadata (p : Params) (w : World)
+    (i : Identity) (n : Nat) (ok : Bool) :
+    (failUnsent p w i n ok).journal.mappings = w.journal.mappings ∧
+    (failUnsent p w i n ok).journal.next = w.journal.next ∧
+    (failUnsent p w i n ok).issued = w.issued := by
+  simp only [failUnsent]; split <;> exact ⟨rfl, rfl, rfl⟩
+
 /-! ## The bound -/
 
 /-- The bound (`CONTEXT.md`): every trace of at most this many events over `alphabet`, from
@@ -553,7 +765,7 @@ an actual destruction also needs 5 events and is carried by `successful_trace`. 
 three outcomes, journal-level acts and a durably appended full-reentry ceremony.
 `tracesUpTo bound` holds the enumeration; failed append and skip are named witnesses. -/
 def alphabet : List Event :=
-  [.allocate .machine, .created m0, .failed m0, .destroy m0, .exportSheet, .restore, .replace,
+  [.allocate .machine, .created m0, .failed m0 1 true, .destroy m0, .exportSheet, .restore, .replace,
    .ceremony .fullReentry true]
 
 /-- Every trace of exactly `n` events over `alphabet`. -/

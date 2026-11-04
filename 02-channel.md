@@ -14,6 +14,14 @@ host, inside a session pinned out of band (`CHN-R6`); it is trusted, not checked
 pin, and MUST be presented to the operator as such. No other path may accept a key no pin was
 stored for.
 
+Connection readiness MUST NOT cache admission to send. Every command or job-record collection
+request MUST re-enter the current machine-traffic check immediately before sending, after
+connection-opening awaits and independently for each request on an existing connection.
+For the durable-deletion trigger, refusal and uncertainty after local transport closure,
+see `STA-20`. The serialized checking interpretation is
+`TauWeb.Dispatch.sendRequest`, including `TauWeb.Dispatch.opening_collection_refused` and
+`TauWeb.Dispatch.reused_connection_refused`; real transport and writer races require `CNF-114`.
+
 **CHN-3** The mechanism is chosen **and demonstrated elsewhere**. Browser-resident SSH over a
 WebSocket-to-TCP bridge ships in production in several Go implementations, and exists as a
 single-author proof in Rust on `wasm32-unknown-unknown` using the same UI and build stack this

@@ -1,4 +1,4 @@
-# Witness files v1, v2, v5 and v8
+# Witness files
 
 The schemas of the files the formal companion emits, one per module, committed beside this
 document as `<module>-witnesses-v<schema>.json` (ADR-0032, "How the implementation is compared" —
@@ -6,14 +6,14 @@ what a witness file carries, what it never carries, and how the implementation r
 decided there and not restated here). `lake exe witnesses` writes them from `tools/formal/`;
 `tools/check_witnesses.py` checks emission equality and marked pair structure across the
 emitted corpus under this schema and ADR-0032, and
-`tools/check_fixtures.py` parses each as a document. Allocation uses schema 2 in
-[`allocation-witnesses-v2.json`](./allocation-witnesses-v2.json) from `TauWeb.Allocation`:
-the ceremony event, journal record and backup-gate assumption replace schema 1.
+`tools/check_fixtures.py` parses each as a document. Allocation uses schema 3 in
+[`allocation-witnesses-v3.json`](./allocation-witnesses-v3.json) from `TauWeb.Allocation`:
+the local unsent terminal proof, durable append and sender fence extend the ceremony schema 2.
 Declaration and relay keep schema 1:
 [`declaration-witnesses-v1.json`](./declaration-witnesses-v1.json) from `TauWeb.Declaration`,
 [`relay-witnesses-v1.json`](./relay-witnesses-v1.json) from `TauWeb.Relay`. The dispatch
-module uses schema 8 in [`dispatch-witnesses-v8.json`](./dispatch-witnesses-v8.json) from
-`TauWeb.Dispatch`. Schema 8 adds canonical received-ID withholding, quarantined evidence,
+module uses schema 9 in [`dispatch-witnesses-v9.json`](./dispatch-witnesses-v9.json) from
+`TauWeb.Dispatch`. Schema 9 adds per-request deletion contact; see its section below. Schema 8 added canonical received-ID withholding, quarantined evidence,
 retained-evidence conflict checks and the pre-send identity-exclusion guard/refusal
 (see the schema-8 section below). Schema 7 added receipt bindings, received results and retained receipts
 (see the schema-7 section below). Amended 2026-10-18: schema 6 adds `commandHold` and `rebootBootChange`,
@@ -45,7 +45,7 @@ the trace that moved.
 
 | Member | What it holds |
 |---|---|
-| `schema` | `2` for allocation; `1` for declaration and relay; `8` for dispatch and `5` for pins. A change to any shape below is a new version and a new file name for that module. |
+| `schema` | `3` for allocation and authority; `1` for declaration and relay; `9` for dispatch and `5` for pins. A change to any shape below is a new version and a new file name for that module. |
 | `module` | The inventory name, lower-case: `allocation`, `declaration`, `relay`, `dispatch`, and `pins` for the host-pin lifecycle. |
 | `namespace` | The Lean namespace the traces' declarations live in. |
 | `bound` | `declaration`, the tagged `bound` the decided property and the emitter share, and its value rendered under the module's own members. Allocation (`TauWeb.Allocation.bound`): `events`, the number, and `alphabet`, the events the enumeration draws from, including the ceremony. Declaration (`TauWeb.Declaration.bound`): `base`, the declaration and machine every case starts from; `presences`, per field, what the field is swept through, `missing` written as that word since a list has no absent member; `observations`, what the machine is made to show for it; `tenancies`. Relay (`TauWeb.Relay.bound`): `events`, the number; `alphabet`; and `start`, the opened connection every trace of the enumeration runs from. Dispatch (`TauWeb.Dispatch.bound`): `events`, the number; `alphabet`; and `start`, the journal every trace runs from, which carries the harness's associations and nothing dispatched. Pins (`TauWeb.Pins.bound`): the same shape; `start` carries one earlier `/rescue/last` snapshot, plus the fixed `planted_senders` list defined below from that starting knowledge and the alphabet. |
@@ -57,15 +57,17 @@ Both arrays hold traces of one shape:
 | Member | What it holds |
 |---|---|
 | `declarations` | The `TauWeb.*` theorems the trace came from, resolvable against the `lake exe gate` index. Every name the file carries — here, in `bound.declaration`, in `pair.with` — is one the emitter checked against the tags (`Witnesses.lean`). |
-| `assumptions` | Each guard parameter of the module by name, with the value the trace runs under, and each hypothesis the module takes rather than owns. Allocation has two guards, `restoredAllocatesNone` and `backupRecorded`; declaration has one, `emptyMeansPerField`; relay has one, `dialRequiresAuthAccepted`, beside `special`, `ownAddress` and `resolve` — the value `CHN-16a`'s pinned tables and the relay's resolver take for the trace, since the module quantifies over them. Dispatch carries `resourceKey`, `durableBeforeApply`, `endedBelowSucceeded`, `dispositionBindsContinuation`, `reach` (`disposed`, or one of the retained traps `resource`, `every_dispatch` and `still_unresolved`), `destructiveStops`, `lapse` (`continuation`, or `any_intent` or `first_operation`), `resetIntoRescueOnly`, `newestActivationRead`, `dispositionOwnResource`, `sessionDestroyRefused`, `resetOfferCurrentInstallation`, `approvedReinstallBoundary`, `failedPrerequisiteWithdraws`, `approvalResetRequiresRescue`, `resetOfferFreshKeys`, `reinstallWithdrawalEffective`, `commandHold`, `rebootBootChange`, `orderAssociation` and `identityExclusion`. What the far side actually did is external state, which a witness never carries. Pins carries `sourceAdmitsPin`, `attestAuthorMatches`, `attestSingleUse`, `attestDurable`, `attestFirstContact`, `publishedComplete`, `publishedFresh`, `publishedWithin`, `reinstallRetiresPin`, `installedFirstContact` and `readyAfterReinstallFresh`, with symbolic sender associations, seal-author observations, atomic durable appends, open introduction windows and vendor-status observations as stated assumptions. |
+| `assumptions` | Each guard parameter of the module by name, with the value the trace runs under, and each hypothesis the module takes rather than owns. Allocation carries `restoredAllocatesNone`, `backupRecorded`, `unsentFailure`, `failureDurable` and `senderFence`; declaration has one, `emptyMeansPerField`; relay has one, `dialRequiresAuthAccepted`, beside `special`, `ownAddress` and `resolve` — the value `CHN-16a`'s pinned tables and the relay's resolver take for the trace, since the module quantifies over them. Dispatch carries `resourceKey`, `durableBeforeApply`, `endedBelowSucceeded`, `dispositionBindsContinuation`, `reach` (`disposed`, or one of the retained traps `resource`, `every_dispatch` and `still_unresolved`), `destructiveStops`, `lapse` (`continuation`, or `any_intent` or `first_operation`), `resetIntoRescueOnly`, `newestActivationRead`, `dispositionOwnResource`, `sessionDestroyRefused`, `resetOfferCurrentInstallation`, `approvedReinstallBoundary`, `failedPrerequisiteWithdraws`, `approvalResetRequiresRescue`, `resetOfferFreshKeys`, `reinstallWithdrawalEffective`, `commandHold`, `rebootBootChange`, `orderAssociation`, `identityExclusion`, `deletionContact` and `pendingCleared`. What the far side actually did is external state, which a witness never carries. Pins carries `sourceAdmitsPin`, `attestAuthorMatches`, `attestSingleUse`, `attestDurable`, `attestFirstContact`, `publishedComplete`, `publishedFresh`, `publishedWithin`, `reinstallRetiresPin`, `installedFirstContact` and `readyAfterReinstallFresh`, with symbolic sender associations, seal-author observations, atomic durable appends, open introduction windows and vendor-status observations as stated assumptions. |
 | `pair` | Present on a refused-and-admitted pair: `side`, `refused` or `admitted`, and `with`, the other side's declaration. What the comparison expects of each side is ADR-0032's. |
-| `start` | The state before the first event, in the projection below. Allocation: the `journal` — most traces start from the fresh seed; the exhaustion witness starts one below the index limit. Declaration: the `declaration` and the `machine` the check reads, and the empty `record`. Relay: the `challenge` as an ordinal, the `destination` the path parsed to, what the pipeline `classified` it as, the `pass` the operator's key holds, and the opened `connection`. Dispatch: the `knowledge` below, which every trace starts with the harness's associations in and nothing else, but for one witness: `TauWeb.Dispatch.replayed_invalid_disposition_means_nothing` starts from a journal a replay finds already written, holding an unresolved call and a disposition recorded against another resource, which no trace under the rules in force can write since such a disposition is refused. Pins: the `knowledge` below — for the witnesses, empty apart from `planted_senders`, which lists every machine the trace names; and `bound.start` for the enumeration. |
+| `start` | Each trace's complete starting projection. Allocation carries its journal; fresh-seed, exhaustion and retained-lineage starts are selected by the emitted trace. Declaration carries the `declaration`, `machine` and empty `record`. Relay carries `challenge`, parsed `destination`, its `classified` result, `pass` and opened `connection`. Dispatch carries `knowledge`: ordinary association starts, replayed-invalid-disposition starts and exact-contact mapping fixtures are distinguished by the trace itself. Pins carries `knowledge`, with each trace's named `planted_senders`, and `bound.start` supplies its enumeration start. |
 | `steps` | One object per event, in order: `event`, the outcome members for that event kind, and the projection after the step — `journal` for allocation, `record` for declaration, `connection` for relay, `knowledge` for dispatch and for pins. |
 
-## Authority schema 2
+<a id="authority-schema-2"></a>
 
-[`authority-witnesses-v2.json`](./authority-witnesses-v2.json) is the separate processed-authority
-checking interpretation. Dispatch's schema 8 and its meanings are unchanged. The authority
+## Authority schema 3
+
+[`authority-witnesses-v3.json`](./authority-witnesses-v3.json) is the separate processed-authority
+checking interpretation. Authority schema 3 embeds Dispatch schema 9, including the classified request and deletion/waiting projections. Its own event vocabulary and guards remain those of authority schema 2. The authority
 file has the common header/trace envelope, an empty `enumeration`, and a `bound` naming
 `TauWeb.Authority.witnessBound`: a checked length cap for named finite histories, not an
 exhaustive alphabet. All identities and original key/origin/cap/expiry fields are symbolic
@@ -77,7 +79,7 @@ knowledge and pair shapes are unchanged from schema 1. Fresh-admission `exclusiv
 also governs growth; `growthExclusive` bypasses only the growth-side check. `requestOriginal`
 bypasses only the current evidence comparison in `keyEligible`, leaving assessment unchanged.
 
-Each trace's assumptions carry the authority guards, unchanged nested Dispatch parameters and
+Each trace's assumptions carry the authority guards, nested Dispatch parameters and
 explicit external hypotheses. A `work` names a worker/session/incarnation, request and approval;
 it contains no resolved resource. A recorded issued origin additionally carries the resolved
 resource returned by Dispatch. An actionable-publication event keeps this original call separate
@@ -97,7 +99,7 @@ non-operator global-end events, and `harness publication`, for the harness's act
 publication attempt. These labels are symbolic inputs, not evidence that a browser notification
 arrived or an adapter supplied a publication. Other events retain `operator act`, `model request`, `adapter observation`,
 `disposition` or `replay`; current readiness/issuer facts remain abstract hypotheses even where
-their provenance is `adapter observation`. This extension affects only authority schema 2.
+their provenance is `adapter observation`. This extension was introduced in authority schema 2 and is retained in schema 3.
 
 Events distinguish processed `hide`, `visible`, `suspend`, invalidation, operation-specific
 validation, individual/global end (including pagehide/bfcache, reload and shutdown), ceremony
@@ -125,13 +127,15 @@ comparison or evidence of scheduling, physical fencing, durability or issuer enf
 
 For the existing module schemas in the table below, each `event` has a `kind` and a
 `provenance` from ADR-0032's closed vocabulary; the members beside them are the event's
-arguments. Authority schema 2's explicit extension and event shapes are described above.
+arguments. Authority schema 3's explicit extension and event shapes are described above.
+Additional allocation events and outcomes are defined in [Allocation schema 3](#allocation-schema-3);
+additional deletion, opening and closure events are defined in [Dispatch schema 9](#dispatch-schema-9).
 
 | `kind` | `provenance` | Arguments | Outcome members on the step |
 |---|---|---|---|
 | `allocate` | model request | `family` | `allocation`: `admitted` with `identity`, or `refused` |
 | `created` | adapter observation | `identity` | — |
-| `failed` | adapter observation | `identity` | — |
+| `failed` | local writer decision | `identity`, `checked_sequence`, nested durable `append` | `terminalized` |
 | `destroyed` | adapter observation | `identity` | — |
 | `export_sheet` | operator act | — | — |
 | `restore` | import or restore | — | — |
@@ -142,7 +146,7 @@ arguments. Authority schema 2's explicit extension and event shapes are describe
 | `auth` | operator act, or replay | `destination`, `key`, `event_kind`, `relay_tag`, `within_skew`, `signature_verifies`, `answers_challenge` | `auth`: `accepted`, `refused` or `ignored` |
 | `dial` | adapter observation | `connected` | `dial`: `dialed` or `refused` |
 | `app_frame` | operator act | — | `forwarded` |
-| `request` | model request; operator act for `delivery_reboot` | `call`, `target`, `operation` (`create`, `reset`, `reinstall`, `destroy`, `activate`, `register_key`, `exec`, `delivery_reboot`, `read` or `inference`), `session`, `facts`, `approved`, `appended` | `dispatch`: `dispatched` or `refused`, with `refusal` on the second |
+| `request` | model request; operator act for `delivery_reboot` | `call`, `target`, `operation` (`create`, `reset`, `reinstall`, `destroy`, `activate`, `register_key`, `exec`, `delivery_reboot`, `read` or `inference`), `session`, `facts`, `read_route`, `connection`, `approved`, `appended` | `dispatch`: `dispatched` or `refused`, with `refusal` on the second |
 | `read` | adapter observation | `source`, `resource`, `operation`, `reports`, `appended` | `settled`: the call ids the read took out of the barrier |
 | `collect_reboot` | adapter observation | `call`, `resource`, `record_boot` (ordinal, or `null` for no recorded boot), `observed_boot` (ordinal), `appended` | `settled`: the call ids removed from the barrier |
 | `dispose` | disposition | `resource`, `calls`, `continuation` (`destructive_reinstall`, `abandonment`, `as_if_done` or `as_if_not_done`), `appended` | `disposition`: `recorded`; `refused`, where it names no call, or names a call that is neither unresolved on the disposition's own resource nor one the standing disposition disposed; or `not_appended` |
@@ -241,9 +245,9 @@ is not a mismatch.
 ### Allocation
 
 `journal`, `start` and every `identity` are harness knowledge in `STA-22b`'s vocabulary and
-never the companion's state layout: what it holds beyond the journal — the exported sheet,
-the seeds generated, every identity ever issued — is the theorems' business and not in the
-file.
+never the complete companion state layout. The exported sheet, fresh entropy counter and
+ever-issued list stay internal. Pending sender identities and the per-step send boolean expose
+only the local boundary outcomes described in Allocation schema 3 below.
 
 | Member | Meaning |
 |---|---|
@@ -255,6 +259,7 @@ file.
 | `entries` | The allocated entries oldest first, each an identity with `status`: `reserved`, `created`, `failed` or `destroyed`; the last two are `STA-22b`'s tombstones. |
 | `seed_backup` | `"none"`, `"full_reentry"` or `"skipped"`, the ceremony record for the journal's current seed ordinal. Export copies it, Restore restores it, Replace clears it; neither completion is a verified backup. |
 | `restored_from_import` | Whether the seed was imported from any sheet or store backup and no Replace has happened since — the state the restored-seed guard reads. |
+| Schema-3 additions | See [Allocation schema 3](#allocation-schema-3) for the local proof/history and retained mapping members. |
 
 ### Declaration
 
@@ -316,13 +321,14 @@ resolution, the barrier and the approval checks and nothing about arguments or c
 | `reinstall_withdrawals` | Journaled withdrawal acts, oldest first: `entry`, `call` and `approved` session/facts, matching the approval they withdraw. |
 | `prerequisite_records` | Oldest first, the durable `ready_to_reset` per-command records (`kind: command`) and results (`kind: result`), each with `entry` and derived `installation`; a result also has its symbolic `keys`. A command without a later durable result withholds the offer until a later durable prerequisite read. |
 | `dispatched` | The calls whose effect went out, oldest first. |
+| Schema-9 additions | See [Dispatch schema 9](#dispatch-schema-9) for exact contact mappings, admitted deletion and pending-connection members. |
 
 A refusal is `reason` — `unmapped`, `binding`, `facts`, `append`, `barrier`, `continuation`,
-`approval_activation`, `withdrawn_approval` or `identity_exclusion` — with `calls` on the barrier, `records` on the identity exclusion and, on the continuation, `in_force`: the continuation of the
+`approval_activation`, `withdrawn_approval`, `identity_exclusion` or `deleted` — with `calls` on the barrier, `records` on the identity exclusion and, on the continuation, `in_force`: the continuation of the
 standing disposition that refused the request, whether by its reach or by the stop a destructive
 one puts on `exec` and `delivery_reboot`. `approval_activation` names an approval-bound reset
 without a confirming activation dispatched since approval. `withdrawn_approval` names its matching withdrawal with
-`resource`, `call` and `approved` session/facts.
+`resource`, `call` and `approved` session/facts. For `deleted`, see [Dispatch schema 9](#dispatch-schema-9).
 
 
 ### Pins
@@ -422,3 +428,84 @@ withholding. Other named witnesses retain same-entry adoption, withheld associat
 append, quarantine conflict, unresolved withheld receipt, uncorrelated evidence and permanence
 through disposition/replay. An existing mapping retains its own targeting authority. No
 session-limit, concrete encoder or external cleanup property is proved by these witnesses.
+
+## Allocation schema 3
+
+The Failed event is a `local writer decision`, an explicit extension of ADR-0032's closed
+provenance vocabulary. The same extension labels a local create-intent append and local
+transport closure; it conveys a local decision, never an external observation or operator act.
+The `failed` event contains `identity`, `checked_sequence` and a nested `append` with
+`storage outcome of an append` provenance and `durable`. Its step's `terminalized` boolean
+reports whether the admitted proof record was added. The former adapter-observed failure event
+is removed. `created` and `destroyed` retain their observation provenance.
+
+`journal.sequence` is an allocation-history prefix ordinal, advanced by reservation, approved
+create intent and admitted terminalization. `create_intents` retains possibly-sent identities;
+`failures` retains identity/checked-sequence pairs. `mappings` retains opaque admitted identity,
+entry, predecessor identity (or null) and machine ordinal (or null), independently of status.
+Mapping admission is assumed, never supplied by Failed. The lineage witness starts with these
+already-admitted mappings and does not admit a successor. No recovery-payload or derivation
+version changes with this witness schema.
+
+`begin_create` has model-request provenance and an identity; it registers a pending sender.
+`create_intent` has local-writer-decision provenance, identity and `appended`, representing an
+approved possibly-sent create even when no later send marker exists. `send_create` has
+model-request provenance, identity and `appended`; it fuses approval and handoff in one
+serialized step. A preceding `create_intent` for that identity is already possibly sent and
+therefore refuses a later `send_create`. The step reports a `sent` boolean and `pending`
+identities after the writer's final fence. `begin_create` and `replay` also report `pending`;
+all starts have no pending or sent creates. `replay` has replay provenance and drops the
+pending sender without resending. `inconclusive` carries ordinal `reason`: error, loss, empty
+listing or disposition (0 through 3); only the last has disposition provenance, the rest adapter
+observation. It changes no allocation knowledge and supplies no local unsent proof.
+
+The complete prefix, absence of earlier possibly-sent create and non-imported journal are
+checked by the sole writer. The serialized trace assumes sole-writer serialization, genuine
+local prefix custody, independent ordinary create/retry authorization and actual append-before-handoff
+ordering. The sender fence checks reserved status and known intent history; it does not decide
+imported or old-epoch create authority. The stronger non-imported/current-epoch conditions apply
+to the new local terminal proof only. It proves no writer lock,
+storage implementation, browser concurrency, transport race or vendor behavior. The independent
+implementation evidence remains `CNF-72`.
+
+## Dispatch schema 9
+
+Requests add `read_route` (`machine` or `vendor_evidence` for reads, null otherwise) and nullable symbolic `connection`.
+The route is the harness adapter's classification of the real destination, not a model-chosen
+exemption. `machine` reads are outgoing job-record requests; it is the conservative construction default.
+Vendor evidence reads explicitly select `vendor_evidence`. The outgoing pinned SSH probe is
+outside this classification and remains subject to its existing owners. A `vendor_evidence` request retains
+ordinary typed approval checks; wrong approved facts refuse. Received `read` observations remain
+separate and are not transmissions. `deletionContact` checks machine traffic in the shared final
+send decision, including `exec`, `delivery_reboot` and each `machine` read. Refusal `deleted`
+adds no terminal record for previously sent work.
+
+`deletion` has adapter-observation provenance, `vendor` and `appended`. Its input is assumed to
+be already admitted under the existing deletion-evidence contract; it does not validate those
+constituents, infer destruction from a stop receipt, or settle unrelated calls. Durable
+`deleted_machines` is a list of exact machine ordinals, not allocation failure or entry status.
+An explicit vendor target is checked by that identity. Entry/index targets use the exact
+already-admitted alias-to-machine facts in `contact_mappings` (`target`, `vendor`); a shared
+resource entry never substitutes for machine identity. Missing exact contact mapping refuses
+as `unmapped`. Mapping admission and immutable-ID correspondence remain assumptions; the new
+checking events admit no map. Initial fixtures carry the corresponding existing mappings.
+
+`await_connection` has model-request provenance and nested complete `request` arguments
+(call, target, operation, session, facts, read route, connection and approval), without any
+append outcome at preparation: no intent or transmission occurs there.
+`waiting_connections` projects its call and connection. `connection_ready` has adapter-observation
+provenance, `call` and `appended`, resumes that pending request and reports the fresh `dispatch`
+and possible `refusal` after checking current knowledge. A missing pending call does nothing.
+`close_connection` has local-writer-decision provenance and a connection ordinal; it changes no
+call outcome. Under `pendingCleared`, replay discards every pending request and local closure
+discards only that connection’s pending requests, without settling previously sent work. Each
+refusal has a guard-removal pair, and a sibling connection retains valid progress. Reuse is explicit in successive request events sharing a connection ordinal;
+each is checked independently. Connection-ready notifications assume that opening completed;
+no actual socket, await scheduling or cancellation is established.
+
+The exact covered boundary is one final serialized check per outgoing request, after preparation
+and between reads, against the current admitted deletion prefix and ordinary typed approval.
+Real transport/writer/append races, destination classification, browser scheduling and I/O
+ordering remain independent implementation evidence under `CNF-114` and `CNF-54`. No capability
+is admitted by these witnesses. Authority schema 3 embeds these fields but its received records
+remain received records; it adds no outgoing collection proof of its own.

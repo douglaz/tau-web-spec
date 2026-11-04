@@ -389,6 +389,19 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       for Replace's migration and new relay pass. Full re-entry and explicit skip each admit
       allocation after their durable record; a failed append leaves no record and still
       refuses allocation (`STA-22b`).
+      Exercise `STA-22b`'s local unsent terminalization through the production sole writer:
+      a reserved create with complete local proof becomes durably Failed, retaining its consumed
+      index, entry mapping and predecessor/machine history. Race a pending sender against it;
+      only one permission survives. A failed terminal append leaves the reservation and the
+      pending sender's valid route intact; replay never resends an admitted terminal record.
+      Separately refuse Failed after approved possibly-sent intent plus vendor error, lost
+      response, empty listing and disposition, including with no later send marker. Refuse
+      imported/stale-prefix absence proof. A temporary refusal retains its reservation and
+      counter. A later Failed attempt at an entry neither grants a successor nor blocks contact
+      to its older actual machine through an independently admitted mapping. Preserve binding,
+      association and target admission; no failure record supplies them. These writer-lock,
+      durable-append and transport-handoff races are required before enabling this path;
+      serialized companion witnesses alone do not pass them.
 - [ ] **CNF-73 · BLOCKING** No session and no machine is ever given the seed (`STA-22`).
       Verified by inspecting what each is given, as `CNF-9` does for the scanner. Escaped-secret:
       the seed reaches every maintained machine and every future introduction.
@@ -1156,6 +1169,19 @@ to the relay evidence in `CNF-81`, `CNF-87` and `CNF-113`.
       root-only job record with a nonzero exit through the LNVPS route (`STG-21`): report
       its real output and exit under existing admission rules, distinguishing it from failure
       before any record exists. SSH/sudo status is no substitute (`STA-20`, `STA-20a`).
+      Under `STA-20`, `STA-24` and `CHN-2`, separately test a fresh command and a fresh
+      collection request after admitted durable deletion: each refuses before send. Admit
+      collection one, commit deletion, then refuse collection two on the same connection.
+      Commit deletion while a command's connection opens and separately while a collection's
+      connection opens; each refuses after the await before any send. A failed deletion append
+      leaves prior admission intact. Already-sent work keeps its recorded uncertainty after
+      deletion, local closure and replay, without a cancellation/completion claim. Distinguish
+      stop, installation failure, loss, disposition and later Failed allocation from the deletion
+      trigger. Send an independently authorized outgoing typed vendor evidence read; refuse the
+      same read without its ordinary authority. An already-received observation is no substitute.
+      Keep live-session membership/history while destruction ends effective exposure accounting
+      under `SEC-1`; preserve other machines' authority. Exercise actual transport/writer/append
+      races before enabling these paths, independently of a serialized companion comparison.
 - [ ] **CNF-55 · PRE-SCALE** An installed-system job record survives a reboot. Its boot identity
       establishes that an unfinished old command ended; it stays unresolved until disposition.
       `ARC-43`'s `delivery_reboot` settles by its boot change; an ordinary finished record settles
@@ -1193,7 +1219,7 @@ to the relay evidence in `CNF-81`, `CNF-87` and `CNF-113`.
       timeout and diagnostics release no hold and authorize no payload retry or successful
       check. Preserve `CNF-40`'s command/runner waits and `CNF-55`'s reboot distinctions.
       (d) While ordinary `exec` and harness jobs are held, collect the existing record through
-      a fresh privileged connection. Collection remains available without writer deadlock,
+      a fresh privileged connection. Collection remains available subject to `STA-20`'s machine-traffic admission, without writer deadlock,
       ordinary command admission or a setup job. When the original dispatch still awaits its
       record, share that result without a separate collection or duplicate append (`CNF-40`).
       Attempts to relabel arbitrary `exec`, repair or model commands as collection are refused. A reachable machine refusing
@@ -1214,6 +1240,10 @@ to the relay evidence in `CNF-81`, `CNF-87` and `CNF-113`.
       remain unresolved, with no successful job/check evidence from reinstall success.
       With changed host keys, both launch and collection halt before root work (`SEC-11`).
       This item records obligations, not an observed fresh-image or integrated result.
+      Before enabling the deletion-contact implementation paths, also pass `CNF-54`'s
+      per-send deletion, connection-opening/reuse, failed-append, vendor-authorization and
+      uncertainty cases here on the applicable installed-system route. The admission boundary
+      includes real transport/writer/append races, not just serialized witness comparison.
 - [ ] **CNF-115 · BLOCKING** Recovery preserves journal-only command protection, including
       its knowledge limit. `STA-20` says "The command hold is journal-only." `STA-24` says
       "recovery alone settles no retained unresolved intent, clears no retained resource
