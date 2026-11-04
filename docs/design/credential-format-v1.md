@@ -55,6 +55,23 @@ at indices 0 and 1. An implementation must also pass upstream BIP-32 leading-zer
 invalid-key vectors and RFC 8032 Ed25519 vectors. Reproducing a fixture through the same
 implementation that generated it is insufficient independent validation.
 
+## Allocation failure record
+
+The local terminal proof for `STA-22b` names the allocation identity (seed identifier,
+derivation version, family and consumed index), approved-entry identity and predecessor
+allocation, and the checked journal prefix/sequence covering its complete local create history.
+It records the writer's pre-intent, pre-handoff terminalization and its durable append, retaining
+all prior mappings and associations. It is local journal evidence, never a negative vendor
+receipt or a portable certificate that an imported prefix has no later sends. The sole-writer
+check, sender fence and admission duties have one home in `STA-22b`.
+
+Recovery payload v4 and derivation v1 remain unchanged. A consumed tombstone and its existing
+entry/predecessor metadata survive export under the existing allocation metadata; recovering
+that tombstone does not create fresh failure proof or authority. This local journal proof is
+not a new mandatory recovery-payload field, and existing payloads remain readable. See
+[Allocation schema 3](witness-file-v1.md#allocation-schema-3) for the separate symbolic witness
+representation and its limitations.
+
 ## Local encryption envelope
 
 The operator supplies a local passphrase of at least 16 Unicode code points; encourage a

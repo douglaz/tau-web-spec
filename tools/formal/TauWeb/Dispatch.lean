@@ -72,6 +72,15 @@ offer only when its keys match the first durable read and no earlier installatio
 set is identical. Transmission and collection of this command are abstracted into `resetPrereqs`;
 its prior command-record append is taken as given.
 
+The durable-deletion amendment assumes already admitted deletion evidence; it does not validate
+its vendor constituents here. Each outgoing machine command and classified collection request
+uses the shared final send decision, including a resumed connection opening and each read on a
+reused symbolic connection. Read-route classification is harness-owned and assumed checked
+against the actual destination. Typed vendor evidence reads still need ordinary approval;
+received observations are not read transmissions. These serialized histories establish no real
+I/O ordering, writer lock, append race, browser scheduling or transport cancellation. Their
+separate implementation evidence remains required before enabling the corresponding paths.
+
 What the module omits: the snapshot and the compaction of `STA-2`, since a snapshot is the
 journal's replay and adds no case here; the lock `STA-7` acquires and the single writer `STA-1`
 is, taken as given rather than modelled, so that nothing here is a claim about concurrency
@@ -149,9 +158,10 @@ renewal control and reinstall are available"). `destroy` is the abandonment flow
 naming the machine: "the destroy, or the stop that stands in for it" (`STA-24`), since where the
 vendor offers no destroy route the harness "stops that machine, turns automatic renewal off"
 (`ARC-22`). `exec` is ordinary box-plane work (`ARC-8`);
-`deliveryReboot` is the harness-owned delivery reboot (`ARC-43`); `read` is what `STA-24` keeps
-permitted — "the adapter's status queries, the pinned SSH attempt that is `STG-4`'s third
-predicate, the collection of job records"; `inference` is `ARC-31a`'s own off-machine call. -/
+`deliveryReboot` is the harness-owned delivery reboot (`ARC-43`); `read` distinguishes outgoing
+typed vendor evidence from job-record collection. The outgoing pinned SSH probe is not carried
+by these classified requests; its received handshake observation remains separate.
+`inference` is `ARC-31a`'s own off-machine call. -/
 inductive Kind
   | create
   | reset
@@ -331,6 +341,10 @@ the approved entry; the reset prerequisites are `ready_to_reset`'s (`ARC-43`) in
 reset intent, which `STA-20b` requires durable before a planned reset into the installed
 system. -/
 inductive Rec
+  /-- Already admitted deletion evidence; constituent validation remains its owner’s. -/
+  | deleted (vendor : Nat)
+  /-- Existing admitted resolution from an entry/index alias to its exact machine. -/
+  | contactMapping (target : Target) (vendor : Nat)
   | intent (i : Intent)
   | observation (o : Observation)
   | receipt (r : Receipt)
@@ -485,6 +499,10 @@ authority is per clause and this structure is not one. -/
   /-- Refuse an excluded entry’s new order before send. Pair: `excluded_order_refused` /
   `excluded_order_sent_without_guard`. Association admission remains independently guarded. -/
   identityExclusion : Bool := true
+  /-- Per-request machine traffic refusal after admitted deletion, including after awaits. -/
+  deletionContact : Bool := true
+  /-- Runtime requests cannot survive replay or local channel closure. -/
+  pendingCleared : Bool := true
   deriving DecidableEq, Repr
 
 /-- The rules as they stand. -/
@@ -624,6 +642,8 @@ from the record alone. Every reader below takes a journal `inEffect` has already
   | .deliveryRebootResult c r boot observed => deliveryRebootResult p i c r boot observed
   | .disposition d =>
     (d.resource == i.resource || !p.dispositionOwnResource) && d.calls.contains i.call
+  | .contactMapping _ _ => false
+  | .deleted _ => false
   | .intent _ => false
   | .association _ _ => false
   | .quarantined _ _ => false
@@ -662,6 +682,8 @@ def resourcesOf (j : Journal) : List Resource := ((intentsOf j).map Intent.resou
 /-- Whether a record is a disposition on a resource. -/
 def disposes (r : Resource) : Rec → Bool
   | .disposition d => d.resource == r
+  | .contactMapping _ _ => false
+  | .deleted _ => false
   | .intent _ => false
   | .observation _ => false
   | .receipt _ => false
@@ -702,6 +724,8 @@ where
     | .observation o :: rest =>
       go (if read.isNone && admissible o && o.resource == r && o.kind == .activate
           then some o.standing else read) rest
+    | .contactMapping _ _ :: rest => go read rest
+    | .deleted _ :: rest => go read rest
     | .receipt _ :: rest => go read rest
     | .disposition _ :: rest => go read rest
     | .association _ _ :: rest => go read rest
@@ -761,6 +785,8 @@ def standingIn (p : Params) (r : Resource) : Journal → Option (Disposition × 
     | none => none
     | some s =>
       if i.resource == r && lapsesAt p rest r s.1.continuation i.kind then none else some s
+  | .contactMapping _ _ :: rest => standingIn p r rest
+  | .deleted _ :: rest => standingIn p r rest
   | .observation _ :: rest => standingIn p r rest
   | .receipt _ :: rest => standingIn p r rest
   | .association _ _ :: rest => standingIn p r rest
@@ -791,6 +817,8 @@ disposition is tested against the reading of what came before it. -/
   | .disposition d :: rest =>
     if acceptable p (inEffect p rest) d then .disposition d :: inEffect p rest
     else inEffect p rest
+  | .contactMapping t v :: rest => .contactMapping t v :: inEffect p rest
+  | .deleted v :: rest => .deleted v :: inEffect p rest
   | .intent i :: rest => .intent i :: inEffect p rest
   | .observation o :: rest => .observation o :: inEffect p rest
   | .receipt r :: rest => .receipt r :: inEffect p rest
@@ -1031,8 +1059,10 @@ immediately preceding re-read duty is not carried here. -/
 unresolved call is shown in its place: to the model as the tool result, to the operator on the
 screen"). -/
 inductive Refusal
-  /-- The target names no resource the harness assigned (`ARC-22`). -/
+  /-- No assigned resource (`ARC-22`), or no exact admitted contact mapping for machine traffic. -/
   | unmapped
+  /-- Admitted durable deletion of the exact contacted machine (`STA-20`). -/
+  | deleted
   /-- `SEC-4`: the approval binds another session. -/
   | binding
   /-- `SEC-4`: "What is dispatched is the approved record", and this request is not it. -/
@@ -1058,6 +1088,12 @@ inductive Verdict
   | refused (r : Refusal)
   deriving DecidableEq, Repr
 
+/-- Read transmissions are classified by their actual destination, independently of received
+observations. Vendor evidence retains ordinary typed authorization; collection contacts SSH. -/
+inductive ReadRoute
+  | vendorEvidence | machine
+  deriving DecidableEq, Repr
+
 /-- What a session sends (ADR-0032: "Requests carry what a model would send; the file never
 supplies an already-correct resource key, so the request-to-entry mapping is what gets
 compared"): a fresh call id, the target it names, the operation, the session it runs in, and the
@@ -1070,6 +1106,10 @@ structure Request where
   kind : Kind
   session : SessionId
   facts : Facts
+  /-- Harness adapter classification, checked against the actual destination; never model input. -/
+  readRoute : ReadRoute := .machine
+  /-- Symbolic connection identity for per-request opening/reuse histories. -/
+  connection : Option Nat := none
   deriving DecidableEq, Repr
 
 /-- The intent record a request becomes once the harness has resolved its resource. -/
@@ -1081,6 +1121,21 @@ def intentOf (rq : Request) (r : Resource) (ap : Approval) : Intent :=
 def resourceIdentityRisks (j : Journal) : Resource → List Nat
   | .machine e => identityRisks j e
   | .inference => []
+
+/-- Exact contact uses the harness's independently admitted alias-to-machine mapping,
+not the resource equivalence relation. A retained sibling mapping on the same entry is distinct.
+Mapping admission and its immutable vendor-id correspondence are assumed, not created here. -/
+def contactMachine (j : Journal) : Target → Option Nat
+  | .vendor v => some v
+  | t => j.findSome? fun rec => match rec with
+    | .contactMapping named v => if named == t then some v else none
+    | _ => none
+
+def deletedTarget (j : Journal) (t : Target) : Bool :=
+  (contactMachine j t).any fun v => j.contains (.deleted v)
+
+def machineTraffic (rq : Request) : Bool :=
+  rq.kind == .exec || rq.kind == .deliveryReboot || (rq.kind == .read && rq.readRoute == .machine)
 
 /-- The dispatch check, in the order the requirements put it: the harness resolves what the model
 named (`STA-24`), `SEC-4`'s binding and approved record are checked, and only then `STA-24`'s
@@ -1112,6 +1167,10 @@ The flow's authorization is `SEC-4`'s and is not carried here. -/
           else if p.identityExclusion && rq.kind == .create &&
               !(resourceIdentityRisks j r).isEmpty then
             .refused (.identityExclusion (resourceIdentityRisks j r))
+          else if p.deletionContact && machineTraffic rq && (contactMachine j rq.target).isNone then
+            .refused .unmapped
+          else if p.deletionContact && machineTraffic rq && deletedTarget j rq.target then
+            .refused .deleted
           else .dispatched (intentOf rq r ap)
 
 /-! ## The trace -/
@@ -1126,6 +1185,7 @@ structure World where
   dispatched : List Intent
   /-- What the last request was answered with. -/
   verdict : Option Verdict
+  waiting : List (Request × Approval) := []
   deriving DecidableEq, Repr
 
 /-- `STA-3`. Under the rule a failed append changes neither the journal nor in-memory state;
@@ -1136,6 +1196,11 @@ worker acts on a fact the journal does not hold. -/
   | false => if p.durableBeforeApply then w else { w with memory := rec :: w.memory }
 
 inductive Event
+  | deletion (vendor : Nat) (appended : Bool)
+  | awaitConnection (rq : Request) (ap : Approval)
+  | connectionReady (call : CallId) (appended : Bool)
+  /-- Local closure says nothing about previously sent work. -/
+  | closeConnection (connection : Nat)
   /-- A request, with the storage outcome of the intent's own append (`STA-3`). -/
   | request (rq : Request) (ap : Approval) (appended : Bool)
   /-- A read of the far side: its provenance, the resource and the operation it is a predicate
@@ -1175,13 +1240,8 @@ def appendAssociation (p : Params) (w : World) (t : Target) (e : Entry)
   | none => { w with verdict := none }
   | some rec => { append p w rec ok with verdict := none }
 
-/-- One event. A request that `admit` accepts is journaled "immediately before the bytes leave"
-(`STA-4`) and dispatched; if that append fails the transition does not occur and nothing leaves
-(`STA-3`). A read's standing is what the far side reports and never this module's. A disposition
-that `accepts` refuses is not recorded. A replay throws in-memory state away and rebuilds it from
-the journal (`STA-2`, `STA-7`). -/
-@[req "STA-4"] def step (p : Params) (x : External) (w : World) : Event → World
-  | .request rq ap ok =>
+/-- Final serialized send boundary shared by fresh and resumed requests. -/
+@[req "CHN-2"] def sendRequest (p : Params) (w : World) (rq : Request) (ap : Approval) (ok : Bool) : World :=
     match admit p w.memory rq ap with
     | .refused reason => { w with verdict := some (.refused reason) }
     | .dispatched i =>
@@ -1189,6 +1249,23 @@ the journal (`STA-2`, `STA-7`). -/
         { append p w (.intent i) ok with
           dispatched := i :: w.dispatched, verdict := some (.dispatched i) }
       else { w with verdict := some (.refused .append) }
+
+/-- One event. A request that `admit` accepts is journaled "immediately before the bytes leave"
+(`STA-4`) and dispatched; if that append fails the transition does not occur and nothing leaves
+(`STA-3`). A read's standing is what the far side reports and never this module's. A disposition
+that `accepts` refuses is not recorded. A replay throws in-memory state away and rebuilds it from
+the journal (`STA-2`, `STA-7`). -/
+@[req "STA-4"] def step (p : Params) (x : External) (w : World) : Event → World
+  | .deletion v ok => { append p w (.deleted v) ok with verdict := none }
+  | .awaitConnection rq ap => { w with waiting := (rq, ap) :: w.waiting, verdict := none }
+  | .connectionReady call ok =>
+    match w.waiting.find? (fun pair => pair.1.call == call) with
+    | none => { w with verdict := none }
+    | some (rq, ap) => sendRequest p { w with waiting := w.waiting.filter (fun pair => pair.1.call != call) } rq ap ok
+  | .closeConnection c => { w with
+      verdict := none
+      waiting := if p.pendingCleared then w.waiting.filter (fun pair => pair.1.connection != some c) else w.waiting }
+  | .request rq ap ok => sendRequest p w rq ap ok
   | .observe prov r k ok =>
     { append p w (.observation ⟨prov, r, k, x.reports r k⟩) ok with verdict := none }
   | .receive r ok => { append p w (.receipt r) ok with verdict := none }
@@ -1209,7 +1286,10 @@ the journal (`STA-2`, `STA-7`). -/
     if acceptsWithdrawal w.memory e c ap then
       { append p w (.reinstallWithdrawal e c ap) ok with verdict := none }
     else { w with verdict := none }
-  | .replay => { w with memory := w.journal, verdict := none }
+  | .replay => { w with
+      memory := w.journal
+      verdict := none
+      waiting := if p.pendingCleared then [] else w.waiting }
 
 def run (p : Params) (x : External) (w : World) : List Event → World
   | [] => w
@@ -1259,10 +1339,14 @@ theorem admit_dispatched (p : Params) (j : Journal) (rq : Request) (ap : Approva
               · exact nomatch h
               · split at h
                 · exact nomatch h
-                · injection h with h
-                  subst h
-                  refine ⟨rfl, rfl, rfl, ?_, hfacts, hblock, hnone⟩
-                  simp_all only [intentOf]
+                · split at h
+                  · exact nomatch h
+                  · split at h
+                    · exact nomatch h
+                    · injection h with h
+                      subst h
+                      refine ⟨rfl, rfl, rfl, ?_, hfacts, hblock, hnone⟩
+                      simp_all only [intentOf]
 
 /-- What it is for a standing disposition not to restrict an operation: the destructive stop does
 not apply to it, and if it is within the reach the continuation permits it. -/
@@ -1299,7 +1383,7 @@ a command a disposed activation never barred. The clause is now over the reach. 
       stops p s.1.continuation i.kind = false ∧
       (reaches p (inEffect p w.memory) s i.kind = true →
         permits p (inEffect p w.memory) s i.kind = true) := by
-  simp only [step] at hi ⊢
+  simp only [step, sendRequest] at hi ⊢
   split at hi
   · exact absurd hi hnew
   · rename_i i' hadm
@@ -1387,17 +1471,34 @@ request is the session's only way to continue." -/
   simp only [blocking, hnil]
   cases p.resourceKey <;> rfl
 
+theorem sendRequest_memory_eq (p : Params) (hp : p.durableBeforeApply = true)
+    (w : World) (hw : w.memory = w.journal) (rq : Request) (ap : Approval) (ok : Bool) :
+    (sendRequest p w rq ap ok).memory = (sendRequest p w rq ap ok).journal := by
+  simp only [sendRequest]
+  split
+  · exact hw
+  · split
+    · exact append_memory_eq p hp w hw _ ok
+    · exact hw
+
 theorem step_memory_eq (p : Params) (hp : p.durableBeforeApply = true) (x : External)
     (w : World) (hw : w.memory = w.journal) (e : Event) :
     (step p x w e).memory = (step p x w e).journal := by
   cases e with
   | request rq ap ok =>
-    simp only [step]
+    simp only [step, sendRequest]
     split
     · exact hw
     · split
       · exact append_memory_eq p hp w hw _ ok
       · exact hw
+  | deletion v ok => exact append_memory_eq p hp w hw _ _
+  | awaitConnection rq ap => exact hw
+  | closeConnection c => exact hw
+  | connectionReady call ok =>
+    simp only [step]; split
+    · exact hw
+    · exact sendRequest_memory_eq p hp { w with waiting := w.waiting.filter (fun pair => pair.1.call != call) } hw _ _ ok
   | observe prov r k ok => exact append_memory_eq p hp w hw _ ok
   | receive r ok => exact append_memory_eq p hp w hw _ ok
   | collectReboot c r boot ok => exact append_memory_eq p hp w hw _ ok
@@ -1506,7 +1607,10 @@ resource is "assigned or checked by the harness and never taken from the model" 
 and never in a request. -/
 def associations : Journal :=
   [.association (.vendor vendorA) entryA, .association (.index index1) entryA,
-   .association (.index index0) entryA, .association (.index index2) entryB]
+   .association (.index index0) entryA, .association (.index index2) entryB,
+   .contactMapping (.index index0) vendorA, .contactMapping (.index index1) vendorA,
+   .contactMapping (.entry entryA) vendorA, .contactMapping (.index index2) 20,
+   .contactMapping (.entry entryB) 20]
 
 /-- The worker as the witnesses start it: the associations journaled, nothing dispatched. -/
 def init : World :=
@@ -1610,10 +1714,11 @@ continuation that continues is the operator's explicit choice. -/
 def activateRequest2 : Request := { activateRequest with call := 16 }
 def activateRequestB : Request := { activateRequest with call := 24, session := sessionB }
 
-/-- A read naming the machine: a status query, the pinned SSH attempt or the collection of job
-records (`STA-24`). -/
+/-- An outgoing typed vendor evidence read. Machine-side reads use the explicit read route;
+a received observation is a different event. -/
 def readRequest : Request :=
-  { call := 13, target := .vendor vendorA, kind := .read, session := sessionA, facts := factsRead }
+  { call := 13, target := .vendor vendorA, kind := .read, session := sessionA, facts := factsRead,
+    readRoute := .vendorEvidence }
 
 /-- The inference request (`ARC-31a`), and the next one. -/
 def inferenceRequest1 : Request :=
@@ -2834,7 +2939,7 @@ a successor's command is held, then a finished job record releases it. -/
 def holdIsolationEvents : List Event :=
   [.request execRequest approvalExec true, .replay,
    .request { execRequest2 with session := sessionB } approvalExecB true,
-   .request { readRequest with session := sessionB } approvalReadB true,
+   .request { readRequest with session := sessionB, readRoute := .machine } approvalReadB true,
    .request { inferenceRequest1 with session := sessionB } approvalInferenceB true,
    .request { execRequest3 with target := .entry entryB, session := sessionB } approvalExecB true,
    .observe .jobRecord machineA .exec true,
@@ -3225,5 +3330,133 @@ enumeration the witness file carries is one the companion itself closed over. -/
     (tracesUpTo bound).all (fun es =>
       freshRequests es && unresolvedTogether current (run current farDone.external init es).memory) = true := by
   decide +kernel
+
+/-! ## Durable deletion at each outgoing request -/
+
+def collectionRequest : Request := { readRequest with readRoute := .machine, connection := some 70 }
+def contactRun (p : Params) (es : List Event) : World := run p farDone.external init es
+
+def deletedCommandEvents : List Event := [.deletion vendorA true, .request execRequest approvalExec true]
+def deletedRebootEvents : List Event := [.deletion vendorA true, .request rebootRequest approvalReboot true]
+@[req "STA-20"] theorem deleted_reboot_refused :
+  (contactRun current deletedRebootEvents).verdict = some (.refused .deleted) := by decide +kernel
+@[req "STA-20"] theorem deleted_reboot_admitted :
+  (contactRun { current with deletionContact := false } deletedRebootEvents).dispatched.length = 1 := by decide +kernel
+
+def deletedCollectionEvents : List Event := [.deletion vendorA true, .request collectionRequest approvalRead true]
+def betweenCollectionsEvents : List Event := [.request collectionRequest approvalRead true,
+  .deletion vendorA true, .request { collectionRequest with call := 71 } approvalRead true]
+def openingDeletionEvents (rq : Request) (ap : Approval) : List Event :=
+  [.awaitConnection { rq with connection := some 70 } ap, .deletion vendorA true,
+   .connectionReady rq.call true]
+
+@[req "STA-20"] theorem deleted_command_refused :
+  (contactRun current deletedCommandEvents).verdict = some (.refused .deleted) := by decide +kernel
+@[req "STA-20"] theorem deleted_command_admitted :
+  (contactRun { current with deletionContact := false } deletedCommandEvents).dispatched.length = 1 := by decide +kernel
+@[req "STA-20"] theorem deleted_collection_refused :
+  (contactRun current deletedCollectionEvents).verdict = some (.refused .deleted) := by decide +kernel
+@[req "STA-20"] theorem deleted_collection_admitted :
+  (contactRun { current with deletionContact := false } deletedCollectionEvents).dispatched.length = 1 := by decide +kernel
+@[req "CHN-2"] theorem reused_connection_refused :
+  let w := contactRun current betweenCollectionsEvents
+  w.dispatched.length = 1 ∧ w.verdict = some (.refused .deleted) := by decide +kernel
+@[req "CHN-2"] theorem reused_connection_admitted :
+  (contactRun { current with deletionContact := false } betweenCollectionsEvents).dispatched.length = 2 := by decide +kernel
+@[req "CHN-2"] theorem opening_command_refused :
+  (contactRun current (openingDeletionEvents execRequest approvalExec)).verdict = some (.refused .deleted) := by decide +kernel
+@[req "CHN-2"] theorem opening_command_admitted :
+  (contactRun { current with deletionContact := false } (openingDeletionEvents execRequest approvalExec)).dispatched.length = 1 := by decide +kernel
+@[req "CHN-2"] theorem opening_collection_refused :
+  (contactRun current (openingDeletionEvents collectionRequest approvalRead)).verdict = some (.refused .deleted) := by decide +kernel
+@[req "CHN-2"] theorem opening_collection_admitted :
+  (contactRun { current with deletionContact := false } (openingDeletionEvents collectionRequest approvalRead)).dispatched.length = 1 := by decide +kernel
+
+def deletionUncertaintyEvents : List Event := [.request { execRequest with connection := some 70 } approvalExec true,
+  .deletion vendorA true, .closeConnection 70, .replay]
+@[req "STA-20"] theorem deletion_keeps_uncertainty :
+  let w := contactRun current deletionUncertaintyEvents
+  unresolved current w.memory machineA = [execRequest.call] ∧ w.dispatched.length = 1 := by decide +kernel
+
+def failedDeletionEvents : List Event := [.deletion vendorA false, .replay,
+  .request collectionRequest approvalRead true, .request execRequest approvalExec true]
+@[req "STA-3"] theorem failed_deletion_append_progress :
+  (contactRun { current with durableBeforeApply := true } failedDeletionEvents).dispatched.length = 2 := by decide +kernel
+
+def deletionAppendEvents : List Event := [.deletion vendorA false,
+  .request collectionRequest approvalRead true]
+@[req "STA-3"] theorem deletion_append_refused :
+  (contactRun current deletionAppendEvents).dispatched.length = 1 := by decide +kernel
+@[req "STA-3"] theorem deletion_append_admitted :
+  (contactRun { current with durableBeforeApply := false } deletionAppendEvents).dispatched = [] := by decide +kernel
+
+def vendorReadEvents : List Event := [.deletion vendorA true, .request readRequest approvalRead true,
+  .request { readRequest with call := 72 } { approvalRead with facts := factsRead + 1 } true]
+@[req "STA-24"] theorem deleted_vendor_read_authority :
+  let w := contactRun current vendorReadEvents
+  w.dispatched.length = 1 ∧ w.verdict = some (.refused .facts) := by decide +kernel
+
+def openingProgressEvents : List Event := [.awaitConnection collectionRequest approvalRead,
+  .connectionReady collectionRequest.call true,
+  .request { collectionRequest with call := 71 } approvalRead true]
+@[req "CHN-2"] theorem connection_progress :
+  let w := contactRun current openingProgressEvents
+  w.dispatched.length = 2 ∧ w.waiting = [] := by decide +kernel
+
+def replayedConnectionEvents : List Event := [.awaitConnection collectionRequest approvalRead,
+  .replay, .connectionReady collectionRequest.call true]
+@[req "STA-7"] theorem replayed_connection_refused :
+  let w := contactRun current replayedConnectionEvents
+  w.dispatched = [] ∧ w.journal = init.journal ∧ w.waiting = [] := by decide +kernel
+@[req "STA-7"] theorem replayed_connection_admitted :
+  (contactRun { current with pendingCleared := false } replayedConnectionEvents).dispatched.length = 1 := by decide +kernel
+
+def closedConnectionEvents : List Event := [.awaitConnection collectionRequest approvalRead,
+  .closeConnection 70, .connectionReady collectionRequest.call true]
+@[req "CHN-2"] theorem closed_connection_refused :
+  let w := contactRun current closedConnectionEvents
+  w.dispatched = [] ∧ w.journal = init.journal ∧ w.waiting = [] := by decide +kernel
+@[req "CHN-2"] theorem closed_connection_admitted :
+  (contactRun { current with pendingCleared := false } closedConnectionEvents).dispatched.length = 1 := by decide +kernel
+
+def siblingConnectionEvents : List Event := [.awaitConnection collectionRequest approvalRead,
+  .awaitConnection { collectionRequest with call := 71, connection := some 71 } approvalRead,
+  .closeConnection 70, .connectionReady 71 true]
+@[req "CHN-2"] theorem sibling_connection_progress :
+  let w := contactRun { current with pendingCleared := true } siblingConnectionEvents
+  w.dispatched.map (·.call) = [71] ∧ w.waiting = [] := by decide +kernel
+
+def deletedIndexEvents : List Event := [.deletion vendorA true,
+  .request { collectionRequest with target := .index index0 } approvalRead true]
+@[req "STA-20"] theorem deleted_index_refused :
+  (contactRun current deletedIndexEvents).verdict = some (.refused .deleted) := by decide +kernel
+@[req "STA-20"] theorem deleted_index_admitted :
+  (contactRun { current with deletionContact := false } deletedIndexEvents).dispatched.length = 1 := by decide +kernel
+
+/-- Existing admitted mapping fixture only; supplies no successor-allocation permission. -/
+def siblingContactStart : World :=
+  let base := init.journal.filter fun rec => match rec with
+    | .contactMapping t _ => t != .index index1 && t != .entry entryA
+    | _ => true
+  let j := Rec.contactMapping (.index index1) 11 :: .contactMapping (.entry entryA) 11 ::
+    .association (.vendor 11) entryA :: base
+  { init with journal := j, memory := j }
+def siblingContactEvents : List Event := [.deletion vendorA true,
+  .request { collectionRequest with target := .index index1 } approvalRead true,
+  .request { collectionRequest with call := 71, target := .entry entryA } approvalRead true,
+  .request { collectionRequest with call := 72 } approvalRead true]
+@[req "STA-20"] theorem same_entry_contact_preserved :
+  let w := run { current with deletionContact := true } farDone.external siblingContactStart siblingContactEvents
+  w.dispatched.map (·.call) = [71, 13] ∧ w.verdict = some (.refused .deleted) := by decide +kernel
+
+def missingContactStart : World :=
+  let j := init.journal.filter fun rec => rec != .contactMapping (.index index1) vendorA
+  { init with journal := j, memory := j }
+def missingContactEvents : List Event :=
+  [.request { collectionRequest with target := .index index1 } approvalRead true]
+@[req "STA-20"] theorem missing_contact_refused :
+  (run current farDone.external missingContactStart missingContactEvents).verdict = some (.refused .unmapped) := by decide +kernel
+@[req "STA-20"] theorem missing_contact_admitted :
+  (run { current with deletionContact := false } farDone.external missingContactStart missingContactEvents).dispatched.length = 1 := by decide +kernel
 
 end TauWeb.Dispatch

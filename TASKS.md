@@ -144,7 +144,7 @@ gated on it.
       and its role-table rendering/emission as needed; regenerate
       `docs/design/credential-vectors-v1.json`, update
       `docs/design/check-credential-vectors.py`, and regenerate the affected
-      `docs/design/allocation-witnesses-v2.json` from its producing declarations. Update
+      `docs/design/allocation-witnesses-v3.json` from its producing declarations. Update
       tightly coupled role/derivation version metadata, index and sheet-format metadata,
       and compatibility rules in that same change, without choosing them here. Amend
       `SEC-5` row 22, `STA-17` for encrypted old-vendor-key carry-forward and residual

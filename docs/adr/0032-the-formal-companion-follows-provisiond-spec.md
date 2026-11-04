@@ -219,3 +219,11 @@ requests with module 4 without changing Dispatch schema 8. Its separate authorit
 including its explicit provenance extension, is defined in
 [witness-file-v1](../design/witness-file-v1.md#authority-schema-2). These are symbolic checking
 inputs; no browser observation, implementation comparison or behavior amendment is recorded.
+
+*Amended 2026-11-03:* Allocation schema 3 carries local unsent terminalization and its durable
+append and sender fence; Dispatch schema 9 carries per-request deletion contact and pending
+connection cleanup; Authority schema 3 embeds that Dispatch projection. The witness provenance
+vocabulary is explicitly extended with **local writer decision**. Its event shapes and assumption
+boundaries are in [Allocation schema 3](../design/witness-file-v1.md#allocation-schema-3) and
+[Dispatch schema 9](../design/witness-file-v1.md#dispatch-schema-9). Rules remain in `STA-22b`,
+`STA-20`, `STA-24` and `CHN-2`; this record adds no capability or implementation evidence.
