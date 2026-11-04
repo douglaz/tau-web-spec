@@ -119,3 +119,24 @@ amendment — using this same aggregator's routing object, documented on its `ap
 absent from its `llms.txt`. On 2026-09-22 its `provider.only` path returned a `provider`
 field following the pin: the proxy's own report, and the label stays *requested*
 (`docs/findings/2026-09-22-provider-routing.md`, ADR-0007's fourth amendment).
+
+## Amended 2026-11-04: the session key is sealed and revoked at End
+
+[ADR-0052](./0052-no-local-event-ends-a-session.md) changes the key's custody. The procured
+session key is no longer held in browser memory only: it is sealed under the data key and
+carries on across explicit app Lock, pagehide, reload, worker shutdown and the browser freezing
+or discarding the page until End. It is the only credential this changes. The
+session still ends, and its key is still revoked, at End; Lock and close no longer end the
+session, so they no longer bring revocation. There is still one mint per session: replay
+restores the key from its sealed record and never the authority to re-mint, and the key's cap
+and original expiry are unchanged. Hidden, frozen and suspended time still counts toward that
+expiry, and a paid session still ends at its key's expiry or cap exhaustion.
+
+A key lost before its seal is durable leaves the session held until End or the key's original
+expiry: nothing runs, approvals and machines stay, and there is no second mint and no recovery
+of the same key. While held, exposure is bounded only conditionally, by the accepted cap where
+issuer acceptance was evidenced, with issuer enforcement and automatic top-up off; where
+acceptance was unseen, the hard bound is the account balance. Spend stays unaccounted, never
+zero. A live paid key now sits encrypted on the phone; that cost was accepted knowingly.
+An export never makes the sealed key usable from an import, and an import never revokes it.
+The body above records what was decided then.

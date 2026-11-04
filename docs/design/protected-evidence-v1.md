@@ -161,6 +161,15 @@ The closed `facts` inventory is `status:u16`, unless withheld, and optional `key
 
 The version-2 whole-fact withholding allowlist is exactly `status`, `key_id`, `accepted_cap`, `accepted_unit`, `accepted_expires`; entries use §1's form and slots, with complete §4 custody names and empty substitutions. No accepted field is byte-substituted. Canonical stored decoding checks closed members, types, field/provenance presence, retained comparisons, source applicability and the exact version-2 round trip. All reports, exports and later display copies preserve the requested/accepted distinction, provenance and unavailable presence. A later display omission changes no historical admission. An original withheld acceptance field supplies no usable session authority, even with an authenticated `exact` assessment. The requested tuple, old copied bounds, HTTP success or a marker alone supplies none either. A retained identifier remains available for the existing revocation path when acceptance fails; its withholding keeps the unavailable-identifier behavior below.
 
+The private paid-key seal in the existing encrypted mint terminal is governed by
+`ARC-31a` and session journal format 2 in the credential format. It is never part of this
+protected-fact shell, custody-name inventory, transcript, display projection or sheet.
+It creates no raw public duplicate of the response or issuer proof. All current accepted
+limit, source-validation, withholding and canonical decoding boundaries above remain.
+Preparing a seal consumes the existing counted encryption attempts; staged append atomicity
+and §5's combined bound apply unchanged. A seal without a committed validated terminal
+withholds the key on resume; import creates no key authority (`STA-16`).
+
 Version-1 mint records remain readable in their original canonical shape; their copied bounds are labeled requested and establish no independent issuer acceptance or new session authority. No old record is rewritten or silently promoted to version 2. Both versions retain their causal mint attempt and one-attempt barrier. The procured session-limit policy remains in ARC-31a.
 
 ### Shared terminal behavior

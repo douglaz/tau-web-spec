@@ -54,9 +54,8 @@ not. Dispatch remains subject to the barrier and standing disposition. Other res
 their checks and the single reset kind is unchanged. The companion cannot carry immediately
 preceding reads or refusal after a failed read append.
 An approval binds its rendering session. `STA-23` says "An ordinary visibility-only hide MUST NOT end or pause an unlocked session, clear its runtime authority, or invalidate its approvals."
-and "Explicit app Lock, pagehide including entry to the back-forward cache, reload, or worker shutdown MUST stop dispatch, end session workers and close channels; the worker clears its keys and credential buffers and returns locked."
-Replay ends the rendering session; the end is not journaled or modelled. Traces assume the convention that an
-ended session sends no request, and after replay only successor sessions act. The companion
+The End is journaled; replay alone ends no session. Traces assume the convention that an
+ended session sends no request. The companion
 assumes this convention and does not prove session termination. The separate `TauWeb.Authority.step`
 checking interpretation gates ordinary requests and publication over processed symbolic events,
 delegating admitted requests here unchanged; it does not prove browser termination either.
@@ -341,6 +340,7 @@ the approved entry; the reset prerequisites are `ready_to_reset`'s (`ARC-43`) in
 reset intent, which `STA-20b` requires durable before a planned reset into the installed
 system. -/
 inductive Rec
+  | sessionEnd (session : SessionId)
   /-- Already admitted deletion evidence; constituent validation remains its owner’s. -/
   | deleted (vendor : Nat)
   /-- Existing admitted resolution from an entry/index alias to its exact machine. -/
@@ -642,6 +642,7 @@ from the record alone. Every reader below takes a journal `inEffect` has already
   | .deliveryRebootResult c r boot observed => deliveryRebootResult p i c r boot observed
   | .disposition d =>
     (d.resource == i.resource || !p.dispositionOwnResource) && d.calls.contains i.call
+  | .sessionEnd _ => false
   | .contactMapping _ _ => false
   | .deleted _ => false
   | .intent _ => false
@@ -682,6 +683,7 @@ def resourcesOf (j : Journal) : List Resource := ((intentsOf j).map Intent.resou
 /-- Whether a record is a disposition on a resource. -/
 def disposes (r : Resource) : Rec → Bool
   | .disposition d => d.resource == r
+  | .sessionEnd _ => false
   | .contactMapping _ _ => false
   | .deleted _ => false
   | .intent _ => false
@@ -724,6 +726,7 @@ where
     | .observation o :: rest =>
       go (if read.isNone && admissible o && o.resource == r && o.kind == .activate
           then some o.standing else read) rest
+    | .sessionEnd _ :: rest => go read rest
     | .contactMapping _ _ :: rest => go read rest
     | .deleted _ :: rest => go read rest
     | .receipt _ :: rest => go read rest
@@ -785,6 +788,7 @@ def standingIn (p : Params) (r : Resource) : Journal → Option (Disposition × 
     | none => none
     | some s =>
       if i.resource == r && lapsesAt p rest r s.1.continuation i.kind then none else some s
+  | .sessionEnd _ :: rest => standingIn p r rest
   | .contactMapping _ _ :: rest => standingIn p r rest
   | .deleted _ :: rest => standingIn p r rest
   | .observation _ :: rest => standingIn p r rest
@@ -817,6 +821,7 @@ disposition is tested against the reading of what came before it. -/
   | .disposition d :: rest =>
     if acceptable p (inEffect p rest) d then .disposition d :: inEffect p rest
     else inEffect p rest
+  | .sessionEnd session :: rest => .sessionEnd session :: inEffect p rest
   | .contactMapping t v :: rest => .contactMapping t v :: inEffect p rest
   | .deleted v :: rest => .deleted v :: inEffect p rest
   | .intent i :: rest => .intent i :: inEffect p rest
@@ -1223,13 +1228,10 @@ inductive Event
   | approveReinstall (e : Entry) (call : CallId) (approval : Approval) (appended : Bool)
   /-- The operator's withdrawal of a dedicated reinstall approval (`STG-20`). -/
   | withdrawReinstall (e : Entry) (call : CallId) (approval : Approval) (appended : Bool)
-  /-- The worker is killed and replays the journal (`STA-7`). An approval binds its rendering
-  session. `STA-23` says "An ordinary visibility-only hide MUST NOT end or pause an unlocked session, clear its runtime authority, or invalidate its approvals."
-  and "Explicit app Lock, pagehide including entry to the back-forward cache, reload, or worker shutdown MUST stop dispatch, end session workers and close channels; the worker clears its keys and credential buffers and returns locked."
-  Replay ends it. That end is not journaled or modelled: traces assume an ended session sends no request, and this companion
-  does not prove termination. The two successor traces use `SEC-4`'s binding check. Showing the
-  approval as no longer usable with no withdrawal offer remains Markdown-only;
-  `acceptsWithdrawal` therefore does not read the session. -/
+  /-- Durable End is supplied by the authority layer. This module still assumes that an
+  ended session sends no request; it does not prove session termination. -/
+  | endSession (session : SessionId) (appended : Bool)
+  /-- Replay rebuilds journal knowledge; it does not end the rendering session. -/
   | replay
   deriving DecidableEq, Repr
 
@@ -1286,6 +1288,7 @@ the journal (`STA-2`, `STA-7`). -/
     if acceptsWithdrawal w.memory e c ap then
       { append p w (.reinstallWithdrawal e c ap) ok with verdict := none }
     else { w with verdict := none }
+  | .endSession session ok => { append p w (.sessionEnd session) ok with verdict := none }
   | .replay => { w with
       memory := w.journal
       verdict := none
@@ -1493,6 +1496,7 @@ theorem step_memory_eq (p : Params) (hp : p.durableBeforeApply = true) (x : Exte
       · exact append_memory_eq p hp w hw _ ok
       · exact hw
   | deletion v ok => exact append_memory_eq p hp w hw _ _
+  | endSession session ok => exact append_memory_eq p hp w hw _ ok
   | awaitConnection rq ap => exact hw
   | closeConnection c => exact hw
   | connectionReady call ok =>
@@ -1586,7 +1590,7 @@ def index2 : Nat := 2
 "including a session that re-enters or succeeds the one that raised it". -/
 def sessionA : SessionId := 1
 def sessionB : SessionId := 2
-/-- The successor after a second replay ends the first successor too. -/
+/-- A later successor acts after its predecessor's End, assumed outside this Dispatch trace. -/
 def sessionC : SessionId := 3
 
 def factsReset : Facts := 1
@@ -2798,11 +2802,12 @@ def withdrawalWithUnresolvedActivationEvents : List Event :=
     w.verdict = some (.refused (.barrier [10])) ∧
     w.dispatched.map (·.call) = [10] := by decide +kernel
 
-/-- Replay ends the rendering session without journaling that end. The successor cannot use
+/-- A durable End precedes successor work. Under the ended-session-sends-no-request
+assumption, the successor cannot use
 its approval: binding refuses it. Its own unmatched approval dispatches an ordinary rescue
 reset and opens nothing. No ended session acts here. -/
 def endedSessionApprovalEvents : List Event := approvedReinstallEvents.take 4 ++
-  [.replay, .request resetRequestB approvalReset true,
+  [.endSession approvalReset.session true, .request resetRequestB approvalReset true,
    .request resetRequestB2 approvalResetB true]
 
 @[req "STG-20"] theorem ended_session_approval_refused :

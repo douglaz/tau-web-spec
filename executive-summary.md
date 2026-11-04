@@ -66,10 +66,12 @@ designs its procedure for it, as Bitcoin custody does by sealing its nodes after
 
 A hidden surviving page is distinct from a closed or lost one. `STA-23` says "An ordinary visibility-only hide MUST NOT end or pause an unlocked session, clear its runtime authority, or invalidate its approvals."
 and "Phones may freeze or discard the page without a final callback; no background execution window, memory survival, socket continuity or timely cleanup is promised."
-Durable progress must survive actual interruption; continuing after loss requires recovery,
-never guessing or automatically repeating an uncertain command. App Lock remains the
-operator's way to end local sessions; permitted work and previously approved destructive
-actions may otherwise run unseen while the browser schedules them.
+Durable progress survives interruption under `STA-23`: Lock pauses, and the same eligible
+session resumes after reload or worker loss with its approvals and machines. End is the kill
+switch. A dormant session retains its machines; the paid session key is encrypted at rest on
+the phone. An approved destructive act can run after reload or kill without a new tap, while
+uncertain commands require reconciliation and are never automatically repeated. Nothing runs
+while the app is closed.
 
 **Actions split into two planes, off-machine and on.** The **cloud plane** is anything done off
 the operator's machines with a credential they supplied. Where an adapter types the action it is

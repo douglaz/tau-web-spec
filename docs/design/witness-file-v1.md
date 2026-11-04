@@ -12,8 +12,11 @@ the local unsent terminal proof, durable append and sender fence extend the cere
 Declaration and relay keep schema 1:
 [`declaration-witnesses-v1.json`](./declaration-witnesses-v1.json) from `TauWeb.Declaration`,
 [`relay-witnesses-v1.json`](./relay-witnesses-v1.json) from `TauWeb.Relay`. The dispatch
-module uses schema 9 in [`dispatch-witnesses-v9.json`](./dispatch-witnesses-v9.json) from
-`TauWeb.Dispatch`. Schema 9 adds per-request deletion contact; see its section below. Schema 8 added canonical received-ID withholding, quarantined evidence,
+module uses schema 10 in [`dispatch-witnesses-v10.json`](./dispatch-witnesses-v10.json) from
+`TauWeb.Dispatch`. Schema 10 adds `end_session` with `session` and `appended`, and the
+`session_ends` knowledge list. Dispatch retains the assumption that an ended session sends no
+request; its End record neither enforces request admission nor proves browser termination.
+Schema 9 adds per-request deletion contact; see its section below. Schema 8 added canonical received-ID withholding, quarantined evidence,
 retained-evidence conflict checks and the pre-send identity-exclusion guard/refusal
 (see the schema-8 section below). Schema 7 added receipt bindings, received results and retained receipts
 (see the schema-7 section below). Amended 2026-10-18: schema 6 adds `commandHold` and `rebootBootChange`,
@@ -45,8 +48,8 @@ the trace that moved.
 
 | Member | What it holds |
 |---|---|
-| `schema` | `3` for allocation and authority; `1` for declaration and relay; `9` for dispatch and `5` for pins. A change to any shape below is a new version and a new file name for that module. |
-| `module` | The inventory name, lower-case: `allocation`, `declaration`, `relay`, `dispatch`, `pins` for the host-pin lifecycle, and `authority` for the separate processed-authority file ([Authority schema 3](#authority-schema-3)). |
+| `schema` | `3` for allocation and `4` for authority; `1` for declaration and relay; `10` for dispatch and `5` for pins. A change to any shape below is a new version and a new file name for that module. |
+| `module` | The inventory name, lower-case: `allocation`, `declaration`, `relay`, `dispatch`, `pins` for the host-pin lifecycle, and `authority` for the separate processed-authority file ([Authority schema 4](#authority-schema-4)). |
 | `namespace` | The Lean namespace the traces' declarations live in. |
 | `bound` | `declaration`, the tagged `bound` the decided property and the emitter share, and its value rendered under the module's own members. Allocation (`TauWeb.Allocation.bound`): `events`, the number, and `alphabet`, the events the enumeration draws from, including the ceremony. Declaration (`TauWeb.Declaration.bound`): `base`, the declaration and machine every case starts from; `presences`, per field, what the field is swept through, `missing` written as that word since a list has no absent member; `observations`, what the machine is made to show for it; `tenancies`. Relay (`TauWeb.Relay.bound`): `events`, the number; `alphabet`; and `start`, the opened connection every trace of the enumeration runs from. Dispatch (`TauWeb.Dispatch.bound`): `events`, the number; `alphabet`; and `start`, the journal every trace runs from, which carries the harness's associations and nothing dispatched. Pins (`TauWeb.Pins.bound`): the same shape; `start` carries one earlier `/rescue/last` snapshot, plus the fixed `planted_senders` list defined below from that starting knowledge and the alphabet. |
 | `witnesses` | The named traces, one per decided witness, in the order the module states them. |
@@ -64,14 +67,46 @@ Both arrays hold traces of one shape:
 
 <a id="authority-schema-2"></a>
 
-## Authority schema 3
+## Authority schema 4
 
-[`authority-witnesses-v3.json`](./authority-witnesses-v3.json) is the separate processed-authority
-checking interpretation. Authority schema 3 embeds Dispatch schema 9, including the classified request and deletion/waiting projections. Its own event vocabulary and guards remain those of authority schema 2. The authority
+[`authority-witnesses-v4.json`](./authority-witnesses-v4.json) is the separate processed-authority
+checking interpretation. Authority schema 4 embeds Dispatch schema 10, including the classified request and deletion/waiting projections. It splits irreversible session Ends from incarnation fences, adds pause/resume and sealed-terminal withholding, and makes ceremony entry a pause. The authority
 file has the common header/trace envelope, an empty `enumeration`, and a `bound` naming
 `TauWeb.Authority.witnessBound`: a checked length cap for named finite histories, not an
 exhaustive alphabet. All identities and original key/origin/cap/expiry fields are symbolic
 ordinals, never credentials or actual clock values.
+
+Schema 4 makes ceremony completion explicit:
+`finish_ceremony` carries `completion` (`full_reentry` or `skipped`), `same_seed`
+(a validation hypothesis for full re-entry, null for skip), and `appended` (the admitted
+durable-completion outcome). Invalid, inactive or failed-append completion supplies no
+ordinary authority. This is no cryptographic or real storage-ordering proof.
+Execution freshness checks incarnation names against current and retired executions; exact
+worker/session lookup remains independently required. Freshness is checked rather than
+assumed. Binding lifetime is
+session-level and independent of execution fences. The additional pairs cover these checks,
+resume authorization/unlock/validation, sticky lost-key state, owed ceremony completion,
+ceremony entry while locked and binding growth while paused or locked. A successful `unlock`
+stands for the local passphrase entry; ceremony entry from an already unlocked store has no
+further passphrase event in this interpretation.
+Arbitrary-state boundary traces carry their complete `start` projection: an already fenced
+dormant actor still owns its binding, and an archived actor or a fresh execution identity
+cannot erase a retained session End. These inputs do not claim to be histories reachable
+from the strong initial state; the separate retirement regression and repeated-resume
+progress traces exercise that transition history directly.
+
+The emitted vocabulary inventory below is regenerated by `tools/check_witnesses.py --write`
+from the companion's emission and checked by the same gate. It enumerates shape only; the
+owning requirements and the prose below retain their authority. No key material is emitted.
+
+<!-- witness-vocabulary: authority -->
+| Emitted inventory | Value |
+|---|---|
+| schema | `4` |
+| events | `actionable_publication, assess_key, end_session, enter_ceremony, finish_ceremony, fresh_admission, grow_binding, hide, invalidate, ordinary_request, pause, received_record, replace_end, replay, resume, sealed_terminal, suspend, unlock, validate_continuation, visible` |
+| knowledge | `actors, ceremony, ceremony_owed, dispatch, ended_sessions, fenced, issued, locked, published` |
+| guards | `bindingSessionLifetime, ceremonyActive, ceremonyAppend, ceremonyCompletion, ceremonyHideLocks, ceremonyPending, ceremonyRelease, ceremonyUnlocked, endFence, exclusiveBinding, executionFresh, growthAvailable, growthExclusive, hidePreserves, individualOnly, lostKeySticky, machineMembership, pauseRequired, preserveKnowledge, procuredEligibility, publicationDispatch, publicationOrigin, requestOriginal, requestSession, resumeAuthorized, resumeTerminal, resumeUnlocked, resumeValidation, scopedExpiry, sealedTerminalRequired, unsentContinuation, validationMatches, validationRequired, validationTerminal, workerIdentity` |
+<!-- /witness-vocabulary -->
 
 Schema 2 adds the explicit `requestSession`, `machineMembership`, `growthExclusive` and
 `requestOriginal` guard assumptions for isolated counterfactuals of existing checks. The event,
@@ -99,11 +134,11 @@ non-operator global-end events, and `harness publication`, for the harness's act
 publication attempt. These labels are symbolic inputs, not evidence that a browser notification
 arrived or an adapter supplied a publication. Other events retain `operator act`, `model request`, `adapter observation`,
 `disposition` or `replay`; current readiness/issuer facts remain abstract hypotheses even where
-their provenance is `adapter observation`. This extension was introduced in authority schema 2 and is retained in schema 3.
+their provenance is `adapter observation`. This extension was introduced in authority schema 2 and is retained in schema 4.
 
 Events distinguish processed `hide`, `visible`, `suspend`, invalidation, operation-specific
-validation, individual/global end (including pagehide/bfcache, reload and shutdown), ceremony
-entry, authorized unlock/fresh admission/binding growth, key assessment, ordinary request,
+validation, individual/global End, pause (pagehide/bfcache, reload, shutdown and discard), resume,
+sealed-terminal evidence, ceremony entry/completion, authorized unlock/fresh admission/binding growth, key assessment, ordinary request,
 actionable publication, separately authorized received record, and replay. A received record
 uses Dispatch's existing observation/receipt/reboot/disposition shape and carries authorization,
 writer ownership and store access; it is not a new query send or a universal harness exemption.
@@ -111,7 +146,8 @@ The ordinary-request event alone carries its actual intent-append outcome.
 
 Every step is evaluated by `TauWeb.Authority.step`. Its `knowledge` contains the existing
 Dispatch knowledge projection plus actors/bindings, interruption revisions, particular validation,
-key withholding, irreversible fences, store/ceremony flags, issued origins and publications.
+key withholding, paused/committed-terminal/lost-key facts, irreversible incarnation fences
+and ended-session identities, store/ceremony flags, issued origins and publications.
 A request reports `authority_eligible`, actual new `sent` and, when delegated, the actual
 `delegated_verdict`; absence of delegation assigns no cross-layer runtime refusal precedence.
 A publication reports whether the publication list grew; recording reports whether the durable
@@ -127,7 +163,7 @@ comparison or evidence of scheduling, physical fencing, durability or issuer enf
 
 For the existing module schemas in the table below, each `event` has a `kind` and a
 `provenance` from ADR-0032's closed vocabulary; the members beside them are the event's
-arguments. Authority schema 3's explicit extension and event shapes are described above.
+arguments. Authority schema 4's explicit extension and event shapes are described above.
 Additional allocation events and outcomes are defined in [Allocation schema 3](#allocation-schema-3);
 additional deletion, opening and closure events are defined in [Dispatch schema 9](#dispatch-schema-9).
 
@@ -193,7 +229,9 @@ a session's destroy is refused; the paired trace without `sessionDestroyRefused`
 former admission as a trap, not a permission a comparison can infer. `ARC-21` runs abandonment
 "never through a session"; the flow's destroy intent is read outside request admission by
 `TauWeb.Dispatch.abandonment_ends_at_its_destroy_alone`.
-A replay ends every session (`STA-23`); no named witness has a session request after a replay
+Replay alone ends no session (`STA-23`); Dispatch assumes an ended session sends no request.
+The durable End in the ended-approval trace records history under that assumption.
+No named witness makes an ended-session request after a replay
 it preceded. The bounded enumeration retains a superset of realizable traces, so its universal
 property is stronger.
 The file holds no trace in which a `register_key` is requested under a standing disposition: the journal holds nothing that says a

@@ -65,7 +65,7 @@ all prior mappings and associations. It is local journal evidence, never a negat
 receipt or a portable certificate that an imported prefix has no later sends. The sole-writer
 check, sender fence and admission duties have one home in `STA-22b`.
 
-Recovery payload v4 and derivation v1 remain unchanged. A consumed tombstone and its existing
+Derivation v1 remains unchanged; the history export amendment below versions the recovery payload. A consumed tombstone and its existing
 entry/predecessor metadata survive export under the existing allocation metadata; recovering
 that tombstone does not create fresh failure proof or authority. This local journal proof is
 not a new mandatory recovery-payload field, and existing payloads remain readable. See
@@ -119,6 +119,35 @@ wrapping key after unlocking; hold the data key only until lock. No local unlock
 is derived from the recoverable seed: doing so would require persisting the seed in order
 to unlock itself. Credential inventory rows 18–20 cover this boundary.
 
+## Session journal format 2
+
+This journal version is distinct from derivation v1, local wrapping envelope v1/v2, sheet
+envelope v1, recovery payload v5 and every witness schema. New event/snapshot plaintext
+wrappers have `journal_version:2`, authenticated by their existing encrypted record. A
+pre-End wrapper (absent version or journal version 1) retains its original validation and
+replays all its sessions as ended. A version-2 suffix can follow that validated prefix without
+rewriting old ciphertext: only admissions in the suffix can start a live session. Reject an
+unknown journal version or a version-1 record after a version-2 suffix. Snapshots retain the
+version boundary, admitted session identities, durable Ends, approvals and binding history;
+they cannot promote prefix sessions to live authority.
+
+The only new event kind is `end`, with session identity and one reason from `explicit`,
+`replace`, `expiry`, `cap_exhaustion`, `abandon`. End is irreversible, including for a
+not-currently-running session; an idempotent repeat cannot revive it. The existing admission
+approval remains `STA-3`'s. The existing mint terminal gains a private paid-key member inside
+its encrypted record, associated with the original session/account/choice/mint identity and
+issuer-validated terminal; its eligibility and loss hold are `ARC-31a`'s. In the format-2 wrapper of that existing mint-terminal event, `evidence` retains the
+unchanged protected terminal object and optional `paid_key` holds the private procured key
+only with its successful validated terminal. It is encrypted once as part of that record,
+never another public evidence field. Every original closed-object and refusal check applies
+to `evidence`; the key member is absent from projections and imports supply no usability.
+No separate seal or resume event kind is added. Staged append recovery, nonce uniqueness, combined encryption
+attempt budget, canonical chain bytes and record/snapshot AAD remain unchanged. Invalid
+terminal evidence, a missing terminal or a seal alone supplies no usable key.
+
+Import is a separate history-only operation under `STA-16`, even for a format-2 backup.
+A copied paid-key seal never becomes usable through import and import revokes no old-phone key.
+
 ## Fenced local-key birth extension, 2026-10-28
 
 Fresh local-store creation uses an envelope with the same exact fields, types, binary
@@ -150,10 +179,10 @@ nonce and AAD `tau-web/sheet/v1/<id>/payload`; only the wrapped key persists. Th
 envelope adds `payload_nonce` and `payload` to the fields above. Never reuse a local-store
 key or envelope as a sheet. Local and sheet purposes cannot be interchanged.
 
-The authenticated UTF-8 JSON payload contains `version: 4`, `derivation_version: 1`,
+New exports use an authenticated UTF-8 JSON payload containing `version: 5`, `derivation_version: 1`,
 `seed_id`, `exported_at` (UTC RFC 3339), `journal_sequence`, `next_indices` (machine/pass/
 handoff), `seed_backup`, `allocations` (including consumed tombstones), `host_pins`,
-`host_pin_installations`, `relay_discovery`, `exposure_ledger`,
+`host_pin_installations`, `relay_discovery`, `exposure_ledger`, `artifact_history`,
 `placements: [{machine_index, application_name, name, path, placed_at}]`, `machine_states`,
 and optional
 `inference_account_credential`. Each allocation has its family, index, stable
@@ -178,11 +207,51 @@ Imported starting URLs never replace the compiled discovery set B.
 
 Version 3 is accepted only by an explicit compatibility conversion that preserves every other
 version-3 field and its validation, wraps each recorded relay URL as `{"url":R}`, and supplies
-`relay_discovery:[]`. Never infer publisher identity from URL equality. Version 4 exports use only
+`relay_discovery:[]`. Never infer publisher identity from URL equality. Versions 4 and 5 use only
 the typed locator. Unknown payload versions and versions 1 and 2 remain unsupported. For
 publisher-key mismatch and migration, see `CHN-19`.
 This compatibility conversion changes neither the v1 encryption envelope nor derivation version 1,
 AAD, algorithms or known-answer vectors.
+
+### Actual artifact history, payload version 5
+
+`artifact_history` is a required array with exactly one entry per non-jump machine, including
+retained destroyed-machine records: `{machine_index, known_unpinned, legacy}`.
+`known_unpinned` contains distinct increasing installation ordinals. Artifact history is
+independent of host-pin group creation: ordinal zero can record an actual initial
+installation/order dispatch before any publication, job-read or attest opens pin group zero.
+A later ordinal must follow an actual reinstall boundary; no ordinal is created by acceptance.
+`known_unpinned` records actual dispatched unpinned installations, never acceptance alone.
+`legacy` is exactly `"none"`, `"unpinned"` or `"unknown"`: what conversion from an older
+payload established about installations it recorded no ordinal for, and `"none"` on every
+entry a version-5 export creates; `"none"` records only that no conversion line below applied
+and asserts no clean past. An empty `known_unpinned` is explicit `[]`. Current unpinned status requires
+its current ordinal in `known_unpinned`; pinned present erases neither field. Reject missing,
+duplicate, out-of-range or malformed entries before binding; the allowed initial zero with no
+pin group is not out of range. Preserve both fields on subsequent exports and migration to a
+new machine index; do not infer observations or pins from them. Their display belongs to
+`STA-16`.
+
+Validate version 3 under its original rules before its explicit locator conversion above,
+and version 4 under all its original rules, before converting either to version 5 in memory.
+A machine's own recorded `installation` value keeps its meaning: a current `"unpinned"`
+installation is a known unpinned ordinal. An older payload's unpinned-installation label stands
+on the machine's bound set, not on a machine. That set is the one the exported exposure ledger's
+latest entry for the labelled machine records (`STA-10`: an entry "records the set that machine
+was bound in"), including any retained destroyed machine that entry names. When that label
+stands on a bound set of more than one machine, each machine of the set restores with `legacy:"unknown"`: history unknown, shown
+and restated at binding as `SEC-14` requires of installation history, and never unpinned or
+clean history for any of them. When the set has one machine, the history belongs to that
+machine: `legacy:"unpinned"`. Every other converted entry has `legacy:"none"`. Absent required
+data never becomes empty history: conversion creates no group, ordinal, observation or pin,
+and current unpinned status with no pin group preserves the actual initial ordinal zero with
+`host_pin_installations:[]` and `host_pins:[]` unchanged.
+
+The v3-to-v4 conversion remains exactly the locator conversion above. The v4-to-v5 history
+conversion changes no allocation, pin, observation, application, placement or seed-backup
+validation. Versions 1, 2 and unknown versions are still refused. New exports always retain
+the v5 history, even after a pinned successor. Sheet envelope v1, derivation v1, algorithms,
+AAD and known-answer vectors stay unchanged.
 
 Each `host_pins` entry names the host-key route that produced it: `retrieve` (`CHN-R1`),
 `attest` (`CHN-R5`), `jump_host` (`CHN-R6`) or `lnvps_retrieve` (`CHN-R7`). The last
@@ -241,7 +310,7 @@ add no fact after separate partial observations, so no complete observation is
 required in the group. Later refused observations may add facts after that prefix;
 they remain recorded and MUST NOT invalidate an already admitted pin. Missing
 or invalid history MUST NOT become empty history. `STA-16` owns what Restore does with
-these facts. These fields remain required in the version-4 payload and in the version-3
+these facts. These fields remain required in payload version 4 and later and in the version-3
 compatibility input; the envelope and derivation are unchanged.
 
 `applications` is a required JSON array of objects, each with exactly the required members
@@ -276,7 +345,7 @@ An application recorded only on another machine cannot satisfy the reference. No
 value, digest, scan key, byte length or other value-derived reference is included. Payload
 versions 1 and 2 and unknown payload versions are unsupported: refuse them explicitly. Version 3
 has only the explicit compatibility conversion above, and missing placement or application lists
-are never interpreted as empty. The version-4 payload changes neither the v1 envelope, derivation
+are never interpreted as empty. Payload versions 4 and 5 change neither the v1 envelope, derivation
 paths, algorithms, AAD nor known-answer vectors.
 Reject unknown versions, duplicate identities/indices and malformed fields before binding
 anything; imported data never creates a binding without vendor reconciliation and an
@@ -289,7 +358,7 @@ operator act. Never merge two counters and call the result proof that a backup i
 missing, malformed or duplicate record, duplicate object members, an unknown completion,
 or a seed id different from the payload's. Restore brings it back into the journal; an
 imported seed owes no ceremony and allocates nothing regardless of this record (`STA-22b`).
-Replace clears it for the fresh seed. This member remains required in payload version 4 and the
+Replace clears it for the fresh seed. This member remains required in payload version 4 and later and the
 version-3 compatibility input; the envelope and derivation stay unchanged.
 
 Export asks the operator to retain both the seed backup and the separate sheet passphrase.

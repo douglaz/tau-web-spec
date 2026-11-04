@@ -180,6 +180,49 @@ def pair_findings(corpus, name):
     return findings
 
 
+NOTE_BEGIN = "<!-- witness-vocabulary: authority -->"
+NOTE_END = "<!-- /witness-vocabulary -->"
+
+
+def authority_note(corpus):
+    """A derived schema inventory, not another normative description of the protocol."""
+    traces = corpus["witnesses"]
+    kinds = sorted({step["event"]["kind"] for trace in traces for step in trace["steps"]})
+    knowledge = sorted({key for trace in traces for key in trace["start"]})
+    guards = sorted({key for trace in traces for key in trace["assumptions"]
+                     if key not in ("dispatch", "external_hypotheses")})
+    rows = [("schema", str(corpus["schema"])), ("events", ", ".join(kinds)),
+            ("knowledge", ", ".join(knowledge)), ("guards", ", ".join(guards))]
+    return NOTE_BEGIN + "\n| Emitted inventory | Value |\n|---|---|\n" + "".join(
+        f"| {name} | `{value}` |\n" for name, value in rows) + NOTE_END
+
+
+def sync_authority_note(emitted, write):
+    sources = [e for e in emitted if os.path.basename(e).startswith("authority-witnesses-v")]
+    if len(sources) != 1:
+        return []  # The emission/equality gate owns absent or obsolete module files.
+    try:
+        with open(sources[0], encoding="utf-8") as source:
+            expected = authority_note(json.load(source))
+    except (OSError, ValueError, KeyError, TypeError):
+        return []  # Existing corpus validation owns malformed emission.
+    note = os.path.join(COMMITTED, "witness-file-v1.md")
+    try:
+        with open(note, encoding="utf-8") as source:
+            document = source.read()
+    except OSError:
+        return ["docs/design/witness-file-v1.md authority vocabulary note is missing"]
+    if document.count(NOTE_BEGIN) != 1 or document.count(NOTE_END) != 1:
+        return ["docs/design/witness-file-v1.md has missing or duplicate authority vocabulary markers"]
+    start, end = document.index(NOTE_BEGIN), document.index(NOTE_END) + len(NOTE_END)
+    if write:
+        with open(note, "w", encoding="utf-8") as destination:
+            destination.write(document[:start] + expected + document[end:])
+        return []
+    return ([] if document[start:end] == expected else
+            ["docs/design/witness-file-v1.md authority vocabulary differs from emission"])
+
+
 def main():
     if not os.path.isdir(EMITTED):
         print(f"FAIL: {EMITTED} missing -- run tools/check_formal.sh first "
@@ -192,8 +235,11 @@ def main():
         for e in emitted:
             shutil.copyfile(e, os.path.join(COMMITTED, os.path.basename(e)))
             print(f"wrote docs/design/{os.path.basename(e)}")
-        return 0
-    drift = []
+        findings = sync_authority_note(emitted, True)
+        if findings:
+            print("WITNESS DRIFT:", findings)
+        return 1 if findings else 0
+    drift = sync_authority_note(emitted, False)
     pairs = []
     for e in emitted:
         name = os.path.basename(e)

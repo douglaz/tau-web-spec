@@ -2,8 +2,9 @@ import TauWeb.Dispatch
 /-! Processed local authority composed with Dispatch, a checking interpretation of `STA-23`,
 `SEC-1`, `SEC-4` and the conditional `ARC-31a` boundary (ADR-0032).
 
-The single writer and current store custody are assumptions, as in Dispatch. A processed end
-stands for stopped workers and closed channels; it proves neither. Identities are symbolic,
+The single writer and current store custody are assumptions, as in Dispatch. A processed End
+stands for an already durably committed End with stopped workers and closed channels; it
+proves none of those implementation facts. Failed End append supplies no processed End input. Identities are symbolic,
 never credentials. Operator admission/binding, connection/scan readiness, safe-unsent evidence
 and issuer facts enter explicitly. No browser scheduling, complete lifecycle notification,
 transport cancellation, erasure, issuer enforcement or arithmetic is established here.
@@ -105,6 +106,9 @@ structure Actor where
   revision : Nat := 0
   validation : Option Validation := none
   keyWithheld : Bool := false
+  paused : Bool := false
+  sealedTerminal : Bool := false
+  lostKey : Bool := false
   deriving DecidableEq, Repr
 
 structure Candidate where
@@ -120,10 +124,26 @@ structure Issued where
 
 @[req "STA-23"] structure Params where
   endFence : Bool := true
+  pauseRequired : Bool := true
+  resumeTerminal : Bool := true
+  sealedTerminalRequired : Bool := true
+  executionFresh : Bool := true
+  bindingSessionLifetime : Bool := true
+  resumeValidation : Bool := true
+  resumeAuthorized : Bool := true
+  resumeUnlocked : Bool := true
+  lostKeySticky : Bool := true
+  ceremonyPending : Bool := true
+  ceremonyCompletion : Bool := true
+  ceremonyAppend : Bool := true
+  ceremonyActive : Bool := true
+  ceremonyRelease : Bool := true
+  ceremonyUnlocked : Bool := true
   workerIdentity : Bool := true
   requestSession : Bool := true
   machineMembership : Bool := true
   growthExclusive : Bool := true
+  growthAvailable : Bool := true
   requestOriginal : Bool := true
   hidePreserves : Bool := true
   ceremonyHideLocks : Bool := true
@@ -148,6 +168,8 @@ structure World where
   actors : List Actor := []
   /-- Append-only fences, including identities not presently admitted. Never replayed as keys. -/
   fenced : List Identity := []
+  /-- Admitted durable session-End projection, separate from incarnation fences. -/
+  ended : List Dispatch.SessionId := []
   locked : Bool := true
   ceremony : Bool := false
   /-- This active/interrupted ceremony only; stored completion records are outside this state. -/
@@ -164,21 +186,57 @@ def updateActor (w : World) (who : Identity) (f : Actor → Actor) : World :=
   { w with actors := w.actors.map fun a => if a.who == who then f a else a }
 
 @[req "STA-23"] def endOne (w : World) (who : Identity) : World :=
-  { w with fenced := who :: w.fenced }
+  { w with fenced := who :: w.fenced, ended := who.session :: w.ended }
 
 @[req "STA-23"] def endAll (w : World) : World :=
-  { w with fenced := w.actors.map (·.who) ++ w.fenced, locked := true, ceremony := false }
+  { w with fenced := w.actors.map (·.who) ++ w.fenced, ended := w.actors.map (·.who.session) ++ w.ended, locked := true, ceremony := false }
 
-@[req "SEC-1"] def bindingFree (w : World) (who : Identity) (entries : List Entry) : Bool :=
-  w.actors.all fun a => a.who == who || w.fenced.contains a.who ||
+/-- Pausing retains bindings and approvals; no End is applied. -/
+@[req "STA-23"] def pauseAll (w : World) : World :=
+  { w with locked := true, ceremony := false, actors := w.actors.map fun a =>
+      { a with paused := true, interrupted := true, revision := a.revision + 1, validation := none } }
+
+/-- Incarnation names may not collide with current or retired executions.
+Fresh symbolic names are an input convention, but reuse is also checked here. -/
+@[req "STA-23"] def freshExecution (p : Params) (w : World) (next : Identity) : Bool :=
+  !p.executionFresh ||
+    !(w.actors.any fun a => a.who.incarnation == next.incarnation) &&
+    !(w.fenced.any fun i => i.incarnation == next.incarnation)
+
+def ceremonyFree (p : Params) (w : World) : Bool :=
+  !w.ceremony && (!p.ceremonyPending || !w.ceremonyOwed)
+
+def available (p : Params) (w : World) : Bool := !w.locked && ceremonyFree p w
+
+/-- Resume replaces an execution incarnation, never the session's authority or limits.
+The authorization input includes stopped predecessor/single-writer custody as an assumption. -/
+@[req "STA-23"] def resume (p : Params) (w : World) (old : Identity) (incarnation : Nat) (ok : Bool) : World :=
+  let next := { old with incarnation, worker := incarnation }
+  match actor p w old with
+  | none => w
+  | some a =>
+    if (!p.resumeAuthorized || ok) && (!p.resumeUnlocked || !w.locked) &&
+        ceremonyFree p w && freshExecution p w next &&
+        (!p.endFence || (!w.ended.contains next.session && !w.fenced.contains next)) then
+      { w with fenced := old :: w.fenced, actors := w.actors.map fun b =>
+          if b.who == a.who then
+            { b with who := next, paused := false, interrupted := p.resumeValidation, revision := b.revision + 1, validation := none, lostKey := (p.lostKeySticky && b.lostKey) || (match b.path with
+                | .independent => false | .procured _ => !b.sealedTerminal), keyWithheld := (match b.path with | .independent => false | .procured _ => true) }
+          else b }
+    else w
+
+@[req "SEC-1"] def bindingFree (p : Params) (w : World) (who : Identity) (entries : List Entry) : Bool :=
+  w.actors.all fun a => a.who == who ||
+    (if p.bindingSessionLifetime then w.ended.contains a.who.session else w.fenced.contains a.who) ||
     !(entries.any fun e => a.bound.contains e)
 
 /-- Approval equality remains Dispatch's; this is live authority and actual symbolic binding. -/
 @[req "STA-23"] def authority (p : Params) (w : World) (work : Work) : Bool :=
-  !w.locked && !w.ceremony &&
+  available p w &&
   match actor p w work.who, Dispatch.resolve w.dispatch.memory work.request.target with
   | some a, some r =>
-    (!p.endFence || !w.fenced.contains a.who) &&
+    (!p.endFence || (!w.fenced.contains a.who && !w.ended.contains a.who.session)) &&
+    (!p.pauseRequired || !a.paused) &&
     (!p.requestSession || work.request.session == a.who.session) &&
     match r with
     | .machine e => !p.machineMembership || a.bound.contains e
@@ -189,7 +247,8 @@ def updateActor (w : World) (who : Identity) (f : Actor → Actor) : World :=
   if !p.procuredEligibility then true else
   match a.path with
   | .independent => true
-  | .procured original => !a.keyWithheld &&
+  | .procured original => (!p.sealedTerminalRequired || a.sealedTerminal) &&
+    (!p.resumeTerminal || !a.lostKey) && !a.keyWithheld &&
     match ev.key with
     | some k => (!p.requestOriginal || k.original == original) && k.valid
     | none => false
@@ -243,17 +302,36 @@ structure Custody where
   deriving DecidableEq, Repr
 
 inductive EndReason
-  | lock | pagehide | reload | shutdown
+  | explicit | replace | expiry | capExhaustion | abandon
   deriving DecidableEq, Repr
+
+inductive PauseReason
+  | lock | pagehide | reload | shutdown | discard
+  deriving DecidableEq, Repr
+
+/-- The full-reentry fact is the existing same-seed validation hypothesis, not cryptography. -/
+inductive Completion
+  | fullReentry (sameSeed : Bool)
+  | skipped
+  deriving DecidableEq, Repr
+
+def Completion.valid : Completion → Bool
+  | .fullReentry sameSeed => sameSeed
+  | .skipped => true
 
 inductive Local
   | hide | visible
   | suspend (who : Identity)
   | invalidate (who : Identity)
   | validate (work : Work) (evidence : Evidence)
-  | endSession (who : Identity)
-  | globalEnd (reason : EndReason)
+  | endSession (who : Identity) (reason : EndReason)
+  /-- Replace is the only global End path; other causes name affected sessions. -/
+  | replace
+  | pause (reason : PauseReason)
+  | resume (old : Identity) (incarnation : Nat) (authorized : Bool)
+  | sealTerminal (who : Identity) (appended : Bool)
   | enterCeremony
+  | finishCeremony (completion : Completion) (appended : Bool)
   | unlock (authorized : Bool)
   | admit (candidate : Candidate) (authorized : Bool)
   | grow (who : Identity) (entry : Entry) (authorized : Bool)
@@ -288,7 +366,7 @@ def boundary (p : Params) (w : World) (work : Work) (ev : Evidence) : World :=
 /-- Local state only. End fences are separate from history and never cleared by admission. -/
 def localAuthorityStep (p : Params) (dp : Dispatch.Params) (w : World) : Local → World
   | .hide => if w.ceremony then
-      if p.ceremonyHideLocks then endAll w else w
+      if p.ceremonyHideLocks then pauseAll w else w
     else if p.hidePreserves then w else endAll w
   | .visible => w
   | .suspend who | .invalidate who => updateActor w who fun a =>
@@ -303,18 +381,32 @@ def localAuthorityStep (p : Params) (dp : Dispatch.Params) (w : World) : Local �
         else w
       | _, _ => w
     else w
-  | .endSession who => if p.individualOnly then endOne w who else endAll w
-  | .globalEnd _ => endAll w
-  | .enterCeremony => { endAll w with locked := false, ceremony := true, ceremonyOwed := true }
+  | .endSession who _ => if p.individualOnly then endOne w who else endAll w
+  | .replace => endAll w
+  | .pause _ => pauseAll w
+  | .resume old incarnation ok => resume p w old incarnation ok
+  | .sealTerminal who ok => if ok then updateActor w who fun a =>
+      { a with sealedTerminal := true } else w
+  -- `.unlock true` stands for the local passphrase entry; ceremony entry or re-display while
+  -- locked waits for it. Entry from an already unlocked store needs no further event here.
+  | .enterCeremony => if (p.ceremonyUnlocked && w.locked) then w
+    else { pauseAll w with locked := false, ceremony := true, ceremonyOwed := true }
+  | .finishCeremony choice ok =>
+    if (!p.ceremonyActive || w.ceremony) && (!p.ceremonyCompletion || choice.valid) && (!p.ceremonyAppend || ok) then
+      { w with ceremony := false, ceremonyOwed := !p.ceremonyRelease }
+    else w
   | .unlock ok => if ok then { w with locked := false } else w
   | .admit c ok =>
-    if ok && !w.locked && !w.ceremony && !w.fenced.contains c.who &&
-      !(w.actors.any fun a => a.who.incarnation == c.who.incarnation || a.who.session == c.who.session) &&
-      (!p.exclusiveBinding || bindingFree w c.who c.bound) then
+    if ok && available p w && freshExecution p w c.who &&
+      (!p.endFence || (!w.fenced.contains c.who && !w.ended.contains c.who.session)) &&
+      !(w.actors.any fun a => a.who.session == c.who.session) &&
+      (!p.exclusiveBinding || bindingFree p w c.who c.bound) then
       { w with actors := { who := c.who, bound := c.bound, path := c.path, keyWithheld := (match c.path with | .independent => false | .procured _ => true) } :: w.actors }
     else w
   | .grow who entry ok =>
-    if ok && !w.fenced.contains who && (!p.exclusiveBinding || !p.growthExclusive || bindingFree w who [entry]) then
+    if ok && !w.fenced.contains who &&
+      (!p.growthAvailable || (available p w && !(w.actors.any fun a => a.who == who && a.paused))) &&
+      (!p.exclusiveBinding || !p.growthExclusive || bindingFree p w who [entry]) then
       updateActor w who fun a => { a with bound := (entry :: a.bound).eraseDups }
     else w
   | .assessKey who ev => assess p w who ev
@@ -370,7 +462,7 @@ inductive Event
     if custody.authorized && custody.writerOwnsStore && custody.storeAccess then
       { w with dispatch := Dispatch.step dp x w.dispatch rec.event }
     else w
-  | .replay => { endAll w with dispatch := Dispatch.step dp x w.dispatch .replay }
+  | .replay => { pauseAll w with dispatch := Dispatch.step dp x w.dispatch .replay }
 
 def run (p : Params) (dp : Dispatch.Params) (x : Dispatch.External) (w : World) : List Event → World
   | [] => w
@@ -412,7 +504,7 @@ private theorem local_fence (p : Params) (dp : Dispatch.Params) (x : Dispatch.Ex
   have ha : i ∈ (localAuthorityStep p dp w e).fenced := by
     cases e <;> simp only [localAuthorityStep]
     all_goals first | exact h | (apply assess_fence; exact h) | skip
-    all_goals repeat first | split | exact h | (apply boundary_fence; exact h) | simp_all [endOne, endAll, List.mem_append]
+    all_goals repeat first | split | exact h | (apply boundary_fence; exact h) | simp_all [endOne, endAll, resume, List.mem_append]
   unfold localStep
   split
   · exact ha
@@ -432,7 +524,7 @@ private theorem local_fence (p : Params) (dp : Dispatch.Params) (x : Dispatch.Ex
     have hb := boundary_fence p w work ev i h
     simp only [step]; split <;> exact hb
   | record rec custody => simp only [step]; split <;> exact h
-  | replay => simp [step, endAll, List.mem_append, h]
+  | replay => exact h
 
 @[req "STA-23"] theorem fence_history (p : Params) (dp : Dispatch.Params) (x : Dispatch.External)
     (w : World) (es : List Event) (i : Identity) (h : i ∈ w.fenced) :
@@ -440,6 +532,69 @@ private theorem local_fence (p : Params) (dp : Dispatch.Params) (x : Dispatch.Ex
   induction es generalizing w with
   | nil => exact h
   | cons e es ih => exact ih (step p dp x w e) (fence_step p dp x w e i h)
+
+private theorem update_session_end (w : World) (who : Identity) (f : Actor → Actor) :
+    (updateActor w who f).ended = w.ended := rfl
+
+private theorem assess_session_end (p : Params) (w : World) (who : Identity) (k : KeyEvidence)
+    (i : Dispatch.SessionId) (h : i ∈ w.ended) : i ∈ (assess p w who k).ended := by
+  unfold assess
+  split
+  · exact h
+  · split
+    · exact h
+    · split
+      · split <;> simp_all [endAll, List.mem_append]
+      · split
+        · exact h
+        · split
+          · split <;> simp_all [endOne, endAll, List.mem_append]
+          · exact h
+
+private theorem boundary_session_end (p : Params) (w : World) (work : Work) (ev : Evidence)
+    (i : Dispatch.SessionId) (h : i ∈ w.ended) : i ∈ (boundary p w work ev).ended := by
+  unfold boundary
+  split
+  · split
+    · exact assess_session_end p w _ _ i h
+    · exact h
+  · exact h
+
+
+private theorem local_session_end (p : Params) (dp : Dispatch.Params) (x : Dispatch.External)
+    (w : World) (e : Local) (i : Dispatch.SessionId) (h : i ∈ w.ended) :
+    i ∈ (localStep p dp x w e).ended := by
+  have ha : i ∈ (localAuthorityStep p dp w e).ended := by
+    cases e <;> simp only [localAuthorityStep]
+    all_goals first | exact h | (apply assess_session_end; exact h) | skip
+    all_goals repeat first | split | exact h | (apply boundary_session_end; exact h) | simp_all [endOne, endAll, resume, List.mem_append]
+  unfold localStep
+  split
+  · exact ha
+  · split <;> try exact ha
+    split <;> exact ha
+
+
+@[req "STA-23"] theorem session_end_step (p : Params) (dp : Dispatch.Params) (x : Dispatch.External)
+    (w : World) (e : Event) (i : Dispatch.SessionId) (h : i ∈ w.ended) :
+    i ∈ (step p dp x w e).ended := by
+  cases e with
+  | lifecycle e => exact local_session_end p dp x w e i h
+  | request work ev ok =>
+    have hb := boundary_session_end p w work ev i h
+    simp only [step]; split <;> exact hb
+  | publish origin work ev =>
+    have hb := boundary_session_end p w work ev i h
+    simp only [step]; split <;> exact hb
+  | record rec custody => simp only [step]; split <;> exact h
+  | replay => exact h
+
+@[req "STA-23"] theorem session_end_history (p : Params) (dp : Dispatch.Params) (x : Dispatch.External)
+    (w : World) (es : List Event) (i : Dispatch.SessionId) (h : i ∈ w.ended) :
+    i ∈ (run p dp x w es).ended := by
+  induction es generalizing w with
+  | nil => exact h
+  | cons e es ih => exact ih (step p dp x w e) (session_end_step p dp x w e i h)
 
 @[req "STA-23"] theorem hide_identity (p : Params) (dp : Dispatch.Params) (x : Dispatch.External)
     (w : World) (hp : p.hidePreserves = true) (hk : p.preserveKnowledge = true)
@@ -464,6 +619,7 @@ private theorem local_dispatch (p : Params) (dp : Dispatch.Params) (w : World) (
     (localAuthorityStep p dp w e).dispatch = w.dispatch := by
   cases e <;> simp only [localAuthorityStep]
   all_goals repeat first | split | rfl | apply boundary_dispatch | apply assess_dispatch
+  all_goals unfold resume; dsimp only; split <;> (repeat first | split | rfl)
 
 @[req "STA-8"] theorem lifecycle_knowledge (p : Params) (dp : Dispatch.Params) (x : Dispatch.External)
     (w : World) (e : Local) (hp : p.preserveKnowledge = true) :
@@ -676,7 +832,28 @@ def freeGrowthEvents : List Event := disjointStart ++ [
     (actor current (result freeGrowthEvents) bob).map (·.bound) = some [3, Dispatch.entryB] ∧
     sent (result freeGrowthEvents) freeGrowthWork.request.call = true := by decide +kernel
 
-def endEvents : List Event := startEvents ++ [.lifecycle (.endSession alice), .request readA ready true]
+/-- Lock stops the old execution incarnation and returns locked: the dormant session keeps its
+machines, and its bound set grows only after it resumes. -/
+def pausedGrowthWho : Identity := { alice with incarnation := 100, worker := 100 }
+def pausedGrowthWork : Work := { readA with who := pausedGrowthWho, request := { readA.request with target := .entry 3 } }
+def pausedGrowthEvents (afterResume : Bool) : List Event := startEvents ++ [.lifecycle (.pause .lock)] ++
+  (if afterResume then [] else [.lifecycle (.grow alice 3 true)]) ++
+  [.lifecycle (.unlock true), .lifecycle (.resume alice 100 true)] ++
+  (if afterResume then [.lifecycle (.grow pausedGrowthWork.who 3 true)] else []) ++
+  [.lifecycle (.validate pausedGrowthWork ready), .request pausedGrowthWork ready true]
+@[req "STA-23"] theorem paused_growth_refused :
+    (actor current (result (pausedGrowthEvents false)) pausedGrowthWork.who).map (·.bound) = some [Dispatch.entryA] ∧
+    sent (result (pausedGrowthEvents false)) pausedGrowthWork.request.call = false := by decide +kernel
+@[req "STA-23"] theorem paused_growth_without_check :
+    (actor { current with growthAvailable := false }
+      (result (pausedGrowthEvents false) { current with growthAvailable := false }) pausedGrowthWork.who).map (·.bound) =
+        some [3, Dispatch.entryA] ∧
+    sent (result (pausedGrowthEvents false) { current with growthAvailable := false }) pausedGrowthWork.request.call = true := by decide +kernel
+@[req "STA-23"] theorem resumed_growth_progress :
+    (actor current (result (pausedGrowthEvents true)) pausedGrowthWork.who).map (·.bound) = some [3, Dispatch.entryA] ∧
+    sent (result (pausedGrowthEvents true)) pausedGrowthWork.request.call = true := by decide +kernel
+
+def endEvents : List Event := startEvents ++ [.lifecycle (.endSession alice .explicit), .request readA ready true]
 @[req "STA-23"] theorem ended_refused :
     sent (result endEvents) readA.request.call = false ∧
     Dispatch.admit Dispatch.current (result endEvents).dispatch.memory readA.request readA.approval =
@@ -685,13 +862,13 @@ def endEvents : List Event := startEvents ++ [.lifecycle (.endSession alice), .r
     sent (result endEvents { current with endFence := false }) readA.request.call = true := by decide +kernel
 
 def lateEvents : List Event := startEvents ++ [.request readA ready true,
-  .lifecycle (.endSession alice), .publish originalRead nextReadA ready]
+  .lifecycle (.endSession alice .explicit), .publish originalRead nextReadA ready]
 @[req "STA-23"] theorem late_publication_refused : (result lateEvents).published = [] := by decide +kernel
 @[req "STA-23"] theorem late_publication_without_fence :
     (result lateEvents { current with endFence := false }).published = [originalRead] := by decide +kernel
 
 def transferEvents : List Event := startEvents ++ [.request readA ready true,
-  .lifecycle (.endSession alice), .lifecycle (.admit candidateB true), .publish originalRead readB ready]
+  .lifecycle (.endSession alice .explicit), .lifecycle (.admit candidateB true), .publish originalRead readB ready]
 @[req "STA-23"] theorem stale_origin_refused : (result transferEvents).published = [] := by decide +kernel
 @[req "STA-23"] theorem stale_origin_transferred_without_guard :
     (result transferEvents { current with publicationOrigin := false }).published = [originalRead] := by decide +kernel
@@ -740,7 +917,7 @@ def unsafeEvents : List Event := startEvents ++ [.lifecycle (.suspend alice),
   .lifecycle (.validate readA { ready with safeUnsent := false }), .request readA ready true]
 @[req "STA-23"] theorem unsafe_validation_refused : sent (result unsafeEvents) readA.request.call = false := by decide +kernel
 
-def endedValidationEvents : List Event := startEvents ++ [.lifecycle (.endSession alice),
+def endedValidationEvents : List Event := startEvents ++ [.lifecycle (.endSession alice .explicit),
   .lifecycle (.validate readA ready), .lifecycle (.unlock true), .lifecycle (.admit candidateA true), .request readA ready true]
 @[req "STA-23"] theorem validation_and_readmission_cannot_revive :
     sent (result endedValidationEvents) readA.request.call = false ∧
@@ -756,7 +933,7 @@ def doubleBindingEvents : List Event := startEvents ++ [.lifecycle (.admit candi
     sent (result doubleBindingEvents { current with exclusiveBinding := false }) readB.request.call = true := by decide +kernel
 
 def isolationEvents : List Event := startEvents ++ [.lifecycle (.admit candidateSibling true),
-  .lifecycle (.endSession alice), .request readSibling ready true]
+  .lifecycle (.endSession alice .explicit), .request readSibling ready true]
 @[req "STA-23"] theorem individual_end_keeps_sibling : sent (result isolationEvents) readSibling.request.call = true := by decide +kernel
 @[req "STA-23"] theorem individual_end_global_without_guard :
     sent (result isolationEvents { current with individualOnly := false }) readSibling.request.call = false := by decide +kernel
@@ -767,16 +944,48 @@ def ceremonyEvents : List Event := startEvents ++ [.lifecycle .enterCeremony, .l
 @[req "STA-23"] theorem ceremony_hide_without_lock :
     (result ceremonyEvents { current with ceremonyHideLocks := false }).locked = false := by decide +kernel
 
-def globalEvents (r : EndReason) : List Event := startEvents ++ [.lifecycle (.globalEnd r),
-  .lifecycle .visible, .lifecycle (.unlock true), .request readA ready true]
-@[req "STA-23"] theorem global_end_paths_and_replay_fence :
-    ([EndReason.lock, .pagehide, .reload, .shutdown].all fun r => !sent (result (globalEvents r)) readA.request.call) = true ∧
-    sent (result (startEvents ++ [.replay, .lifecycle (.unlock true), .request readA ready true])) readA.request.call = false := by decide +kernel
+def ceremonyResumeEvents : List Event := startEvents ++ [.lifecycle .enterCeremony,
+  .lifecycle (.finishCeremony .skipped true), .lifecycle (.resume alice 100 true),
+  .lifecycle (.validate { readA with who := { alice with incarnation := 100, worker := 100 } } ready),
+  .request { readA with who := { alice with incarnation := 100, worker := 100 } } ready true]
+@[req "STA-23"] theorem ceremony_pause_preserves_session :
+    sent (result ceremonyResumeEvents) readA.request.call = true ∧
+    (result ceremonyResumeEvents).ended = [] := by decide +kernel
+
+def resumedAlice : Identity := { alice with incarnation := 100, worker := 100 }
+def resumedRead : Work := { readA with who := resumedAlice }
+def pausePrefix (r : PauseReason) : List Event := startEvents ++ [
+  .lifecycle (.pause r), .lifecycle (.unlock true),
+  .lifecycle (.resume alice resumedAlice.incarnation true)]
+def resumeEvents (r : PauseReason) : List Event := pausePrefix r ++ [
+  .lifecycle (.validate resumedRead ready), .request resumedRead ready true]
+@[req "STA-23"] theorem eligible_same_session_resume :
+    ([PauseReason.lock, .pagehide, .reload, .shutdown, .discard].all fun r =>
+      sent (result (resumeEvents r)) readA.request.call) = true := by decide +kernel
+def staleResumeEvents : List Event := pausePrefix .reload ++ [
+  .lifecycle (.validate readA ready), .request readA ready true]
+@[req "STA-23"] theorem incarnation_fence_after_resume :
+    sent (result staleResumeEvents) readA.request.call = false ∧
+    sent (result (startEvents ++ [.replay, .lifecycle (.unlock true),
+      .lifecycle (.validate readA ready), .request readA ready true])) readA.request.call = false := by decide +kernel
+def pausedEvents : List Event := startEvents ++ [.lifecycle (.pause .lock),
+  .lifecycle (.unlock true), .lifecycle (.validate readA ready), .request readA ready true]
+@[req "STA-23"] theorem pause_requires_resume :
+    sent (result pausedEvents) readA.request.call = false := by decide +kernel
+@[req "STA-23"] theorem pause_without_resume_guard :
+    sent (result pausedEvents { current with pauseRequired := false }) readA.request.call = true := by decide +kernel
+def endedResumeEvents : List Event := startEvents ++ [.lifecycle (.endSession alice .explicit),
+  .lifecycle (.resume alice resumedAlice.incarnation true), .lifecycle (.validate resumedRead ready), .request resumedRead ready true]
+@[req "STA-23"] theorem end_cannot_resume :
+    sent (result endedResumeEvents) readA.request.call = false ∧
+    actor current (result endedResumeEvents) resumedAlice = none := by decide +kernel
+@[req "STA-23"] theorem end_resumes_without_fence :
+    sent (result endedResumeEvents { current with endFence := false }) readA.request.call = true := by decide +kernel
 
 /-- Shared seam: Robot reset, lost response, predecessor end/replay, legitimate successor,
 processed interruption and matching operation-specific validation. -/
 def seamPrefix : List Event := startEvents ++ [.request resetA ready true,
-  .lifecycle (.endSession alice), .replay, .lifecycle (.unlock true),
+  .lifecycle (.endSession alice .explicit), .replay, .lifecycle (.unlock true),
   .lifecycle (.admit candidateB true), .lifecycle (.suspend bob), .lifecycle (.validate execB ready)]
 def seamEvents : List Event := seamPrefix ++ [.request execB ready true]
 @[req "STA-24"] theorem successor_barrier_refused :
@@ -806,7 +1015,7 @@ def settlementEvents (ok : Bool) : List Event := seamPrefix ++ [
     Dispatch.unresolved Dispatch.current (result seamPrefix { current with preserveKnowledge := false }).dispatch.memory Dispatch.machineA = [] := by decide +kernel
 
 def historicalEvents : List Event := startEvents ++ [.request resetA ready true,
-  .request readA ready true, .lifecycle (.endSession alice),
+  .request readA ready true, .lifecycle (.endSession alice .explicit),
   .record (.observation .adapterRead Dispatch.machineA .reset true) custody,
   .publish originalReset nextReadA ready]
 @[req "STA-23"] theorem historical_record_without_revival :
@@ -814,7 +1023,7 @@ def historicalEvents : List Event := startEvents ++ [.request resetA ready true,
     (result historicalEvents).published = [] ∧ (result historicalEvents).fenced.contains alice = true := by decide +kernel
 
 def recordCustodyEvents (c : Custody) : List Event := startEvents ++ [.request resetA ready true,
-  .lifecycle (.endSession alice), .record (.observation .adapterRead Dispatch.machineA .reset true) c]
+  .lifecycle (.endSession alice .explicit), .record (.observation .adapterRead Dispatch.machineA .reset true) c]
 def noCustodyEvents : List Event := recordCustodyEvents { custody with writerOwnsStore := false }
 @[req "STA-1"] theorem historical_record_requires_custody :
     Dispatch.unresolved Dispatch.current (result noCustodyEvents).dispatch.memory Dispatch.machineA = [resetA.request.call] := by decide +kernel
@@ -835,7 +1044,7 @@ def keyEvidenceFor : KeyState → KeyEvidence
 def keyReady : Evidence := { ready with key := some validKey }
 def procuredStart : List Event := [.lifecycle (.unlock true),
   .lifecycle (.admit { candidateA with path := .procured originalLimits } true),
-  .lifecycle (.assessKey alice validKey)]
+  .lifecycle (.assessKey alice validKey), .lifecycle (.sealTerminal alice true)]
 /-- Valid assessment uses the original tuple; only the later request presents a changed cap. -/
 def changedRequestKey : KeyEvidence := { validKey with original := { originalLimits with cap := 2 } }
 def changedRequestLimitsEvents : List Event := procuredStart ++ [
@@ -868,7 +1077,7 @@ def repairEvents : List Event := procuredStart ++ [
   .lifecycle (.validate readA keyReady), .request readA keyReady true,
   .lifecycle (.assessKey alice validKey), .lifecycle (.validate readA keyReady), .request readA keyReady true]
 @[req "ARC-31a"] theorem uncertain_clock_then_unchanged_repair :
-    sent (result (repairEvents.take 7)) readA.request.call = false ∧
+    sent (result (repairEvents.take 8)) readA.request.call = false ∧
     sent (result repairEvents) readA.request.call = true := by decide +kernel
 
 def changedLimitsEvents : List Event := procuredStart ++ [
@@ -959,7 +1168,272 @@ def issuedContinuationEvents : List Event := startEvents ++ [.request readA read
     ((result issuedContinuationEvents { current with unsentContinuation := false }).dispatch.dispatched.filter fun i => i.call == readA.request.call).length = 2 ∧
     (result issuedContinuationEvents { current with unsentContinuation := false }).published = [originalRead] := by decide +kernel
 
+def sealedResumePrefix (sealed : Bool) : List Event := procuredStart.take 3 ++ [
+  .lifecycle (.sealTerminal alice sealed), .lifecycle (.pause .reload),
+  .lifecycle (.unlock true), .lifecycle (.resume alice resumedAlice.incarnation true),
+  .lifecycle (.assessKey resumedAlice validKey),
+  .lifecycle (.validate resumedRead keyReady)]
+/-- A late terminal does not repair a key already lost at resume. -/
+def lostSealEvents : List Event := sealedResumePrefix false ++ [
+  .lifecycle (.sealTerminal resumedAlice true), .lifecycle (.validate resumedRead keyReady),
+  .request resumedRead keyReady true]
+@[req "ARC-31a"] theorem resume_without_sealed_terminal_withholds :
+    sent (result lostSealEvents) readA.request.call = false := by decide +kernel
+@[req "ARC-31a"] theorem resume_without_terminal_guard :
+    sent (result lostSealEvents { current with resumeTerminal := false }) readA.request.call = true := by decide +kernel
+@[req "ARC-31a"] theorem sealed_terminal_resume_progress :
+    sent (result (sealedResumePrefix true ++ [.request resumedRead keyReady true])) readA.request.call = true := by decide +kernel
+def lostUntilEndEvents : List Event := lostSealEvents ++ [
+  .lifecycle (.sealTerminal resumedAlice true), .lifecycle (.assessKey resumedAlice validKey),
+  .lifecycle (.validate resumedRead keyReady), .request resumedRead keyReady true,
+  .lifecycle (.endSession resumedAlice .explicit), .lifecycle (.assessKey resumedAlice validKey),
+  .request resumedRead keyReady true]
+@[req "ARC-31a"] theorem lost_terminal_stays_withheld_until_end :
+    sent (result lostUntilEndEvents) readA.request.call = false ∧
+    (result lostUntilEndEvents).ended.contains alice.session = true := by decide +kernel
+
+def initialWithoutTerminalEvents : List Event := procuredStart.take 3 ++ [
+  .request ⟨alice, Dispatch.inferenceRequest1, Dispatch.approvalInference⟩ keyReady true]
+@[req "ARC-31a"] theorem initial_without_terminal_refused :
+    sent (result initialWithoutTerminalEvents) Dispatch.inferenceRequest1.call = false := by decide +kernel
+@[req "ARC-31a"] theorem initial_without_terminal_guard :
+    sent (result initialWithoutTerminalEvents { current with sealedTerminalRequired := false }) Dispatch.inferenceRequest1.call = true := by decide +kernel
+def noTerminalResumeEvents : List Event := sealedResumePrefix false ++ [.request resumedRead keyReady true]
+@[req "ARC-31a"] theorem no_terminal_resume_stays_held :
+    sent (result noTerminalResumeEvents) readA.request.call = false := by decide +kernel
+
+/-- Paid end causes require a procured path; only Replace is global. -/
+def globalEvents (r : EndReason) : List Event :=
+  let historyStart := match r with
+    | .expiry => procuredStart ++ [.lifecycle (.assessKey alice (keyEvidenceFor .expired))]
+    | .capExhaustion => procuredStart ++ [.lifecycle (.assessKey alice (keyEvidenceFor .exhausted))]
+    | .replace => startEvents ++ [.lifecycle .replace]
+    | .explicit | .abandon => startEvents ++ [.lifecycle (.endSession alice r)]
+  historyStart ++ [.lifecycle .visible, .lifecycle (.unlock true), .request readA keyReady true]
+@[req "STA-23"] theorem session_end_paths_fence :
+    ([EndReason.explicit, .replace, .expiry, .capExhaustion, .abandon].all fun r =>
+      !sent (result (globalEvents r)) readA.request.call) = true := by decide +kernel
+
+def scopedEndEvents (r : EndReason) : List Event :=
+  let historyStart := match r with
+    | .expiry => procuredStart ++ [.lifecycle (.admit candidateSibling true),
+        .lifecycle (.assessKey alice (keyEvidenceFor .expired))]
+    | .capExhaustion => procuredStart ++ [.lifecycle (.admit candidateSibling true),
+        .lifecycle (.assessKey alice (keyEvidenceFor .exhausted))]
+    | _ => startEvents ++ [.lifecycle (.admit candidateSibling true), .lifecycle (.endSession alice r)]
+  historyStart ++ [.request readSibling ready true]
+@[req "STA-23"] theorem scoped_end_keeps_nonholders :
+    ([EndReason.expiry, .capExhaustion, .abandon].all fun r =>
+      sent (result (scopedEndEvents r)) readSibling.request.call) = true := by decide +kernel
+
+/-! Correction witnesses: execution retirement never releases a session's bindings. -/
+
+def twiceAlice : Identity := { alice with incarnation := 101, worker := 101 }
+def twiceRead : Work := { readA with who := twiceAlice }
+def overlapEvents : List Event := pausePrefix .reload ++ [
+  .lifecycle (.pause .reload), .lifecycle (.unlock true),
+  .lifecycle (.resume resumedAlice 100 true), .lifecycle (.admit candidateB true),
+  .lifecycle (.resume resumedAlice 101 true), .lifecycle (.validate twiceRead ready),
+  .request twiceRead ready true, .request readB ready true]
+@[req "SEC-1"] theorem incarnation_retirement_keeps_binding :
+    (result overlapEvents).ended = [] ∧
+    sent (result overlapEvents) readA.request.call = true ∧
+    sent (result overlapEvents) readB.request.call = false := by decide +kernel
+
+def repeatedResumeEvents : List Event := pausePrefix .reload ++ [
+  .lifecycle (.grow resumedAlice 3 true), .lifecycle (.resume resumedAlice 101 true),
+  .lifecycle (.validate twiceRead ready), .request twiceRead ready true,
+  .lifecycle (.admit candidateSibling true), .request readSibling ready true]
+@[req "STA-23"] theorem repeated_resume_retains_authority :
+    (actor current (result repeatedResumeEvents) twiceAlice).map (·.bound) = some [3, Dispatch.entryA] ∧
+    (result repeatedResumeEvents).ended = [] ∧
+    sent (result repeatedResumeEvents) readA.request.call = true ∧
+    sent (result repeatedResumeEvents) readSibling.request.call = true := by decide +kernel
+
+def reuseEvents : List Event := pausePrefix .reload ++ [
+  .lifecycle (.resume resumedAlice 100 true), .lifecycle (.validate resumedRead ready),
+  .request resumedRead ready true]
+@[req "STA-23"] theorem self_resume_refused :
+    sent (result reuseEvents) readA.request.call = true := by decide +kernel
+@[req "STA-23"] theorem self_resume_fences_without_check :
+    sent (result reuseEvents { current with executionFresh := false }) readA.request.call = false := by decide +kernel
+
+def collisionEvents (inc : Nat) : List Event := disjointStart ++ [
+  .lifecycle (.resume alice inc true),
+  .lifecycle (.validate { readA with who := { alice with incarnation := inc, worker := inc } } ready),
+  .request { readA with who := { alice with incarnation := inc, worker := inc } } ready true]
+@[req "STA-23"] theorem execution_collision_refused :
+    sent (result (collisionEvents 2)) readA.request.call = false := by decide +kernel
+@[req "STA-23"] theorem execution_collision_without_check :
+    sent (result (collisionEvents 2) { current with executionFresh := false }) readA.request.call = true := by decide +kernel
+
+def retiredReuseEvents (inc : Nat := 1) : List Event := pausePrefix .reload ++ [
+  .lifecycle (.resume resumedAlice inc true),
+  .lifecycle (.validate { readA with who := { alice with incarnation := inc, worker := inc } } ready),
+  .request { readA with who := { alice with incarnation := inc, worker := inc } } ready true]
+@[req "STA-23"] theorem retired_execution_refused :
+    sent (result (retiredReuseEvents 1)) readA.request.call = false := by decide +kernel
+@[req "STA-23"] theorem retired_execution_without_check :
+    sent (result (retiredReuseEvents 1) { current with executionFresh := false }) readA.request.call = true := by decide +kernel
+
+def reusedCandidate : Candidate := { candidateB with who := { bob with incarnation := 1 }, bound := [Dispatch.entryB] }
+def reusedAdmissionWork : Work := { readB with who := reusedCandidate.who, request := { readB.request with target := .entry Dispatch.entryB } }
+def reusedAdmissionEvents : List Event := pausePrefix .reload ++ [
+  .lifecycle (.admit reusedCandidate true), .request reusedAdmissionWork ready true]
+@[req "SEC-1"] theorem retired_admission_refused :
+    sent (result reusedAdmissionEvents) readB.request.call = false := by decide +kernel
+@[req "SEC-1"] theorem retired_admission_without_check :
+    sent (result reusedAdmissionEvents { current with executionFresh := false }) readB.request.call = true := by decide +kernel
+
+/-- Arbitrary-state boundary probes: even an already fenced dormant execution retains its
+binding. The transition checks do not assume such an input away. -/
+def fencedDormant : World := { result (pausePrefix .reload) with fenced := [resumedAlice] }
+def fromWorld (w : World) (events : List Event) (p : Params := current) : World :=
+  run p Dispatch.current Dispatch.farDone.external w events
+def fencedAdmissionEvents : List Event := [.lifecycle (.admit candidateB true), .request readB ready true]
+@[req "SEC-1"] theorem fenced_binding_admission_refused :
+    sent (fromWorld fencedDormant fencedAdmissionEvents) readB.request.call = false := by decide +kernel
+@[req "SEC-1"] theorem fenced_binding_admission_without_check :
+    sent (fromWorld fencedDormant fencedAdmissionEvents { current with bindingSessionLifetime := false }) readB.request.call = true := by decide +kernel
+def fencedGrowthWorld : World := { result disjointStart with fenced := [alice] }
+def fencedGrowthEvents : List Event := [.lifecycle (.grow bob Dispatch.entryA true), .request readB ready true]
+@[req "SEC-1"] theorem fenced_binding_growth_refused :
+    sent (fromWorld fencedGrowthWorld fencedGrowthEvents) readB.request.call = false := by decide +kernel
+@[req "SEC-1"] theorem fenced_binding_growth_without_check :
+    sent (fromWorld fencedGrowthWorld fencedGrowthEvents { current with bindingSessionLifetime := false }) readB.request.call = true := by decide +kernel
+
+/-- No archived actor or exact execution fence can substitute for the durable session End. -/
+def endedProjection : World := { result (startEvents ++ [.lifecycle (.endSession alice .explicit)]) with actors := [] }
+def freshEndedEvents : List Event := [
+  .lifecycle (.admit { candidateA with who := resumedAlice } true),
+  .request resumedRead ready true]
+@[req "STA-23"] theorem fresh_identity_end_refused :
+    !endedProjection.fenced.contains resumedAlice ∧
+    actor current (fromWorld endedProjection freshEndedEvents) resumedAlice = none ∧
+    sent (fromWorld endedProjection freshEndedEvents) readA.request.call = false := by decide +kernel
+@[req "STA-23"] theorem fresh_identity_without_session_end :
+    sent (fromWorld endedProjection freshEndedEvents { current with endFence := false }) readA.request.call = true := by decide +kernel
+
+def endedFreshActor : World := fromWorld endedProjection (freshEndedEvents.take 1) { current with endFence := false }
+def freshEndedRequest : List Event := [.request resumedRead ready true]
+@[req "STA-23"] theorem fresh_actor_end_authority_refused :
+    !endedFreshActor.fenced.contains resumedAlice ∧
+    sent (fromWorld endedFreshActor freshEndedRequest) readA.request.call = false := by decide +kernel
+@[req "STA-23"] theorem fresh_actor_without_session_end :
+    sent (fromWorld endedFreshActor freshEndedRequest { current with endFence := false }) readA.request.call = true := by decide +kernel
+
+def unauthorizedResumeEvents : List Event := startEvents ++ [
+  .lifecycle (.resume alice 100 false), .lifecycle (.validate resumedRead ready), .request resumedRead ready true]
+@[req "STA-23"] theorem unauthorized_resume_refused :
+    sent (result unauthorizedResumeEvents) readA.request.call = false := by decide +kernel
+@[req "STA-23"] theorem unauthorized_resume_without_check :
+    sent (result unauthorizedResumeEvents { current with resumeAuthorized := false }) readA.request.call = true := by decide +kernel
+def lockedResumeEvents : List Event := startEvents ++ [
+  .lifecycle (.pause .lock), .lifecycle (.resume alice 100 true), .lifecycle (.unlock true),
+  .lifecycle (.validate resumedRead ready), .request resumedRead ready true]
+@[req "STA-23"] theorem locked_resume_refused :
+    sent (result lockedResumeEvents) readA.request.call = false := by decide +kernel
+@[req "STA-23"] theorem locked_resume_without_check :
+    sent (result lockedResumeEvents { current with resumeUnlocked := false }) readA.request.call = true := by decide +kernel
+
+def unvalidatedResumeEvents : List Event := startEvents ++ [
+  .lifecycle (.resume alice 100 true), .request resumedRead ready true]
+@[req "STA-23"] theorem resume_validation_refused :
+    sent (result unvalidatedResumeEvents) readA.request.call = false := by decide +kernel
+@[req "STA-23"] theorem resume_without_validation_reset :
+    sent (result unvalidatedResumeEvents { current with resumeValidation := false }) readA.request.call = true := by decide +kernel
+def validatedResumeEvents : List Event := unvalidatedResumeEvents.take 3 ++ [
+  .lifecycle (.validate resumedRead ready), .request resumedRead ready true,
+  .publish ⟨resumedRead, Dispatch.machineA⟩ { nextReadA with who := resumedAlice } ready,
+  .lifecycle (.validate { nextReadA with who := resumedAlice } ready),
+  .publish ⟨resumedRead, Dispatch.machineA⟩ { nextReadA with who := resumedAlice } ready]
+@[req "STA-23"] theorem fresh_resume_validation_progress :
+    sent (result validatedResumeEvents) readA.request.call = true ∧
+    (result (validatedResumeEvents.take 6)).published = [] ∧
+    (result validatedResumeEvents).published.length = 1 := by decide +kernel
+
+def lostAgainEvents (sealed : Bool) : List Event := sealedResumePrefix sealed ++ [
+  .lifecycle (.sealTerminal resumedAlice true), .lifecycle (.pause .reload),
+  .lifecycle (.unlock true), .lifecycle (.resume resumedAlice 101 true),
+  .lifecycle (.assessKey twiceAlice validKey), .lifecycle (.validate twiceRead keyReady),
+  .request twiceRead keyReady true]
+@[req "ARC-31a"] theorem lost_key_second_resume_refused :
+    sent (result (lostAgainEvents false)) readA.request.call = false := by decide +kernel
+@[req "ARC-31a"] theorem lost_key_second_resume_without_latch :
+    sent (result (lostAgainEvents false) { current with lostKeySticky := false }) readA.request.call = true := by decide +kernel
+@[req "ARC-31a"] theorem sealed_key_repeated_resume_progress :
+    sent (result (lostAgainEvents true)) readA.request.call = true := by decide +kernel
+
+def interruptedCeremonyEvents (interruption : Event) : List Event := startEvents ++ [
+  .lifecycle .enterCeremony, interruption, .lifecycle (.unlock true),
+  .lifecycle (.resume alice 100 true), .lifecycle (.validate resumedRead ready),
+  .request resumedRead ready true]
+@[req "STA-23"] theorem interrupted_ceremony_refused :
+    ([Event.lifecycle .hide, .replay].all fun e =>
+      !sent (result (interruptedCeremonyEvents e)) readA.request.call) = true := by decide +kernel
+@[req "STA-23"] theorem interrupted_ceremony_without_guard :
+    ([Event.lifecycle .hide, .replay].all fun e =>
+      sent (result (interruptedCeremonyEvents e) { current with ceremonyPending := false }) readA.request.call) = true := by decide +kernel
+@[req "STA-23"] theorem ceremony_pause_paths_refused :
+    ([PauseReason.lock, .pagehide, .reload, .shutdown, .discard].all fun r =>
+      !sent (result (interruptedCeremonyEvents (.lifecycle (.pause r)))) readA.request.call) = true := by decide +kernel
+
+def completedCeremonyEvents (choice : Completion) (ok : Bool) : List Event :=
+  (interruptedCeremonyEvents .replay).take 5 ++ [
+    .lifecycle .enterCeremony, .lifecycle (.finishCeremony choice ok),
+    .replay, .lifecycle (.unlock true),
+    .lifecycle (.resume alice 100 true), .lifecycle (.validate resumedRead ready),
+    .request resumedRead ready true]
+@[req "STA-23"] theorem completed_ceremony_progress :
+    ([Completion.fullReentry true, .skipped].all fun c =>
+      sent (result (completedCeremonyEvents c true)) readA.request.call) = true ∧
+    (result (completedCeremonyEvents .skipped true)).ended = [] ∧
+    (actor current (result (completedCeremonyEvents .skipped true)) resumedAlice).map (·.bound) = some [Dispatch.entryA] := by decide +kernel
+@[req "STA-23"] theorem completed_ceremony_without_release :
+    sent (result (completedCeremonyEvents .skipped true) { current with ceremonyRelease := false }) readA.request.call = false := by decide +kernel
+@[req "STA-23"] theorem failed_ceremony_append_refused :
+    (result (completedCeremonyEvents .skipped false)).ceremonyOwed = true ∧
+    sent (result (completedCeremonyEvents .skipped false)) readA.request.call = false := by decide +kernel
+@[req "STA-23"] theorem failed_ceremony_append_without_guard :
+    sent (result (completedCeremonyEvents .skipped false) { current with ceremonyAppend := false }) readA.request.call = true := by decide +kernel
+@[req "STA-23"] theorem mismatched_ceremony_refused :
+    sent (result (completedCeremonyEvents (.fullReentry false) true)) readA.request.call = false := by decide +kernel
+@[req "STA-23"] theorem mismatched_ceremony_without_guard :
+    sent (result (completedCeremonyEvents (.fullReentry false) true) { current with ceremonyCompletion := false }) readA.request.call = true := by decide +kernel
+
+def inactiveCompletionEvents : List Event := (interruptedCeremonyEvents (.lifecycle .hide)).take 5 ++ [
+  .lifecycle (.finishCeremony .skipped true), .lifecycle (.resume alice 100 true),
+  .lifecycle (.validate resumedRead ready), .request resumedRead ready true]
+@[req "STA-23"] theorem inactive_ceremony_completion_refused :
+    sent (result inactiveCompletionEvents) readA.request.call = false := by decide +kernel
+@[req "STA-23"] theorem inactive_ceremony_without_guard :
+    sent (result inactiveCompletionEvents { current with ceremonyActive := false }) readA.request.call = true := by decide +kernel
+
+def lockedCeremonyEvents (ok : Bool) : List Event := startEvents ++ [
+  .lifecycle (.pause .lock), .lifecycle (.unlock ok), .lifecycle .enterCeremony,
+  .lifecycle (.finishCeremony .skipped true), .lifecycle (.resume alice 100 true),
+  .lifecycle (.validate resumedRead ready), .request resumedRead ready true]
+@[req "STA-23"] theorem locked_ceremony_entry_refused :
+    sent (result (lockedCeremonyEvents false)) readA.request.call = false ∧
+    (result (lockedCeremonyEvents false)).locked = true := by decide +kernel
+@[req "STA-23"] theorem locked_ceremony_entry_without_check :
+    sent (result (lockedCeremonyEvents false) { current with ceremonyUnlocked := false }) readA.request.call = true := by decide +kernel
+@[req "STA-23"] theorem unlocked_ceremony_entry_progress :
+    sent (result (lockedCeremonyEvents true)) readA.request.call = true ∧
+    (result (lockedCeremonyEvents true)).ended = [] := by decide +kernel
+
+def paidCeremonyEvents (choice : Completion) : List Event := procuredStart ++ [
+  .lifecycle .enterCeremony, .lifecycle .hide, .lifecycle (.unlock true),
+  .lifecycle .enterCeremony, .lifecycle (.finishCeremony choice true),
+  .lifecycle (.resume alice 100 true), .lifecycle (.assessKey resumedAlice validKey),
+  .lifecycle (.validate resumedRead keyReady), .request resumedRead keyReady true]
+@[req "ARC-31a"] theorem paid_ceremony_preserves_key_and_approval :
+    ([Completion.fullReentry true, .skipped].all fun c =>
+      sent (result (paidCeremonyEvents c)) readA.request.call) = true ∧
+    (actor current (result (paidCeremonyEvents .skipped)) resumedAlice).map (·.path) = some (.procured originalLimits) ∧
+    (result (paidCeremonyEvents .skipped)).ended = [] := by decide +kernel
+
 /-- Maximum length of these named histories, not an exhaustive event-alphabet bound. -/
-@[req "STA-23"] def witnessBound : Nat := 20
+@[req "STA-23"] def witnessBound : Nat := 26
 
 end TauWeb.Authority

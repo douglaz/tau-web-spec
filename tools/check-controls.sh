@@ -533,11 +533,11 @@ authority_control "formal: authority actor request session check removed" \
 
 authority_control "formal: authority machine membership check removed" \
   "sed -i 's/!p.machineMembership || a.bound.contains e/true/' $AUTH" \
-  unbound_entry_refused live_entry_growth_refused
+  unbound_entry_refused live_entry_growth_refused fenced_binding_growth_refused
 
 authority_control "formal: authority growth exclusivity check removed" \
-  "sed -i 's/(!p.exclusiveBinding || !p.growthExclusive || bindingFree w who \[entry\])/true/' $AUTH" \
-  live_entry_growth_refused
+  "sed -i 's/(!p.exclusiveBinding || !p.growthExclusive || bindingFree p w who \[entry\])/true/' $AUTH" \
+  live_entry_growth_refused fenced_binding_growth_refused
 
 authority_control "formal: authority request original limits check removed" \
   "sed -i 's/(!p.requestOriginal || k.original == original)/true/' $AUTH" \
@@ -557,11 +557,11 @@ authority_control "formal: authority publicationDispatch" \
 
 authority_control "formal: authority endFence" \
   "sed -i 's/  endFence : Bool := true/  endFence : Bool := false/' $AUTH" \
-  ended_refused late_publication_refused validation_and_readmission_cannot_revive global_end_paths_and_replay_fence historical_record_without_revival cap_end_cannot_repair validation_terminal_ends
+  ended_refused late_publication_refused validation_and_readmission_cannot_revive session_end_paths_fence end_cannot_resume historical_record_without_revival cap_end_cannot_repair validation_terminal_ends fresh_identity_end_refused fresh_actor_end_authority_refused self_resume_fences_without_check
 
 authority_control "formal: authority workerIdentity" \
   "sed -i 's/  workerIdentity : Bool := true/  workerIdentity : Bool := false/' $AUTH" \
-  stale_worker_refused
+  stale_worker_refused incarnation_fence_after_resume end_cannot_resume execution_collision_refused retired_execution_refused unauthorized_resume_refused
 
 authority_control "formal: authority hidePreserves" \
   "sed -i 's/  hidePreserves : Bool := true/  hidePreserves : Bool := false/' $AUTH" \
@@ -569,15 +569,15 @@ authority_control "formal: authority hidePreserves" \
 
 authority_control "formal: authority ceremonyHideLocks" \
   "sed -i 's/  ceremonyHideLocks : Bool := true/  ceremonyHideLocks : Bool := false/' $AUTH" \
-  ceremony_hide_locks
+  ceremony_hide_locks inactive_ceremony_completion_refused interrupted_ceremony_without_guard
 
 authority_control "formal: authority validationRequired" \
   "sed -i 's/  validationRequired : Bool := true/  validationRequired : Bool := false/' $AUTH" \
-  suspension_refused wrong_continuation_refused invalidation_requires_new_validation unsafe_validation_refused changed_dispatch_requires_current_validation unsafe_boundary_refused
+  suspension_refused wrong_continuation_refused invalidation_requires_new_validation unsafe_validation_refused changed_dispatch_requires_current_validation unsafe_boundary_refused resume_validation_refused fresh_resume_validation_progress
 
 authority_control "formal: authority validationMatches" \
   "sed -i 's/  validationMatches : Bool := true/  validationMatches : Bool := false/' $AUTH" \
-  wrong_continuation_refused changed_dispatch_requires_current_validation
+  wrong_continuation_refused changed_dispatch_requires_current_validation fresh_resume_validation_progress
 
 authority_control "formal: authority publicationOrigin" \
   "sed -i 's/  publicationOrigin : Bool := true/  publicationOrigin : Bool := false/' $AUTH" \
@@ -585,19 +585,19 @@ authority_control "formal: authority publicationOrigin" \
 
 authority_control "formal: authority individualOnly" \
   "sed -i 's/  individualOnly : Bool := true/  individualOnly : Bool := false/' $AUTH" \
-  ended_admitted_without_fence late_publication_without_fence stale_origin_transferred_without_guard individual_end_keeps_sibling
+  ended_admitted_without_fence late_publication_without_fence stale_origin_transferred_without_guard individual_end_keeps_sibling end_resumes_without_fence scoped_end_keeps_nonholders fresh_identity_without_session_end fresh_actor_without_session_end
 
 authority_control "formal: authority exclusiveBinding" \
   "sed -i 's/  exclusiveBinding : Bool := true/  exclusiveBinding : Bool := false/' $AUTH" \
-  live_predecessor_refuses_successor live_entry_growth_refused
+  live_predecessor_refuses_successor live_entry_growth_refused fenced_binding_admission_refused fenced_binding_growth_refused incarnation_retirement_keeps_binding
 
 authority_control "formal: authority procuredEligibility" \
   "sed -i 's/  procuredEligibility : Bool := true/  procuredEligibility : Bool := false/' $AUTH" \
-  expired_session_ssh_refused expiry_spreads_without_scope uncertain_clock_then_unchanged_repair repair_cannot_renew both_clock_discrepancies_required cap_end_cannot_repair incompatible_acceptance_withheld validation_terminal_ends request_original_limits_refused
+  expired_session_ssh_refused expiry_spreads_without_scope uncertain_clock_then_unchanged_repair repair_cannot_renew both_clock_discrepancies_required cap_end_cannot_repair incompatible_acceptance_withheld validation_terminal_ends request_original_limits_refused resume_without_sealed_terminal_withholds lost_terminal_stays_withheld_until_end initial_without_terminal_refused no_terminal_resume_stays_held session_end_paths_fence lost_key_second_resume_refused
 
 authority_control "formal: authority scopedExpiry" \
   "sed -i 's/  scopedExpiry : Bool := true/  scopedExpiry : Bool := false/' $AUTH" \
-  procured_expiry_keeps_independent_session independent_has_no_procured_deadline
+  procured_expiry_keeps_independent_session independent_has_no_procured_deadline scoped_end_keeps_nonholders
 
 authority_control "formal: authority preserveKnowledge" \
   "sed -i 's/  preserveKnowledge : Bool := true/  preserveKnowledge : Bool := false/' $AUTH" \
@@ -640,8 +640,90 @@ authority_control "formal: authority store_access" \
   historical_record_requires_store_access
 
 authority_control "formal: authority ceremony_owed" \
-  "sed -i 's/if p.ceremonyHideLocks then endAll w else w/if p.ceremonyHideLocks then { endAll w with ceremonyOwed := false } else w/' $AUTH" \
-  ceremony_hide_locks
+  "sed -i 's/if p.ceremonyHideLocks then pauseAll w else w/if p.ceremonyHideLocks then { pauseAll w with ceremonyOwed := false } else w/' $AUTH" \
+  ceremony_hide_locks interrupted_ceremony_refused inactive_ceremony_completion_refused
+
+authority_control "formal: authority pauseRequired" \
+  "sed -i 's/  pauseRequired : Bool := true/  pauseRequired : Bool := false/' $AUTH" \
+  pause_requires_resume incarnation_fence_after_resume
+
+authority_control "formal: authority sealedTerminalRequired" \
+  "sed -i 's/  sealedTerminalRequired : Bool := true/  sealedTerminalRequired : Bool := false/' $AUTH" \
+  initial_without_terminal_refused
+
+authority_control "formal: authority resumeTerminal" \
+  "sed -i 's/  resumeTerminal : Bool := true/  resumeTerminal : Bool := false/' $AUTH" \
+  resume_without_sealed_terminal_withholds lost_terminal_stays_withheld_until_end lost_key_second_resume_refused
+
+authority_control "formal: ceremony must pause rather than End" \
+  "sed -i 's/else { pauseAll w with locked := false, ceremony := true/else { endAll w with locked := false, ceremony := true/' $AUTH" \
+  ceremony_pause_preserves_session completed_ceremony_progress paid_ceremony_preserves_key_and_approval interrupted_ceremony_without_guard failed_ceremony_append_without_guard mismatched_ceremony_without_guard inactive_ceremony_without_guard locked_ceremony_entry_without_check unlocked_ceremony_entry_progress
+
+authority_control "formal: authority execution freshness" \
+  "sed -i 's/  executionFresh : Bool := true/  executionFresh : Bool := false/' $AUTH" \
+  self_resume_refused execution_collision_refused retired_execution_refused retired_admission_refused
+authority_control "formal: admission omits execution freshness" \
+  "sed -i 's/available p w \&\& freshExecution p w c.who/available p w/' $AUTH" \
+  retired_admission_refused
+authority_control "formal: resume omits execution freshness" \
+  "sed -i 's/ceremonyFree p w \&\& freshExecution p w next/ceremonyFree p w/' $AUTH" \
+  self_resume_refused execution_collision_refused retired_execution_refused
+authority_control "formal: current incarnation collision" \
+  "sed -i 's/a.who.incarnation == next.incarnation/false/' $AUTH" \
+  execution_collision_refused self_resume_refused
+authority_control "formal: retired incarnation reuse" \
+  "sed -i 's/i.incarnation == next.incarnation/false/' $AUTH" \
+  retired_execution_refused retired_admission_refused
+authority_control "formal: session binding released by incarnation fence" \
+  "sed -i 's/  bindingSessionLifetime : Bool := true/  bindingSessionLifetime : Bool := false/' $AUTH" \
+  fenced_binding_admission_refused fenced_binding_growth_refused
+authority_control "formal: resume forgets validation requirement" \
+  "sed -i 's/interrupted := p.resumeValidation/interrupted := false/' $AUTH" \
+  resume_validation_refused fresh_resume_validation_progress
+authority_control "formal: resume forgets latched key loss" \
+  "sed -i 's/(p.lostKeySticky \&\& b.lostKey)/false/' $AUTH" \
+  lost_key_second_resume_refused
+authority_control "formal: admission forgets durable session End" \
+  "sed -i 's/!w.ended.contains c.who.session/true/' $AUTH" \
+  fresh_identity_end_refused
+authority_control "formal: resume forgets durable session End" \
+  "sed -i 's/!w.ended.contains next.session/true/' $AUTH" \
+  end_cannot_resume
+authority_control "formal: authority forgets durable session End" \
+  "sed -i 's/!w.ended.contains a.who.session/true/' $AUTH" \
+  fresh_actor_end_authority_refused
+authority_control "formal: unauthorized resume" \
+  "sed -i 's/(!p.resumeAuthorized || ok)/true/' $AUTH" \
+  unauthorized_resume_refused
+authority_control "formal: resume while locked" \
+  "sed -i 's/(!p.resumeUnlocked || !w.locked)/true/' $AUTH" \
+  locked_resume_refused
+authority_control "formal: growth while paused or locked" \
+  "sed -i 's/(!p.growthAvailable || (available p w && !(w.actors.any fun a => a.who == who && a.paused)))/true/' $AUTH" \
+  paused_growth_refused
+
+authority_control "formal: ceremony entry while locked" \
+  "sed -i 's/(p.ceremonyUnlocked && w.locked)/false/' $AUTH" \
+  locked_ceremony_entry_refused
+
+authority_control "formal: unfinished ceremony bypasses authority" \
+  "sed -i 's/(!p.ceremonyPending || !w.ceremonyOwed)/true/' $AUTH" \
+  interrupted_ceremony_refused ceremony_pause_paths_refused inactive_ceremony_completion_refused completed_ceremony_without_release failed_ceremony_append_refused mismatched_ceremony_refused
+authority_control "formal: replay forgets unfinished ceremony" \
+  "sed -i 's/replay => { pauseAll w with dispatch/replay => { pauseAll w with ceremonyOwed := false, dispatch/' $AUTH" \
+  interrupted_ceremony_refused completed_ceremony_without_release failed_ceremony_append_refused mismatched_ceremony_refused
+authority_control "formal: ceremony completion without valid reentry" \
+  "sed -i 's/(!p.ceremonyCompletion || choice.valid)/true/' $AUTH" \
+  mismatched_ceremony_refused
+authority_control "formal: ceremony completion before durable append" \
+  "sed -i 's/(!p.ceremonyAppend || ok)/true/' $AUTH" \
+  failed_ceremony_append_refused
+authority_control "formal: inactive ceremony completion" \
+  "sed -i 's/(!p.ceremonyActive || w.ceremony)/true/' $AUTH" \
+  inactive_ceremony_completion_refused
+authority_control "formal: completed ceremony remains owed" \
+  "sed -i 's/ceremonyOwed := !p.ceremonyRelease/ceremonyOwed := true/' $AUTH" \
+  ceremony_pause_preserves_session completed_ceremony_progress paid_ceremony_preserves_key_and_approval failed_ceremony_append_without_guard mismatched_ceremony_without_guard inactive_ceremony_without_guard locked_ceremony_entry_without_check unlocked_ceremony_entry_progress
 
 # A valid continuation remains accepted after harmless ordinary hide/return insertion.
 authority_positive_continuation() {
@@ -1254,16 +1336,36 @@ control "witnesses: obsolete allocation v2 orphan" "$WIT" \
   "cp docs/design/allocation-witnesses-v3.json docs/design/allocation-witnesses-v2.json" \
   "WITNESS DRIFT" "allocation-witnesses-v2.json is committed but no module emits it"
 control "witnesses: obsolete dispatch v8 orphan" "$WIT" \
-  "cp docs/design/dispatch-witnesses-v9.json docs/design/dispatch-witnesses-v8.json" \
+  "cp docs/design/dispatch-witnesses-v10.json docs/design/dispatch-witnesses-v8.json" \
   "WITNESS DRIFT" "dispatch-witnesses-v8.json is committed but no module emits it"
 control "witnesses: obsolete authority v2 orphan" "$WIT" \
-  "cp docs/design/authority-witnesses-v3.json docs/design/authority-witnesses-v2.json" \
+  "cp docs/design/authority-witnesses-v4.json docs/design/authority-witnesses-v2.json" \
   "WITNESS DRIFT" "authority-witnesses-v2.json is committed but no module emits it"
 
-# Each obsolete dispatch schema is an orphan of the current schema 9.
+control "witnesses: obsolete dispatch v9 orphan" "$WIT" \
+  "cp docs/design/dispatch-witnesses-v10.json docs/design/dispatch-witnesses-v9.json" \
+  "WITNESS DRIFT" "dispatch-witnesses-v9.json is committed but no module emits it"
+control "witnesses: obsolete authority v3 orphan" "$WIT" \
+  "cp docs/design/authority-witnesses-v4.json docs/design/authority-witnesses-v3.json" \
+  "WITNESS DRIFT" "authority-witnesses-v3.json is committed but no module emits it"
+
+control "witnesses: authority vocabulary note drift" "$WIT" \
+  "sed -i '/<!-- witness-vocabulary: authority -->/a\\changed' docs/design/witness-file-v1.md" \
+  "WITNESS DRIFT" "authority vocabulary differs from emission"
+control "witnesses: authority vocabulary marker missing" "$WIT" \
+  "sed -i '/<!-- witness-vocabulary: authority -->/d' docs/design/witness-file-v1.md" \
+  "WITNESS DRIFT" "missing or duplicate authority vocabulary markers"
+control "witnesses: authority vocabulary marker duplicate" "$WIT" \
+  "sed -i '/<!-- witness-vocabulary: authority -->/a\\<!-- witness-vocabulary: authority -->' docs/design/witness-file-v1.md" \
+  "WITNESS DRIFT" "missing or duplicate authority vocabulary markers"
+control "witnesses: authority vocabulary note missing" "$WIT" \
+  "rm docs/design/witness-file-v1.md" \
+  "WITNESS DRIFT" "authority vocabulary note is missing"
+
+# Each obsolete dispatch schema is an orphan of the current schema 10.
 # The dispatch file was renamed with its schema too: its old name is an orphan.
 control "witnesses: obsolete dispatch v1 orphan" "$WIT" \
-  "cp docs/design/dispatch-witnesses-v9.json docs/design/dispatch-witnesses-v1.json" \
+  "cp docs/design/dispatch-witnesses-v10.json docs/design/dispatch-witnesses-v1.json" \
   "WITNESS DRIFT" "dispatch-witnesses-v1.json is committed but no module emits it"
 
 control "witnesses: obsolete pins v4 orphan" "$WIT" \
@@ -1271,27 +1373,27 @@ control "witnesses: obsolete pins v4 orphan" "$WIT" \
   "WITNESS DRIFT" "pins-witnesses-v4.json is committed but no module emits it"
 
 control "witnesses: obsolete dispatch v2 orphan" "$WIT" \
-  "cp docs/design/dispatch-witnesses-v9.json docs/design/dispatch-witnesses-v2.json" \
+  "cp docs/design/dispatch-witnesses-v10.json docs/design/dispatch-witnesses-v2.json" \
   "WITNESS DRIFT" "dispatch-witnesses-v2.json is committed but no module emits it"
 
 control "witnesses: obsolete dispatch v3 orphan" "$WIT" \
-  "cp docs/design/dispatch-witnesses-v9.json docs/design/dispatch-witnesses-v3.json" \
+  "cp docs/design/dispatch-witnesses-v10.json docs/design/dispatch-witnesses-v3.json" \
   "WITNESS DRIFT" "dispatch-witnesses-v3.json is committed but no module emits it"
 
 control "witnesses: obsolete dispatch v4 orphan" "$WIT" \
-  "cp docs/design/dispatch-witnesses-v9.json docs/design/dispatch-witnesses-v4.json" \
+  "cp docs/design/dispatch-witnesses-v10.json docs/design/dispatch-witnesses-v4.json" \
   "WITNESS DRIFT" "dispatch-witnesses-v4.json is committed but no module emits it"
 
 control "witnesses: obsolete dispatch v5 orphan" "$WIT" \
-  "cp docs/design/dispatch-witnesses-v9.json docs/design/dispatch-witnesses-v5.json" \
+  "cp docs/design/dispatch-witnesses-v10.json docs/design/dispatch-witnesses-v5.json" \
   "WITNESS DRIFT" "dispatch-witnesses-v5.json is committed but no module emits it"
 
 control "witnesses: obsolete dispatch v6 orphan" "$WIT" \
-  "cp docs/design/dispatch-witnesses-v9.json docs/design/dispatch-witnesses-v6.json" \
+  "cp docs/design/dispatch-witnesses-v10.json docs/design/dispatch-witnesses-v6.json" \
   "WITNESS DRIFT" "dispatch-witnesses-v6.json is committed but no module emits it"
 
 control "witnesses: obsolete dispatch v7 orphan" "$WIT" \
-  "cp docs/design/dispatch-witnesses-v9.json docs/design/dispatch-witnesses-v7.json" \
+  "cp docs/design/dispatch-witnesses-v10.json docs/design/dispatch-witnesses-v7.json" \
   "WITNESS DRIFT" "dispatch-witnesses-v7.json is committed but no module emits it"
 
 control "witnesses: pins v5 emission carrying a CNF identifier" "$WIT" \
@@ -1458,16 +1560,16 @@ control "citations: a TauWeb.* name the index does not carry" "$CITES" \
 
 COV=tools/check_coverage.py
 
-# STA-25 is the family's next number; the coverage gate alone runs here, so the
-# identifier gate's gap and outlier checks are not what goes red.
+# Consume only existing slack in the scratch copy, without changing the public
+# baseline, then make the one coverage regression. Identifier gates do not run here.
 control "coverage: a requirement appended with no conformance item" "$COV" \
-  "printf '\n**STA-25** A requirement no conformance item exercises.\n' >> 03-state-and-recovery.md" \
+  "python3 tools/tests/coverage_control.py append" \
   "ABOVE BASELINE" "uncovered > "
 
 # CHN-13 is cited by exactly one item, on CNF-43's continuation line: the
 # parser reads a real item line, and its citation is what keeps CHN-13 covered.
 control "coverage: a citation removed from a real CNF line" "$COV" \
-  "sed -i 's/(\`CHN-13\`)\./(the relay row rule)./' 07-conformance.md && grep -q 'the relay row rule' 07-conformance.md" \
+  "python3 tools/tests/coverage_control.py pad && sed -i 's/(\`CHN-13\`)\./(the relay row rule)./' 07-conformance.md && grep -q 'the relay row rule' 07-conformance.md" \
   "ABOVE BASELINE" "uncovered > "
 
 OBL=tools/check_obligations.py
@@ -1505,14 +1607,14 @@ while IFS='|' read -r atlas_case atlas_label atlas_target; do
     "python3 tools/tests/atlas_cases.py $atlas_case" "$atlas_label" "$atlas_target"
 done <<'ATLAS_CONTROLS'
 stale|ATLAS DRIFT|docs/state-machine-atlas.md
-schema|ATLAS HEADER|docs/design/dispatch-witnesses-v9.json
-module|ATLAS HEADER|docs/design/dispatch-witnesses-v9.json
-namespace|ATLAS HEADER|docs/design/dispatch-witnesses-v9.json
+schema|ATLAS HEADER|docs/design/dispatch-witnesses-v10.json
+module|ATLAS HEADER|docs/design/dispatch-witnesses-v10.json
+namespace|ATLAS HEADER|docs/design/dispatch-witnesses-v10.json
 missing|ATLAS SELECTION|same_action_new_call_id_refused
 ambiguous|ATLAS SELECTION|same_action_new_call_id_refused
 unresolved|ATLAS DECLARATIONS|absent_atlas_declaration
 index|ATLAS DECLARATIONS|index.jsonl
-outcome|ATLAS DRIFT|docs/design/dispatch-witnesses-v9.json
+outcome|ATLAS DRIFT|docs/design/dispatch-witnesses-v10.json
 shape|ATLAS INPUT|same_action_new_call_id_refused.start
 nested|ATLAS INPUT|receipt_binding
 missing_data|ATLAS INPUT|knowledge
@@ -1523,7 +1625,7 @@ unsupported_collection|ATLAS INPUT|start.standing
 continuation_token|ATLAS INPUT|bound.alphabet
 false_tag|ATLAS INPUT|inference_cap
 duplicate_member|ATLAS INPUT|schema
-conformance_id|ATLAS INPUT|docs/design/dispatch-witnesses-v9.json
+conformance_id|ATLAS INPUT|docs/design/dispatch-witnesses-v10.json
 evidence|ATLAS LABELS|docs/state-machine-atlas.md
 step_evidence|ATLAS LABELS|docs/state-machine-atlas.md
 applicability|ATLAS LABELS|docs/state-machine-atlas.md

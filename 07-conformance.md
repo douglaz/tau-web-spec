@@ -95,12 +95,14 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       first-contact route and the weaker modes standing on the set, with the machine's entry
       and index journaled before any create is sent; and no machine leaves a set while its
       session lives. After a predecessor ends, a later session re-enters any subset of its
-      maintained machines (`SEC-1`).
+      maintained machines (`SEC-1`); on escalation the operator chooses the successor's subset,
+      which always includes the escalated stuck machine.
 
       `STA-23` says "An ordinary visibility-only hide MUST NOT end or pause an unlocked session, clear its runtime authority, or invalidate its approvals."
       Repeat binding/succession cases with the predecessor hidden and with a frozen surviving
       writer. A second tab cannot bind its machines or steal writer ownership; after confirmed
-      predecessor loss, locked recovery and a separately admitted successor are required.
+      execution-incarnation loss, locked replay and eligible same-session resume are required.
+      Only actual session End frees the binding for a separately admitted successor.
 - [ ] **CNF-8 · BLOCKING** The profile-declared post-harness machinery holds **no channel to any
       machine, at any point** (`ARC-19a`), and holds no reach beyond what the profile's handoff
       slot declares. Verified by inspecting what that machinery is given — as `CNF-9` does for
@@ -472,8 +474,8 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       spendable balance.
 - [ ] **CNF-69 · BLOCKING** On the procured path, the session inference key is minted with a
       **spend cap and an expiry** and is **revoked when the session ends** (`ARC-31a`); a
-      bring-your-own key has no minting to test. Verified by using the key
-      after the session closes and confirming refusal. Without this, `SEC-5` row 2's "one
+      bring-your-own key has no minting to test. Where the attempt completes with established
+      revocation, verify by using the key after actual End and confirming refusal; Lock or close alone is no revocation event. Without this, `SEC-5` row 2's "one
       session" lifetime is an assertion rather than a bound.
 
       `STA-23` says "Ordinary hiding, suspension and return MUST NOT extend a procured session key's original absolute expiry, replenish its remaining cap, mint a replacement key or renew that key."
@@ -484,14 +486,21 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       `SEC-12` says "**Every off-machine call made with an operator credential MUST be recorded before it is sent.**"
       `STA-8` says "It MUST NOT be retried automatically and no timer may clear it."
       Exercise end racing a mint or response and an unresolved revoke through journal
-      replay without inventing successful revocation. Inference expiry leaves other eligible
+      replay without inventing successful revocation. Kill immediately after durable End,
+      before any revoke intent: reopening retains the attempt owed under `ARC-31a`, using
+      the account credential and known identifier through model-free cleanup. Missing account
+      credential or identifier leaves truthful pending/unknown cleanup; a late identifier
+      discharges the duty without reviving authority or recovering a lost paid key. Separately
+      reconcile an already possibly sent revoke without blind retry or expiry-as-success.
+      Inference expiry leaves other eligible
       sessions and the unlocked store distinct; no claim of SSH/seed/account expiry is made. A fixture
       account-credit change cannot renew the old limits or revive an ended session and is not
       evidence authorizing a funding feature.
       `STA-23` says "Account funding or payment settlement MUST NOT renew a session, replenish or raise its key's cap, extend its expiry, or revive an ended session." No live issuer request is needed for these cases.
       `ARC-31a` owns the procured session-limit contract. The following evidence is additional to the existing session-end, revocation and lifecycle evidence in this item. Synthetic profile and browser evidence are labeled as such; they do not establish current issuer support or physical-device scheduling. Production minting remains refused without a reviewed real profile and its dated evidence at the consumed specification pin.
 
-      Required evidence includes: explicit unchanged-default confirmation and edited exact values reaching intent/wire/display; every grammar/boundary/support/overflow refusal; cancelled, missing, stale and cross-session/account/profile confirmation; concurrent callers and single mint after refused/lost/late/failed-terminal outcomes; failed append and post-append pre-send fences; retained original origin/expiry/consumption through hidden scheduled work, repeated hide/return and freeze with suppressed/delayed notifications; clock rollback/forward jump, monotonic loss, unknown and repaired validity, overflow, equality immediately before/at/after expiry, a delayed mint/first use, cap exhaustion and funding-credit changes; broader or missing issuer acceptance; concurrent/in-flight cap behavior, unknown spend, late completion/accounting, late mint identifiers, real end/Lock and unresolved revocation across replay. A timestamp refresh never shifts the fixed expiry. Worker loss never restores memory-only authority.
+      Required evidence includes: explicit unchanged-default confirmation and edited exact values reaching intent/wire/display; every grammar/boundary/support/overflow refusal; cancelled, missing, stale and cross-session/account/profile confirmation; concurrent callers and single mint after refused/lost/late/failed-terminal outcomes; failed append and post-append pre-send fences; retained original origin/expiry/consumption through hidden scheduled work, repeated hide/return and freeze with suppressed/delayed notifications; clock rollback/forward jump, monotonic loss, unknown and repaired validity, overflow, equality immediately before/at/after expiry, a delayed mint/first use, cap exhaustion and funding-credit changes; broader or missing issuer acceptance; concurrent/in-flight cap behavior, unknown spend, late completion/accounting, late mint identifiers, real End versus surviving Lock and unresolved revocation across replay. A timestamp refresh never shifts the fixed expiry. Worker loss restores only the procured key from its committed validated sealed terminal,
+      with current issuer/clock validation; all other memory-only credentials retain their custody.
 
       Pair each refusal with its nearest eligible continuation, including scheduled hidden work and a still-valid unchanged key after justified clock revalidation. Browser tests exercise the actual production UI-to-worker confirmation and pre-send/post-await lifecycle fences, not only exported fixture hooks. Mutation controls remove confirmation, binding, exact validation, durable-before-send, expiry/clock and stale-publication fences one at a time; each control must fail for its intended observed bad send/evidence/action and pass restored, with a positive control preventing a refuse-everything implementation from passing. Identify calls by kind and original identity rather than ambiguous total OPTIONS counts. Fixture issuer rules cannot prove current issuer behavior or phone scheduling.
 
@@ -501,7 +510,7 @@ an item that tests a mode's conditions or its label is tiered by them like any o
 
 - [ ] **CNF-70 · BLOCKING** Automatic top-up is **not enabled** on the inference account
       (`ARC-31a`). Verified by reading the account's configuration. It converts the prepaid cap
-      — the only thing bounding a leaked key — into an open draw on a connected wallet.
+      — conditionally bounding a leaked key where acceptance and issuer enforcement are evidenced — into an open draw on a connected wallet.
 - [ ] **CNF-71 · PRE-SCALE** On the procured path, the retention tier is requested **explicitly
       on every inference call** (`ARC-31a`), because the aggregator's API default is the weaker
       tier. Verified by
@@ -731,6 +740,11 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       replacement with document, proposal, approval and delivery completion: no stale grant or
       late publication authorizes work for an ended or different session. Preserve safe
       terminal/accounting evidence without unscanned body publication or silent replay.
+      Reconstruct the same session's own journaled goal and safe protected transcript after
+      execution loss (`STA-23`); no model-context checkpoint or prompt bodies are persisted,
+      no other session's goal is loaded and an unfinished unjournaled turn is discarded.
+      This supplies no ended-session goal or acceptance carry-over exception.
+
 - [ ] **CNF-103 · PRE-SCALE** A machine carrying an operator's application says so (`ARC-1a`):
       the delivery card carries the application's sentence with its name, explains Delivered's
       coverage and says "It does not mean <app> works" with that name substituted; the declaration
@@ -903,6 +917,20 @@ to the relay evidence in `CNF-81`, `CNF-87` and `CNF-113`.
       tied to the seed-derived key exists, even if a sheet imported that mapping. The same id
       with this setup's create response or admissible key-tied evidence is permitted subject
       to the other checks. Boundary crossed.
+      Refuse ordinary dispatch after durable End and from a stale execution incarnation,
+      including after replay/validation (`STA-23`). Abandon names several holding sessions,
+      including a holder's machines outside the setup, plus an unaffected nonholder. A failed
+      End append permits no destroy; all holder Ends precede the first destroy. Kill after
+      those Ends before the first destroy, and midway through destruction; on reopening retain
+      the deterministic flow approval, reconcile possibly sent effects without automatic retry,
+      re-supply vendor credentials only to that flow, and preserve exact setup target provenance
+      and resource restrictions. Also kill after an individual holder's End before its first
+      revoke intent, including before the remaining holder Ends: retain each owed attempt
+      under `ARC-31a`, re-supplying the account credential independently of vendor credentials.
+      Cover available and unavailable account credentials/identifiers and an already possibly
+      sent revoke. No new destroy gate or session authority follows. Outside machines lose their session but are not destroyed;
+      nonholders remain eligible. Unmatched unresolved creates still may exist and bill.
+
 - [ ] **CNF-27 · BLOCKING** A scope naming an origin a vendor adapter covers is refused. A
       scope at a vendor with no adapter is admitted only as `SEC-4`'s untyped vendor scope, and
       is refused while the journal shows any undestroyed machine provisioned through that
@@ -1047,6 +1075,10 @@ to the relay evidence in `CNF-81`, `CNF-87` and `CNF-113`.
       independently of the activation response. Exercise a read that still confirms it:
       the subsequent reset into rescue is admitted and ends the restriction. The untyped-scope
       hold is `CNF-105`.
+      Abandon's holder Ends (`ARC-21`, `STA-23`) do not resolve remote work, release another
+      resource's hold or supply destruction evidence. Retain the standing continuation across
+      death before first destroy and midway; a failed End append sends no destroy.
+
 - [ ] **CNF-30 · BLOCKING** Box-plane commands are recorded per command before transmission,
       and the transcript reconciles against what was sent (`ARC-8`).
 - [ ] **CNF-31 · PRE-SCALE** A scoped call is sent with redirect following disabled, and a
@@ -1188,6 +1220,10 @@ to the relay evidence in `CNF-81`, `CNF-87` and `CNF-113`.
       A daemon-launching command whose daemon holds output descriptors completes without
       waiting for the daemon, using file-redirection capture, and its real result is collected.
       A previously sent remote job may finish after local app Lock or worker loss; its completion does not recreate an ended local session.
+      Repeat reconnect/reconciliation after Lock, reload and worker loss with the same
+      eligible session under `STA-23`; reconstructed context neither retries a possibly sent
+      command nor silently resumes an uncertain destructive model turn.
+
 - [ ] **CNF-54 · PRE-SCALE** A completed command's exit code and output are read from the job
       record after a session drop, not inferred from machine state. Include a completed
       root-only job record with a nonzero exit through the LNVPS route (`STG-21`): report
@@ -1406,6 +1442,17 @@ to the relay evidence in `CNF-81`, `CNF-87` and `CNF-113`.
       before that goal's acceptance is refused; and, on the jump-host route, a reinstall is
       accepted again as an installation and a first contact before it is sent (`CHN-R6`). Escaped secret: a secret placed on a
       set whose standing modes the operator was never shown together.
+      A newly approved reinstall with one explicit combined approval/labelled-acceptance act
+      passes; one that merely restates unused prior acceptance refuses, and a failed acceptance
+      append refuses that dispatch. Compare actual End,
+      ordinary hide, Lock, reload and worker loss: surviving same-session interruptions require
+      no renewed acceptance and preserve otherwise standing approval. A refused send alone
+      does not invalidate it. Neither acceptance nor approval opens an installation: dispatch
+      alone opens it and retires the installed pin; a lost dispatch reply stays unresolved,
+      with holds and no automatic retry. A newer bundle supplying an applicable pin gets no
+      permanent exemption from old acceptance. Dedicated withdrawal
+      cases remain dedicated fixtures, with no current LNVPS reproduction claimed.
+
 - [ ] **CNF-43 · PRE-SCALE** The relay's row names its operator and states that it learns the
       machine topology (`CHN-13`).
 - [ ] **CNF-44 · DEFERRED** Nothing in the interface uses the words "verified" or "no anomalies
@@ -1462,13 +1509,17 @@ Not pass/fail. Required to be recorded.
       Local storage follows `STA-23`: wrong passphrases, modified
       envelopes/records, cross-store substitution and unknown formats fail closed; no new
       empty store replaces failed decryption. `STA-23` says "An ordinary visibility-only hide MUST NOT end or pause an unlocked session, clear its runtime authority, or invalidate its approvals."
-      and "Explicit app Lock, pagehide including entry to the back-forward cache, reload, or worker shutdown MUST stop dispatch, end session workers and close channels; the worker clears its keys and credential buffers and returns locked."
-      Reload/full end require unlock again, session workers lose access, and replay preserves
+      and "Explicit app Lock, pagehide including entry to the back-forward cache, reload, worker shutdown, freeze and discard MUST NOT end a session."
+      Reload/Lock require unlock again, old execution workers lose access, and replay preserves
       unresolved actions. An ordinary hide retains the session, binding, original approvals,
       goal/context and runtime scan material, with permitted fixture work continuing while
       scheduled. Return alone neither unlocks a locked worker nor needs a passphrase for the
-      surviving unlocked worker. Explicit app Lock still ends it. During the seed ceremony,
+      surviving unlocked worker. Explicit app Lock pauses it and keeps its approvals and bindings. During the seed ceremony,
       hide takes the full Lock path and clears displayed words/input.
+      Ordinary work stays refused while completion is owed after hide, Lock, replay,
+      reload/discard or attempted resume. Neither unlock nor resume is completion. A durable
+      same-seed full re-entry or explicit skip permits eligible same-session continuation
+      with approvals/bindings intact; failed completion append and mismatched re-entry do not.
       Exercise hidden→visible, hidden→freeze→hidden/visible, repeated hides/returns,
       suppressed/delayed lifecycle notifications, pagehide/bfcache, reload, worker
       discard/restart, a second instance and a late old-worker result. Check the worker's
@@ -1495,9 +1546,39 @@ Not pass/fail. Required to be recorded.
       Full re-entry and explicit skip are journaled distinctly and neither is shown as a
       verified backup. Close the tab, hide the page and kill the worker before completion:
       the next unlock still owes the ceremony. A failed append leaves it owed. Re-display
-      requires the passphrase again, ends sessions and uses the same ceremony; no other
+      requires the passphrase again, pauses sessions and uses the same ceremony; no other
       display exists. Imported seeds, with sheet or store backup, owe no ceremony.
       Escaped-secret.
+- [ ] **CNF-116 · BLOCKING** Session pause/resume (`STA-3`, `STA-7`, `STA-23`, `ARC-12`,
+      `ARC-31a`, `SEC-1`, `SEC-4`): exercise Lock, pagehide/bfcache, reload, worker shutdown,
+      freeze and discard with approvals and bindings retained. A committed validated sealed
+      paid key resumes with its original cap/expiry and one mint; locked access, stale
+      incarnation, unsafe continuation and actual End refuse. Refuse dispatch and actionable
+      publication before the resumed incarnation's validation; pair with the nearest validated
+      continuation. Refuse self-resume, current/retired execution-identity collisions and reuse
+      at admission, without freeing dormant bindings for admission or growth. Repeat safe
+      same-session resumes with different incarnations and original approvals/bindings while
+      an eligible unrelated session progresses. Test fresh execution identity after durable
+      session End independently of an exact old identity fence or already-present actor.
+      Interrupted ceremony and failed completion append still refuse work; both existing
+      durable completion choices restore eligible continuation. Every End path remains fenced
+      through validation, resume, replay and attempted admission. A failed End append grants
+      no dependent operation; expiry/cap still withholds ordinary work. Pre-End journal
+      sessions replay ended; unknown versions refuse; import restores ended history only.
+      BYO/local sessions have no idle/hidden timer. Paid expiry/cap ends at the next execution
+      opportunity without extending expiry. A lost key or seal without a committed validated
+      terminal holds all work including SSH until End/original expiry, retaining machines and
+      approvals with no second mint or same-key recovery. A late terminal followed by another
+      pause/resume cannot clear latched key loss; contrast repeated resumes with a previously
+      durable valid seal. Preserve issuer evidence, unknown
+      spend and revocation; exercise the conditional cap bound and top-up-off requirement.
+      An unfinished model turn is discarded, context reconstructed only from the session's
+      durable authorized facts, with no prompt journaling/checkpoint or unjournaled continuation.
+      Keep writer exclusivity, begun-append atomicity, no unload journaling and no automatic
+      replay/retry. Verify the standing End/Lock disclosure and actual held, reconciling,
+      expired, ended and locked states, with no new acknowledgement ceremony.
+      Destroyed data and boundary crossed: a stale incarnation or revived End can send an
+      already approved wipe under authority that no longer stands.
 - [ ] **CNF-111 · BLOCKING** Worker policy admission (`ARC-32`, `ARC-33`): in the harness
       worker's own context, `import()` of a `data:` module and a cross-origin module,
       `eval` and `Function` are refused. The self-check runs first, before dependencies load
@@ -1581,6 +1662,22 @@ Not pass/fail. Required to be recorded.
       that restate them. The dedicated-path
       case rekeys Robot through rescue with a fresh seed when metadata is missing; only that
       case waits for the dedicated milestone below. Boundary-crossed and destroyed-data.
+      Round-trip payload v5's actual per-machine unpinned history separately from present
+      artifact status, standing modes and unused acceptance (`STA-16`, credential format).
+      Preserve a known unpinned past after a pinned successor, including later disclosure and
+      restatement. An unused acceptance without a dispatched installation establishes no
+      positive history. Export and convert an actual initial unpinned installation before any
+      host-pin group exists: preserve ordinal zero with both pin arrays empty, without
+      manufacturing a group or refusing formerly valid data. V3 and v4 retain all original
+      validation before conversion. A version-3 payload whose two-machine set carries the
+      unpinned-installation label, with both machines now recorded as pinned, restores both
+      machines as history unknown, shows and restates it at the next binding of a set that
+      includes either machine, and records neither as unpinned nor as clean history. The same
+      label on a one-machine set restores as that machine's unpinned history. Re-export retains
+      the converted history; missing groups, observations or pins are never synthesized.
+      Import restores ended session history only, with no usable key, approvals, live
+      binding or old-phone revocation; the old phone's own session remains independent.
+
 - [ ] **CNF-85 · BLOCKING** Disk selection in the install brief is checked without writes first:
       the root disk's stable path and canonical alias are both excluded from additional-disk
       erasure; duplicates run once; an empty additional set erases none; an invalid or
@@ -1625,9 +1722,10 @@ Not pass/fail. Required to be recorded.
       choosing withdrawal records the replacement and withdrawal separately, refuses that reset
       naming the withdrawal, and keeps the root's id and reset offer. Exercise the approval-only
       change of mind and refusal of withdrawal after dispatch (`STG-20`). End the rendering
-      session after approval and before its reset, by lock and by worker restart: the approval
+      session after approval and before its reset by actual End: the approval
       is shown as no longer usable with no withdrawal offer, the successor cannot dispatch that
-      reset under it, and it opens nothing. Approving again in the successor session, followed
+      reset under it, and it opens nothing. Contrast Lock and worker restart, which retain
+      the same session and standing approval through eligible resume without another tap. Approving again in the successor session, followed
       by a rescue activation dispatched since then and still confirmed, opens the installation
       at its reset. A fresh reinstall erases
       the approved predecessor, including an unmarked, foreign-id or hand-installed root, and
@@ -1652,8 +1750,8 @@ Not pass/fail. Required to be recorded.
       activation/read/binding checks and show its eligible reset can dispatch unseen. Leave
       any prerequisite unsatisfied and show refusal; hide/return supplies no confirmation.
       On return show standing approval/withdrawal accurately without inventing a new consent
-      wait. Contrast explicit app Lock and worker restart, which end the rendering session
-      and make its approval unusable, with no withdrawal offer. Exercise a separate destructive
+      wait. Contrast actual End, which makes the approval unusable with no withdrawal offer.
+      Explicit app Lock and worker restart retain it through eligible same-session resume. Exercise a separate destructive
       disposition too; visibility changes neither its own authority nor its dispatch checks.
 - [ ] **CNF-87 · BLOCKING** The LNVPS path's relay uses the selected `/v2/` profile and a
       hand-recorded pass (`STG-18`; [paid-tcp-relay][relay-source] PAS-6). Demonstrate fresh
@@ -1777,7 +1875,7 @@ promotion rule above.
 
 | Applies when | CNF items | Interpretation |
 |---|---|---|
-| The LNVPS path: required before the LNVPS path delivers a machine to an operator and before anything the delivery gate below lists is enabled | 1–7, 10–17, 21, 23–26, 28–30, 32, 34–35, 37, 39–44, 49–56, 66–73, 78–79, 81–83, 87–91, 93–95, 99–104, 109–111, 112, 114 | One live LNVPS machine on catalogue plain Arch with no tenant, an initial session from the owner's goal and the later session `STG-9` requires (item 108) with a goal of its own, created through a typed adapter. First contact uses `CHN-R7`'s published-key route; item 23 requires no contact during its wait and item 109 requires published-pin admission, freshness, pin checking and disclosure on the integrated harness. Its new job-read pin admission, initial-group opening by a job read, and job-read attempt after a published pin belong to the dedicated row; its unused attest admission, initial-group opening by an attest, and consumed-introduction case belong to the attest row. This row keeps every case against earlier job-read and attest pins, on pins a Restore brings in, including item 84's "an initial empty group opened by a job read or attest". Synthetic unbound identities exercise 6 and 26. Item 7's growth and subset cases, and item 91's two-machine case, use fixtures until the untyped-scope, jump-host and sets-above-one row passes. Item 110 runs here the cases its own text assigns to the LNVPS path. Item 12 is exercised with a hostile goal and a hostile fetched document; its untyped-scope restatement, and item 14's, wait for the untyped-scope, jump-host and sets-above-one row. Item 14 covers any root password the typed adapter's response carries. Item 23 covers unpinned-first-contact refusal; its attest-window case applies where attest is enabled, and its jump-host label waits for the untyped-scope, jump-host and sets-above-one row. Items 18 and 61 remain route-specific attest checks, required before enabling that route, not requirements of this row. Items 24 and 66 apply wherever the installation is pinned, and item 67's and item 93's unpinned cases wherever it is not; NixOS evidence is required before enabling NixOS. Interrupted resume (`STG-12`) is carried here by items 37, 39, 40 and 54–56; item 86's cases are a rescue boot's, and stay the test bed's. Item 95's LNVPS-path cases all require integrated evidence (`OPN-28`); cases (e) and (f) run here on M alone: every assertion but their A/B output-release assertions and case (e)'s copied-key assertions, which belong to the untyped-scope, jump-host and sets-above-one row. Item 53's `delivery_reboot` cases belong to the dedicated row: the own-record settlement and its append/replay cases; the hold after the journaled yes, including after the reboot settled; the missing-yes and wrong-call settlement refusals; the command in flight at the yes and its held unjournaled yes; the stopped pending-check case; the late new-boot record under a destructive disposition; and the rescue-return halt with its paired installed return, including its `exec` case. LNVPS's typed-restart survival evidence, its typed-restart settlement refusal, its typed-restart hold after the journaled yes including after the reboot settled, its typed-restart stopped pending-check case, the `exec` of the same reboot bytes and every other item-53 case stay here. Item 55's `delivery_reboot` settlement belongs to the dedicated row; the rest stays here. Item 50 covers the delivery check; its scanner half waits for scanner enablement. Item 10 covers local ledger persistence; its sheet-export half is the recovery row's. Item 72 covers local allocation; imported-state cases are 84. Item 81's migration case waits for self-host migration, which is not specified as offered. Item 32 covers the typed adapter's origin. Items 68–71, 78 and 88–90 apply to the procured inference path; bring-your-own and local inference have no aggregator to test. Item 88 uses injected list fixtures the way 17 uses an injected response. Item 42 covers placed secrets; its untyped-scope half waits for the untyped-scope, jump-host and sets-above-one row. Item 104 covers the LNVPS invoice and `ARC-30`'s TLS provenance, with no exemption; its untyped-scope case belongs to the untyped-scope, jump-host and sets-above-one row. |
+| The LNVPS path: required before the LNVPS path delivers a machine to an operator and before anything the delivery gate below lists is enabled | 1–7, 10–17, 21, 23–26, 28–30, 32, 34–35, 37, 39–44, 49–56, 66–73, 78–79, 81–83, 87–91, 93–95, 99–104, 109–111, 112, 114, 116 | One live LNVPS machine on catalogue plain Arch with no tenant, an initial session from the owner's goal and the later session `STG-9` requires (item 108) with a goal of its own, created through a typed adapter. First contact uses `CHN-R7`'s published-key route; item 23 requires no contact during its wait and item 109 requires published-pin admission, freshness, pin checking and disclosure on the integrated harness. Its new job-read pin admission, initial-group opening by a job read, and job-read attempt after a published pin belong to the dedicated row; its unused attest admission, initial-group opening by an attest, and consumed-introduction case belong to the attest row. This row keeps every case against earlier job-read and attest pins, on pins a Restore brings in, including item 84's "an initial empty group opened by a job read or attest". Synthetic unbound identities exercise 6 and 26. Item 7's growth and subset cases, and item 91's two-machine case, use fixtures until the untyped-scope, jump-host and sets-above-one row passes. Item 110 runs here the cases its own text assigns to the LNVPS path. Item 12 is exercised with a hostile goal and a hostile fetched document; its untyped-scope restatement, and item 14's, wait for the untyped-scope, jump-host and sets-above-one row. Item 14 covers any root password the typed adapter's response carries. Item 23 covers unpinned-first-contact refusal; its attest-window case applies where attest is enabled, and its jump-host label waits for the untyped-scope, jump-host and sets-above-one row. Items 18 and 61 remain route-specific attest checks, required before enabling that route, not requirements of this row. Items 24 and 66 apply wherever the installation is pinned, and item 67's and item 93's unpinned cases wherever it is not; NixOS evidence is required before enabling NixOS. Interrupted resume (`STG-12`) is carried here by items 37, 39, 40 and 54–56; item 86's cases are a rescue boot's, and stay the test bed's. Item 95's LNVPS-path cases all require integrated evidence (`OPN-28`); cases (e) and (f) run here on M alone: every assertion but their A/B output-release assertions and case (e)'s copied-key assertions, which belong to the untyped-scope, jump-host and sets-above-one row. Item 53's `delivery_reboot` cases belong to the dedicated row: the own-record settlement and its append/replay cases; the hold after the journaled yes, including after the reboot settled; the missing-yes and wrong-call settlement refusals; the command in flight at the yes and its held unjournaled yes; the stopped pending-check case; the late new-boot record under a destructive disposition; and the rescue-return halt with its paired installed return, including its `exec` case. LNVPS's typed-restart survival evidence, its typed-restart settlement refusal, its typed-restart hold after the journaled yes including after the reboot settled, its typed-restart stopped pending-check case, the `exec` of the same reboot bytes and every other item-53 case stay here. Item 55's `delivery_reboot` settlement belongs to the dedicated row; the rest stays here. Item 50 covers the delivery check; its scanner half waits for scanner enablement. Item 10 covers local ledger persistence; its sheet-export half is the recovery row's. Item 72 covers local allocation; imported-state cases are 84. Item 81's migration case waits for self-host migration, which is not specified as offered. Item 32 covers the typed adapter's origin. Items 68–71, 78 and 88–90 apply to the procured inference path; bring-your-own and local inference have no aggregator to test. Item 88 uses injected list fixtures the way 17 uses an injected response. Item 42 covers placed secrets; its untyped-scope half waits for the untyped-scope, jump-host and sets-above-one row. Item 104 covers the LNVPS invoice and `ARC-30`'s TLS provenance, with no exemption; its untyped-scope case belongs to the untyped-scope, jump-host and sets-above-one row. |
 | The LNVPS path: publisher-default hosting | 113 | Required before admitting the publisher default, and before the LNVPS path delivers a machine to an operator with it or anything the delivery gate below lists is enabled with it. Include the effective-deployment and live-origin evidence, with the precise resolver TCP/53 route outside the independent-denial guarantee where connector-usable. Isolated results remain recordable while required deployment assertions are pending; pending does not pass admission. This row does not impose the publisher profile on bring-your-own or a self-hosted migration target. |
 | The LNVPS path: record measurements | 45–47 | Require the integrated browser channel, not the rehearsal's timings. |
 | The LNVPS path: model-written check reports | 107 | The report label, verdict isolation and absence of automatic re-execution are required before the LNVPS path delivers a machine to an operator and before anything the delivery gate below lists is enabled. |

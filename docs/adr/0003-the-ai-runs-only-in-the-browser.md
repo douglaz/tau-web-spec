@@ -64,10 +64,24 @@ above is unchanged and records what was decided then.
 ## Amended 2026-10-27: ordinary hiding and actual loss are distinct
 
 `STA-23` says "An ordinary visibility-only hide MUST NOT end or pause an unlocked session, clear its runtime authority, or invalidate its approvals."
-and "Explicit app Lock, pagehide including entry to the back-forward cache, reload, or worker shutdown MUST stop dispatch, end session workers and close channels; the worker clears its keys and credential buffers and returns locked."
+It said, until 2026-11-04, "Explicit app Lock, pagehide including entry to the back-forward cache, reload, or worker shutdown MUST stop dispatch, end session workers and close channels; the worker clears its keys and credential buffers and returns locked."
 It also says "Phones may freeze or discard the page without a final callback; no background execution window, memory survival, socket continuity or timely cleanup is promised."
 The earlier closed/suspended/phone-awake examples record interruption costs; they supply no
 promise that hiding always kills the worker or that a phone will keep working in the
 background. Keeping the browser worker retains unlocked local authority and permits unseen
 work, including previously approved destructive operations. Genuine loss still requires
 recovery. No hosted or machine-resident harness executor is added by this amendment.
+
+## Amended 2026-11-04: no local event ends a session
+
+[ADR-0052](./0052-no-local-event-ends-a-session.md) changes the 2026-10-27 amendment above.
+Explicit app Lock, pagehide including entry to the back-forward cache, reload, worker shutdown
+and the browser freezing or discarding the page no longer end a session or its authority.
+Approvals, bound machines and the procured paid session key, sealed under the data key, carry
+on across those events until End, and replay resumes a session that has not ended.
+The cost named above now also follows a reload or kill: a journaled approval, including a
+destructive one, can run with no new tap. Lock is no longer a kill switch; End is. Nothing runs
+while the app is closed, and no hosted or machine-resident harness executor is added.
+The sealed paid key stays on the operator's phone, encrypted under the data key; no
+credential is placed on a machine, and model context is not saved to disk.
+The body and the 2026-10-27 amendment above record what was decided then.

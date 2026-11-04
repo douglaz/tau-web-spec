@@ -146,3 +146,9 @@ and `CNF-45` now asks for the per-channel figure.
 *Amended 2026-10-06:* the first stage's set is still one machine, but its applicability row in
 `07-conformance.md` exercises `CNF-91` and `CNF-7`'s growth and subset cases by fixture, so
 "nothing here gates it" is history.
+
+*Amended 2026-11-04:* the larger-set middle rung above is settled at `SEC-1`, on its subset
+rule: "On escalation, the operator chooses which other eligible machines of the predecessor set
+join the successor, as the subset rule below allows, and the escalated stuck machine is always
+included." The rules that already own termination, exclusion, exposure, resource holds and the
+singleton cases are unchanged.
