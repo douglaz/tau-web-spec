@@ -161,3 +161,8 @@ unchanged.
 *Amended 2026-10-19:* ADR-0050 widens the destructive stop: `STA-24` says "the harness
 worker MUST refuse every box-plane job to that machine, whatever the disposed call was and
 whoever starts it". The earlier title and shape remain the history of ADR-0044's decision.
+
+*Amended 2026-11-03:* [ADR-0053](./0053-the-untyped-scope-hold-holds-every-new-job.md) widens
+the untyped-scope hold from the model's commands to every new box-plane job, whoever starts it,
+on the machines it covers, a successor's jobs on them included, and carries it to later scopes
+at the same exact origin. The release is still the operator's replacement.

@@ -110,6 +110,13 @@ call under it and the model's box-plane commands to the set's machines at that v
 operator replaces the disposition (ADR-0044). How the operator carries the act out by hand
 stays open.
 
+*Amended 2026-11-03:* the rotated-token edge is closed.
+[ADR-0053](./0053-the-untyped-scope-hold-holds-every-new-job.md) has every later scope at the
+same exact origin inherit an unresolved call with no credential compared, so a rotated token no
+longer starts with no barrier; a standing destructive hold carries to such a scope's calls and
+refuses every new box-plane job, whoever starts it, on the machines it covers; and the scope's
+local permission closes when its session ends (`STA-24`, `SEC-4`).
+
 **The trust display gains a kind of entry.** A vendor reached this way is both the machine's
 vendor and a service holding a key the harness cannot bound, for as long as that key lives.
 

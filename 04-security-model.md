@@ -290,6 +290,21 @@ these holds:
   at that vendor (`STA-24`).
 - **First contact is through a jump host** (`CHN-R6`).
 
+**The scope's local permission ends with its session.** *Amended 2026-11-03* (ADR-0053): when
+the session that approved an untyped vendor scope ends (`STA-23`), the scope's local permission
+closes, and with it the exclusivity the first condition above keeps while the scope stands. A
+successor that is to call the vendor approves a scope afresh, on the card where it accepts the
+mode (`SEC-14`); one act on that card may both approve the scope and accept the mode.
+Resupplying the credential, or accepting the mode alone, carries no permission over. Only what
+ends a session under `STA-23` closes it: `STA-23` says "Explicit app Lock, pagehide including
+entry to the back-forward cache, reload, worker shutdown, freeze and discard MUST NOT end a
+session", and an ordinary hide ends none either. Closing the permission does not revoke the
+credential at the service, erases no record and ends no display of a credential still exposed
+(`SEC-5`). The scope's calls and dispositions keep their records and their effect under
+`STA-24`, and a fresh approval evades neither of its inheritance rules. Closing the exclusivity
+removes that one obstacle to a successor binding the machines; it grants no binding (`SEC-1`)
+and waives none of the conditions above, which the successor's own scope meets afresh.
+
 **What the mode cannot keep out of model context, it shows.** A token the vendor mints and a
 root password the vendor generates arrive in a response no adapter reads, so the model reads
 them. The scope's card and the trust display say so; `CNF-12` and `CNF-14` are restated for
@@ -702,7 +717,8 @@ no label, no answer and no operator act sets aside.
   one machine accepts that mode itself, on a card it already shows: a larger set at binding,
   before any channel access, naming the history modes its machines bring into it (`SEC-1`); no
   brief with its goal, before the model acts on it (`ARC-11a`); an untyped vendor scope on its
-  card, before the first call through it (`ARC-15`). A session that does none of these accepts
+  card, before the first call through it (`ARC-15`), whose approval closes with the session
+(`SEC-4`). A session that does none of these accepts
   none, and the same eligible session resumed after any surviving local interruption (`STA-23`,
   `STG-12`) accepts nothing again merely for that interruption. What an
   earlier session's mode left live — a vendor credential or minted token not yet revoked, a

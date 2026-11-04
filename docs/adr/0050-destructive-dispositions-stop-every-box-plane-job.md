@@ -47,3 +47,8 @@ The Markdown, conformance cases and companion change together. `TauWeb.Dispatch.
 `TauWeb.Dispatch.command_bars_activation_and_reset` pins an unresolved command barring activation
 and reset. Dispatch schema 6 is unchanged and regenerated. Re-arm remains prose and integrated
 conformance evidence; the companion has no placement or scan-reference state.
+
+*Amended 2026-11-03:* this stop was typed only and did not settle the untyped-scope hold.
+[ADR-0053](./0053-the-untyped-scope-hold-holds-every-new-job.md) now has that hold refuse every
+new box-plane job, whoever starts it, on the machines it covers, a successor's jobs included,
+as a separate rule in `STA-24`.
