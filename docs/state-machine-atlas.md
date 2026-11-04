@@ -761,7 +761,7 @@ For overlapping restrictions, follow these owner routes together:
   `STA-24` says “Box-plane dispatch to the machine is governed by `STA-20` and
   `STA-20b`, not by this rule”. For the exception, see [Cloud barrier](#cloud-barrier).
 - Failure/successor allocation:
-  [tw-sfu/tw-hwl/tw-nj8](../.beads/issues.jsonl). Installation/recovery:
+  [tw-sfu/tw-nj8](../.beads/issues.jsonl). Installation/recovery:
   [tw-l1l/tw-lq8/tw-yhd](../.beads/issues.jsonl). Restored-command boundary:
   [STA-20/STA-24](../03-state-and-recovery.md#durable-state).
 
@@ -813,7 +813,7 @@ inspect a named record with `br show ID --json --no-auto-flush --no-auto-import`
   [ARC-41](../01-architecture.md#machine-networking). `SEC-11` says “a key that does not
   match MUST halt the session”; `ARC-41` says “the harness does not reconnect on its own”.
   [CNF-53](../07-conformance.md)'s dedicated rescue-return case exercises it.
-- Allocation questions stay with [tw-sfu, tw-hwl, tw-nj8](../.beads/issues.jsonl);
+- Allocation questions stay with [tw-sfu, tw-nj8](../.beads/issues.jsonl);
   installation/recovery questions with [tw-lq8, tw-l1l, tw-yhd](../.beads/issues.jsonl).
   This outline chooses no answers to them.
 - [The witness gate](../tools/check_witnesses.py) checks corpus-wide marked pair
