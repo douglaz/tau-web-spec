@@ -370,7 +370,7 @@ taken from the model.** For a machine it is the **approved machine entry** of th
 (`ARC-15`'s batch), to which the reserved allocation index (`STA-22b`) and, once learned, the
 immutable vendor machine id are associated — so a create and the machine it produced are one
 resource, and a second attempt at the same entry sits behind the same barrier even if it would
-reserve another index. A different approved entry is independent, and creating it while a sibling is unresolved is permitted under its own approval, whose card shows the unresolved sibling and that it may be billing, unless the unavailable-identity exclusion below bars its order. For an untyped call it is the **scope** itself, since no
+reserve another index. A different approved entry is independent, and creating it while a sibling is unresolved is permitted under its own approval, whose card shows the unresolved sibling and that it may be billing, unless the unavailable-identity exclusion below bars its order. For the in-setup replacement rung's new entry, see `ARC-22`. For an untyped call it is the **scope** itself, since no
 adapter can say what the call touched (`SEC-4`): no further call under that scope is dispatched
 while it is unresolved, and once the operator disposes of it only as the disposition permits
 (below); nothing under a scope counts as a read, because nothing types it. A scope re-approved
@@ -1266,6 +1266,10 @@ it starts.** Re-entering a machine to remove
 the old key uses the old key; signed revocation on the paid/public path uses the old pass key.
 For LNVPS entry and the key-install/removal jobs on its login account, see `STG-21`.
 Both derive from the seed being retired, so the operator needs its backup *during* Replace and abandons it after.
+The operator may drop that backup once the last step that needs the retired seed is done. The
+wait for an LNVPS rebuild's old machine's deletion evidence (below) does not by itself keep the
+backup needed; where that machine's vendor key can come only from the retired seed, a read under
+that key is such a step.
 If the old seed or an index is missing, direct re-entry and pass revocation cannot finish.
 Robot machines can still be rekeyed through vendor-authenticated rescue (`STA-15`); cloud
 machines are destroyed and recreated, as that section says. At LNVPS a missing old seed or index
@@ -1274,7 +1278,8 @@ machine remains shown as existing and billed. `STG-21a` says "Without the key, n
 For abandonment duties, see `ARC-22`.
 The screen names unrecovered machines
 and unrevocable passes, and never reports a complete Replace or complete revocation while
-either remains outstanding, including a manual relay retirement awaiting confirmation.
+either remains outstanding, including a manual relay retirement awaiting confirmation and an
+LNVPS rebuild's old machine awaiting its deletion evidence (below).
 
 Replace's machine-migration MUST move the machine component to the machine's new index and
 carry its installation ordinal `n` with it (`STG-20`). It MUST refuse to migrate a machine
@@ -1337,7 +1342,18 @@ a machine. Replace MUST state these limits and offer destroy/rebuild where persi
 suspected; a successful key replacement is no claim that the machine is clean.
 
 For LNVPS rebuilds, `ARC-22` says "it is a new order under the new seed's key"; the old machine
-takes its unavailable-destroy treatment. The deferred vendor-key
+takes its unavailable-destroy treatment. Replace's own model-free flow carries that treatment
+out: it stops the old machine and turns its automatic renewal off, under that machine's own
+recorded vendor key, as `SEC-4` grants. The stop comes after any re-entry of that machine and
+any removal of its old public key. The renewal-off comes after the stop is confirmed; `STA-24`
+says "At LNVPS renewal-off waits for the stop's confirmation". Replace MUST be reported
+incomplete until the old machine's deletion evidence (`STG-21a`) is durably recorded, including
+after a restart, after the vendor's stated deletion date passes and after a failed append of
+that evidence. No other Replace step waits on the old machine: the new machine, its sessions
+and allocations proceed, and finished steps, such as the new sheet's export, may be shown
+finished; Replace's allocations still wait for the fresh seed's record (`STA-22b`). The deletion
+check (`SEC-4`) collects that evidence when the operator starts it and adds no call to this
+flow. The deferred vendor-key
 carry-forward and disclosure amendment remains T44's, not an available Replace behavior.
 
 **STA-18** Inventory recovery makes the vendor list authoritative. Listing the account is how

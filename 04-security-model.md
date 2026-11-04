@@ -228,6 +228,30 @@ this paragraph governs only the deterministic abandonment flow (`ARC-21`), inclu
 continuation across openings after the named holders' durable Ends. It borrows no session
 authority.
 
+**The deletion check is authorized outside any session.** It is one check, started by the
+operator from the screen that shows the machine (`ARC-22`); nothing starts it automatically.
+It MUST act only on a machine stopped under `ARC-22`'s unavailable-destroy treatment whose
+deletion is not yet confirmed, whichever flow stopped it — the in-setup replacement rung
+(`ARC-22`), Replace's own flow (`STA-17`) or an abandonment (`ARC-21`) — and whatever state
+that machine's setup is in, a finished or an abandoned setup included. It MUST make only
+`STG-21a`'s deletion reads, under that machine's own recorded vendor key: `STG-21a` says
+"Without the key, no read confirms deletion". It MUST NOT issue a stop, destroy, reinstall or
+other mutating call, bind or borrow a session, hold an SSH client key, drive a model, or use
+another machine's key. It supplies evidence only: `STA-24` owns the durable evidence record and
+`STG-21a` the predicate, and the check ends no duty by itself (`SEC-5`). Read-only describes
+this authority, not the vendor side: these are authenticated reads the vendor receives and may
+record, and `STA-5` says such reads "can create its empty account row". The key is the
+machine's derived vendor identity, which `SEC-5` row 22 lists as not derivable today (T44);
+until it is, the check has no key and makes no read. This authorization is checked at
+dispatch, and the check borrows no session authority.
+
+**Replace's own flow MAY issue exactly two vendor calls for the old machine of an LNVPS
+Replace rebuild:** that machine's stop and its renewal-off, in the order `STA-17` fixes. Both
+use that machine's own recorded vendor key, never the replacement machine's key and never an
+SSH client key. The grant covers no other vendor call and no other machine, and it is checked
+at dispatch. The deletion check gives this flow no further call. T44 gates the key, as it
+gates the deletion check's.
+
 **What is dispatched is the approved record.** The adapter executes the structured facts as
 they were approved and journaled — the resource (`STA-24`), the arguments, the declared cost
 bound, the bundle commit — never a request rebuilt at dispatch from session state or from
@@ -300,7 +324,7 @@ outgrown, because adding a credential means adding a row.
 
 | # | Credential | Origin | Where it lives | Lifetime | What it authorizes | How it dies |
 |---|---|---|---|---|---|---|
-| 1 | Vendor API credential, used through a typed adapter | Operator | Browser memory only | The sessions it is supplied to, or one deterministic harness flow (`STA-18`, `ARC-21`) | Whatever the vendor grants it, up to full account authority; the adapter authorizes session operations against the calling session's bound set, so one credential may serve several sessions; it authorizes the abandonment flow against this setup's own create response or evidence tied to the seed-derived key (`SEC-4`) | Session or flow ends |
+| 1 | Vendor API credential, used through a typed adapter | Operator | Browser memory only | The sessions it is supplied to, or one deterministic harness flow (`STA-18`, `ARC-21`, Replace's own flow `STA-17`, or the deletion check `SEC-4`) | Whatever the vendor grants it, up to full account authority; the adapter authorizes session operations against the calling session's bound set, so one credential may serve several sessions; it authorizes the abandonment flow against this setup's own create response or evidence tied to the seed-derived key, Replace's flow only for an LNVPS rebuild's old machine's stop and renewal-off, and the deletion check only for `STG-21a`'s deletion reads under the stopped machine's own key (`SEC-4`) | Session or flow ends |
 | 2 | Inference **session** key | Minted from row 14 (procured); supplied by the operator (BYO) | Procured: encrypted local store under the data key and working memory (`ARC-31a`); BYO: browser memory only | One session | Inference spend, **up to its own cap** (procured contract: `ARC-31a`) | Revoked at session end (procured); session ends (BYO) |
 | 3 | **SSH client private key, one per machine** | **Derived** from row 15 at that machine's index (`STA-22`) | Re-derived on demand; nothing to export. Given to the machine's bound session and no other; a jump host's, at the jump host's own index, is given to no session (`CHN-R6`); during Replace, the machine's old and new keys are held by the harness's model-free Replace flow and given to no session (`STA-17`) | Machine lifetime | Login to **that one machine** | Removed from the machine on Replace (`STA-17`), which is a new seed; a jump host's dies with the jump host |
 | 4 | **Relay key**, one per pass | Derived from row 15 (`STA-22`); its public half is what the relay binds a bought pass to (`CHN-15`), and what the LNVPS path hands the publisher out of band | Re-derived on demand; nothing to store | Until the pass expires or is revoked | Reaching the destinations recorded against its pass, on any port; recording destinations; revoking (`CHN-16`) | Pass expires or replacement is confirmed under `STA-17`, by signed revocation or the LNVPS path's manual retirement |
@@ -314,7 +338,7 @@ outgrown, because adding a credential means adding a row.
 | 12 | **Application secret placed on a machine** | Operator, on `place_secret`'s card (`ARC-43`) | Browser memory until the placing session ends, then the machine alone; briefly in the local paste re-arm card (`ARC-43`), cleared after reference construction and never persisted or sent | Machine lifetime | Whatever the application it was placed for uses it for | Machine destroyed (at LNVPS, the vendor's confirmed deletion, not the stop that stands in for a destroy, `ARC-22`), or operator rotates |
 | 13 | ~~Injected SSH host private key~~ | — | — | — | — | **Row retired. `CHN-R3` is abandoned**: user-data stays readable from the vendor's metadata endpoint for the instance's life, so the key would be permanently re-fetchable by anything on the machine. No exception wording fixes that. |
 | 14 | **Inference account credential** (procured only) | Operator, on funding an account-free balance | Encrypted at rest; **exported in the sheet** | Until the balance is spent | The remaining balance; minting and revoking row 2; attaching a funding source (`ARC-31a`) | Spent down or abandoned — **it is bearer and cannot be revoked** |
-| 15 | **Operator seed** | Operator, at first use; backed up by the operator | Encrypted at rest; **in the operator's head or seed backup**, never in the sheet; words displayed only in `STA-23`'s ceremony | Until replaced | Deriving rows 3, 4, 7, 16 and 17 — **every maintained machine, every relay pass, every future introduction, and every declared handoff** (`STA-22`) | Replaced by a new seed on Replace (`STA-17`); the old one is not revocable, only abandoned — and it is still needed *during* Replace |
+| 15 | **Operator seed** | Operator, at first use; backed up by the operator | Encrypted at rest; **in the operator's head or seed backup**, never in the sheet; words displayed only in `STA-23`'s ceremony | Until replaced | Deriving rows 3, 4, 7, 16 and 17 — **every maintained machine, every relay pass, every future introduction, and every declared handoff** (`STA-22`) | Replaced by a new seed on Replace (`STA-17`); the old one is not revocable, only abandoned — and it is still needed *during* Replace, until the last step that needs it is done (`STA-17`) |
 | 16 | **Attest recipient key**, one per machine — a jump host pinned by attest included, at its own index | Derived from row 15 (`STA-22`) | Re-derived on demand; public half in boot user-data | Until the introduction is accepted or the window closes | Decrypting **one** machine's introduction, and authenticating the inbox subscription that receives it (NIP-42, `CHN-18`) | The browser stops listening; the key is never used again |
 | 17 | **Post-harness credential** (profiles declaring a handoff credential) | Derived from row 15 (`STA-22`); public half installed only on the machines the profile's handoff slot declares, during setup, before the handoff point (`ARC-19a`) | Re-derived on demand; nothing stored | As declared by the profile's handoff slot | Exactly the reach the profile's handoff slot declares, and no more — btc-policy's instance is the coordinator peer credential | As declared by the profile's handoff slot |
 | 18 | Local unlock passphrase | Operator-chosen (`STA-23`) | Input UI briefly, then harness-worker memory; never persisted or sent | Unlock, passphrase change or seed re-display (`STA-23`) | Derives row 19 to unwrap the local data key | Input and buffers cleared after use |
