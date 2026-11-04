@@ -16,10 +16,10 @@ import sys
 import tempfile
 
 ROOT = Path(__file__).resolve().parent.parent
-SOURCE = Path("docs/design/dispatch-witnesses-v9.json")
+SOURCE = Path("docs/design/dispatch-witnesses-v10.json")
 ATLAS = Path("docs/state-machine-atlas.md")
 INDEX = Path("tools/formal/.lake/index.jsonl")
-BEGIN = "<!-- atlas-info: dispatch-v9 -->"
+BEGIN = "<!-- atlas-info: dispatch-v10 -->"
 END = "<!-- /atlas-info -->"
 NS = "TauWeb.Dispatch."
 # Presentation selection, not a declaration registry: every name must resolve
@@ -72,7 +72,7 @@ SELECTIONS = {
     "declaration": ("undeclared_listener_finding", "template_blocked", "absent_field_refused",
                     "empty_inbound_refused", "empty_inbound_admitted", "adhoc_delivered"),
 }
-VERSIONS = {"dispatch": 9, "allocation": 3, "pins": 5, "declaration": 1}
+VERSIONS = {"dispatch": 10, "allocation": 3, "pins": 5, "declaration": 1}
 PROJECTIONS = {"dispatch": "knowledge", "allocation": "journal", "pins": "knowledge", "declaration": "record"}
 APPLICABILITY = {
     "dispatch": "Typed Dispatch; session termination and single writer assumed. No pending-check, lifecycle, untyped, protected encoding/listing or inference-clock coverage.",
@@ -240,6 +240,7 @@ RECEIPT = {"binding": BINDING, "call": int, "resource": RESOURCE,
            "source": enum("browser_vendor_tls", "arbitrary_response", "job_output", "notify_event", "proposed_text"),
            "target": TARGET, "validated": bool}
 KNOWLEDGE = {
+    "session_ends": [int],
     "associations": [{"entry": int, "target": TARGET}],
     "calls": [{"approved": APPROVAL, "call": int, "operation": OPERATION,
                "resource": RESOURCE, "session": int,

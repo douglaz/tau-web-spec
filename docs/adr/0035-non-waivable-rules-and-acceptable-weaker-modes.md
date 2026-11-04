@@ -133,3 +133,10 @@ operator's vendor account and its spending. `SEC-4` says the untyped vendor scop
 act sets aside", and the operator's
 two answers disclose that reach rather than bound it. The quotation of `SEC-14`
 under "The list, the best practice each mode stands in for, and the rule" is history.
+
+*Amended 2026-11-04:* The independence-bound combination above is settled at `ARC-25`: it
+says "A declared independence bound alone MUST add neither prohibition nor extra acceptance
+for a new unpinned installation." The accepted shared-source and unchecked signer-set risk
+is recorded there. No extra warning ceremony, profile permission slot or build gate follows.
+Installation timing and newly approved reinstall acceptance belong to `SEC-14`; actual
+per-machine history and legacy uncertainty belong to `STA-16` and its versioned format.

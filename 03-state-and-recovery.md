@@ -21,6 +21,12 @@ state. If the append fails, the transition does not occur. The rule is carried a
 costs a resolution whose own append fails, and `TauWeb.Dispatch.resolution_append_failed_refused`
 and `TauWeb.Dispatch.resolution_append_failed_admitted` are the pair.
 
+Session creation's existing one-time inference-request approval (`ARC-31a`) is the admission
+record: its session identity and approval are durably appended before that session gains
+authority. On the procured path the confirmed choice and its durable relation to the one
+mint intent remain `ARC-31a`'s additional existing records, not another admission kind.
+Reservation alone admits nothing. Resume is not admission and cannot revive an End.
+
 **STA-4** A side-effecting call MUST have a durable record, an approval decision, and an
 idempotency identity **before execution begins**. For an off-machine call this is `SEC-12`;
 for box-plane work it is the per-command record of `ARC-8`. The record is appended immediately
@@ -56,6 +62,7 @@ reconcile or surface uncertain ones, and resume only where policy permits. **No 
 is silently resumed from an uncertain destructive operation.** What replay does not change is the
 barrier: `TauWeb.Dispatch.replay_same_unresolved` (ADR-0032) is that the worker reads back the
 unresolved set it had. Cancelling the calls that were never dispatched is not carried there.
+Same-session context reconstruction and discarded unfinished turns are `STA-23`'s.
 
 **STA-8** A call that may have produced an external effect but has no terminal record MUST
 enter an unresolved state requiring evidence or operator inspection to leave. It MUST NOT be
@@ -554,7 +561,7 @@ abandonment permits only the abandonment flow. At LNVPS renewal-off waits for th
 confirmation: renewal control names the same resource and its barrier still holds.
 Abandonment is setup-wide (`ARC-22`) and the restriction is not: apart
 from the hold below, it covers a machine with a disposed call and nothing else; what an
-abandoned setup permits afterwards, and that the flow runs outside any session, are `ARC-21`'s,
+abandoned setup permits afterwards, including the holding-session Ends, and that the flow runs outside any session, are `ARC-21`'s,
 `ARC-22`'s and `STA-18`'s. A continuation that continues has no operation to be dispatched at:
 it stands, restricting nothing, until the operator replaces it. Evidence about the calls the
 disposition names that arrives after it is journaled and shown: it
@@ -766,7 +773,7 @@ the separate-account case and the current credential format, not an available LN
 | The exposure ledger | The app URL |
 | | The recovery sheet, **if exported** |
 | **The inference account credential**, unless exported: it is bearer, there is no account behind it, and nothing re-derives it | The inference balance — **only** through the sheet (`SEC-5` row 14) |
-| The vendor API credential and the session inference key — re-supplied or re-minted per session, deliberately not persisted | |
+| The vendor API credential and BYO session key — deliberately memory only; the procured paid key is sealed locally but lost with the store, never made usable by import | |
 
 **Transcripts and provenance are gone and stated as gone.** They were records, not secrets;
 nothing re-derives the past.
@@ -867,6 +874,9 @@ retained until migration is complete. An import bringing a seed with neither a s
 store backup MUST be refused, saying that a seed alone restores nothing: bring the sheet,
 or start fresh.
 
+An imported local-store backup restores sessions as ended history under `STA-16`, never live
+bindings, usable approvals or usable sealed keys. It does not revoke the old phone's key.
+
 Under a generated seed, allocation in every family — machines, relay passes and handoffs —
 MUST be refused until that seed id has the journaled ceremony record of `STA-23`.
 Replace's machine-migration and new-relay-pass allocations wait for its fresh seed's record;
@@ -898,8 +908,13 @@ passphrase once and clears its input; it never receives the unwrapped data key. 
 MUST always be shown in the dedicated seed-backup ceremony, outside any session, and MUST
 be hidden while the operator answers. This is its only display, including re-display on
 demand: the same ceremony, after the local passphrase is entered again, with no session
-running. The ceremony starts by stopping dispatch, ending session workers and closing their
-channels, as lock below does.
+running. The ceremony starts by pausing dispatch and closing execution channels as Lock
+below does; sessions and approvals survive. During the seed-backup ceremony an ordinary hide MUST take this full Lock path too,
+clear displayed words and input, preserve owed completion and never re-display the words automatically.
+An interrupted ceremony continues to withhold ordinary work across Lock, replay, reload,
+freeze, discard and attempted resume until its completion below takes effect. After that
+completion eligible sessions resume with their original approvals and bindings, without
+fresh admission or key minting.
 
 A generated seed with no journaled ceremony record for its seed id owes this ceremony: at
 create, at the unlock that finishes eligible fenced creation (after staged-attempt
@@ -937,50 +952,76 @@ ordinary hide.
 An ordinary visibility-only hide MUST NOT end or pause an unlocked session, clear its runtime authority, or invalidate its approvals.
 While the browser schedules the surviving worker, its model loop and permitted tool work
 MUST be allowed to continue under the same dispatch checks as foreground work. A required
-operator decision waits for the operator; absence supplies no approval. There is no new idle
-or hidden-time lock deadline. A surviving eligible return uses the same session and needs no
-passphrase merely because of the hide.
+operator decision waits; absence supplies no approval. There is no new idle or hidden-time lock deadline.
+A surviving eligible return needs no passphrase merely because of the hide.
 
 Phones may freeze or discard the page without a final callback; no background execution window, memory survival, socket continuity or timely cleanup is promised.
-Freezing is loss of scheduling, not proof of termination, erasure or revocation. If a freeze
-notification can be processed, the harness MUST close or cancel ordinary transport work where
-safe, retain bindings and writer ownership, and leave possibly sent effects uncertain until
-their ordinary reconciliation establishes an outcome. A begun durable append MUST finish
-whole rather than be cancelled partway. No cleanup handler is assumed to run before freezing
-or discard.
+Freezing is loss of scheduling, not proof of termination, erasure or revocation. If a freeze notification
+can be processed, the harness MUST close or cancel ordinary transport work where safe, retain bindings and
+writer ownership, and leave possibly sent effects uncertain until ordinary reconciliation.
+A begun durable append MUST finish whole rather than be cancelled partway. No cleanup handler
+is assumed to run before freezing or discard.
+
+**Pause, replay and resume.** Explicit app Lock, pagehide including entry to the back-forward
+cache, reload, worker shutdown, freeze and discard MUST NOT end a session. They retain its
+approvals and bound machines and the procured paid key sealed under the data key (`ARC-31a`).
+Processed Lock, pagehide, reload and shutdown MUST stop dispatch, stop the old execution
+incarnations, close their channels and clear working keys and credential buffers, returning
+locked. The session remains dormant; Lock is no kill switch. A killed or discarded worker
+restarts locked, replays the journal and resumes eligible sessions that have not ended, without
+fresh admission or minting. Other memory-only credentials must be re-supplied or re-derived.
+No unload callback is relied on for journaling.
 
 Before further ordinary sends or actionable result publication after a processed suspension or interruption, the surviving worker MUST validate its current authority, bindings, holds, connection state and scan readiness.
-This check precedes continued work whether execution resumes hidden or visible. A transport
-object or reconnection alone supplies no evidence about an earlier effect. The worker MUST
+This check precedes continued work whether execution resumes hidden or visible.
+This also applies to a replacement worker resuming the same session. Fence old page and worker
+incarnations before resume, including bfcache return: their messages, approvals and late results
+supply no current send or actionable publication authority. Execution incarnations MUST NOT be
+reused or collide with current or retired incarnations. Their retirement never releases an
+unended session's bindings.
+`STA-1` says "A single **harness worker** MUST be the only writer of durable state."
+Hiding or freezing MUST NOT release writer ownership to another instance while the original
+worker can still act. Writer exclusivity and confirmed predecessor termination remain required.
+Missing heartbeat or a timeout is not confirmed predecessor termination.
+A second tab or instance MUST show in-use and wait. A live dormant session still holds its machines.
+Lifecycle messages, approvals and results MUST be ordered against current execution-incarnation and
+worker/session authority at every relevant pre-send and post-await boundary, including probes,
+document reads, connects, authentication, rekey, approval consumption, model results and
+delivery publication. It checks the full paid-key issuer/clock/original-limit contract where
+applicable (`ARC-31a`) as well as an identifiable safe unsent continuation. The worker MUST
 admit only an identifiable safe unsent continuation; if it cannot identify one it MUST show
-reconciliation or required operator action and wait. Lifecycle messages, approvals and results
-MUST be ordered against current worker/session authority at every relevant pre-send and
-post-await boundary, including probes, document reads, connects, authentication, rekey,
-approval consumption, model results and delivery publication. A stale message or late result
-MUST NOT revive ended authority or publish an actionable result under stale authority. A
-processed lifecycle transition is the observable worker boundary; no instantaneous fence at
-the physical app switch or physical resumption is claimed. Current authority and dispatch
-checks still apply when no lifecycle notification arrives.
+reconciliation or required operator action and wait. Neither reconnection nor absence of
+a send marker proves non-execution. Neither visibility, timeout, connection loss, abort, a fresh call id nor return establishes
+non-execution. No unjournaled continuation is resumed. A stale message or late result
+MUST NOT revive ended authority or publish an actionable result under stale authority. The processed
+lifecycle transition is the observable boundary, with no instantaneous physical-switch fence
+promised; current checks apply even without notification.
+
+**End.** Individual session end destroys that session's runtime authority and pending approvals; it does not revive on return.
+The actual end fence is irreversible and MUST NOT be reset to implement continuation.
+Explicit End, Replace, and established paid expiry or cap exhaustion MUST durably append
+End for the affected session before applying the transition (`STA-3`). Replace ends every
+local session before its migration work; Abandon ends only its named holders under `ARC-21`.
+End records session identity and reason (`explicit`, `replace`, `expiry`, `cap_exhaustion`,
+`abandon`). Dispatch and actionable publication MUST consult this durable session fence,
+including after replay, validation, unlock and attempted readmission. A failed End append
+ends nothing and authorizes no dependent operation; established expiry/exhaustion still
+withholds ordinary work until the End can be committed. Data loss ends by absence, never
+by a claimed journaled transition. The credential format versions End and pre-End replay.
 
 `STA-8` says "It MUST NOT be retried automatically and no timer may clear it."
 `STA-7` says "**No model turn is silently resumed from an uncertain destructive operation.**"
-Neither visibility, timeout, connection loss, abort, a fresh call id nor return establishes
-non-execution. Already accepted remote work may continue even after local Lock or loss.
+Already accepted remote work may continue even after local Lock or loss.
 
-`STA-1` says "A single **harness worker** MUST be the only writer of durable state."
-Hiding or freezing MUST NOT release writer ownership to another instance while the original
-worker can still act. A second tab or instance MUST show in-use and wait; missing heartbeat
-or a timeout is not confirmed predecessor termination. The original live session retains its
-bindings and context; hiding cannot free its machines for a successor.
-
-Explicit app Lock, pagehide including entry to the back-forward cache, reload, or worker shutdown MUST stop dispatch, end session workers and close channels; the worker clears its keys and credential buffers and returns locked.
-During the seed-backup ceremony an ordinary hide MUST take this full Lock path too, clear
-displayed words and input, leave an interrupted ceremony owed, and never re-display words
-automatically. Individual session end destroys that session's runtime authority and pending
-approvals; it does not revive on return. The actual end fence is irreversible and MUST NOT be
-reset to implement continuation. A killed or discarded worker restarts locked with journal
-replay and fresh session admission, never durable resurrection of memory-only credentials or
-an unjournaled continuation. No unload callback is relied on for journaling.
+**Context on resume.** No model-context checkpoint is saved and prompt bodies are not journaled.
+A replacement execution incarnation builds a fresh model input for the same session from its
+own journaled goal/source (`ARC-11a`), current bundle briefs, bound set, approved facts,
+protected transcript and durable outcomes, retaining uncertainty and redaction. It does not
+load another session's goal. An unfinished model turn whose continuation was not durably
+authorized is discarded; fresh inference is a new journaled request under the existing
+authority, never replay of the interrupted request. Possibly sent calls stay unresolved for
+reconciliation. Pending operator decisions still wait. Reconstructed context supplies no
+approval, automatic retry or permission to bypass holds.
 
 Ordinary hiding, suspension and return MUST NOT extend a procured session key's original absolute expiry, replenish its remaining cap, mint a replacement key or renew that key.
 Account funding or payment settlement MUST NOT renew a session, replenish or raise its key's cap, extend its expiry, or revive an ended session.
@@ -998,28 +1039,30 @@ eligible session.
 Actual end retains that revocation; an ordinary hide is no longer that end.
 It also says "**A session MUST NOT receive the account credential, and no model sees either tier.**"
 `SEC-12` says "**Every off-machine call made with an operator credential MUST be recorded before it is sent.**"
-No new credential persistence or off-device executor is authorized by continuity.
+Only the procured paid session key gains encrypted local persistence; no off-device executor is authorized.
 
-Before session admission, and beside the app Lock action, the harness MUST plainly show that
-switching apps or locking the device screen may leave data-key, seed, account and machine
-authority unlocked in memory indefinitely; permitted work, including already approved
-destructive actions such as a disk wipe, may run unseen. It MUST state that explicit app Lock
-ends local sessions, while already accepted remote work may continue, and that the phone may
-freeze or discard the page. This is a standing disclosure, not a new acknowledgement on
-every return or a promise of time to withdraw before an eligible approved action dispatches.
-The UI MUST show the actual running, reconciling, ended, expired, locked or lost state on return.
+Before session admission, and beside the app Lock action, the harness MUST plainly show that switching apps or locking the device screen may leave data-key, seed, account and machine authority unlocked in memory indefinitely; permitted work, including already approved destructive actions such as a disk wipe, may run unseen.
+It MUST also state that End is the kill switch, Lock pauses, dormant sessions retain their
+machines, the paid session key is encrypted at rest, and an already approved destructive act
+can run after reload or kill without a new tap. Already accepted remote work may continue
+after End. The phone may freeze or discard the page. This standing disclosure adds no
+acknowledgement ceremony or guaranteed time to withdraw. The UI MUST show the actual running,
+held, reconciling, expired, ended, locked or lost state on return. BYO and local sessions
+retain approvals and machines indefinitely until a selected end path; paid lifetime is not
+extended while unscheduled.
 
 The processed-authority checking interpretation is `TauWeb.Authority.step` (ADR-0032),
 composed with the unchanged Dispatch request transition. `TauWeb.Authority.ordinary_refinement`
 establishes current symbolic eligibility and the delegated Dispatch result, including its
 durable-intent and approval premises. `TauWeb.Authority.fence_history` quantifies over symbolic
-histories. `TauWeb.Authority.ended_no_send` and `TauWeb.Authority.ended_no_publication` are
+histories; `TauWeb.Authority.session_end_history` preserves the durable session fence
+across later incarnations separately. `TauWeb.Authority.ended_no_send` and `TauWeb.Authority.ended_no_publication` are
 single-step statements over arbitrary states; composing them with the history theorem preserves
 the fence through subsequent events, under their explicit guard hypotheses.
 `TauWeb.Authority.hide_identity` leaves the whole state unchanged for a processed ordinary hide
 outside the ceremony; `TauWeb.Authority.lifecycle_knowledge` leaves Dispatch
 knowledge untouched, while `TauWeb.Authority.replay_knowledge` rebuilds memory from the journal.
-The named finite histories in [the authority witness file](docs/design/authority-witnesses-v3.json)
+The named finite histories in [the authority witness file](docs/design/authority-witnesses-v4.json)
 include the shared Robot read-confirmation seam, suspension validation, exclusive succession,
 ceremony hide and conditional procured eligibility. They are decided witnesses, not an exhaustive
 lifecycle proof. The generated declaration index remains the inventory.
@@ -1144,7 +1187,7 @@ current installation or provider state while it stands. This
 list requires no reapproval. A restored provider is listed beside its application exactly where
 a restored placement names that application on its machine: `TRU-E12` says "listed in the trust display
 beside the application for as long as its secret is placed". Installation pin status and pin routes
-are the history modes of `SEC-14`, and a Restore does not reapprove them — only a reinstall, a new installation, is accepted afresh; the restored conduct modes were the exporting session's, which ended, and a
+are the history modes of `SEC-14`, and a Restore does not reapprove them — only a reinstall, a new installation, is accepted afresh; import restores the exporting session's modes as ended history only, and a
 re-entering session accepts its own rather than reapproving them, while what they left live
 stays "unknown since export". The sheet carries no check result and no
 finding, so after store loss each maintained machine is shown as **unchecked**, its findings
@@ -1170,6 +1213,32 @@ an empty, partial or different set, or a failed read — the restored pin admits
 the machine's first contact is unresolved, as past `CHN-R7`'s maximum wait: no new first contact
 opens and no pin is retired on that reading alone; the operator chooses a destructive reinstall
 (`ARC-22`), which opens a new installation, or abandonment.
+
+Every import, whether sheet or local-store backup, MUST restore ended session history only.
+It grants no live authority, binding, usable approval or usable sealed key and attempts no
+revocation of the exporting phone's session key. The old phone keeps its own session.
+An operator starts a new session and approves again; allocation remains `STA-22b`'s.
+
+Actual per-machine unpinned-installation history MUST survive export and Restore separately
+from current artifact status, standing modes and unused acceptance. A pinned successor retains
+that history and its disclosure, restatement and `ARC-25a` filter effects. Acceptance alone
+establishes no dispatched installation. The credential format versions the lossless export
+and conservative old-data conversion. Valid genuinely ambiguous legacy data restores as
+**history unknown**, naming every possible originating machine, without asserting any
+candidate actually ran unpinned or has a known negative history. Every candidate remains
+subject to the literal filter; otherwise authorized recovery and nonmatching commands remain
+available under their existing guards. Preserve known facts and all older-version validation;
+missing history never becomes empty history, invented earlier groups, observations or pins.
+A retained destroyed machine without a machine-state entry still has its retained groups
+converted under the credential format's conservative history rule; absent artifact status
+establishes neither unpinned installation nor a negative history. Export retains that uncertainty.
+A journal match does not clear this uncertainty. Fresh applicable reinstall acceptance remains
+`SEC-14`'s; Restore alone is no new installation.
+
+In the maintained-machine Restore case above, operator binding can precede contact. Failed or
+unavailable restored-pin/publication readiness alone does not prevent an eligible session's
+acceptance and otherwise authorized reinstall. This establishes no universal future recovery
+route and no outside-session acceptor.
 
 **The balance is in the sheet because the alternative is worse, not because it is comfortable.**
 The account credential is bearer and unrevocable (`SEC-5` row 14), so exporting it raises the
@@ -1280,7 +1349,7 @@ carry-forward and disclosure amendment remains T44's, not an available Replace b
 
 **STA-18** Inventory recovery makes the vendor list authoritative. Listing the account is how
 a new phone learns what exists. That listing is performed by the deterministic recovery flow
-under the operator's approval, **before any session exists**, so it is not a session
+under the operator's approval, **outside any session**, so it is not a session
 operation and `SEC-4`'s machine-binding rule for typed operations is not in play.
 
 **STA-19** Transcript retention has no policy yet. A maintained machine accumulates command

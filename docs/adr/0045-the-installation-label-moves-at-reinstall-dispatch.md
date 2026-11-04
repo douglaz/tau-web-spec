@@ -42,6 +42,15 @@ request; its successor refusal and re-approval traces carry the rule through ses
 without adding an event or changing the schema. It does not prove session termination or
 carry the display duties.
 
+*Amended 2026-11-04:* [ADR-0052](./0052-no-local-event-ends-a-session.md) journals session End,
+so the premise above, that session end is not journaled and the journal alone cannot say
+whether an approval stands, no longer holds. A session survives explicit app Lock, reload and a
+killed worker, and its approvals stand across them until it ends; a restart no longer makes
+every earlier session's approval unusable. An approval still stops standing when the session it
+was rendered for ends, and a successor approves again. The companion's assumption that replay
+ends the rendering session is withdrawn. Replace and paid expiry/cap exhaustion
+commit End under `STA-23`; replay never resumes those ended sessions.
+
 *Amended 2026-10-17:* The encoding in `STG-20` replaces "its encoding is left unspecified":
 the machine-family index is lowercase hexadecimal without leading zeros, and the installation
 ordinal is decimal without leading zeros, initially zero. Distinctness is among machines

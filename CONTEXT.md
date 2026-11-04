@@ -14,6 +14,14 @@ by a requirement, the requirement's identifier is given and the rule lives there
 **Explicit app Lock** · `STA-23`
 The operator's local app-lock action, distinct from locking the device screen.
 
+**End** · `STA-23`
+The journaled irreversible end of a session's authority and pending approvals, distinct from
+pausing or losing an execution incarnation. Data loss ends by absence, not an End record.
+
+**Session resume** · `STA-23`
+Continuation of the same eligible, unended session after a local interruption, with current
+execution-incarnation fencing and validation. Import brings ended history instead.
+
 **Ordinary visibility-only hide** · `STA-23`
 A visibility change without pagehide, reload or worker loss, outside the seed-backup ceremony.
 _Avoid_: closed, ended or lost for a merely hidden surviving page.
@@ -130,8 +138,8 @@ _Avoid_: example (a witness is checked; an example is illustrated), sample, test
 **Witness file** · ADR-0032
 The companion's serialized witnesses and bounded traces for one module, one file under
 `docs/design/` — `allocation-witnesses-v3.json`, `declaration-witnesses-v1.json`,
-`relay-witnesses-v1.json`, `dispatch-witnesses-v9.json`, `pins-witnesses-v5.json` and
-`authority-witnesses-v3.json`, with
+`relay-witnesses-v1.json`, `dispatch-witnesses-v10.json`, `pins-witnesses-v5.json` and
+`authority-witnesses-v4.json`, with
 `witness-file-v1.md` describing their schemas — emitted by `lake exe witnesses` and held equal to the emission by
 `tools/check_witnesses.py`. Future implementation tests are to read them from the pinned tree;
 nothing outside this repository reads witness files today. Never compiled into the build. It
@@ -189,8 +197,8 @@ ambiguities*.
 
 **Binding** · `SEC-1`
 The operator's act that puts one machine into one session's bound set, before any channel
-access to that machine. Exclusive per machine: at most one bound session at a time, ended with
-the session, and taken up in turn by each later session that re-enters a maintained machine.
+access to that machine. Exclusive per machine: at most one live bound session at a time, retained while dormant
+and freed only when the session ends, and taken up in turn by each later session that re-enters a maintained machine.
 What a bound session is given is each bound **machine's** own client key (`SEC-5` row 3),
 re-derived, and no other; a key is never the session's. Connecting never creates a binding.
 _Avoid_: session key (that is the inference key, row 2), session grant, assignment, lease

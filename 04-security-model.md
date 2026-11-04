@@ -52,8 +52,18 @@ it, and no operator act sets either aside:
   commands on their host.
 
 A machine is bound to a session by provisioning it; by re-entry, on a maintained machine only;
-or by the recovery ladder's escalation, which re-binds a half-provisioning machine to the
-successor session under `ARC-16`'s condition.
+or by the recovery ladder's escalation, which re-binds an eligible machine to the
+successor session under `ARC-16`'s condition. For a genuinely stronger escalation, the operator
+MUST select eligible predecessor machines and include the stuck machine being escalated; other
+eligible peers may be included or excluded. Selection gives no access to excluded machines,
+cancels no remote work and establishes no outcome. Termination and exposure remain governed
+below, unresolved resources by `STA-24`, and applicable acceptance by `SEC-14`.
+
+For same-device continuation of unfinished setup after an actual session end (`ARC-22`),
+the fresh session has fresh limits and admission and explicit operator binding before contact;
+it revives no ended session and receives no other machine's key. This clarification does not
+choose between reading that continuation within “by provisioning it” or as a separate route,
+nor settle the fresh session's goal and acceptance question.
 
 **Binding is an operator act in the browser, made before any channel access to that machine.**
 The operator names the set, machine by machine, at session creation, and connecting is never
@@ -92,8 +102,7 @@ re-enters with the same re-derived key (`ARC-27`). SSH cannot tell two sessions 
 present one private key, so what SSH enforces is separation between **machines**. Succession on
 one machine is the harness worker's: a machine has at most one bound session at a time, and a
 new binding — by re-entry, or by the recovery ladder's re-binding to a successor — requires the
-predecessor session to have ended, its workers stopped and its channels closed, which is the act
-`STA-23` already performs on lock. Two sessions on one machine at once is what this requirement
+predecessor session to have ended, its workers stopped and its channels closed, under `STA-23`'s End fence. Local Lock or interruption does not free that binding. Two sessions on one machine at once is what this requirement
 exists to prevent, and the ledger would only record it after the fact. Once a predecessor has
 ended, a later session MAY re-enter any subset of its maintained machines; the machines it
 leaves out stay unbound until some session is bound to them.
@@ -217,7 +226,9 @@ own** create response, or through evidence tied to the seed-derived key. This au
 checked at dispatch. A mapping imported from a recovery sheet is never enough by itself. A lost
 create with no admissible evidence remains subject to `ARC-22`'s "cannot be destroyed from here
 and may still exist and bill". The calling-session binding above governs session operations;
-this paragraph governs only the deterministic abandonment flow (`ARC-21`).
+this paragraph governs only the deterministic abandonment flow (`ARC-21`), including its
+continuation across openings after the named holders' durable Ends. It borrows no session
+authority.
 
 **What is dispatched is the approved record.** The adapter executes the structured facts as
 they were approved and journaled — the resource (`STA-24`), the arguments, the declared cost
@@ -227,7 +238,8 @@ dispatch; this says what is checked. "There was an approval" and "the approved t
 ran" are two different properties, and only the second is worth proving.
 
 `TauWeb.Authority.ordinary_refinement` composes live symbolic authority with Dispatch's existing
-approved-session and facts check. Its assumptions and publication interface are described at
+approved-session and facts check. Every ordinary dispatch also reads `STA-23`'s durable
+End fence and current execution incarnation; Lock is no End. Its assumptions and publication interface are described at
 [STA-23](./03-state-and-recovery.md#durable-state); separately authorized non-session flows remain
 outside that ordinary-request interface.
 `TauWeb.Authority.borrowed_session_refused` / `TauWeb.Authority.borrowed_session_without_check`
@@ -291,7 +303,7 @@ outgrown, because adding a credential means adding a row.
 | # | Credential | Origin | Where it lives | Lifetime | What it authorizes | How it dies |
 |---|---|---|---|---|---|---|
 | 1 | Vendor API credential, used through a typed adapter | Operator | Browser memory only | The sessions it is supplied to, or one deterministic harness flow (`STA-18`, `ARC-21`) | Whatever the vendor grants it, up to full account authority; the adapter authorizes session operations against the calling session's bound set, so one credential may serve several sessions; it authorizes the abandonment flow against this setup's own create response or evidence tied to the seed-derived key (`SEC-4`) | Session or flow ends |
-| 2 | Inference **session** key | Minted from row 14 (procured); supplied by the operator (BYO) | Browser memory only | One session | Inference spend, **up to its own cap** (procured contract: `ARC-31a`) | Revoked at session end (procured); session ends (BYO) |
+| 2 | Inference **session** key | Minted from row 14 (procured); supplied by the operator (BYO) | Procured: encrypted local store under the data key and working memory (`ARC-31a`); BYO: browser memory only | One session | Inference spend, **up to its own cap** (procured contract: `ARC-31a`) | Revoked at session end (procured); session ends (BYO) |
 | 3 | **SSH client private key, one per machine** | **Derived** from row 15 at that machine's index (`STA-22`) | Re-derived on demand; nothing to export. Given to the machine's bound session and no other; a jump host's, at the jump host's own index, is given to no session (`CHN-R6`); during Replace, the machine's old and new keys are held by the harness's model-free Replace flow and given to no session (`STA-17`) | Machine lifetime | Login to **that one machine** | Removed from the machine on Replace (`STA-17`), which is a new seed; a jump host's dies with the jump host |
 | 4 | **Relay key**, one per pass | Derived from row 15 (`STA-22`); its public half is what the relay binds a bought pass to (`CHN-15`), and what the LNVPS path hands the publisher out of band | Re-derived on demand; nothing to store | Until the pass expires or is revoked | Reaching the destinations recorded against its pass, on any port; recording destinations; revoking (`CHN-16`) | Pass expires or replacement is confirmed under `STA-17`, by signed revocation or the LNVPS path's manual retirement |
 | 5 | Host-key pins | Harness `ready_to_reset` job read (`ARC-43`), vendor publication (`CHN-R7`), rescue (`CHN-R1`), attest (`CHN-R5`), or a first contact from a jump host (`CHN-R6`), recorded with which | Encrypted at rest; exported in the sheet | Installed system: until that machine's reinstall or destruction. Rescue: one boot (`CHN-R1`). A jump host's: one first contact | Nothing — integrity reference | Installed pin retired on that machine's reinstall and removed on destruction; rescue pin discarded at the reset; a jump host's pin discarded with the jump host, the route label (`CHN-R6`) being what the display keeps |
@@ -666,7 +678,8 @@ no label, no answer and no operator act sets aside.
   before any channel access, naming the history modes its machines bring into it (`SEC-1`); no
   brief with its goal, before the model acts on it (`ARC-11a`); an untyped vendor scope on its
   card, before the first call through it (`ARC-15`). A session that does none of these accepts
-  none, and a session resumed after an interruption (`STG-12`) accepts nothing again. What an
+  none, and the same eligible session resumed after any surviving local interruption (`STA-23`,
+  `STG-12`) accepts nothing again merely for that interruption. What an
   earlier session's mode left live — a vendor credential or minted token not yet revoked, a
   co-bound footprint — is restated with the history modes and never accepted again (`SEC-6`,
   `STA-10`).
@@ -676,6 +689,17 @@ no label, no answer and no operator act sets aside.
   machine — before the first contact it governs: with any machine of the set for a mode
   accepted as the set is bound, with the added machine for one accepted as the set grows
   (`SEC-1`).
+- **Installation timing and new reinstall acts.** No-pin acceptance MUST be durable before
+  the installation work it governs. On the dedicated path it MAY follow host-key-pinned
+  rescue inspection; that host pin does not verify the rescue OS artifact. Catalogue Arch
+  accepts before its image-selecting order, and destructive unpinned reinstall before its
+  reset/reinstall dispatch. Acceptance is never retroactive. Each newly approved reinstall
+  MUST have its new card's explicit labelled accepting act for that mode and bound set. One
+  affirmative action MAY both approve the operation and accept; merely restating unused
+  earlier acceptance is insufficient. Withdrawal alone does not establish expiry of a
+  separate acceptance. An unused acceptance is not dispatched installation history.
+  Applicable artifact pins remain `ARC-25`'s, including its independence-bound rule; actual
+  history and origin uncertainty are retained under `STA-16`.
 - **Never entered by failing.** A failed check halts. An artifact that does not match its pin,
   an introduction that never arrives, a host key that does not match: none of them continues
   in the weaker mode (`ARC-25`, `CHN-R5`, `SEC-11`).

@@ -642,7 +642,8 @@ and more reliable; they are never a precondition for it.
 ## Sessions, binding, and diversity
 
 **ARC-12** A **session** is one run of the harness under one set of model weights,
-responsible for its **bound set** — one machine by default. It is one context: whatever any
+responsible for its **bound set** — one machine by default. Its lifetime and resume are
+`STA-23`'s; its context can be reconstructed after execution loss. It is one context: whatever any
 machine of the set returns is read by the model that commands all of them. A federation is
 provisioned by several concurrent sessions on a single device
 ([ADR-0009](./docs/adr/0009-one-device-concurrent-sessions-batched-approval.md)). The
@@ -745,6 +746,7 @@ modal fatigue in its purest form, and the operator cannot tell which machine is 
 
 **ARC-16** Recovery is a ladder. Retry; then escalate to a stronger model behind the same
 proxy; then destroy the machine and restart under a different domain, which costs a server.
+Successor-set selection belongs to `SEC-1`; escalation alone is not reinstall.
 
 Conceptual recovery navigation: “Retry” routes through [STA-5/STA-6](./03-state-and-recovery.md#durable-state)
 and [STA-8/STA-24](./03-state-and-recovery.md#durable-state).
@@ -947,9 +949,37 @@ recorded as one and never as evidence of what the call did. The flow's authoriza
 harness has no cloud-plane operation to carry it out with and hands the act to the operator, at
 the vendor by hand; what holds meanwhile is `STA-24`'s.
 
+The single Abandon card MUST name every session holding any setup machine and say:
+“Abandon ends these sessions and loses their pending approvals. Their machines outside this
+setup lose their session but are not destroyed.” Show those sessions and outside machines
+explicitly, plus what may still bill. Bound-set selection remains under `SEC-1`.
+
+Serialize the approved holder list under the sole writer and durably record this existing
+Abandon approval and its resource dispositions. For each named holder, durably append its
+End under `STA-23`, then attempt its paid-key revocation and journal the attempt and observed
+outcome under `ARC-31a`. Every holder's End MUST be durable before the first destroy. A failed
+End append permits no destroy; previously committed Ends remain irreversible and the flow
+shows incomplete with the missing Ends. Nonholding sessions are untouched. This is not a
+shrink of any live set and no destroy is sent by a session.
+
+The existing journaled flow approval and standing abandonment dispositions carry unfinished
+Abandon across openings, including death after Ends before first destroy or midway through
+destruction. Resume that deterministic flow under its recorded approval, re-supplying the
+vendor credential to the flow alone for its authorized inventory/reconciliation reads and
+mutations. Continuation includes a holder whose End is durable but whose revocation intent
+was not yet appended: discharge the owed attempt under `ARC-31a`, using the account credential
+for revocation separately from the vendor credential. Track every named holder independently,
+including death between holder Ends or before the first destroy; this adds no destroy gate.
+Reconcile possibly sent effects before any fresh operator-chosen issue; never
+automatically replay a destroy. Existing dispatch target provenance and per-resource
+restrictions remain `SEC-4`'s and `STA-24`'s. End or revocation is no deletion evidence. The
+opening screen retains each unresolved create and every possibly billed machine until its
+own admissible evidence settles it.
+
 **ARC-22** An unfinished setup MUST own the first screen. Nothing runs while the app is
 closed and no push channel exists, so the moment the app opens is the only moment the
 product can speak, and it spends that moment on the thing that is costing money.
+For holding-session Ends and cross-opening abandonment continuation, see `ARC-21`.
 Resume-or-abandon *is* the opening screen, not a badge: it shows roughly what has been
 billed so far and what it bills per month until finished or abandoned. After roughly a week
 without progress the emphasis flips and abandonment leads. Abandonment destroys every
@@ -1079,9 +1109,18 @@ carries an acceptable pin. The publisher must track releases and refresh this po
 
 **A failed pinned check halts; it never degrades into a weaker mode.** Installing a
 distribution the bundle carries no pin for is an acceptable weaker mode (`SEC-14`): the
-operator chooses it up front, from what the bundle lacks, and the machine is recorded and shown
-as **unpinned** from then on. A machine that began under a pin and failed it MUST NOT continue
+operator chooses it from what the bundle lacks, under `SEC-14`'s installation timing and
+fresh-reinstall acceptance rules, and the machine is recorded and shown as **unpinned** from
+then on. A machine that began under a pin and failed it MUST NOT continue
 unpinned, whoever asks.
+
+A declared independence bound alone MUST add neither prohibition nor extra acceptance for
+a new unpinned installation. Its ordinary named-mode acceptance remains `SEC-14`'s; all
+applicable pins and other guards remain in force. The accepted risk is a shared artifact
+source substituting bootstrap content and an unchecked signer set across members despite
+distinct configured models, singleton sessions and compliant footprint counts. Ordinary
+acceptances do not constrain that shared source. Pinned paths retain their publisher and
+package-signer dependencies. This adds no warning ceremony, profile permission or build gate.
 
 **ARC-25a Both pinned installation paths combine a pinned bootstrap with signature-admitted packages**
 ([ADR-0027](./docs/adr/0027-the-artifact-pin-is-per-distribution.md)). The construction test bed's
@@ -1304,9 +1343,31 @@ The worker MUST serialize the one mint attempt per session and compare that tupl
 
 An account-credit change alone changes neither the credential generation nor the confirmed limits.
 
-A durable mint intent consumes the session's one attempt even when a response is lost, refused, malformed, withheld, a terminal append fails, or the send is subsequently fenced. Concurrent callers join that attempt or receive its state; they do not create another. Joining the attempt never authorizes another mint transmission. After intent, edits cannot change the attempted limits or substitute another confirmation, account or profile into that attempt. A processed cancellation fences any still-unsent mint and follows the ordinary session-end path, retaining accounting and revocation obligations if transmission or issuance may already have occurred. Replay of intent/terminal evidence restores history, never the session key or authority to re-mint. A completed or interrupted session is not resumed as a new owner of the old confirmation. Returning to the same eligible hidden worker retains the tuple and original mint identity, without renewed consent or minting. A failed mint is not a license to choose another allowance within that session. To use different limits or bindings after a durable mint intent, the operator ends that session and starts a new session with its own confirmation and admission.
+A durable mint intent consumes the session's one attempt even when a response is lost, refused, malformed, withheld, a terminal append fails, or the send is subsequently fenced. Concurrent callers join that attempt or receive its state; they do not create another. Joining the attempt never authorizes another mint transmission. After intent, edits cannot change the attempted limits or substitute another confirmation, account or profile into that attempt. A processed cancellation fences any still-unsent mint and follows the ordinary session-end path, retaining accounting and revocation obligations if transmission or issuance may already have occurred. Replay restores the procured key only from its durably sealed, validated terminal below, never authority to re-mint. A completed or interrupted session is not resumed as a new owner of the old confirmation. Returning to the same eligible hidden worker retains the tuple and original mint identity, without renewed consent or minting. A failed mint is not a license to choose another allowance within that session. To use different limits or bindings after a durable mint intent, the operator ends that session and starts a new session with its own confirmation and admission.
 
-Issuer acceptance MUST NOT broaden or otherwise change the confirmed choice. Existing finalization and credential-custody requirements apply to every new evidence field. No raw bearer, session key, prompt, credential-value-derived identifier or duplicate public proof is introduced.
+Issuer acceptance MUST NOT broaden or otherwise change the confirmed choice. Existing finalization and credential-custody requirements apply to every new evidence field. No raw bearer, session key, prompt, credential-value-derived identifier or duplicate public proof is introduced into public evidence or projections; only the private encrypted paid-key seal above changes custody.
+
+**Seal and lost-key hold.** Validate the mint response's identifier and exact issuer-reported
+accepted limits under the issuer contract below before making the key usable. The existing
+mint terminal carries the key privately in the encrypted local record under the data key;
+its durable append MUST precede first use. The secret is not a protected public fact, transcript
+field, witness value or recovery-sheet member. A locally prepared or staged seal without
+a durably committed validated terminal supplies no usable key on resume. Required issuer
+evidence is never replaced by sealed response bytes. Replay validates terminal provenance,
+requested versus accepted facts and original identities, then revalidates current issuer/clock
+eligibility before use; no new mint or extension follows.
+
+If a paid key is lost before that terminal is durable, hold the session until End or original
+expiry: nothing runs, including SSH and harness jobs; approvals and bindings stay. There is no
+second mint and no same-key recovery. A resume with a seal but no committed validated terminal
+keeps the key withheld until End, not repaired by reading back that key. The operator can End
+and create another paid session. Missing or unverifiable acceptance with a known key id still
+requests revocation immediately under the existing issuer-validation rule; known-id revocation
+is also attempted at End, including late identifiers. A lost-key hold alone adds no other
+pre-End revocation trigger. Unknown revocation remains unknown. Exposure is bounded only
+conditionally by the accepted cap where issuer acceptance was evidenced, issuer enforcement
+holds and automatic top-up is off; unseen acceptance leaves the account balance as the hard
+bound. Unknown spend is unaccounted, never zero or refunded.
 
 **Exact validation.**
 
@@ -1352,7 +1413,22 @@ A call already accepted remotely may finish and may incur spend after local expi
 
 Late evidence is retained through the ordinary safe journal/finalization path as outcome/accounting only, never as an actionable result or revived authority. A lost/aborted reply remains unresolved and any spend remains unaccounted, not zero or refunded. It creates no automatic retry or replacement mint. The inference unresolved-intent exception remains: STA-24 says “The inference request (`ARC-31a`) keeps its unresolved intent under `STA-8`, shown as unaccounted spend against the session key's cap, and does **not** bar the next request: its only effect is bounded spend, and the next request is the session's only way to continue.” A next request is allowed only while the unchanged session/key/clock/limits remain eligible; no machine-resource barrier or invented local spend reservation is added.
 
-Real session end retains its journaled revocation attempt, including late mint identifiers. Unknown revocation stays unknown through replay; expiry is not evidence of revocation success. Safe accounting and cleanup may finish after ordinary authority ends under their existing rules; nothing unlocks another credential tier or revives an ended session.
+**Revocation owed after End.** A durable End and the existing mint/revocation records MUST
+retain the required paid-key revocation attempt even if the page dies before any revoke
+intent is appended. On reopening, the existing model-free cleanup/finalization path MUST
+derive the outstanding duty from those records, including late mint identifiers, and discharge
+it when the account credential and key identifier are available. The account credential is
+re-supplied or unwrapped under its existing custody, never supplied to a session or model;
+neither a vendor credential nor recovery of the lost paid key is required for revocation.
+Absent prerequisites leave cleanup visibly pending, with issuance/revocation unknown where
+unestablished. An existing possibly sent revoke remains unresolved for reconciliation under
+its ordinary rules, never blindly retried. End creates no new cleanup record family and
+supplies no revocation-success evidence. This applies to ordinary End and every holder ended
+by Abandon; its sequencing and cross-opening flow remain at `ARC-21`. Existing pre-End
+known-id revocation triggers above are unchanged.
+Unknown revocation stays unknown through replay; expiry is not evidence of revocation success.
+Safe accounting and cleanup may finish after ordinary authority ends under their existing rules;
+nothing unlocks another credential tier or revives an ended session.
 
 Cap exhaustion is established when the exact decimal sum of the key's observed spend reaches or exceeds its cap, or by an issuer response that the profile evidences as that key's cap exhaustion; unaccounted spend never establishes that allowance remains. An account-balance refusal is not by itself key-cap exhaustion: it refuses that request and is recorded and shown, and it neither ends, renews nor extends the session. An expiry or cap-exhaustion end is that session's own end; it does not lock the store or end another eligible session.
 
