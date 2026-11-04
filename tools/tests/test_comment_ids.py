@@ -130,8 +130,8 @@ class CommentIdentifiers(unittest.TestCase):
         (self.root / "tools/check_formal.sh").write_text('echo "formal ran"\n')
         # Keep the real runner and collision gate; isolate unrelated, expensive gates.
         for filename in ("check_witnesses.py", "check_regions.py", "render_state_machine_atlas.py",
-                         "check_ids.py", "check_fixtures.py", "check_obligations.py",
-                         "check_citations.py", "check_coverage.py"):
+                         "check_ids.py", "check_tracker_paths.py", "check_fixtures.py",
+                         "check_obligations.py", "check_citations.py", "check_coverage.py"):
             (self.root / "tools" / filename).write_text(f'print("{filename} ran")\n')
         for comment_ids, other_failure, expected_status in (((7, 8), False, 0),
                                                            ((7, 7), False, 1),
