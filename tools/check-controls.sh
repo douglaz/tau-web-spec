@@ -7,7 +7,8 @@
 # requires the gate to go red with exactly one finding, naming that thing. A red
 # for another reason -- a mutation that did not apply, a second finding the
 # mutation caused by accident -- is not evidence the check works, and fails the
-# control. `.github/workflows/ci.yml` runs this after check-all.sh on every push.
+# control. `.github/workflows/ci.yml` runs this after check-all.sh on every
+# pull request and every push to main.
 #
 # Exit status 0 = every control passed.
 
