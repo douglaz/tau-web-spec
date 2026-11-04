@@ -69,7 +69,9 @@ class TrackerPaths(unittest.TestCase):
         for text in (PRIVATE, f"see `{PRIVATE}/notes`", "(/Users/alice/x)", "/tmp/run.1",
                      "wrote /var/tmp/lane-1/out", "a\n/home/alice", "path:/home/alice/notes",
                      ":/tmp/x", "see (path:/Users/alice)", "file:///tmp/run/log",
-                     "FILE:///home/alice", "file://localhost/var/tmp/lane"):
+                     "FILE:///home/alice", "file://localhost/var/tmp/lane",
+                     "/tmp/.private-checkout/notes", "/var/tmp/.worktree/notes", "/home/.alice",
+                     "/tmp/-lane", "/Users/..alice"):
             with self.subTest(text=text):
                 self.write([{"id": "tw-a", "description": "plain",
                              "comments": [{"id": 1, "text": "plain"}, {"id": 2, "text": text}]}])
@@ -82,7 +84,8 @@ class TrackerPaths(unittest.TestCase):
                      "https://example.com/home/alice", "~/tmp/x", "a-/tmp/x", "/home/", "/tmp",
                      "/home/...", "tools/check-controls.sh", "http://host:8080/tmp/x",
                      "https://example.com:443/home/alice", "file://example.com/tmp/x",
-                     "https:/x/home/alice", "s3://bucket/tmp/x"):
+                     "https:/x/home/alice", "s3://bucket/tmp/x", "/tmp/.", "/home/.../x",
+                     "/var/tmp/-"):
             with self.subTest(text=text):
                 self.write([{"id": "tw-a", "description": text}])
                 self.assertEqual(self.run_gate(), (0, CLEAN))
