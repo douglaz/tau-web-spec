@@ -9,11 +9,19 @@ the exercise and dispositions separately.
 
 ## Immutable source contract
 
-The fixture/source baseline is specification commit
-**`674a7c6b8a4671fc2bc2e2e20855b084a69837ba`**. All paths and selected cases below
-were checked against that tree. The starting revision `4095db7` adds only the
+The original fixture/source baseline is specification commit
+**`674a7c6b8a4671fc2bc2e2e20855b084a69837ba`**. The original packet's paths and
+selected cases were checked against that tree. The starting revision `4095db7` adds only the
 tracker claim. This handoff's resulting documentation revision is supplied in the
-completion report, not guessed here. A downstream result records both its actual
+completion report, not guessed here.
+
+*Amended 2026-11-03:* that baseline holds `dispatch-witnesses-v8.json`,
+`allocation-witnesses-v2.json` and `authority-witnesses-v2.json`. The
+[fixture rows](#fixture-selection) for Dispatch schema 9, Allocation schema 3 and
+Authority schema 3, and the
+[unsent failure and deletion-contact coverage](#unsent-failure-and-deletion-contact-comparison-coverage),
+were checked against the revision that adds this amendment; they do not exist at
+`674a7c6`. A downstream result records both its actual
 specification pin and implementation revision; agreement at an older pin is only
 agreement at that pin.
 
