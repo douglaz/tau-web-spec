@@ -42,6 +42,12 @@ unsafe def main : IO UInt32 := do
   withImportModules #[{ module := `TauWeb }] {} (trustLevel := 0) fun env => do
     let mut found : Array (Name × String) := #[]
     let mut failures := 0
+    -- Every name `collectAxioms` returns is an axiom of `env`. With no axiom of the
+    -- `native_decide` shape anywhere in `env`, no constant can depend on one, so the walk
+    -- below would find nothing: it runs only when such an axiom exists. It is most of the
+    -- gate's time, one `collectAxioms` per project constant.
+    let nativeDecideAxioms := env.constants.toList.any fun (n, info) =>
+      (match info with | .axiomInfo _ => true | _ => false) && isNativeDecideAxiom n
     for (n, info) in env.constants.toList do
       if let some req := TauWeb.reqAttr.getParam? env n then
         found := found.push (n, req)
@@ -55,7 +61,7 @@ unsafe def main : IO UInt32 := do
         if (match info with | .axiomInfo _ => true | _ => false) && !(inExplore && isNativeDecideAxiom n) then
           IO.eprintln s!"FAIL  {n} is an axiom; the project declares none"
           failures := failures + 1
-        if !inExplore then
+        if !inExplore && nativeDecideAxioms then
           let ax ← axiomsOf env n
           if ax.any isNativeDecideAxiom then
             IO.eprintln s!"FAIL  {n} uses native_decide outside TauWeb.Explore"

@@ -10,6 +10,13 @@
 # control. `.github/workflows/ci.yml` runs this after check-all.sh on every
 # pull request and every push to main.
 #
+# Controls run in parallel, CONTROL_JOBS at a time (default: one per CPU, at most four):
+# each runs in its own scratch copy, its stdout and stderr are held in files, and both are
+# printed in the order the controls appear here, once every earlier control has finished.
+# Stdout, stderr and the exit status are each the ones a one-at-a-time run gives
+# (CONTROL_JOBS=1 is that run). Sent to one place, the two streams interleave per control
+# instead: a control's stderr follows its stdout. A passing run writes nothing to stderr.
+#
 # Exit status 0 = every control passed.
 
 set -uo pipefail
@@ -37,11 +44,72 @@ copy_tree() {
   done < <(find . -mindepth 1 -maxdepth 1 -print0)
 }
 
+# The scheduler. `schedule BODY ARGS...` runs one control in a background subshell whose
+# counters start at zero; it leaves the control's stdout, stderr and its own fail, passed and
+# expected counts in the jobs directory. `flush` prints finished controls strictly in
+# schedule order and adds their counts here, so the summary below reads the same totals a
+# one-at-a-time run accumulates. A control with no counts aborted (copy_tree's `exit 2`):
+# its output is printed, every control already started is waited for, and the run exits 2
+# with nothing after it printed -- what the one-at-a-time run does at that control.
+if [ -z "${CONTROL_JOBS+set}" ]; then
+  CONTROL_JOBS="$(nproc 2>/dev/null)" || CONTROL_JOBS=1
+  [ "$CONTROL_JOBS" -le 4 ] 2>/dev/null || CONTROL_JOBS=4
+fi
+if ! [[ "$CONTROL_JOBS" =~ ^[1-9][0-9]{0,2}$ ]]; then
+  echo "::error::CONTROL_JOBS must be a whole number from 1 to 999, not '$CONTROL_JOBS'"
+  exit 2
+fi
+jobs_dir="$scratch_root/jobs"
+mkdir "$jobs_dir" || exit 2
+scheduled=0
+flushed=0
+running=0
+
+flush() {
+  local id f p e
+  while [ "$flushed" -lt "$scheduled" ]; do
+    id="$jobs_dir/$flushed"
+    [ -e "$id.done" ] || return 0
+    cat -- "$id.out"
+    cat -- "$id.err" >&2
+    if ! read -r f p e < "$id.tally" 2>/dev/null; then
+      wait
+      exit 2
+    fi
+    [ "$f" -eq 0 ] || fail=1
+    passed=$((passed + p))
+    expected=$((expected + e))
+    rm -f -- "$id.out" "$id.err" "$id.tally" "$id.done"
+    flushed=$((flushed + 1))
+  done
+}
+
+schedule() {
+  local id="$jobs_dir/$scheduled"
+  while [ "$running" -ge "$CONTROL_JOBS" ]; do
+    wait -n
+    running=$((running - 1))
+    flush
+  done
+  (
+    (
+      fail=0 passed=0 expected=0
+      "$@"
+      echo "$fail $passed $expected" > "$id.tally"
+    ) > "$id.out" 2> "$id.err" < /dev/null
+    : > "$id.done"
+  ) &
+  scheduled=$((scheduled + 1))
+  running=$((running + 1))
+  flush
+}
+
 # control NAME GATE MUTATION LABEL TOKEN
 #   MUTATION is evaluated inside the scratch copy; it must exit 0 or the control
 #   fails as "did not apply". LABEL is the gate's finding line that must carry
 #   TOKEN; every other finding line must read "none".
-control() {
+control() { schedule control_body "$@"; }
+control_body() {
   local name="$1" gate="$2" mutate="$3" label="$4" token="$5"
   local location="${6:-docs/design/}"
   expected=$((expected + 1))
@@ -74,7 +142,8 @@ control() {
 # passes NAME GATE MUTATION
 #   The other direction: a gate that reddens on everything is not a check. The
 #   mutation must apply and the gate must stay green.
-passes() {
+passes() { schedule passes_body "$@"; }
+passes_body() {
   local name="$1" gate="$2" mutate="$3"
   expected=$((expected + 1))
   local tmp
@@ -101,7 +170,8 @@ passes() {
 #   policy). Runs on the scratch copy's own .lake, so the rebuild is incremental.
 FORMAL=tools/check_formal.sh
 
-formal_control() {
+formal_control() { schedule formal_control_body "$@"; }
+formal_control_body() {
   local name="$1" mutate="$2" token="$3" absent="${4:-}"
   expected=$((expected + 1))
   local tmp
@@ -155,26 +225,30 @@ formal_control "formal: a CNF identifier in the formal tree" \
 # mean the mutation broke something other than the property it targets.
 # Rehearsed at bound 4: bounded_nodup stays green; reuse through a restored sheet needs
 # ceremony, exportSheet, allocate, restore, allocate, which is 5 events.
-expected=$((expected + 1))
-tmp="$(mktemp -d -p "$scratch_root")"
-copy_tree "$tmp"
-if ! (cd "$tmp/repo" && sed -i 's/^  restoredAllocatesNone := true$/  restoredAllocatesNone := false/' $ALLOC && grep -q '^  restoredAllocatesNone := false$' $ALLOC); then
-  echo "::error::formal: the guard flip did not apply"; fail=1
-else
-  out="$(cd "$tmp/repo" && bash "$FORMAL" 2>&1)"
-  rc=$?
-  if [ "$rc" -eq 0 ]; then
-    echo "::error::formal: the formal gate passed with the restored-seed guard removed"; echo "$out"; fail=1
-  elif [ "$(grep -c '^error: TauWeb/' <<<"$out")" -ne 1 ]; then
-    echo "::error::formal: the guard flip did not produce exactly one error"; echo "$out"; fail=1
-  elif ! grep -qE "^error: TauWeb/Allocation.lean:[0-9]+:[0-9]+: Tactic .decide. proved that the proposition" <<<"$out" \
-       || ! grep -A1 'proved that the proposition' <<<"$out" | grep -q '(staleSheetTrace current).issued = \[m1, m0\]'; then
-    echo "::error::formal: the red is not decide refuting stale_sheet_refused in the allocation module"; echo "$out"; fail=1
+restored_seed_flip() {
+  local tmp out rc
+  expected=$((expected + 1))
+  tmp="$(mktemp -d -p "$scratch_root")"
+  copy_tree "$tmp"
+  if ! (cd "$tmp/repo" && sed -i 's/^  restoredAllocatesNone := true$/  restoredAllocatesNone := false/' $ALLOC && grep -q '^  restoredAllocatesNone := false$' $ALLOC); then
+    echo "::error::formal: the guard flip did not apply"; fail=1
   else
-    echo "ok: formal: the restored-seed guard flipped -> stale_sheet_refused"; passed=$((passed + 1))
+    out="$(cd "$tmp/repo" && bash "$FORMAL" 2>&1)"
+    rc=$?
+    if [ "$rc" -eq 0 ]; then
+      echo "::error::formal: the formal gate passed with the restored-seed guard removed"; echo "$out"; fail=1
+    elif [ "$(grep -c '^error: TauWeb/' <<<"$out")" -ne 1 ]; then
+      echo "::error::formal: the guard flip did not produce exactly one error"; echo "$out"; fail=1
+    elif ! grep -qE "^error: TauWeb/Allocation.lean:[0-9]+:[0-9]+: Tactic .decide. proved that the proposition" <<<"$out" \
+         || ! grep -A1 'proved that the proposition' <<<"$out" | grep -q '(staleSheetTrace current).issued = \[m1, m0\]'; then
+      echo "::error::formal: the red is not decide refuting stale_sheet_refused in the allocation module"; echo "$out"; fail=1
+    else
+      echo "ok: formal: the restored-seed guard flipped -> stale_sheet_refused"; passed=$((passed + 1))
+    fi
   fi
-fi
-rm -rf "$tmp"
+  rm -rf "$tmp"
+}
+schedule restored_seed_flip
 
 # A decided witness no trace in the emitter names (Witnesses.lean) is red, naming it, before
 # any file is written.
@@ -209,28 +283,32 @@ RELAY=tools/formal/TauWeb/Relay.lean
 # within the bound. A third error, or a red naming the second ordering -- which the shorthand
 # keeps, and which needs no guard -- would mean the flip broke something other than the property
 # it targets.
-expected=$((expected + 1))
-tmp="$(mktemp -d -p "$scratch_root")"
-copy_tree "$tmp"
-if ! (cd "$tmp/repo" && sed -i 's/^@\[req "CHN-15"\] def current : Params := { dialRequiresAuthAccepted := true }$/@[req "CHN-15"] def current : Params := { dialRequiresAuthAccepted := false }/' $RELAY && grep -q 'def current : Params := { dialRequiresAuthAccepted := false }$' $RELAY); then
-  echo "::error::formal: the ordering flip did not apply"; fail=1
-else
-  out="$(cd "$tmp/repo" && bash "$FORMAL" 2>&1)"
-  rc=$?
-  if [ "$rc" -eq 0 ]; then
-    echo "::error::formal: the formal gate passed with the two orderings collapsed"; echo "$out"; fail=1
-  elif [ "$(grep -c '^error: TauWeb/' <<<"$out")" -ne 2 ]; then
-    echo "::error::formal: the ordering flip did not produce exactly two errors"; echo "$out"; fail=1
-  elif ! grep -qF 's.dialed = [] ∧ s.okSent = false ∧ s.phase = Phase.authAccepted ∧ s.accepted = true' <<<"$out" \
-       || ! grep -qF '(s.dialed.isEmpty || s.accepted)' <<<"$out"; then
-    echo "::error::formal: the reds are not dial_before_auth_refused and bounded"; echo "$out"; fail=1
-  elif grep -qF 's.forwarded = 0 ∧ s.okSent = false ∧ s.phase = Phase.closed' <<<"$out"; then
-    echo "::error::formal: a red also names the second ordering, which the shorthand keeps"; echo "$out"; fail=1
+relay_ordering_flip() {
+  local tmp out rc
+  expected=$((expected + 1))
+  tmp="$(mktemp -d -p "$scratch_root")"
+  copy_tree "$tmp"
+  if ! (cd "$tmp/repo" && sed -i 's/^@\[req "CHN-15"\] def current : Params := { dialRequiresAuthAccepted := true }$/@[req "CHN-15"] def current : Params := { dialRequiresAuthAccepted := false }/' $RELAY && grep -q 'def current : Params := { dialRequiresAuthAccepted := false }$' $RELAY); then
+    echo "::error::formal: the ordering flip did not apply"; fail=1
   else
-    echo "ok: formal: the two orderings collapsed -> dial_before_auth_refused and bounded"; passed=$((passed + 1))
+    out="$(cd "$tmp/repo" && bash "$FORMAL" 2>&1)"
+    rc=$?
+    if [ "$rc" -eq 0 ]; then
+      echo "::error::formal: the formal gate passed with the two orderings collapsed"; echo "$out"; fail=1
+    elif [ "$(grep -c '^error: TauWeb/' <<<"$out")" -ne 2 ]; then
+      echo "::error::formal: the ordering flip did not produce exactly two errors"; echo "$out"; fail=1
+    elif ! grep -qF 's.dialed = [] ∧ s.okSent = false ∧ s.phase = Phase.authAccepted ∧ s.accepted = true' <<<"$out" \
+         || ! grep -qF '(s.dialed.isEmpty || s.accepted)' <<<"$out"; then
+      echo "::error::formal: the reds are not dial_before_auth_refused and bounded"; echo "$out"; fail=1
+    elif grep -qF 's.forwarded = 0 ∧ s.okSent = false ∧ s.phase = Phase.closed' <<<"$out"; then
+      echo "::error::formal: a red also names the second ordering, which the shorthand keeps"; echo "$out"; fail=1
+    else
+      echo "ok: formal: the two orderings collapsed -> dial_before_auth_refused and bounded"; passed=$((passed + 1))
+    fi
   fi
-fi
-rm -rf "$tmp"
+  rm -rf "$tmp"
+}
+schedule relay_ordering_flip
 
 # The dialer takes the classified address and nothing else: a hostname passed to it is a type
 # error, so "without a second resolution inside the dialer" is checked by the elaborator rather
@@ -259,7 +337,8 @@ formal_control "formal: a pin source added without what it may pin" \
 # A mutation must fail in exactly the named property declarations of one module, once each.
 # Checking the source locations also rejects syntax/type errors, stale anchors and unrelated
 # failed proofs. decl_control FILE NAME MUTATION DECLARATION...
-decl_control() {
+decl_control() { schedule decl_control_body "$@"; }
+decl_control_body() {
   local source="$1" name="$2" mutate="$3"
   shift 3
   expected=$((expected + 1))
@@ -565,29 +644,36 @@ authority_control "formal: authority ceremony_owed" \
   ceremony_hide_locks
 
 # A valid continuation remains accepted after harmless ordinary hide/return insertion.
-expected=$((expected + 1))
-authority_positive="$(mktemp -d -p "$scratch_root")"
-copy_tree "$authority_positive"
-if (cd "$authority_positive/repo" &&
-    sed -i 's/\.lifecycle (.admit candidateB true), \.lifecycle (.suspend bob)/.lifecycle (.admit candidateB true), .lifecycle .hide, .lifecycle .visible, .lifecycle (.suspend bob)/' "$AUTH" &&
-    grep -qxF '  .lifecycle (.admit candidateB true), .lifecycle .hide, .lifecycle .visible, .lifecycle (.suspend bob), .lifecycle (.validate execB ready)]' "$AUTH" &&
-    bash "$FORMAL") > "$authority_positive/output" 2>&1; then
-  echo "ok: formal: authority valid hidden successor continuation -> stays green"
-  passed=$((passed + 1))
-else
-  echo "::error::formal: authority valid hidden successor continuation went red"
-  cat "$authority_positive/output"
-  fail=1
-fi
-rm -rf -- "$authority_positive"
+authority_positive_continuation() {
+  local authority_positive
+  expected=$((expected + 1))
+  authority_positive="$(mktemp -d -p "$scratch_root")"
+  copy_tree "$authority_positive"
+  if (cd "$authority_positive/repo" &&
+      sed -i 's/\.lifecycle (.admit candidateB true), \.lifecycle (.suspend bob)/.lifecycle (.admit candidateB true), .lifecycle .hide, .lifecycle .visible, .lifecycle (.suspend bob)/' "$AUTH" &&
+      grep -qxF '  .lifecycle (.admit candidateB true), .lifecycle .hide, .lifecycle .visible, .lifecycle (.suspend bob), .lifecycle (.validate execB ready)]' "$AUTH" &&
+      bash "$FORMAL") > "$authority_positive/output" 2>&1; then
+    echo "ok: formal: authority valid hidden successor continuation -> stays green"
+    passed=$((passed + 1))
+  else
+    echo "::error::formal: authority valid hidden successor continuation went red"
+    cat "$authority_positive/output"
+    fail=1
+  fi
+  rm -rf -- "$authority_positive"
+}
+schedule authority_positive_continuation
 
-expected=$((expected + 1))
-if python3 tools/test_pins_control_diagnostics.py "$scratch_root"; then
-  echo "ok: formal: pin diagnostic parser regressions"
-  passed=$((passed + 1))
-else
-  echo "::error::formal: pin diagnostic parser regressions"; fail=1
-fi
+pin_diagnostic_parser() {
+  expected=$((expected + 1))
+  if python3 tools/test_pins_control_diagnostics.py "$scratch_root"; then
+    echo "ok: formal: pin diagnostic parser regressions"
+    passed=$((passed + 1))
+  else
+    echo "::error::formal: pin diagnostic parser regressions"; fail=1
+  fi
+}
+schedule pin_diagnostic_parser
 
 # The order-exclusion guard is separate from association admission. Its removal sends the
 # excluded order, while both canonical receipt and association risks remain in evidence.
@@ -1068,14 +1154,18 @@ dispatch_control "formal: enumeration reuses a request call id" \
   bounded
 
 # A missing toolchain is a red gate, not a skip.
-expected=$((expected + 1))
-if out="$(env PATH=/nonexistent "$(command -v bash)" "$FORMAL" 2>&1)"; then
-  echo "::error::formal: the gate passed with no toolchain on PATH"; echo "$out"; fail=1
-elif ! grep -q 'lake not on PATH' <<<"$out"; then
-  echo "::error::formal: the red is not the missing toolchain"; echo "$out"; fail=1
-else
-  echo "ok: formal: a missing toolchain -> lake not on PATH"; passed=$((passed + 1))
-fi
+missing_toolchain() {
+  local out
+  expected=$((expected + 1))
+  if out="$(env PATH=/nonexistent "$(command -v bash)" "$FORMAL" 2>&1)"; then
+    echo "::error::formal: the gate passed with no toolchain on PATH"; echo "$out"; fail=1
+  elif ! grep -q 'lake not on PATH' <<<"$out"; then
+    echo "::error::formal: the red is not the missing toolchain"; echo "$out"; fail=1
+  else
+    echo "ok: formal: a missing toolchain -> lake not on PATH"; passed=$((passed + 1))
+  fi
+}
+schedule missing_toolchain
 
 WIT=tools/check_witnesses.py
 WITFILE=docs/design/allocation-witnesses-v3.json
@@ -1630,6 +1720,10 @@ control "local paths: unreadable export" "$PATHS" \
 
 passes "local paths: machine paths, relative paths, URLs and the portable source_repo" "$PATHS" \
   'printf "%s\n" '\''{"id":"tw-probe","source_repo":"tau-web","description":"/root/.ssh/authorized_keys /var/lib/tau lib/tmp/x https://example.com/home/alice ~/tmp/x"}'\'' >> .beads/issues.jsonl'
+
+wait
+running=0
+flush
 
 echo
 if [ "$passed" -ne "$expected" ]; then
