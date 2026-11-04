@@ -49,11 +49,15 @@ credential they supplied, and carries a second approval mode for the ones no ada
 The reasoning above is unchanged and the axis it was reaching for is stated plainly there:
 off-machine versus on-machine, each side with its own bound rather than a shared one.
 
-*Amended 2026-10-27: the unpinned package-policy promise is bounded.* `ARC-25a` says
-"This filter does not evaluate shell or establish effective package policy." Its literal
-command filter is a bounded syntactic guard, not classification of arbitrary shell effects.
-Package verification observations do not constrain the authority of free shell. Universal
-package-policy enforcement would require a separate decision changing that authority and
-defining a protected enforcement boundary. The amendment keeps `CNF-67` BLOCKING.
-`CNF-67` says "Fixture cases precede the live run; native evidence is owed during that separately authorized run, not asserted before it."
+*Amended 2026-10-27: the unpinned package-policy promise is bounded.* Package verification
+observations do not constrain the authority of free shell. Universal package-policy
+enforcement would require a separate decision changing that authority and defining a
+protected enforcement boundary. The amendment keeps `CNF-67` BLOCKING.
+`CNF-67` says "The housekeeping review and literal demonstration precede the live run; native evidence is owed during that separately authorized run, not asserted before it."
 It also says "Demonstrate completed unsigned-local admission under the lenient allowance and completed trusted-signed local admission."
+
+*Amended 2026-11-04: the literal command filter is removed.* The bounded promise above
+included a literal command filter that refused signature-lowering text on machines with
+unpinned-installation history. It was removed as too brittle: other forms evaded it, and it
+refused harmless text. `ARC-25a` says "The harness applies no command filter for package-signature lowering: free shell on an unpinned installation can lower checking or install unsigned code without refusal."
+The guarantee for harness-composed command text stays, and `CNF-67` stays BLOCKING.
