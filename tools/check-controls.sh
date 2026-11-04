@@ -533,7 +533,7 @@ authority_control "formal: authority actor request session check removed" \
 
 authority_control "formal: authority machine membership check removed" \
   "sed -i 's/!p.machineMembership || a.bound.contains e/true/' $AUTH" \
-  unbound_entry_refused live_entry_growth_refused fenced_binding_growth_refused
+  unbound_entry_refused live_entry_growth_refused paused_growth_refused fenced_binding_growth_refused
 
 authority_control "formal: authority growth exclusivity check removed" \
   "sed -i 's/(!p.exclusiveBinding || !p.growthExclusive || bindingFree p w who \[entry\])/true/' $AUTH" \
