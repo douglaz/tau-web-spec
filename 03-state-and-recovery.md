@@ -1634,9 +1634,9 @@ written, the `rescue_install_key` job (`ARC-43`) MUST find, in its own harness-c
 the installed system's root labels, a root whose label reads in `STG-20`'s form, and it adds the
 key to the root account's `authorized_keys` in that root (`/root/.ssh/authorized_keys` inside
 it), keeping every other line. Where that file or its `.ssh` directory is missing, the job
-creates it, owned by root, the directory with mode 700 and the file with mode 600; it changes no
-mode or owner of anything it does not create. If it finds none, or more than
-one, or a label probe it makes of a device it reads as a possible root does not resolve, which is
+creates what is missing, owned by the root account, the directory with mode 700 and the file
+with mode 600; it changes no mode or owner of anything it does not create. If it finds none, or
+more than one, or a label probe it makes of a device it reads as a possible root does not resolve, which is
 the root-label stop, the job writes no key and the flow stops unfinished, except for
 the reset into
 the installed system, the one vendor call left to the grant (`SEC-4`), under that reset's own
@@ -1647,8 +1647,9 @@ writes no key. That refusal is not the root-label stop: it is a failure of the f
 grant ends on it (`SEC-4`). Where each root on the server's disks is one file system on one disk
 and no disk carries a volume layer, the job writes nothing to a disk other than the one that
 carries the root it writes, and it reads every other device it reads as a possible root without
-mounting it read-write and without replaying its journal. What the job's read-write mount of the
-root it writes itself writes, journal replay and mount metadata included, is not decided, and
+mounting it read-write and without replaying its file system's journal. What the job's
+read-write mount of the root it writes itself writes, the replay of that file system's journal
+and mount metadata included, is not decided, and
 neither is whether the job writes anything else to that root's disk. The root-label stop opens
 no session binding: the re-entry below does not follow it, and whether a machine stopped there may later be bound is not decided. A label that passes
 proves nothing: it establishes no identity, authenticates no root contents and supplies no
