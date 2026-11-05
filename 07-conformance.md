@@ -2072,40 +2072,50 @@ Not pass/fail. Required to be recorded.
       After that stop, give the server one root carrying host keys, with a file system journal
       left unreplayed by an unclean unmount: every disk's bytes are the same before and after
       `rescue_host_key_read`, the reset is offered on what it read, and its confirmation admits
-      no connection. Once it is confirmed, the journal and pin state hold no `ready_to_reset`
-      record and no installed-system or machine pin from those keys, before and after a
-      restart, and a connection relying on those keys is refused, also after a restart. Each
-      in its own run, give it host keys under two roots, no host keys, a second root it cannot
-      read, a key matching the rescue boot's pin, and a symbolic link in place of the key files
-      pointing at a valid host-key set that is not rescue's: the read refuses, the link is not
-      followed, and no reset is offered or sent. Fail the append of what it read: no reset is
-      offered or sent. Restart the harness after the stop: the reset is shown again and offered
-      only after `STA-20b`'s offer check is made again. Journal the reset's intent and lose its
-      response, then restart and, separately, choose a disposition: it is not sent again.
+      no connection. An sshd answering with a key the read did not find, or with the rescue
+      boot's own key, confirms nothing. Before and after the reset is confirmed, the journal and
+      pin state hold no `ready_to_reset` record and no installed-system or machine pin from
+      those keys, also after a restart, and a connection relying on those keys is refused, also
+      after a restart. Request `rescue_host_key_read` before any root-label stop and on a flow
+      whose key was written: it is refused. Each in its own run, give it host keys under two
+      roots, no host keys, a key matching the rescue boot's pin, and a symbolic link in place of
+      the key files pointing at a valid host-key set that is not rescue's: the read refuses, the
+      link is not followed, no reset is offered or sent, the grant ends and the screen below is
+      shown. Fail the append of what it read: no reset is offered or sent. Restart the harness
+      after the stop: the reset is shown again and offered only after `STA-20b`'s offer check is
+      made again. Journal the reset's intent and lose its response, then, each in its own run,
+      restart, choose each disposition in turn, and do neither: it is not sent again.
       Stop the flow, and separately fail a call other than at the root-label stop, once the
       intent of the reset into rescue is journaled: no further call of the flow is sent, and
-      the screen shows the server as in rescue when that reset is confirmed and possibly in
-      rescue when its response is lost, the flow unfinished and every unresolved call; a new
-      card naming that server is refused. A model request for `rescue_host_key_read` is
-      refused.
+      the screen shows the server as in rescue when that reset is confirmed and no reset back's
+      intent is journaled, possibly in rescue when its response is lost, and possibly in rescue
+      or in its installed system when a reset back's intent is journaled and its response is
+      lost, with the flow unfinished and every unresolved call; a new card naming that server is
+      refused. A model request for `rescue_host_key_read` is refused.
       (m) Approve the flow's card for a server, let the key registration and the activation be
       confirmed and the reset into rescue be sent, then record that the entry names the wrong
       server: no further call or job of the entry is sent except the reads that resolve its
-      unresolved calls, and the screen shows the key possibly registered, the activation
-      possibly armed and the server possibly in rescue. Afterwards a session binding, a
-      re-entry, a retry, an acceptance, a relabel, a reinstall and an abandonment through that
-      entry are each refused, also after export and Restore; the entry is not shown as Failed
-      and keeps its index and mapping. Record it once every call of the flow is confirmed: the
-      same refusals hold. Record it while a session binds the machine: it is refused. Fail its
-      append: the entry is not barred. A model, a timer or a listing cannot record it. A card
-      for the intended server makes a new entry at a new index.
+      unresolved calls, a read that resolves the sent reset is still sent and the unresolved
+      calls stay unresolved until it answers, and the screen shows the key possibly registered,
+      the activation possibly armed and the server possibly in rescue, but no key possibly
+      written, since no such job's intent is journaled. Afterwards a session binding, a
+      re-entry, an association, a retry, an acceptance, a relabel, a reinstall and an
+      abandonment through that entry are each refused, also after export and Restore, and
+      neither continuing disposition sends a call; the entry is not shown as Failed and keeps
+      its index and mapping. Record it once every call of the flow is confirmed and the key is
+      written: the same refusals hold and the screen shows a key possibly written. Record it at
+      the root-label stop: the kept reset back is no longer offered. Record it while a session
+      binds the machine: it is refused. Fail its append: the entry is not barred. A model, a
+      timer, a listing or a label cannot record it. A card for the intended server makes a new
+      entry at a new index.
       (n) Give the journal an entry that maps a server number, each in its own run: one a
       session binds, one stopped at the root-label stop, one carrying the wrong-server record
       of (m), one completed, and one under another account reference; and separately one whose
       association for that number was quarantined with retained qualifying identity evidence.
       Present the flow's card naming that number: approval is refused, the holding entry is
       shown, nothing is journaled or reserved and no call is sent. A card naming a server number
-      no entry holds is approved.
+      no entry holds is approved, also when the journal holds other entries under the same
+      account reference and an association quarantined for another number.
       Boundary-crossed and destroyed-data.
 - [ ] **CNF-87 · BLOCKING** The LNVPS path's relay uses the selected `/v2/` profile and a
       hand-recorded pass (`STG-18`; [paid-tcp-relay][relay-source] PAS-6). Demonstrate fresh

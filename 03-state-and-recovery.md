@@ -262,8 +262,8 @@ journaled at that point and a halt against the old one means the reset landed. O
 installed-system entry it creates the persistent job directory before ordinary work. Rescue
 records are not claimed to survive this transition. After `STA-17`'s root-label stop, the rescue
 rekey's one reset back takes `STA-17`'s scoped host-key read, journaled with its intent, in
-place of the installed host-key pins, as its durable prerequisite and its expected next keys;
-that read is no pin.
+place of the installed host-key pins, for that reset only, as its durable prerequisite and its
+expected next keys; that read is no pin.
 
 **The reset into rescue at which a standing disposition's reinstall is dispatched is the one
 exception to that wait** (`STA-24`; amended 2026-10-13, ADR-0044). It does not wait for a
@@ -1240,7 +1240,7 @@ flowchart TD
     LOST([New phone, no local state]) --> AM{The machine's access model}
     AM -->|Sealed| SEALED["Nothing to recover.<br/>The channel ended at sealing,<br/>so a lost pin loses nothing"]
     AM -->|Maintained| VEND{Which vendor product?}
-    VEND -->|Dedicated / Robot| CER["Rescue ceremony<br/>register the new phone's client key ·<br/>activate rescue · pin the rescue host key<br/>from the API, no TOFU · install the new<br/>client pubkey from inside rescue ·<br/>re-read the installed host keys<br/><br/>Cost: two reboots. Always works,<br/>so the sheet is optional here"]
+    VEND -->|Dedicated / Robot| CER["Rescue ceremony<br/>register the new phone's client key ·<br/>activate rescue · pin the rescue host key<br/>from the API, no TOFU · install the new<br/>client pubkey from inside rescue ·<br/>re-read the installed host keys<br/><br/>Cost: two reboots. The sheet is<br/>optional here within STA-15's limits"]
     VEND -->|Cloud| SHEET{Was a sheet exported?}
     SHEET -->|Yes| ZERO["Seed re-derives client keys ·<br/>sheet restores pins. Zero downtime"]
     SHEET -->|"No — MUST NOT happen:<br/>the sheet is mandatory<br/>on maintained cloud"| DR["No destructive authority added (STA-15).<br/>Recreate only where existing<br/>authorization permits; otherwise<br/>the operator acts at the vendor"]
@@ -1521,9 +1521,10 @@ server to this harness, and preselects nothing. The card is refused, with the en
 with shown in its place, when admitting that server number for the new entry meets a refusal of
 [Protected browser evidence v1 §3a](docs/design/protected-evidence-v1.md#3a-protected-operation-evidence)'s
 admission checks against any entry the journal holds, whatever that entry's state or account
-reference; it is checked when the approval would be appended and again at dispatch, and a
-refused approval journals and reserves nothing. This opens no route for a server an entry
-already holds: such a server is rekeyed, if at all, against that entry, and how is not decided.
+reference; it is checked when the approval would be appended, a refused approval journals and
+reserves nothing, and whether it is checked again at dispatch is not decided. This opens no
+route for a server an entry already holds: such a server is rekeyed, if at all, against that
+entry, and how is not decided.
 Approving the card journals and durably
 reserves, before any external effect, the fresh-seed machine entry at index `b` that maps the
 account reference and that server number to `b`'s expected public key (`STA-22b`); a failed
@@ -1533,7 +1534,7 @@ written, the `rescue_install_key` job (`ARC-43`) MUST find, in its own harness-c
 the installed system's root labels, a root whose label reads in `STG-20`'s form, and it adds the
 key to that root's `authorized_keys`, keeping every other line. If it finds none, which is the
 root-label stop, the job writes no key and the flow stops unfinished, except for the reset into
-the installed system, the one vendor call `SEC-4`'s grant keeps, under that reset's own
+the installed system, the one vendor call left to the grant (`SEC-4`), under that reset's own
 prerequisites (`STA-20b`), which the scoped read below may meet. Which root receives the key when more than
 one reads in that form is not decided. The root-label
 stop opens no session binding: the re-entry below does not follow it, and whether a machine
@@ -1549,12 +1550,11 @@ rescue, the installed host public keys of the one root that carries them. It wri
 any disk, follows no symbolic link, and mounts every root it reads without replaying its file
 system's journal. It refuses, and the reset into the installed system is then neither offered
 nor sent, when it finds no host keys, when it finds host keys under more than one root, when any
-key it reads shares a fingerprint with the rescue boot's own pin (`CHN-R1`), or when it cannot
-read a root, since a root left unread may hold a second set. Whether a refused read ends the
-grant, and whether the read may be issued again, is not decided. What it reads, journaled with
-the reset intent, serves only that reset and stands in for `ready_to_reset`'s pins there: it is
-the durable prerequisite `STA-20b`'s offer checks and the expected next keys with which
-`STG-4`'s predicate confirms that reset. The answer that confirms the reset admits no
+key it reads shares a fingerprint with the rescue boot's own pin (`CHN-R1`). Whether a root it
+cannot read makes it refuse is not decided. A refused read is a failure of the flow, so the
+grant ends on it (`SEC-4`). What it reads, journaled with the reset intent, serves only that
+reset and stands in for `ready_to_reset`'s pins as that reset's durable prerequisite and
+expected next keys (`STA-20b`, `STG-4`). The answer that confirms the reset admits no
 connection. What it reads is no pin of any source `SEC-5` row 5 lists and is never
 `ready_to_reset`'s record; no later connection to the machine relies on it, and whether a later
 comparison reads it is not decided. It gives no root a label, supplies no acceptance and
@@ -1563,19 +1563,22 @@ installs no key. The companion carries none of this reset's offer or confirmatio
 **The operator MAY record that an entry this flow's card created names the wrong server.** The
 operator alone records it, never a model, a timer, a listing or a label, and it is refused while
 a session binds the machine. It is appended under the single writer, ordered with dispatch, so
-no call of the entry is dispatched after it; a failed append records nothing (`STA-3`). The
-record is the operator's word and proves nothing about the server or about what was sent. It
-ends any of the flow's grant still standing as an operator stop does (`SEC-4`) and bars the entry for good: from it the entry
+no call of the entry other than the reads below is dispatched after it; a failed append records
+nothing (`STA-3`). The record is the operator's word and proves nothing about the server or
+about what was sent. It ends any of the flow's grant still standing (`SEC-4`) and bars the
+entry for good: from it the entry
 grants no session binding, re-entry, association, retry, job, acceptance, relabel, reinstall,
 abandonment or vendor call other than the reads that resolve its calls still unresolved, and no
 continuation of a disposition (`STA-24`) revives one. It is neither `STA-22b`'s Failed nor a
 disposition: the entry keeps its index, mapping and history, and every call still unresolved
 stays behind `STA-24`'s barrier. The record is kept with the entry's allocation metadata and
-survives export and Restore with it (`STA-22b`); the companion carries no such record. The
-screen MUST show what the harness has not undone on that server: a client key possibly
-registered at Robot, a rescue activation possibly armed, the server possibly in rescue and a key
-possibly written to its root; the operator acts at Robot. The intended server takes a new card
-and a new entry at a new index.
+survives export and Restore with it (`STA-22b`); the companion carries no such record. How a
+Replace and the sheet's list of machine states treat an entry so barred is not decided. The
+screen MUST show what the harness may not have undone on that server, each item only when the
+journal holds the intent of the call or job behind it: a client key possibly registered at
+Robot, a rescue activation possibly armed, the server possibly in rescue and a key possibly
+written to its root; the operator acts at Robot. The intended server takes a new card and a new
+entry at a new index.
 
 **A dedicated machine rekeyed through rescue keeps a proposed installation ordinal**
 ([ADR-0056](./docs/adr/0056-the-rescue-rekey-keeps-a-proposed-ordinal.md)). `STA-22b` says
