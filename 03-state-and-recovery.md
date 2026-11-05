@@ -260,7 +260,10 @@ landed would otherwise let a disk-writing command race the reset that interrupts
 resumed probe uses the pin the reset intent named as its expected next pin, since two pins are
 journaled at that point and a halt against the old one means the reset landed. On
 installed-system entry it creates the persistent job directory before ordinary work. Rescue
-records are not claimed to survive this transition.
+records are not claimed to survive this transition. After `STA-17`'s root-label stop, the rescue
+rekey's one reset back takes `STA-17`'s scoped host-key read, journaled with its intent, in
+place of the installed host-key pins, for that reset only, as its durable prerequisite and its
+expected next keys; that read is no pin.
 
 **The reset into rescue at which a standing disposition's reinstall is dispatched is the one
 exception to that wait** (`STA-24`; amended 2026-10-13, ADR-0044). It does not wait for a
@@ -294,7 +297,10 @@ browser's record of what was sent remains authoritative throughout (`STA-21`).
 The precondition of the offer of a reset into the installed system is
 `TauWeb.Dispatch.offersReset` (ADR-0032), which reads whether `ready_to_reset`'s record of the
 installed pins and the reset intent was durably appended in the current installation, and
-compares the newest read's keys against the first durable prerequisite read there. Where that
+compares the newest read's keys against the first durable prerequisite read there. The rescue
+rekey's reset back after `STA-17`'s root-label stop is outside it: `offersReset` reads only
+`ready_to_reset`'s record, and `TauWeb.Pins` takes a reset's expected next keys only from a
+machine pin. Where that
 first read shares a fingerprint with an earlier installation's prerequisite read or
 installed-system pin, the offer stays withheld for that installation whatever a later read
 shows; a new destructive reinstall is needed. The companion carries no earlier observations:
@@ -886,7 +892,8 @@ migration, see `CHN-19`.
 
 **STA-22b Allocation metadata is recoverable state.** The journal owns a seed identifier,
 derivation version, next unused index for each role family (machines, passes, handoffs),
-and allocated entries, including tombstones for failed or destroyed allocations. A jump host
+and allocated entries, including tombstones for failed or destroyed allocations and the rescue
+rekey's wrong-server record (`STA-17`), which is neither. A jump host
 (`CHN-R6`) takes a machine-family index like any machine, and its entry records that it is in
 no session's bound set. A machine entry maps vendor/account reference and immutable vendor machine
 ID to its index and expected SSH public key; a pass entry maps `relay_locator` and the holder's
@@ -1233,7 +1240,7 @@ flowchart TD
     LOST([New phone, no local state]) --> AM{The machine's access model}
     AM -->|Sealed| SEALED["Nothing to recover.<br/>The channel ended at sealing,<br/>so a lost pin loses nothing"]
     AM -->|Maintained| VEND{Which vendor product?}
-    VEND -->|Dedicated / Robot| CER["Rescue ceremony<br/>register the new phone's client key ·<br/>activate rescue · pin the rescue host key<br/>from the API, no TOFU · install the new<br/>client pubkey from inside rescue ·<br/>re-read the installed host keys<br/><br/>Cost: two reboots. Always works,<br/>so the sheet is optional here"]
+    VEND -->|Dedicated / Robot| CER["Rescue ceremony<br/>register the new phone's client key ·<br/>activate rescue · pin the rescue host key<br/>from the API, no TOFU · install the new<br/>client pubkey from inside rescue ·<br/>re-read the installed host keys<br/><br/>Cost: two reboots. The sheet is<br/>optional here within STA-15's limits"]
     VEND -->|Cloud| SHEET{Was a sheet exported?}
     SHEET -->|Yes| ZERO["Seed re-derives client keys ·<br/>sheet restores pins. Zero downtime"]
     SHEET -->|"No — MUST NOT happen:<br/>the sheet is mandatory<br/>on maintained cloud"| DR["No destructive authority added (STA-15).<br/>Recreate only where existing<br/>authorization permits; otherwise<br/>the operator acts at the vendor"]
@@ -1246,7 +1253,8 @@ flowchart TD
 **STA-15** The recovery sheet MUST be exported before a **maintained cloud** machine's setup
 completes. On Robot the ceremony always works, so there the sheet is an optimisation and stays
 optional, except that with no sheet a machine whose root label is missing or damaged gets no
-rescue rekey from the harness (`STA-17`). A sealed tenant's machines need none: their pins die at sealing, and a phone
+rescue rekey from the harness, and no card of that rekey is approved for a server another entry
+already holds (`STA-17`). A sealed tenant's machines need none: their pins die at sealing, and a phone
 lost mid-setup is answered by the tenant's own all-or-nothing rule — abandon and recreate.
 This asymmetry is stated, not smoothed over.
 
@@ -1509,7 +1517,15 @@ approves, and the flow writes no key to a server without a root label in the har
 Then nothing the harness retains ties a server to this harness. The flow's own approval card
 (`SEC-4`) names one Robot server by its immutable server number, shows the facts `STA-18`'s
 listing reads for it as the vendor's word at one moment, says that no saved record ties this
-server to this harness, and preselects nothing. Approving the card journals and durably
+server to this harness, and preselects nothing. The card is refused, with the entry it conflicts
+with shown in its place, when admitting that server number for the new entry meets a refusal of
+[Protected browser evidence v1 §3a](docs/design/protected-evidence-v1.md#3a-protected-operation-evidence)'s
+admission checks against any entry the journal holds, whatever that entry's state or account
+reference; it is checked when the approval would be appended, a refused approval journals and
+reserves nothing, and whether it is checked again at dispatch is not decided. This opens no
+route for a server an entry already holds: such a server is rekeyed, if at all, against that
+entry, and how is not decided.
+Approving the card journals and durably
 reserves, before any external effect, the fresh-seed machine entry at index `b` that maps the
 account reference and that server number to `b`'s expected public key (`STA-22b`); a failed
 append supplies no approval (`STA-3`). Every call of the flow is checked against that entry,
@@ -1517,16 +1533,52 @@ never against a listing of the account's servers. In rescue, before the new clie
 written, the `rescue_install_key` job (`ARC-43`) MUST find, in its own harness-composed read of
 the installed system's root labels, a root whose label reads in `STG-20`'s form, and it adds the
 key to that root's `authorized_keys`, keeping every other line. If it finds none, which is the
-root-label stop, the job writes no key, the flow stops unfinished, and the only vendor call left
-to it is the reset into the installed system, under that reset's own prerequisites
-(`STA-20b`). Whether the installed host keys may be read after this stop is not decided, and
-neither is which root receives the key when more than one reads in that form. The root-label
+root-label stop, the job writes no key and the flow stops unfinished, except for the reset into
+the installed system, the one vendor call left to the grant (`SEC-4`), under that reset's own
+prerequisites (`STA-20b`), which the scoped read below may meet. Which root receives the key when more than
+one reads in that form is not decided. The root-label
 stop opens no session binding: the re-entry below does not follow it, and whether a machine
 stopped there may later be bound is not decided. A label that passes proves nothing: it
 establishes no identity, authenticates no root contents and supplies no acceptance, and the
 operator's approval stays the only tie between this server and its entry. So with no sheet, a
 server whose root label is missing or damaged gets no rescue rekey from the harness, and
 nothing here grants a reinstall or an erasure to repair it.
+
+**After the root-label stop, one scoped read of the installed host keys serves that one reset
+back and is trusted for nothing later.** The `rescue_host_key_read` job (`ARC-43`) reads, in
+rescue, the installed host public keys of the one root that carries them. It writes nothing to
+any disk, follows no symbolic link, and mounts every root it reads without replaying its file
+system's journal. It refuses, and the reset into the installed system is then neither offered
+nor sent, when it finds no host keys, when it finds host keys under more than one root, when any
+key it reads shares a fingerprint with the rescue boot's own pin (`CHN-R1`). Whether a root it
+cannot read makes it refuse is not decided. A refused read is a failure of the flow, so the
+grant ends on it (`SEC-4`). What it reads, journaled with the reset intent, serves only that
+reset and stands in for `ready_to_reset`'s pins as that reset's durable prerequisite and
+expected next keys (`STA-20b`, `STG-4`). The answer that confirms the reset admits no
+connection. What it reads is no pin of any source `SEC-5` row 5 lists and is never
+`ready_to_reset`'s record; no later connection to the machine relies on it, and whether a later
+comparison reads it is not decided. It gives no root a label, supplies no acceptance and
+installs no key. The companion carries none of this reset's offer or confirmation (`STA-20b`).
+
+**The operator MAY record that an entry this flow's card created names the wrong server.** The
+operator alone records it, never a model, a timer, a listing or a label, and it is refused while
+a session binds the machine. It is appended under the single writer, ordered with dispatch, so
+no call of the entry other than the reads below is dispatched after it; a failed append records
+nothing (`STA-3`). The record is the operator's word and proves nothing about the server or
+about what was sent. It ends any of the flow's grant still standing (`SEC-4`) and bars the
+entry for good: from it the entry
+grants no session binding, re-entry, association, retry, job, acceptance, relabel, reinstall,
+abandonment or vendor call other than the reads that resolve its calls still unresolved, and no
+continuation of a disposition (`STA-24`) revives one. It is neither `STA-22b`'s Failed nor a
+disposition: the entry keeps its index, mapping and history, and every call still unresolved
+stays behind `STA-24`'s barrier. The record is kept with the entry's allocation metadata and
+survives export and Restore with it (`STA-22b`); the companion carries no such record. How a
+Replace and the sheet's list of machine states treat an entry so barred is not decided. The
+screen MUST show what the harness may not have undone on that server, each item only when the
+journal holds the intent of the call or job behind it: a client key possibly registered at
+Robot, a rescue activation possibly armed, the server possibly in rescue and a key possibly
+written to its root; the operator acts at Robot. The intended server takes a new card and a new
+entry at a new index.
 
 **A dedicated machine rekeyed through rescue keeps a proposed installation ordinal**
 ([ADR-0056](./docs/adr/0056-the-rescue-rekey-keeps-a-proposed-ordinal.md)). `STA-22b` says
@@ -1590,7 +1642,7 @@ incomplete; it supplies no deletion target, no replacement of the whole key file
 command hold. A removal supports only its scoped effect. The changed-label stop removes no key.
 
 While this flow runs, no ordinary session binds the machine. Once it has stopped unfinished,
-the operator MAY bind one through `SEC-1`'s re-entry; `SEC-1` says "by re-entry, on a maintained
+unless its entry carries the wrong-server record above, the operator MAY bind one through `SEC-1`'s re-entry; `SEC-1` says "by re-entry, on a maintained
 machine only". The model is shown the pending id marked unconfirmed, with each label the harness
 has read from the disk beside it as an as-of observation; no observed label becomes the id. The
 session may rely on an independently admitted active pin and on the accepted number as a

@@ -370,7 +370,9 @@ zone-less local time, so neither can be compared to the browser's intent. The pr
   no fingerprint with the one journaled before the reset** — every rescue boot has fresh keys
   (`CHN-R1`).
 - **The reset into the installed system** is confirmed when sshd answers with the installed
-  pin.
+  pin. The rescue rekey's reset back after `STA-17`'s root-label stop is confirmed instead when
+  sshd answers with a key `STA-17`'s scoped host-key read found, and that answer admits no
+  connection.
 - **Key registration** is confirmed when the account's key listing carries the machine's client
   key under the fingerprint the intent recorded. Its resource is the machine's approved entry
   (`STA-24`), and an unresolved registration blocks the activation that would name the
@@ -397,7 +399,8 @@ Anything not confirmed stays unresolved under `STA-8` and the operator decides; 
 reconcile-before-retry (`STA-5`), and a second request for the same mutation under a new call
 id is refused while the first is unresolved (`STA-24`). `STG-11` is the test, and `CNF-38` lists its cases. The host
 keys are read and the pins journaled by the harness's own `ready_to_reset` job before the
-reset is offered (`ARC-43`). The order above — each mutation dispatched once its predecessor is
+reset is offered (`ARC-43`), except for that reset back, whose keys `rescue_host_key_read`
+reads (`STA-17`). The order above — each mutation dispatched once its predecessor is
 confirmed, and the box-plane work only after the reset is — is `TauWeb.Dispatch.ceremony_trace`
 (ADR-0032), decided.
 

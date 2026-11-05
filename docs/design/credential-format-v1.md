@@ -70,6 +70,10 @@ retired entry's approved-entry identity and its Failed allocation. The link is c
 existing entry/predecessor metadata, survives export and import as that metadata does, and
 supplies no authority to the retired entry or its replacement.
 
+The rescue rekey's wrong-server record (`STA-17`) survives export and import with its entry and
+restores no authority to that entry. Which member of the entry's allocation metadata carries it,
+under which payload version, is not decided.
+
 Derivation v1 remains unchanged; the history export amendment below versions the recovery payload. A consumed tombstone and its existing
 entry/predecessor metadata survive export under the existing allocation metadata; recovering
 that tombstone does not create fresh failure proof or authority. This local journal proof is
