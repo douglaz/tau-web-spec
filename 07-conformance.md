@@ -2203,22 +2203,28 @@ Not pass/fail. Required to be recorded.
       flow stops unfinished, no vendor call other than the reset into the installed system is
       sent after it, that reset only under `STA-20b`'s prerequisites, and no session binds the
       machine through the re-entry. A model request for `rescue_install_key` is refused.
-      After that stop, give the server one root carrying host keys, with a file system journal
-      left unreplayed by an unclean unmount: every disk's bytes are the same before and after
-      `rescue_host_key_read`, the reset is offered on what it read, and its confirmation admits
-      no connection. An sshd answering with a key the read did not find, or with the rescue
-      boot's own key, confirms nothing. Before and after the reset is confirmed, the journal and
-      pin state hold no `ready_to_reset` record and no installed-system or machine pin from
-      those keys, also after a restart, and a connection relying on those keys is refused, also
-      after a restart. Request `rescue_host_key_read` before any root-label stop and on a flow
-      whose key was written: it is refused. Each in its own run, give it host keys under two
-      roots, no host keys, a key matching the rescue boot's pin, and a symbolic link in place of
-      the key files pointing at a valid host-key set that is not rescue's: the read refuses, the
-      link is not followed, no reset is offered or sent, the grant ends and the screen below is
-      shown. Fail the append of what it read: no reset is offered or sent. Restart the harness
-      after the stop: the reset is shown again and offered only after `STA-20b`'s offer check is
-      made again. Journal the reset's intent and lose its response, then, each in its own run,
-      restart, choose each disposition in turn, and do neither: it is not sent again.
+      Each in its own run, make the labelled root's `authorized_keys` a symbolic link, and
+      separately a directory on its path, each once pointing outside the root and once inside
+      it: `rescue_install_key` writes no key anywhere, the link is not followed, the root-label
+      stop is not taken, no reset into the installed system is offered or sent, the grant ends
+      and the screen below is shown.
+      After the root-label stop, give the server one root carrying host keys, with a file
+      system journal left unreplayed by an unclean unmount: every disk's bytes are the same
+      before and after `rescue_host_key_read`, the reset is offered on what it read, and its
+      confirmation admits no connection. An sshd answering with a key the read did not find, or
+      with the rescue boot's own key, confirms nothing. Before and after the reset is
+      confirmed, the journal and pin state hold no `ready_to_reset` record and no
+      installed-system or machine pin from those keys, also after a restart, and a connection
+      relying on those keys is refused, also after a restart. Request `rescue_host_key_read`
+      before any root-label stop and on a flow whose key was written: it is refused. Each in its
+      own run, give it host keys under two roots, no host keys, a key matching the rescue boot's
+      pin, and a symbolic link in place of the key files pointing at a valid host-key set that is
+      not rescue's: the read refuses, the link is not followed, no reset is offered or sent, the
+      grant ends and the screen below is shown. Fail the append of what it read: no reset is
+      offered or sent. Restart the harness after the stop: the reset is shown again and offered
+      only after `STA-20b`'s offer check is made again. Journal the reset's intent and lose its
+      response, then, each in its own run, restart, choose each disposition in turn, and do
+      neither: it is not sent again.
       Stop the flow, and separately fail a call other than at the root-label stop, once the
       intent of the reset into rescue is journaled: no further call of the flow is sent other
       than the reads that resolve its unresolved calls, and

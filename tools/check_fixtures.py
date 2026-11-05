@@ -17,15 +17,20 @@ diagram's `loop`, `alt`, ...) never closed by `end`.
 
 Ported from provisiond-spec and adapted: no timestamp or integer-bound rules,
 which were that corpus's wire profile; the digest and fingerprint shapes are
-this corpus's (a 64-hex sha256; Robot's MD5 colon-hex or SHA256 base64
-fingerprint).
+this corpus's (a 64-hex sha256; Robot's MD5 colon-hex client-key fingerprint,
+or a host-key fingerprint in the host-pin fingerprint format `CHN-R1` defines:
+43 characters of standard base64, unpadded, with no `SHA256:` prefix).
 
 NOT CAUGHT, or caught wrongly, stated because a gate's limits are part of its
 contract: a `---` front-matter block reads as a dangling edge and a missing
 diagram type; an asymmetric node shape (`A>flag]`) reads as an unbalanced
 bracket; a node whose id is a block opener (`alt`, `box`) reads as an unclosed
 block. None of the corpus's diagrams uses these; the first that does extends
-the check.
+the check. The fingerprint shape is read from the member name alone (one
+ending in `fingerprint`), not from what the key is: a prefixed SHA-256
+fingerprint of a key that is not a host key is refused too, and a host-key
+member holding MD5 colon-hex passes. No scanned example has a fingerprint
+member today; the first that needs the difference extends the check.
 
 Scanned for JSON: the root documents, `docs/design/` and the tenant profiles, and
 every whole `.json` file under `docs/design/` -- the credential vectors and the
@@ -52,7 +57,7 @@ JSON_RE = re.compile(r"^```json\s*\n(.*?)^```", re.M | re.S)
 MERMAID_RE = re.compile(r"^```mermaid\s*\n(.*?)^```", re.M | re.S)
 
 HEX64 = re.compile(r"[0-9a-f]{64}")
-FINGERPRINT = re.compile(r"(?:[0-9a-f]{2}:){15}[0-9a-f]{2}|(?:SHA256:)?[A-Za-z0-9+/]{43}")
+FINGERPRINT = re.compile(r"(?:[0-9a-f]{2}:){15}[0-9a-f]{2}|[A-Za-z0-9+/]{43}")
 
 MERMAID_KINDS = (
     "flowchart", "graph", "sequenceDiagram", "stateDiagram-v2", "stateDiagram",
@@ -88,7 +93,8 @@ def walk(node, path, problems):
         if key.endswith(("sha256", "digest")) and not HEX64.fullmatch(node):
             problems.append(f"{path}: a sha256 digest is exactly 64 hex characters")
         if key.endswith("fingerprint") and not FINGERPRINT.fullmatch(node):
-            problems.append(f"{path}: not an MD5 colon-hex or SHA256 base64 fingerprint")
+            problems.append(f"{path}: not an MD5 colon-hex fingerprint or one in the "
+                            "host-pin fingerprint format of CHN-R1")
 
 
 def check_body(body, where, bad):
