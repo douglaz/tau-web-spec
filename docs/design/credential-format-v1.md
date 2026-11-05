@@ -307,8 +307,10 @@ missing, extra or duplicate member, and a malformed time before binding. Reject 
 placement record with a missing member or any member other than its seven.
 
 A placement without a report is live: the export writes it until its secret is rotated or its
-machine is destroyed (`SEC-5` row 12). Rotation replaces its record with the rotation's new
-placement, and its machine's destruction removes it from every later export. After a Restore
+machine is destroyed (`SEC-5` row 12). Its secret is rotated when `SEC-5` records the rotation
+([ADR-0063](../adr/0063-a-rotation-is-recorded-by-its-zero-exit-job-record.md)); the recorded
+rotation replaces its record with the rotation's new placement. Its machine's destruction removes
+it from every later export. After a Restore
 from a later sheet, its older output stays withheld through the `reference_ended` mark its end
 sets on the `machine_states` entry of each live machine the exposure ledger records in a bound
 set with its machine (below).
@@ -318,6 +320,13 @@ after its secret is rotated and after its machine is destroyed (at LNVPS, the ve
 deletion); the rotation's new placement is a separate record beside it. Re-arming, the
 required-reference wait, the trust display's live listing and a restored provider's listing
 read only placements without a report (`ARC-43`, `STA-16`).
+
+A rotation's new placement enters the export only once `SEC-5` records the rotation, whether or
+not the rotated placement has a report: a sheet exported before then holds the rotated placement
+as it was and no record for the new one, and a rotation that is never recorded leaves its new
+placement on no sheet. Otherwise a rotated placement without a report and its new one, or the new
+placements of two attempts at one rotation, would be two records without a report at one machine, application name, secret name
+and path, which the importer rejects (below).
 
 In version 7 a machine is named by a seed and a machine index together, and every record that
 names a machine carries both: a placement record its `seed_id` and `machine_index`; each
