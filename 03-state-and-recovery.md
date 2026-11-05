@@ -1007,7 +1007,11 @@ such as `STG-21`'s email submission to the replacement's own account; where both
 vendor account, a step there that names the replacement's own resource and key is its own step.
 Every barrier, hold and pause `STA-24` sets applies to that step on its own terms, so a step
 sent through a later untyped vendor scope at the same exact origin is barred by that scope's
-inheritance (ADR-0054). Opening the old step's verification link at the shared address verifies
+inheritance (ADR-0054). A step into that shared account of the same kind as the old entry's
+unresolved step that names no per-entry resource or key, such as an account-level email
+submission, repeats that step even when its call or request bytes differ: it is refused while
+that step is unresolved, and once that step has a terminal record, a disposition included, what
+may be sent is what `STA-24` permits after that record. Opening the old step's verification link at the shared address verifies
 nothing for the replacement, whose order waits for verified status under its own identity
 (`STG-21`). Replay, export and import preserve the predecessor link and these restrictions
 without redispatch. The act removes no actual bound machine and grants no larger set (`SEC-1`).
