@@ -730,6 +730,20 @@ hold; `STA-24`'s untyped-vendor-scope hold is a separate rule.
 **"Approve"** means two different things and both are in play — an *operation* (structured
 facts about one action) or a *scope* (a class of activity, in advance). `ARC-4`.
 
+**"Observation"** is used in these senses; qualify it where the sense matters.
+- **A machine's word** over the notify channel (`CHN-17`): what a machine tells "is an
+  **observation**: typed untrusted, never gating, never acting" (`01-architecture.md`).
+- **A copied job record**: before a planned reset `STA-20b` copies tracked commands' records into
+  the journal "as **advisory observations**".
+- **A publication reading**: one recorded reading of a machine's published host keys, which
+  `STA-16` calls "publication observations", as `CHN-R7`, `STA-16` and the recovery sheet's
+  installation groups hold it (`docs/design/credential-format-v1.md`).
+
+The entry changes no requirement and no comparison's scope. `CHN-R7` still compares against "any
+observation or installed-system pin from any source in any earlier installation of that
+machine", and this entry does not say whether `STA-20b`'s copies are among those observations.
+`STA-20b`'s "earlier installations' records are read only to withhold it" stands as written.
+
 **"Verify"** is reserved. The product never presents a claim as verified (`SEC-2`). A host key
 is *checked against a pin*; an artifact is *checked against a hash*; a scanner *reports*.
 
