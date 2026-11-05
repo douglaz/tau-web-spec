@@ -987,20 +987,25 @@ such route. The formal companion has no replacement act; `CNF-72`'s cases check 
 Import checks the seed identifier, derives each listed public key and compares it, validates
 unique indices within each family and next-unused counters above all listed indices, and
 cross-checks vendor inventory before binding machines. The one exception is a sheet's retired-seed
-allocation: after Replace, the new seed's sheet carries each machine and pass allocation the
-journal keeps under an earlier seed, under the seed it was allocated under ([credential
+allocation: after Replace, the new seed's sheet carries each machine, pass and handoff allocation
+the journal keeps under an earlier seed, under the seed it was allocated under ([credential
 format](docs/design/credential-format-v1.md#operator-reports-payload-version-7)). The journal
 keeps, through every later Replace, each destroyed machine and each Failed allocation allocated
-under a retired seed, each machine Replace has not migrated, and each pass `STA-17`'s screen
-names unrevoked or awaiting its retirement's confirmation; Replace's migration ends a machine's
-retired-seed entry. Import accepts a retired allocation's recorded public key without deriving it
+under a retired seed, each machine Replace has not migrated, each pass `STA-17`'s screen
+names unrevoked or awaiting its retirement's confirmation, each handoff whose profile's declared
+lifetime still runs, with its credential's public half as its recorded key, and each migration
+index a later Replace superseded under the seed it retired (`STA-17`), linked to its machine and
+not a second machine; Replace's migration ends a machine's retired-seed entry and its superseded
+reservations. Import accepts a retired allocation's recorded public key without deriving it
 and keeps it out of the index and counter checks above. It restores from it no allocation, and
-from a destroyed or Failed one no contact identity or binding. For a live one, the check is
-deferred, not waived: before any contact with that machine, use of that pass's key, vendor read
-or call under its identity, or binding, the harness derives its key from the retired seed the
+from a destroyed or Failed one or a superseded reservation no contact identity or binding. For a
+live one, the check is deferred, not waived: before any contact with that machine, use of that
+pass's key, giving of that handoff's credential to the post-harness machinery, vendor read or
+call under its identity, or binding, the harness derives its key from the retired seed the
 operator supplies and compares it with the recorded key, and with no such seed or on a mismatch
 it makes none of them
-([ADR-0058](./docs/adr/0058-the-new-seeds-sheet-keeps-retired-seed-machines-under-their-own-seed.md)).
+([ADR-0058](./docs/adr/0058-the-new-seeds-sheet-keeps-retired-seed-machines-under-their-own-seed.md),
+[ADR-0059](./docs/adr/0059-a-retired-seed-handoff-stays-and-a-pending-migration-index-is-superseded.md)).
 A stale sheet cannot prove the latest counter. Therefore **every imported seed may restore listed identities but MUST NOT allocate
 new ones**, from a recovery sheet or an imported local-store backup, even when it claims to
 be current. To allocate again, use Replace with a freshly generated seed; old records are
@@ -1457,11 +1462,14 @@ distinct, and the screen says which one is happening
 it starts.** Re-entering a machine to remove
 the old key uses the old key; signed revocation on the paid/public path uses the old pass key.
 For LNVPS entry and the key-install/removal jobs on its login account, see `STG-21`.
-Both derive from the seed being retired, so the operator needs its backup *during* Replace and abandons it after.
+Both derive from the seed being retired, so the operator needs its backup *during* Replace and abandons it after the last step below
+that needs it.
 The operator may drop that backup once the last step that needs the retired seed is done. The
 wait for an LNVPS rebuild's old machine's deletion evidence (below) does not by itself keep the
 backup needed; where that machine's vendor key can come only from the retired seed, a read under
-that key is such a step.
+that key is such a step. So is each use of a handoff allocated under the retired seed for as long
+as its profile's declared lifetime runs, since Replace issues no new handoff (`SEC-5` row 17), and
+the screen says the retired seed stays needed for it.
 If the old seed or an index is missing, direct re-entry and pass revocation cannot finish.
 Robot machines can still be rekeyed through vendor-authenticated rescue (`STA-15`). For a
 cloud machine, `STA-15` says "recovery adds no destructive authority" and "Otherwise the
@@ -1492,8 +1500,8 @@ above; the completion refusal above applies.
 Replace's export of the new seed's sheet is one of its finished steps and does not complete
 Replace. That sheet carries, under the retired seed and with the reason this screen names, each
 machine not yet migrated, a jump host and an LNVPS rebuild's old machine awaiting its deletion
-evidence included, and each pass not yet revoked or awaiting its manual retirement's
-confirmation ([credential
+evidence included, each pass not yet revoked or awaiting its manual retirement's
+confirmation, and each handoff whose declared lifetime still runs ([credential
 format](docs/design/credential-format-v1.md#operator-reports-payload-version-7)). A machine's
 migration moves its entry and every record naming it to the new index in one journal act, never
 record by record. While its new index is reserved and its migration unconfirmed, as after a
@@ -1501,8 +1509,14 @@ failed relabel read below, its records keep its retired-seed name, and the reser
 linked to it as its migration index, not a second machine. After a Restore, a machine not yet
 migrated finishes its migration only to a migration index its sheet records; otherwise its
 migration waits for another Replace (`STA-22b`), which re-enters it under its own retired seed
-and keeps every earlier retired seed's entries; what a later Replace does with a migration index
-under the seed it retires is not yet specified (credential format).
+and keeps every earlier retired seed's entries. Where that machine's migration index is under the
+seed the later Replace retires, a dedicated machine first takes the label read below: a read
+showing that index's id confirms that migration in one journal act, and the machine then migrates
+like any machine of that seed. Otherwise one journal act supersedes the reservation: the machine
+keeps its retired-seed entry and may be given a fresh migration index, and the old reservation
+stays on the sheet linked to it, not a second machine, its key one more old public key re-entry
+removes. Every such migration index is settled before that Replace's export ([credential
+format](docs/design/credential-format-v1.md#operator-reports-payload-version-7)).
 
 For the journal-knowledge and overlap boundary during Replace, see `STA-20` and `STA-24`
 in [Durable state](#durable-state).

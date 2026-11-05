@@ -326,17 +326,19 @@ layout, and no machine reference in it is a bare index. Each such `seed_id` is r
 the form of the payload's `seed_id`; none defaults to the payload's seed. A name whose `seed_id`
 equals the payload's names the machine at that index in `allocations`. A name with any other
 `seed_id` names the machine-family entry with that seed and index in `retired_allocations`
-(below). A retired-seed index can coincide with a current machine's index (`STG-20`), and the
-seed tells them apart. Reject before binding a missing or malformed `seed_id` in any of these
-records, and a name that resolves to no allocation in either member. `artifact_history`'s one
-entry per non-jump machine includes each destroyed or outstanding retired machine.
+(below), never a superseded reservation. A retired-seed index can coincide with a current
+machine's index (`STG-20`), and the seed tells them apart. Reject before binding a missing or
+malformed `seed_id` in any of these records, and a name that resolves to no allocation in either
+member. `artifact_history`'s one entry per non-jump machine includes each destroyed or
+outstanding retired machine other than a superseded reservation.
 
 Replace's migration (`STA-17`) moves a machine to its new index under the fresh seed in one
 journal act. That act gives every record naming the machine the fresh seed's `seed_id` and the
 new index: its placements, a reported record's included, its artifact history, machine state,
 host pins and installation groups, and every exposure-ledger reference to it, including those in
-other machines' recorded bound sets. The same act ends the machine's retired-seed entry, so no
-journal state, and no export, names one machine under two seeds. Until that act every record
+other machines' recorded bound sets. The same act ends the machine's retired-seed entry and every
+superseded reservation naming it (below), so no journal state, and no export, names one machine
+under two seeds. Until that act every record
 keeps the machine's retired-seed name, the name `STG-20`'s installation id uses. Replace does not
 migrate a destroyed machine, so its records keep their `seed_id` and index.
 
@@ -350,26 +352,32 @@ journal keeps under a seed other than the payload's (`STA-22b`):
 - each machine Replace has not migrated, a jump host and an LNVPS rebuild's old machine awaiting
   its deletion evidence included;
 - each relay pass under a retired seed for as long as `STA-17`'s screen names it unrevoked or
-  awaiting its manual retirement's confirmation.
+  awaiting its manual retirement's confirmation;
+- each handoff allocated under a retired seed for as long as its profile's declared lifetime
+  runs (`SEC-5` row 17);
+- each superseded reservation (below): a migration index a later Replace found unconfirmed under
+  the seed it retires.
 
 A migrated machine has no entry. The exporter copies each entry unchanged from the journal,
 keeping its seed through every later Replace: the next Replace's sheet carries this sheet's
 retired allocations unchanged beside the entries the then-retired seed adds.
 
-Each entry is the journal's retired-seed entry: its `seed_id`, family `machine` or `pass`,
-index, stable resource identity and recorded expected public key as `STA-22b` maps them, its
-entry/predecessor metadata, `jump_host: true` on a jump host as in `allocations`, and exactly one
-state member:
+Each entry is the journal's retired-seed entry: its `seed_id`, family `machine`, `pass` or
+`handoff`, index, stable resource identity and recorded expected public key as `STA-22b` maps
+them, its entry/predecessor metadata, `jump_host: true` on a jump host as in `allocations`, and
+exactly one state member. A handoff's resource identity is its tenant and handoff ID, and its
+recorded key is its post-harness credential's role-4 public half. The state member is one of:
 
 - `destroyed: true`, on a machine whose deletion evidence `SEC-5` admits and the journal durably
   records;
 - `failed: true`, on a Failed allocation;
 - `outstanding`, on every other entry: an object with exactly the member `reason` and, on a
   machine whose new index Replace has already reserved (`STA-22b`: "Reserve it durably before any
-  external effect"), the member `migration_index`.
+  external effect"), the member `migration_index`, or, on a superseded reservation, the member
+  `reservation_of`.
 
-`reason` records why `STA-17`'s screen names the allocation not yet migrated, unrevoked or
-unconfirmed. It is exactly one of these strings. For a machine:
+`reason` records why `STA-17`'s screen names the allocation not yet migrated, unrevoked,
+unconfirmed or still needing the retired seed. It is exactly one of these strings. For a machine:
 
 - `"not_started"`: Replace has completed none of its migration steps and recorded no other reason;
 - `"key_unconfirmed"`: no connection authenticated by the new key is confirmed, so the old key
@@ -382,56 +390,96 @@ unconfirmed. It is exactly one of these strings. For a machine:
 - `"awaiting_deletion"`: an LNVPS rebuild's old machine, which never migrates, awaiting its
   deletion evidence;
 - `"unrecovered"`: a machine whose direct re-entry cannot finish because the retired seed or its
-  index is missing.
+  index is missing;
+- `"superseded_reservation"`: a superseded reservation, whose recorded key is one more retired
+  public key re-entry removes from the machine it is linked to.
 
 For a pass: `"awaiting_revocation"` (the paid/public path's signed revocation is not yet made),
 `"awaiting_retirement_confirmation"` (the LNVPS path's manual relay retirement awaits the
 publisher's confirmation) and `"unrevocable"` (no revocation can be made, so the pass must
-expire). The exporter writes the reason the journal records for the screen. A reason labels the
+expire). For a handoff: `"lifetime_running"` (its profile's declared lifetime has not ended, so
+its use still needs the retired seed). The exporter writes the reason the journal records for the screen. A reason labels the
 allocation and authorizes nothing.
 
 Import checks each entry's form. It checks that `seed_id` differs from the payload's, that the
-family is `machine` or `pass`, that the entry carries exactly one state member, that `destroyed`,
-`failed`, `jump_host` and `migration_index` appear only on a machine, and that `reason` is one of
-its family's values. Seed, family and index must be unique among retired allocations. A
-`migration_index` must name a machine allocation in `allocations` that is not destroyed, Failed or
-a jump host, that has the retired entry's stable resource identity, and that no other entry's
-`migration_index` names. That allocation is the machine's reserved new index, not a second
-machine: no record names it, it has no `machine_states` or `artifact_history` entry, and its
-shared resource identity is the one repeated mapping import accepts. Import accepts each entry's
-recorded public key without deriving it from any seed, the one exception to `STA-22b`'s
-derive-and-compare check. A retired allocation is outside `allocations`, so that member's
-derivation, unique-index and next-unused-counter checks stay as they are for every current-seed
-allocation. A retired allocation allows no allocation. Reject before binding a missing or
-malformed entry, a duplicate, an entry with the payload's seed, another family, a missing, second
-or malformed state member, `destroyed` or `failed` other than `true`, an unknown reason, a reason
-of the other family, a malformed or unmatched `migration_index`, an `outstanding` object with a
-missing, extra or duplicate member, and an extra member.
+family is `machine`, `pass` or `handoff`, that the entry carries exactly one state member, that
+`destroyed`, `failed`, `jump_host`, `migration_index` and `reservation_of` appear only on a
+machine, and that `reason` is one of its family's values. Seed, family and index must be unique
+among retired allocations. A `migration_index` must name a machine allocation in `allocations`
+that is not destroyed, Failed or a jump host, that has the retired entry's stable resource
+identity, and that no other entry's `migration_index` names. That allocation is the machine's
+reserved new index, not a second machine: no record names it, it has no `machine_states` or
+`artifact_history` entry, and its shared resource identity is one of the two repeated mappings
+import accepts.
+
+`reservation_of` appears exactly on an entry whose `reason` is `"superseded_reservation"`, and
+such an entry carries neither `migration_index` nor `jump_host`. It is an object with exactly the
+members `seed_id` and `machine_index`, in the forms a record's machine name uses, and it must name
+an outstanding machine entry in `retired_allocations` that is not itself a superseded reservation
+and that has the superseded reservation's stable resource identity. Several superseded
+reservations may name one machine. A superseded reservation is not a second machine either: no
+record names it, it has no `machine_states` or `artifact_history` entry, and its shared resource
+identity is the other repeated mapping import accepts. Every other repeat of a stable resource
+identity across both members stays refused, and a handoff's tenant and handoff ID are mapped by
+no other entry.
+
+Import accepts each entry's recorded public key without deriving it from any seed, the one
+exception to `STA-22b`'s derive-and-compare check. A retired allocation is outside `allocations`,
+so that member's derivation, unique-index and next-unused-counter checks stay as they are for
+every current-seed allocation. A retired allocation allows no allocation. Reject before binding a
+missing or malformed entry, a duplicate, an entry with the payload's seed, another family, a
+missing, second or malformed state member, `destroyed` or `failed` other than `true`, an unknown
+reason, a reason of another family, a malformed or unmatched `migration_index`, a missing,
+malformed or unmatched `reservation_of`, one on another reason, a superseded reservation with a
+`migration_index` or `jump_host`, a record naming a superseded reservation, a handoff whose tenant
+and handoff ID another entry maps, an `outstanding` object with a missing, extra or duplicate
+member, and an extra member.
 
 A destroyed or Failed retired allocation restores no contact identity, host pin authority,
 binding or session, takes part in no vendor reconciliation and has no `machine_states` entry; a
 destroyed one keeps exactly the records a destroyed current-seed machine keeps. An outstanding
 retired allocation restores its records under its retired seed: a machine's machine state (none
 for a jump host), artifact history, host pins, installation groups, placements and ledger
-references, and a pass's typed relay locator. Its contact identity waits for `STA-22b`'s deferred
-check: before any contact with the machine, any use of the pass's key, any vendor read or call
-under its identity, and any binding, the harness derives the key from the retired seed the operator supplies and compares it
-with the recorded key. With no such seed, or on a mismatch, it makes none of them and the
-allocation stays outstanding. A passing check is no first contact: the machine reconnects under
+references, a pass's typed relay locator, and a handoff's tenant and handoff ID. Its contact
+identity waits for `STA-22b`'s deferred check: before any contact with the machine, any use of the
+pass's key, any vendor read or call under its identity, any giving of the handoff's credential to
+the post-harness machinery, and any binding, the harness derives the key from the retired seed the
+operator supplies and compares it with the recorded key. With no such seed, or on a mismatch, it
+makes none of them and the allocation stays outstanding. A superseded reservation restores no
+records and no contact identity: its recorded key serves only its removal from the machine it
+names, which re-entry makes with the machine's own key. A passing check is no first contact: the machine reconnects under
 its existing pin, as `STA-17`'s Restore does. The sheet holds no key, so a Restore from the sheet
 without the retired seed runs no deletion check for an `"awaiting_deletion"` machine: until its
 key is derived the check has no key and makes no read (`SEC-4`).
 
-An outstanding retired machine becomes destroyed when its deletion evidence `SEC-5` admits is
-durably recorded. One journal act replaces its `outstanding` with `destroyed: true` and leaves it
-exactly the records a destroyed machine keeps: its machine state goes, and so does every placement
-without a report on it. After a Restore from this sheet, an outstanding machine with a
-`migration_index` may finish its migration to that index, an identity the sheet lists. One without
-has no index to move to, since an imported seed allocates nothing (`STA-22b`), so its migration
-waits for another Replace with a freshly generated seed, which re-enters it under its own retired
-seed. What the new seed's sheet holds for a handoff allocated under a retired seed is not yet
-specified, and neither is what a later Replace does with a `migration_index` whose reserved
-allocation is under the seed that Replace retires.
+An outstanding retired machine other than a superseded reservation becomes destroyed when its
+deletion evidence `SEC-5` admits is durably recorded. One journal act replaces its `outstanding`
+with `destroyed: true` and leaves it exactly the records a destroyed machine keeps: its machine
+state goes, and so does every placement without a report on it. The same act ends every
+superseded reservation naming it, as the act that migrates the machine does. After a Restore from
+this sheet, an outstanding machine with a `migration_index` may finish its migration to that
+index, an identity the sheet lists. One without has no index to move to, since an imported seed
+allocates nothing (`STA-22b`), so its migration waits for another Replace with a freshly
+generated seed, which re-enters it under its own retired seed.
+
+That later Replace may find a machine whose `migration_index` names an allocation under the seed
+it retires. On a dedicated machine it first takes the label read `STA-17` requires. A read
+showing that index's id confirms the migration to that index in one journal act, as above, and
+the machine then migrates like any machine of the seed being retired. Otherwise one journal act
+supersedes the reservation: the machine keeps its own retired-seed entry without the
+`migration_index`, and the reserved allocation becomes its own retired machine entry, under the
+seed it was allocated under, with its index, the machine's stable resource identity, its recorded
+key and `outstanding` with reason `"superseded_reservation"` and a `reservation_of` naming the
+machine. Replace may then reserve the machine a fresh index under its new seed as its
+`migration_index`. Before that Replace's export, every `migration_index` naming an allocation
+under the seed it retires is settled one way or the other, so the export holds none. A further
+Replace copies each superseded reservation unchanged, as it copies every earlier retired entry.
+
+A handoff allocated under a retired seed is written only in `retired_allocations`, never in
+`allocations`, and Replace issues no new handoff for it: its public half is installed only during
+setup, before the handoff point (`ARC-19a`). Giving its credential to the post-harness machinery
+needs the retired seed and waits for the deferred check above. Its entry ends in one journal act
+when the journal records the end of the lifetime its profile's handoff slot declares.
 
 Two placement records are duplicates when they are equal in the six members `seed_id`,
 `machine_index`, `application_name`, `name`, `path` and `placed_at`, whatever `report` holds.
