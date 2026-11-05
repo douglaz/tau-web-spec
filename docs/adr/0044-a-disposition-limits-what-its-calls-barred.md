@@ -162,7 +162,8 @@ unchanged.
 worker MUST refuse every box-plane job to that machine, whatever the disposed call was and
 whoever starts it". The earlier title and shape remain the history of ADR-0044's decision.
 
-*Amended 2026-11-03:* [ADR-0053](./0053-the-untyped-scope-hold-holds-every-new-job.md) widens
-the untyped-scope hold from the model's commands to every new box-plane job, whoever starts it,
-on the machines it covers, a successor's jobs on them included, and carries it to later scopes
-at the same exact origin. The release is still the operator's replacement.
+*Amended 2026-11-03:* [ADR-0054](./0054-the-untyped-scope-hold-refuses-every-new-job.md) records
+the widening of the untyped-scope hold beyond the model's commands and its carry to a later
+scope at the same exact origin, which reaches that scope's calls only and adds no machine or
+job to what the hold covers. Which jobs it refuses, on which machines, and what releases it are
+`STA-24`'s.

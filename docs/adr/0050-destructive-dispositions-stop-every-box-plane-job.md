@@ -48,7 +48,6 @@ The Markdown, conformance cases and companion change together. `TauWeb.Dispatch.
 and reset. Dispatch schema 6 is unchanged and regenerated. Re-arm remains prose and integrated
 conformance evidence; the companion has no placement or scan-reference state.
 
-*Amended 2026-11-03:* this stop was typed only and did not settle the untyped-scope hold.
-[ADR-0053](./0053-the-untyped-scope-hold-holds-every-new-job.md) now has that hold refuse every
-new box-plane job, whoever starts it, on the machines it covers, a successor's jobs included,
-as a separate rule in `STA-24`.
+*Amended 2026-11-03:* this stop was typed only and did not settle the untyped-scope hold. Which
+jobs that hold refuses is a separate rule, `STA-24`'s, recorded in
+[ADR-0054](./0054-the-untyped-scope-hold-refuses-every-new-job.md).

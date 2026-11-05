@@ -33,7 +33,8 @@ journal omits.
 **A standing destructive hold carries to later scopes at the same exact origin** (2026-11-03,
 reading B). After a token rotation or a reapproval, calls through the later scope are refused,
 whatever their credential, approval id or overlap with the held machines, and a fresh session
-does not get past it by approving one. The inheritance is by exact origin, not by vendor identity
+does not get past it by approving one. It reaches those calls only and adds no machine or job
+to what the hold covers. The inheritance is by exact origin, not by vendor identity
 across origins, and supplies no approval or binding. The original disposition and its calls keep
 their identities and resource; nothing in the journal is rewritten.
 
@@ -60,7 +61,11 @@ replacement.
 
 **What stays as it was.** No token fingerprint, durable credential-derived reference, account
 proof or runtime framework is added. Known-machine exclusivity is checked on its own, and a new
-token does not evade it. No untyped call becomes a typed read by its name. Machines outside the
+token does not evade it. No untyped call becomes a typed read by its name. In a successor using
+the same credential, an inherited unresolved call still refuses a new call and keeps its pause
+on the machines it already covered; comment 46000001 records this as the existing
+same-credential rule, not an amendment, and `STA-24` now states it at the pause. Whether that
+pause reaches anything more in a successor stays open (`TASKS.md` T47). Machines outside the
 bound set, or at another vendor, are not held. None of these is the replacement: manual vendor
 work or its report, late observations, a key replacement, a new token or approval, local buffer
 clearing, a Lock, actual session end, or a true revocation at the service, which ends that
@@ -69,7 +74,8 @@ credential's external authority but proves no deletion or operation success.
 **Classification.** The readings disagreed on two of these decisions, and the disagreement is
 retained. For the permission lifetime, two readings called it an amendment and one a
 source-forced clarification. For successor jobs, two called it a clarification and one an
-amendment.
+amendment. For calls under an inherited destructive hold, two of the three readings chose A over
+B; B was selected, and neither of those two readings was.
 
 ## Alternatives considered
 

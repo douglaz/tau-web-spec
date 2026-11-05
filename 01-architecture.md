@@ -741,7 +741,7 @@ costs. A machine added to a bound set afterwards is one operator act per machine
 mid-flight queue, on the card `SEC-1` describes. An untyped call's scope
 rides the same rules — approved with the up-front batch when the brief names the service,
 joining the mid-flight queue when one is discovered later. **No untyped call runs before its
-scope is approved.** An untyped vendor scope's approval closes when its session ends (`SEC-4`). Five concurrent workers producing interleaved popups on a phone is
+scope is approved.** When an untyped vendor scope's local permission closes is `SEC-4`'s. Five concurrent workers producing interleaved popups on a phone is
 modal fatigue in its purest form, and the operator cannot tell which machine is asking.
 A replacement that the in-setup replacement rung orders at LNVPS (`ARC-22`) is a new approved
 entry of the same setup, with its own approval and original structured facts; it is never a

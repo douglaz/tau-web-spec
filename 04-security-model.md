@@ -290,15 +290,17 @@ these holds:
   at that vendor (`STA-24`).
 - **First contact is through a jump host** (`CHN-R6`).
 
-**The scope's local permission ends with its session.** *Amended 2026-11-03* (ADR-0053): when
+**The scope's local permission ends with its session.** *Amended 2026-11-03* (ADR-0054): when
 the session that approved an untyped vendor scope ends (`STA-23`), the scope's local permission
 closes, and with it the exclusivity the first condition above keeps while the scope stands. A
 successor that is to call the vendor approves a scope afresh, on the card where it accepts the
 mode (`SEC-14`); one act on that card may both approve the scope and accept the mode.
-Resupplying the credential, or accepting the mode alone, carries no permission over. Only what
-ends a session under `STA-23` closes it: `STA-23` says "Explicit app Lock, pagehide including
-entry to the back-forward cache, reload, worker shutdown, freeze and discard MUST NOT end a
-session", and an ordinary hide ends none either. Closing the permission does not revoke the
+Resupplying the credential, or accepting the mode alone, carries no permission over. A Lock, a
+reload or an ordinary hide does not close it, since none of them ends a session: `STA-23` says
+"Explicit app Lock, pagehide including entry to the back-forward cache, reload, worker shutdown,
+freeze and discard MUST NOT end a session", and `STA-23` says "An ordinary visibility-only hide
+MUST NOT end or pause an unlocked session, clear its runtime authority, or invalidate its
+approvals." Closing the permission does not revoke the
 credential at the service, erases no record and ends no display of a credential still exposed
 (`SEC-5`). The scope's calls and dispositions keep their records and their effect under
 `STA-24`, and a fresh approval evades neither of its inheritance rules. Closing the exclusivity
@@ -717,10 +719,10 @@ no label, no answer and no operator act sets aside.
   one machine accepts that mode itself, on a card it already shows: a larger set at binding,
   before any channel access, naming the history modes its machines bring into it (`SEC-1`); no
   brief with its goal, before the model acts on it (`ARC-11a`); an untyped vendor scope on its
-  card, before the first call through it (`ARC-15`), whose approval closes with the session
-(`SEC-4`). A session that does none of these accepts
-  none, and the same eligible session resumed after any surviving local interruption (`STA-23`,
-  `STG-12`) accepts nothing again merely for that interruption. What an
+  card, before the first call through it (`ARC-15`). When that scope's local permission closes is
+  `SEC-4`'s. A session that does none of these accepts none, and the same eligible session
+  resumed after any surviving local interruption (`STA-23`, `STG-12`) accepts nothing again
+  merely for that interruption. What an
   earlier session's mode left live — a vendor credential or minted token not yet revoked, a
   co-bound footprint — is restated with the history modes and never accepted again (`SEC-6`,
   `STA-10`).

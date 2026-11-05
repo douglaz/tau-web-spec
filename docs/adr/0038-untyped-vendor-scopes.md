@@ -98,24 +98,23 @@ typed adapter, for no gain.
 the second stage's, because it needs the jump host.
 
 **Several edges are open and recorded** (`TASKS.md`): a token rotated at the same origin
-starts with no unresolved barrier; abandonment has no typed destroy to run at such a vendor; a
-vendor with no adapter that refuses a browser origin cannot be reached until an arbitrary
-destination can be tunnelled; and the target's address arrives in a response the model reads,
-where the jump-host route wants it read by harness code.
+starts with no unresolved barrier [amended 2026-11-03; see the note below]; abandonment has no
+typed destroy to run at such a vendor; a vendor with no adapter that refuses a browser origin
+cannot be reached until an arbitrary destination can be tunnelled; and the target's address
+arrives in a response the model reads, where the jump-host route wants it read by harness code.
 
 *Amended 2026-10-13:* one of those edges moved. Abandonment still has no typed destroy to run at
 such a vendor, and `ARC-21` and `ARC-22` now hand the act to the operator; while a disposition
 naming abandonment or a destructive reinstall stands on the scope, `STA-24` holds every further
 call under it and the model's box-plane commands to the set's machines at that vendor until the
-operator replaces the disposition (ADR-0044). How the operator carries the act out by hand
-stays open.
+operator replaces the disposition (ADR-0044) [amended 2026-11-03; see the note below]. How the
+operator carries the act out by hand stays open.
 
-*Amended 2026-11-03:* the rotated-token edge is closed.
-[ADR-0053](./0053-the-untyped-scope-hold-holds-every-new-job.md) has every later scope at the
-same exact origin inherit an unresolved call with no credential compared, so a rotated token no
-longer starts with no barrier; a standing destructive hold carries to such a scope's calls and
-refuses every new box-plane job, whoever starts it, on the machines it covers; and the scope's
-local permission closes when its session ends (`STA-24`, `SEC-4`).
+*Amended 2026-11-03:* the rotated-token edge is closed, and the hold is widened; [ADR-0054](./0054-the-untyped-scope-hold-refuses-every-new-job.md)
+records both. Which later scopes at the same exact origin inherit an unresolved call, which new
+jobs the hold refuses and on which machines, and that a standing destructive hold carries to such
+a scope's calls, adding no machine or job to what it covers, are `STA-24`'s; when the scope's
+local permission closes is `SEC-4`'s.
 
 **The trust display gains a kind of entry.** A vendor reached this way is both the machine's
 vendor and a service holding a key the harness cannot bound, for as long as that key lives.

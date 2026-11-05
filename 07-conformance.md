@@ -1018,27 +1018,40 @@ to the relay evidence in `CNF-81`, `CNF-87` and `CNF-113`.
       command again. Under a standing destructive hold: a digest, a delivery reboot, a
       delivery-check read, a relabel and Replace's key install and old-key removal are each
       refused, and so is a freshly issued read job, while collecting an existing job record and
-      the local paste stay available; after a continuing replacement an otherwise eligible job
-      is admitted. Calls through a later scope at the same exact origin are refused after a
-      token rotation and after a reapproval, including one whose shown reach does not overlap
-      the held machines; after a valid replacement, and at an unrelated origin, they are
-      admitted. With a call left unresolved, a later scope at the same exact origin inherits it
-      under a changed credential and, after the credential is erased locally, with no
-      credential compared; a valid terminal record ends the barrier; an unrelated origin is
-      unaffected. At the session's actual end (`STA-23`) the scope's local permission and
-      exclusivity close (`SEC-4`); a successor approves the scope and accepts the mode in one
-      card act; a Lock, a reload and a hide close nothing; closing the permission ends no
-      display of a still-exposed credential; and the successor's fresh approval evades neither
-      inheritance rule. A successor's model and harness jobs stay refused on the original
-      machines, including a successor with no later vendor scope and a machine the original set
-      lawfully added; the successor's unrelated machines are admitted, and so are its collection
-      of existing job records and its jobs after a valid replacement. A replacement or terminal
-      record whose journal append fails releases nothing, and after replay the hold and the
-      barrier stand as the durable records set them.
+      the local paste stay available; after a replacement that continues an otherwise eligible
+      job is admitted, and after a reinstall replaced by an abandonment further calls and new
+      jobs stay refused. Calls through a later scope at the same exact origin are refused after
+      a token rotation and after a reapproval, including one whose reach is not shown to overlap
+      the held machines and an arrangement with no overlap that the known-machine exclusivity of
+      `SEC-4` would otherwise admit; the later scope's approval is itself admitted while its
+      calls are refused; after a replacement that continues, and at an unrelated origin, they
+      are admitted; and at another origin of the same vendor identity they are admitted. With a
+      call left unresolved, a later scope at the same exact origin inherits it under a changed
+      credential and, after the credential is erased locally, with no credential compared,
+      including a no-overlap arrangement that exclusivity would otherwise admit; a valid
+      terminal record ends the barrier; an unrelated origin and another origin of the same
+      vendor identity are unaffected. In a successor using the same credential, the inherited
+      unresolved call still refuses a new call and keeps its pause on the machines it already
+      covered. Each refusal of a later scope's call is asserted where its approval and binding
+      are otherwise eligible, so no other refusal can satisfy the assertion. At the session's
+      actual end (`STA-23`) the scope's local permission and exclusivity close (`SEC-4`); a
+      successor approves the scope and accepts the mode in one card act; resupplying the
+      credential alone, and accepting the mode alone, each leave a successor's call refused for
+      want of an approval, in an arrangement with no inherited unresolved call or standing hold
+      to refuse it instead; a Lock, a reload and a hide close nothing; closing the permission
+      ends no display of a still-exposed credential; and the successor's fresh approval evades
+      neither inheritance rule. A successor's model and harness jobs stay refused on the
+      original machines, including a successor with no later vendor scope and a machine the
+      original set lawfully added after the disposition and before the predecessor's end; a job
+      to an unrelated machine the successor lawfully bound at the same vendor, outside the
+      predecessor's final recorded reach, is admitted, and so are the successor's collection of
+      existing job records and its jobs after a replacement that continues. A replacement or terminal record whose journal
+      append fails releases nothing, and after replay the hold and the barrier stand as the
+      durable records set them.
       Deliberately admitting a harness-started job, a later same-origin call, an inherited
-      unresolved call or a successor's job under the hold must each fail their intended
-      assertion, then pass restored. Destroyed data: no adapter says which call reinstalls the
-      machine being written.
+      unresolved call under the hold or the barrier, or a successor's job under the hold must
+      each fail their intended assertion, then pass restored. Destroyed data: no adapter says
+      which call reinstalls the machine being written.
 - [ ] **CNF-106 · BLOCKING** The untyped vendor scope's card asks the operator's questions
       in `SEC-4`'s words, once, when the key is supplied, with nothing preselected. "Not sure"
       sets the same warnings as yes; no answer blocks; the answers are journaled and labelled

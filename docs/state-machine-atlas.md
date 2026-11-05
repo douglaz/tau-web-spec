@@ -709,7 +709,7 @@ the checked quotations below; the table maintains no separate classifications.
 | Typed mutation | [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular), [STA-24](../03-state-and-recovery.md#durable-state) | [SEC-5](../04-security-model.md#sec-5--the-credential-inventory), [§§1–5](design/protected-evidence-v1.md#1-decoder-boundary-and-facts) | [§3a](design/protected-evidence-v1.md#independent-recovery-and-exact-targeting) | [STA-24](../03-state-and-recovery.md#durable-state) |
 | Adapter reconciliation read | [STA-24](../03-state-and-recovery.md#durable-state) | [§§1–5](design/protected-evidence-v1.md#1-decoder-boundary-and-facts) | [§3a](design/protected-evidence-v1.md#independent-recovery-and-exact-targeting) | [STA-24](../03-state-and-recovery.md#durable-state) |
 | Ordinary `exec` | [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular) | [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular), [SEC-5](../04-security-model.md#sec-5--the-credential-inventory) | [§3a](design/protected-evidence-v1.md#independent-recovery-and-exact-targeting) | [STA-24](../03-state-and-recovery.md#durable-state) |
-| Harness-owned job | [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular) | [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular) | [§3a](design/protected-evidence-v1.md#identity-and-confirmation-boundary) | [STA-24](../03-state-and-recovery.md#durable-state), [ADR-0053](adr/0053-the-untyped-scope-hold-holds-every-new-job.md) |
+| Harness-owned job | [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular) | [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular) | [§3a](design/protected-evidence-v1.md#identity-and-confirmation-boundary) | [STA-24](../03-state-and-recovery.md#durable-state), [ADR-0054](adr/0054-the-untyped-scope-hold-refuses-every-new-job.md) |
 | Job-record collection | [STA-20](../03-state-and-recovery.md#durable-state), [STA-24](../03-state-and-recovery.md#durable-state) | [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular) | [§3a](design/protected-evidence-v1.md#independent-recovery-and-exact-targeting) | [STA-20](../03-state-and-recovery.md#durable-state), [STA-24](../03-state-and-recovery.md#durable-state) |
 | Pin-checked connection | [SEC-11](../04-security-model.md#sec-11--the-host-key-is-checked) | [SEC-5](../04-security-model.md#sec-5--the-credential-inventory) | [§3a](design/protected-evidence-v1.md#independent-recovery-and-exact-targeting), [CHN-R7](../02-channel.md#the-routes-to-a-fingerprint) | [STA-24](../03-state-and-recovery.md#durable-state), [SEC-11](../04-security-model.md#sec-11--the-host-key-is-checked) |
 | Inference request | [ARC-43](../01-architecture.md#box-plane-execution-is-command-granular), [ARC-31a](../01-architecture.md#money) | [SEC-5](../04-security-model.md#sec-5--the-credential-inventory), [§3](design/protected-evidence-v1.md#3-protected-inference-terminals) | [ARC-31a](../01-architecture.md#money) | [STA-24](../03-state-and-recovery.md#durable-state), [ARC-31a](../01-architecture.md#money) |
@@ -738,7 +738,7 @@ The decisive owner passages, rather than the matrix pointers, are:
   and, for the destructive untyped hold, “the harness worker MUST refuse every new
   box-plane job to a machine the hold covers, whoever starts it”. That hold is its own
   rule, not the typed every-requester stop
-  ([ADR-0053](adr/0053-the-untyped-scope-hold-holds-every-new-job.md)); its coverage,
+  ([ADR-0054](adr/0054-the-untyped-scope-hold-refuses-every-new-job.md)); its coverage,
   successor reach and same-origin inheritance are at `STA-24`. These untyped restrictions are prose-only and
   retain the later-route applicability in the admission list.
   For the open-call pause, `STA-24` says “while a call under that scope is open — sent, and not yet
@@ -800,9 +800,9 @@ inspect a named record with `br show ID --json --no-auto-flush --no-auto-import`
   [STA-20/STA-24](../03-state-and-recovery.md#durable-state).
   `STA-24` says “Settlement of one retained call under its own contract supplies no
   completeness or completion evidence about omitted sends”.
-- Untyped destructive hold versus harness-started jobs: every new job is held, whoever starts
-  it, at [STA-24](../03-state-and-recovery.md#durable-state)
-  ([ADR-0053](adr/0053-the-untyped-scope-hold-holds-every-new-job.md); [tw-pgp](../.beads/issues.jsonl)).
+- Untyped destructive hold versus harness-started jobs: settled at
+  [STA-24](../03-state-and-recovery.md#durable-state)
+  ([ADR-0054](adr/0054-the-untyped-scope-hold-refuses-every-new-job.md); [tw-pgp](../.beads/issues.jsonl)).
 - **Not enabled:** the in-setup replacement order at LNVPS, until its row of the
   [admission table](../07-conformance.md#capability-applicability-and-admission) passes;
   until then LNVPS's third recovery rung takes the form `STG-17` gives it
