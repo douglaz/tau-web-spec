@@ -2254,7 +2254,8 @@ Not pass/fail. Required to be recorded.
       lacking its ceremony record, the flow's relay pass is not allocated and no call of the
       flow is sent. A server with
       two roots whose labels read in `STG-20`'s form takes the root-label stop: no key is
-      written and only the reset back stays. A scoped read meeting a root it cannot read, or a
+      written and only the reset back stays. So does a server with one such root beside a
+      possible root whose label probe does not resolve. A scoped read meeting a root it cannot read, or a
       key file holding anything but one public key, refuses, and the reset back is neither
       offered nor sent. Neither `ready_to_reset` nor the scoped read opens a private key file,
       and nothing of a file either refuses is journaled. Each one's captured output, and so the
