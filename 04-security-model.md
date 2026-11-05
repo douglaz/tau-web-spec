@@ -493,6 +493,33 @@ non-secret: no raw application value, bare digest or expired scan material is re
 exported for them. The report ends P only; another placement holding the same bytes keeps its own
 reference.
 
+**A rotation retires the old placement's row 23 reference; what was withheld stays withheld.**
+When the journal act that records the rotation of placement P through `place_secret` (`ARC-43`)
+is durably recorded (`STA-3`), P's row 23 scan key and reference end, and nothing re-creates
+them; the new placement's reference is its own
+([ADR-0061](./docs/adr/0061-a-rotation-keeps-the-old-placements-older-output-withheld.md)). A
+placement whose report already ended its reference loses nothing more at its rotation. The
+rotation claims neither revocation of the old value at its service nor erasure of its copies. A
+rotation never counts as a scan: bytes withheld before it stay withheld, and no old range becomes
+scanned, safe or releasable because P's reference retired, whichever reference withheld it, a
+range withheld while P's reference was unarmed included. The destruction paragraph's boundary
+applies with P's rotation in place of M's deletion evidence: output is produced after the
+rotation only when the box-plane job that produced it was dispatched after that act was durably
+recorded; a job dispatched before that record stays pre-rotation whether it finished before the
+record or is still running across it, and its bytes not scanned against P's reference before
+that record stay withheld; re-collecting, replaying, re-requesting or displaying a range
+dispatches no new job and makes it no newer; and a range whose production after the rotation is
+not established stays pre-rotation. A machine-reported time or sequence establishes nothing
+about a range. This holds in the rotating session and in every later session with the local
+store intact; after local-store loss the next paragraph governs. Output produced after the
+rotation is no longer compared against P's reference, including a later command's output that
+prints back a range withheld before it, while the original range stays withheld; it owes the new
+placement's reference and every other required reference and release prerequisite. P's identity
+and the rotation are protected and non-secret: no raw application value, bare digest or expired
+scan material is retained or exported for them. Which act of the rotation's `place_secret`
+records the rotation, and what a rotation whose job fails or stays unresolved (`STA-8`) does to
+P's reference, are not yet specified.
+
 **After store loss, a machine marked for an ended unreported placement keeps its older job
 records withheld.** A placement Q without a report leaves later sheets when its secret is
 rotated or its machine is destroyed, so after local-store loss no sheet names Q and nothing
@@ -511,8 +538,7 @@ machine-reported time or sequence establishes nothing. Output produced after the
 compared against the ended reference, including a later command's output that prints a withheld
 record back, while the original record stays withheld. The mark names no placement,
 value or reference, and a sheet holds it as of export (`STA-16`): it covers no end the journal
-recorded after that sheet's export. How rotation treats output produced before it within the
-session is not yet specified.
+recorded after that sheet's export.
 
 Rows 18–20 use the versioned envelope in `STA-23`. Row 15 derives row 17 as well as the
 machine and relay credentials. Derivation indices, resource mappings and allocator counters
@@ -701,6 +727,11 @@ report is not checked for that placement's value, including a later command's ou
 back a range withheld before it: `SEC-5` says "Output produced after the report is no longer
 compared against P's reference". The machine's other placements without a report, its untyped
 scopes and the weaker modes standing on its set are counted as before.
+Where a rotation (`ARC-43`) has replaced a placement, the trust display states beside the new
+placement that the rotation claims no revocation of the old value at its service and that output
+produced after the rotation is not checked for the old value, including a later command's output
+that prints back a range withheld before it: `SEC-5` says "Output produced after the rotation is
+no longer compared against P's reference".
 Where a restored machine state carries the `reference_ended` mark (`SEC-5`), the trust display
 says that a placement reference that scanned the machine ended before export, names no
 placement, and states that output produced after the Restore is not checked for that ended

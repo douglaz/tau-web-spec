@@ -453,6 +453,25 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       before Q's end restores Q as placed, owing its re-arm, and a version 3 to 6 sheet restores
       every mark unset. Browser persistence and the sheet hold no raw value, bare digest or scan
       material for Q.
+      (j) Rotation with the local store intact (`SEC-5`, `ARC-43`, `SEC-6`): machines A and M are
+      in one bound set and placement P on M is armed. Before P's rotation is recorded, one job on
+      A prints P's exact value and finishes but is not yet collected, and another, dispatched
+      before the record, prints it again after the record. Once the rotation is recorded, the
+      bytes of both not scanned against P's reference before the record stay withheld after the
+      new placement's reference and every other required reference check them clean, whether
+      re-collected, replayed, re-requested, displayed or given a later retrieval time, in the
+      rotating session and in a later session with the store intact, and so does a range whose
+      machine record claims a later time. A targeted control that releases such a pre-rotation
+      range after the rotation must produce this item's finding. A job on A dispatched after the
+      record is released under every other prerequisite, including one that prints a withheld
+      job's own record under `/var/lib/tau-web/jobs` back, with P's old value in it unredacted and
+      the new value redacted, while the original range stays withheld. In a separate branch after
+      local-store loss, P is unarmed, the paste is refused and output on A is withheld for P; once
+      the rotation is recorded, P needs no re-arm, a paste or late digest record arms nothing for
+      it, and that output stays withheld after every remaining reference checks it clean. The
+      trust display states beside the new placement that the rotation claims no revocation of the
+      old value and that output after the rotation is not checked for it. Browser persistence
+      holds no raw value, bare digest or expired scan material for P after the rotation.
 - [ ] **CNF-17 · BLOCKING** An untyped response containing a harness-held credential is
       redacted before it reaches the model or the record. Exact-value scan.
 - [ ] **CNF-18 · BLOCKING** The attest introduction is **single-use**, and single-use is the
