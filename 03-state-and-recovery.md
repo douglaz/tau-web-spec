@@ -1628,7 +1628,8 @@ allocation therefore waits for that seed's ceremony record: `STA-22b` says "allo
 family — machines, relay passes and handoffs — MUST be refused until that seed id has the
 journaled ceremony record of `STA-23`". How the flow obtains that pass and records its
 destinations is not decided. Every call of the flow is checked against that entry,
-never against a listing of the account's servers. In rescue, before the new client key is
+never against a listing of the account's servers. How the flow ties the credential it calls
+under to the entry's account reference is not decided. In rescue, before the new client key is
 written, the `rescue_install_key` job (`ARC-43`) MUST find, in its own harness-composed read of
 the installed system's root labels, a root whose label reads in `STG-20`'s form, and it adds the
 key to that root's `authorized_keys`, keeping every other line. If it finds none, or more than
@@ -1648,11 +1649,11 @@ So with no sheet, a server whose root label is missing or damaged, or that has m
 root whose label reads in that form, or a possible root whose label probe does not resolve, or
 a labelled root whose path to `authorized_keys` is or passes through a symbolic link, gets no
 rescue rekey from the harness, and nothing here grants a reinstall or an erasure to repair it.
-For this job and for `rescue_host_key_read` below, what counts as one root where a root is
-other than one file system on one disk is not decided. That includes a root under software
-RAID, LVM, encryption or another volume layer, even on one disk. What either job reads where
-the rescue boot has already assembled or activated a volume is not decided either, nor is what
-makes a label probe resolve.
+For this job and for `rescue_host_key_read` below, what counts as one root where a root is other
+than one file system on one disk is not decided. That includes a root under software RAID, LVM,
+encryption or another volume layer, even on one disk. What either job reads where the rescue boot
+has already assembled or activated a volume is not decided either, nor is what the rescue boot
+itself writes to a disk while either job runs, nor what makes a label probe resolve.
 
 **After the root-label stop, one scoped read of the installed host keys serves that one reset
 back and is never trusted later to accept a key or make a connection.** The
@@ -1724,13 +1725,13 @@ past and waiving no guard. For the partial history this leaves, see `STA-16`.
 
 The acceptance is an ordinary journaled record, bound to the same machine, root and destination
 allocation. Which admissible captured observation of that root's label the proposed ordinal is
-read from, `rescue_install_key`'s own read or a later harness-composed read, is not decided;
-`ARC-43` says of the harness's box-plane reads "These reads take their values from the job
-record's captured output". `STA-3` says "If the append fails, the transition does not occur": a
-failed append supplies no acceptance. Resuming the unchanged recorded migration after a restart
-reads the acceptance back from the journal. That revives no worker authority and admits no
-different target or changed proposal; nothing in the flow is retried automatically (`STA-6`),
-and a write that may have been sent is never claimed complete.
+read from, `rescue_install_key`'s own read or a later harness-composed read, and how that read
+is journaled, are not decided; `ARC-43` says of the harness's box-plane reads "These reads take
+their values from the job record's captured output". `STA-3` says "If the append fails, the
+transition does not occur": a failed append supplies no acceptance. Resuming the unchanged
+recorded migration after a restart reads the acceptance back from the journal. That revives no
+worker authority and admits no different target or changed proposal; nothing in the flow is
+retried automatically (`STA-6`), and a write that may have been sent is never claimed complete.
 
 On this path the relabel is the same `replace_root_label` job (`ARC-43`), recorded before
 transmission (`ARC-8`) with its machine-side job record (`STA-20`), and it writes `b-7`. It MUST
