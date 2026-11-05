@@ -1351,9 +1351,9 @@ incomplete until the old machine's deletion evidence (`STG-21a`) is durably reco
 after a restart, after the vendor's stated deletion date passes and after a failed append of
 that evidence. No other Replace step waits on the old machine: the new machine, its sessions
 and allocations proceed, and finished steps, such as the new sheet's export, may be shown
-finished; Replace's allocations still wait for the fresh seed's record (`STA-22b`). The deletion
-check (`SEC-4`) collects that evidence when the operator starts it and adds no call to this
-flow. The deferred vendor-key
+finished; `STA-22b` says "Replace's machine-migration and new-relay-pass allocations wait for
+its fresh seed's record". The deletion check (`SEC-4`) collects that evidence and adds no call
+to this flow. The deferred vendor-key
 carry-forward and disclosure amendment remains T44's, not an available Replace behavior.
 
 **STA-18** Inventory recovery makes the vendor list authoritative. Listing the account is how

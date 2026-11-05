@@ -20,48 +20,30 @@ text required both and named nobody?
 
 ## The shape chosen
 
-**The in-setup replacement rung at LNVPS.** The old machine is stopped and its renewal turned
-off, its terminal reconciliation finishes, and only then is the replacement ordered. No wait for
-confirmed deletion comes before the order. The replacement is a new approved entry of the same
-setup, with its own approval, original structured facts, allocation, per-machine identity, and
-verification, invoice and first-contact admissions; it is never a re-order of the old entry or a
-new label for the old machine, and it gives nobody authority over the old machine. A
-disposition stays an unknown outcome and never stands in for a confirmation. The rung's stop
-takes the same unavailable-destroy treatment as an abandonment's machine and a Replace
-rebuild's old machine. The rung stays unavailable until its admission row in
-`07-conformance.md` holds.
+**The in-setup replacement rung at LNVPS.** The old machine is stopped, not destroyed, and the
+replacement is a new approved entry of the same setup; no wait for confirmed deletion comes
+before its order. For the rung's form and order, see `ARC-22`; for the entry, `ARC-15`; for its
+allocation and the disposition rule, `STA-22b` and `STA-24`. The rung stays unavailable until
+its admission row in `07-conformance.md` holds.
 
-**The setup finishes on arrival.** In that rung the setup finishes when the replacement is
-delivered. The old machine then leaves the machines the abandonment flow reaches. The opening
-screen still shows it, and every other machine of a finished setup that was stopped this way
-and is not yet confirmed deleted, as existing and billed, with its cost and the vendor's stated
-deletion date, until the deletion evidence is durably recorded. That is a display rule, not an
-authority, and it does not make a finished setup own the first screen. Its exposure and
-placed-secret duties stay open.
+**The setup finishes on arrival.** The replacement's delivery is what the rung contributes to
+its setup's completion; the old machine's deletion is not waited for. A stopped machine whose
+deletion is unconfirmed stays shown as existing and billed after its setup, as a display rule
+rather than an authority, with its duties open. For both, see `ARC-22`.
 
-**One deletion check.** The operator starts it from the screen that shows the machine; nothing
-starts it on its own. It runs outside any session, drives no model and holds no SSH client key.
-It covers any machine stopped under the unavailable-destroy treatment whose deletion is
-unconfirmed, whichever flow stopped it and whatever state its setup is in, finished or abandoned
-included. It makes only the deletion reads of `STG-21a`, under that machine's own recorded
-vendor key, and no mutating call, and it never uses another machine's key. It supplies evidence
-and ends no duty by itself. Read-only describes the harness's authority, not the vendor's side:
-the vendor receives each authenticated read, and such a read can create an empty account row.
-The key is the machine's derived vendor identity, which cannot be derived today, so until T44
-lands the check has no key and makes no read. ADR-0042 already keeps that key apart from the
-retired seed once the carry-forward lands; this record changes nothing there.
+**One deletion check.** One operator-started check, outside any session and under the stopped
+machine's own key, reads deletion for any machine stopped this way, whichever flow stopped it.
+It supplies evidence and has no key until T44 lands. For its grant, see `SEC-4`; for the
+predicate, `STG-21a`. ADR-0042 already keeps that key apart from the retired seed once the
+carry-forward lands; this record changes nothing there.
 
 **Replace stays incomplete.** An LNVPS Replace is reported incomplete until the rebuilt old
-machine's deletion evidence is durably recorded, including across a restart, after the stated
-deletion date passes and after a failed append of the evidence. No other Replace step waits on
-that machine. The operator may drop the retired seed's backup once the last step that needs it
-is done; the wait for deletion does not by itself keep the backup needed, but a read under a key
-that only the retired seed can give is such a step.
+machine's deletion evidence is durably recorded, and no other Replace step waits on that
+machine. For the rule and the retired seed's backup, see `STA-17`.
 
-**Replace's two calls.** Replace's own model-free flow is the caller of exactly two vendor calls
-for the rebuilt old machine: its stop, after any re-entry of that machine and any removal of its
-old public key, and then its renewal-off, after the stop is confirmed. Both use that machine's
-own recorded key. The deletion check gives the flow no further call, and T44 gates the key.
+**Replace's two calls.** Replace's own model-free flow is the caller of the rebuilt old
+machine's stop and renewal-off, under that machine's own key. For the grant, see `SEC-4`; for
+the order, `STA-17`.
 
 ## What it costs
 
@@ -71,7 +53,8 @@ own recorded key. The deletion check gives the flow no further call, and T44 gat
   including after Replace has ended and after an abandonment.
 - If no read can ever confirm a deletion, Replace never reports complete for that machine, and
   a status that never clears can teach operators to ignore it.
-- Replace's flow gains two mutating vendor calls under the old machine's key.
+- Replace's flow gains two vendor calls, the stop and the renewal-off, under the old machine's
+  key.
 - Until T44 lands, none of this has a key: the check reads nothing, the calls cannot be made,
   and the machine stays shown with its duties open.
 
@@ -94,7 +77,8 @@ own recorded key. The deletion check gives the flow no further call, and T44 gat
 `ARC-15`, `ARC-16`, `ARC-21`, `ARC-22`, `SEC-4`, `SEC-5`, `STA-17` and `STA-24` change
 together with the conformance cases and the two LNVPS rows that cite these decisions. These
 stay open: whether Replace's renewal-off for the old machine is a fresh call or a read-back of a
-state already off; whether Replace's re-entry of each maintained machine reaches the old
+state already off; whether the read that confirms that renewal-off is part of the renewal-off
+call, without which it has no confirmation route under `SEC-4`'s grant; whether Replace's re-entry of each maintained machine reaches the old
 machine; which caller stops the old machine in the in-setup rung, beyond its existing authorized
 caller; the selectors `OPN-27` queues. Nothing here admits the in-setup replacement order, the
 deletion check or Replace's calls. This record makes no capability, readiness or runtime claim.

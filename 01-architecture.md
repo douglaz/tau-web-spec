@@ -741,10 +741,11 @@ costs. A machine added to a bound set afterwards is one operator act per machine
 mid-flight queue, on the card `SEC-1` describes. An untyped call's scope
 rides the same rules — approved with the up-front batch when the brief names the service,
 joining the mid-flight queue when one is discovered later. **No untyped call runs before its
-scope is approved.** A replacement that the in-setup replacement rung orders at LNVPS (`ARC-22`)
-is a new approved entry of the same setup, with its own approval and original structured facts;
-it is never a re-order of the old entry or a new label for the old machine. Five concurrent workers producing interleaved popups on a phone is
+scope is approved.** Five concurrent workers producing interleaved popups on a phone is
 modal fatigue in its purest form, and the operator cannot tell which machine is asking.
+A replacement that the in-setup replacement rung orders at LNVPS (`ARC-22`) is a new approved
+entry of the same setup, with its own approval and original structured facts; it is never a
+re-order of the old entry or a new label for the old machine.
 
 **ARC-16** Recovery is a ladder. Retry; then escalate to a stronger model behind the same
 proxy; then destroy the machine and restart under a different domain, which costs a server.
@@ -756,9 +757,10 @@ and [STA-8/STA-24](./03-state-and-recovery.md#durable-state).
 “Box-plane work is never-retry-automatically.” `STA-8` says “It MUST NOT be retried
 automatically and no timer may clear it.” `STA-24` says “A re-issue under either is the
 operator's explicit choice”. The LNVPS third rung takes the form `STG-17` gives it
-([tw-ae7](./.beads/issues.jsonl)); the vendor stand-ins remain [ARC-22](#post-harness-machinery-and-finishing-a-setup).
-At LNVPS the third rung's machine is stopped, not destroyed, and its exposure stands until its
-deletion is confirmed. The rung's form and its order at LNVPS are `ARC-22`'s.
+([tw-ae7](./.beads/issues.jsonl)). Once admitted (`STG-17`), the third rung's machine at LNVPS
+is stopped, not destroyed, and its exposure stands until its deletion is confirmed; the vendor
+stand-ins, the rung's form and its order at LNVPS remain
+[ARC-22](#post-harness-machinery-and-finishing-a-setup)'s.
 
 ```mermaid
 stateDiagram-v2
@@ -780,10 +782,11 @@ stateDiagram-v2
     Destroy --> [*]: machine destroyed,<br/>exposure ends with it
     note right of Destroy
         Never handed to another session.
-        Costs a server. At LNVPS a stop
-        stands in; the machine stays shown
-        existing and billed, and its exposure
-        stands, until deletion is confirmed. ARC-22.
+        Costs a server. At LNVPS, once
+        admitted (STG-17), a stop stands in;
+        the machine stays shown existing and
+        billed, and its exposure stands,
+        until deletion is confirmed. ARC-22.
     end note
 ```
 
@@ -983,8 +986,8 @@ restrictions remain `SEC-4`'s and `STA-24`'s. End or revocation is no deletion e
 opening screen retains each unresolved create and every possibly billed machine until its
 own admissible evidence settles it. At LNVPS the reader behind `ARC-22`'s "until deletion is
 confirmed under the LNVPS operation contract" is the deletion check (`SEC-4`), for an abandoned
-setup's stopped machines as for any other; the operator starts it, and it is no part of this
-flow.
+setup's stopped machines as for any other, and it is no part of this flow; for who starts it,
+see `SEC-4`.
 
 **ARC-22** An unfinished setup MUST own the first screen. Nothing runs while the app is
 closed and no push channel exists, so the moment the app opens is the only moment the
@@ -1031,26 +1034,26 @@ in the account the retired seed controls
 ([ADR-0042](./docs/adr/0042-the-vendor-identity-is-derived-per-machine.md)). The screen
 retains unresolved-machine and incomplete-abandonment truth until deletion is confirmed.
 For a Replace rebuild's old machine, Replace's own flow is the caller of the stop and the
-renewal-off, under that machine's own key as `SEC-4` grants, and Replace stays incomplete until
-that machine's deletion is recorded (`STA-17`).
+renewal-off, under that machine's own key as `SEC-4` grants; for when Replace is complete, see
+`STA-17`.
 
 **The in-setup replacement rung at LNVPS** (`ARC-16`'s third rung, once admitted under `STG-17`)
 takes this form. The old machine's existing authorized caller stops it and turns its automatic
 renewal off, and that stop takes the unavailable-destroy treatment above, as an abandonment's
 machine and a Replace rebuild's old machine do. The terminal reconciliation of the old machine's
 stop and renewal-off MUST finish before the replacement is ordered; no wait for confirmed
-deletion comes before the order. A disposition records an unknown outcome and never stands in
-for a confirmation the stop or the renewal-off needs (`STA-24`). The replacement is a new
-approved entry of the same setup (`ARC-15`), with its own allocation (`STA-22b`), per-machine
-identity, and verification, invoice and first-contact admissions, subject to its own approval,
+deletion comes before the order. `STA-24` says "A disposition keeps the outcome *unknown*", so
+none stands in for a confirmation the stop or the renewal-off needs. The replacement is the
+entry `ARC-15` describes, with its own allocation (`STA-22b`), per-machine identity, and verification, invoice and first-contact admissions, subject to its own approval,
 the unavailable-identity exclusion and every other check (`STA-24`). Existing holds, unresolved
 outcomes and the no-automatic-retry rules stand. Ordering or binding the replacement grants no
 authority over the old machine. Authorization, allocation, uncertainty, operation predicates
 and exposure stay with their own requirements.
 
-**That setup finishes when the replacement is delivered**; it does not wait for the old
-machine's deletion evidence. Before that delivery the setup is unfinished and the rules above
-hold. Once it has finished, the old machine is no longer one of the machines the abandonment
+**The replacement's delivery is what this entry contributes to its setup's completion**; the
+old machine's deletion evidence is not waited for, and what else the setup needs to finish is
+unchanged. Before that delivery the setup is unfinished and the rules above hold. Once the setup
+has finished, the old machine is no longer one of the machines the abandonment
 flow reaches: `SEC-4` says that flow "MUST act only on machines of the unfinished setup".
 
 **A stopped machine stays on the screen after its setup.** The opening screen MUST also show
@@ -1060,8 +1063,7 @@ vendor's stated deletion date, until `STG-21a`'s deletion evidence is durably re
 a display rule, not an authority, and it does not make a finished setup own the first screen.
 `SEC-5`'s duties for that machine are unchanged. The reader behind "until deletion is confirmed
 under the LNVPS operation contract", here and for an abandoned setup's machines, is the
-deletion check (`SEC-4`), which the operator starts from the screen that shows the machine;
-nothing starts it automatically.
+deletion check; for how it is started, see `SEC-4`.
 
 ## Machine networking
 
