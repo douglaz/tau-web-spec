@@ -1009,13 +1009,49 @@ to the relay evidence in `CNF-81`, `CNF-87` and `CNF-113`.
       no box-plane command is dispatched to any machine of the session's bound set at that
       vendor, until the call's terminal record (`STA-24`). Where that record is a disposition
       that continues, the pause ends. Where it names a destructive reinstall or abandonment,
-      every further call under the scope is refused and the model's box-plane commands to those
-      machines stay stopped until the operator replaces the disposition; acting at the vendor
-      by hand releases nothing; and before either destructive choice the screen says that the
-      harness cannot carry it out there and that the operator acts at the vendor by hand.
-      Verified by withholding a vendor response and requesting a disk-writing command, then
-      disposing each way and requesting a further call and the command again.
-      Destroyed data: no adapter says which call reinstalls the machine being written.
+      every further call under the scope is refused and every new box-plane job to the machines
+      the hold covers is refused, whoever starts it, until the operator replaces the
+      disposition; acting at the vendor by hand releases nothing; and before either destructive
+      choice the screen says that the harness cannot carry it out there and that the operator
+      acts at the vendor by hand. Verified by withholding a vendor response and requesting a
+      disk-writing command, then disposing each way and requesting a further call and the
+      command again. Under a standing destructive hold: a digest, a delivery reboot, a
+      delivery-check read, a relabel and Replace's key install and old-key removal are each
+      refused, and so is a freshly issued read job, while collecting an existing job record and
+      the local paste stay available; after a replacement that continues an otherwise eligible
+      job is admitted, and after a reinstall replaced by an abandonment further calls and new
+      jobs stay refused. Calls through a later scope at the same exact origin are refused after
+      a token rotation and after a reapproval, including one whose reach is not shown to overlap
+      the held machines and an arrangement with no overlap that the known-machine exclusivity of
+      `SEC-4` would otherwise admit; the later scope's approval is itself admitted while its
+      calls are refused; after a replacement that continues, and at an unrelated origin, they
+      are admitted; and at another origin of the same vendor identity they are admitted. With a
+      call left unresolved, a later scope at the same exact origin inherits it under a changed
+      credential and, after the credential is erased locally, with no credential compared,
+      including a no-overlap arrangement that exclusivity would otherwise admit; a valid
+      terminal record ends the barrier; an unrelated origin and another origin of the same
+      vendor identity are unaffected. In a successor using the same credential, the inherited
+      unresolved call still refuses a new call and keeps its pause on the machines it already
+      covered. Each refusal of a later scope's call is asserted where its approval and binding
+      are otherwise eligible, so no other refusal can satisfy the assertion. At the session's
+      actual end (`STA-23`) the scope's local permission and exclusivity close (`SEC-4`); a
+      successor approves the scope and accepts the mode in one card act; resupplying the
+      credential alone, and accepting the mode alone, each leave a successor's call refused for
+      want of an approval, in an arrangement with no inherited unresolved call or standing hold
+      to refuse it instead; a Lock, a reload and a hide close nothing; closing the permission
+      ends no display of a still-exposed credential; and the successor's fresh approval evades
+      neither inheritance rule. A successor's model and harness jobs stay refused on the
+      original machines, including a successor with no later vendor scope and a machine the
+      original set lawfully added after the disposition and before the predecessor's end; a job
+      to an unrelated machine the successor lawfully bound at the same vendor, outside the
+      predecessor's final recorded reach, is admitted, and so are the successor's collection of
+      existing job records and its jobs after a replacement that continues. A replacement or terminal record whose journal
+      append fails releases nothing, and after replay the hold and the barrier stand as the
+      durable records set them.
+      Deliberately admitting a harness-started job, a later same-origin call, an inherited
+      unresolved call under the hold or the barrier, or a successor's job under the hold must
+      each fail their intended assertion, then pass restored. Destroyed data: no adapter says
+      which call reinstalls the machine being written.
 - [ ] **CNF-106 · BLOCKING** The untyped vendor scope's card asks the operator's questions
       in `SEC-4`'s words, once, when the key is supplied, with nothing preselected. "Not sure"
       sets the same warnings as yes; no answer blocks; the answers are journaled and labelled
@@ -1926,7 +1962,7 @@ promotion rule above.
 | Before enabling the in-setup replacement order at LNVPS (`tw-ae7` B+E) | none yet: no item is defined yet, so the order stays unavailable | B+E (`tw-ae7`) is specified, not enabled. It is unavailable until all of these hold: a selection criterion for a setup with no declared bound, and the capability to meet it, exist (`OPN-27`; `tw-ae7` comment 60000001); completion on arrival and the deletion check, for the machine the in-setup rung stops (`tw-ae7` comment 82000001), have passing integrated evidence; T44's ADR-0042 identity has landed; the delivery gate below holds; and an owner admits the order. Until then `tw-ae7` C governs every LNVPS setup. Once admitted, B+E governs every no-bound LNVPS setup, one machine included. That evidence covers at least these cases (`ARC-15`, `ARC-22`, `SEC-4`). A replacement order before the old machine's stop, renewal-off and terminal reconciliation have finished is refused; once they have, the order proceeds with no wait for confirmed deletion, and the replacement is useful while that deletion is pending. The replacement is refused when it would run under the old entry's approval or reuse its allocation or per-machine identity, when it departs from its own approval's original structured facts, when the unavailable-identity exclusion bars it and while a hold stands that bars it; a disposition of the old machine's stop or renewal-off never counts as their confirmation. The replacement's delivery is what its entry contributes to the setup's completion, with no wait for the old machine's deletion and nothing else the setup needs to finish changed, while the old machine stays shown on the opening screen as existing and billed, with its cost and the vendor's stated deletion date, and its exposure and placed-secret duties stay open. After that delivery the abandonment flow does not reach the old machine, while the deletion check does. This row alone governs the check for a machine the in-setup rung stopped, whatever that machine's setup's later state: once the row holds, the check is offered for it whether its setup finished or was abandoned. In the mixed case, a machine the in-setup rung stopped whose setup is then abandoned while item 26's deletion-check case has not passed, the check is offered or not by this row alone. The check makes only `STG-21a`'s deletion reads under that machine's own recorded key, a mutating call or another machine's key is refused, and without T44's key it is unavailable and makes no read. The replacement and the check give no session or flow authority over the old machine it did not already have. |
 | Attest first-contact route | 18, 23 (attest-window case), 61, 74–75, 109 (attest admission) | Before enabling attest at any vendor that accepts boot configuration, including one used for a jump host. This row does not gate the LNVPS path. |
 | The dedicated path: the construction test bed | 20 (relabel cases), 22, 38, 48, 53 (`delivery_reboot` cases), 55 (`delivery_reboot` case), 62–64, 80, 84, 85–86, 109 (job-read admission), 110 | The Robot dedicated path's own checks, including item 20's relabel cases, only item 84's Robot rescue case, item 53's `delivery_reboot` cases, as the LNVPS-path required row lists them, item 55's `delivery_reboot` settlement case, and item 110's reset-into-rescue, harness-composed `delivery_reboot` and `replace_root_label` refusal cases. Their by-hand evidence stands (48 is recorded), construction exercises them on the test bed, and they pass on the integrated harness before a dedicated-server path is offered to an operator, which is not before the admission group's gates pass (`STG-23`). Items 62–64 also apply to any typed adapter that rides the pinned tunnel, the LNVPS path's included if its vendor refuses a browser origin. |
-| Untyped scopes, the jump host, sets above one | 7, 12, 14, 23, 27, 29, 31, 33, 42, 91–93, 95 (cases (e) and (f)'s A/B assertions), 96–98, 104–106 | Before enabling an untyped scope, an untyped vendor scope, the jump-host route or a bound set of more than one machine. Item 95's cases (e) and (f) cover A/B output release only after both pastes; case (e) also covers the copied key on A redacted. Items 7 and 91 cover set growth, subsets and two-machine sets; items 12, 14 and 29 their untyped-scope cases; item 23 the jump-host label; item 42 the untyped-scope half of the trust display; item 93 the jump-host, untyped-scope and larger-set modes, each accepted at the act it governs and restated, with their re-entry and reinstall cases; item 104 an invoice decoded from an untyped response, where the vendor invoices. Item 92's multi-tenant case gates sets above one; its independence-bound case gates the first profile that declares a bound. Repeat item 17 against real untyped responses. |
+| Untyped scopes, the jump host, sets above one | 7, 12, 14, 23, 27, 29, 31, 33, 42, 91–93, 95 (cases (e) and (f)'s A/B assertions), 96–98, 104–106 | Before enabling an untyped scope, an untyped vendor scope, the jump-host route or a bound set of more than one machine. Item 95's cases (e) and (f) cover A/B output release only after both pastes; case (e) also covers the copied key on A redacted. Items 7 and 91 cover set growth, subsets and two-machine sets; items 12, 14 and 29 their untyped-scope cases; item 23 the jump-host label; item 42 the untyped-scope half of the trust display; item 93 the jump-host, untyped-scope and larger-set modes, each accepted at the act it governs and restated, with their re-entry and reinstall cases; item 104 an invoice decoded from an untyped response, where the vendor invoices; item 105 the untyped hold's every-job, same-origin, successor and permission-lifetime cases. Item 92's multi-tenant case gates sets above one; its independence-bound case gates the first profile that declares a bound. Repeat item 17 against real untyped responses. |
 | Post-harness handoff | 8, 77 | Before enabling any profile that declares one; none is enabled before the admission group's gates pass (`STG-23`). |
 | Scanner and advisory monitoring | 9, 36 | Also complete item 50's scanner case before exposing scanner results. |
 | Paid/public relay access | 57–60, 65, 76 | Before enrolment opens beyond the publisher's fixed record, including item 60's signed pass revocation. The LNVPS path uses item 20's manual retirement route and still requires 81 and 87. |
