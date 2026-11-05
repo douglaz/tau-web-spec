@@ -1858,7 +1858,7 @@ Not pass/fail. Required to be recorded.
       on a live allocation, and a machine state for a destroyed allocation. Refuse duplicate
       records equal in the six members other than `report`, and two records without a report at
       one machine, application name, secret name and path. Rotate a reported placement with the
-      device clock set back to the reported record's placement time: the new record's
+      device clock set to or before the reported record's placement time: the new record's
       `placed_at` is later than the reported record's, and the export imports. Refuse a missing
       or malformed placement `seed_id` and one naming neither the payload's seed nor a retired
       allocation's.

@@ -42,11 +42,10 @@ ADR-0050 rejected releasing the other machines' output without the disposed mach
 `SEC-5` says "Unscanned bytes MUST be withheld", and a secret copied onto another machine would go
 unscanned. That rejection still stands for every byte it protected:
 
-- **The backlog.** Output withheld before the report stays withheld. Releasing it was option I in
-  comment 47000001, and every reading rejected it on the same ground as ADR-0050.
-- **Other references.** The report ends one reference. Output still owes every other required
-  reference and release prerequisite, so it does not release output that some other unarmed
-  reference holds back.
+- **The backlog.** `SEC-5` says "A report never counts as a scan". Releasing the backlog was
+  option I in comment 47000001, and every reading rejected it on the same ground as ADR-0050.
+- **Other references.** `ARC-43` says later output "owes every other reference and release
+  prerequisite".
 
 What changes is later output for the reported placement alone. A revoked key is a credential its
 service no longer honours. A copy of it in later output exposes bytes, not authority. The owner
