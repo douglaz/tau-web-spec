@@ -75,3 +75,8 @@ Readings not selected:
   transcript, not off the machine, so the limit is disclosed rather than filtered: `SEC-5` says
   "Withholding keeps a range out of model input and the transcript, not off the machine", and
   `SEC-6`'s trust display states it.
+
+*Amended 2026-11-05:* an operator's report that one lost-key placement's key is revoked at its
+service ends that placement's reference, so later output is no longer compared against it. The
+backlog and every other reference stay as this record left them. The reasons are in
+[ADR-0057](./0057-an-operator-report-ends-one-lost-key-placements-wait.md).

@@ -187,9 +187,9 @@ key or envelope as a sheet. Local and sheet purposes cannot be interchanged.
 New exports use an authenticated UTF-8 JSON payload containing `version: 7` (below),
 `derivation_version: 1`, `seed_id`, `exported_at` (UTC RFC 3339), `journal_sequence`,
 `next_indices` (machine/pass/handoff), `seed_backup`, `allocations` (including consumed
-tombstones), `host_pins`,
+tombstones), `retired_allocations`, `host_pins`,
 `host_pin_installations`, `relay_discovery`, `exposure_ledger`, `artifact_history`,
-`placements: [{machine_index, application_name, name, path, placed_at, report}]`, `machine_states`,
+`placements: [{seed_id, machine_index, application_name, name, path, placed_at, report}]`, `machine_states`,
 and optional
 `inference_account_credential`. Each allocation has its family, index, stable
 resource identity and expected public key as required by `STA-22b`, and a jump host's entry
@@ -279,8 +279,9 @@ version 7 (below), never version 6.
 
 ### Operator reports, payload version 7
 
-Every new export writes version 7. Version 7 keeps every version-6 rule and adds one required
-member, `report`, to every placement record. It inherits no wire from version 6 for the partial
+Every new export writes version 7. Version 7 keeps every version-6 rule and adds two required
+members, `report` and `seed_id`, to every placement record, and one required payload member,
+`retired_allocations`. It inherits no wire from version 6 for the partial
 history: those member names and encodings, not yet specified above, are equally unspecified for
 version 7.
 
@@ -305,19 +306,48 @@ A placement with a report is ended. Its record stays in `placements` on every la
 after its secret is rotated and after its machine is destroyed (at LNVPS, the vendor's confirmed
 deletion); the rotation's new placement is a separate record beside it. Re-arming, the
 required-reference wait, the trust display's live listing and a restored provider's listing
-read only placements without a report (`ARC-43`, `STA-16`). Replace's migration moves a
-placement's `machine_index` with its machine (`STA-17`), a reported record's included; a
-reported record on a destroyed machine, which Replace does not migrate, keeps its machine's
-index.
+read only placements without a report (`ARC-43`, `STA-16`).
 
-Two placement records are duplicates when they are equal in all five members `machine_index`,
-`application_name`, `name`, `path` and `placed_at`, whatever `report` holds. Reject duplicates,
-two records without a report at one machine, application name, secret name and path, and a
-reported record on an absent, failed, jump-host or non-machine allocation before binding.
+A placement record's `seed_id` and `machine_index` together name its machine. `seed_id` has the
+form of the payload's `seed_id`. It equals the payload's for a machine allocated under the
+current seed, named in `allocations`. It names a retired seed for a destroyed machine allocated
+under it, named in `retired_allocations` (below). Replace's migration moves a placement's
+`machine_index` with its machine and sets its `seed_id` to the fresh seed's (`STA-17`), a
+reported record's included. Replace does not migrate a destroyed machine, so a reported record
+on one keeps its `seed_id` and `machine_index`, and the new seed's sheet carries that machine as
+a retired allocation. A retired-seed index can coincide with a current machine's index
+(`STG-20`), and the seed tells them apart. Only a placement record names a retired allocation.
+How artifact history, host pins, installation groups and exposure-ledger entries name a machine
+allocated under a retired seed is not yet specified, and neither is what the new seed's sheet
+holds for a live machine that Replace leaves unmigrated.
+
+`retired_allocations` is a required array, `[]` when empty. Each entry is the journal's
+retired-seed machine entry: its `seed_id`, family `machine`, index, stable resource identity
+and recorded expected public key as `STA-22b` maps them, and `destroyed: true`. The exporter
+copies that entry unchanged from the journal and writes it exactly while a written reported
+record names it, keeping its seed through every later Replace. Import checks each entry's form.
+It checks that `seed_id` differs from the payload's, that `destroyed` is `true`, and that a
+placement record names the entry. Seed, family and index must be unique among retired
+allocations. Import accepts the recorded public key without deriving it from any seed, the one
+exception to `STA-22b`'s derive-and-compare check. A retired allocation is outside
+`allocations`, so that member's derivation, unique-index and next-unused-counter checks stay as
+they are for every current-seed allocation. A retired allocation restores no contact identity,
+host pin, binding or session, allows no allocation, takes part in no vendor reconciliation and
+has no `machine_states` entry. Reject a missing or malformed entry, a duplicate, an entry with
+the payload's seed, a non-machine family, `destroyed` absent or other than `true`, an extra
+member and an entry no placement record names before binding.
+
+Two placement records are duplicates when they are equal in the six members `seed_id`,
+`machine_index`, `application_name`, `name`, `path` and `placed_at`, whatever `report` holds.
+Reject duplicates and two records without a report at one machine, application name, secret
+name and path. Also reject before binding a record whose `seed_id` is malformed or names
+neither the payload's seed nor a retired allocation's, and a record without a report naming a
+retired allocation. Reject too a reported record on an absent, failed, jump-host or non-machine
+allocation, where absent means no allocation at that seed and index.
 A machine allocation whose deletion evidence `SEC-5` admits and the journal durably records
-carries `destroyed: true`, and no other allocation carries the field. A stop, a passed deletion
-date, a reinstall or a disposition does not set it, and such a machine stays live here. Reject the
-field with any other value or on any other allocation. A destroyed allocation has no
+carries `destroyed: true`, as every retired allocation does, and no other allocation carries the
+field. A stop, a passed deletion date, a reinstall or a disposition does not set it, and such a
+machine stays live here. Reject the field with any other value or on any other allocation. A destroyed allocation has no
 `machine_states` entry (below).
 
 A reported record whose machine is live satisfies the application association below as any
@@ -331,7 +361,8 @@ applications or providers, and a Restore lists no provider for such a record. Re
 without a report on a destroyed allocation before binding.
 
 Validate versions 3 to 6 under their own rules, then convert to version 7 in memory by giving
-every placement `report:"none"`. The conversion invents no report: an older sheet restores each
+every placement `report:"none"` and the payload's `seed_id`, and supplying
+`retired_allocations:[]`. The conversion invents no report and no retired allocation: an older sheet restores each
 placement's as-of-export wait (`STA-16`). A reader that predates version 7 refuses a version-7
 sheet as an unknown version. Versions 1 and 2 and unknown versions stay refused. Sheet envelope
 v1, derivation v1, algorithms, AAD and known-answer vectors stay unchanged.
@@ -351,7 +382,8 @@ access model of `ARC-27`, `installation` as `"pinned"`, `"unpinned"` (`ARC-25`) 
 on the machine's bound set (`SEC-14`). A field not yet approved at export carries the explicit
 marker `"unapproved"`, never an absent field; `installation` and `applications` are recorded,
 not approved. Every live machine other than a jump host has exactly one entry, bound to a session or not; an
-allocation marked `jump_host: true` (`STA-22b`) or, in version 7, `destroyed: true` has none.
+allocation marked `jump_host: true` (`STA-22b`) or, in version 7, `destroyed: true` has none,
+nor does a retired allocation.
 Reject a missing, duplicate or malformed entry and an entry for a jump host or a destroyed
 allocation; never interpret a missing entry or an
 `"unapproved"` field as a default.
@@ -418,7 +450,8 @@ Neither absence nor malformed data is interpreted as `[]` or `"no_model"`. These
 contain only application and provider names, never secret-derived data. Export and restored
 display are governed by `STA-16`.
 
-Each placement associates a machine-family allocation with `application_name`, the exact name
+Each placement associates a machine-family allocation, named in version 7 by its `seed_id` and
+`machine_index`, with `application_name`, the exact name
 of an application in that machine's `applications` array, and separately with `name`, the
 nonempty secret name, recorded path and UTC RFC 3339 placement time. `application_name` is a
 required nonempty string under the application-name whitespace rule above. Reject a missing or

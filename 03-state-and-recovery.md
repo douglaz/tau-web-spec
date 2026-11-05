@@ -979,7 +979,12 @@ such route. The formal companion has no replacement act; `CNF-72`'s cases check 
 
 Import checks the seed identifier, derives each listed public key and compares it, validates
 unique indices within each family and next-unused counters above all listed indices, and
-cross-checks vendor inventory before binding machines. A stale sheet cannot prove the latest
+cross-checks vendor inventory before binding machines. The one exception is a sheet's retired-seed
+allocation: after Replace, the new seed's sheet carries a destroyed machine that a reported
+placement record names under the seed it was allocated under ([credential
+format](docs/design/credential-format-v1.md#operator-reports-payload-version-7)). Import accepts
+that allocation's recorded public key without deriving it, keeps it out of the index and counter
+checks above, and restores from it no contact identity, binding or allocation. A stale sheet cannot prove the latest
 counter. Therefore **every imported seed may restore listed identities but MUST NOT allocate
 new ones**, from a recovery sheet or an imported local-store backup, even when it claims to
 be current. To allocate again, use Replace with a freshly generated seed; old records are
@@ -1285,7 +1290,8 @@ per-machine installation groups and their compact recorded LNVPS publication fin
 (including incomplete observations and complete candidates refused for overlap), and the
 installation to which each installed pin belongs, which marks it active or retired (`CHN-R7`), the
 exposure ledger, placement metadata
-(`machine_index`, application name, secret name, path and placement time), each live machine's
+(the seed and `machine_index` naming its machine, application name, secret name, path,
+placement time and whether the operator reported its key revoked, `ARC-43`), each live machine's
 **machine state as approved** — its declaration in force (`ARC-39`), its class (`ARC-36a`),
 its access model (`ARC-27`) and the acceptable weaker modes standing on its bound set (`SEC-14`) — with whether
 its installation is pinned (`ARC-25`) and its installed applications beside it, and, on the
@@ -1308,7 +1314,11 @@ each, its model provider: the party `TRU-E12` names, recorded whether or not tha
 application's secret is placed. What the trust display lists is `TRU-E12`'s own rule.
 Every placement MUST record its application's name separately from its secret name; the
 application MUST be recorded on the same machine. Import MUST refuse a placement with no such
-application before binding, as the credential format defines.
+application before binding, as the credential format defines. The one exception is a reported
+placement whose machine is destroyed. A destroyed machine keeps no machine state and no
+application list, so import checks only the form of that record's application name. The exporter
+copies the record unchanged from the journal. A placement without a report on a destroyed machine
+is still refused.
 A machine without applications has an explicit empty list; an application without a model of
 its own has an explicit no-model marker in place of a provider. Neither is an absent field.
 Applications and providers are recorded facts, not approved state, and never use the
@@ -1327,8 +1337,11 @@ harness records that application again: no re-check reads which applications are
 which provider each uses, so a re-check does not lift the label, and the list MUST NOT imply
 current installation or provider state while it stands. This
 list requires no reapproval. A restored provider is listed beside its application exactly where
-a restored placement names that application on its machine: `TRU-E12` says "listed in the trust display
-beside the application for as long as its secret is placed". Installation pin status and pin routes
+a restored placement without a report names that application on its machine: `TRU-E12` says "for
+as long as a placement without an operator report names that application on that machine". A
+restored reported placement is shown as operator-reported history, as of export, and re-arms
+nothing and owes no wait (`ARC-43`). A destroyed machine's reported placement is shown the same
+way, with no provider beside it. Installation pin status and pin routes
 are the history modes of `SEC-14`, and a Restore does not reapprove them — only a reinstall, a new installation, is accepted afresh; import restores the exporting session's modes as ended history only, and a
 re-entering session accepts its own rather than reapproving them, while what they left live
 stays "unknown since export". The sheet carries no check result and no

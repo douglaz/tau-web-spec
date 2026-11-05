@@ -648,6 +648,13 @@ Where a machine's destruction has retired its placed-secret references, the trus
 that output produced after the destruction is not checked for that machine's values, including
 a later command's output that prints back a range withheld before it: `SEC-5` says "Output
 produced after the destruction is no longer compared against M's references."
+An operator report (`ARC-43`) ends one placement's count: the trust display lists that
+placement as operator-reported history, never as a live secret, and says the report is the
+operator's statement, unverified at the service. It states that output produced after the
+report is not checked for that placement's value, including a later command's output that prints
+back a range withheld before it: `SEC-5` says "Output produced after the report is no longer
+compared against P's reference". The machine's other placements without a report, its untyped
+scopes and the weaker modes standing on its set are counted as before.
 
 This replaces an absolute the root shell already defeated. A tenant that needs the absolute
 supplies it by procedure — `SEC-T4`.
@@ -873,7 +880,9 @@ maintained machine, or by the recovery ladder's escalation. A model's blast radi
 
 Those three are stated together because no one of them alone is the boundary. Every approved
 scope and every placed application secret appears in the trust display until revoked or
-rotated — closing an approval does not un-trust a service that still holds the key. Every
+rotated — closing an approval does not un-trust a service that still holds the key. A placed
+secret the operator reports revoked at its service (`ARC-43`) leaves the live listing for
+history labelled operator-reported, on the operator's word rather than the service's. Every
 acceptable weaker mode standing on a set is stated with them (`SEC-14`); for a machine first
 contacted from a jump host that statement is that its identity is as good as two paths
 agreeing once (`CHN-R6`).
