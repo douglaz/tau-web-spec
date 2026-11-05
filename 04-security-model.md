@@ -742,6 +742,10 @@ While the journal records that a rotation (`ARC-43`) has replaced a placement, t
 states beside the new placement that output produced after the rotation is not checked for the
 old value, including a later command's output that prints back a range withheld before it:
 `SEC-5` says "Output produced after the rotation is no longer compared against P's reference".
+It states too that the rotation is not a revocation, and that revoking the old value at its
+service is the operator's act, which the harness does not verify: `SEC-5` says "The rotation
+claims neither revocation of the old value at its service nor erasure of its copies"
+([ADR-0064](./docs/adr/0064-a-rotation-is-not-a-revocation-and-the-display-says-so.md)).
 A sheet records no rotation (the credential format's placement record), so after a Restore from a
 later sheet the `reference_ended` statement below is what the display shows for a rotated
 placement without a report.

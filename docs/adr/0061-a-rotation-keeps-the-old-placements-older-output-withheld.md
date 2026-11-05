@@ -60,7 +60,8 @@ These stay open:
 - what a rotation whose job fails or stays unresolved does to the old reference, since decided in
   [ADR-0063](./0063-a-rotation-is-recorded-by-its-zero-exit-job-record.md);
 - whether output after a rotation should still be compared against the old value, since a
-  rotation is not a revocation, and whether the trust display should say so.
+  rotation is not a revocation, and whether the trust display should say so, since decided in
+  [ADR-0064](./0064-a-rotation-is-not-a-revocation-and-the-display-says-so.md).
 
 ## Consequences
 
