@@ -26,11 +26,10 @@ a scan:
   pre-rotation, whether it finished or runs across the act. Its bytes not scanned against the old
   reference before the act stay withheld.
 - Output after the rotation is not compared against the old reference, as row 23 already said.
-  The trust display states that limit and states that a rotation claims no revocation at the
-  service.
+  While the journal records the rotation, the trust display states that limit.
 
-The rule holds in every session while the local store is intact. After store loss, ADR-0060's
-mark governs.
+The rule holds in every session while the local store is intact, a rotation recorded after a
+Restore included. After a store loss that follows the rotation, ADR-0060's mark governs.
 
 **Unchanged.** Row 23 and the credential format are not touched. The mark's rotation setter
 stands: this rule releases no pre-rotation output for the old reference. A placement whose
@@ -45,7 +44,7 @@ option. It was accepted under the owner's 2026-11-05 panel rule, 4 of 4. All fou
 - it leaves the mark unchanged;
 - keeping the old reference would widen row 23's lifetime and disposal.
 
-All three ends of a row 23 reference now follow one rule. No ended scan material is kept.
+Destruction, the report and rotation now follow one rule. No ended scan material is kept.
 
 ## Alternatives considered
 
@@ -59,9 +58,10 @@ These stay open:
 - which act of the rotation's `place_secret` records the rotation;
 - what a rotation whose job fails or stays unresolved does to the old reference;
 - whether output after a rotation should still be compared against the old value, since a
-  rotation is not a revocation.
+  rotation is not a revocation, and whether the trust display should say so.
 
 ## Consequences
 
-`SEC-5`, `SEC-6`, `ARC-43` and `CNF-95(j)` change together. The formal companion has no placement
+`SEC-5`, `SEC-6`, `ARC-43` and `CNF-95(j)` change together, and ADR-0060 notes that its open
+point is decided here. The formal companion has no placement
 or scan-reference state and is unchanged.

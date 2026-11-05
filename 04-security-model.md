@@ -509,9 +509,11 @@ recorded; a job dispatched before that record stays pre-rotation whether it fini
 record or is still running across it, and its bytes not scanned against P's reference before
 that record stay withheld; re-collecting, replaying, re-requesting or displaying a range
 dispatches no new job and makes it no newer; and a range whose production after the rotation is
-not established stays pre-rotation. A machine-reported time or sequence establishes nothing
-about a range. This holds in the rotating session and in every later session with the local
-store intact; after local-store loss the next paragraph governs. Output produced after the
+not established stays pre-rotation. A machine-reported time or sequence, and the new placement's
+recorded time, establish nothing about a range. This holds from the rotation's record on while
+the local store stays intact, in the rotating session and every later one, a rotation recorded
+after a Restore included; after a local-store loss that follows the rotation, the next paragraph
+governs. Output produced after the
 rotation is no longer compared against P's reference, including a later command's output that
 prints back a range withheld before it, while the original range stays withheld; it owes the new
 placement's reference and every other required reference and release prerequisite. P's identity
@@ -727,11 +729,13 @@ report is not checked for that placement's value, including a later command's ou
 back a range withheld before it: `SEC-5` says "Output produced after the report is no longer
 compared against P's reference". The machine's other placements without a report, its untyped
 scopes and the weaker modes standing on its set are counted as before.
-Where a rotation (`ARC-43`) has replaced a placement, the trust display states beside the new
-placement that the rotation claims no revocation of the old value at its service and that output
-produced after the rotation is not checked for the old value, including a later command's output
-that prints back a range withheld before it: `SEC-5` says "Output produced after the rotation is
-no longer compared against P's reference".
+While the journal records that a rotation (`ARC-43`) has replaced a placement, the trust display
+states beside the new placement that output produced after the rotation is not checked for the
+old value, including a later command's output that prints back a range withheld before it:
+`SEC-5` says "Output produced after the rotation is no longer compared against P's reference".
+A sheet records no rotation (the credential format's placement record), so after a Restore from a
+later sheet the `reference_ended` statement below is what the display shows for a rotated
+placement without a report.
 Where a restored machine state carries the `reference_ended` mark (`SEC-5`), the trust display
 says that a placement reference that scanned the machine ended before export, names no
 placement, and states that output produced after the Restore is not checked for that ended
