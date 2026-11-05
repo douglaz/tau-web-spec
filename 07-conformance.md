@@ -1808,7 +1808,8 @@ Not pass/fail. Required to be recorded.
       exported indices and reconnects using the old host pin, never a new first contact. A
       mismatched seed, duplicate mappings, invalid counters or malformed placement associations
       are refused before binding, and so is a live machine other than a jump host with a
-      missing, duplicate or malformed machine state, bound or not; a jump host's allocation
+      missing, duplicate or malformed machine state, bound or not, a version-7 reserved
+      migration index excepted (below); a jump host's allocation
       carries none and one carrying a machine state is refused, an unapproved field restores
       as unapproved, and a machine exported with
       an unpinned installation and an attested pin restores both. Export and Restore a
@@ -1859,25 +1860,54 @@ Not pass/fail. Required to be recorded.
       records equal in the six members other than `report`, and two records without a report at
       one machine, application name, secret name and path. Rotate a reported placement with the
       device clock set to or before the reported record's placement time: the new record's
-      `placed_at` is later than the reported record's, and the export imports. Refuse a missing
-      or malformed placement `seed_id` and one naming neither the payload's seed nor a retired
-      allocation's.
+      `placed_at` is later than the reported record's, and the export imports.
       Export after Replace a reported record on a machine destroyed before the migration: the new
       seed's sheet carries that machine in `retired_allocations` under its old seed, index,
       resource identity and recorded public key with `destroyed: true`, and the record keeps its
       `seed_id` and `machine_index`, including where a migrated machine's new index equals that
       index (`STG-20`); a migrated machine's records take the fresh seed's `seed_id` and its new
-      index. Import accepts that sheet's placements, retired allocation and allocations, and a
-      second Replace keeps the retired allocation's seed; what the sheet's other members hold
-      for that machine is not yet specified (credential format). Import accepts the retired
-      allocation's recorded key without deriving it, while a wrong key on a current-seed
-      allocation is still refused; the retired allocation restores no contact identity, pin,
-      binding or allocation, and a counter or unique-index check over `allocations` ignores it.
-      Refuse before binding a missing `retired_allocations`, a malformed, duplicate or extra-member
-      entry, one with the payload's seed, a non-machine family or `destroyed` absent or other than
-      `true`, one no placement names, and a record without a report naming one. A version 3 to 6
-      sheet restores every placement with `report:"none"` and the payload's seed, and with no
-      retired allocation.
+      index. Export too a destroyed retired machine no placement names: its entry and the
+      artifact history and other records a destroyed machine keeps are carried under its old
+      seed. Import accepts that sheet's records, retired allocations and allocations, and a
+      second Replace keeps each retired allocation's seed beside the entries the then-retired seed
+      adds. Import accepts a retired allocation's recorded key without deriving it, while a wrong
+      key on a current-seed allocation is still refused; a destroyed or Failed retired allocation
+      restores no contact identity, pin, binding or allocation, and a counter or unique-index
+      check over `allocations` ignores every retired allocation.
+      Export after Replace a machine Replace left unmigrated under `STA-20`'s hold: its entry is
+      `outstanding` with `reason:"hold"`, and its machine state, artifact history, host pins,
+      installation groups, placements, an unreported one included, and exposure-ledger
+      references, in its own entry and in another machine's recorded bound set, round-trip
+      under its retired seed. After Restore without the retired seed, and with a wrong one, no
+      contact, vendor read or call under its identity, or binding is made and the machine stays
+      outstanding; with the right one the derived key equals the recorded key and the machine
+      reconnects under its existing pin, never a new first contact. Export an unmigrated jump
+      host, with no machine state; an LNVPS rebuild's old machine with
+      `reason:"awaiting_deletion"`, whose sheet-only Restore runs no deletion check (`SEC-4`)
+      and which becomes `destroyed: true` in one journal act when its deletion evidence is
+      durably recorded, losing its machine state and each placement without a report; a
+      retired pass with `reason:"awaiting_retirement_confirmation"`, whose key is used for nothing
+      after a Restore without its retired seed or with a wrong one, and may be used once the
+      derived key equals the recorded key; and a retired Failed
+      allocation with `failed: true` whose replacement's predecessor link resolves to it.
+      Export a dedicated machine after a failed relabel read: its entry has
+      `reason:"relabel_unconfirmed"` and a `migration_index` naming the reserved allocation,
+      which has the entry's resource identity and no record, machine state or artifact
+      history, and the sheet imports; every record keeps the retired-seed name. After a Restore that machine may
+      finish its migration to that index, moving every record in one journal act; an
+      outstanding machine without a `migration_index` keeps its retired-seed name until another
+      Replace. Refuse before binding a missing `retired_allocations`, a malformed, duplicate or
+      extra-member entry, one with the payload's seed, another family, a missing, second or
+      malformed state member, `destroyed` or `failed` other than `true`, a machine-only member
+      on a pass, an unknown reason or one of the other family's, an `outstanding` object with a
+      missing, extra or duplicate member, and a `migration_index` that is malformed, names no
+      such allocation, or names one that is destroyed, Failed, a jump host, of another resource
+      identity, named by another entry, or named by any record. Refuse before binding a missing
+      or malformed `seed_id` on any placement, artifact history, machine state, host pin,
+      installation group or exposure-ledger machine reference, and one naming neither an
+      `allocations` machine under the payload's seed nor a retired allocation. A version 3 to 6
+      sheet restores every placement with `report:"none"`, every such record with the payload's
+      seed, and no retired allocation.
       Confirm the restored application/provider list is complete, including an application with
       a recorded provider and no restored secret placement: its provider remains recorded and is not listed in the
       trust display. Include a restored placement with distinct `application_name` and secret

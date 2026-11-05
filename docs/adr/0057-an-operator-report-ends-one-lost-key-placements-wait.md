@@ -75,4 +75,5 @@ no placement or scan-reference state and is unchanged. Still to be decided:
 - whether a report can be corrected or withdrawn;
 - what keeps an ended unreported placement's withheld output withheld after a Restore from a later
   sheet;
-- how other retired-seed facts are named after Replace.
+- how other retired-seed facts are named after Replace, since decided in
+  [ADR-0058](./0058-the-new-seeds-sheet-keeps-retired-seed-machines-under-their-own-seed.md).

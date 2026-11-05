@@ -226,7 +226,9 @@ AAD, algorithms or known-answer vectors.
 ### Actual artifact history, payload version 5
 
 `artifact_history` is a required array with exactly one entry per non-jump machine, including
-retained destroyed-machine records: `{machine_index, known_unpinned, legacy}`.
+retained destroyed-machine records: `{machine_index, known_unpinned, legacy}`, and in version 7
+also `seed_id` ([version 7](#operator-reports-payload-version-7)). Neither a Failed allocation
+nor, in version 7, a reserved migration index is a machine with an entry.
 `known_unpinned` contains distinct increasing installation ordinals. Artifact history is
 independent of host-pin group creation: ordinal zero can record an actual initial
 installation/order dispatch before any publication, job-read or attest opens pin group zero.
@@ -284,8 +286,9 @@ version 7 (below), never version 6.
 ### Operator reports, payload version 7
 
 Every new export writes version 7. Version 7 keeps every version-6 rule and adds two required
-members, `report` and `seed_id`, to every placement record, and one required payload member,
-`retired_allocations`. It inherits no wire from version 6 for the partial
+members, `report` and `seed_id`, to every placement record, a required `seed_id` to every other
+record that names a machine (below), and one required payload member, `retired_allocations`. It
+inherits no wire from version 6 for the partial
 history: those member names and encodings, not yet specified above, are equally unspecified for
 version 7.
 
@@ -313,34 +316,122 @@ deletion); the rotation's new placement is a separate record beside it. Re-armin
 required-reference wait, the trust display's live listing and a restored provider's listing
 read only placements without a report (`ARC-43`, `STA-16`).
 
-A placement record's `seed_id` and `machine_index` together name its machine. `seed_id` has the
-form of the payload's `seed_id`. It equals the payload's for a machine allocated under the
-current seed, named in `allocations`. It names a retired seed for a destroyed machine allocated
-under it, named in `retired_allocations` (below). Replace's migration moves a placement's
-`machine_index` with its machine and sets its `seed_id` to the fresh seed's (`STA-17`), a
-reported record's included. Replace does not migrate a destroyed machine, so a reported record
-on one keeps its `seed_id` and `machine_index`, and the new seed's sheet carries that machine as
-a retired allocation. A retired-seed index can coincide with a current machine's index
-(`STG-20`), and the seed tells them apart. Only a placement record names a retired allocation.
-How artifact history, host pins, installation groups and exposure-ledger entries name a machine
-allocated under a retired seed is not yet specified, and neither is what the new seed's sheet
-holds for a live machine that Replace leaves unmigrated.
+In version 7 a machine is named by a seed and a machine index together, and every record that
+names a machine carries both: a placement record its `seed_id` and `machine_index`; each
+`artifact_history`, `machine_states` and `host_pins` entry and each `host_pin_installations`
+group a `seed_id` beside the machine index naming its allocation; and each `exposure_ledger`
+entry a `seed_id` beside every machine index it holds, for its own machine and for each machine
+of the bound set it records (`STA-10`). This document fixes no other part of a ledger entry's
+layout, and no machine reference in it is a bare index. Each such `seed_id` is required and has
+the form of the payload's `seed_id`; none defaults to the payload's seed. A name whose `seed_id`
+equals the payload's names the machine at that index in `allocations`. A name with any other
+`seed_id` names the machine-family entry with that seed and index in `retired_allocations`
+(below). A retired-seed index can coincide with a current machine's index (`STG-20`), and the
+seed tells them apart. Reject before binding a missing or malformed `seed_id` in any of these
+records, and a name that resolves to no allocation in either member. `artifact_history`'s one
+entry per non-jump machine includes each destroyed or outstanding retired machine.
 
-`retired_allocations` is a required array, `[]` when empty. Each entry is the journal's
-retired-seed machine entry: its `seed_id`, family `machine`, index, stable resource identity
-and recorded expected public key as `STA-22b` maps them, and `destroyed: true`. The exporter
-copies that entry unchanged from the journal and writes it exactly while a written reported
-record names it, keeping its seed through every later Replace. Import checks each entry's form.
-It checks that `seed_id` differs from the payload's, that `destroyed` is `true`, and that a
-placement record names the entry. Seed, family and index must be unique among retired
-allocations. Import accepts the recorded public key without deriving it from any seed, the one
-exception to `STA-22b`'s derive-and-compare check. A retired allocation is outside
-`allocations`, so that member's derivation, unique-index and next-unused-counter checks stay as
-they are for every current-seed allocation. A retired allocation restores no contact identity,
-host pin, binding or session, allows no allocation, takes part in no vendor reconciliation and
-has no `machine_states` entry. Reject a missing or malformed entry, a duplicate, an entry with
-the payload's seed, a non-machine family, `destroyed` absent or other than `true`, an extra
-member and an entry no placement record names before binding.
+Replace's migration (`STA-17`) moves a machine to its new index under the fresh seed in one
+journal act. That act gives every record naming the machine the fresh seed's `seed_id` and the
+new index: its placements, a reported record's included, its artifact history, machine state,
+host pins and installation groups, and every exposure-ledger reference to it, including those in
+other machines' recorded bound sets. The same act ends the machine's retired-seed entry, so no
+journal state, and no export, names one machine under two seeds. Until that act every record
+keeps the machine's retired-seed name, the name `STG-20`'s installation id uses. Replace does not
+migrate a destroyed machine, so its records keep their `seed_id` and index.
+
+`retired_allocations` is a required array, `[]` when empty. It holds exactly the allocations the
+journal keeps under a seed other than the payload's (`STA-22b`):
+
+- each destroyed machine allocated under a retired seed, whether or not a placement record names
+  it;
+- each Failed allocation under a retired seed, with its consumed index and entry/predecessor
+  metadata, so a replacement entry's predecessor link (`STA-22b`) still resolves;
+- each machine Replace has not migrated, a jump host and an LNVPS rebuild's old machine awaiting
+  its deletion evidence included;
+- each relay pass under a retired seed for as long as `STA-17`'s screen names it unrevoked or
+  awaiting its manual retirement's confirmation.
+
+A migrated machine has no entry. The exporter copies each entry unchanged from the journal,
+keeping its seed through every later Replace: the next Replace's sheet carries this sheet's
+retired allocations unchanged beside the entries the then-retired seed adds.
+
+Each entry is the journal's retired-seed entry: its `seed_id`, family `machine` or `pass`,
+index, stable resource identity and recorded expected public key as `STA-22b` maps them, its
+entry/predecessor metadata, `jump_host: true` on a jump host as in `allocations`, and exactly one
+state member:
+
+- `destroyed: true`, on a machine whose deletion evidence `SEC-5` admits and the journal durably
+  records;
+- `failed: true`, on a Failed allocation;
+- `outstanding`, on every other entry: an object with exactly the member `reason` and, on a
+  machine whose new index Replace has already reserved (`STA-22b`: "Reserve it durably before any
+  external effect"), the member `migration_index`.
+
+`reason` records why `STA-17`'s screen names the allocation not yet migrated, unrevoked or
+unconfirmed. It is exactly one of these strings. For a machine:
+
+- `"not_started"`: Replace has completed none of its migration steps and recorded no other reason;
+- `"key_unconfirmed"`: no connection authenticated by the new key is confirmed, so the old key
+  stays in place;
+- `"relabel_unconfirmed"`: a dedicated machine whose new root label no read has yet shown;
+- `"install_unfinished"`: an install unfinished in rescue, which Replace refuses to migrate;
+- `"hold"`: a machine under `STA-20`'s hold;
+- `"disposition"`: a machine under a standing destructive reinstall or abandonment disposition
+  (`STA-24`);
+- `"awaiting_deletion"`: an LNVPS rebuild's old machine, which never migrates, awaiting its
+  deletion evidence;
+- `"unrecovered"`: a machine whose direct re-entry cannot finish because the retired seed or its
+  index is missing.
+
+For a pass: `"awaiting_revocation"` (the paid/public path's signed revocation is not yet made),
+`"awaiting_retirement_confirmation"` (the LNVPS path's manual relay retirement awaits the
+publisher's confirmation) and `"unrevocable"` (no revocation can be made, so the pass must
+expire). The exporter writes the reason the journal records for the screen. A reason labels the
+allocation and authorizes nothing.
+
+Import checks each entry's form. It checks that `seed_id` differs from the payload's, that the
+family is `machine` or `pass`, that the entry carries exactly one state member, that `destroyed`,
+`failed`, `jump_host` and `migration_index` appear only on a machine, and that `reason` is one of
+its family's values. Seed, family and index must be unique among retired allocations. A
+`migration_index` must name a machine allocation in `allocations` that is not destroyed, Failed or
+a jump host, that has the retired entry's stable resource identity, and that no other entry's
+`migration_index` names. That allocation is the machine's reserved new index, not a second
+machine: no record names it, it has no `machine_states` or `artifact_history` entry, and its
+shared resource identity is the one repeated mapping import accepts. Import accepts each entry's
+recorded public key without deriving it from any seed, the one exception to `STA-22b`'s
+derive-and-compare check. A retired allocation is outside `allocations`, so that member's
+derivation, unique-index and next-unused-counter checks stay as they are for every current-seed
+allocation. A retired allocation allows no allocation. Reject before binding a missing or
+malformed entry, a duplicate, an entry with the payload's seed, another family, a missing, second
+or malformed state member, `destroyed` or `failed` other than `true`, an unknown reason, a reason
+of the other family, a malformed or unmatched `migration_index`, an `outstanding` object with a
+missing, extra or duplicate member, and an extra member.
+
+A destroyed or Failed retired allocation restores no contact identity, host pin authority,
+binding or session, takes part in no vendor reconciliation and has no `machine_states` entry; a
+destroyed one keeps exactly the records a destroyed current-seed machine keeps. An outstanding
+retired allocation restores its records under its retired seed: a machine's machine state (none
+for a jump host), artifact history, host pins, installation groups, placements and ledger
+references, and a pass's typed relay locator. Its contact identity waits for `STA-22b`'s deferred
+check: before any contact with the machine, any use of the pass's key, any vendor read or call
+under its identity, and any binding, the harness derives the key from the retired seed the operator supplies and compares it
+with the recorded key. With no such seed, or on a mismatch, it makes none of them and the
+allocation stays outstanding. A passing check is no first contact: the machine reconnects under
+its existing pin, as `STA-17`'s Restore does. The sheet holds no key, so a Restore from the sheet
+without the retired seed runs no deletion check for an `"awaiting_deletion"` machine: until its
+key is derived the check has no key and makes no read (`SEC-4`).
+
+An outstanding retired machine becomes destroyed when its deletion evidence `SEC-5` admits is
+durably recorded. One journal act replaces its `outstanding` with `destroyed: true` and leaves it
+exactly the records a destroyed machine keeps: its machine state goes, and so does every placement
+without a report on it. After a Restore from this sheet, an outstanding machine with a
+`migration_index` may finish its migration to that index, an identity the sheet lists. One without
+has no index to move to, since an imported seed allocates nothing (`STA-22b`), so its migration
+waits for another Replace with a freshly generated seed, which re-enters it under its own retired
+seed. What the new seed's sheet holds for a handoff allocated under a retired seed is not yet
+specified, and neither is what a later Replace does with a `migration_index` whose reserved
+allocation is under the seed that Replace retires.
 
 Two placement records are duplicates when they are equal in the six members `seed_id`,
 `machine_index`, `application_name`, `name`, `path` and `placed_at`, whatever `report` holds.
@@ -349,12 +440,13 @@ record already at that machine, application name, secret name and path", so a re
 a later placement there are never duplicates.
 Reject duplicates and two records without a report at one machine, application name, secret
 name and path. Also reject before binding a record whose `seed_id` is malformed or names
-neither the payload's seed nor a retired allocation's, and a record without a report naming a
-retired allocation. Reject too a reported record on an absent, failed, jump-host or non-machine
-allocation, where absent means no allocation at that seed and index.
+neither the payload's seed nor a retired allocation's. Reject too a reported record on an
+absent, failed, jump-host or non-machine allocation, where absent means no allocation at that
+seed and index; an outstanding retired machine is live, so a placement on it, with or without a
+report, is checked as on any live machine.
 A machine allocation whose deletion evidence `SEC-5` admits and the journal durably records
-carries `destroyed: true`, as every retired allocation does, and no other allocation carries the
-field. A stop, a passed deletion date, a reinstall or a disposition does not set it, and such a
+carries `destroyed: true`, as a destroyed retired allocation does, and no other allocation carries
+the field. A stop, a passed deletion date, a reinstall or a disposition does not set it, and such a
 machine stays live here. Reject the field with any other value or on any other allocation. A destroyed allocation has no
 `machine_states` entry (below).
 
@@ -369,8 +461,9 @@ applications or providers, and a Restore lists no provider for such a record. Re
 without a report on a destroyed allocation before binding.
 
 Validate versions 3 to 6 under their own rules, then convert to version 7 in memory by giving
-every placement `report:"none"` and the payload's `seed_id`, and supplying
-`retired_allocations:[]`. The conversion invents no report and no retired allocation: an older sheet restores each
+every placement `report:"none"`, giving every placement, `artifact_history`, `machine_states`
+and `host_pins` entry, `host_pin_installations` group and exposure-ledger machine reference the
+payload's `seed_id`, and supplying `retired_allocations:[]`. The conversion invents no report and no retired allocation: an older sheet restores each
 placement's as-of-export wait (`STA-16`). A reader that predates version 7 refuses a version-7
 sheet as an unknown version. Versions 1 and 2 and unknown versions stay refused. Sheet envelope
 v1, derivation v1, algorithms, AAD and known-answer vectors stay unchanged.
@@ -383,21 +476,24 @@ route value before binding, as it does other malformed payload fields. Each inst
 pin also carries its `installation` ordinal, starting at zero for that machine; a rescue
 pin remains scoped by its rescue boot. Whether the installation
 carries an artifact pin is a different fact, carried per machine below. Each `machine_states` entry is
-`{machine_index, declaration, class, access_model, installation, weaker_modes, applications}`: the journaled
+`{machine_index, declaration, class, access_model, installation, weaker_modes, applications}`, and in
+version 7 also `seed_id` ([version 7](#operator-reports-payload-version-7)): the journaled
 declaration in force as a delivery-declaration version 2 document, the class `ARC-36a` records, the
 access model of `ARC-27`, `installation` as `"pinned"`, `"unpinned"` (`ARC-25`) or
 `"not_installed"` before any installation, and the labels of the acceptable weaker modes standing
 on the machine's bound set (`SEC-14`). A field not yet approved at export carries the explicit
 marker `"unapproved"`, never an absent field; `installation` and `applications` are recorded,
-not approved. Every live machine other than a jump host has exactly one entry, bound to a session or not; an
-allocation marked `jump_host: true` (`STA-22b`) or, in version 7, `destroyed: true` has none,
-nor does a retired allocation.
+not approved. Every live machine other than a jump host has exactly one entry, bound to a session or not,
+including in version 7 an outstanding retired machine, whose entry names it by its retired seed; an
+allocation marked `jump_host: true` (`STA-22b`) or, in version 7, `destroyed: true` or
+`failed: true` has none, nor does a reserved migration index (above).
 Reject a missing, duplicate or malformed entry and an entry for a jump host or a destroyed
 allocation; never interpret a missing entry or an
 `"unapproved"` field as a default.
 
 `host_pin_installations` is a required array of installation groups in creation order.
-Each group is `{machine_index, installation, observations}`. The ordinal starts at zero
+Each group is `{machine_index, installation, observations}`, and in version 7 also `seed_id`
+([version 7](#operator-reports-payload-version-7)). The ordinal starts at zero
 per machine and increases by one only on an operator-chosen destructive reinstall, through
 the vendor API or from rescue. Replace's migration carries that ordinal to the machine's
 new index (`STA-17`); it does not restart at zero. `observations` is an array
