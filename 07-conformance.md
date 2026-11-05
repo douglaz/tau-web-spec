@@ -479,25 +479,28 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       recorded, P needs no re-arm, a paste or late digest record arms nothing for it, and that
       output stays withheld after every remaining reference checks it clean. The trust display
       states beside the new placement that output after the rotation is not checked for the old
-      value, and that the rotation is not a revocation and revoking the old value at its service
-      is the operator's act. The rotation's `place_secret` card states the latter before the act,
-      in every branch here, whatever its job then does. A display or card that presents the
-      rotation as a revocation at the service must produce this item's finding. Browser persistence and an exported sheet hold no raw value, bare digest or expired
-      scan material for P after the rotation. Output of a job on A dispatched after the record
-      made before the rotation's bytes leave and before the act that records the rotation owes
-      both P's and the new placement's references, and a sheet exported then holds P's record
-      and none for the new placement; it imports, and a Restore from it restores P as placed,
-      owing its re-arm, and lists no new placement. In separate branches the rotation's job exits
-      nonzero, stays unresolved, or, left unresolved, its call is disposed under each of
-      `STA-24`'s continuations, with P armed and, in a further branch each, unarmed after a
-      Restore: none records the rotation, P stays listed live with its reference required,
-      armed or unarmed as before, the new placement is listed with its reference required, no
-      `reference_ended` mark is set, and a sheet exported in each holds P's record and none for
-      the new placement. In the disposition branches, a zero-exit job record of the rotation's
-      call collected afterwards records no rotation, and it is journaled and shown. A rotation of
-      a reported placement whose job exits nonzero leaves it in operator-reported history with
-      no required reference, and a sheet exported then holds its record and none for the new
-      placement.
+      value, and that the rotation is not a revocation and that revoking the old value at its
+      service is the operator's act, which the harness does not verify. The rotation's
+      `place_secret` card, before the operator approves it, states that the rotation is not a
+      revocation and that revoking the old value at its service is the operator's act, which the
+      harness does not verify, in every branch here, whatever its job then does. A targeted control
+      that drops either statement from the display or the card, or labels the old placement
+      revoked, must produce this item's finding. Browser persistence and an exported sheet hold no
+      raw value, bare digest or expired scan material for P after the rotation. Output of a job on
+      A dispatched after the record made before the rotation's bytes leave and before the act
+      that records the rotation owes both P's and the new placement's references, and a sheet
+      exported then holds P's record and none for the new placement; it imports, and a Restore
+      from it restores P as placed, owing its re-arm, and lists no new placement. In separate
+      branches the rotation's job exits nonzero, stays unresolved, or, left unresolved, its call
+      is disposed under each of `STA-24`'s continuations, with P armed and, in a further branch
+      each, unarmed after a Restore: none records the rotation, P stays listed live with its
+      reference required, armed or unarmed as before, the new placement is listed with its
+      reference required, no `reference_ended` mark is set, and a sheet exported in each holds
+      P's record and none for the new placement. In the disposition branches, a zero-exit job
+      record of the rotation's call collected afterwards records no rotation, and it is journaled
+      and shown. A rotation of a reported placement whose job exits nonzero leaves it in
+      operator-reported history with no required reference, and a sheet exported then holds its
+      record and none for the new placement.
 - [ ] **CNF-17 · BLOCKING** An untyped response containing a harness-held credential is
       redacted before it reaches the model or the record. Exact-value scan.
 - [ ] **CNF-18 · BLOCKING** The attest introduction is **single-use**, and single-use is the

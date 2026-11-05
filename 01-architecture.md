@@ -489,10 +489,10 @@ here is non-waivable:
 A key the operator minted at its service with a cap, or one the operator can revoke there, is
 the best practice, and the card says so. The harness mints nothing for an application: a key
 minted from the inference account would be a harness credential on a machine (`ARC-1`). A
-rotation's card says before the act that the rotation is not a revocation, and that revoking the
-old value at its service is the operator's act, which the harness does not verify: `SEC-5` says
-"The rotation claims neither revocation of the old value at its service nor erasure of its
-copies".
+rotation's card says, before the operator approves it, that the rotation is not a revocation, and
+that revoking the old value at its service is the operator's act, which the harness does not
+verify: `SEC-5` says "The rotation claims neither revocation of the old value at its service nor
+erasure of its copies".
 
 **Re-arming after store loss is harness work.** On binding a session after local-store loss,
 every placement the sheet records on that bound set's machines without an operator report

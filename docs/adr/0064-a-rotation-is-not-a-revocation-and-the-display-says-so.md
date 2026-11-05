@@ -27,7 +27,11 @@ act is added, and the lost-key report stays offered only while unarmed
 **The display and the card say a rotation is not a revocation.** Beside the new placement, the
 trust display states that the rotation is not a revocation, and that revoking the old value at its
 service is the operator's act, which the harness does not verify. The rotation's `place_secret`
-card says the same before the act. Both quote `SEC-5`'s claim rather than restating it.
+card says the same before the operator approves it. The owning paragraphs cite `SEC-5`'s claim
+for both statements. Like the limit beside it, the display's statement lasts while the journal
+records the rotation; after a Restore from a later sheet only the `reference_ended` statement is
+shown, as before. The clause "which the harness does not verify" is text work: it states the
+`SEC-5` claim's limit at the service and adds no rule.
 
 ## Why
 
@@ -36,12 +40,13 @@ neither answer.
 
 - **The comparison** was accepted under the owner's 2026-11-05 panel rule, 4 of 4. The scan was
   never the control for a live credential: `SEC-5` limits the redaction claim to exact copies
-  "whose reference the browser holds", and "the claim is no wider than that". What ends the
-  exposure is revocation at the service, which the harness cannot see. Destruction is the parallel
-  case: it "claims neither physical erasure nor revocation of the credential at its service", yet
-  its references end, and ADR-0050 already declined to extend them on its peers. Keeping the old reference is
-  the alternative ADR-0061 did not select, extended to all later output, and it still needs a rule
-  for when the reference is dropped. Ending it by the operator's report would offer the report
+  "whose reference the browser holds", and "the claim is no wider than that". Revocation at the
+  service ends the old value's authority there; copies and earlier disclosures remain, and the
+  harness cannot verify the revocation. Destruction is the parallel case: it "claims neither
+  physical erasure nor revocation of the credential at its service", yet its references end, and
+  ADR-0050 already declined to extend them on its peers. Keeping the old reference is the
+  alternative ADR-0061 did not select, extended to all later output, and it still needs a rule for
+  when the reference is dropped. Ending it by the operator's report would offer the report
   while armed, which ADR-0062 did not select.
 - **The statement** was accepted under the same rule, 4 of 4. An operator reading "rotated" could
   take it for a revocation, and only the operator can revoke the old value.
