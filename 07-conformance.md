@@ -1881,7 +1881,8 @@ Not pass/fail. Required to be recorded.
       the shown id. The install brief treats it as this installation — found complete or
       Resume — never as a predecessor. Also exercise an unconfirmed relabel whose write
       failed without changing the label: the machine keeps its old shown id, still equal
-      to its unchanged label; the lost-read-back case is `CNF-20`'s (d).
+      to its unchanged label; the lost-read-back case is `CNF-20`'s (d). The root surfaced
+      while a rescue rekey's relabel is unconfirmed is `CNF-117`'s (i).
       The ordinal moves at destructive reinstall dispatch, never at
       its choice: exercise both routes before its reset — replace a reinstall disposition with
       no approval standing, and withdraw a reinstall approval — and confirm the kept root still
@@ -1921,6 +1922,58 @@ Not pass/fail. Required to be recorded.
       wait. Contrast actual End, which makes the approval unusable with no withdrawal offer.
       Explicit app Lock and worker restart retain it through eligible same-session resume. Exercise a separate destructive
       disposition too; visibility changes neither its own authority nor its dispatch checks.
+- [ ] **CNF-117 · BLOCKING** The dedicated rescue rekey keeps a proposed installation ordinal
+      (`STA-17`, `STG-20`, `STA-16`, ADR-0056). These are **dedicated-path evidence** under the
+      applicability table. Recover a dedicated machine with no recovery sheet through
+      vendor-authenticated rescue to a fresh-seed index `b`, its one root labelled `a-7`.
+      (a) Without an operator acceptance no ordinal is adopted from the label and no `b-7` is
+      shown; make the acceptance's append fail: no acceptance is recorded, shown or used. An
+      acceptance a retained fact contradicts is refused.
+      (b) Accept 7, then export and import: the accepted ordinal, its basis and the unknown
+      earlier installations round-trip without the journal, retained facts below 7 included
+      with the gaps around them unknown. No invented earlier group, observation, pin or
+      empty-history placeholder appears. A version-6 payload whose partial history is missing
+      or invalid is refused before binding, and versions 3, 4 and 5 are validated as before, a
+      skipped ordinal refused.
+      (c) Restart the worker and resume the unchanged migration: it continues from the
+      journaled acceptance without asking again. A different target or a changed proposal is
+      refused, and nothing is retried automatically.
+      (d) Make the new-key login to the installed system fail: no relabel job is sent and the
+      label still reads `a-7`. A pinned host answer or a login in rescue does not stand in
+      for that login. Let it succeed: the relabel write and its readback run in the installed
+      system, never in rescue.
+      (e) Report `a-9` for the same root before the write: the migration stops unfinished
+      with no relabel intent and no write, no 9 is adopted, the acceptance and both
+      observations are retained under 7, and no hold is created. Restart the worker after
+      the stop: the migration stays stopped, no write is sent and it is not reported migrated.
+      (f) With the old public key identified by retained records and an unrelated
+      authorization in the same file, the old key is removed only after the new-key login and
+      a read showing `b-7`; the new key and the unrelated authorization stay. With it
+      unidentified, every unidentified key stays, revocation is reported incomplete and no
+      old-key login test is reported passed; a read of the machine still shows that key, and
+      the machine is never shown as holding only its own key. The stopped branch of (e)
+      removes no key.
+      (g) After a later approved destructive reinstall, whose dispatch derives 8, offer a
+      `ready_to_reset` pin overlapping a retained fact, one below 7 included: it is refused.
+      A pin overlapping no retained fact is admitted, and the comparison over the unknown
+      installations is shown and exported as unknown, never passed.
+      (h) While the flow runs, binding a session to the machine is refused. After the stop
+      in (e), re-entry binds one: the model sees `b-7` marked unconfirmed, with `a-7` and
+      `a-9` beside it as as-of observations, never as its id.
+      (i) In that session, a return to rescue without a destructive reinstall finds the root
+      labelled `a-9`: the install brief surfaces it, and neither erases it as the
+      predecessor, resumes it nor treats it as found complete. After a destructive reinstall
+      of the machine is dispatched, it is the approved predecessor.
+      (j) Present an old recovery sheet for the machine afterwards: none of its facts join
+      the store or a later comparison. The trust display shows the earlier history as
+      unknown, never unpinned.
+      (k) Let the relabel write succeed and lose its readback: `b-7` stays shown as the
+      pending destination, marked unconfirmed, apart from installed access and from `a-7` as
+      an as-of observation, and the old key stays. A later connection re-reads the label
+      without another write, and only that read confirms `b-7`; nothing rewrites the label
+      automatically. Make the relabel job fail, or let the write succeed and the read show
+      another label: the machine is not migrated and the old key stays.
+      Boundary-crossed and destroyed-data.
 - [ ] **CNF-87 · BLOCKING** The LNVPS path's relay uses the selected `/v2/` profile and a
       hand-recorded pass (`STG-18`; [paid-tcp-relay][relay-source] PAS-6). Demonstrate fresh
       challenge, unknown-key and replayed-signature refusal, recorded-only destination
@@ -2051,7 +2104,7 @@ promotion rule above.
 | The LNVPS path: recovery export/import and Replace | 19–20, 84, 115 | Before maintained cloud delivery: export, Restore, allocation refusal, no-sheet cloud recovery and partial-Replace cases pass, with item 10's export case. No-sheet cloud recovery adds no destructive authority (`STA-15`). Where existing authorization admits a destroy and recreate at LNVPS, `ARC-22` owns both forms: a destroy is a stop with renewal off, and a recreate is a reinstall that is a new first contact and cannot reuse the old pin. With the old seed or index missing, item 84 checks that stop, reinstall and deletion confirmation are shown as unavailable (`STA-17`, `STG-21a`). Item 84 checks `CHN-R7` provenance, earlier and refused publication knowledge, and pending pin retirement through sheet export and Restore; item 109 checks fresh admission after reinstall. Item 20 uses the manual publisher-confirmed pass retirement/enrollment route. Item 115 covers journal loss and stale local-store backups on the maintained-cloud path, using item 20's migration cases; it adds no dedicated relabel, rescue, `delivery_reboot` or attest case. Only item 20's relabel cases and item 84's Robot rescue case wait for the dedicated row; signed pass revocation waits for the paid/public row. The deletion check (`tw-ae7` comment 82000001) is specified, not enabled: `SEC-4` grants its authority, `SEC-5` row 1 covers it, and `ARC-21` and `ARC-22` name it as the reader behind "until deletion is confirmed under the LNVPS operation contract". Item 20's other Replace cases rely on no evidence from it; they hold Replace incomplete without it. T44's identity gates it, as it gates every route. Its use for a machine the in-setup replacement rung stopped, whatever that machine's setup's later state, is admitted with the in-setup replacement order (the next row). Its use for a machine Replace's own flow stopped, the old machine of an LNVPS Replace rebuild, is offered only once item 20's deletion-check case passes (`tw-txp` comment 91000001); until then the check is unavailable for that use, and that machine stays shown as existing and billed with its duties open. That case gates this use alone: it is not required before maintained cloud delivery, and it admits neither the abandonment use, which item 26's deletion-check case gates under the LNVPS delivery row, nor the in-setup rung's use. |
 | Before enabling the in-setup replacement order at LNVPS (`tw-ae7` B+E) | none yet: no item is defined yet, so the order stays unavailable | B+E (`tw-ae7`) is specified, not enabled. It is unavailable until all of these hold: a selection criterion for a setup with no declared bound, and the capability to meet it, exist (`OPN-27`; `tw-ae7` comment 60000001); completion on arrival and the deletion check, for the machine the in-setup rung stops (`tw-ae7` comment 82000001), have passing integrated evidence; T44's ADR-0042 identity has landed; the delivery gate below holds; and an owner admits the order. Until then `tw-ae7` C governs every LNVPS setup. Once admitted, B+E governs every no-bound LNVPS setup, one machine included. That evidence covers at least these cases (`ARC-15`, `ARC-22`, `SEC-4`). A replacement order before the old machine's stop, renewal-off and terminal reconciliation have finished is refused; once they have, the order proceeds with no wait for confirmed deletion, and the replacement is useful while that deletion is pending. The replacement is refused when it would run under the old entry's approval or reuse its allocation or per-machine identity, when it departs from its own approval's original structured facts, when the unavailable-identity exclusion bars it and while a hold stands that bars it; a disposition of the old machine's stop or renewal-off never counts as their confirmation. The replacement's delivery is what its entry contributes to the setup's completion, with no wait for the old machine's deletion and nothing else the setup needs to finish changed, while the old machine stays shown on the opening screen as existing and billed, with its cost and the vendor's stated deletion date, and its exposure and placed-secret duties stay open. After that delivery the abandonment flow does not reach the old machine, while the deletion check does. This row alone governs the check for a machine the in-setup rung stopped, whatever that machine's setup's later state: once the row holds, the check is offered for it whether its setup finished or was abandoned. In the mixed case, a machine the in-setup rung stopped whose setup is then abandoned while item 26's deletion-check case has not passed, the check is offered or not by this row alone. The check makes only `STG-21a`'s deletion reads under that machine's own recorded key, a mutating call or another machine's key is refused, and without T44's key it is unavailable and makes no read. The replacement and the check give no session or flow authority over the old machine it did not already have. |
 | Attest first-contact route | 18, 23 (attest-window case), 61, 74–75, 109 (attest admission) | Before enabling attest at any vendor that accepts boot configuration, including one used for a jump host. This row does not gate the LNVPS path. |
-| The dedicated path: the construction test bed | 20 (relabel cases), 22, 38, 48, 53 (`delivery_reboot` cases), 55 (`delivery_reboot` case), 62–64, 80, 84, 85–86, 109 (job-read admission), 110 | The Robot dedicated path's own checks, including item 20's relabel cases, only item 84's Robot rescue case, item 53's `delivery_reboot` cases, as the LNVPS-path required row lists them, item 55's `delivery_reboot` settlement case, and item 110's reset-into-rescue, harness-composed `delivery_reboot` and `replace_root_label` refusal cases. Their by-hand evidence stands (48 is recorded), construction exercises them on the test bed, and they pass on the integrated harness before a dedicated-server path is offered to an operator, which is not before the admission group's gates pass (`STG-23`). Items 62–64 also apply to any typed adapter that rides the pinned tunnel, the LNVPS path's included if its vendor refuses a browser origin. |
+| The dedicated path: the construction test bed | 20 (relabel cases), 22, 38, 48, 53 (`delivery_reboot` cases), 55 (`delivery_reboot` case), 62–64, 80, 84, 85–86, 109 (job-read admission), 110, 117 | The Robot dedicated path's own checks, including item 20's relabel cases, only item 84's Robot rescue case, item 53's `delivery_reboot` cases, as the LNVPS-path required row lists them, item 55's `delivery_reboot` settlement case, and item 110's reset-into-rescue, harness-composed `delivery_reboot` and `replace_root_label` refusal cases, and item 117's rescue rekey cases. Their by-hand evidence stands (48 is recorded), construction exercises them on the test bed, and they pass on the integrated harness before a dedicated-server path is offered to an operator, which is not before the admission group's gates pass (`STG-23`). Items 62–64 also apply to any typed adapter that rides the pinned tunnel, the LNVPS path's included if its vendor refuses a browser origin. |
 | Untyped scopes, the jump host, sets above one | 7, 12, 14, 23, 27, 29, 31, 33, 42, 91–93, 95 (cases (e) and (f)'s A/B assertions), 96–98, 104–106 | Before enabling an untyped scope, an untyped vendor scope, the jump-host route or a bound set of more than one machine. Item 95's cases (e) and (f) cover A/B output release only after both pastes until M's destruction is confirmed, and the releases and refusals after it; case (e) also covers the copied key on A redacted. Items 7 and 91 cover set growth, subsets and two-machine sets; items 12, 14 and 29 their untyped-scope cases; item 23 the jump-host label; item 42 the untyped-scope half of the trust display; item 93 the jump-host, untyped-scope and larger-set modes, each accepted at the act it governs and restated, with their re-entry and reinstall cases; item 104 an invoice decoded from an untyped response, where the vendor invoices; item 105 the untyped hold's every-job, same-origin, successor and permission-lifetime cases. Item 92's multi-tenant case gates sets above one; its independence-bound case gates the first profile that declares a bound. Repeat item 17 against real untyped responses. |
 | Post-harness handoff | 8, 77 | Before enabling any profile that declares one; none is enabled before the admission group's gates pass (`STG-23`). |
 | Scanner and advisory monitoring | 9, 36 | Also complete item 50's scanner case before exposing scanner results. |

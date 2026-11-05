@@ -651,9 +651,17 @@ under `STA-17`'s condition (including its dedicated-machine relabel confirmation
 retired seed (`STA-22b`). Machine indices are distinct among machines allocated
 under the current seed. A retired-seed index can coincide with a migrated machine's new index.
 `n` is the journal's installation ordinal in decimal without leading zeros, starting at zero
-per machine. It is derived from the journal with no new journal field, unchanged across restart
-and Restore. Index 0 and ordinal 0 each render as `0`, so the first installation of index 0
-is `0-0`. [docs/design/credential-format-v1.md](./docs/design/credential-format-v1.md) says
+per machine. It is derived from the journal, unchanged across restart and Restore, with no new
+journal field except, on one path, the acceptance record `STA-17`'s rescue rekey journals. After
+that rekey of a dedicated machine, `n` counts from the ordinal the operator accepted there as a
+proposal, read from that acceptance's journal record or, after Restore, from the partial
+history `STA-16` restores; the shown id is pending, marked unconfirmed, until a read shows it
+on the disk or a destructive reinstall of the machine is dispatched. The companion does not
+carry the accepted ordinal: `TauWeb.Dispatch.installationOf`
+says "The installation boundary is derived from dispatched intents, never from a choice", and
+counts from zero. Index 0 and ordinal 0 each render as `0`, so the first installation of index
+0 is `0-0`.
+[docs/design/credential-format-v1.md](./docs/design/credential-format-v1.md) says
 "Indices are integers from 0 through 2^31−1": the largest machine component is `7fffffff`,
 eight bytes. With the one-byte `-` separator, seven bytes remain for `n`, so its uniform bound
 is 9 999 999 regardless of the machine component's
@@ -683,6 +691,19 @@ with any observation or installed-system pin of that machine in any earlier inst
 admission within the bound. This enforces "no pinned key survives a reinstall", never "erased
 as approved", and is vacuous for a predecessor that never reached `ready_to_reset` and left no
 matching observation. The harness does not reach for the vendor's console.
+
+After `STA-17`'s rescue rekey of a dedicated Robot machine whose ordinal was accepted there as a
+proposal, and on that path only, the earlier installations this backstop compares against are
+those whose facts the harness retains,
+retained facts below the accepted ordinal included
+([ADR-0056](./docs/adr/0056-the-rescue-rekey-keeps-a-proposed-ordinal.md)). Any known overlap
+refuses. The comparison over the unknown installations is never reported, displayed or exported
+as passed, and the unavailability of their facts alone does not refuse. This narrows the check
+for that case: a stale key from the unknown installations would go undetected. At LNVPS nothing
+changes: `STG-21a` says reinstall confirmation "requires a complete nonempty publication durably
+recorded for the immediately preceding installation before dispatch", and `CHN-R7`'s admission
+is unchanged. `TauWeb.Pins.fresh` compares against the knowledge it is given; the companion
+does not carry the accepted ordinal or the unknown installations.
 
 That console exists — Hetzner's vKVM rescue boots the installed disk inside a virtual machine
 with a screen — and it is **the operator's own tool, by hand, outside the harness**, for a

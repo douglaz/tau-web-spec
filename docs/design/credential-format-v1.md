@@ -184,9 +184,10 @@ nonce and AAD `tau-web/sheet/v1/<id>/payload`; only the wrapped key persists. Th
 envelope adds `payload_nonce` and `payload` to the fields above. Never reuse a local-store
 key or envelope as a sheet. Local and sheet purposes cannot be interchanged.
 
-New exports use an authenticated UTF-8 JSON payload containing `version: 5`, `derivation_version: 1`,
-`seed_id`, `exported_at` (UTC RFC 3339), `journal_sequence`, `next_indices` (machine/pass/
-handoff), `seed_backup`, `allocations` (including consumed tombstones), `host_pins`,
+New exports use an authenticated UTF-8 JSON payload containing `version: 5` (or `version: 6`,
+below), `derivation_version: 1`, `seed_id`, `exported_at` (UTC RFC 3339), `journal_sequence`,
+`next_indices` (machine/pass/handoff), `seed_backup`, `allocations` (including consumed
+tombstones), `host_pins`,
 `host_pin_installations`, `relay_discovery`, `exposure_ledger`, `artifact_history`,
 `placements: [{machine_index, application_name, name, path, placed_at}]`, `machine_states`,
 and optional
@@ -212,8 +213,8 @@ Imported starting URLs never replace the compiled discovery set B.
 
 Version 3 is accepted only by an explicit compatibility conversion that preserves every other
 version-3 field and its validation, wraps each recorded relay URL as `{"url":R}`, and supplies
-`relay_discovery:[]`. Never infer publisher identity from URL equality. Versions 4 and 5 use only
-the typed locator. Unknown payload versions and versions 1 and 2 remain unsupported. For
+`relay_discovery:[]`. Never infer publisher identity from URL equality. Versions 4, 5 and 6 use
+only the typed locator. Unknown payload versions and versions 1 and 2 remain unsupported. For
 publisher-key mismatch and migration, see `CHN-19`.
 This compatibility conversion changes neither the v1 encryption envelope nor derivation version 1,
 AAD, algorithms or known-answer vectors.
@@ -257,6 +258,24 @@ conversion changes no allocation, pin, observation, application, placement or se
 validation. Versions 1, 2 and unknown versions are still refused. New exports always retain
 the v5 history, even after a pinned successor. Sheet envelope v1, derivation v1, algorithms,
 AAD and known-answer vectors stay unchanged.
+
+### Partial history, payload version 6
+
+Version 6 keeps every version-5 rule for every machine without a partial history, and adds the
+partial history `STA-16` requires: "A machine whose installation ordinal was accepted as a
+proposal in `STA-17`'s rescue rekey has a partial history, and export and Restore MUST
+round-trip it". It carries the accepted ordinal with its acceptance basis, the earlier
+installations it holds no facts for marked unknown, and the facts retained below the accepted
+ordinal. Import reconstructs that
+partial history from the payload alone, without the journal. The unknown never becomes
+`legacy:"none"`, a known unpinned or pinned installation, an empty `known_unpinned` or empty
+history, and missing or invalid partial history is refused before binding. Validation of
+versions 3, 4 and 5 is unchanged, including the refusal of a duplicate or skipped installation
+ordinal below. Version 6 carries no representation for a recovery sheet found later. Its member
+names, the encoding of its gaps, whether the per-machine `installation` value needs an explicit
+unknown, what that machine's `legacy` and `known_unpinned` members hold, how the
+ordinal-continuity rules apply to that machine, and whether a new export uses version 6 always
+or only when such a machine is present are not yet specified.
 
 Each `host_pins` entry names the host-key route that produced it: `retrieve` (`CHN-R1`),
 `attest` (`CHN-R5`), `jump_host` (`CHN-R6`) or `lnvps_retrieve` (`CHN-R7`). The last
@@ -350,8 +369,8 @@ An application recorded only on another machine cannot satisfy the reference. No
 value, digest, scan key, byte length or other value-derived reference is included. Payload
 versions 1 and 2 and unknown payload versions are unsupported: refuse them explicitly. Version 3
 has only the explicit compatibility conversion above, and missing placement or application lists
-are never interpreted as empty. Payload versions 4 and 5 change neither the v1 envelope, derivation
-paths, algorithms, AAD nor known-answer vectors.
+are never interpreted as empty. Payload versions 4, 5 and 6 change neither the v1 envelope,
+derivation paths, algorithms, AAD nor known-answer vectors.
 Reject unknown versions, duplicate identities/indices and malformed fields before binding
 anything; imported data never creates a binding without vendor reconciliation and an
 operator act. Never merge two counters and call the result proof that a backup is current.
