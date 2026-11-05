@@ -376,6 +376,25 @@ and completion does not claim permanent id absence or coverage of that gap."
 Until confirmation, retain outstanding-machine truth and placed-secret duties; stop, a deletion date and
 operator disposition end none of them. This adds no reappearance handling.
 
+**A machine's destruction retires its row 23 references; what was withheld stays withheld.**
+When the existing deletion evidence for machine M has been admitted by its reconciliation
+contract and durably recorded (`STA-20`; at LNVPS, the deletion confirmation above), with its
+existing evidence limits, the row 23 scan key and reference of every placement on M end;
+`ARC-43` owns what that does to its wait. A stop, renewal-off, a passed deletion date, a
+reinstall or a disposition is not this boundary and retires no row 23 reference. `STA-20` says
+"A stopped machine, installation failure, loss, disposition or allocation status is not deletion
+evidence." The boundary claims neither physical erasure nor revocation of the credential at its
+service. Destruction never counts as a scan: bytes withheld before it stay withheld, and no old
+range becomes scanned, safe or releasable because a reference retired. The withholding decision
+follows the record or range, not the time it is read: re-collecting, replaying, re-requesting or
+displaying a pre-destruction range after the destruction, or giving it a later retrieval time,
+does not make it new output, and a range whose production after the destruction is not
+established stays pre-destruction. A machine-reported time or sequence establishes nothing:
+`STA-21` says "The job record is machine-reported and advisory." That identity and
+classification are protected and non-secret: no raw application value, bare digest or expired
+scan material is retained or exported for them. Output produced after the destruction is no
+longer compared against M's references.
+
 Rows 18–20 use the versioned envelope in `STA-23`. Row 15 derives row 17 as well as the
 machine and relay credentials. Derivation indices, resource mappings and allocator counters
 are encrypted recoverable metadata (`STA-22b`); a seed alone cannot discover them. A restored
@@ -552,6 +571,9 @@ scope (row 11) both widen a model's reach beyond its bound set, and both appear 
 blast-radius statement and the trust display for as long as they are live. Every acceptable
 weaker mode standing on a set (`SEC-14`) is counted and shown the same way, for the set.
 Where Delivered appears, the trust display carries `ARC-43`'s evidence labels where applicable.
+Where a machine's destruction has retired its placed-secret references, the trust display states
+that output produced after the destruction is not checked for that machine's values: `SEC-5`
+says "Output produced after the destruction is no longer compared against M's references."
 
 This replaces an absolute the root shell already defeated. A tenant that needs the absolute
 supplies it by procedure — `SEC-T4`.

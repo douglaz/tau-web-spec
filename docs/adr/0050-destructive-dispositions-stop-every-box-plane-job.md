@@ -51,3 +51,22 @@ conformance evidence; the companion has no placement or scan-reference state.
 *Amended 2026-11-03:* this stop was typed only and did not settle the untyped-scope hold. Which
 jobs that hold refuses is a separate rule, `STA-24`'s, recorded in
 [ADR-0054](./0054-the-untyped-scope-hold-refuses-every-new-job.md).
+
+## Amended 2026-11-05: a destroyed machine's references retire, its withheld output does not
+
+This record left open what a machine's destruction does to its peers' held output. The owner's
+2026-11-02 decision settles it, and `SEC-5` owns the rule: `SEC-5` says "Destruction never
+counts as a scan: bytes withheld before it stay withheld". The boundary is the admitted, durably
+recorded deletion evidence, with its existing limits, and `SEC-5` says "A stop, renewal-off, a
+passed deletion date, a reinstall or a disposition is not this boundary". The display is
+`SEC-6`'s, which says "states that output produced after the destruction is not checked for that
+machine's values". The wait is `ARC-43`'s, which says "Retiring that wait lifts this one
+prerequisite".
+
+Readings not selected:
+
+- **Extend the destroyed machine's references on its peers.** The references end with the
+  machine: `SEC-5` row 23 says "Until rotation, machine destruction".
+- **Release the old withheld backlog.** This record's rejected "Release the other machines' output
+  without the disposed machine's references" stays rejected: `SEC-5` says "Unscanned bytes MUST
+  be withheld".
