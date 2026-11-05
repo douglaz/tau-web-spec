@@ -310,7 +310,8 @@ A placement without a report is live: the export writes it until its secret is r
 machine is destroyed (`SEC-5` row 12). Rotation replaces its record with the rotation's new
 placement, and its machine's destruction removes it from every later export. After a Restore
 from a later sheet, its older output stays withheld through the `reference_ended` mark its end
-sets on the `machine_states` entries of the machines its reference scanned (below).
+sets on the `machine_states` entry of each live machine the exposure ledger records in a bound
+set with its machine (below).
 
 A placement with a report is ended. Its record stays in `placements` on every later export,
 after its secret is rotated and after its machine is destroyed (at LNVPS, the vendor's confirmed
@@ -543,12 +544,12 @@ Reject a missing, duplicate or malformed entry and an entry for a jump host or a
 allocation; never interpret a missing entry or an
 `"unapproved"` field as a default.
 
-`reference_ended` is `true` or `false`. It is `true` once the journal has recorded the end of a
-placement without a report whose row 23 reference scanned the machine's output (`SEC-5`): the
-journal act that records a rotation of a placement without a report, and the act that records
-the admitted deletion evidence of a machine holding one, set it on that placement's machine while
-that machine stays live and on every live machine the exposure ledger records in a bound set with
-it (`STA-10`). A reported placement's end sets nothing, since its record stays. Nothing clears
+`reference_ended` is `true` or `false`. `SEC-5` owns when it is set: the journal act that
+records a rotation of a placement without a report, and the act that records the admitted
+deletion evidence of a machine holding one, set it, whether or not that placement's reference is
+armed, on that placement's machine while that machine stays live and on every live machine the
+exposure ledger records in a bound set with it (`STA-10`). A reported placement's end sets
+nothing, since its record stays. Nothing clears
 the mark: a re-arm, a re-check, a reinstall, a new installation, a reapproval, a report and a
 Replace leave it standing, and a migrating machine's entry keeps it. The exporter copies it from
 the journal. It is recorded, not approved, and never `"unapproved"`. It is protected and

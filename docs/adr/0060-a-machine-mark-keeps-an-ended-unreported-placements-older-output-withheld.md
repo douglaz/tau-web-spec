@@ -1,14 +1,14 @@
 # A machine mark keeps an ended unreported placement's older output withheld after a Restore
 
 Decided 2026-11-05 (`tw-huu` comment 118000001). `SEC-5` owns the scan boundary and row 23;
-`ARC-43` owns the re-arm after store loss; `STA-10` owns the exposure ledger; `STA-16` owns what a
+`SEC-6` owns the display; `ARC-43` owns the re-arm after store loss; `STA-10` owns the exposure ledger; `STA-16` owns what a
 restored sheet shows; the credential format's payload version 7 owns the mark's wire form;
 `CNF-84` and `CNF-95(i)` own the cases. This record closes a point ADR-0057 left open and adds no
 rule of its own.
 
 ## What was undecided
 
-The credential format said of a placement without an operator report: "Rotation replaces its
+The credential format said at `078e658` of a placement without an operator report: "Rotation replaces its
 record with the rotation's new placement, and its machine's destruction removes it from every later
 export. What keeps output withheld for such an ended placement after a Restore from a later sheet
 is not yet specified." After local-store loss the sheet is the only thing that names a placement.
@@ -21,15 +21,17 @@ loss stays withheld for P"; neither reached an ended record that left the sheet.
 
 ## The shape chosen
 
-**A mark on each machine the ended reference scanned.** Each version-7 `machine_states` entry
+**A mark on each machine bound with the ended placement's machine.** Each version-7 `machine_states` entry
 carries a required boolean, `reference_ended`. The journal act that records the rotation of a
 placement without a report, or the admitted deletion evidence of a machine holding one, sets it on
 that placement's machine while the machine stays live and on every live machine the exposure ledger
-records in a bound set with it. Nothing clears it, and the exporter copies it.
+records in a bound set with it, whether or not the placement's reference is armed. Nothing
+clears it, and the exporter copies it.
 
 **What it does after a Restore.** On a marked machine every job record from before the loss stays
 withheld, as for a reported placement. Only output whose box-plane job the restored journal records
-as dispatched after the loss is new.
+as dispatched after the loss is new, and it is not checked for the ended value, as the trust
+display states.
 
 **What it is not.** It names no placement and carries no value-derived reference, so the display
 can say only that a reference that scanned the machine ended before export. Import checks its form
@@ -47,7 +49,7 @@ no option touches a theorem. With no majority the owner chose the mark. It keeps
 "Unscanned bytes MUST be withheld" across a Restore without keeping an ended unreported record on
 the sheet, so a rotation still replaces that record and an unreported record on a destroyed
 allocation is still refused. It withholds only on the machines whose output the ended reference
-scanned, read from the ledger's recorded bound sets rather than reconstructed.
+may have scanned, read from the ledger's recorded bound sets rather than reconstructed.
 
 ## What this changes in earlier picks
 
@@ -64,7 +66,7 @@ destroyed allocation stands, and a reported record keeps its own rules.
 
 ## Consequences
 
-`SEC-5`, `ARC-43`, `STA-16`, the credential format's payload version 7, `CNF-84` and `CNF-95(i)`
+`SEC-5`, `SEC-6`, `ARC-43`, `STA-16`, the credential format's payload version 7, `CNF-84` and `CNF-95(i)`
 change together. The formal companion has no placement or scan-reference state and is unchanged.
 How rotation treats output produced before it within a session stays open; the mark covers only
 what a Restore loses.

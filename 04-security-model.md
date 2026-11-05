@@ -493,17 +493,20 @@ reference.
 **After store loss, a machine marked for an ended unreported placement keeps its older job
 records withheld.** A placement Q without a report leaves later sheets when its secret is
 rotated or its machine is destroyed, so after local-store loss no sheet names Q and nothing
-restores its ended reference. The journal act that ends Q's row 23 reference by that rotation or
-by its machine's deletion evidence marks the `machine_states` entry of Q's machine while that
+restores its ended reference. The journal act that records Q's rotation, or the admitted
+deletion evidence of Q's machine, marks the `machine_states` entry of Q's machine while that
 machine stays live and of every live machine the exposure ledger records in a bound set with it
-(`STA-10`); the credential format's `reference_ended` member carries the mark, and nothing
+(`STA-10`), whether or not Q's reference is armed; the credential format's `reference_ended` member carries the mark, and nothing
 clears it
 ([ADR-0060](./docs/adr/0060-a-machine-mark-keeps-an-ended-unreported-placements-older-output-withheld.md)). After a Restore, every job record from before the loss on a marked machine stays
 withheld, as it does for a reported placement. Only output whose box-plane job the restored
 journal records as dispatched after the loss is new, and it is scanned under the references
 still required and released under every other prerequisite. Re-collecting, replaying,
 re-requesting or displaying a pre-loss record, or giving it a later retrieval time, makes it no
-newer, and a machine-reported time or sequence establishes nothing. The mark names no placement,
+newer, a job dispatched before the loss and still running across it stays pre-loss, and a
+machine-reported time or sequence establishes nothing. Output produced after the loss is not
+compared against the ended reference, including a later command's output that prints a withheld
+record back, while the original record stays withheld. The mark names no placement,
 value or reference, and a sheet holds it as of export (`STA-16`): it covers no end the journal
 recorded after that sheet's export. How rotation treats output produced before it within the
 session is not yet specified.
@@ -695,6 +698,11 @@ report is not checked for that placement's value, including a later command's ou
 back a range withheld before it: `SEC-5` says "Output produced after the report is no longer
 compared against P's reference". The machine's other placements without a report, its untyped
 scopes and the weaker modes standing on its set are counted as before.
+Where a restored machine state carries the `reference_ended` mark (`SEC-5`), the trust display
+says that a placement reference that scanned the machine ended before export, names no
+placement, and states that output produced after the Restore is not checked for that ended
+value, including a later command's output that prints back a record withheld before the loss:
+`SEC-5` says "Output produced after the loss is not compared against the ended reference".
 
 This replaces an absolute the root shell already defeated. A tenant that needs the absolute
 supplies it by procedure — `SEC-T4`.

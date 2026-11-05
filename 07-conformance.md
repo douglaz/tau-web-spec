@@ -435,16 +435,24 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       sheet exported before the report, and a version 3 to 6 sheet, restore P1's wait.
       Browser persistence and the exported sheet hold no raw value, bare digest or expired
       scan material for P1.
-      (i) Ended unreported placement (`SEC-5`, `ARC-43`): machines A and M are in one bound set,
-      Q is armed on M, and a job on A prints Q's exact value and is withheld. Q is then rotated,
-      and in a separate branch M's deletion evidence is recorded; a sheet is exported and the
-      local store is lost. The Restore re-arms nothing for Q, and every job record from before
-      the loss on each marked machine stays withheld after every other required reference is
+      (i) Ended unreported placement (`SEC-5`, `ARC-43`, `SEC-6`): after a local-store loss,
+      machines A and M are in one bound set, placement Q on M is unarmed, a job on A prints Q's
+      exact value and is withheld for Q, and clean jobs run on A and M. Machine C is in a bound
+      set the ledger never records with M. Q is then rotated, and in a separate branch M's
+      deletion evidence is recorded; a sheet is exported and the local store is lost again. The
+      Restore re-arms nothing for Q. Every job record from before the loss on each marked
+      machine, the clean ones included, stays withheld after every other required reference is
       armed and checks it clean, whether re-collected, replayed, re-requested, displayed or given
-      a later retrieval time; a job dispatched after the loss is released under every other
-      prerequisite. A sheet exported before Q's end restores Q as placed, owing its re-arm, and a
-      version 3 to 6 sheet restores every mark unset. The trust display names no placement for the mark, and browser persistence and the
-      sheet hold no raw value, bare digest or scan material for Q.
+      a later retrieval time, and so does output of a job dispatched before the loss and still
+      running across it. C's pre-loss records are released once their references check them
+      clean. A job dispatched after the loss is released under every other prerequisite,
+      including one that prints a withheld record back, with Q's old value in it unredacted,
+      while the original record stays withheld. The trust display shows each marked machine as
+      one where a placement reference that scanned it ended before export, names no placement,
+      and states that output after the Restore is not checked for that value. A sheet exported
+      before Q's end restores Q as placed, owing its re-arm, and a version 3 to 6 sheet restores
+      every mark unset. Browser persistence and the sheet hold no raw value, bare digest or scan
+      material for Q.
 - [ ] **CNF-17 · BLOCKING** An untyped response containing a harness-held credential is
       redacted before it reaches the model or the record. Exact-value scan.
 - [ ] **CNF-18 · BLOCKING** The attest introduction is **single-use**, and single-use is the
@@ -1940,11 +1948,15 @@ Not pass/fail. Required to be recorded.
       sheet restores every placement with `report:"none"`, every such record with the payload's
       seed, every machine state with `reference_ended:false`, and no retired allocation.
       Round-trip machine states with `reference_ended` `true` and `false`, and refuse before
-      binding a missing, `null` or non-boolean one. Rotate an unreported placement on M in a
-      bound set with A, and in a separate branch destroy M: the one journal act sets the mark on
-      M while it lives and on A, sets none on a machine the ledger never bound with M, and the
-      next export carries it while the ended record is gone; a re-arm, re-check, reinstall,
-      reapproval, report or Replace migration leaves it set.
+      binding a missing, `null` or non-boolean one. M holds an unreported placement and the
+      ledger records A in a bound set with M, including where that binding came before the
+      placement, and C in none. Rotating the placement sets the mark on M and A in the one
+      journal act that records the rotation; in a separate branch, recording M's deletion
+      evidence sets it on A in the act that makes M `destroyed: true`, and the export has no
+      machine state for M. Neither sets it on C, and the next export carries the mark while the
+      ended record is gone. Rotating a reported placement, and destroying a machine holding only
+      reported placements, set no mark. A re-arm, re-check, reinstall, new installation,
+      reapproval, report or Replace migration leaves a mark set.
       Confirm the restored application/provider list is complete, including an application with
       a recorded provider and no restored secret placement: its provider remains recorded and is not listed in the
       trust display. Include a restored placement with distinct `application_name` and secret
