@@ -92,3 +92,10 @@ The stages this record names are archived, non-normative
 What this record decided for stage 1 now applies to the LNVPS path: its recovery row is
 `07-conformance.md`'s "The LNVPS path: recovery export/import and Replace", with the same
 items and the same split between that row, the dedicated row and the paid/public row.
+
+## Amended 2026-11-02: the no-sheet cloud remedy
+
+[ADR-0053](./0053-sheetless-cloud-recovery-adds-no-destructive-authority.md) qualifies option
+C's note that destroy/recreate remains the no-sheet cloud remedy. The harness recreates only
+where existing authorization permits it; otherwise the operator acts at the vendor, and
+unavailable remedies are reported as unavailable.

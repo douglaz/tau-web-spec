@@ -267,10 +267,10 @@ gated on it.
         on every machine whatever its class, and asking the class again when a machine gains a
         public listener beyond sshd. And whether Hermes, as shipped, serves parties the operator
         has never met — which would make its machine multi-tenant by `ARC-36`'s definition.
-      - **A maintained cloud machine whose pin is lost with no sheet.** `STA-15` says "the
-        machine is destroyed and recreated, which re-runs its first contact and loses its
-        state", and neither attest nor a jump host re-pins a machine that already exists.
-        Whether a later rule should allow it is undecided.
+      - **A maintained cloud machine whose pin is lost with no sheet.** `STA-15` says
+        "recovery adds no destructive authority", and neither attest nor a jump host re-pins a
+        machine that already exists. Whether a later rule should allow re-pinning it is
+        undecided.
       - **Found by the branch review of 2026-10-06.** The minimum byte length and `CNF-94`'s
         refusal case were settled 2026-10-16 (`SEC-5`); integrated evidence remains T48's. The sheet carries neither `SEC-4`'s two answers for an
         untyped vendor scope nor `CHN-R6`'s jump vendor and date, both `STG-22`'s.

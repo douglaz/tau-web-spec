@@ -954,7 +954,7 @@ identity, and the restriction is the parameter whose pair is
 
 With no sheet, or for machines missing from a stale sheet, Robot recovery installs keys from
 a fresh seed through vendor-authenticated rescue and re-reads host pins; it does not guess old
-indices. Cloud destroys and recreates (`STA-15`). A pass whose metadata is missing cannot be
+indices. For cloud, `STA-15` says "recovery adds no destructive authority". A pass whose metadata is missing cannot be
 discovered or revoked from the seed alone: it must expire, its remaining quota may be lost,
 and a new pass uses the fresh seed. Neither vendor inventory nor the publisher is an index
 backup service. Export is recommended after each allocation, including on dedicated.
@@ -1178,7 +1178,7 @@ flowchart TD
     VEND -->|Dedicated / Robot| CER["Rescue ceremony<br/>register the new phone's client key ·<br/>activate rescue · pin the rescue host key<br/>from the API, no TOFU · install the new<br/>client pubkey from inside rescue ·<br/>re-read the installed host keys<br/><br/>Cost: two reboots. Always works,<br/>so the sheet is optional here"]
     VEND -->|Cloud| SHEET{Was a sheet exported?}
     SHEET -->|Yes| ZERO["Seed re-derives client keys ·<br/>sheet restores pins. Zero downtime"]
-    SHEET -->|"No — MUST NOT happen:<br/>the sheet is mandatory<br/>on maintained cloud"| DR["Destroy and recreate<br/>re-runs the first contact.<br/>Loses machine state"]
+    SHEET -->|"No — MUST NOT happen:<br/>the sheet is mandatory<br/>on maintained cloud"| DR["No destructive authority added (STA-15).<br/>Recreate only where existing<br/>authorization permits; otherwise<br/>the operator acts at the vendor"]
     classDef good fill:#e8f5e9,stroke:#4a7c59
     classDef bad fill:#ffebee,stroke:#a54a4a
     class SEALED,CER,ZERO good
@@ -1191,15 +1191,40 @@ stays optional. A sealed tenant's machines need none: their pins die at sealing,
 lost mid-setup is answered by the tenant's own all-or-nothing rule — abandon and recreate.
 This asymmetry is stated, not smoothed over.
 
-Where a maintained cloud machine's pin is lost with no sheet anyway, the machine is destroyed
-and recreated, which re-runs its first contact and loses its state. The keyed rescue login
-this section's figure once offered beside that — a rescue system whose host key nothing can
-check — is withdrawn with `CHN-R5`'s: it accepted a key through the relay with no pin, which
-`CHN-R4` refuses.
+**Where a maintained cloud machine's pin is lost with no sheet anyway, recovery adds no
+destructive authority.** For a machine that existing authorization cannot admit, the harness
+MUST NOT stop, reinstall or destroy it on the strength of a vendor listing, a recovery-sheet
+mapping or a selection among listed machines. Selecting a listed machine, including one of
+another account, adopts nothing. This section adds no adoption card and no recovery-evidence
+rule. That authorization has one home, `SEC-4`, unchanged here. `SEC-4` says "What an adapter
+can list of the account is displayed and never relied on" and "A mapping imported from a
+recovery sheet is never enough by itself."
+
+Existing authority is unchanged. The harness recreates only where its existing credentials,
+authority, allocation and approval rules permit; recreating re-runs the first contact and
+loses the machine's state. A fresh acquisition is a new order under its own existing
+approvals. Otherwise the operator acts at the vendor, where the vendor offers an actual route.
+
+The recovery screen MUST name each remedy that is unavailable for a machine the harness has a
+record of. It MUST NOT promise that every vendor offers a manual destroy or that a missing
+credential can be recovered. An operator's report of a manual or external action establishes
+no deletion, billing cessation or cleared obligation: such a machine stays shown as existing
+and billed, and destruction is reported only on the existing admitted evidence. At LNVPS
+`ARC-22` says "destruction remains unconfirmed until the admitted deletion evidence is durably
+recorded." Retained barriers, identity exclusions, host-pin rules, uncertain outcomes and the
+exposure and billing displays stay in force.
+
+The keyed rescue login this section's figure once offered beside destroy and recreate — a
+rescue system whose host key nothing can check — is withdrawn with `CHN-R5`'s: it accepted a
+key through the relay with no pin, which `CHN-R4` refuses.
 
 At LNVPS the unavailable-destroy treatment and reinstall's new first contact belong to
 `ARC-22`: it says "a vendor-API reinstall of the same machine stands in and is a **new first
-contact**". No old pin is reused for that system.
+contact**". No old pin is reused for that system. Neither the stop nor the reinstall is
+available once the machine's vendor key is lost with its old seed or index: `STA-17` says "the
+harness can neither reinstall nor stop it; the machine remains shown as existing and billed".
+`STG-21a` says "Without the key, no read confirms deletion, and the placed-secret duties
+continue." Stop, reinstall and deletion confirmation are then shown as unavailable.
 
 **STA-16** The recovery sheet holds the allocation metadata of `STA-22b`, the seed-backup
 ceremony record or explicit no-record marker for its seed id (`STA-23`), host-key
@@ -1336,8 +1361,9 @@ wait for an LNVPS rebuild's old machine's deletion evidence (below) does not by 
 backup needed; where that machine's vendor key can come only from the retired seed, a read under
 that key is such a step.
 If the old seed or an index is missing, direct re-entry and pass revocation cannot finish.
-Robot machines can still be rekeyed through vendor-authenticated rescue (`STA-15`); cloud
-machines are destroyed and recreated, as that section says. At LNVPS a missing old seed or index
+Robot machines can still be rekeyed through vendor-authenticated rescue (`STA-15`). For a
+cloud machine, `STA-15` says "recovery adds no destructive authority" and "Otherwise the
+operator acts at the vendor, where the vendor offers an actual route." At LNVPS a missing old seed or index
 also loses that machine's vendor key, so the harness can neither reinstall nor stop it; the
 machine remains shown as existing and billed. `STG-21a` says "Without the key, no read confirms deletion, and the placed-secret duties continue."
 For abandonment duties, see `ARC-22`.
@@ -1424,7 +1450,8 @@ carry-forward and disclosure amendment remains T44's, not an available Replace b
 **STA-18** Inventory recovery makes the vendor list authoritative. Listing the account is how
 a new phone learns what exists. That listing is performed by the deterministic recovery flow
 under the operator's approval, **before any session exists**, so it is not a session
-operation and `SEC-4`'s machine-binding rule for typed operations is not in play.
+operation and `SEC-4`'s machine-binding rule for typed operations is not in play. It grants
+no destructive authority: `STA-15` says "recovery adds no destructive authority".
 
 **STA-19** Transcript retention has no policy yet. A maintained machine accumulates command
 records for its whole life in an encrypted store on a phone, and nothing states when they

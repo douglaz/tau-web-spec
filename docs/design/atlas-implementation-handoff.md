@@ -210,8 +210,8 @@ required. The bound lengths are unchanged; alphabet members changed shape with t
 cases are named histories.
 
 Successor policy and live-session substitution, installation acceptance, held-output release,
-journal-loss command overlap, sheetless destroy authority and recovery third-rung choices remain
-with their existing owners and admission gates. No automatic successor or email-verification
+journal-loss command overlap and recovery third-rung choices remain with their existing owners
+and admission gates. Sheetless recovery adds no destructive authority under `STA-15`. No automatic successor or email-verification
 recovery route follows from these comparisons.
 
 Additional contact and lifecycle discriminators in Dispatch schema 9:

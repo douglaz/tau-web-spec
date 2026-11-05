@@ -125,3 +125,11 @@ stage-2 route on `CHN-R6`'s conditions, and its vendor is unqualified.
 The phase-B comparison is recorded in `docs/findings/2026-10-11-lnvps-phase-b.md` and
 `CHN-R7` now admits the LNVPS installed-system pin. The through-relay first-contact refusal
 above still applies when no pin has been admitted; the jump-vendor question remains open.
+
+## Amended 2026-11-02: sheetless recovery adds no destructive authority
+
+[ADR-0053](./0053-sheetless-cloud-recovery-adds-no-destructive-authority.md) qualifies the
+sentence above that a maintained cloud machine whose pin is lost with no sheet is destroyed and
+recreated. `STA-15` owns the current rule; `STA-15` says "recovery adds no destructive
+authority" and "Otherwise the operator acts at the vendor, where the vendor offers an actual
+route."

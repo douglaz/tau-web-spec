@@ -1018,6 +1018,8 @@ against.
 **At LNVPS, which offers the operator no destroy route, destruction remains unconfirmed
 until the admitted deletion evidence is durably recorded.** Destroy and recreate take different
 forms there. Where the harness would destroy a machine — an abandonment, or the old machine of a Replace rebuild — it stops that machine, turns automatic renewal off, and shows it as still existing and billed, with the vendor's stated deletion date, until deletion is confirmed under the LNVPS operation contract.
+Where the old seed or index is missing, it cannot stop the machine: `STA-17` says "the harness
+can neither reinstall nor stop it; the machine remains shown as existing and billed".
 `STG-21a` owns that contract and says "This is accepted vendor risk, not proof of host destruction in every source-permitted execution."
 Its completion limit is "No post-confirmation reappearance handling is specified: the resulting billing-display gap remains,
 and completion does not claim permanent id absence or coverage of that gap."

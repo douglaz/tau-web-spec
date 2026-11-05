@@ -14,12 +14,19 @@ The decided Replace carry-forward and bounded inventory scan are recorded in
 [ADR-0042](./0042-the-vendor-identity-is-derived-per-machine.md); T44 must amend the operative
 credential and recovery contracts before either behavior is available.
 
+## Amended 2026-11-02: sheetless recovery adds no destructive authority
+
+[ADR-0053](./0053-sheetless-cloud-recovery-adds-no-destructive-authority.md) qualifies both
+halves of the fallback in "Current recovery paths" below. `STA-15` says "Where a maintained
+cloud machine's pin is lost with no sheet anyway, recovery adds no destructive authority." A
+missing or stale sheet invokes a recreate only where existing authorization permits it;
+otherwise the operator acts at the vendor, and unavailable remedies are reported as unavailable.
+
 ## Amended 2026-10-06: the cloud fallback and stage-1 recovery
 
-The "honestly labelled keyed-rescue fallback" below is superseded. `STA-15` says "Where a
-maintained cloud machine's pin is lost with no sheet anyway, the machine is destroyed and
-recreated"; `CHN-R4` owns refusal of an unpinned first contact through the relay. The recovery
-choice and its stage applicability are recorded in
+The "honestly labelled keyed-rescue fallback" below is superseded. The 2026-11-02 amendment above
+qualifies the explicit recreate. `CHN-R4` owns refusal of an unpinned first contact through the
+relay. The recovery choice and its stage applicability are recorded in
 [ADR-0040](./0040-stage-one-includes-restore-and-replace.md). `STA-17` owns the current key
 replacement order, manual relay retirement and revocation limits. `STA-16` owns the sheet's
 current contents and restored-state qualification. The body below is unchanged and records
