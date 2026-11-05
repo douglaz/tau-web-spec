@@ -317,10 +317,18 @@ reported record on an absent, failed, jump-host or non-machine allocation before
 A machine allocation whose deletion evidence `SEC-5` admits and the journal durably records
 carries `destroyed: true`, and no other allocation carries the field. A stop, a passed deletion
 date, a reinstall or a disposition does not set it, and such a machine stays live here. Reject the
-field with any other value or on any other allocation. A reported record whose machine is live satisfies the application association below as any
-placement does. How a reported record whose machine is destroyed, and so has no `machine_states`
-entry, satisfies that association is not yet specified; it is the only placement for which the
-refusal of a placement naming no application on its machine may narrow.
+field with any other value or on any other allocation. A destroyed allocation has no
+`machine_states` entry (below).
+
+A reported record whose machine is live satisfies the application association below as any
+placement does. A reported record whose allocation carries `destroyed: true` is checked by form
+only: its `application_name` must satisfy the application-name rule below, and it is matched
+against no list, since its machine has no `applications` array. It is the only placement for
+which the refusal of a placement naming no application on its machine is narrowed. The exporter
+copies such a record unchanged from the journal's report and placement records, never from a
+reconstructed or renamed application. The sheet keeps no list of a destroyed machine's
+applications or providers, and a Restore lists no provider for such a record. Reject a record
+without a report on a destroyed allocation before binding.
 
 Validate versions 3 to 6 under their own rules, then convert to version 7 in memory by giving
 every placement `report:"none"`. The conversion invents no report: an older sheet restores each
@@ -343,8 +351,9 @@ access model of `ARC-27`, `installation` as `"pinned"`, `"unpinned"` (`ARC-25`) 
 on the machine's bound set (`SEC-14`). A field not yet approved at export carries the explicit
 marker `"unapproved"`, never an absent field; `installation` and `applications` are recorded,
 not approved. Every live machine other than a jump host has exactly one entry, bound to a session or not; an
-allocation marked `jump_host: true` (`STA-22b`) has none. Reject a missing, duplicate or
-malformed entry and an entry for a jump host; never interpret a missing entry or an
+allocation marked `jump_host: true` (`STA-22b`) or, in version 7, `destroyed: true` has none.
+Reject a missing, duplicate or malformed entry and an entry for a jump host or a destroyed
+allocation; never interpret a missing entry or an
 `"unapproved"` field as a default.
 
 `host_pin_installations` is a required array of installation groups in creation order.
@@ -416,7 +425,9 @@ required nonempty string under the application-name whitespace rule above. Rejec
 malformed `application_name`, one naming no application on that same machine, missing or
 ambiguous machine associations, duplicate placement records (version 7 above defines them),
 duplicate JSON object member names in a placement and malformed fields before binding.
-An application recorded only on another machine cannot satisfy the reference. No placement
+An application recorded only on another machine cannot satisfy the reference. The one exception
+is version 7's reported record on a destroyed allocation (above), whose `application_name` is
+checked by form only. No placement
 value, digest, scan key, byte length or other value-derived reference is included. Payload
 versions 1 and 2 and unknown payload versions are unsupported: refuse them explicitly. Version 3
 has only the explicit compatibility conversion above, and missing placement or application lists
