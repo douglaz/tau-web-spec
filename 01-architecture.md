@@ -308,6 +308,10 @@ output. The jobs are:
   during Replace's model-free direct re-entry migration or the model-free rescue rekey, outside
   any session. The model MUST NOT request it through `request_harness_job` or supply its command.
   Its rules are `STA-17`'s.
+- `rescue_install_key` — a harness-initiated job in the rescue system during the model-free
+  rescue rekey, outside any session, that makes `STA-17`'s root-label check and writes the
+  fresh-seed client key only as that check allows. The model MUST NOT request it through
+  `request_harness_job` or supply its command. Its rules are `STA-17`'s.
 
 Listener observations, outbound-restriction observations and service state/enablement
 observations used for delivery also MUST come from harness-composed reads. The signed
@@ -950,8 +954,9 @@ that credential MUST be one the tenant's own protocol already assumes a hostile 
 peer's worth of reach, never administrative reach the tenant does not design against. `SEC-1`
 says "no party other than a machine's bound session — or, for a jump host, which has none, the
 harness flow that makes the contact (`CHN-R6`), or, while Replace migrates it, the harness's
-model-free Replace flow (`STA-17`) — ever holds that machine's client key", and post-harness
-machinery is none of these
+model-free Replace flow (`STA-17`), or, while the harness's model-free rescue rekey (`STA-17`)
+rekeys it, that flow — ever holds that machine's client key", and post-harness machinery is
+none of these
 ([ADR-0026](./docs/adr/0026-the-coordinator-is-the-tenants-and-runs-after-sealing.md)).
 
 **Where that credential comes from, stated because the obvious source is closed.** The

@@ -1211,7 +1211,8 @@ corruption cannot lose it; recovery remains necessary.
 Conceptual recovery navigation. In this figure, “Zero downtime” describes the intended
 key/pin recovery route, not preserved live-session authority, command completion, scan
 readiness, a delivery verdict or permission for new allocations. “Always works” names the
-design's dedicated-vendor rescue route, not integrated device/vendor evidence. Evidence and
+design's dedicated-vendor rescue route, not integrated device/vendor evidence, and with no sheet
+that route needs a root label in the harness's form (`STA-15`). Evidence and
 its remaining limits live at [OPN-3](./08-open-questions.md#gates-by-path-and-capability),
 [OPN-28](./08-open-questions.md#design-level-still-open) and
 [Capability applicability and admission](./07-conformance.md#capability-applicability-and-admission).
@@ -1236,8 +1237,9 @@ flowchart TD
 ```
 
 **STA-15** The recovery sheet MUST be exported before a **maintained cloud** machine's setup
-completes. On Robot the ceremony always works, so there the sheet is an optimisation and
-stays optional. A sealed tenant's machines need none: their pins die at sealing, and a phone
+completes. On Robot the ceremony always works, so there the sheet is an optimisation and stays
+optional, except that with no sheet a machine whose root label is missing or damaged gets no
+rescue rekey from the harness (`STA-17`). A sealed tenant's machines need none: their pins die at sealing, and a phone
 lost mid-setup is answered by the tenant's own all-or-nothing rule — abandon and recreate.
 This asymmetry is stated, not smoothed over.
 
@@ -1484,6 +1486,30 @@ to the new index, never before the disk does, and only after that may the old ke
 At LNVPS, and at any other non-dedicated vendor, the shown id still moves to the new index
 when Replace's bullet above migrates it, as before, but there is no relabel step and nothing
 is written to the disk.
+
+**With no admissible saved history, the rescue rekey's target is the one server the operator
+approves, and the flow writes no key to a server without a root label in the harness's form.**
+Then nothing the harness retains ties a server to this harness. The flow's own approval card
+(`SEC-4`) names one Robot server by its immutable server number, shows the facts `STA-18`'s
+listing reads for it as the vendor's word at one moment, says that no saved record ties this
+server to this harness, and preselects nothing. Approving the card journals and durably
+reserves, before any external effect, the fresh-seed machine entry at index `b` that maps the
+account reference and that server number to `b`'s expected public key (`STA-22b`); a failed
+append supplies no approval (`STA-3`). Every call of the flow is checked against that entry,
+never against a listing of the account's servers. In rescue, before the new client key is
+written, the `rescue_install_key` job (`ARC-43`) MUST find, in its own harness-composed read of
+the installed system's root labels, a root whose label reads in `STG-20`'s form, and it adds the
+key to that root's `authorized_keys`, keeping every other line. If it finds none, which is the
+root-label stop, the job writes no key, the flow stops unfinished, and the only vendor call left
+to it is the reset into the installed system, under that reset's own prerequisites
+(`STA-20b`). Whether the installed host keys may be read after this stop is not decided, and
+neither is which root receives the key when more than one reads in that form. The root-label
+stop opens no session binding: the re-entry below does not follow it, and whether a machine
+stopped there may later be bound is not decided. A label that passes proves nothing: it
+establishes no identity, authenticates no root contents and supplies no acceptance, and the
+operator's approval stays the only tie between this server and its entry. So with no sheet, a
+server whose root label is missing or damaged gets no rescue rekey from the harness, and
+nothing here grants a reinstall or an erasure to repair it.
 
 **A dedicated machine rekeyed through rescue keeps a proposed installation ordinal**
 ([ADR-0056](./docs/adr/0056-the-rescue-rekey-keeps-a-proposed-ordinal.md)). `STA-22b` says
