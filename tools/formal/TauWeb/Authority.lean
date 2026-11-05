@@ -849,7 +849,8 @@ def pausedGrowthEvents (afterResume : Bool) : List Event := startEvents ++ [.lif
       (result (pausedGrowthEvents false) { current with growthAvailable := false }) pausedGrowthWork.who).map (·.bound) =
         some [3, Dispatch.entryA] ∧
     sent (result (pausedGrowthEvents false) { current with growthAvailable := false }) pausedGrowthWork.request.call = true := by decide +kernel
-/-- Unlocking alone does not resume the dormant session: growth stays refused until resume. -/
+/-- In the model, `.unlock` leaves the dormant session paused, and the `.grow` guard refuses a paused
+session until it resumes. -/
 def unlockedPausedGrowthEvents : List Event := startEvents ++
   [.lifecycle (.pause .lock), .lifecycle (.unlock true), .lifecycle (.grow alice 3 true),
     .lifecycle (.resume alice 100 true), .lifecycle (.validate pausedGrowthWork ready), .request pausedGrowthWork ready true]
