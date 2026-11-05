@@ -533,7 +533,7 @@ authority_control "formal: authority actor request session check removed" \
 
 authority_control "formal: authority machine membership check removed" \
   "sed -i 's/!p.machineMembership || a.bound.contains e/true/' $AUTH" \
-  unbound_entry_refused live_entry_growth_refused paused_growth_refused fenced_binding_growth_refused
+  unbound_entry_refused live_entry_growth_refused paused_growth_refused unlocked_paused_growth_refused fenced_binding_growth_refused
 
 authority_control "formal: authority growth exclusivity check removed" \
   "sed -i 's/(!p.exclusiveBinding || !p.growthExclusive || bindingFree p w who \[entry\])/true/' $AUTH" \
@@ -700,7 +700,10 @@ authority_control "formal: resume while locked" \
   locked_resume_refused
 authority_control "formal: growth while paused or locked" \
   "sed -i 's/(!p.growthAvailable || (available p w && !(w.actors.any fun a => a.who == who && a.paused)))/true/' $AUTH" \
-  paused_growth_refused
+  paused_growth_refused unlocked_paused_growth_refused
+authority_control "formal: growth while unlocked but still paused" \
+  "sed -i 's/(available p w \&\& !(w.actors.any fun a => a.who == who \&\& a.paused))/(available p w)/' $AUTH" \
+  unlocked_paused_growth_refused
 
 authority_control "formal: ceremony entry while locked" \
   "sed -i 's/(p.ceremonyUnlocked && w.locked)/false/' $AUTH" \
