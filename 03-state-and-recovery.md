@@ -1632,17 +1632,25 @@ never against a listing of the account's servers. How the flow ties the credenti
 under to the entry's account reference is not decided. In rescue, before the new client key is
 written, the `rescue_install_key` job (`ARC-43`) MUST find, in its own harness-composed read of
 the installed system's root labels, a root whose label reads in `STG-20`'s form, and it adds the
-key to that root's `authorized_keys`, keeping every other line. If it finds none, or more than
+key to the root account's `authorized_keys` in that root (`/root/.ssh/authorized_keys` inside
+it), keeping every other line. Where that file or its `.ssh` directory is missing, the job
+creates it, owned by root, the directory with mode 700 and the file with mode 600; it changes no
+mode or owner of anything it does not create. If it finds none, or more than
 one, or a label probe it makes of a device it reads as a possible root does not resolve, which is
 the root-label stop, the job writes no key and the flow stops unfinished, except for
 the reset into
 the installed system, the one vendor call left to the grant (`SEC-4`), under that reset's own
-prerequisites (`STA-20b`), which the scoped read below may meet. Writing the key, the job
-follows no symbolic link and writes no file outside that root: it refuses a path to
-`authorized_keys` that is a symbolic link or passes through one, and then writes no key. That
-refusal is not the root-label stop: it is a failure of the flow, so the grant ends on it
-(`SEC-4`). The root-label stop opens no session binding: the re-entry below does not follow it,
-and whether a machine stopped there may later be bound is not decided. A label that passes
+prerequisites (`STA-20b`), which the scoped read below may meet. Writing the key, and creating
+that file or directory, the job follows no symbolic link and writes no file outside that root:
+it refuses a path to `authorized_keys` that is a symbolic link or passes through one, and then
+writes no key. That refusal is not the root-label stop: it is a failure of the flow, so the
+grant ends on it (`SEC-4`). Where each root on the server's disks is one file system on one disk
+and no disk carries a volume layer, the job writes nothing to a disk other than the one that
+carries the root it writes, and it reads every other device it reads as a possible root without
+mounting it read-write and without replaying its journal. What the job's read-write mount of the
+root it writes itself writes, journal replay and mount metadata included, is not decided, and
+neither is whether the job writes anything else to that root's disk. The root-label stop opens
+no session binding: the re-entry below does not follow it, and whether a machine stopped there may later be bound is not decided. A label that passes
 proves nothing: it establishes no identity, authenticates no root contents and supplies no
 acceptance, and the operator's approval stays the only tie between this server and its entry.
 So with no sheet, a server whose root label is missing or damaged, or that has more than one
