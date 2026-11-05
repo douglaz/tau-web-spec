@@ -1645,15 +1645,17 @@ nothing here grants a reinstall or an erasure to repair it.
 **After the root-label stop, one scoped read of the installed host keys serves that one reset
 back and is never trusted later to accept a key or make a connection.** The
 `rescue_host_key_read` job (`ARC-43`) reads, in
-rescue, the installed host public keys of the one root that carries them. It writes nothing to
+rescue, the installed host public keys of the one root that carries them; its captured output
+carries each key it reads as its `{family, fingerprint}` (`SEC-5` row 5) and no key bytes. It
+writes nothing to
 any disk, follows no symbolic link, reads no private key file, journals nothing of a file it
 refuses, and mounts every root it reads without replaying its file system's journal. It refuses, and
 the reset into the installed system is then neither offered
 nor sent, when it finds no host keys, when it finds host keys under more than one root, when any
 key it reads shares a fingerprint with the rescue boot's own pin (`CHN-R1`), when a file it reads
 holds anything but one public key, or when it cannot read a root. A refused read is a failure
-of the flow, so the grant ends on it (`SEC-4`). What it reads, journaled with the reset intent
-as fingerprints with no key bytes (`SEC-5` row 5), stands in for `ready_to_reset`'s pins only for that reset, as its durable prerequisite and
+of the flow, so the grant ends on it (`SEC-4`). What it reads, journaled with the reset intent,
+stands in for `ready_to_reset`'s pins only for that reset, as its durable prerequisite and
 expected next keys (`STA-20b`, `STG-4`). The answer that confirms the reset admits no
 connection. What it reads is no pin of any source `SEC-5` row 5 lists and is never
 `ready_to_reset`'s record; no later connection to the machine relies on it. It is kept in the
@@ -1681,7 +1683,7 @@ exported before the record was appended carries the entry without it, and `STA-1
 restored sheet is knowledge as of export": a Restore from that sheet alone brings the entry back
 without the bar, a known limit. How a
 Replace and the sheet's list of machine states treat an entry so barred is not decided, including
-whether the journal and the new seed's sheet keep the entry and its record through a Replace. The
+whether the journal and the new seed's sheet keep the entry through a Replace. The
 screen MUST show what the harness may not have undone on that server, each item only when the
 journal holds the intent of the call or job behind it: a client key possibly registered at
 Robot, a rescue activation possibly armed, the server possibly in rescue and a key possibly

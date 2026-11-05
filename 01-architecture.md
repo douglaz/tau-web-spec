@@ -283,9 +283,10 @@ output. The jobs are:
 - `fetch_artifact` — downloads the pinned URL to a harness-fixed path on the machine, hashes it,
   compares against the bundle's value and halts the install on a mismatch (`STG-6`).
 - `ready_to_reset` — reads `/mnt/etc/ssh/ssh_host_*_key.pub`, following no symbolic link and
-  reading no private key file. It refuses, journaling nothing of that file, when a file it reads
-  holds anything but one public key; otherwise it journals the pins, as fingerprints with no key
-  bytes (`SEC-5` row 5), except of a read `STA-20b`
+  reading no private key file; its captured output carries each key it reads as its
+  `{family, fingerprint}` (`SEC-5` row 5) and no key bytes. It refuses, journaling nothing of
+  that file, when a file it reads
+  holds anything but one public key; otherwise it journals the pins, except of a read `STA-20b`
   refuses ("A read sharing the rescue boot's pin is refused before its keys are journaled as
   pins"), unmounts the target, and
   only then offers the reset typed operation (`STA-20b`'s planned-reset ordering), unless
