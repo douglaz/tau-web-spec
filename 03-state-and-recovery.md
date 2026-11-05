@@ -1640,7 +1640,8 @@ establishes no identity, authenticates no root contents and supplies no acceptan
 operator's approval stays the only tie between this server and its entry. So with no sheet, a
 server whose root label is missing or damaged, or that has more than one root whose label reads
 in that form, gets no rescue rekey from the harness, and
-nothing here grants a reinstall or an erasure to repair it.
+nothing here grants a reinstall or an erasure to repair it. What counts as one root on a layout
+other than one file system on one disk is not decided.
 
 **After the root-label stop, one scoped read of the installed host keys serves that one reset
 back and is never trusted later to accept a key or make a connection.** The
