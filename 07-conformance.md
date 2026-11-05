@@ -218,7 +218,7 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       (b) Later session, intact store: use the encrypted reference, preserving it when the
       machine reports changed bytes; never silently adopt the changed value.
       (c) Seed-plus-sheet Restore, alongside `CNF-84`: each placement recorded on the set's
-      machines is re-armed
+      machines, apart from one whose reference `SEC-5` has retired, is re-armed
       before output collection or model commands on any machine of the set. The label is
       "re-armed from the machine's report", never "protected"; forgotten placements are not
       claimed covered. Machine-only entries are advisory and require an operator act to arm.
@@ -240,7 +240,8 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       refused and recorded as refused, never absent or failed; P1's outcome stays unknown
       (`CNF-29`: a disposition "keeps their outcome unknown"). The fallback card is offered
       at once for both placements, disposed P1 included, and says rotation waits. With neither,
-      one or both pasted, output on A and B is released only after both. Refuse a below-minimum
+      one or both pasted, output on A and B is released only after both, until M's destruction
+      is confirmed (`SEC-5`). Refuse a below-minimum
       paste, leaving the reference unarmed. A copied key split across output chunks on A is
       redacted. A late P1 record arms nothing even before a paste; it is journaled and shown,
       never replaces a pasted reference, and shows a mismatch on cross-check. A pasted reference
@@ -254,21 +255,49 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       pin/barrier conformance pairs, see `CNF-112`. The LNVPS path runs
       the assertions on M alone; the A/B output-release and copied-key assertions run under
       the untyped-scope, jump-host and sets-above-one row.
+      In a separate neither-pasted branch, M's destruction is then confirmed (`SEC-5`) while
+      output on A and B withheld for P1 and P2 still stands; P1's outcome stays unknown and M
+      stays in the session's membership. A targeted control that releases that pre-destruction
+      backlog after the destruction must produce this item's finding. Release of the same old
+      range after the destruction is refused whether it is re-collected, replayed, re-requested,
+      displayed or given a later retrieval time, and so is release of a range whose production
+      after it is not established, including a pre-destruction job whose machine record claims a
+      later time. The collection read itself stays available: `STA-20` says "Collection MUST
+      remain an available fresh privileged read of the existing record". Output on A and B
+      produced after the destruction is released once every other prerequisite holds, with a
+      value armed on A and split across output chunks still redacted, and a match window that
+      starts in the withheld range and ends in fresh output releases none of the withheld bytes.
+      With another hold or barrier standing on the set, or another reference unarmed, release
+      stays refused after M's wait retires. The fallback card is no longer offered for P1 or P2,
+      and a late P1 record arms nothing. Nothing is sent to M. The trust display states that
+      output after the destruction is not checked for M's values. Browser persistence and the
+      exported sheet hold no raw value, bare digest or expired scan material for the range
+      identity. In a separate branch where P1 was pasted before the destruction, the
+      confirmation removes P1's key and reference from browser persistence, and fresh output on
+      A carrying P1's exact value, where no reference still required matches it, is released
+      unredacted under the displayed limit. These assertions run under the untyped-scope,
+      jump-host and sets-above-one row.
       (f) As (e), in an unfinished setup whose abandonment flow `SEC-4` authorizes for M by evidence
       tied to the seed-derived key, but the operator disposes P1's `digest_secret` with abandonment.
       P2's digest is refused and recorded as refused, never absent or failed; P1's outcome stays
       unknown. The fallback card is offered at once for both placements, disposed P1 included. With
-      neither, one or both pasted, output on A and B is released only after both. A late P1 record
+      neither, one or both pasted, output on A and B is released only after both, until M's
+      destruction is confirmed (`SEC-5`). A late P1 record
       arms nothing and never replaces a pasted reference. The abandonment flow's operation naming M
       is dispatched whether or not anything was pasted, and clearing the gate resumes nothing of the
       abandoned setup. At LNVPS that operation is the stop that stands in for a destroy (`ARC-22`):
-      once it is dispatched, output on A and B is still released only after both pastes, P1 and
+      once it is dispatched, output on A and B is still released only after both pastes until the
+      deletion confirmation is recorded, P1 and
       P2 stay listed and counted whether or not anything was pasted, and the card offers no
       destroy and says the secrets stay listed until they are rotated or the vendor's deletion
-      is confirmed.
+      is confirmed. That stop, renewal-off or a passed deletion date without the durably
+      recorded deletion confirmation retires neither reference and lifts no wait; once the
+      confirmation is recorded, (e)'s destruction branches apply.
       P1's digest is never re-issued automatically, and M's traffic shows nothing
-      sent for the paste. The LNVPS path runs the assertions on M alone; the A/B output-release
-      assertions run under the untyped-scope, jump-host and sets-above-one row.
+      sent for the paste. The LNVPS path runs the assertions on M alone: there, the confirmation
+      removes a pasted placement's key and reference from browser persistence, M's own withheld
+      range stays withheld and nothing is sent to M. The A/B output-release assertions run under
+      the untyped-scope, jump-host and sets-above-one row.
       (g) Occurrence provenance (`SEC-5`): admit otherwise eligible values equal to journal
       framing at a reachable future number, populated report-collection framing, a specified
       generated status or sentinel, worker-message and model-request framing, and fixed
@@ -1971,7 +2000,7 @@ promotion rule above.
 | Before enabling the in-setup replacement order at LNVPS (`tw-ae7` B+E) | none yet: no item is defined yet, so the order stays unavailable | B+E (`tw-ae7`) is specified, not enabled. It is unavailable until all of these hold: a selection criterion for a setup with no declared bound, and the capability to meet it, exist (`OPN-27`; `tw-ae7` comment 60000001); completion on arrival and the deletion check, for the machine the in-setup rung stops (`tw-ae7` comment 82000001), have passing integrated evidence; T44's ADR-0042 identity has landed; the delivery gate below holds; and an owner admits the order. Until then `tw-ae7` C governs every LNVPS setup. Once admitted, B+E governs every no-bound LNVPS setup, one machine included. That evidence covers at least these cases (`ARC-15`, `ARC-22`, `SEC-4`). A replacement order before the old machine's stop, renewal-off and terminal reconciliation have finished is refused; once they have, the order proceeds with no wait for confirmed deletion, and the replacement is useful while that deletion is pending. The replacement is refused when it would run under the old entry's approval or reuse its allocation or per-machine identity, when it departs from its own approval's original structured facts, when the unavailable-identity exclusion bars it and while a hold stands that bars it; a disposition of the old machine's stop or renewal-off never counts as their confirmation. The replacement's delivery is what its entry contributes to the setup's completion, with no wait for the old machine's deletion and nothing else the setup needs to finish changed, while the old machine stays shown on the opening screen as existing and billed, with its cost and the vendor's stated deletion date, and its exposure and placed-secret duties stay open. After that delivery the abandonment flow does not reach the old machine, while the deletion check does. This row alone governs the check for a machine the in-setup rung stopped, whatever that machine's setup's later state: once the row holds, the check is offered for it whether its setup finished or was abandoned. In the mixed case, a machine the in-setup rung stopped whose setup is then abandoned while item 26's deletion-check case has not passed, the check is offered or not by this row alone. The check makes only `STG-21a`'s deletion reads under that machine's own recorded key, a mutating call or another machine's key is refused, and without T44's key it is unavailable and makes no read. The replacement and the check give no session or flow authority over the old machine it did not already have. |
 | Attest first-contact route | 18, 23 (attest-window case), 61, 74–75, 109 (attest admission) | Before enabling attest at any vendor that accepts boot configuration, including one used for a jump host. This row does not gate the LNVPS path. |
 | The dedicated path: the construction test bed | 20 (relabel cases), 22, 38, 48, 53 (`delivery_reboot` cases), 55 (`delivery_reboot` case), 62–64, 80, 84, 85–86, 109 (job-read admission), 110 | The Robot dedicated path's own checks, including item 20's relabel cases, only item 84's Robot rescue case, item 53's `delivery_reboot` cases, as the LNVPS-path required row lists them, item 55's `delivery_reboot` settlement case, and item 110's reset-into-rescue, harness-composed `delivery_reboot` and `replace_root_label` refusal cases. Their by-hand evidence stands (48 is recorded), construction exercises them on the test bed, and they pass on the integrated harness before a dedicated-server path is offered to an operator, which is not before the admission group's gates pass (`STG-23`). Items 62–64 also apply to any typed adapter that rides the pinned tunnel, the LNVPS path's included if its vendor refuses a browser origin. |
-| Untyped scopes, the jump host, sets above one | 7, 12, 14, 23, 27, 29, 31, 33, 42, 91–93, 95 (cases (e) and (f)'s A/B assertions), 96–98, 104–106 | Before enabling an untyped scope, an untyped vendor scope, the jump-host route or a bound set of more than one machine. Item 95's cases (e) and (f) cover A/B output release only after both pastes; case (e) also covers the copied key on A redacted. Items 7 and 91 cover set growth, subsets and two-machine sets; items 12, 14 and 29 their untyped-scope cases; item 23 the jump-host label; item 42 the untyped-scope half of the trust display; item 93 the jump-host, untyped-scope and larger-set modes, each accepted at the act it governs and restated, with their re-entry and reinstall cases; item 104 an invoice decoded from an untyped response, where the vendor invoices; item 105 the untyped hold's every-job, same-origin, successor and permission-lifetime cases. Item 92's multi-tenant case gates sets above one; its independence-bound case gates the first profile that declares a bound. Repeat item 17 against real untyped responses. |
+| Untyped scopes, the jump host, sets above one | 7, 12, 14, 23, 27, 29, 31, 33, 42, 91–93, 95 (cases (e) and (f)'s A/B assertions), 96–98, 104–106 | Before enabling an untyped scope, an untyped vendor scope, the jump-host route or a bound set of more than one machine. Item 95's cases (e) and (f) cover A/B output release only after both pastes until M's destruction is confirmed, and the releases and refusals after it; case (e) also covers the copied key on A redacted. Items 7 and 91 cover set growth, subsets and two-machine sets; items 12, 14 and 29 their untyped-scope cases; item 23 the jump-host label; item 42 the untyped-scope half of the trust display; item 93 the jump-host, untyped-scope and larger-set modes, each accepted at the act it governs and restated, with their re-entry and reinstall cases; item 104 an invoice decoded from an untyped response, where the vendor invoices; item 105 the untyped hold's every-job, same-origin, successor and permission-lifetime cases. Item 92's multi-tenant case gates sets above one; its independence-bound case gates the first profile that declares a bound. Repeat item 17 against real untyped responses. |
 | Post-harness handoff | 8, 77 | Before enabling any profile that declares one; none is enabled before the admission group's gates pass (`STG-23`). |
 | Scanner and advisory monitoring | 9, 36 | Also complete item 50's scanner case before exposing scanner results. |
 | Paid/public relay access | 57–60, 65, 76 | Before enrolment opens beyond the publisher's fixed record, including item 60's signed pass revocation. The LNVPS path uses item 20's manual retirement route and still requires 81 and 87. |

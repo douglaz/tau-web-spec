@@ -534,6 +534,17 @@ preselected; **"Not sure" is treated as yes**. It displays unknown coverage and 
 later irreversible acts under `STA-16`, but that unknown inventory does not itself block
 work once all known required references are armed.
 
+**A destroyed machine's references stop being required; the wait lifts only itself.** Once
+`SEC-5` retires a destroyed machine's references (`SEC-5` says "the row 23 scan key and
+reference of every placement on M end"), the re-arm above and the `exec` wait no longer require
+its placements, and nothing re-creates them: the fallback card is no longer offered for those
+placements, and a paste or late digest record arms nothing for them. Retiring that wait lifts
+this one prerequisite. It clears no command hold, resource barrier, pending check, other
+unarmed-reference requirement, destructive restriction or unknown command outcome. It does not
+shrink an actual session's membership and authorizes no new contact with the destroyed machine.
+Fresh output still owes every other release prerequisite; its scan is `SEC-5`'s, and `SEC-5`
+says "Destruction never counts as a scan: bytes withheld before it stay withheld".
+
 The model's tool set on the LNVPS path is exactly four: `exec` (a box-plane command it composed),
 `request_harness_job` (`fetch_artifact`, `ready_to_reset` or `place_secret`, by name, with the
 arguments that job admits),
