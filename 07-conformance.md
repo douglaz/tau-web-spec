@@ -2193,14 +2193,22 @@ Not pass/fail. Required to be recorded.
       without another write, and only that read confirms `b-7`; nothing rewrites the label
       automatically. Make the relabel job fail, or let the write succeed and the read show
       another label: the machine is not migrated and the old key stays.
-      (l) Every root (l)'s cases set up is one file system on one disk, no disk carries a
-      volume layer, and the rescue boot assembles or activates no volume (`STA-17` leaves those
-      cases not decided). With no saved history, the flow's card names one server number and
+      (l) Every root the cases of (l) through (p) set up is one file system on one disk, no disk
+      carries a volume layer, the rescue boot assembles or activates no volume, and the rescue
+      boot itself writes nothing to any disk while `rescue_install_key` or
+      `rescue_host_key_read` runs (`STA-17` leaves the cases these exclude not decided). With no
+      saved history, the flow's card names one server number and
       preselects nothing; until it is approved, none of the flow's calls is sent, and a
       failed append of the approval sends none. Every call that names a server names the approved
       entry's server number, whatever the account's listing then shows. Give the server one root
       labelled in `STG-20`'s form beside an unlabelled one: the key lands only in the labelled
-      root's `authorized_keys`, every other line kept. Give it no root labelled in that form,
+      root's `authorized_keys`, every other line kept, and that file is the root account's
+      `/root/.ssh/authorized_keys` inside it. Each in its own run, remove that file, and
+      separately its `.ssh` directory: the job creates what is missing, owned by the root
+      account, the directory with mode 700 and the file with mode 600, the file holding the
+      key. Give an
+      existing `.ssh` and file other modes and another owner: the job keeps them as they were.
+      Give it no root labelled in that form,
       once with no label and once with a damaged one: `rescue_install_key` writes no key, the
       flow stops unfinished, no vendor call other than the reset into the installed system is
       sent after it, that reset only under `STA-20b`'s prerequisites, and no session binds the
