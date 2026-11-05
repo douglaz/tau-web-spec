@@ -370,12 +370,23 @@ taken from the model.** For a machine it is the **approved machine entry** of th
 (`ARC-15`'s batch), to which the reserved allocation index (`STA-22b`) and, once learned, the
 immutable vendor machine id are associated — so a create and the machine it produced are one
 resource, and a second attempt at the same entry sits behind the same barrier even if it would
-reserve another index. A different approved entry is independent, and creating it while a sibling is unresolved is permitted under its own approval, whose card shows the unresolved sibling and that it may be billing, unless the unavailable-identity exclusion below bars its order. For an untyped call it is the **scope** itself, since no
+reserve another index. A different approved entry is independent, and creating it while a sibling is unresolved is permitted under its own approval, whose card shows the unresolved sibling and that it may be billing, unless the unavailable-identity exclusion below bars its order. For the in-setup replacement rung's new entry, see `ARC-22`. For an untyped call it is the **scope** itself, since no
 adapter can say what the call touched (`SEC-4`): no further call under that scope is dispatched
 while it is unresolved, and once the operator disposes of it only as the disposition permits
 (below); nothing under a scope counts as a read, because nothing types it. A scope re-approved
-for the same origin and credential inherits the outstanding call. An untyped vendor scope
-(`SEC-4`) is a scope like any other here.
+for the same origin and credential inherits the outstanding call. *Amended 2026-11-03*
+(ADR-0054): so does every later untyped vendor scope at the same exact origin after a credential
+change. No credential is compared, and a different credential does not exempt the later scope,
+so a different account at that origin is barred too until the original call has a valid terminal
+record. Session end, credential erasure, reapproval and work done at the vendor by hand are not
+that record. The inheritance supplies no approval or binding authority, and every other
+admission still applies; an origin other than the exact one is not reached by it. The original
+call and its scope keep their identities and recorded uncertainty, with no automatic retry,
+rewrite or synthetic settlement. Where the terminal record is a destructive disposition, the
+hold below carries to the later scope's calls and adds nothing to the machines it covers; a
+continuation that continues creates no hold. The pause below keeps the reach it has; this
+amendment adds none. An untyped vendor scope (`SEC-4`) is a
+scope like any other here.
 
 A received-present but withheld vendor identity keeps the approved-entry barrier until independently admissible operation evidence or disposition. Its confirmation, settlement, targeting and disposition effects are specified in Protected browser evidence v1 §3a.
 
@@ -400,8 +411,11 @@ same exception is taken wider there: while a call under that scope is open — s
 answered — or unresolved, the harness worker MUST NOT dispatch a box-plane command to any
 machine of the session's bound set at that vendor. The pause ends with the call's terminal
 record: where that record is the operator's disposition, a continuation that continues ends
-the pause and a destructive one does not (*the hold*, below). This pause is not carried by
-`TauWeb.Dispatch` below. The inference request (`ARC-31a`) keeps its unresolved intent under
+the pause and a destructive one does not (*the hold*, below). *Settled 2026-11-03* (ADR-0054)
+as the existing same-credential rule, not an amendment: in a successor session using that same
+credential, an inherited unresolved call still refuses a new call and keeps this pause on the
+machines it already covered; whether the pause reaches anything more in a successor is
+undecided (`TASKS.md` T47). This pause is not carried by `TauWeb.Dispatch` below. The inference request (`ARC-31a`) keeps its unresolved intent under
 `STA-8`, shown as unaccounted spend against the session key's cap, and does **not** bar the next
 request: its only effect is bounded spend, and the next request is the session's only way to
 continue.
@@ -579,13 +593,62 @@ valid on replay, and the continuation in force after a restart is the latest val
 **Under an untyped vendor scope a destructive continuation is a hold.** Nothing under a scope
 can be recognised as the reinstall or the abandonment, so no call there counts as the
 continuation. A destructive disposition on a scope refuses every further call under the scope
-and keeps the model's box-plane commands to the machines of the session's bound set at that
-vendor stopped until the operator replaces it. Before either destructive choice the screen
+until the operator replaces it. Before either destructive choice the screen
 MUST say that the harness cannot carry it out there and that the operator acts at the vendor by
-hand; doing so releases nothing by itself, and the replacement does. Machines outside the bound
-set, or at another vendor, are not held by this (`SEC-4`, ADR-0038). How a reinstall or an
-abandonment is carried out at an untyped vendor is undecided (`TASKS.md` T47). Like the pause,
-the hold is stated here only and is not carried by `TauWeb.Dispatch` below.
+hand; doing so releases nothing by itself, and the replacement does.
+
+*Amended 2026-11-02* (ADR-0054): **while that disposition stands, the harness worker MUST refuse
+every new box-plane job to a machine the hold covers, whoever starts it** — the model's
+commands, a harness-owned job the model requests (`ARC-43`), and the jobs the harness composes
+itself, `digest_secret`, `delivery_reboot`, the delivery check's harness-composed reads,
+`replace_root_label` and Replace's key install and old-key removal (`STA-17`) among them. A read
+job freshly issued to the machine is a new job and is refused like any other. Collecting an
+existing job record is not a new job: `STA-20` says "Collection MUST remain an available fresh
+privileged read of the existing record, including while ordinary commands and harness jobs are
+held." The local paste stays available too: `ARC-43` says "The local paste writes nothing to the
+machine; no scan material goes to the page, machine or sheet." It clears nothing of the hold and
+authorizes no job. *What this
+requirement used to say* was that the disposition "keeps the model's box-plane commands to the
+machines of the session's bound set at that vendor stopped until the operator replaces it"; this
+is an amendment, not a reading of that wording as having already held every job.
+
+**What the hold covers.** The machines at that vendor of the bound set of the session that
+approved the scope, including those the set lawfully gains while that session lives, up to the
+set's final recorded reach (`SEC-1`); the coverage is not frozen when the disposition is
+recorded. *Amended 2026-11-03* (ADR-0054): the coverage outlives that session. A successor
+session's new jobs to those machines are refused as above until the operator replaces the
+disposition, whether or not the successor approves a vendor scope of its own, and the
+successor's other machines are not held by it. Machines outside that reach, or at another
+vendor, are not held by this (`SEC-4`, ADR-0038).
+
+**The hold carries to later scopes at the same origin.** *Amended 2026-11-03* (ADR-0054): while
+the destructive disposition stands, it carries to the calls of every later scope at the same
+exact origin, after the token is rotated or the scope is approved again. The harness worker MUST
+refuse every call through such a later scope, whatever its credential, its approval id or its
+overlap with the held machines, a later scope that a fresh session approves included. The carry
+reaches those calls only: it adds no machine and no job to *What the hold covers*. This is
+inheritance by exact origin, not by vendor identity across origins, and it supplies no approval
+or binding authority of its own. The original disposition and the calls it disposed keep their identities
+and their resource; nothing in the journal is rewritten or settled for it.
+
+**What releases it.** Only the operator's replacement of the disposition releases the hold, on
+calls and on jobs alike; a replacement that is itself destructive is a hold in its own right.
+After a replacement that continues, a call or job is admitted only as every other admission
+admits it, with no automatic retry and no success inferred. None of these is the replacement:
+work done at the vendor by hand or a report of it, a late observation, a key replacement, a new
+token or approval, clearing a local buffer, a Lock, the end of a session (`STA-23`), or the
+closing of the scope's local permission (`SEC-4`). Revoking the credential at the service ends
+its authority there under its own disposal rule (`SEC-5`), but proves no deletion and no operation's
+success, and is not the replacement either.
+
+**What the hold does not do.** It overrides no deletion, pin, binding, command-hold or custody
+requirement, and it adds no recovery sweep and no protection for work the journal omits
+(`STA-20`). It needs no token fingerprint, no durable reference derived from a credential, no
+account proof and no runtime framework. Known-machine exclusivity is checked on its own
+(`SEC-4`), and a new token does not evade it; no untyped call becomes a typed read by its name.
+How a reinstall or an abandonment is carried out at an untyped vendor is undecided (`TASKS.md`
+T47). Like the pause, the hold, its coverage and its inheritance are stated here only and are
+not carried by `TauWeb.Dispatch` below.
 
 The barrier is a fact of the journal — an intent with no terminal record — and survives
 replay (`STA-7`) and session succession without an event of its own, because an event
@@ -998,6 +1061,8 @@ lifecycle transition is the observable boundary, with no instantaneous physical-
 promised; current checks apply even without notification.
 
 **End.** Individual session end destroys that session's runtime authority and pending approvals; it does not revive on return.
+When an untyped vendor scope's local permission closes is `SEC-4`'s, and what the scope's calls
+and dispositions keep after it is `STA-24`'s.
 The actual end fence is irreversible and MUST NOT be reset to implement continuation.
 Explicit End, Replace, and established paid expiry or cap exhaustion MUST durably append
 End for the affected session before applying the transition (`STA-3`). Replace ends every
@@ -1266,6 +1331,10 @@ it starts.** Re-entering a machine to remove
 the old key uses the old key; signed revocation on the paid/public path uses the old pass key.
 For LNVPS entry and the key-install/removal jobs on its login account, see `STG-21`.
 Both derive from the seed being retired, so the operator needs its backup *during* Replace and abandons it after.
+The operator may drop that backup once the last step that needs the retired seed is done. The
+wait for an LNVPS rebuild's old machine's deletion evidence (below) does not by itself keep the
+backup needed; where that machine's vendor key can come only from the retired seed, a read under
+that key is such a step.
 If the old seed or an index is missing, direct re-entry and pass revocation cannot finish.
 Robot machines can still be rekeyed through vendor-authenticated rescue (`STA-15`); cloud
 machines are destroyed and recreated, as that section says. At LNVPS a missing old seed or index
@@ -1274,7 +1343,8 @@ machine remains shown as existing and billed. `STG-21a` says "Without the key, n
 For abandonment duties, see `ARC-22`.
 The screen names unrecovered machines
 and unrevocable passes, and never reports a complete Replace or complete revocation while
-either remains outstanding, including a manual relay retirement awaiting confirmation.
+either remains outstanding, including a manual relay retirement awaiting confirmation and an
+LNVPS rebuild's old machine awaiting its deletion evidence (below).
 
 Replace's machine-migration MUST move the machine component to the machine's new index and
 carry its installation ordinal `n` with it (`STG-20`). It MUST refuse to migrate a machine
@@ -1337,7 +1407,18 @@ a machine. Replace MUST state these limits and offer destroy/rebuild where persi
 suspected; a successful key replacement is no claim that the machine is clean.
 
 For LNVPS rebuilds, `ARC-22` says "it is a new order under the new seed's key"; the old machine
-takes its unavailable-destroy treatment. The deferred vendor-key
+takes its unavailable-destroy treatment. Replace's own model-free flow carries that treatment
+out: it stops the old machine and turns its automatic renewal off, under that machine's own
+recorded vendor key, as `SEC-4` grants. The stop comes after any re-entry of that machine and
+any removal of its old public key. The renewal-off comes after the stop is confirmed; `STA-24`
+says "At LNVPS renewal-off waits for the stop's confirmation". Replace MUST be reported
+incomplete until the old machine's deletion evidence (`STG-21a`) is durably recorded, including
+after a restart, after the vendor's stated deletion date passes and after a failed append of
+that evidence. No other Replace step waits on the old machine: the new machine, its sessions
+and allocations proceed, and finished steps, such as the new sheet's export, may be shown
+finished; `STA-22b` says "Replace's machine-migration and new-relay-pass allocations wait for
+its fresh seed's record". The deletion check (`SEC-4`) collects that evidence and adds no call
+to this flow. The deferred vendor-key
 carry-forward and disclosure amendment remains T44's, not an available Replace behavior.
 
 **STA-18** Inventory recovery makes the vendor list authoritative. Listing the account is how

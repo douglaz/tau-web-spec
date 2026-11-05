@@ -238,18 +238,23 @@ gated on it.
         prohibition and no further acceptance. The owner accepts the known risk that one
         unpinned artifact source can substitute bootstrap content and an unchecked
         package-signer set across several members together (ADR-0035).
-      - **The untyped vendor scope's remaining edges.** `STA-24` keys an untyped call's barrier
-        on "the same origin and credential", so a rotated token at the same origin starts with
-        none. `ARC-22`'s abandonment destroys "through typed operations", which an untyped
-        vendor has none of. *Decided 2026-10-13 (`STA-24`, ADR-0044), the hold and nothing
-        more:* a disposition on such a scope naming a destructive reinstall or abandonment
-        refuses every further call under the scope and keeps the model's box-plane commands to
-        the machines of the session's bound set at that vendor stopped until the operator
-        replaces it; the screen says beforehand that the harness cannot carry the choice out
-        there and that the operator acts at the vendor by hand; and `ARC-21` and `ARC-22` hand
-        the act to the operator. Still open: how a reinstall or an abandonment is carried out
-        by hand at such a vendor and what records it, the hold across a re-approved scope or a
-        rotated token, and a scope that is not a vendor's. A vendor with no adapter that refuses a browser origin is out of
+      - **The untyped vendor scope's remaining edges.** `ARC-22`'s abandonment destroys
+        "through typed operations", which an untyped vendor has none of. *Decided 2026-10-13
+        (`STA-24`, ADR-0044), the hold and nothing more:* a disposition on such a scope naming
+        a destructive reinstall or abandonment refuses every further call under the scope and
+        keeps the model's box-plane commands to the machines of the session's bound set at that
+        vendor stopped until the operator replaces it; the screen says beforehand that the
+        harness cannot carry the choice out there and that the operator acts at the vendor by
+        hand; and `ARC-21` and `ARC-22` hand the act to the operator. *Amended 2026-11-02 and
+        2026-11-03 (ADR-0054; `tw-pgp` comments 35000001 and 46000001):* which jobs the hold
+        refuses and which machines it covers, its carry to a later scope at the same exact
+        origin, and the inheritance of an unresolved call are now `STA-24`'s. The carry reaches
+        only the later scope's calls and adds no machine or job to what the hold covers. Still
+        open: how a reinstall or an abandonment is carried out by hand at such a vendor and
+        what records it; a scope that is not a vendor's; and, for an inherited unresolved
+        call's pause in a successor session, whether it reaches the successor's own machines at
+        that vendor, and what it reaches in a successor using a changed credential or one that
+        approves no scope of its own. A vendor with no adapter that refuses a browser origin is out of
         reach until `CHN-12b` exists. And under such a scope the target's address arrives in a
         response the model reads, while `CHN-R6` wants it read by harness code.
       - **Host keys baked into a stock image.** `CHN-R6` lists them as a residual. Whether a
@@ -276,8 +281,10 @@ gated on it.
         always bound alone and a set never shrinks (`SEC-1`): whether such a tightening is
         refused or deferred in a larger set is undecided (`STG-22`).
       - **Left open by the weaker-modes-across-sessions decision (2026-10-07), all under `STG-22`
-        or the admission group.** Whether an untyped vendor scope's permission ends with its session, the
-        credential staying shown until revoked (`SEC-4`'s "while the scope stands"); whether
+        or the admission group.** Whether an untyped vendor scope's permission ends with its
+        session, the credential staying shown until revoked (`SEC-4`'s "while the scope
+        stands"): *amended 2026-11-03 (ADR-0054; `tw-pgp` comment 46000001)*, when it closes,
+        and what stays shown after, are now `SEC-4`'s; whether
         escalation's successor (`ARC-16`) is a session that accepts modes; and whether `ARC-25`
         governs a later session's package fetches on an unpinned machine. And a reinstall at
         an attest vendor (`CHN-R5`): attest's introduction identity is single-use per machine
