@@ -1269,7 +1269,7 @@ Conceptual recovery navigation. In this figure, “Zero downtime” describes th
 key/pin recovery route, not preserved live-session authority, command completion, scan
 readiness, a delivery verdict or permission for new allocations. “Always works” names the
 design's dedicated-vendor rescue route, not integrated device/vendor evidence, and with no sheet
-that route has the root-label limits `STA-15` names. Evidence and
+that route has the limits `STA-15` names. Evidence and
 its remaining limits live at [OPN-3](./08-open-questions.md#gates-by-path-and-capability),
 [OPN-28](./08-open-questions.md#design-level-still-open) and
 [Capability applicability and admission](./07-conformance.md#capability-applicability-and-admission).

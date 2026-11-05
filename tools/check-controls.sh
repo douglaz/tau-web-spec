@@ -1741,7 +1741,7 @@ control "fixtures: a JSON example with a malformed digest" "$FIX" \
 
 control "fixtures: a JSON example with a malformed fingerprint" "$FIX" \
   "sed -i '0,/^  \"version\": 2,/s//  \"version\": 2, \"host_fingerprint\": \"nope\",/' $DECL && grep -q '\"host_fingerprint\": \"nope\"' $DECL" \
-  "BAD JSON" "not an MD5 colon-hex fingerprint or one in the host-pin fingerprint format"
+  "BAD JSON" "not Robot's MD5 colon-hex client-key fingerprint or one in the host-pin fingerprint format"
 
 # CHN-R1's host-pin fingerprint format carries no `SHA256:` prefix. The same 43 characters are
 # refused with the prefix and pass without it, so the refusal is the prefix's alone.

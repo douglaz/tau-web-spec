@@ -18,8 +18,9 @@ diagram's `loop`, `alt`, ...) never closed by `end`.
 Ported from provisiond-spec and adapted: no timestamp or integer-bound rules,
 which were that corpus's wire profile; the digest and fingerprint shapes are
 this corpus's (a 64-hex sha256; Robot's MD5 colon-hex client-key fingerprint,
-or a host-key fingerprint in the host-pin fingerprint format `CHN-R1` defines:
-43 characters of standard base64, unpadded, with no `SHA256:` prefix).
+or a host-key fingerprint in the host-pin fingerprint format of `CHN-R1`: the
+SHA-256 of the key's SSH public-key blob, "written in standard base64 without
+padding and without the `SHA256:` prefix", so 43 characters).
 
 NOT CAUGHT, or caught wrongly, stated because a gate's limits are part of its
 contract: a `---` front-matter block reads as a dangling edge and a missing
@@ -93,8 +94,8 @@ def walk(node, path, problems):
         if key.endswith(("sha256", "digest")) and not HEX64.fullmatch(node):
             problems.append(f"{path}: a sha256 digest is exactly 64 hex characters")
         if key.endswith("fingerprint") and not FINGERPRINT.fullmatch(node):
-            problems.append(f"{path}: not an MD5 colon-hex fingerprint or one in the "
-                            "host-pin fingerprint format of CHN-R1")
+            problems.append(f"{path}: not Robot's MD5 colon-hex client-key fingerprint or "
+                            "one in the host-pin fingerprint format of CHN-R1")
 
 
 def check_body(body, where, bad):
