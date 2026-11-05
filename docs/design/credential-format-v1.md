@@ -184,12 +184,12 @@ nonce and AAD `tau-web/sheet/v1/<id>/payload`; only the wrapped key persists. Th
 envelope adds `payload_nonce` and `payload` to the fields above. Never reuse a local-store
 key or envelope as a sheet. Local and sheet purposes cannot be interchanged.
 
-New exports use an authenticated UTF-8 JSON payload containing `version: 5` (or `version: 6`,
-below), `derivation_version: 1`, `seed_id`, `exported_at` (UTC RFC 3339), `journal_sequence`,
+New exports use an authenticated UTF-8 JSON payload containing `version: 7` (below),
+`derivation_version: 1`, `seed_id`, `exported_at` (UTC RFC 3339), `journal_sequence`,
 `next_indices` (machine/pass/handoff), `seed_backup`, `allocations` (including consumed
 tombstones), `host_pins`,
 `host_pin_installations`, `relay_discovery`, `exposure_ledger`, `artifact_history`,
-`placements: [{machine_index, application_name, name, path, placed_at}]`, `machine_states`,
+`placements: [{machine_index, application_name, name, path, placed_at, report}]`, `machine_states`,
 and optional
 `inference_account_credential`. Each allocation has its family, index, stable
 resource identity and expected public key as required by `STA-22b`, and a jump host's entry
@@ -213,7 +213,7 @@ Imported starting URLs never replace the compiled discovery set B.
 
 Version 3 is accepted only by an explicit compatibility conversion that preserves every other
 version-3 field and its validation, wraps each recorded relay URL as `{"url":R}`, and supplies
-`relay_discovery:[]`. Never infer publisher identity from URL equality. Versions 4, 5 and 6 use
+`relay_discovery:[]`. Never infer publisher identity from URL equality. Versions 4 to 7 use
 only the typed locator. Unknown payload versions and versions 1 and 2 remain unsupported. For
 publisher-key mismatch and migration, see `CHN-19`.
 This compatibility conversion changes neither the v1 encryption envelope nor derivation version 1,
@@ -273,9 +273,60 @@ history, and missing or invalid partial history is refused before binding. Valid
 versions 3, 4 and 5 is unchanged, including the refusal of a duplicate or skipped installation
 ordinal below. Version 6 carries no representation for a recovery sheet found later. Its member
 names, the encoding of its gaps, whether the per-machine `installation` value needs an explicit
-unknown, what that machine's `legacy` and `known_unpinned` members hold, how the
-ordinal-continuity rules apply to that machine, and whether a new export uses version 6 always
-or only when such a machine is present are not yet specified.
+unknown, what that machine's `legacy` and `known_unpinned` members hold, and how the
+ordinal-continuity rules apply to that machine are not yet specified. A new export writes
+version 7 (below), never version 6.
+
+### Operator reports, payload version 7
+
+Every new export writes version 7. Version 7 keeps every version-6 rule and adds one required
+member, `report`, to every placement record. It inherits no wire from version 6 for the partial
+history: those member names and encodings, not yet specified above, are equally unspecified for
+version 7.
+
+`report` is exactly the string `"none"` or an object with exactly the member
+`operator_reported_at`, a UTC RFC 3339 time. The object records that the operator reported this
+one placement's key revoked at its service (`ARC-43`), at the time the journal recorded the
+report. `"none"` records that no report was recorded for the placement as of export; it asserts
+no clean past: not that the value was never lost, copied or disclosed, nor that it is still valid
+at its service. `operator_reported_at` labels history and classifies no output: which output a
+report ends that placement's scan for follows journal dispatch order (`SEC-5`), never this time
+or a machine-reported time. Like `placed_at`, it is protected and non-secret: an operator-act
+time, never secret-derived data, and no value, digest, scan key, byte length or other
+value-derived reference accompanies it. Reject a missing `report`, `null`, any other string, an
+object with a missing, extra or duplicate member, and a malformed time before binding.
+
+A placement without a report is live: the export writes it until its secret is rotated or its
+machine is destroyed (`SEC-5` row 12). Rotation replaces its record with the rotation's new
+placement, and its machine's destruction removes it from every later export. What keeps output
+withheld for such an ended placement after a Restore from a later sheet is not yet specified.
+
+A placement with a report is ended. Its record stays in `placements` on every later export,
+after its secret is rotated and after its machine is destroyed (at LNVPS, the vendor's confirmed
+deletion); the rotation's new placement is a separate record beside it. Re-arming, the
+required-reference wait, the trust display's live listing and a restored provider's listing
+read only placements without a report (`ARC-43`, `STA-16`). Replace's migration moves a
+placement's `machine_index` with its machine (`STA-17`), a reported record's included; a
+reported record on a destroyed machine, which Replace does not migrate, keeps its machine's
+index.
+
+Two placement records are duplicates when they are equal in all five members `machine_index`,
+`application_name`, `name`, `path` and `placed_at`, whatever `report` holds. Reject duplicates,
+two records without a report at one machine, application name, secret name and path, and a
+reported record on an absent, failed, jump-host or non-machine allocation before binding.
+A machine allocation whose deletion evidence `SEC-5` admits and the journal durably records
+carries `destroyed: true`, and no other allocation carries the field. A stop, a passed deletion
+date, a reinstall or a disposition does not set it, and such a machine stays live here. Reject the
+field with any other value or on any other allocation. A reported record whose machine is live satisfies the application association below as any
+placement does. How a reported record whose machine is destroyed, and so has no `machine_states`
+entry, satisfies that association is not yet specified; it is the only placement for which the
+refusal of a placement naming no application on its machine may narrow.
+
+Validate versions 3 to 6 under their own rules, then convert to version 7 in memory by giving
+every placement `report:"none"`. The conversion invents no report: an older sheet restores each
+placement's as-of-export wait (`STA-16`). A reader that predates version 7 refuses a version-7
+sheet as an unknown version. Versions 1 and 2 and unknown versions stay refused. Sheet envelope
+v1, derivation v1, algorithms, AAD and known-answer vectors stay unchanged.
 
 Each `host_pins` entry names the host-key route that produced it: `retrieve` (`CHN-R1`),
 `attest` (`CHN-R5`), `jump_host` (`CHN-R6`) or `lnvps_retrieve` (`CHN-R7`). The last
@@ -363,13 +414,13 @@ of an application in that machine's `applications` array, and separately with `n
 nonempty secret name, recorded path and UTC RFC 3339 placement time. `application_name` is a
 required nonempty string under the application-name whitespace rule above. Reject a missing or
 malformed `application_name`, one naming no application on that same machine, missing or
-ambiguous machine associations, duplicate placement records, duplicate JSON object member names
-in a placement and malformed fields before binding.
+ambiguous machine associations, duplicate placement records (version 7 above defines them),
+duplicate JSON object member names in a placement and malformed fields before binding.
 An application recorded only on another machine cannot satisfy the reference. No placement
 value, digest, scan key, byte length or other value-derived reference is included. Payload
 versions 1 and 2 and unknown payload versions are unsupported: refuse them explicitly. Version 3
 has only the explicit compatibility conversion above, and missing placement or application lists
-are never interpreted as empty. Payload versions 4, 5 and 6 change neither the v1 envelope,
+are never interpreted as empty. Payload versions 4 to 7 change neither the v1 envelope,
 derivation paths, algorithms, AAD nor known-answer vectors.
 Reject unknown versions, duplicate identities/indices and malformed fields before binding
 anything; imported data never creates a binding without vendor reconciliation and an
