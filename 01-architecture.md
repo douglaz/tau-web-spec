@@ -756,7 +756,13 @@ scope is approved.** When an untyped vendor scope's local permission closes is `
 modal fatigue in its purest form, and the operator cannot tell which machine is asking.
 A replacement that the in-setup replacement rung orders at LNVPS (`ARC-22`) is a new approved
 entry of the same setup, with its own approval and original structured facts; it is never a
-re-order of the old entry or a new label for the old machine.
+re-order of the old entry or a new label for the old machine. A different entry replacing a
+never-sent entry of a one-machine setup in its live session (`STA-22b`) is a separate route:
+one operator act through the mid-flight queue, bound to that session, on the card `SEC-1`
+describes for an added machine, which also names the entry it retires and the replacement's own
+structured facts. Where an earlier preparation step of the retired entry is unresolved, the card
+shows it as `STA-24`'s card for a different entry does, which “shows the unresolved sibling and
+that it may be billing”. It is never a re-order of the old entry or a new label for it.
 
 **ARC-16** Recovery is a ladder. Retry; then escalate to a stronger model behind the same
 proxy; then destroy the machine and restart under a different domain, which costs a server.

@@ -762,7 +762,9 @@ For overlapping restrictions, follow these owner routes together:
   `STA-24` says “Box-plane dispatch to the machine is governed by `STA-20` and
   `STA-20b`, not by this rule”. For the exception, see [Cloud barrier](#cloud-barrier).
 - Failure/successor allocation:
-  [tw-sfu/tw-nj8](../.beads/issues.jsonl). Installation/recovery:
+  [tw-sfu](../.beads/issues.jsonl); for a replacement entry, see
+  [STA-22b](../03-state-and-recovery.md#what-survives-a-lost-phone).
+  Installation/recovery:
   [tw-l1l/tw-lq8](../.beads/issues.jsonl); sheetless cloud recovery adds no destructive
   authority under [STA-15](../03-state-and-recovery.md#recovery-by-access-model-and-vendor).
   Restored-command boundary:
@@ -820,10 +822,12 @@ inspect a named record with `br show ID --json --no-auto-flush --no-auto-import`
   [ARC-41](../01-architecture.md#machine-networking). `SEC-11` says “a key that does not
   match MUST halt the session”; `ARC-41` says “the harness does not reconnect on its own”.
   [CNF-53](../07-conformance.md)'s dedicated rescue-return case exercises it.
-- Allocation questions stay with [tw-sfu, tw-nj8](../.beads/issues.jsonl);
+- Allocation questions stay with [tw-sfu](../.beads/issues.jsonl);
   installation/recovery questions with [tw-lq8, tw-l1l](../.beads/issues.jsonl). This outline
   chooses no answers to them. Sheetless cloud recovery is ruled by
-  [STA-15](../03-state-and-recovery.md#recovery-by-access-model-and-vendor).
+  [STA-15](../03-state-and-recovery.md#recovery-by-access-model-and-vendor), and a
+  replacement entry by
+  [STA-22b](../03-state-and-recovery.md#what-survives-a-lost-phone).
 - [The witness gate](../tools/check_witnesses.py) checks corpus-wide marked pair
   structure under [ADR-0032](adr/0032-the-formal-companion-follows-provisiond-spec.md) and the
   [witness schema](design/witness-file-v1.md).

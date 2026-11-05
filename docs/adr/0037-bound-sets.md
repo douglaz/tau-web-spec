@@ -152,3 +152,16 @@ rule: "On escalation, the operator chooses which other eligible machines of the 
 join the successor, as the subset rule below allows, and the escalated stuck machine is always
 included." The rules that already own termination, exclusion, exposure, resource holds and the
 singleton cases are unchanged.
+
+*Amended 2026-11-05:* `SEC-1`'s "No machine leaves a set while the session is alive" holds
+for actual machines. A proposed entry that never became one is unrealized membership, and `STA-22b` now
+lets a one-machine setup's live session replace it with a distinct entry the operator approves
+(`ARC-15`): in one sole-writer act, the old allocation's existing Failed record is admitted
+under its own proof and fence, the old entry's prospective authority is retired, and the
+replacement is admitted, linked to its predecessor. The route covers only an entry never sent,
+never associated and never contacted; a possibly sent create or an actual machine keeps its
+existing recovery and exposure obligations. A held request still never becomes Failed by
+itself. The same intended entry, including one that differs only in its identity, label,
+allocation, index, account, cost or call, has no successor route, and a set above one machine
+has no such route. The old entry's history, barrier and identity exclusions stay (`STA-24`), and
+`CNF-72` checks the cases.

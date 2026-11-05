@@ -370,7 +370,7 @@ taken from the model.** For a machine it is the **approved machine entry** of th
 (`ARC-15`'s batch), to which the reserved allocation index (`STA-22b`) and, once learned, the
 immutable vendor machine id are associated — so a create and the machine it produced are one
 resource, and a second attempt at the same entry sits behind the same barrier even if it would
-reserve another index. A different approved entry is independent, and creating it while a sibling is unresolved is permitted under its own approval, whose card shows the unresolved sibling and that it may be billing, unless the unavailable-identity exclusion below bars its order. For the in-setup replacement rung's new entry, see `ARC-22`. For an untyped call it is the **scope** itself, since no
+reserve another index. A different approved entry is independent, and creating it while a sibling is unresolved is permitted under its own approval, whose card shows the unresolved sibling and that it may be billing, unless the unavailable-identity exclusion below bars its order. For the in-setup replacement rung's new entry, see `ARC-22`. For a different entry replacing a never-sent machine entry in the same session, see `STA-22b`: the old entry keeps its barrier, and every exclusion below that applies to the replacement, one arising from the old entry included, bars it as it bars any other entry. For an untyped call it is the **scope** itself, since no
 adapter can say what the call touched (`SEC-4`): no further call under that scope is dispatched
 while it is unresolved, and once the operator disposes of it only as the disposition permits
 (below); nothing under a scope counts as a read, because nothing types it. A scope re-approved
@@ -920,12 +920,48 @@ or advance the index. Failed retains the consumed identity, approved-entry mappi
 history, including older machine associations. It grants no allocation, automatic retry, binding,
 association or machine-target authority. Status is allocation-specific: a later Failed attempt
 supplies no entry-wide contact refusal against a distinct older actual machine. Existing
-abandonment-before-order remains under `ARC-21` and `SEC-4`; no recovery route is added.
+abandonment-before-order remains under `ARC-21` and `SEC-4`; no recovery route is added
+other than the replacement entry below.
 The proof record's representation is in the
 [credential format](docs/design/credential-format-v1.md#allocation-failure-record).
 The checking interpretation is `TauWeb.Allocation.failUnsent`; its index preservation is
 `TauWeb.Allocation.terminalization_keeps_metadata`. Real writer/append/transport races remain
 implementation evidence under `CNF-72`, independently of the serialized witnesses.
+
+**A different approved entry may replace a never-sent machine entry in the same session.**
+Within an unfinished one-machine setup, in the live session that holds the old entry, with no
+session end and no successor session, the operator may approve a distinct replacement entry
+(`ARC-15`) for a proposed machine entry whose allocation was never sent, never associated with
+a machine and never contacted. The sole writer admits the replacement in one atomic act: it
+records the Failed record above under that rule's own proof and sender fence, retires the old
+entry's prospective authorization and queued authority, then admits the approved replacement
+entry with its own reserved index, linked to the old entry as its predecessor. An allocation
+already Failed in this journal needs only the retirement and the admission. The act is
+explicit; a temporary hold still never becomes Failed by itself, and there is no other
+never-sent end state. The act is refused, and changes no admitted state, when there is no such
+approval; when the approval names the old entry's approved-entry identity or is a stale
+approval of the old entry; when the replacement differs from the old entry only in its
+approved-entry identity, label, allocation, index, account, cost or call, which makes it the
+same intended entry; when the replacement's facts are other than those approved, or the
+approval is bound to another session, a fresh session continuing the setup included; when
+Failed's proof does not hold; when any create for the old entry is possibly sent or a machine
+was associated with or contacted for it; when an applicable identity exclusion (`STA-24`), or
+any other independent guard or check that applies to the replacement, bars it; when the
+replacement would reuse or repeat an unresolved preparation step of the old entry; or when its
+append fails. A fresh index, account or call, renaming the old entry or displaying it as
+historical is not this act and bypasses nothing. Old and new prospective authority never stand
+together: once the act is admitted, no stale approval or late completion authorizes a command
+or order on the old entry, and reconciliation of its old work that another rule permits renews
+no prospective authority. The old entry keeps its consumed identity, mapping, history, barrier
+and identity exclusions (`STA-24`). Failed's proof concerns only that allocation's create: an
+earlier preparation step of the old entry whose outcome is unknown stays unresolved and
+restricted, the act supplies no failure, success, non-execution, cancellation or deletion
+evidence for it, and the replacement does not reuse or repeat it under another label. Replay,
+export and import preserve the predecessor link and these restrictions without redispatch. The
+act removes no actual bound machine and grants no larger set (`SEC-1`). It is neither
+`ARC-16`'s third rung nor `ARC-22`'s in-setup replacement order, it is no successor for the
+same intended entry, which has none, and a bound set above one machine has no such route. The
+formal companion has no replacement act; `CNF-72`'s cases check it.
 
 Import checks the seed identifier, derives each listed public key and compares it, validates
 unique indices within each family and next-unused counters above all listed indices, and

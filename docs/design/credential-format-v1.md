@@ -65,6 +65,11 @@ all prior mappings and associations. It is local journal evidence, never a negat
 receipt or a portable certificate that an imported prefix has no later sends. The sole-writer
 check, sender fence and admission duties have one home in `STA-22b`.
 
+A replacement entry admitted by `STA-22b`'s replacement act names, as its predecessor, the
+retired entry's approved-entry identity and its Failed allocation. The link is carried in the
+existing entry/predecessor metadata, survives export and import as that metadata does, and
+supplies no authority to the retired entry or its replacement.
+
 Derivation v1 remains unchanged; the history export amendment below versions the recovery payload. A consumed tombstone and its existing
 entry/predecessor metadata survive export under the existing allocation metadata; recovering
 that tombstone does not create fresh failure proof or authority. This local journal proof is
