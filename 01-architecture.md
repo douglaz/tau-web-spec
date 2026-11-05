@@ -284,7 +284,9 @@ output. The jobs are:
   compares against the bundle's value and halts the install on a mismatch (`STG-6`).
 - `ready_to_reset` — reads `/mnt/etc/ssh/ssh_host_*_key.pub`, following no symbolic link and
   reading no private key file. It refuses, journaling nothing of that file, when a file it reads
-  holds anything but one public key; otherwise it journals the pins, unmounts the target, and
+  holds anything but one public key; otherwise it journals the pins, except of a read `STA-20b`
+  refuses ("A read sharing the rescue boot's pin is refused before its keys are journaled as
+  pins"), unmounts the target, and
   only then offers the reset typed operation (`STA-20b`'s planned-reset ordering), unless
   `STA-20b` withholds the offer.
 - `place_secret` — writes one **application secret** (`SEC-5` row 12) to a file on a named
@@ -400,7 +402,9 @@ path, attest and `CHN-R7`, with `TauWeb.Pins.published_source_admitted` and
 `TauWeb.Pins.published_rescue_refused` exercising the new source boundary. A pin taken at a
 jump-host first contact
 (`CHN-R6`) is not among `TauWeb.Pins.Source`'s cases (T45). The
-pin-source and delivery-reboot settlement clauses of `ARC-43` are formalized; the rules of
+pin-source and delivery-reboot settlement clauses of `ARC-43` are formalized, except that
+`ready_to_reset` journals no pin of a read sharing the rescue boot's pin, which is Markdown-only
+(`STA-20b`); the rules of
 `place_secret` and `digest_secret` below are not, and this text is their home (ADR-0032, "Authority is per
 clause").
 

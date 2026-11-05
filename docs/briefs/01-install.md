@@ -261,7 +261,8 @@ strength of this brief.
 
 Request the harness job. It reads `/mnt/etc/ssh/ssh_host_*_key.pub`, following no symbolic
 link and reading no private key file, refuses a file holding anything but one public key,
-derives and journals the fingerprints, syncs and unmounts `/mnt`, and offers the reset typed
+derives the fingerprints and journals them as pins, except those of a read sharing the rescue
+boot's pin, syncs and unmounts `/mnt`, and offers the reset typed
 operation to the operator (`STG-4`, `CNF-22`), unless `STA-20b` withholds it for changed keys,
 an earlier installation's keys, a key sharing the rescue boot's pin, a refused file, or no
 durable result; the operator is then told before reboot.
