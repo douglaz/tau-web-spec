@@ -10,16 +10,17 @@ rule of its own.
 
 ## What was undecided
 
-`STA-22b` sent a Robot machine with no sheet through vendor-authenticated rescue to a fresh-seed
-index, but `STA-17`'s relabel applied "In this direct re-entry" and `ARC-43`'s job ran "during
-Replace's model-free direct re-entry migration". Nothing defined the installation ordinal `n`
-there, when such a machine counts as migrated, or which old key it may remove. No representation
-carried a history whose earlier installations are unknown, while the credential format says
-"Missing or invalid history MUST NOT become empty history". `STG-20`'s backstop compares a later
-`ready_to_reset` pin against "any observation or installed-system pin of that machine in any
-earlier installation", which such a history cannot show. The install brief treated a root whose
-label differs from the shown id as the predecessor, so a return to rescue before the relabel was
-confirmed could steer the model toward erasing the machine's own root.
+`STA-22b` says "With no sheet, or for machines missing from a stale sheet, Robot recovery installs
+keys from a fresh seed through vendor-authenticated rescue and re-reads host pins", but `STA-17`'s
+relabel applied "In this direct re-entry" and `ARC-43`'s job ran "during Replace's model-free direct
+re-entry migration". Nothing defined the installation ordinal `n` there, when such a machine counts
+as migrated, or which old key it may remove. No representation carried a history whose earlier
+installations are unknown, while the credential format says "Missing or invalid history MUST NOT
+become empty history". `STG-20`'s backstop compares a later `ready_to_reset` pin against "any
+observation or installed-system pin of that machine in any earlier installation", which such a
+history cannot show. The install brief treated a root whose label differs from the shown id as the
+predecessor, so a return to rescue before the relabel was confirmed could steer the model toward
+erasing the machine's own root.
 
 ## The shape chosen
 
@@ -97,6 +98,7 @@ the display rule that the history reads unknown, never unpinned, stands.
 | Late sheet | Keep only a found sheet's checked fingerprints. |
 | Late sheet | Keep the three withdrawn late-sheet decisions. |
 | Command filter | Any command filter on this machine. |
+| Unknown key and `CNF-5` | Rewrite `authorized_keys` to the new key alone. |
 | Unknown key and `CNF-5` | Exempt from `CNF-5` a machine whose revocation is reported incomplete. |
 
 Queued and unchosen: replacing the whole key file, operator-selected deletion of an unidentified
@@ -108,6 +110,6 @@ backup, and `tw-l1l`'s distinct T47 edges.
 `STA-17`, `STA-16`, `STG-20`, the credential format and `ARC-43` change, with the install brief,
 ADR-0045's note, `CNF-117`'s cases, `CNF-86`'s pointer and the state-machine atlas's pointers.
 Payload version 6 is defined by what it must carry; its member names and gap encoding are not
-chosen here. These rules remain prose only: the formal companion does not model the accepted
+chosen here. These rules remain prose only: the formal companion does not carry the accepted
 base, and `TauWeb.Pins.fresh` compares against the knowledge it is given. This record makes no
 capability, readiness or runtime claim; the dedicated path stays behind its admission row.

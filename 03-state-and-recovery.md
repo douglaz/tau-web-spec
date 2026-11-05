@@ -1510,8 +1510,8 @@ and `b-7` becomes its confirmed current id, only when a read shows `b-7`, never 
 does.
 
 After acceptance the screen MUST show `b-7` as the pending destination and distinguish the
-allocation `b`, the observed disk text `a-7`, installed access and label confirmation. Once a
-write is sent, `a-7` is only an as-of observation, not the disk's current label. Label
+allocation `b`, the observed disk text `a-7`, installed access and label confirmation. Once a write
+is sent, `a-7` is only an as-of observation, not an assertion about the disk's current label. Label
 confirmation, terminal job evidence, a hold's release and revocation remain separate facts;
 computing the destination supplies no authority.
 

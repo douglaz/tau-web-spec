@@ -261,18 +261,21 @@ AAD and known-answer vectors stay unchanged.
 
 ### Partial history, payload version 6
 
-Version 6 keeps every version-5 rule and adds the partial history that `STA-16` requires for a
-machine whose installation ordinal was accepted as a proposal in `STA-17`'s rescue rekey: the
-accepted ordinal with its acceptance basis, the earlier installations it holds no facts for
-marked unknown, and the facts retained below the accepted ordinal. Import reconstructs that
+Version 6 keeps every version-5 rule for every machine without a partial history, and adds the
+partial history `STA-16` requires: "A machine whose installation ordinal was accepted as a
+proposal in `STA-17`'s rescue rekey has a partial history, and export and Restore MUST
+round-trip it". It carries the accepted ordinal with its acceptance basis, the earlier
+installations it holds no facts for marked unknown, and the facts retained below the accepted
+ordinal. Import reconstructs that
 partial history from the payload alone, without the journal. The unknown never becomes
 `legacy:"none"`, a known unpinned or pinned installation, an empty `known_unpinned` or empty
-history, and missing or invalid partial history is refused before binding. Validation of versions 3, 4 and 5 is unchanged, including the
-refusal of a duplicate or skipped installation ordinal above. Version 6 carries no
-representation for a recovery sheet found later. Its member names, the encoding of its gaps,
-whether the per-machine `installation` value needs an explicit unknown, what that machine's
-`legacy` and `known_unpinned` members hold, and whether a new export uses version 6 always or
-only when such a machine is present are not yet specified.
+history, and missing or invalid partial history is refused before binding. Validation of
+versions 3, 4 and 5 is unchanged, including the refusal of a duplicate or skipped installation
+ordinal below. Version 6 carries no representation for a recovery sheet found later. Its member
+names, the encoding of its gaps, whether the per-machine `installation` value needs an explicit
+unknown, what that machine's `legacy` and `known_unpinned` members hold, how the
+ordinal-continuity rules apply to that machine, and whether a new export uses version 6 always
+or only when such a machine is present are not yet specified.
 
 Each `host_pins` entry names the host-key route that produced it: `retrieve` (`CHN-R1`),
 `attest` (`CHN-R5`), `jump_host` (`CHN-R6`) or `lnvps_retrieve` (`CHN-R7`). The last

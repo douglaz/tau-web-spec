@@ -1912,18 +1912,21 @@ Not pass/fail. Required to be recorded.
       applicability table. Recover a dedicated machine with no recovery sheet through
       vendor-authenticated rescue to a fresh-seed index `b`, its one root labelled `a-7`.
       (a) Without an operator acceptance no ordinal is adopted from the label and no `b-7` is
-      shown; make the acceptance's append fail: no acceptance is recorded, shown or used.
+      shown; make the acceptance's append fail: no acceptance is recorded, shown or used. An
+      acceptance a retained fact contradicts is refused.
       (b) Accept 7, then export and import: the accepted ordinal, its basis and the unknown
       earlier installations round-trip without the journal, retained facts below 7 included
-      with the gaps around them unknown. No earlier group, observation, pin or empty-history
-      placeholder appears, and versions 3, 4 and 5 are validated as before, a skipped ordinal
-      refused.
+      with the gaps around them unknown. No invented earlier group, observation, pin or
+      empty-history placeholder appears. A version-6 payload whose partial history is missing
+      or invalid is refused before binding, and versions 3, 4 and 5 are validated as before, a
+      skipped ordinal refused.
       (c) Restart the worker and resume the unchanged migration: it continues from the
       journaled acceptance without asking again. A different target or a changed proposal is
       refused, and nothing is retried automatically.
       (d) Make the new-key login to the installed system fail: no relabel job is sent and the
       label still reads `a-7`. A pinned host answer or a login in rescue does not stand in
-      for that login.
+      for that login. Let it succeed: the relabel write and its readback run in the installed
+      system, never in rescue.
       (e) Report `a-9` for the same root before the write: the migration stops unfinished
       with no relabel intent and no write, no 9 is adopted, the acceptance and both
       observations are retained under 7, and no hold is created. Restart the worker after
@@ -1953,7 +1956,8 @@ Not pass/fail. Required to be recorded.
       pending destination, marked unconfirmed, apart from installed access and from `a-7` as
       an as-of observation, and the old key stays. A later connection re-reads the label
       without another write, and only that read confirms `b-7`; nothing rewrites the label
-      automatically.
+      automatically. Make the relabel job fail, or let the write succeed and the read show
+      another label: the machine is not migrated and the old key stays.
       Boundary-crossed and destroyed-data.
 - [ ] **CNF-87 · BLOCKING** The LNVPS path's relay uses the selected `/v2/` profile and a
       hand-recorded pass (`STG-18`; [paid-tcp-relay][relay-source] PAS-6). Demonstrate fresh
