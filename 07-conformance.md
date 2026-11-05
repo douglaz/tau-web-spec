@@ -431,7 +431,26 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       imported/stale-prefix absence proof. A temporary refusal retains its reservation and
       counter. A later Failed attempt at an entry neither grants a successor nor blocks contact
       to its older actual machine through an independently admitted mapping. Preserve binding,
-      association and target admission; no failure record supplies them. These writer-lock,
+      association and target admission; no failure record supplies them.
+      Exercise `STA-22b`'s replacement entry through the same sole writer, in a one-machine
+      setup's live session. Admitted: an explicitly approved, distinct replacement for a
+      reserved, never-sent, never-associated, never-contacted entry is admitted in one act that
+      records Failed under its existing proof and fence and retires the old entry, and the
+      replacement does useful work while the old entry's Failed record, barrier, identity
+      exclusions and an unresolved earlier preparation step stay recorded and restricted; an
+      already Failed allocation is retired and replaced without a second Failed record. Refused,
+      with no admitted state changed: no replacement act, including a temporary hold left to
+      become Failed by itself; an approval naming the old entry's identity, or a stale approval
+      of it; old and new prospective authority at once, including a pending sender of the old
+      entry racing the act, of which only one permission survives; a possibly sent create, an
+      associated machine or a contact for the old entry; an applicable identity exclusion,
+      one arising from the old entry included; facts other than those approved, or another
+      session; a bound set above one; a failed append. A fresh index, account or call, renaming
+      the old entry or displaying it as historical admits nothing and bypasses no barrier.
+      Replay, export and import preserve the predecessor link and the restrictions with no
+      redispatch of either entry. Reconciliation of the old entry's work that another rule
+      permits renews no prospective authority for it, and a late completion authorizes no
+      command or order on it. These writer-lock,
       durable-append and transport-handoff races are required before enabling this path;
       serialized companion witnesses alone do not pass them.
 - [ ] **CNF-73 · BLOCKING** No session and no machine is ever given the seed (`STA-22`).

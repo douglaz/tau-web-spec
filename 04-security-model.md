@@ -73,7 +73,13 @@ addition goes through the mid-flight queue (`ARC-15`) on a card the harness comp
 it will be, what the added machine costs, its first-contact route, and every acceptable weaker
 mode standing on the set (`SEC-14`); a mode the added machine needs is accepted on that card. The added machine's entry and its allocation index are
 journaled before any create is sent (`STA-22b`). No machine leaves a set while the session is
-alive — what the model has read from it stays in the context that commands the rest.
+alive — what the model has read from it stays in the context that commands the rest. A
+proposed entry that never became a machine is unrealized membership: in a one-machine setup's
+live session, `STA-22b`'s replacement entry retires an entry whose allocation was never sent,
+never associated and never contacted, and admits the approved replacement in its place, which
+removes no actual machine and leaves the set at one. An entry with a possibly sent create, or
+associated with or contacted as a machine, is not unrealized and keeps its existing recovery
+and exposure obligations.
 
 **A bound set is one unit of harm and one model context.** Whatever the model reads on one
 machine of a set can steer what it runs on every other, which typing that output as untrusted
@@ -260,7 +266,9 @@ they were approved and journaled — the resource (`STA-24`), the arguments, the
 bound, the bundle commit — never a request rebuilt at dispatch from session state or from
 arguments the model supplies afterwards. `STA-24` says an approval is checked again at
 dispatch; this says what is checked. "There was an approval" and "the approved thing is what
-ran" are two different properties, and only the second is worth proving.
+ran" are two different properties, and only the second is worth proving. A replacement entry
+(`STA-22b`) dispatches its own approved and journaled facts; no approval of the entry it
+retired is checked for it, and none is rebuilt into its record.
 
 `TauWeb.Authority.ordinary_refinement` composes live symbolic authority with Dispatch's existing
 approved-session and facts check. Every ordinary dispatch also reads `STA-23`'s durable
