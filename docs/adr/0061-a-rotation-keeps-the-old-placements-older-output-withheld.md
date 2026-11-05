@@ -55,8 +55,10 @@ Destruction, the report and rotation now follow one rule. No ended scan material
 ## Open
 
 These stay open:
-- which act of the rotation's `place_secret` records the rotation;
-- what a rotation whose job fails or stays unresolved does to the old reference;
+- which act of the rotation's `place_secret` records the rotation, since decided in
+  [ADR-0063](./0063-a-rotation-is-recorded-by-its-zero-exit-job-record.md);
+- what a rotation whose job fails or stays unresolved does to the old reference, since decided in
+  [ADR-0063](./0063-a-rotation-is-recorded-by-its-zero-exit-job-record.md);
 - whether output after a rotation should still be compared against the old value, since a
   rotation is not a revocation, and whether the trust display should say so.
 
