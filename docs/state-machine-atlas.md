@@ -818,9 +818,9 @@ inspect a named record with `br show ID --json --no-auto-flush --no-auto-import`
   match MUST halt the session”; `ARC-41` says “the harness does not reconnect on its own”.
   [CNF-53](../07-conformance.md)'s dedicated rescue-return case exercises it.
 - Allocation questions stay with [tw-sfu, tw-nj8](../.beads/issues.jsonl);
-  installation/recovery questions with [tw-lq8, tw-l1l](../.beads/issues.jsonl); sheetless
-  cloud recovery is ruled by [STA-15](../03-state-and-recovery.md#recovery-by-access-model-and-vendor).
-  This outline chooses no answers to them.
+  installation/recovery questions with [tw-lq8, tw-l1l](../.beads/issues.jsonl). This outline
+  chooses no answers to them. Sheetless cloud recovery is ruled by
+  [STA-15](../03-state-and-recovery.md#recovery-by-access-model-and-vendor).
 - [The witness gate](../tools/check_witnesses.py) checks corpus-wide marked pair
   structure under [ADR-0032](adr/0032-the-formal-companion-follows-provisiond-spec.md) and the
   [witness schema](design/witness-file-v1.md).

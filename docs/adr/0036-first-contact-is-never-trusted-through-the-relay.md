@@ -130,5 +130,6 @@ above still applies when no pin has been admitted; the jump-vendor question rema
 
 [ADR-0053](./0053-sheetless-cloud-recovery-adds-no-destructive-authority.md) qualifies the
 sentence above that a maintained cloud machine whose pin is lost with no sheet is destroyed and
-recreated. The harness destroys and recreates it only where existing authorization admits it;
-otherwise the operator acts at the vendor, and unavailable remedies are reported as unavailable.
+recreated. `STA-15` owns the current rule; `STA-15` says "recovery adds no destructive
+authority" and "Otherwise the operator acts at the vendor, where the vendor offers an actual
+route."
