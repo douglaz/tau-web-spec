@@ -435,9 +435,10 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       sheet exported before the report, and a version 3 to 6 sheet, restore P1's wait.
       Browser persistence and the exported sheet hold no raw value, bare digest or expired
       scan material for P1. The harness offers no act that withdraws or corrects P1's report, and
-      P1 stays in operator-reported history. In a separate branch,
-      P2's re-arm is journaled before its report, and the report is refused: P2 stays live and
-      keeps its scan, and no report is offered for P2 while its reference is armed.
+      P1 stays in operator-reported history. In a separate branch, P2's card is shown and P2's
+      re-arm is journaled before the report's journal act, and the report is refused: P2 stays
+      live and keeps its scan, and no report is offered for P2 while its reference is armed.
+      After a further local-store loss leaves P2 unarmed, the report is offered for P2 again.
       (i) Ended unreported placement (`SEC-5`, `ARC-43`, `SEC-6`): after a local-store loss,
       machines A and M are in one bound set, placement Q on M is unarmed, a job on A prints Q's
       exact value and is withheld for Q, and clean jobs run on A and M. Machine C is in a bound

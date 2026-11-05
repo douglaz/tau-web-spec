@@ -584,7 +584,8 @@ withheld before it stay withheld".
 
 **An operator report ends one lost-key placement's wait; what was withheld stays withheld.**
 After revoking a placement's key at its service, the operator may report that one placement
-revoked while its required reference is unarmed, so that the `exec` wait above stands for it.
+revoked while its required reference is unarmed, which is when the `exec` wait above stands for
+it.
 The harness trusts the report as the operator's statement that the service revoked the
 right credential, not as service evidence. The card names the placement by machine, application
 name, secret name, path and placement time, and says that a mistaken report could expose a
@@ -595,8 +596,9 @@ takes effect: `STA-3` says "If the append fails, the transition does not occur."
 state is read at that journal act, so a re-arm journaled before it refuses the report. The card
 is not offered for an armed reference, which keeps its scan until a rotation, destruction or
 local-store loss ends it; once that reference is unarmed again, after a local-store loss for
-instance, the report is offered again. A key revoked at its service while its reference is armed
-is ended by a rotation once `ARC-17`'s placement gates admit it, or by destruction. Once the report is
+instance, the report is offered again. A placement whose key was revoked at its service while its
+reference is armed is ended by a rotation, once `ARC-17`'s placement gates admit that rotation, or
+by destruction. Once the report is
 recorded, that placement's required reference ends: the re-arm and the `exec` wait above no
 longer require it, a paste or digest record arms nothing for it, and the trust display moves it
 from the live listing to history labelled operator-reported, never "retired" or "rotated". It
@@ -612,8 +614,8 @@ from its journal record. The sheet carries it (`STA-16`); a sheet exported befor
 wait. Its scan ends under `SEC-5`: output withheld before the report stays withheld, and output
 produced after it is no longer compared against that placement's reference but owes every other
 reference and release prerequisite. A recorded report is final: no act corrects or
-withdraws it. Only a Restore from a sheet exported before it brings back that placement's wait,
-as above, because that sheet does not carry it. After a mistaken report the
+withdraws it. Only a Restore from a sheet that does not carry it, one exported before it or a
+version 3 to 6 sheet, brings back that placement's wait, as above. After a mistaken report the
 operator may revoke the key at its service, rotate the placement once its placement gates admit
 it, or destroy its machine. A rotation claims no revocation at the service (`SEC-5`), and none of
 these recalls output released after the report. Where the wrong placement was reported, the right

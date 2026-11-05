@@ -23,15 +23,15 @@ reference is unarmed:
   paste or digest record after the report arms nothing, as `ARC-43` already said.
 - An armed reference keeps its scan until a rotation, destruction or local-store loss ends it.
   Once it is unarmed again, after a local-store loss for instance, the report is offered again.
-- A key revoked at its service while its reference is armed is ended by a rotation once the
-  placement gates admit it, or by destruction. Model `exec` does not wait on an armed reference,
+- A placement whose key was revoked at its service while its reference is armed is ended by a
+  rotation, once the placement gates admit that rotation, or by destruction. Model `exec` does not wait on an armed reference,
   so both routes can be reached.
 
 **Final.** A recorded report cannot be corrected or withdrawn:
 - A mistaken report stands, and the placement's reference stays ended. `SEC-5`'s "nothing
   re-creates them" and `ARC-43`'s "a paste or digest record arms nothing for it" hold as written.
-  A Restore from a sheet exported before the report still brings back the wait, as `ARC-43`
-  already said.
+  A Restore from a sheet that does not carry the report, one exported before it or a version 3
+  to 6 sheet, still brings back the wait, as `ARC-43` and `CNF-95(h)` already said.
 - The card says before the act that a report cannot be undone, and the trust display says so
   after it.
 - After a mistake the operator may revoke the key at its service, rotate the placement through its
@@ -49,7 +49,7 @@ placement whose report already ended its reference loses nothing more at its rot
 Four independent readers answered; a fifth seat was unavailable. All four said the text forced
 neither option on either question, and all four said the mark stays as written.
 
-- **Offered only while unarmed** was accepted under the owner's 2026-11-05 panel rule, 3 of 4. It
+- **Offered only while unarmed** was accepted under the owner's 2026-11-05 panel rule, 3 of 4, with the reader that rule requires in the majority. It
   narrows `ARC-43`'s unconditioned "the operator may report that one placement revoked" to
   placements whose reference is unarmed. It narrows no owner pick: the report was decided for the
   lost-key case and the armed case was left open. It widens nothing. An armed reference still
