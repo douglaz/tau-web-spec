@@ -454,20 +454,34 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       and its Failed allocation, and no other; an allocation already Failed in this journal is
       retired and replaced without a second Failed record; a replacement differing from the old
       entry only in region, only in size or only in image is distinct and admitted, the other
-      refusals clearing. Refused, with no admitted state changed: no replacement act, including
-      a temporary hold left to become Failed by itself; an approval naming the old entry's
-      identity, or a stale approval of it; a replacement differing from the old entry only in
-      its approved-entry identity, label, allocation, index, account, cost, call, bundle commit
-      or an order's reference code, or in anything else while its vendor, plan or size, region
-      and image all match; old and new prospective authority at once, including a
-      pending sender of the old entry racing the act, of which only one permission survives; a
-      possibly sent create, an associated machine or a contact for the old entry; an applicable
-      identity exclusion, one arising from the old entry included, or another applicable
-      independent guard, a declared independence bound included; reuse or repetition of the old
-      entry's unresolved preparation step, under its label or another; facts other than those
-      approved, or another session, a fresh session continuing the setup after an actual end
-      included; a bound set above one; a failed append. A fresh index, account or call, renaming
-      the old entry or displaying it as historical admits nothing and bypasses no barrier.
+      refusals clearing; the replacement's own preparation step of the same kind for its own
+      identity and account, such as `STG-21`'s email submission carrying the same operator
+      address, is admitted while the old entry's step stays unresolved and restricted, and the
+      replacement's order still waits for verified status under its own identity, opening the
+      old step's verification link verifying nothing for it; where both entries use one vendor
+      account, a step there naming the replacement's own resource and key is admitted as its
+      own; where an old step is unresolved, the act's card shows it and, where the replacement
+      owes its own step of the same kind, says that it is its own step and that the old step's
+      verification link verifies nothing for the replacement. Refused, with no admitted state
+      changed: no replacement act, including a temporary hold left to become Failed by itself;
+      an approval naming the old entry's identity, or a stale approval of it; a replacement
+      differing from the old entry only in its approved-entry identity, label, allocation,
+      index, account, cost, call, bundle commit or an order's reference code, or in anything
+      else while its vendor, plan or size, region and image all match; old and new prospective
+      authority at once, including a pending sender of the old entry racing the act, of which
+      only one permission survives; a possibly sent create, an associated machine or a contact
+      for the old entry; an applicable identity exclusion, one arising from the old entry
+      included, or another applicable independent guard, a declared independence bound included;
+      reuse or repetition of the old entry's unresolved preparation step, under its label or
+      another, at the act or at any later dispatch after an admitted act: re-sending its
+      request, adopting its record as the replacement's own step, a step targeting the old
+      entry's identity, resource, key or own account, or relying on its result for a step or an
+      order; the replacement's own step while a barrier, hold or pause `STA-24` sets bars it, a
+      step sent through a later untyped vendor scope at the same exact origin included; facts
+      other than those approved, or another session, a fresh session continuing the setup after
+      an actual end included; a bound set above one; a failed append. A fresh index, account or
+      call, renaming the old entry or displaying it as historical admits nothing and bypasses no
+      barrier.
       Replay, export and import preserve the predecessor link and the restrictions with no
       redispatch of either entry. Reconciliation of the old entry's work that another rule
       permits renews no prospective authority for it, and a late completion authorizes no
