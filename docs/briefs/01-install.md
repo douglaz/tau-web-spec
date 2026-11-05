@@ -87,6 +87,11 @@ lsblk -dno NAME,SIZE,MODEL,SERIAL,WWN; ls -l /dev/disk/by-id/ | grep -v part; [ 
   including a hand-installed root. It is erased on the selected disks as approved for this
   install; never resume it merely because it looks complete. The label steers you; nothing
   checks it. Read **Resume** before wiping a matching root.
+- Except while the harness marks the shown id **unconfirmed**: after a rescue rekey, until
+  the harness confirms the root's relabel (`STA-17`). Then a root whose label does not equal
+  the shown id is not the predecessor: surface it to the operator, and never erase it, resume
+  it or treat it as found complete, until a destructive reinstall of this machine is
+  dispatched. After that dispatch it is the predecessor as above.
 - Decide the complete installation disk set by WWN before any write, and state it in your
   next command: the root disk, and the explicitly selected additional disks (or none). Never
   the whole disk list. Every disk you name will be erased. Re-read identities in the rescue
@@ -113,13 +118,14 @@ An installed-system pin already recorded means continuing keeps that root and it
 those keys requires a separately approved destructive reinstall (`STA-20b`). An unresolved label probe
 or two roots carrying the current id means stop and surface, never erase.
 
-With only a predecessor, or no root, on the approved disks, partition and format as approved below. Write
-the shown id as the root label in the **same** `mkfs.ext4` command: no gap between formatting
-and marking. It is readable without mounting and fits ext4's 16-byte label (`STG-20`).
+With only a predecessor, or no root, on the approved disks, partition and format as approved below
+(under an unconfirmed id, see step 1). Write the shown id as the root label in the **same**
+`mkfs.ext4` command: no gap between formatting and marking. It is readable without mounting
+and fits ext4's 16-byte label (`STG-20`).
 You write the label once, at formatting in `mkfs.ext4`; never rewrite a root's label yourself.
 Afterwards, on a dedicated machine, only the harness rewrites it, through Replace's relabel
-job (`STA-17`), which moves it to the machine's new id. Once the harness confirms that relabel,
-the id it shows is the one the root carries.
+job or the rescue rekey's (`STA-17`), which moves it to the machine's new id. Once the harness
+confirms that relabel, the id it shows is the one the root carries.
 
 GPT with a 1 MiB BIOS-boot partition, a 512 MiB EFI system partition, and the rest as root.
 The same layout boots both firmware modes. One block, so the partition paths it computes
@@ -275,8 +281,9 @@ rehearsal never resumed; it only ever wiped. What a resume should look like, unt
   re-issue only the blocks whose work is missing. Steps 5–7 as a whole are **not** declared
   idempotent: step 7's additional-disk block erases. Resume only this installation's matching
   root and preserve its host keys. If it is complete, do not wipe: inspect it and request
-  `ready_to_reset`. An unmarked or foreign-id root is the approved predecessor, not a resume;
-  two matching roots or an unresolved label probe mean stop and surface, never erase.
+  `ready_to_reset`. An unmarked or foreign-id root is the approved predecessor, not a resume
+  (under an unconfirmed id, see step 1); two matching roots or an unresolved label probe mean
+  stop and surface, never erase.
 - If evidence cannot establish a safe continuation, stop and surface the unresolved action.
   A reinstall under `STG-20` is a separately recorded operator decision to discard this
   disposable install, with its disk set shown again. A timer or missing file never authorizes it.

@@ -1354,6 +1354,20 @@ history. Preserve known facts and all older-version validation; missing history 
 empty history, invented earlier groups, observations or pins. Fresh applicable reinstall
 acceptance remains `SEC-14`'s; Restore alone is no new installation.
 
+A machine whose installation ordinal was accepted as a proposal in `STA-17`'s rescue rekey has a
+partial history, and export and Restore MUST round-trip it: the proposal's basis and the missing
+past, never turned into ordinary recovered history. The export carries its own interpretable
+acceptance basis and unknown-history meaning; a pointer to journal evidence that is missing is
+not enough. The captured observation and root provenance, the target-bound operator act, the
+retained facts, the relabel intent and result, and the captured confirmation stay separate
+linked facts. Genuine admissible facts below the accepted ordinal are preserved, with the gaps
+around them shown as unknown; no earlier group, observation, pin or empty-history placeholder is
+invented. The trust display says unknown, never unpinned, for that history and asserts no
+installation ran unpinned. The partial history supplies no authority for later operations. A
+recovery sheet found later stays outside the store: no act joins its facts to the live history,
+and none is kept for later comparison. The credential format versions this partial history;
+older-version validation is unchanged.
+
 In the maintained-machine Restore case above, operator binding can precede contact. Failed or
 unavailable restored-pin/publication readiness alone does not prevent an eligible session's
 acceptance and otherwise authorized reinstall. This establishes no universal future recovery
@@ -1456,6 +1470,77 @@ to the new index, never before the disk does, and only after that may the old ke
 At LNVPS, and at any other non-dedicated vendor, the shown id still moves to the new index
 when Replace's bullet above migrates it, as before, but there is no relabel step and nothing
 is written to the disk.
+
+**A dedicated machine rekeyed through rescue keeps a proposed installation ordinal**
+([ADR-0056](./docs/adr/0056-the-rescue-rekey-keeps-a-proposed-ordinal.md)). `STA-22b` says
+"Robot recovery installs keys from a fresh seed through vendor-authenticated rescue and re-reads
+host pins". In that model-free recovery of the same physical maintained machine, with no
+admissible saved history and one root whose disk label reads, for example, `a-7`, the operator
+MAY explicitly accept 7 as a proposed current installation ordinal after checks against the
+surviving facts; the migration to the fresh-seed index `b` then uses `b-7`. The harness MUST NOT
+adopt a disk label automatically, and no label component establishes an old seed-derived
+identity. The accepted number is a proposal, never historical proof: the earlier history stays
+explicitly unknown, known history carries forward, and every retained identity, ordinal,
+observation and pin fact is preserved. Acceptance cannot override a contradiction or turn a
+missing comparison into a passed one. Reading or accepting a label opens no destructive
+installation, establishes no prior pin provenance, authenticates no root contents, identifies
+no old client key, revokes nothing and completes no Replace. The ordinal does not increment
+during this non-destructive recovery; a later separately approved, otherwise admissible
+destructive reinstall derives 8 at `STG-20`'s existing dispatch boundary, keeping the unknown
+past and waiving no guard. For the partial history this leaves, see `STA-16`.
+
+The acceptance is an ordinary journaled record, bound to the same machine, root and destination
+allocation. `STA-3` says "If the append fails, the transition does not occur": a failed append
+supplies no acceptance. Resuming the unchanged recorded migration after a restart reads the
+acceptance back from the journal. That revives no worker authority and admits no different
+target or changed proposal; nothing in the flow is retried automatically (`STA-6`), and a write
+that may have been sent is never claimed complete.
+
+On this path the relabel is the same `replace_root_label` job (`ARC-43`), recorded before
+transmission (`ARC-8`) with its machine-side job record (`STA-20`), and it writes `b-7`. It MUST
+run in the installed system, and only after the installed system accepts a login authenticated
+with the new client key; the harness then confirms the write by a harness-composed read of the
+label, as above. A failed new-key login leaves `a-7` untouched. A pinned host answer, or an
+authentication in rescue, is not installed-system acceptance of the key. The captured readback
+confirms the label only, and is kept distinct from installed access, old-key revocation and the
+completion of Replace. Until a read of the label succeeds, the harness MUST re-read it on each
+later connection to the machine, once `STA-20` and `STA-24` admit the re-read; re-issuing the
+write is a fresh issue the operator chooses, never automatic. The machine counts as migrated,
+and `b-7` becomes its confirmed current id, only when a read shows `b-7`, never before the disk
+does.
+
+After acceptance the screen MUST show `b-7` as the pending destination and distinguish the
+allocation `b`, the observed disk text `a-7`, installed access and label confirmation. Once a
+write is sent, `a-7` is only an as-of observation, not the disk's current label. Label
+confirmation, terminal job evidence, a hold's release and revocation remain separate facts;
+computing the destination supplies no authority.
+
+If an admissible captured observation of the same recorded root reports a changed label, such
+as `a-9`, before the relabel write, the flow MUST stop this migration unfinished and preserve
+the discrepancy. It issues no relabel intent or write. The acceptance, both observations, the
+allocation and every association stay retained under 7; no 9 is adopted and no installation
+boundary is invented. The earlier new-key installation is not undone. The stop creates no
+command hold without a sent command, grants no erasure and implies no cleanup or revocation.
+No probe before the write is required, and a restart does not turn the discrepancy into
+success.
+
+The flow removes only the exact old client public key that checked retained machine records for
+the same authorized machine identify, and only after the installed-system new-key login and the
+confirmed `b-7` readback. It keeps the new key and unrelated authorizations. Missing old private
+material is not missing public identity, and no impossible old-key login test is reported
+passed. A key those records do not identify stays untouched and revocation is reported
+incomplete; it supplies no deletion target, no replacement of the whole key file and no new
+command hold. A removal supports only its scoped effect. The changed-label stop removes no key.
+
+While this flow runs, no ordinary session binds the machine. Once it has stopped unfinished,
+the operator MAY bind one through `SEC-1`'s re-entry; `SEC-1` says "by re-entry, on a maintained
+machine only". The model is shown the pending id marked unconfirmed, with each label the harness
+has read from the disk beside it as an as-of observation; no observed label becomes the id. The
+session may rely on an independently admitted active pin and on the accepted number as a
+proposal with its basis. It never relies on prior pin provenance, retired pins, the unknown
+history, zero exposure, complete revocation or a passed comparison over the unknown
+installations, and every ordinary check still applies. For the root the install brief surfaces
+in this window, see [docs/briefs/01-install.md](./docs/briefs/01-install.md).
 
 **Replace cannot cover the inference account credential, and MUST say so.** This credential
 has no account behind it, so there is nothing to revoke against (`SEC-5` row 14). What Replace *can* do is revoke every session key

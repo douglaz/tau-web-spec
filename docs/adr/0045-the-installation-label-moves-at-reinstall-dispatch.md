@@ -69,6 +69,11 @@ complete and kept; an unmarked or foreign root is the predecessor, including a h
 one. Duplicate matching roots and unreadable labels stop the brief before erasure. Formatting
 and writing the label are one command. The existing disk-selection safety blocks remain.
 
+*Amended 2026-11-05:* [ADR-0056](./0056-the-rescue-rekey-keeps-a-proposed-ordinal.md) narrows,
+after a rescue rekey and while the harness marks the shown id unconfirmed, the reading that an
+unmarked or foreign root is the predecessor: such a root is surfaced, never erased, resumed or
+treated as found complete, until a destructive reinstall of the machine is dispatched.
+
 A continuing choice with an installed pin keeps that installation and its keys. The reset
 offer compares its newest prerequisite read against that installation's active pin, so a
 changed key is shown before reboot, rather than discovered by a halt after reboot. A

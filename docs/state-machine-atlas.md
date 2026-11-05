@@ -765,8 +765,11 @@ For overlapping restrictions, follow these owner routes together:
   [tw-sfu](../.beads/issues.jsonl); for a replacement entry, see
   [STA-22b](../03-state-and-recovery.md#what-survives-a-lost-phone).
   Installation/recovery:
-  [tw-l1l/tw-lq8](../.beads/issues.jsonl); sheetless cloud recovery adds no destructive
-  authority under [STA-15](../03-state-and-recovery.md#recovery-by-access-model-and-vendor).
+  [tw-l1l](../.beads/issues.jsonl); sheetless cloud recovery adds no destructive
+  authority under [STA-15](../03-state-and-recovery.md#recovery-by-access-model-and-vendor),
+  and the dedicated rescue rekey keeps a proposed installation ordinal under
+  [STA-17](../03-state-and-recovery.md#recovery-by-access-model-and-vendor) and
+  [STG-20](../06-first-stage.md#what-the-lnvps-path-does-not-test) (ADR-0056).
   Restored-command boundary:
   [STA-20/STA-24](../03-state-and-recovery.md#durable-state).
 
@@ -823,11 +826,13 @@ inspect a named record with `br show ID --json --no-auto-flush --no-auto-import`
   match MUST halt the session”; `ARC-41` says “the harness does not reconnect on its own”.
   [CNF-53](../07-conformance.md)'s dedicated rescue-return case exercises it.
 - Allocation questions stay with [tw-sfu](../.beads/issues.jsonl);
-  installation/recovery questions with [tw-lq8, tw-l1l](../.beads/issues.jsonl). This outline
+  installation/recovery questions with [tw-l1l](../.beads/issues.jsonl). This outline
   chooses no answers to them. Sheetless cloud recovery is ruled by
-  [STA-15](../03-state-and-recovery.md#recovery-by-access-model-and-vendor), and a
+  [STA-15](../03-state-and-recovery.md#recovery-by-access-model-and-vendor), a
   replacement entry by
-  [STA-22b](../03-state-and-recovery.md#what-survives-a-lost-phone).
+  [STA-22b](../03-state-and-recovery.md#what-survives-a-lost-phone), and the
+  dedicated rescue rekey by
+  [STA-17](../03-state-and-recovery.md#recovery-by-access-model-and-vendor).
 - [The witness gate](../tools/check_witnesses.py) checks corpus-wide marked pair
   structure under [ADR-0032](adr/0032-the-formal-companion-follows-provisiond-spec.md) and the
   [witness schema](design/witness-file-v1.md).
