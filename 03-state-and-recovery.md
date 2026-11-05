@@ -1619,7 +1619,8 @@ in that form, gets no rescue rekey from the harness, and
 nothing here grants a reinstall or an erasure to repair it.
 
 **After the root-label stop, one scoped read of the installed host keys serves that one reset
-back and is trusted for nothing later.** The `rescue_host_key_read` job (`ARC-43`) reads, in
+back and is never trusted later to accept a key or make a connection.** The
+`rescue_host_key_read` job (`ARC-43`) reads, in
 rescue, the installed host public keys of the one root that carries them. It writes nothing to
 any disk, follows no symbolic link, reads no private key file, journals nothing of a file it
 refuses, and mounts every root it reads without replaying its file system's journal. It refuses, and
@@ -1632,8 +1633,12 @@ serves only that
 reset and stands in for `ready_to_reset`'s pins as that reset's durable prerequisite and
 expected next keys (`STA-20b`, `STG-4`). The answer that confirms the reset admits no
 connection. What it reads is no pin of any source `SEC-5` row 5 lists and is never
-`ready_to_reset`'s record; no later connection to the machine relies on it, and whether a later
-comparison reads it is not decided. It gives no root a label, supplies no acceptance and
+`ready_to_reset`'s record; no later connection to the machine relies on it. It is kept in the
+journal with the entry for the entry's lifetime, as a record as of that read. A later comparison
+reads it only to withhold, as one of the earlier installations' records of which `STA-20b` says
+"earlier installations' records are read only to withhold it"; a key matching it is not accepted
+or trusted for that match. It is not exported (`SEC-5` row 5), so a Restore loses it as an input
+that withholds. It gives no root a label, supplies no acceptance and
 installs no key. The companion carries none of this reset's offer or confirmation (`STA-20b`).
 
 **The operator MAY record that an entry this flow's card created names the wrong server.** The
