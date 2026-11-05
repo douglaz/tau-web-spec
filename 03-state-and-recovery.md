@@ -949,22 +949,22 @@ Failed's proof does not hold; when any create for the old entry is possibly sent
 was associated with or contacted for it; when an applicable identity exclusion (`STA-24`), or
 any other independent guard or check that applies to the replacement, bars it; when the
 replacement would reuse or repeat an unresolved preparation step of the old entry; or when its
-append fails. A replacement whose vendor, plan or size, region or image differs from the old
-entry's is a distinct entry for this act; that settles only distinctness, and every refusal
-above still applies to it. A fresh index, account or call, renaming the old entry or displaying
-it as historical is not this act and bypasses nothing. Old and new prospective authority never
-stand together: once the act is admitted, no stale approval or late completion authorizes a command
-or order on the old entry, and reconciliation of its old work that another rule permits renews
-no prospective authority. The old entry keeps its consumed identity, mapping, history, barrier
-and identity exclusions (`STA-24`). Failed's proof concerns only that allocation's create: an
-earlier preparation step of the old entry whose outcome is unknown stays unresolved and
-restricted, the act supplies no failure, success, non-execution, cancellation or deletion
-evidence for it, and the replacement does not reuse or repeat it under another label. Replay,
-export and import preserve the predecessor link and these restrictions without redispatch. The
-act removes no actual bound machine and grants no larger set (`SEC-1`). It is neither
-`ARC-16`'s third rung nor `ARC-22`'s in-setup replacement order, it is no successor for the
-same intended entry, which has none, and a bound set above one machine has no such route. The
-formal companion has no replacement act; `CNF-72`'s cases check it.
+append fails. Only a difference in vendor, plan or size, region or image makes a replacement a
+distinct entry for this act, and a difference in any of them does; that settles only
+distinctness, and every refusal above still applies to it. A fresh index, account or call,
+renaming the old entry or displaying it as historical is not this act and bypasses nothing. Old
+and new prospective authority never stand together: once the act is admitted, no stale approval
+or late completion authorizes a command or order on the old entry, and reconciliation of its old
+work that another rule permits renews no prospective authority. The old entry keeps its consumed
+identity, mapping, history, barrier and identity exclusions (`STA-24`). Failed's proof concerns
+only that allocation's create: an earlier preparation step of the old entry whose outcome is
+unknown stays unresolved and restricted, the act supplies no failure, success, non-execution,
+cancellation or deletion evidence for it, and the replacement does not reuse or repeat it under
+another label. Replay, export and import preserve the predecessor link and these restrictions
+without redispatch. The act removes no actual bound machine and grants no larger set (`SEC-1`).
+It is neither `ARC-16`'s third rung nor `ARC-22`'s in-setup replacement order, it is no
+successor for the same intended entry, which has none, and a bound set above one machine has no
+such route. The formal companion has no replacement act; `CNF-72`'s cases check it.
 
 Import checks the seed identifier, derives each listed public key and compares it, validates
 unique indices within each family and next-unused counters above all listed indices, and

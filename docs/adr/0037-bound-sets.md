@@ -161,9 +161,9 @@ under its own proof and fence, the old entry's prospective authority is retired,
 replacement is admitted, linked to its predecessor. The route covers only an entry never sent,
 never associated and never contacted; a possibly sent create or an actual machine keeps its
 existing recovery and exposure obligations. A held request still never becomes Failed by
-itself. A replacement whose vendor, plan or size, region or image differs is a distinct entry
-for the act. The same intended entry, including one that differs only in its identity, label,
-allocation, index, account, cost, call, bundle commit or an incidental argument such as an
-order's reference code, has no successor route, and a set above one machine
-has no such route. The old entry's history, barrier and identity exclusions stay (`STA-24`), and
-`CNF-72` checks the cases.
+itself. What makes a replacement a distinct entry for the act is `STA-22b`'s, and every other
+refusal still applies. The same intended entry, including one that differs only in its identity,
+label, allocation, index, account, cost, call, bundle commit or an incidental argument such as
+an order's reference code, has no successor route, and a set above one machine has no such
+route. The old entry's history, barrier and identity exclusions stay (`STA-24`), and `CNF-72`
+checks the cases.
