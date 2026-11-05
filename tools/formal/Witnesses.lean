@@ -1740,7 +1740,8 @@ def witnesses : List Trace :=
     { declarations := [named "free_entry_growth_progress"], events := freeGrowthEvents },
     { declarations := [named "request_unchanged_limits_progress"], events := originalRequestLimitsEvents } ] ++
   paired "paused_growth_refused" "paused_growth_without_check" (pausedGrowthEvents false) { TauWeb.Authority.current with growthAvailable := false } ++
-  [{ declarations := [named "resumed_growth_progress"], events := pausedGrowthEvents true }] ++
+  [{ declarations := [named "resumed_growth_progress"], events := pausedGrowthEvents true },
+    { declarations := [named "unlocked_paused_growth_refused"], events := unlockedPausedGrowthEvents }] ++
   paired "issued_continuation_refused" "issued_continuation_without_guard" issuedContinuationEvents { TauWeb.Authority.current with unsentContinuation := false } ++
   paired "validation_terminal_ends" "validation_terminal_without_guard" (validationEndEvents .expired) { TauWeb.Authority.current with validationTerminal := false } ++
   paired "validation_terminal_ends" "validation_terminal_without_guard" (validationEndEvents .exhausted) { TauWeb.Authority.current with validationTerminal := false } ++
