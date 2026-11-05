@@ -68,5 +68,6 @@ destroyed allocation stands, and a reported record keeps its own rules.
 
 `SEC-5`, `SEC-6`, `ARC-43`, `STA-16`, the credential format's payload version 7, `CNF-84` and `CNF-95(i)`
 change together. The formal companion has no placement or scan-reference state and is unchanged.
-How rotation treats output produced before it within a session stays open; the mark covers only
-what a Restore loses.
+How rotation treats output produced before it within a session stays open, since decided in
+[ADR-0061](./0061-a-rotation-keeps-the-old-placements-older-output-withheld.md); the mark covers
+only what a Restore loses.

@@ -572,6 +572,16 @@ shrink an actual session's membership and authorizes no new contact with the des
 Fresh output still owes every other release prerequisite; its scan is `SEC-5`'s, and `SEC-5`
 says "Destruction never counts as a scan: bytes withheld before it stay withheld".
 
+**A rotation ends the old placement's wait; what was withheld stays withheld.** Once `SEC-5`
+retires the rotated placement's reference (`SEC-5` says "P's row 23 scan key and reference end,
+and nothing re-creates them"), the re-arm above and the `exec` wait no longer require that
+placement, a paste or late digest record arms nothing for it, and the new placement's reference
+is required in its place. Retiring that wait lifts this one prerequisite and clears no command
+hold, resource barrier, pending check, other unarmed-reference requirement, destructive
+restriction or unknown command outcome. Fresh output still owes every other release
+prerequisite; its scan is `SEC-5`'s, and `SEC-5` says "A rotation never counts as a scan: bytes
+withheld before it stay withheld".
+
 **An operator report ends one lost-key placement's wait; what was withheld stays withheld.**
 After revoking a placement's key at its service, the operator may report that one placement
 revoked. The harness trusts the report as the operator's statement that the service revoked the
