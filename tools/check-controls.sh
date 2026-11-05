@@ -1514,6 +1514,10 @@ control "identifiers: a reference to an ADR that does not exist" "$IDS" \
   "printf '\nDecided in ADR-9999, which does not exist.\n' >> 00-overview.md" \
   "BAD ADR REFS" "ADR-9999"
 
+control "identifiers: two ADR files under one number" "$IDS" \
+  "printf '# A second record under an existing number\n' > docs/adr/0001-a-second-record-under-one-number.md" \
+  "DUPLICATE ADR NUMBERS" "0001"
+
 control "identifiers: a withdrawn identifier defined again" "$IDS" \
   "printf '\n**STG-8** A withdrawn identifier defined again.\n' >> 06-first-stage.md" \
   "WITHDRAWN BUT DEFINED" "STG-8"

@@ -35,7 +35,7 @@ run "formal       (Lean build, axiom policy, @[req] index, witness emission; nee
 run "witnesses    (emission equality and corpus-wide marked pair structure)" python3 tools/check_witnesses.py
 run "regions      (a marked region in a document that is not what its declaration emits)" python3 tools/check_regions.py
 run "atlas        (informational selected witness projections and source agreement)" python3 tools/render_state_machine_atlas.py --check
-run "identifiers  (duplicates, dangling, pointers, gaps, ADR refs, CNF tiers)" python3 tools/check_ids.py
+run "identifiers  (duplicates, dangling, pointers, gaps, ADR refs and numbers, CNF tiers)" python3 tools/check_ids.py
 run "comment ids  (global uniqueness in the tracked issue export)" python3 tools/check_comment_ids.py
 run "local paths  (no source_repo_path, home-directory or scratch path in the tracked issue export)" python3 tools/check_tracker_paths.py
 run "fixtures     (every JSON example parses; every Mermaid block is structurally whole)" python3 tools/check_fixtures.py

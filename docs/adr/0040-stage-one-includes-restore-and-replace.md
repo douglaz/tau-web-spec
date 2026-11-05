@@ -95,7 +95,7 @@ items and the same split between that row, the dedicated row and the paid/public
 
 ## Amended 2026-11-02: the no-sheet cloud remedy
 
-[ADR-0053](./0053-sheetless-cloud-recovery-adds-no-destructive-authority.md) qualifies option
+[ADR-0055](./0055-sheetless-cloud-recovery-adds-no-destructive-authority.md) qualifies option
 C's note that destroy/recreate remains the no-sheet cloud remedy. The harness recreates only
 where existing authorization permits it; otherwise the operator acts at the vendor, and
 unavailable remedies are reported as unavailable.

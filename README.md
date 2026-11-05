@@ -89,7 +89,8 @@ Requirements use RFC 2119 keywords: **MUST**, **MUST NOT**, **SHOULD**, **SHOULD
 **MAY**. Each is tagged with a stable identifier so it can be cited in code review, tests and
 issue trackers. `tools/check_ids.py` reads every shape below and refuses a duplicate, a
 citation nothing defines, a gap in a sequence not listed as withdrawn, an identifier far above
-its neighbours, a reference to an ADR that does not exist, and a conformance item with no tier.
+its neighbours, a reference to an ADR that does not exist, two ADR files under one number,
+and a conformance item with no tier.
 `tools/check_citations.py` refuses a quoted attribution — `` `X` says "…" `` — whose target's
 body does not contain the quote, and ratchets unquoted ones against `tools/citation-baseline.json`;
 `tools/check_coverage.py` counts the requirements no conformance item cites and ratchets that

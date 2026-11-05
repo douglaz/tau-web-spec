@@ -16,7 +16,7 @@ credential and recovery contracts before either behavior is available.
 
 ## Amended 2026-11-02: sheetless recovery adds no destructive authority
 
-[ADR-0053](./0053-sheetless-cloud-recovery-adds-no-destructive-authority.md) qualifies both
+[ADR-0055](./0055-sheetless-cloud-recovery-adds-no-destructive-authority.md) qualifies both
 halves of the fallback in "Current recovery paths" below. `STA-15` says "Where a maintained
 cloud machine's pin is lost with no sheet anyway, recovery adds no destructive authority." A
 missing or stale sheet invokes a recreate only where existing authorization permits it;

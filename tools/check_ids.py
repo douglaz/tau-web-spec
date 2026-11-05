@@ -9,6 +9,7 @@ Enforces README.md's "Requirement conventions" mechanically:
   * no id is missing from a family's sequence           (renumbering / gaps)
   * no id sits far above its neighbours                 (a mistyped id)
   * every cited ADR exists on disk                      (bad ADR references)
+  * no two ADR files share a number                     (duplicate ADR numbers)
   * a withdrawn id is not defined again                 (reintroduced)
   * a conformance item carries a tier where it must     (untiered item)
 
@@ -147,7 +148,13 @@ def main():
             if not TIER_RE.match(m.group(2)) and section not in UNTIERED_SECTIONS:
                 untiered.append(m.group(1))
 
-    adrs = {os.path.basename(p)[:4] for p in glob.glob("docs/adr/*.md")}
+    adr_files = {}
+    for p in sorted(glob.glob("docs/adr/*.md")):
+        adr_files.setdefault(os.path.basename(p)[:4], []).append(os.path.basename(p))
+    adrs = set(adr_files)
+    # Two records under one number make every `ADR-NNNN` citation of it ambiguous;
+    # the existence check below cannot see that, since the number does exist.
+    dup_adrs = sorted((n, fs) for n, fs in adr_files.items() if len(fs) > 1)
     bad_adrs = set()
     for f in citing:
         for m in ADR_RE.finditer(open(f).read()):
@@ -164,11 +171,12 @@ def main():
     print("NUMBER GAPS:", gaps or "none")
     print("OUTLIER IDS:", outliers or "none")
     print("BAD ADR REFS:", sorted(bad_adrs) or "none")
+    print("DUPLICATE ADR NUMBERS:", dup_adrs or "none")
     print("WITHDRAWN BUT DEFINED:", reintroduced or "none")
     print("UNTIERED CNF ITEMS:", untiered or "none")
 
     return 1 if (dupes or dangling or orphan_pointers or gaps or outliers
-                 or bad_adrs or reintroduced or untiered) else 0
+                 or bad_adrs or dup_adrs or reintroduced or untiered) else 0
 
 
 if __name__ == "__main__":

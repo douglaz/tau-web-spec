@@ -52,3 +52,7 @@ bare-seed import, per-machine discovery, the coordinated format and recovery ame
 dedicated rescue rekey, or any installation acceptance or reset gate.
 [ADR-0036](./0036-first-contact-is-never-trusted-through-the-relay.md)'s sentence that such a
 machine "is destroyed and recreated" is qualified by this record.
+
+*Renumbered 2026-11-05:* this record merged as ADR-0053 on the same day as the setup record
+that holds that number, which merged first. The tracker's closure of tw-yhd cites it as
+ADR-0053; that citation means this record.
