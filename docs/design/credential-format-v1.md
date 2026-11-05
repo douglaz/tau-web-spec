@@ -287,7 +287,8 @@ version 7 (below), never version 6.
 
 Every new export writes version 7. Version 7 keeps every version-6 rule and adds two required
 members, `report` and `seed_id`, to every placement record, a required `seed_id` to every other
-record that names a machine (below), and one required payload member, `retired_allocations`. It
+record that names a machine (below), a required `reference_ended` to every `machine_states`
+entry (below), and one required payload member, `retired_allocations`. It
 inherits no wire from version 6 for the partial
 history: those member names and encodings, not yet specified above, are equally unspecified for
 version 7.
@@ -307,8 +308,10 @@ placement record with a missing member or any member other than its seven.
 
 A placement without a report is live: the export writes it until its secret is rotated or its
 machine is destroyed (`SEC-5` row 12). Rotation replaces its record with the rotation's new
-placement, and its machine's destruction removes it from every later export. What keeps output
-withheld for such an ended placement after a Restore from a later sheet is not yet specified.
+placement, and its machine's destruction removes it from every later export. After a Restore
+from a later sheet, its older output stays withheld through the `reference_ended` mark its end
+sets on the `machine_states` entry of each live machine the exposure ledger records in a bound
+set with its machine (below).
 
 A placement with a report is ended. Its record stays in `placements` on every later export,
 after its secret is rotated and after its machine is destroyed (at LNVPS, the vendor's confirmed
@@ -511,8 +514,10 @@ without a report on a destroyed allocation before binding.
 Validate versions 3 to 6 under their own rules, then convert to version 7 in memory by giving
 every placement `report:"none"`, giving every placement, `artifact_history`, `machine_states`
 and `host_pins` entry, `host_pin_installations` group and exposure-ledger machine reference the
-payload's `seed_id`, and supplying `retired_allocations:[]`. The conversion invents no report and no retired allocation: an older sheet restores each
-placement's as-of-export wait (`STA-16`). A reader that predates version 7 refuses a version-7
+payload's `seed_id`, giving every `machine_states` entry `reference_ended:false`, and supplying
+`retired_allocations:[]`. The conversion invents no report, no mark and no retired allocation:
+an older sheet restores each placement's as-of-export wait and each machine's as-of-export
+withholding (`STA-16`). A reader that predates version 7 refuses a version-7
 sheet as an unknown version. Versions 1 and 2 and unknown versions stay refused. Sheet envelope
 v1, derivation v1, algorithms, AAD and known-answer vectors stay unchanged.
 
@@ -525,7 +530,7 @@ pin also carries its `installation` ordinal, starting at zero for that machine; 
 pin remains scoped by its rescue boot. Whether the installation
 carries an artifact pin is a different fact, carried per machine below. Each `machine_states` entry is
 `{machine_index, declaration, class, access_model, installation, weaker_modes, applications}`, and in
-version 7 also `seed_id` ([version 7](#operator-reports-payload-version-7)): the journaled
+version 7 also `seed_id` and `reference_ended` ([version 7](#operator-reports-payload-version-7)): the journaled
 declaration in force as a delivery-declaration version 2 document, the class `ARC-36a` records, the
 access model of `ARC-27`, `installation` as `"pinned"`, `"unpinned"` (`ARC-25`) or
 `"not_installed"` before any installation, and the labels of the acceptable weaker modes standing
@@ -538,6 +543,21 @@ allocation marked `jump_host: true` (`STA-22b`) or, in version 7, `destroyed: tr
 Reject a missing, duplicate or malformed entry and an entry for a jump host or a destroyed
 allocation; never interpret a missing entry or an
 `"unapproved"` field as a default.
+
+`reference_ended` is `true` or `false`. `SEC-5` owns when it is set: the journal act that
+records a rotation of a placement without a report, and the act that records the admitted
+deletion evidence of a machine holding one, set it, whether or not that placement's reference is
+armed, on that placement's machine while that machine stays live and on every live machine the
+exposure ledger records in a bound set with it (`STA-10`). A reported placement's end sets
+nothing, since its record stays. Nothing clears
+the mark: a re-arm, a re-check, a reinstall, a new installation, a reapproval, a report and a
+Replace leave it standing, and a migrating machine's entry keeps it. The exporter copies it from
+the journal. It is recorded, not approved, and never `"unapproved"`. It is protected and
+non-secret: it names no placement, and no value, digest, scan key, byte length or other
+value-derived reference accompanies it. Import checks its form only: reject a missing member,
+`null` or any other value before binding. After a Restore, a `true` mark keeps every job record
+from before the loss on that machine withheld (`SEC-5`). Like the rest of the sheet it is as of
+export (`STA-16`): an end the journal records after the export sets no mark on that sheet.
 
 `host_pin_installations` is a required array of installation groups in creation order.
 Each group is `{machine_index, installation, observations}`, and in version 7 also `seed_id`

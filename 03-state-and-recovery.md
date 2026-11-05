@@ -1333,7 +1333,9 @@ exposure ledger, placement metadata
 placement time and whether the operator reported its key revoked, `ARC-43`), each live machine's
 **machine state as approved** — its declaration in force (`ARC-39`), its class (`ARC-36a`),
 its access model (`ARC-27`) and the acceptable weaker modes standing on its bound set (`SEC-14`) — with whether
-its installation is pinned (`ARC-25`) and its installed applications beside it, and, on the
+its installation is pinned (`ARC-25`), its installed applications and whether a rotation or a
+destruction has ended a placement without a report on it or on a machine the exposure ledger
+records in a bound set with it (`SEC-5`) beside it, and, on the
 procured path, the **inference account credential**, wrapped under a passphrase the operator chooses. A jump host carries no machine
 state, and a part not yet approved when an earlier sheet is exported is marked unapproved there.
 None of the machine state is secret, and all of it exists by the export `STA-15` requires.
@@ -1386,7 +1388,11 @@ a restored placement without a report names that application on its machine: `TR
 as long as a placement without an operator report names that application on that machine". A
 restored reported placement is shown as operator-reported history, as of export, and re-arms
 nothing and owes no wait (`ARC-43`). A destroyed machine's reported placement is shown the same
-way, with no provider beside it. Installation pin status and pin routes
+way, with no provider beside it. A machine whose restored state carries the `reference_ended`
+mark (`SEC-5`) is shown as one where a placement reference that scanned it ended before export,
+naming no placement, with its job records from before the loss withheld and output produced
+after the Restore not checked for that ended value (`SEC-5`). The mark
+is a recorded fact as of export: it needs no reapproval, and nothing after the Restore lifts it. Installation pin status and pin routes
 are the history modes of `SEC-14`, and a Restore does not reapprove them — only a reinstall, a new installation, is accepted afresh; import restores the exporting session's modes as ended history only, and a
 re-entering session accepts its own rather than reapproving them, while what they left live
 stays "unknown since export". The sheet carries no check result and no
