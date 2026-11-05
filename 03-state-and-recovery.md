@@ -960,19 +960,22 @@ identity, mapping, history, barrier and identity exclusions (`STA-24`). Failed's
 only that allocation's create: an earlier preparation step of the old entry whose outcome is
 unknown stays unresolved and restricted, the act supplies no failure, success, non-execution,
 cancellation or deletion evidence for it, and the replacement does not reuse or repeat it under
-another label. Reusing or repeating it means re-sending its request, sending a step that targets
-the old entry's identity or account, or ordering on its result. The replacement's own
-preparation step for its own identity and account is not a repeat, even when it is of the same
-kind and carries the same operator address, such as `STG-21`'s email submission to the
-replacement's own account. Every barrier `STA-24` sets still applies to that step, including a
-later untyped vendor scope's inheritance at the same exact origin (ADR-0054). Opening the old
-step's verification link at the shared address verifies nothing for the replacement, whose order
-waits for verified status under its own identity (`STG-21`). Replay, export and import preserve
-the predecessor link and these restrictions without redispatch. The act removes no actual bound
-machine and grants no larger set (`SEC-1`). It is neither `ARC-16`'s third rung nor `ARC-22`'s
-in-setup replacement order, it is no successor for the same intended entry, which has none, and
-a bound set above one machine has no such route. The formal companion has no replacement act;
-`CNF-72`'s cases check it.
+another label, at the act or at any later dispatch. Reusing or repeating it means re-sending its
+request, adopting its record as the replacement's own step, sending a step that targets the old
+entry's identity, resource (`STA-24`), key or own account, or relying on its result for a step
+or an order. The replacement's own preparation step for its own identity, resource, key and
+account is not a repeat, even when it is of the same kind and carries the same operator address,
+such as `STG-21`'s email submission to the replacement's own account; where both entries use one
+vendor account, a step there that names the replacement's own resource and key is its own step.
+Every barrier, hold and pause `STA-24` sets applies to that step on its own terms, so a step
+sent through a later untyped vendor scope at the same exact origin is barred by that scope's
+inheritance (ADR-0054). Opening the old step's verification link at the shared address verifies
+nothing for the replacement, whose order waits for verified status under its own identity
+(`STG-21`). Replay, export and import preserve the predecessor link and these restrictions
+without redispatch. The act removes no actual bound machine and grants no larger set (`SEC-1`).
+It is neither `ARC-16`'s third rung nor `ARC-22`'s in-setup replacement order, it is no
+successor for the same intended entry, which has none, and a bound set above one machine has no
+such route. The formal companion has no replacement act; `CNF-72`'s cases check it.
 
 Import checks the seed identifier, derives each listed public key and compares it, validates
 unique indices within each family and next-unused counters above all listed indices, and

@@ -763,10 +763,10 @@ describes for an added machine, which also names the entry it retires and the re
 structured facts. What makes the replacement distinct from the entry it retires is
 `STA-22b`'s. Where an earlier preparation step of the retired entry is unresolved, the card
 shows it as `STA-24`'s card for a different entry does, which “shows the unresolved sibling and
-that it may be billing”, and says that the replacement's own step of the same kind, such as its
-own email submission (`STG-21`), is its own step and that the old step's verification link
-verifies nothing for the replacement. It is never a re-order of the old entry or a new label for
-it.
+that it may be billing”, and, where the replacement owes its own step of the same kind, says
+that it is its own step, such as its own email submission (`STG-21`), and where the old step is
+an email submission, that its verification link verifies nothing for the replacement. It is
+never a re-order of the old entry or a new label for it.
 
 **ARC-16** Recovery is a ladder. Retry; then escalate to a stronger model behind the same
 proxy; then destroy the machine and restart under a different domain, which costs a server.

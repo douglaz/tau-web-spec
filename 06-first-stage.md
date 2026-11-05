@@ -69,7 +69,9 @@ resend route and submits no alternate address to force reissue. Each reissue PAT
 requested and obeys `STA-5` and `STA-24`. Operator-led vendor recovery is an unverified possible
 external remedy, never a promised available API feature; supported harness fallback is
 abandonment before any order. No harness recovery mechanism is added. That holds for the same
-intended entry; a different approved entry replacing a never-sent one is `STA-22b`'s, and its own submission to its own account is its own step there, not a repeat of the old one. After a lost local store the
+intended entry; a different approved entry replacing a never-sent one is `STA-22b`'s,
+and its own submission to its own account is its own step there, not a repeat of the old one.
+After a lost local store the
 operator supplies the address again. A newly ordered machine reads automatic renewal on
 (`docs/findings/2026-10-11-lnvps-phase-b.md`), and `ARC-30` says "nothing pays one for them":
 after each order the adapter MUST turn the machine's automatic renewal off and read it back as
