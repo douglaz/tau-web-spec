@@ -984,7 +984,9 @@ allocation: after Replace, the new seed's sheet carries a destroyed machine that
 placement record names under the seed it was allocated under ([credential
 format](docs/design/credential-format-v1.md#operator-reports-payload-version-7)). Import accepts
 that allocation's recorded public key without deriving it, keeps it out of the index and counter
-checks above, and restores from it no contact identity, binding or allocation. A stale sheet cannot prove the latest
+checks above, and restores from it no contact identity, binding or allocation. The journal keeps
+that destroyed machine's retired-seed entry while a reported placement record names it, through
+every later Replace. A stale sheet cannot prove the latest
 counter. Therefore **every imported seed may restore listed identities but MUST NOT allocate
 new ones**, from a recovery sheet or an imported local-store backup, even when it claims to
 be current. To allocate again, use Replace with a freshly generated seed; old records are
@@ -1329,7 +1331,9 @@ malformed application data, and a duplicate JSON member name, MUST be refused be
 as approved — declaration, class, access model and the standing weaker modes — are restored as
 the sheet holds them and MUST be shown as **"unknown since export"** after store loss. That
 qualification MUST be restated at every later irreversible act until the operator explicitly
-reapproves the relevant restored state. Whether an installation is pinned, or not yet made,
+reapproves the relevant restored state. The one exception is a destroyed machine's reported
+placement record: it is shown as operator-reported history as of export, and is neither
+restated at a later irreversible act nor reapproved, since its machine is gone. Whether an installation is pinned, or not yet made,
 and each pin's route are restored and shown beside it, as of export like the rest; they record
 what happened, not something the operator approves. Restore also brings back each machine's
 complete recorded application/provider list, explicitly labelled **"as of export"** until the

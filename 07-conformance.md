@@ -218,8 +218,8 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       (b) Later session, intact store: use the encrypted reference, preserving it when the
       machine reports changed bytes; never silently adopt the changed value.
       (c) Seed-plus-sheet Restore, alongside `CNF-84`: each placement recorded on the set's
-      machines, apart from one whose reference `SEC-5` has retired, an operator-reported one
-      included (case (h)), is re-armed
+      machines, apart from one whose reference `SEC-5` has retired, whether by destruction or
+      by an operator report (case (h)), is re-armed
       before output collection or model commands on any machine of the set. The label is
       "re-armed from the machine's report", never "protected"; forgotten placements are not
       claimed covered. Machine-only entries are advisory and require an operator act to arm.
@@ -423,8 +423,9 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       it is re-collected, replayed, re-requested or displayed, and so does output of a job
       dispatched before the report record and still running across it. Output of a job
       dispatched after the record is released once P2 checks it clean and every other
-      prerequisite holds, and P1's exact value in it is not redacted for P1; a placement P3
-      holding the same bytes keeps its own reference and redacts it. A reinstall, a new
+      prerequisite holds, and P1's exact value in it is not redacted for P1; in a separate
+      branch, an armed placement P3 on M holding the same bytes keeps its own reference and
+      redacts it. A reinstall, a new
       installation, a missing file, a changed pin and the stop that stands in for a destroy
       end nothing for P1 without a report. The report lifts no `STA-20` or `STA-24`
       restriction: with a destructive disposition standing on M, everything that disposition
@@ -1623,7 +1624,8 @@ to the relay evidence in `CNF-81`, `CNF-87` and `CNF-113`.
       became part of what placing a secret promises. After Restore, the sheet's placement
       entries remain displayed (`STA-16`, `ARC-43`); machine reports may add labelled
       advisory entries and remove none. An absent file stays listed. Re-arming or a machine's
-      removal claim never drops an entry; only the owning rotation/destruction rules do.
+      removal claim never drops an entry; only the owning rotation/destruction rules do, and an
+      operator report moves its own entry to history.
       At LNVPS the stop that stands in for a destroy never drops one either.
       An operator report (`ARC-43`) moves only its own placement from the live listing to
       history labelled operator-reported, never "retired" or "rotated", with the statement that
@@ -1849,7 +1851,8 @@ Not pass/fail. Required to be recorded.
       record kept after its secret's rotation beside the rotation's new placement and one kept
       after its machine's destruction, whose allocation carries `destroyed: true`, has no
       machine state and whose `application_name` is checked by form only. Refuse before binding
-      a missing or malformed `report`, a report object with a missing, extra or duplicate member,
+      a placement record with a missing member or any member beyond its seven, a missing or
+      malformed `report`, a report object with a missing, extra or duplicate member,
       a malformed time, a placement without a report on a destroyed allocation, a reported one on
       an absent, failed, jump-host or non-machine allocation, `destroyed` with any other value or
       on a live allocation, and a machine state for a destroyed allocation. Refuse duplicate
@@ -1861,8 +1864,9 @@ Not pass/fail. Required to be recorded.
       resource identity and recorded public key with `destroyed: true`, and the record keeps its
       `seed_id` and `machine_index`, including where a migrated machine's new index equals that
       index (`STG-20`); a migrated machine's records take the fresh seed's `seed_id` and its new
-      index. Import of that sheet succeeds, so no export writes a sheet its own import refuses;
-      a second Replace keeps the retired allocation's seed. Import accepts the retired
+      index. Import accepts that sheet's placements, retired allocation and allocations, and a
+      second Replace keeps the retired allocation's seed; what the sheet's other members hold
+      for that machine is not yet specified (credential format). Import accepts the retired
       allocation's recorded key without deriving it, while a wrong key on a current-seed
       allocation is still refused; the retired allocation restores no contact identity, pin,
       binding or allocation, and a counter or unique-index check over `allocations` ignores it.

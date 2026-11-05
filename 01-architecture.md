@@ -517,7 +517,8 @@ install, or a fix for a finding that refuses placement) wait on these references
 says that neither a reinstall nor the stop that stands in for a destroy (`ARC-22`) ends that
 wait. Under either disposition, at a vendor that offers the operator no destroy route, the
 card offers no destroy and says the secret stays listed until it is rotated or the vendor's
-deletion is confirmed.
+deletion is confirmed, or until the operator reports that placement revoked (below), when it
+moves to history labelled operator-reported.
 A digest record of a call named by a destructive disposition arms nothing, whenever collected;
 it is journaled and shown and cross-checks a paste. A digest result that arrives after the
 paste, a disposed digest's record among them, is a cross-check only: a mismatch is visible

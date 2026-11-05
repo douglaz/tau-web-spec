@@ -292,10 +292,11 @@ report. `"none"` records that no report was recorded for the placement as of exp
 no clean past: not that the value was never lost, copied or disclosed, nor that it is still valid
 at its service. `operator_reported_at` labels history and classifies no output: which output a
 report ends that placement's scan for follows journal dispatch order (`SEC-5`), never this time
-or a machine-reported time. Like `placed_at`, it is protected and non-secret: an operator-act
-time, never secret-derived data, and no value, digest, scan key, byte length or other
-value-derived reference accompanies it. Reject a missing `report`, `null`, any other string, an
-object with a missing, extra or duplicate member, and a malformed time before binding.
+or a machine-reported time. It is protected and non-secret: an operator-act time, never
+secret-derived data, and no value, digest, scan key, byte length or other value-derived
+reference accompanies it. Reject a missing `report`, `null`, any other string, an object with a
+missing, extra or duplicate member, and a malformed time before binding. Reject too a version-7
+placement record with a missing member or any member other than its seven.
 
 A placement without a report is live: the export writes it until its secret is rotated or its
 machine is destroyed (`SEC-5` row 12). Rotation replaces its record with the rotation's new
