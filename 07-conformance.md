@@ -506,8 +506,17 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       of its old public key has completed, and the renewal-off before the stop is confirmed:
       each is refused. Either call under the replacement machine's key or an SSH client key is
       refused, and so is any other vendor call this flow requests for the old machine, other
-      than the confirming read whose standing `SEC-4` leaves open, and any call for another
-      machine.
+      than the read that confirms the renewal-off, and any call for another machine.
+      Confirming-read case (`SEC-4`): after the renewal-off, Replace's own flow reads that
+      machine under its own recorded key, and the read is admitted; `SEC-4` says "only after
+      that renewal-off, an authenticated machine read of that one machine to confirm it". The
+      same read before the renewal-off, or under the replacement machine's key, another
+      machine's key or an SSH client key, is refused. A read that `STG-21a`'s predicate leaves
+      unresolved leaves the renewal-off unresolved. Renewal is shown confirmed off only once
+      that read's confirming evidence is durably recorded. The read confirms no stop and no
+      deletion: Replace stays reported incomplete until the old machine's deletion evidence is
+      durably recorded, and with the renewal-off confirmed, nothing else about the old machine
+      keeps it incomplete.
       Finish every other Replace step, including the new sheet's export, while that machine's
       deletion evidence (`STG-21a`) is not durably recorded: the finished steps may be shown
       finished, the new machine and its sessions proceed, and Replace is reported incomplete.

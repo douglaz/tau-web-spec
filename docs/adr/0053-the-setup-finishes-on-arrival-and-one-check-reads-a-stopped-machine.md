@@ -2,7 +2,7 @@
 
 Decided 2026-11-03 and 2026-11-04. `ARC-22` owns the LNVPS in-setup replacement rung's form and
 order, completion on arrival and the display of a stopped machine after its setup; `ARC-15`
-owns the approved entry; `SEC-4` owns the deletion check's grant and the grant for Replace's two
+owns the approved entry; `SEC-4` owns the deletion check's grant and the grant for Replace's
 calls; `SEC-5` owns the credential lifetimes and the destruction duties; `STA-17` owns Replace,
 its completion report and the retired seed's backup; `STG-21a` owns the deletion predicate;
 `STA-24` owns the evidence record, dispositions and the sibling-entry permission.
@@ -45,6 +45,13 @@ machine. For the rule and the retired seed's backup, see `STA-17`.
 machine's stop and renewal-off, under that machine's own key. For the grant, see `SEC-4`; for
 the order, `STA-17`.
 
+*Amended 2026-11-05:* the owner chose "Allow one read-back"; the panel split 3–1. After the
+renewal-off, Replace's flow may read that one old machine, under its own key, to confirm
+renewal is off, so the grant now names three calls. Renewal is then shown confirmed off, and
+Replace still reports complete only once the deletion is confirmed. The read confirms no stop
+and no deletion, and T44 still gates the key. Whether the renewal-off itself is a fresh call
+or a read-back of a state already off stays open. For the grant, see `SEC-4`.
+
 ## What it costs
 
 - A working replacement no longer waits behind an unfinished setup, so the old machine's cost
@@ -54,7 +61,7 @@ the order, `STA-17`.
 - If no read can ever confirm a deletion, Replace never reports complete for that machine, and
   a status that never clears can teach operators to ignore it.
 - Replace's flow gains two vendor calls, the stop and the renewal-off, under the old machine's
-  key.
+  key [amended 2026-11-05: and the read that confirms that renewal-off; see the note above].
 - Until T44 lands, none of this has a key: the check reads nothing, the calls cannot be made,
   and the machine stays shown with its duties open.
 
@@ -78,7 +85,8 @@ the order, `STA-17`.
 together with the conformance cases and the two LNVPS rows that cite these decisions. These
 stay open: whether Replace's renewal-off for the old machine is a fresh call or a read-back of a
 state already off; whether the read that confirms that renewal-off is part of the renewal-off
-call, without which it has no confirmation route under `SEC-4`'s grant; whether Replace's re-entry of each maintained machine reaches the old
+call, without which it has no confirmation route under `SEC-4`'s grant [decided 2026-11-05: a
+read after the renewal-off is granted; see the note above]; whether Replace's re-entry of each maintained machine reaches the old
 machine; which caller stops the old machine in the in-setup rung, beyond its existing authorized
 caller; the selectors `OPN-27` queues. Nothing here admits the in-setup replacement order, the
 deletion check or Replace's calls. This record makes no capability, readiness or runtime claim.

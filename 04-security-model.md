@@ -251,15 +251,16 @@ machine's derived vendor identity, for which `SEC-5` row 22 says "not derivable 
 "none is derived or used" (T44); until it is derived, the check has no key and makes no read. This authorization is checked at
 dispatch, and the check borrows no session authority.
 
-**Replace's own flow MAY issue exactly two vendor calls for the old machine of an LNVPS
-Replace rebuild:** that machine's stop and its renewal-off, in the order `STA-17` fixes. Both
-use that machine's own recorded vendor key, never the replacement machine's key and never an
-SSH client key. The grant covers no other vendor call and no other machine, and it is checked
-at dispatch. The deletion check gives this flow no further call. T44 gates the key, as it
-gates the deletion check's. `STG-21a` says "Renewal-off is confirmed by a successfully decoded
-authenticated machine read under the expected machine identity"; whether the read that confirms
-this flow's renewal-off is part of that call is not decided, and until it is, the renewal-off
-has no confirmation route under this grant and Replace stays incomplete (`STA-17`).
+**Replace's own flow MAY issue exactly three vendor calls for the old machine of an LNVPS
+Replace rebuild:** that machine's stop and its renewal-off, in the order `STA-17` fixes, and,
+only after that renewal-off, an authenticated machine read of that one machine to confirm it.
+`STG-21a` says "Renewal-off is confirmed by a successfully decoded authenticated machine read
+under the expected machine identity", and it owns the predicate. The read mutates nothing and
+supplies evidence for that renewal-off only; it confirms no stop and no deletion. All three use
+that machine's own recorded vendor key, never the replacement machine's key and never an SSH
+client key. The grant covers no other vendor call and no other machine, and it is checked at
+dispatch. The deletion check gives this flow no further call. T44 gates the key, as it gates
+the deletion check's.
 
 **What is dispatched is the approved record.** The adapter executes the structured facts as
 they were approved and journaled — the resource (`STA-24`), the arguments, the declared cost
@@ -352,7 +353,7 @@ outgrown, because adding a credential means adding a row.
 
 | # | Credential | Origin | Where it lives | Lifetime | What it authorizes | How it dies |
 |---|---|---|---|---|---|---|
-| 1 | Vendor API credential, used through a typed adapter | Operator | Browser memory only | The sessions it is supplied to, or one deterministic harness flow (`STA-18`, `ARC-21`, Replace's own flow `STA-17`, or the deletion check `SEC-4`) | Whatever the vendor grants it, up to full account authority; the adapter authorizes session operations against the calling session's bound set, so one credential may serve several sessions; it authorizes the abandonment flow against this setup's own create response or evidence tied to the seed-derived key, Replace's flow only for an LNVPS rebuild's old machine's stop and renewal-off, and the deletion check only for `STG-21a`'s deletion reads under the stopped machine's own key (`SEC-4`); Replace's calls and the deletion check use the stopped machine's own key (row 22, T44), so this row gives their flow authority, not their credential's origin or storage | Session or flow ends |
+| 1 | Vendor API credential, used through a typed adapter | Operator | Browser memory only | The sessions it is supplied to, or one deterministic harness flow (`STA-18`, `ARC-21`, Replace's own flow `STA-17`, or the deletion check `SEC-4`) | Whatever the vendor grants it, up to full account authority; the adapter authorizes session operations against the calling session's bound set, so one credential may serve several sessions; it authorizes the abandonment flow against this setup's own create response or evidence tied to the seed-derived key, Replace's flow only for an LNVPS rebuild's old machine's stop, its renewal-off and the read that confirms that renewal-off, and the deletion check only for `STG-21a`'s deletion reads under the stopped machine's own key (`SEC-4`); Replace's calls and the deletion check use the stopped machine's own key (row 22, T44), so this row gives their flow authority, not their credential's origin or storage | Session or flow ends |
 | 2 | Inference **session** key | Minted from row 14 (procured); supplied by the operator (BYO) | Procured: encrypted local store under the data key and working memory (`ARC-31a`); BYO: browser memory only | One session | Inference spend, **up to its own cap** (procured contract: `ARC-31a`) | Revoked at session end (procured); session ends (BYO) |
 | 3 | **SSH client private key, one per machine** | **Derived** from row 15 at that machine's index (`STA-22`) | Re-derived on demand; nothing to export. Given to the machine's bound session and no other; a jump host's, at the jump host's own index, is given to no session (`CHN-R6`); during Replace, the machine's old and new keys are held by the harness's model-free Replace flow and given to no session (`STA-17`) | Machine lifetime | Login to **that one machine** | Removed from the machine on Replace (`STA-17`), which is a new seed; a jump host's dies with the jump host |
 | 4 | **Relay key**, one per pass | Derived from row 15 (`STA-22`); its public half is what the relay binds a bought pass to (`CHN-15`), and what the LNVPS path hands the publisher out of band | Re-derived on demand; nothing to store | Until the pass expires or is revoked | Reaching the destinations recorded against its pass, on any port; recording destinations; revoking (`CHN-16`) | Pass expires or replacement is confirmed under `STA-17`, by signed revocation or the LNVPS path's manual retirement |
