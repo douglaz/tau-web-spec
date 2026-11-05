@@ -153,7 +153,7 @@ def main():
         adr_files.setdefault(os.path.basename(p)[:4], []).append(os.path.basename(p))
     adrs = set(adr_files)
     # Two records under one number make every `ADR-NNNN` citation of it ambiguous;
-    # the existence check above cannot see that, since the number does exist.
+    # the existence check below cannot see that, since the number does exist.
     dup_adrs = sorted((n, fs) for n, fs in adr_files.items() if len(fs) > 1)
     bad_adrs = set()
     for f in citing:
