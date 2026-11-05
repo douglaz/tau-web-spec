@@ -282,10 +282,14 @@ continuing as if not done keeps that installation: the re-run MUST NOT re-format
 whose filesystem label equals the installation id the harness shows (`STG-20`). Changing the
 installed system's keys requires a destructive reinstall. The reset into the installed system
 MUST NOT be offered when the newest `ready_to_reset` read differs from the active installed pin;
-the operator is told then, before reboot. Nor is it offered when a key `ready_to_reset` read
-shares a fingerprint with the current rescue boot's own pin (`CHN-R1`): every rescue boot has
-fresh keys, so a match means the read did not reach the installed system's keys; the operator
-is told then, before reboot. The offer MUST NOT be made when the current
+the operator is told then, before reboot. It MUST NOT be offered either when `ready_to_reset`
+refuses a file it reads (`ARC-43`), or when a key it read shares a fingerprint with the current
+rescue boot's own pin: `CHN-R1` says "Every rescue boot has fresh host keys", so a match means
+the read did not reach the installed system's keys or that system would answer with the rescue
+boot's, and a reset confirmed on them could not be told from a server still in rescue; the
+operator is told then, before reboot. Whether a read sharing the rescue boot's pin stands as the
+installation's first durable prerequisite read, and so whether a later read may still make the
+offer, is not decided. The offer MUST NOT be made when the current
 installation's first durable prerequisite read shares a fingerprint with any earlier
 installation's prerequisite read or installed-system pin of that machine; the operator is told
 then, before reboot. The offer MUST use the current installation's durable prerequisites to
@@ -306,9 +310,9 @@ rekey's reset back after `STA-17`'s root-label stop is outside it: `offersReset`
 machine pin. Where that
 first read shares a fingerprint with an earlier installation's prerequisite read or
 installed-system pin, the offer stays withheld for that installation whatever a later read
-shows; a new destructive reinstall is needed. The companion carries no earlier observations and no rescue pin:
-a first read refused only for overlapping an earlier observation, or for sharing a fingerprint
-with the rescue boot's pin, is outside it.
+shows; a new destructive reinstall is needed. `offersReset` reads no earlier observation
+and no rescue pin: a first read refused only for overlapping an earlier observation, or for
+sharing a fingerprint with the rescue boot's pin, is outside it.
 `TauWeb.Dispatch.installationOf` derives that boundary from the journal's vendor reinstall
 call, the reset into rescue that dispatches a standing reinstall disposition, or the reset
 bound to a separately journaled reinstall approval not withdrawn since.
@@ -322,7 +326,8 @@ Amended 2026-10-17: the earlier-keys comparison has the pair
 `TauWeb.Dispatch.kept_keys_reset_offer_admitted_without_guard`;
 `TauWeb.Dispatch.stale_first_prerequisite_keeps_offer_withheld` retains the first-read anchor.
 Keys in this companion are one opaque ordinal per set: it carries identical sets only;
-partial fingerprint overlap and the comparison against installed-system pins are Markdown-only.
+partial fingerprint overlap, the comparison against installed-system pins and the comparison
+against the rescue boot's pin are Markdown-only.
 `TauWeb.Dispatch.current_installation_reset_offered` carries a matching successor read and
 `TauWeb.Dispatch.dedicated_reset_retires_prerequisites` the dedicated dispatch boundary.
 The durable-append guard retains the pair
@@ -1263,10 +1268,13 @@ flowchart TD
 
 **STA-15** The recovery sheet MUST be exported before a **maintained cloud** machine's setup
 completes. On Robot the ceremony always works, so there the sheet is an optimisation and stays
-optional, except that with no sheet a machine whose root label is missing or damaged, or that has more
-than one root labelled in the harness's form, gets no rescue rekey from the harness, no card of
-that rekey is approved whose server would be admitted as `quarantined/alias_unavailable`, and no card of that rekey is approved for a server another entry
-already holds (`STA-17`). A sealed tenant's machines need none: their pins die at sealing, and a phone
+optional, except that with no sheet a machine whose root label is missing or damaged, or that
+has more than one root labelled in the harness's form, gets no rescue rekey from the harness, no
+card of that rekey is approved whose admission would record its association as
+`quarantined/alias_unavailable`, which once the journal holds an unavailable-identity risk
+record of any entry is every later card, and no card of that rekey is approved for a server
+another entry already holds (`STA-17`). A sealed tenant's machines need none: their pins die at
+sealing, and a phone
 lost mid-setup is answered by the tenant's own all-or-nothing rule — abandon and recreate.
 This asymmetry is stated, not smoothed over.
 
@@ -1544,7 +1552,8 @@ when Replace's bullet above migrates it, as before, but there is no relabel step
 is written to the disk.
 
 **With no admissible saved history, the rescue rekey's target is the one server the operator
-approves, and the flow writes no key to a server without a root label in the harness's form.**
+approves, and the flow writes no key to a server without exactly one root label in the
+harness's form.**
 Then nothing the harness retains ties a server to this harness. The flow's own approval card
 (`SEC-4`) names one Robot server by its immutable server number, shows the facts `STA-18`'s
 listing reads for it as the vendor's word at one moment, says that no saved record ties this
@@ -1558,23 +1567,29 @@ admission checks against any entry the journal holds, whatever that entry's stat
 reference. It is refused too, with the risk records shown in its place, when that admission
 would record the new entry's association as `quarantined/alias_unavailable`, since §3a says "For
 a new retained target facing an applicable earlier unavailable-identity risk, record
-quarantined/alias_unavailable" and of such a risk "No current predicate discharges it". It is checked when the approval would be appended, a refused approval journals and
-reserves nothing, and whether it is checked again at dispatch is not decided. This opens no
+quarantined/alias_unavailable" and of such a risk "No current predicate discharges it". §3a
+also says "A risk attributed to an entry excludes every different entry" and "The namespace is
+the global VendorMachine literal namespace", so once the journal holds such a risk record of any
+entry, every later card of this flow is refused. Both refusals are checked when the approval
+would be appended, a refused approval journals and reserves nothing, and whether they are
+checked again at dispatch is not decided. This opens no
 route for a server an entry already holds: such a server is rekeyed, if at all, against that
 entry, and how is not decided.
 Approving the card journals and durably
 reserves, before any external effect, the fresh-seed machine entry at index `b` that maps the
 account reference and that server number to `b`'s expected public key (`STA-22b`); a failed
 append supplies no approval (`STA-3`). `STG-3a` says "Every Robot call rides the tunnel, not
-`fetch`", so the flow needs a relay pass, and it is a pass under the fresh seed; `STA-22b` says
-"allocation in every family — machines, relay passes and handoffs — MUST be refused until that
-seed id has the journaled ceremony record of `STA-23`". How the flow obtains that pass and
-records the server as its destination is not decided. Every call of the flow is checked against that entry,
+`fetch`", so the flow needs a relay pass, and it is a pass under the fresh seed, whose
+allocation therefore waits for that seed's ceremony record: `STA-22b` says "allocation in every
+family — machines, relay passes and handoffs — MUST be refused until that seed id has the
+journaled ceremony record of `STA-23`". How the flow obtains that pass and records its
+destinations is not decided. Every call of the flow is checked against that entry,
 never against a listing of the account's servers. In rescue, before the new client key is
 written, the `rescue_install_key` job (`ARC-43`) MUST find, in its own harness-composed read of
 the installed system's root labels, a root whose label reads in `STG-20`'s form, and it adds the
-key to that root's `authorized_keys`, keeping every other line. If it finds none, or more than one, which is
-the root-label stop, the job writes no key and the flow stops unfinished, except for the reset into
+key to that root's `authorized_keys`, keeping every other line. If it finds none, or more than
+one, which is the root-label stop, the job writes no key and the flow stops unfinished, except for
+the reset into
 the installed system, the one vendor call left to the grant (`SEC-4`), under that reset's own
 prerequisites (`STA-20b`), which the scoped read below may meet. The root-label
 stop opens no session binding: the re-entry below does not follow it, and whether a machine
@@ -1588,12 +1603,14 @@ nothing here grants a reinstall or an erasure to repair it.
 **After the root-label stop, one scoped read of the installed host keys serves that one reset
 back and is trusted for nothing later.** The `rescue_host_key_read` job (`ARC-43`) reads, in
 rescue, the installed host public keys of the one root that carries them. It writes nothing to
-any disk, follows no symbolic link, reads no private key file, and mounts every root it reads without replaying its file
-system's journal. It refuses, and the reset into the installed system is then neither offered
+any disk, follows no symbolic link, reads no private key file, journals nothing of a file it
+refuses, and mounts every root it reads without replaying its file system's journal. It refuses, and
+the reset into the installed system is then neither offered
 nor sent, when it finds no host keys, when it finds host keys under more than one root, when any
 key it reads shares a fingerprint with the rescue boot's own pin (`CHN-R1`), when a file it reads
-holds anything but one public key, and when it cannot read a root. A refused read is a failure of the flow, so the
-grant ends on it (`SEC-4`). What it reads, journaled with the reset intent, serves only that
+holds anything but one public key, or when it cannot read a root. A refused read is a failure
+of the flow, so the grant ends on it (`SEC-4`). What it reads, journaled with the reset intent,
+serves only that
 reset and stands in for `ready_to_reset`'s pins as that reset's durable prerequisite and
 expected next keys (`STA-20b`, `STG-4`). The answer that confirms the reset admits no
 connection. What it reads is no pin of any source `SEC-5` row 5 lists and is never

@@ -259,10 +259,12 @@ strength of this brief.
 
 ## Step 8 — request `ready_to_reset`
 
-Request the harness job. It runs `cat /mnt/etc/ssh/ssh_host_*_key.pub`, derives and journals
-the fingerprints, syncs and unmounts `/mnt`, and offers the reset typed operation to the
-operator (`STG-4`, `CNF-22`), unless `STA-20b` withholds it for changed keys, an earlier
-installation's keys, or no durable result; the operator is then told before reboot.
+Request the harness job. It reads `/mnt/etc/ssh/ssh_host_*_key.pub`, following no symbolic
+link and reading no private key file, refuses a file holding anything but one public key,
+derives and journals the fingerprints, syncs and unmounts `/mnt`, and offers the reset typed
+operation to the operator (`STG-4`, `CNF-22`), unless `STA-20b` withholds it for changed keys,
+an earlier installation's keys, a key sharing the rescue boot's pin, a refused file, or no
+durable result; the operator is then told before reboot.
 Once the reset is offered and approved, the harness resets and connects to the installed system
 with those keys and nothing else. On this run the keys on the wire after the reboot were
 byte-identical to what was read here. Do not `umount` yourself: a job that unmounts before

@@ -292,14 +292,16 @@ possibly armed: an armed server boots rescue at its next reset until the operato
 at Robot, and the flow sends no deactivation; the operator acts at Robot. The server is shown as
 possibly in rescue or in its installed system when the intent of a reset back is journaled and
 that reset is not confirmed, and otherwise as in rescue when the reset into rescue is confirmed,
-possibly in rescue when its intent is journaled and it is not, and in its installed system when
-no intent of the reset into rescue is journaled. A new card of the flow naming that server is refused (`STA-17`). However the
-grant ends, it leaves the flow those of the reads above that resolve a call of the flow still
-unresolved, under the operator's Robot credential, supplied again if it is gone (`SEC-5` row 1);
-ended by the wrong-server record, it leaves the flow only those. However the grant ends, the
-screen names the client public key the flow registered, or possibly registered, at Robot: it
-stays registered, since the flow sends no deregistration, and the operator removes it at
-Robot. After the root-label stop the grant keeps only the reset into the
+possibly in rescue when its intent is journaled and it is not, and otherwise as not reset by
+the flow, in a system the harness does not know. A new card of the flow naming that server is
+refused (`STA-17`). However the grant ends, it leaves the flow those of the reads above that
+resolve a call of the flow still unresolved, under the operator's Robot credential, which
+`SEC-5` row 1 keeps in "Browser memory only", supplied again if it is gone; ended by the
+wrong-server record, it leaves the flow only those. Once the intent of the client key's
+registration is journaled, however the grant ends, the screen MUST name the client public key
+the flow registered, or possibly registered, at Robot: it stays registered if it was, since the
+flow sends no deregistration, and the operator removes it at Robot. After the root-label stop the
+grant keeps only the reset into the
 installed system, still under that reset's own prerequisites (`STA-20b`). A restart revives no
 authority that has ended and no stopped flow, and it does not end that kept reset: after a
 restart the reset is shown again and offered only once `STA-20b`'s offer check is made again.
