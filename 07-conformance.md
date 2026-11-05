@@ -621,6 +621,16 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       as a first issue in the same order. Inject elevation failure or unavailable job
       collection during migration: no unsupported completed migration or revocation is shown.
       No dedicated-path relabel is dispatched to LNVPS.
+      Interrupt after a machine's migration act and before its old key's removal is confirmed:
+      the old key is still installed, the screen names the pending removal by its machine and
+      its key's seed, and Replace and revocation stay reported incomplete across a restart and
+      after the new sheet's export. Restore from that sheet without the retired seed, and
+      separately with it: nothing is removed until the operator continues Replace's flow; the
+      removal then runs over a connection authenticated by the machine's current key under its
+      existing pin, never the old key, removes exactly the recorded key and keeps the current key
+      and every other line, and a harness-composed read showing the key absent, durably
+      appended, ends the pending removal in one journal act. A failed removal, a lost result, a
+      read still showing the key or a failed append leaves it pending and Replace incomplete.
       On an LNVPS Replace rebuild, Replace's own flow stops the old machine and then turns its
       automatic renewal off, each under that machine's own recorded vendor key (`SEC-4`,
       `STA-17`). Request the stop before a pending re-entry of that machine or a pending removal
@@ -1963,15 +1973,28 @@ Not pass/fail. Required to be recorded.
       finish its migration to that index, moving every record in one journal act; an
       outstanding machine without a `migration_index` keeps its retired-seed name until another
       Replace. Run a second Replace on that machine without a Restore: where the label read
-      shows the reserved index's id, one journal act confirms that migration and the machine
-      then migrates like any machine of the seed being retired; where no read shows it, one
+      shows the reserved index's id, one journal act confirms that migration, keeping the
+      original key as a pending removal linked to the machine at the reserved index, and the
+      machine then migrates like any machine of the seed being retired, whose act moves that
+      link to the machine's new name and keeps the reserved index's key as a second pending
+      removal; export between the two acts and the sheet carries the link to an outstanding
+      retired machine entry, and imports; where no read shows it, one
       journal act keeps the machine's retired-seed entry, the new sheet carries the old
       reservation as a retired machine entry with `reason:"superseded_reservation"` and a
       `reservation_of` naming the machine, with the machine's resource identity and no record,
       machine state or artifact history, the machine may carry a fresh `migration_index` under
       the new seed, no `migration_index` names an allocation under the retired seed, and the
-      sheet imports. A third Replace copies that superseded reservation unchanged, and the act
-      that migrates or destroys the machine ends it. Export after Replace a handoff allocated
+      sheet imports. A third Replace copies that superseded reservation unchanged; the act that
+      migrates the machine keeps its key as a pending removal, and the act that destroys the
+      machine ends it. Export after Replace a migrated machine whose old key's removal is not
+      yet confirmed: its old key is a retired machine entry under its old seed and index with
+      the machine's resource identity, its recorded key, `reason:"old_key_unremoved"` and a
+      `removal_of` naming the machine's new name, with no record, machine state or artifact
+      history; the sheet imports, and the machine's
+      own key is still derived and compared. After a Restore without the retired seed, and with
+      it, that entry restores no contact identity, binding or allocation, and its key is
+      removed only as `CNF-20` checks; the act ending it on a read, or on the machine's deletion
+      evidence, drops it from the next export. Export after Replace a handoff allocated
       under the retired seed whose declared lifetime runs: its entry has family `handoff`, its
       tenant and handoff ID, its role-4 public half and `reason:"lifetime_running"`, and no
       handoff for it appears in `allocations`. After Restore without the retired seed, and with
@@ -1987,7 +2010,12 @@ Not pass/fail. Required to be recorded.
       named by any record, a `reservation_of` that is malformed, missing on a superseded
       reservation, present on another reason, or naming no outstanding machine entry, a
       superseded reservation, or one of another resource identity, a superseded reservation with
-      a `migration_index` or `jump_host`, a record naming a superseded reservation, any other
+      a `migration_index` or `jump_host`, a `removal_of` that is malformed, missing on a pending
+      removal, present on another reason, or naming no machine, a destroyed or Failed machine,
+      a superseded reservation, another pending removal, one of another resource identity or one
+      whose own key equals the recorded key, a pending removal with a `migration_index`,
+      `reservation_of` or `jump_host`, a record naming a superseded reservation or a pending
+      removal, any other
       repeat of a stable resource identity, and a handoff whose tenant and handoff ID another
       entry maps. Refuse before binding a missing
       or malformed `seed_id` on any placement, artifact history, machine state, host pin,
