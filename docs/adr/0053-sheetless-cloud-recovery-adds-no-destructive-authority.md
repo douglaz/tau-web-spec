@@ -18,9 +18,9 @@ seed or index missing `STA-17` says "the harness can neither reinstall nor stop 
 The operator acts at the vendor. Sheetless recovery adds no destructive authority: for a
 machine that existing authorization cannot admit, the harness gains no permission to stop,
 reinstall or destroy it from a listing, a recovery-sheet mapping, a selection, a new adoption
-card or a new recovery-evidence rule. Where existing authorization admits it, the harness
-destroys and recreates the machine only as its existing credentials, authority, allocation and
-approval rules permit, and a fresh acquisition is a new order under its own approvals.
+card or a new recovery-evidence rule. Existing authority is unchanged: the harness recreates
+only where its existing credentials, authority, allocation and approval rules permit, and a
+fresh acquisition is a new order under its own approvals.
 The screen names the remedies that are unavailable. It does not promise that every vendor offers
 a manual destroy, or that a missing credential can be recovered. At LNVPS a missing old seed or
 index loses the vendor key, so stop, reinstall and deletion confirmation are all unavailable,
@@ -33,8 +33,9 @@ outcomes and the exposure and billing displays stay in force.
 
 ## Readings not selected
 
-- **A listing or sheetless discovery as destructive authority.** `SEC-4` already refuses it: a
-  listing is displayed and never relied on, and a sheet mapping is never enough by itself.
+- **A listing or sheetless discovery as destructive authority.** `SEC-4` already refuses it.
+  `SEC-4` says "What an adapter can list of the account is displayed and never relied on" and
+  "A mapping imported from a recovery sheet is never enough by itself."
 - **A new adoption card or recovery-evidence rule** admitting a listed machine into destructive
   authority. It would create general listed-object adoption and a second authorization home.
 - **Keeping `CNF-84`'s LNVPS stop without the key.** It contradicts `STA-17`'s refusal, which
