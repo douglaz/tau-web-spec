@@ -2052,8 +2052,9 @@ Not pass/fail. Required to be recorded.
       and one meeting a key file that holds a private key or anything but one public key, each
       in its own run, withhold the offer and tell the operator before reboot; nothing of the
       refused file is journaled. The read sharing the rescue boot's pin journals no pin and
-      stands as no prerequisite read: a later read of the installed system's own keys offers the
-      reset. A key file that is a symbolic link is not followed.
+      stands as no prerequisite read: a later read of the installed system's own keys, meeting
+      every other prerequisite of `STA-20b`, offers the reset. A key file that is a symbolic
+      link is not followed.
       Disjoint successor keys can establish the new pin and offer the reset. `STG-20` says
       "The label steers the model; nothing checks it". Destroyed-data.
 
@@ -2183,8 +2184,9 @@ Not pass/fail. Required to be recorded.
       a session binds the flow's entry, or a command hold or a standing destructive disposition
       stands for it, each in its own run, the flow's next call is refused and not sent. Restart
       the harness after the card's approval and before the root-label check, once with a call's
-      response lost: the grant has not ended, that call is not sent again before a read resolves
-      it, and the flow's next call is sent only once the operator approves it again.
+      response lost: the grant has not ended, that call is reconciled before any other call of
+      the flow is sent, and the flow's next call is sent only once the operator approves it
+      again.
       (p) Each in its own run: the card says that approving resets the server into rescue and
       writes the harness's key to a root, and is not approved until the operator enters its
       server number; with a different number entered it is not approved. A card whose admission
