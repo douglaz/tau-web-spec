@@ -108,6 +108,7 @@ machinery never holds a machine's client key. The wider sentence it supported �
 ever holds every machine's key — is no longer true of a session whose bound set is the whole
 setup ([ADR-0037](./0037-bound-sets.md)), and `SEC-1` says "no party other than a machine's
 bound session — or, for a jump host, which has none, the harness flow that makes the contact
-(`CHN-R6`), or, while Replace migrates it, the harness's model-free Replace flow (`STA-17`) —
-ever holds that machine's client key". The body above is unchanged and records
+(`CHN-R6`), or, while Replace migrates it, the harness's model-free Replace flow (`STA-17`), or,
+while it rekeys a dedicated machine, the harness's model-free rescue rekey (`STA-17`) — ever
+holds that machine's client key". The body above is unchanged and records
 what was decided then.

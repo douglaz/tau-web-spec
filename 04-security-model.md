@@ -92,9 +92,11 @@ keypair, derived at that machine's index (`STA-22`, `SEC-5` row 3), and only tha
 public key reaches its `authorized_keys`. A session is given exactly the keys of the machines
 in its bound set and no other, so a session cannot authenticate to a machine outside its set,
 and the refusal comes from SSH rather than from the harness declining to call its own
-transport. Two harness flows hold a client key outside any session, and no model drives
-either: the jump-host flow (`CHN-R6`), and Replace's key migration (`STA-17`), which holds one
-machine's old and new keys while it swaps them and runs on it only what `STA-17` names.
+transport. Only these harness flows hold a client key outside any session, and no model drives
+any of them: the jump-host flow (`CHN-R6`); Replace's key migration (`STA-17`), which holds one
+machine's old and new keys while it swaps them and runs on it only what `STA-17` names; and the
+dedicated rescue rekey (`STA-17`), which holds only one dedicated machine's new key, installed
+from a fresh seed through vendor-authenticated rescue, and runs on it only what `STA-17` names.
 A single shared client key would leave this invariant enforced only by routing code,
 which is bookkeeping rather than a boundary.
 
@@ -129,8 +131,9 @@ machine of the setup is delivered, and where the profile seals, a sealed machine
 authenticate to. It holds at most the credential the profile's handoff slot declares, which is
 never a machine's own key. So no party other than a machine's bound session — or, for a jump
 host, which has none, the harness flow that makes the contact (`CHN-R6`), or, while Replace
-migrates it, the harness's model-free Replace flow (`STA-17`) — ever holds that machine's
-client key, at any moment in the machine's life, and `CNF-8` tests that of
+migrates it, the harness's model-free Replace flow (`STA-17`), or, while it rekeys a dedicated
+machine, the harness's model-free rescue rekey (`STA-17`) — ever holds that machine's client
+key, at any moment in the machine's life, and `CNF-8` tests that of
 post-harness machinery absolutely rather than after a deadline. A session whose bound set is the
 whole setup does hold every key of it — which is why such a set is a weaker mode the operator
 chose and sees, and never something a session is handed.
@@ -263,6 +266,28 @@ machine's key and never an SSH client key. The grant covers no other vendor call
 machine, and it is checked at dispatch. The deletion check gives this flow no further call. T44
 gates the key, as it gates the deletion check's.
 
+**The dedicated rescue rekey's own flow (`STA-17`) MAY issue only `STG-4`'s rescue calls, on one
+Robot server, and back into its installed system.** In `STG-4`'s order, each dispatched only once
+its predecessor is confirmed: the registration of the client public key at the machine's
+fresh-seed index `b`, and the read of the account's key listing that confirms it; the rescue
+activation naming that key's fingerprint, and the `GET /boot/{n}/rescue` reads that confirm it,
+including the read `STG-4` requires immediately before every reset into rescue; the reset into
+rescue; the polls of `/boot/{n}/rescue/last`; and the reset into the installed system. The flow,
+never a session, is the caller of these `STG-4` operations, and `STG-4`'s predicates apply to it
+unchanged. The one server is the one the flow's own operator approval card names, and the
+approved machine entry these calls act on is the one approving that card creates (`STA-17`); no
+listing of the account is relied on. That card is apart from Replace's and from every session's.
+Each call journals its intent before it is sent (`STA-4`), sits behind `STA-24`'s barrier, and is
+the approved record (below). The flow is refused while a session binds the machine (`STA-17`),
+and while a command hold (`STA-20`) or a standing destructive disposition (`STA-24`) stands for
+it. Its authority ends when the reset into the installed system is confirmed by `STG-4`'s
+predicate, or on a failure, an operator stop or `STA-17`'s changed-label stop, whichever comes
+first; after `STA-17`'s root-label stop it keeps only the reset into the installed system. A
+restart revives none of it (`STA-17`). The grant covers no reinstall, no erasure, no stop and no destroy, no other
+key, no other server and no other vendor call. It uses the operator's Robot credential as
+`SEC-5` row 1 describes it, it is checked at dispatch, and the check borrows no session
+authority. Replace's grant above is unchanged.
+
 **What is dispatched is the approved record.** The adapter executes the structured facts as
 they were approved and journaled — the resource (`STA-24`), the arguments, the declared cost
 bound, the bundle commit — never a request rebuilt at dispatch from session state or from
@@ -354,9 +379,9 @@ outgrown, because adding a credential means adding a row.
 
 | # | Credential | Origin | Where it lives | Lifetime | What it authorizes | How it dies |
 |---|---|---|---|---|---|---|
-| 1 | Vendor API credential, used through a typed adapter | Operator | Browser memory only | The sessions it is supplied to, or one deterministic harness flow (`STA-18`, `ARC-21`, Replace's own flow `STA-17`, or the deletion check `SEC-4`) | Whatever the vendor grants it, up to full account authority; the adapter authorizes session operations against the calling session's bound set, so one credential may serve several sessions; it authorizes the abandonment flow against this setup's own create response or evidence tied to the seed-derived key, Replace's flow only for an LNVPS rebuild's old machine's stop, its renewal-off and the read to confirm that renewal-off, and the deletion check only for `STG-21a`'s deletion reads under the stopped machine's own key (`SEC-4`); Replace's calls and the deletion check use the stopped machine's own key (row 22, T44), so this row gives their flow authority, not their credential's origin or storage | Session or flow ends |
+| 1 | Vendor API credential, used through a typed adapter | Operator | Browser memory only | The sessions it is supplied to, or one deterministic harness flow (`STA-18`, `ARC-21`, Replace's own flow `STA-17`, the dedicated rescue rekey `STA-17`, or the deletion check `SEC-4`) | Whatever the vendor grants it, up to full account authority; the adapter authorizes session operations against the calling session's bound set, so one credential may serve several sessions; it authorizes the abandonment flow against this setup's own create response or evidence tied to the seed-derived key, Replace's flow only for an LNVPS rebuild's old machine's stop, its renewal-off and the read to confirm that renewal-off, the dedicated rescue rekey only for `STG-4`'s rescue calls on the one Robot server its own approval names and the reset back into that server's installed system (`SEC-4`), and the deletion check only for `STG-21a`'s deletion reads under the stopped machine's own key (`SEC-4`); Replace's calls and the deletion check use the stopped machine's own key (row 22, T44), so this row gives their flow authority, not their credential's origin or storage; the rescue rekey's calls use the operator's Robot credential itself | Session or flow ends |
 | 2 | Inference **session** key | Minted from row 14 (procured); supplied by the operator (BYO) | Procured: encrypted local store under the data key and working memory (`ARC-31a`); BYO: browser memory only | One session | Inference spend, **up to its own cap** (procured contract: `ARC-31a`) | Revoked at session end (procured); session ends (BYO) |
-| 3 | **SSH client private key, one per machine** | **Derived** from row 15 at that machine's index (`STA-22`) | Re-derived on demand; nothing to export. Given to the machine's bound session and no other; a jump host's, at the jump host's own index, is given to no session (`CHN-R6`); during Replace, the machine's old and new keys are held by the harness's model-free Replace flow and given to no session (`STA-17`) | Machine lifetime | Login to **that one machine** | Removed from the machine on Replace (`STA-17`), which is a new seed; a jump host's dies with the jump host |
+| 3 | **SSH client private key, one per machine** | **Derived** from row 15 at that machine's index (`STA-22`) | Re-derived on demand; nothing to export. Given to the machine's bound session and no other; a jump host's, at the jump host's own index, is given to no session (`CHN-R6`); during Replace, the machine's old and new keys are held by the harness's model-free Replace flow and given to no session (`STA-17`); during the dedicated rescue rekey, the machine's new key is held by that model-free flow and given to no session (`STA-17`) | Machine lifetime | Login to **that one machine** | Removed from the machine on Replace (`STA-17`), which is a new seed; a jump host's dies with the jump host |
 | 4 | **Relay key**, one per pass | Derived from row 15 (`STA-22`); its public half is what the relay binds a bought pass to (`CHN-15`), and what the LNVPS path hands the publisher out of band | Re-derived on demand; nothing to store | Until the pass expires or is revoked | Reaching the destinations recorded against its pass, on any port; recording destinations; revoking (`CHN-16`) | Pass expires or replacement is confirmed under `STA-17`, by signed revocation or the LNVPS path's manual retirement |
 | 5 | Host-key pins | Harness `ready_to_reset` job read (`ARC-43`), vendor publication (`CHN-R7`), rescue (`CHN-R1`), attest (`CHN-R5`), or a first contact from a jump host (`CHN-R6`), recorded with which | Encrypted at rest; exported in the sheet | Installed system: until that machine's reinstall or destruction. Rescue: one boot (`CHN-R1`). A jump host's: one first contact | Nothing — integrity reference | Installed pin retired on that machine's reinstall and removed on destruction; rescue pin discarded at the reset; a jump host's pin discarded with the jump host, the route label (`CHN-R6`) being what the display keeps |
 | 6 | Exposure ledger | Harness-derived | Encrypted at rest; exported in the sheet | Machine lifetime | Nothing — record | Machine destroyed |

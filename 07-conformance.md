@@ -1987,6 +1987,12 @@ Not pass/fail. Required to be recorded.
       without another write, and only that read confirms `b-7`; nothing rewrites the label
       automatically. Make the relabel job fail, or let the write succeed and the read show
       another label: the machine is not migrated and the old key stays.
+      (l) The flow's card names one server number and preselects nothing; until it is
+      approved, no call is sent, and a failed append of the approval sends none. Every call
+      names the approved entry's server number, whatever the account's listing then shows.
+      Give the server no root labelled in `STG-20`'s form, or two: `rescue_install_key`
+      writes no key, the flow stops unfinished, and the reset into the installed system is
+      the only call sent after it.
       Boundary-crossed and destroyed-data.
 - [ ] **CNF-87 · BLOCKING** The LNVPS path's relay uses the selected `/v2/` profile and a
       hand-recorded pass (`STG-18`; [paid-tcp-relay][relay-source] PAS-6). Demonstrate fresh
