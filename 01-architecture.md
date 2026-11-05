@@ -449,7 +449,9 @@ here is non-waivable:
   refused unless the placement records name it as this placement; placing a new secret must
   not overwrite unrelated data. A placement record carrying an operator report (below) still
   names its file for the rotation of that placement, at the same machine, application name,
-  secret name and path.
+  secret name and path. The harness records each placement's time later than that of every
+  placement record already at that machine, application name, secret name and path, whatever the
+  device clock reads, so a reported record and a later placement there never share one.
 - **`ARC-17`'s placement gates hold** — the fixed lockdown checks first, and the findings that
   refuse a secret. The card lists every lifecycle finding standing on the machine and says that
   placement clears none of them.

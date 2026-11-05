@@ -20,27 +20,21 @@ so.
 
 ## The shape chosen
 
-**The report** (comment 47000001, kept by the need review in comment 81000001). After revoking
-one placement's key at its service, the operator may report that placement revoked. It is
-journaled before it takes effect, and `STA-3` says "If the append fails, the transition does not
-occur." It ends that placement's required reference and live listing, and moves it to history
-labelled operator-reported, never "retired" or "rotated". It ends that placement only: another
-placement keeps its own reference even with the same bytes, application name or path. It lifts no
-`STA-20` or `STA-24` restriction and authorizes no retry. A missing file, a changed pin, a
-reinstall, a new installation and the stop that stands in for a destroy never produce it.
+**The report** (comment 47000001, kept by the need review in comment 81000001). `ARC-43` owns it:
+"After revoking a placement's key at its service, the operator may report that one placement
+revoked." What it ends, what it leaves standing and what never produces it are `ARC-43`'s. The
+decision recorded here is that a report names one placement and trusts the operator's word, for
+the reasons below.
 
-**What was withheld stays withheld.** `SEC-5` says a report "never counts as a scan: bytes withheld
-before it stay withheld". Output counts as produced after the report only when the job that
-produced it was dispatched after the report was durably recorded. Re-collecting, replaying or
-displaying an old range makes it no newer.
+**What was withheld stays withheld.** `SEC-5` owns the scan boundary, and says a report "never
+counts as a scan: bytes withheld before it stay withheld". The decision recorded here is that only
+later output for the reported placement loses its scan.
 
-**The sheet** (comments 107000001 to 110000001). Payload version 7 gives every placement record a
-`report` member and a `seed_id`, and adds `retired_allocations`. A reported record stays on every
-later sheet, through its secret's rotation and its machine's destruction. A destroyed machine's
-reported record has its application name checked by form only. After Replace, a destroyed
-machine's reported record keeps the seed it was allocated under, and the new seed's sheet carries
-that machine as a retired allocation whose recorded public key import accepts without deriving it.
-Older versions convert with no report, so a sheet exported before the report restores the wait.
+**The sheet** (comments 107000001 to 110000001). The credential format's payload version 7 owns
+the shape, and `STA-22b` owns its one import exception. The decisions recorded here are a report
+member on each placement record rather than a separate list, a reported record kept through its
+secret's rotation and its machine's destruction, and, after Replace, a destroyed machine's
+reported record tagged with the seed it was allocated under.
 
 ## Why a key revoked at its service changes ADR-0050's rejection
 
@@ -48,11 +42,10 @@ ADR-0050 rejected releasing the other machines' output without the disposed mach
 `SEC-5` says "Unscanned bytes MUST be withheld", and a secret copied onto another machine would go
 unscanned. That rejection still stands for every byte it protected:
 
-- **The backlog.** Output withheld before the report stays withheld. Releasing it was option I in
-  comment 47000001, and every reading rejected it on the same ground as ADR-0050.
-- **Other references.** The report ends one reference. Output still owes every other required
-  reference and release prerequisite, so it does not release output that some other unarmed
-  reference holds back.
+- **The backlog.** `SEC-5` says "A report never counts as a scan". Releasing the backlog was
+  option I in comment 47000001, and every reading rejected it on the same ground as ADR-0050.
+- **Other references.** `ARC-43` says later output "owes every other reference and release
+  prerequisite".
 
 What changes is later output for the reported placement alone. A revoked key is a credential its
 service no longer honours. A copy of it in later output exposes bytes, not authority. The owner

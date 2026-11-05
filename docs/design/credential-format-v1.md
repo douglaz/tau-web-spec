@@ -340,6 +340,9 @@ member and an entry no placement record names before binding.
 
 Two placement records are duplicates when they are equal in the six members `seed_id`,
 `machine_index`, `application_name`, `name`, `path` and `placed_at`, whatever `report` holds.
+`ARC-43` says "The harness records each placement's time later than that of every placement
+record already at that machine, application name, secret name and path", so a reported record and
+a later placement there are never duplicates.
 Reject duplicates and two records without a report at one machine, application name, secret
 name and path. Also reject before binding a record whose `seed_id` is malformed or names
 neither the payload's seed nor a retired allocation's, and a record without a report naming a
