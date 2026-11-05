@@ -267,6 +267,12 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       produced after the destruction is released once every other prerequisite holds, with a
       value armed on A and split across output chunks still redacted, and a match window that
       starts in the withheld range and ends in fresh output releases none of the withheld bytes.
+      A command dispatched after the destruction is recorded that reads a file A wrote before
+      the destruction gives new output, released on the same terms and not compared against
+      M's values; a job dispatched before that record and still running across it stays
+      pre-destruction, its output after the record included. A later command that prints a
+      withheld job's own record under `/var/lib/tau-web/jobs` back gives new output on the same
+      terms while the original range stays refused, and the trust display states that limit.
       With another hold or barrier standing on the set, or another reference unarmed, release
       stays refused after M's wait retires. The fallback card is no longer offered for P1 or P2,
       and a late P1 record arms nothing. Nothing is sent to M. The trust display states that
@@ -275,8 +281,14 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       identity. In a separate branch where P1 was pasted before the destruction, the
       confirmation removes P1's key and reference from browser persistence, and fresh output on
       A carrying P1's exact value, where no reference still required matches it, is released
-      unredacted under the displayed limit. These assertions run under the untyped-scope,
-      jump-host and sets-above-one row.
+      unredacted under the displayed limit, while a job on A dispatched before the confirmation
+      and still running across it has its bytes after the confirmation withheld. In a branch
+      where P1 and P2 were pasted before the destruction and a placement on B stays unarmed, a
+      range on A withheld only for B's reference stays refused after the destruction, including
+      once that reference is re-armed and checks the range clean; had that reference re-armed
+      and checked the range clean before the destruction, the range is released; either way,
+      output on A produced after the destruction is released once that reference checks it
+      clean. These assertions run under the untyped-scope, jump-host and sets-above-one row.
       (f) As (e), in an unfinished setup whose abandonment flow `SEC-4` authorizes for M by evidence
       tied to the seed-derived key, but the operator disposes P1's `digest_secret` with abandonment.
       P2's digest is refused and recorded as refused, never absent or failed; P1's outcome stays
@@ -440,11 +452,14 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       exclusions and an unresolved earlier preparation step stay recorded and restricted; the
       replacement's predecessor link names exactly the retired entry's approved-entry identity
       and its Failed allocation, and no other; an allocation already Failed in this journal is
-      retired and replaced without a second Failed record. Refused, with no admitted state
-      changed: no replacement act, including a temporary hold left to become Failed by itself;
-      an approval naming the old entry's identity, or a stale approval of it; a replacement
-      differing from the old entry only in its approved-entry identity, label, allocation,
-      index, account, cost or call; old and new prospective authority at once, including a
+      retired and replaced without a second Failed record; a replacement differing from the old
+      entry only in region, only in size or only in image is distinct and admitted, the other
+      refusals clearing. Refused, with no admitted state changed: no replacement act, including
+      a temporary hold left to become Failed by itself; an approval naming the old entry's
+      identity, or a stale approval of it; a replacement differing from the old entry only in
+      its approved-entry identity, label, allocation, index, account, cost, call, bundle commit
+      or an order's reference code, or in anything else while its vendor, plan or size, region
+      and image all match; old and new prospective authority at once, including a
       pending sender of the old entry racing the act, of which only one permission survives; a
       possibly sent create, an associated machine or a contact for the old entry; an applicable
       identity exclusion, one arising from the old entry included, or another applicable

@@ -760,7 +760,8 @@ re-order of the old entry or a new label for the old machine. A different entry 
 never-sent entry of a one-machine setup in its live session (`STA-22b`) is a separate route:
 one operator act through the mid-flight queue, bound to that session, on the card `SEC-1`
 describes for an added machine, which also names the entry it retires and the replacement's own
-structured facts. Where an earlier preparation step of the retired entry is unresolved, the card
+structured facts. What makes the replacement distinct from the entry it retires is
+`STA-22b`'s. Where an earlier preparation step of the retired entry is unresolved, the card
 shows it as `STA-24`'s card for a different entry does, which “shows the unresolved sibling and
 that it may be billing”. It is never a re-order of the old entry or a new label for it.
 
