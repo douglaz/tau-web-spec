@@ -1741,7 +1741,16 @@ control "fixtures: a JSON example with a malformed digest" "$FIX" \
 
 control "fixtures: a JSON example with a malformed fingerprint" "$FIX" \
   "sed -i '0,/^  \"version\": 2,/s//  \"version\": 2, \"host_fingerprint\": \"nope\",/' $DECL && grep -q '\"host_fingerprint\": \"nope\"' $DECL" \
-  "BAD JSON" "not an MD5 colon-hex or SHA256 base64 fingerprint"
+  "BAD JSON" "not Robot's MD5 colon-hex client-key fingerprint or one in the host-pin fingerprint format"
+
+# CHN-R1's host-pin fingerprint format carries no `SHA256:` prefix. The same 43 characters are
+# refused with the prefix and pass without it, so the refusal is the prefix's alone.
+control "fixtures: a JSON example with a prefixed host-key fingerprint" "$FIX" \
+  "sed -i '0,/^  \"version\": 2,/s//  \"version\": 2, \"host_fingerprint\": \"SHA256:47DEQpj8HBSaaxTImWa5JCeuQeRkm5NMpJWZG3hSuFU\",/' $DECL && grep -q '\"host_fingerprint\": \"SHA256:47DEQpj8HBSaaxTImWa5JCeuQeRkm5NMpJWZG3hSuFU\"' $DECL" \
+  "BAD JSON" "host-pin fingerprint format"
+
+passes "fixtures: a JSON example with an unprefixed host-key fingerprint" "$FIX" \
+  "sed -i '0,/^  \"version\": 2,/s//  \"version\": 2, \"host_fingerprint\": \"47DEQpj8HBSaaxTImWa5JCeuQeRkm5NMpJWZG3hSuFU\",/' $DECL && grep -q '\"host_fingerprint\": \"47DEQpj8HBSaaxTImWa5JCeuQeRkm5NMpJWZG3hSuFU\"' $DECL"
 
 control "fixtures: a Mermaid block declaring no diagram type" "$FIX" \
   "sed -i 's/^flowchart LR$/flowchat LR/' 05-trust.md && grep -q '^flowchat LR$' 05-trust.md" \
