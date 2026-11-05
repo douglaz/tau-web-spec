@@ -2216,8 +2216,9 @@ Not pass/fail. Required to be recorded.
       written: the same refusals hold and the screen shows a key possibly written. Record it at
       the root-label stop: the kept reset back is no longer offered. Record it while a session
       binds the machine: it is refused. Fail its append: the entry is not barred. A model, a
-      timer, a listing or a label cannot record it. A card for the intended server makes a new
-      entry at a new index.
+      timer, a listing or a label cannot record it. Each recorded bar's screen tells the
+      operator to export a new sheet. A card for the intended server makes a new entry at a new
+      index.
       (n) Give the journal an entry that maps a server number, each in its own run: one a
       session binds, one stopped at the root-label stop, one carrying the wrong-server record
       of (m), one completed, and one under another account reference; and separately one whose
@@ -2252,7 +2253,10 @@ Not pass/fail. Required to be recorded.
       written and only the reset back stays. A scoped read meeting a root it cannot read, or a
       key file holding anything but one public key, refuses, and the reset back is neither
       offered nor sent. Neither `ready_to_reset` nor the scoped read opens a private key file,
-      and nothing of a file either refuses is journaled. Stop the flow once the rescue
+      and nothing of a file either refuses is journaled. With a scoped read journaled and its
+      reset back confirmed, a later installation's first durable prerequisite read of that
+      machine sharing a fingerprint with the scoped read withholds the offer, and no connection relies on the scoped read; after a Restore from an
+      exported sheet the scoped read withholds nothing. Stop the flow once the rescue
       activation is confirmed and before the reset into rescue's intent: the screen shows the
       server as not reset by the flow, the activation possibly armed and the key registered,
       and no deactivation is sent. Stop it with the activation's intent journaled and its

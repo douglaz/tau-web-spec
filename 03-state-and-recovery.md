@@ -292,7 +292,8 @@ keys are journaled as pins: it is no pin and no prerequisite read, so a later re
 make the offer under every prerequisite here. Whether that read's fingerprints are kept as an
 observation is not decided. The offer MUST NOT be made when the current
 installation's first durable prerequisite read shares a fingerprint with any earlier
-installation's prerequisite read or installed-system pin of that machine; the operator is told
+installation's prerequisite read or installed-system pin of that machine, or with `STA-17`'s
+scoped host-key read of it; the operator is told
 then, before reboot. The offer MUST use the current installation's durable prerequisites to
 make the offer; earlier installations' records are read only to withhold it.
 
@@ -330,8 +331,9 @@ Amended 2026-10-17: the earlier-keys comparison has the pair
 `TauWeb.Dispatch.kept_keys_reset_offer_admitted_without_guard`;
 `TauWeb.Dispatch.stale_first_prerequisite_keeps_offer_withheld` retains the first-read anchor.
 Keys in this companion are one opaque ordinal per set: it carries identical sets only;
-partial fingerprint overlap, the comparison against installed-system pins and the comparison
-against the rescue boot's pin are Markdown-only.
+partial fingerprint overlap, the comparison against installed-system pins, the comparison
+against the rescue boot's pin and the comparison against `STA-17`'s scoped host-key read are
+Markdown-only.
 `TauWeb.Dispatch.current_installation_reset_offered` carries a matching successor read and
 `TauWeb.Dispatch.dedicated_reset_retires_prerequisites` the dedicated dispatch boundary.
 The durable-append guard retains the pair
@@ -601,6 +603,22 @@ disposition names that arrives after it is journaled and shown: it
 neither reopens the call nor removes the disposition, which stands until its continuation is
 dispatched or the operator replaces it. A read of the activation now decides which reset counts
 (above), whatever call it also bears on; it still reopens nothing and removes nothing.
+
+The rescue rekey (`STA-17`) chooses no disk for erasure: a late reset of that flow reboots its
+one server into rescue or its installed system and, under the conditions below, erases nothing;
+for a reset into rescue, key publication still takes about 80 s (`CHN-R1`). The writes such a
+reset can interrupt include `rescue_install_key`'s line in one root's `authorized_keys`, in
+rescue, `replace_root_label`'s label write, in the installed system, and the old-key removal
+from that file after the confirmed readback. Each is covered by its own rules in `STA-17`: the
+relabel runs "only after the installed system accepts a login authenticated with the new client
+key", and "the harness then confirms the write by a harness-composed read of the label". For
+the two writes to `authorized_keys`, "erases nothing" holds only if an interrupted write keeps
+the file's other lines: `STA-17` says the job adds the key "keeping every other line" and the
+removal "keeps the new key and unrelated authorizations", and whether either write keeps them
+when interrupted is not decided. For the label write,
+[ADR-0056](./docs/adr/0056-the-rescue-rekey-keeps-a-proposed-ordinal.md) says "Whether that
+placement can relabel and read back the mounted root safely still needs implementation
+evidence."
 
 **On replay.** A disposition found in a replayed journal (`STA-7`) that the test above — what a
 disposition may name, the replacement's exception included — would have refused is read as if
@@ -1625,7 +1643,8 @@ in that form, gets no rescue rekey from the harness, and
 nothing here grants a reinstall or an erasure to repair it.
 
 **After the root-label stop, one scoped read of the installed host keys serves that one reset
-back and is trusted for nothing later.** The `rescue_host_key_read` job (`ARC-43`) reads, in
+back and is never trusted later to accept a key or make a connection.** The
+`rescue_host_key_read` job (`ARC-43`) reads, in
 rescue, the installed host public keys of the one root that carries them. It writes nothing to
 any disk, follows no symbolic link, reads no private key file, journals nothing of a file it
 refuses, and mounts every root it reads without replaying its file system's journal. It refuses, and
@@ -1634,12 +1653,15 @@ nor sent, when it finds no host keys, when it finds host keys under more than on
 key it reads shares a fingerprint with the rescue boot's own pin (`CHN-R1`), when a file it reads
 holds anything but one public key, or when it cannot read a root. A refused read is a failure
 of the flow, so the grant ends on it (`SEC-4`). What it reads, journaled with the reset intent,
-serves only that
-reset and stands in for `ready_to_reset`'s pins as that reset's durable prerequisite and
+stands in for `ready_to_reset`'s pins only for that reset, as its durable prerequisite and
 expected next keys (`STA-20b`, `STG-4`). The answer that confirms the reset admits no
 connection. What it reads is no pin of any source `SEC-5` row 5 lists and is never
-`ready_to_reset`'s record; no later connection to the machine relies on it, and whether a later
-comparison reads it is not decided. It gives no root a label, supplies no acceptance and
+`ready_to_reset`'s record; no later connection to the machine relies on it. It is kept in the
+journal with the entry for the entry's lifetime, as a record as of that read. A later comparison
+reads it only to withhold, as one of the earlier installations' records of which `STA-20b` says
+"earlier installations' records are read only to withhold it"; a key matching it is not accepted
+or trusted for that match. It is not exported (`SEC-5` row 5), so a Restore loses it as an input
+that withholds. It gives no root a label, supplies no acceptance and
 installs no key. The companion carries none of this reset's offer or confirmation (`STA-20b`).
 
 **The operator MAY record that an entry this flow's card created names the wrong server.** The
@@ -1648,18 +1670,23 @@ a session binds the machine. It is appended under the single writer, ordered wit
 no call of the entry other than the reads below is dispatched after it; a failed append records
 nothing (`STA-3`). The record is the operator's word and proves nothing about the server or
 about what was sent. It ends any of the flow's grant still standing (`SEC-4`) and bars the
-entry for good: from it the entry
+entry for good, within the limit below for a sheet exported earlier: from it the entry
 grants no session binding, re-entry, association, retry, job, acceptance, relabel, reinstall,
 abandonment or vendor call other than the reads that resolve its calls still unresolved, and no
 continuation of a disposition (`STA-24`) revives one. It is neither `STA-22b`'s Failed nor a
 disposition: the entry keeps its index, mapping and history, and every call still unresolved
 stays behind `STA-24`'s barrier. The record is kept with the entry's allocation metadata and
-survives export and Restore with it (`STA-22b`); the companion carries no such record. How a
+survives export and Restore with it (`STA-22b`); the companion carries no such record. A sheet
+exported before the record was appended carries the entry without it, and `STA-16` says "A
+restored sheet is knowledge as of export": a Restore from that sheet alone brings the entry back
+without the bar, a known limit. How a
 Replace and the sheet's list of machine states treat an entry so barred is not decided. The
 screen MUST show what the harness may not have undone on that server, each item only when the
 journal holds the intent of the call or job behind it: a client key possibly registered at
 Robot, a rescue activation possibly armed, the server possibly in rescue and a key possibly
-written to its root; the operator acts at Robot. The intended server takes a new card and a new
+written to its root; the operator acts at Robot. It MUST also tell the operator to export a new
+sheet, since a sheet exported earlier does not carry the record. The intended server takes a new
+card and a new
 entry at a new index.
 
 **A dedicated machine rekeyed through rescue keeps a proposed installation ordinal**

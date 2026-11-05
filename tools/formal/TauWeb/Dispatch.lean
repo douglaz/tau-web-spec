@@ -1035,8 +1035,9 @@ trace-supplied comparison verdict. -/
 /-- The installed-system reset offer reads durable prerequisites in the current installation,
 with the newest keys equal to that installation's first durable read. A changed key withholds
 it; a predecessor's record cannot make it. A first set identical to any earlier installation's
-prerequisite set also withholds it before reboot. Partial overlap, installed-pin comparison and
-the rescue-pin comparison are Markdown-only. The running memory is the durable journal under
+prerequisite set also withholds it before reboot. Partial overlap, installed-pin comparison,
+the rescue-pin comparison and the comparison against `STA-17`'s scoped host-key read are
+Markdown-only. The running memory is the durable journal under
 the append guard. A newer
 `resetCollection` with no durable result after it withholds the offer for that entry and
 installation. This is not a dispatch check for the single `reset` kind: the approval-bound
