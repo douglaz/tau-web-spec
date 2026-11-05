@@ -285,15 +285,23 @@ barrier, and is the approved record (below). The flow is refused while a session
 stands for it. The grant ends when the reset into the installed system is confirmed by `STG-4`'s
 predicate, or on a failure other than `STA-17`'s root-label stop, an operator stop,
 `STA-17`'s changed-label stop or `STA-17`'s wrong-server record, whichever comes first. When it
-ends on such a failure or an operator stop once the intent of the reset into rescue is journaled,
+ends on such a failure or an operator stop once the intent of the rescue activation is journaled,
 the screen MUST show where the server may be, that the flow is unfinished and every call of the
-flow still unresolved (`STA-24`); the operator acts at Robot. The server is shown as possibly in
-rescue or in its installed system when the intent of a reset back is journaled and that reset is
-not confirmed, and otherwise as in rescue when the reset into rescue is confirmed and possibly in
-rescue when it is not. A new card of the flow naming that server is refused (`STA-17`). Ended by
-the wrong-server record, the grant leaves the flow only those of the reads above that resolve a
-call of the flow still unresolved; whether such reads stay permitted after any other end of the
-grant is not decided. After the root-label stop the grant keeps only the reset into the
+flow still unresolved (`STA-24`), and, while no reset into rescue is confirmed, the activation as
+possibly armed: an armed server boots rescue at its next reset until the operator deactivates it
+at Robot, and the flow sends no deactivation; the operator acts at Robot. The server is shown as
+possibly in rescue or in its installed system when the intent of a reset back is journaled and
+that reset is not confirmed, and otherwise as in rescue when the reset into rescue is confirmed,
+possibly in rescue when its intent is journaled and it is not, and otherwise as not reset by
+the flow, in a system the harness does not know. A new card of the flow naming that server is
+refused (`STA-17`). However the grant ends, it leaves the flow those of the reads above that
+resolve a call of the flow still unresolved, under the operator's Robot credential, which
+`SEC-5` row 1 keeps in "Browser memory only", supplied again if it is gone; ended by the
+wrong-server record, it leaves the flow only those. Once the intent of the client key's
+registration is journaled, however the grant ends, the screen MUST name the client public key
+the flow registered, or possibly registered, at Robot: it stays registered if it was, since the
+flow sends no deregistration, and the operator removes it at Robot. After the root-label stop the
+grant keeps only the reset into the
 installed system, still under that reset's own prerequisites (`STA-20b`). A restart revives no
 authority that has ended and no stopped flow, and it does not end that kept reset: after a
 restart the reset is shown again and offered only once `STA-20b`'s offer check is made again.
