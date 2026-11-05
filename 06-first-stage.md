@@ -681,8 +681,9 @@ migration steps or the relabel: `tools/formal/TauWeb/Allocation.lean` says "What
 omits: Replace's re-entry to remove the old keys from every maintained machine (`STA-17`)";
 `TauWeb.Pins.kept_root_keys_after_reinstall_refused` says "Labels and formatting are outside
 this companion".
-The label steers the model; nothing checks it. In `STA-17`'s rescue rekey a missing label stops
-the key write, and a label that is present proves nothing.
+The label steers the model; nothing checks it. That is the model's use: the harness reads the
+label only for `STA-17`'s root-label stop in the rescue rekey, and a label that passes there
+proves nothing.
 
 As a backstop, a `ready_to_reset` pin after a dispatched reinstall MUST share no fingerprint
 with any observation or installed-system pin of that machine in any earlier installation.

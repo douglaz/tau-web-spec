@@ -131,9 +131,9 @@ machine of the setup is delivered, and where the profile seals, a sealed machine
 authenticate to. It holds at most the credential the profile's handoff slot declares, which is
 never a machine's own key. So no party other than a machine's bound session — or, for a jump
 host, which has none, the harness flow that makes the contact (`CHN-R6`), or, while Replace
-migrates it, the harness's model-free Replace flow (`STA-17`), or, while it rekeys a dedicated
-machine, the harness's model-free rescue rekey (`STA-17`) — ever holds that machine's client
-key, at any moment in the machine's life, and `CNF-8` tests that of
+migrates it, the harness's model-free Replace flow (`STA-17`), or, while the harness's
+model-free rescue rekey (`STA-17`) rekeys it, that flow — ever holds that machine's client key,
+at any moment in the machine's life, and `CNF-8` tests that of
 post-harness machinery absolutely rather than after a deadline. A session whose bound set is the
 whole setup does hold every key of it — which is why such a set is a weaker mode the operator
 chose and sees, and never something a session is handed.
@@ -267,26 +267,28 @@ machine, and it is checked at dispatch. The deletion check gives this flow no fu
 gates the key, as it gates the deletion check's.
 
 **The dedicated rescue rekey's own flow (`STA-17`) MAY issue only `STG-4`'s rescue calls, on one
-Robot server, and back into its installed system.** In `STG-4`'s order, each dispatched only once
-its predecessor is confirmed: the registration of the client public key at the machine's
-fresh-seed index `b`, and the read of the account's key listing that confirms it; the rescue
-activation naming that key's fingerprint, and the `GET /boot/{n}/rescue` reads that confirm it,
-including the read `STG-4` requires immediately before every reset into rescue; the reset into
-rescue; the polls of `/boot/{n}/rescue/last`; and the reset into the installed system. The flow,
-never a session, is the caller of these `STG-4` operations, and `STG-4`'s predicates apply to it
-unchanged. The one server is the one the flow's own operator approval card names, and the
-approved machine entry these calls act on is the one approving that card creates (`STA-17`); no
-listing of the account is relied on. That card is apart from Replace's and from every session's.
-Each call journals its intent before it is sent (`STA-4`), sits behind `STA-24`'s barrier, and is
-the approved record (below). The flow is refused while a session binds the machine (`STA-17`),
-and while a command hold (`STA-20`) or a standing destructive disposition (`STA-24`) stands for
-it. Its authority ends when the reset into the installed system is confirmed by `STG-4`'s
-predicate, or on a failure, an operator stop or `STA-17`'s changed-label stop, whichever comes
-first; after `STA-17`'s root-label stop it keeps only the reset into the installed system. A
-restart revives none of it (`STA-17`). The grant covers no reinstall, no erasure, no stop and no destroy, no other
-key, no other server and no other vendor call. It uses the operator's Robot credential as
-`SEC-5` row 1 describes it, it is checked at dispatch, and the check borrows no session
-authority. Replace's grant above is unchanged.
+Robot server, and back into its installed system.** In `STG-4`'s order, each call that changes the
+vendor's state dispatched only once the one before it is confirmed by its own reads: the
+registration of the client public key at the machine's fresh-seed index `b`, and the read of the
+account's key listing that confirms it; the rescue activation naming that key's fingerprint, and
+the `GET /boot/{n}/rescue` reads that confirm it, including the read `STG-4` requires immediately
+before every reset into rescue; the read of `/boot/{n}/rescue/last` journaled before the reset into
+rescue, the reset itself, and the polls of `/boot/{n}/rescue/last` after it; and the reset into the
+installed system. The flow, never a session, is the caller of these `STG-4` operations, and
+`STG-4`'s predicates apply to it unchanged. The one server is the one the flow's own operator
+approval card names, and the approved machine entry these calls act on is the one `STA-17` ties to
+it; no listing of the account's servers is relied on. That card is apart from Replace's and from
+every session's. Each call journals its intent before it is sent (`STA-4`), sits behind `STA-24`'s
+barrier, and is the approved record (below). The flow is refused while a session binds the machine
+(`STA-17`), and while a command hold (`STA-20`) or a standing destructive disposition (`STA-24`)
+stands for it. The grant ends when the reset into the installed system is confirmed by `STG-4`'s
+predicate, or on a failure other than `STA-17`'s root-label stop, an operator stop or `STA-17`'s
+changed-label stop, whichever comes first. After the root-label stop it keeps only the reset into
+the installed system, still under that reset's own prerequisites (`STA-20b`). A restart revives no
+authority that has ended and no stopped flow. The grant covers no reinstall, no erasure, no stop
+and no destroy, no other key, no other server and no other vendor call. It uses the operator's
+Robot credential as `SEC-5` row 1 describes it, it is checked at dispatch, and the check borrows no
+session authority. Replace's grant above is unchanged.
 
 **What is dispatched is the approved record.** The adapter executes the structured facts as
 they were approved and journaled — the resource (`STA-24`), the arguments, the declared cost
