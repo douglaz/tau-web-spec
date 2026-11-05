@@ -980,14 +980,21 @@ such route. The formal companion has no replacement act; `CNF-72`'s cases check 
 Import checks the seed identifier, derives each listed public key and compares it, validates
 unique indices within each family and next-unused counters above all listed indices, and
 cross-checks vendor inventory before binding machines. The one exception is a sheet's retired-seed
-allocation: after Replace, the new seed's sheet carries a destroyed machine that a reported
-placement record names under the seed it was allocated under ([credential
-format](docs/design/credential-format-v1.md#operator-reports-payload-version-7)). Import accepts
-that allocation's recorded public key without deriving it, keeps it out of the index and counter
-checks above, and restores from it no contact identity, binding or allocation. The journal keeps
-that destroyed machine's retired-seed entry while a reported placement record names it, through
-every later Replace. A stale sheet cannot prove the latest
-counter. Therefore **every imported seed may restore listed identities but MUST NOT allocate
+allocation: after Replace, the new seed's sheet carries each allocation the journal keeps under
+an earlier seed, under the seed it was allocated under ([credential
+format](docs/design/credential-format-v1.md#operator-reports-payload-version-7)). The journal
+keeps, through every later Replace, each destroyed machine and each Failed allocation allocated
+under a retired seed, each machine Replace has not migrated, and each pass `STA-17`'s screen
+names unrevoked or awaiting its retirement's confirmation; Replace's migration ends a machine's
+retired-seed entry. Import accepts a retired allocation's recorded public key without deriving it
+and keeps it out of the index and counter checks above. It restores from it no allocation, and
+from a destroyed or Failed one no contact identity or binding. For a live one, the check is
+deferred, not waived: before any contact with that machine, use of that pass's key, vendor read
+or call under its identity, or binding, the harness derives its key from the retired seed the
+operator supplies and compares it with the recorded key, and with no such seed or on a mismatch
+it makes none of them
+([ADR-0058](./docs/adr/0058-the-new-seeds-sheet-keeps-retired-seed-machines-under-their-own-seed.md)).
+A stale sheet cannot prove the latest counter. Therefore **every imported seed may restore listed identities but MUST NOT allocate
 new ones**, from a recovery sheet or an imported local-store backup, even when it claims to
 be current. To allocate again, use Replace with a freshly generated seed; old records are
 retained until migration is complete. An import bringing a seed with neither a sheet nor a
@@ -1299,7 +1306,11 @@ its access model (`ARC-27`) and the acceptable weaker modes standing on its boun
 its installation is pinned (`ARC-25`) and its installed applications beside it, and, on the
 procured path, the **inference account credential**, wrapped under a passphrase the operator chooses. A jump host carries no machine
 state, and a part not yet approved when an earlier sheet is exported is marked unapproved there.
-None of the machine state is secret, and all of it exists by the export `STA-15` requires. **It no longer carries the SSH client keys**, which re-derive from the seed
+None of the machine state is secret, and all of it exists by the export `STA-15` requires.
+Every record that names a machine names it by its seed and index. After Replace, the sheet also
+carries each allocation the journal keeps under a retired seed (`STA-22b`) under that seed, with the records naming it: a machine Replace has not migrated keeps
+its machine state and its other records there, with the reason `STA-17`'s screen names it not yet
+migrated. **It no longer carries the SSH client keys**, which re-derive from the seed
 (`STA-22`). The export screen MUST say what the sheet can do in the wrong hands with the
 passphrase: **spend the remaining inference balance**. Reaching a machine needs the seed, and
 the seed is never in the sheet. Placement records carry no value, digest, scan key, byte
@@ -1469,6 +1480,20 @@ A machine under `STA-20`'s hold or a standing destructive reinstall or abandonme
 Replace migrates the others. After the hold, or a destructive reinstall's restriction,
 ends, its migration steps are first issues, starting with the key install in the order
 above; the completion refusal above applies.
+
+Replace's export of the new seed's sheet is one of its finished steps and does not complete
+Replace. That sheet carries, under the retired seed and with the reason this screen names, each
+machine not yet migrated, a jump host and an LNVPS rebuild's old machine awaiting its deletion
+evidence included, and each pass not yet revoked or awaiting its manual retirement's
+confirmation ([credential
+format](docs/design/credential-format-v1.md#operator-reports-payload-version-7)). A machine's
+migration moves its entry and every record naming it to the new index in one journal act, never
+record by record. While its new index is reserved and its migration unconfirmed, as after a
+failed relabel read below, its records keep its retired-seed name, and the reserved index is
+linked to it as its migration index, not a second machine. After a Restore, a machine not yet
+migrated finishes its migration only to a migration index its sheet records; otherwise its
+migration waits for another Replace (`STA-22b`), which re-enters it under its own retired seed
+and keeps every earlier retired seed's entries.
 
 For the journal-knowledge and overlap boundary during Replace, see `STA-20` and `STA-24`
 in [Durable state](#durable-state).
