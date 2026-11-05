@@ -476,8 +476,11 @@ here is non-waivable:
   confirmation is the operator's, recorded with the placement.
 - **The placed secret is listed in the trust display** until it is rotated or the machine is
   destroyed (`SEC-6`; at LNVPS, the vendor's confirmed deletion, `SEC-5` row 12), or until the
-  operator reports it revoked (below), when it moves to history labelled operator-reported. After
-  a Restore the display starts from the placement records the sheet holds (`STA-16`), listing
+  operator reports it revoked (below), when it moves to history labelled operator-reported. A
+  rotation's new placement is listed from the record made before its bytes leave, whatever its
+  job then does, and until `SEC-5` records the rotation the old placement stays beside it as it
+  was, listed live or in operator-reported history.
+  After a Restore the display starts from the placement records the sheet holds (`STA-16`), listing
   a record with an operator report in that history, never live. Machine
   records may add entries, visibly labelled as machine-reported and advisory, but MUST NOT
   remove any. An absent file stays listed; absence, scan re-arm, a machine's claim of removal
@@ -574,11 +577,16 @@ shrink an actual session's membership and authorizes no new contact with the des
 Fresh output still owes every other release prerequisite; its scan is `SEC-5`'s, and `SEC-5`
 says "Destruction never counts as a scan: bytes withheld before it stay withheld".
 
-**A rotation ends the old placement's wait; what was withheld stays withheld.** Once `SEC-5`
+**A rotation ends the old placement's wait; what was withheld stays withheld.** A rotation's new
+placement's reference is required from the record made before its bytes leave, whatever its job
+then does, since from that record on its bytes may have left: `STA-4` says an intent with no
+terminal record means the call "may have been sent, never that it was not". Until `SEC-5` records
+the rotation, the reference of an old placement without a report stays required beside it, and
+output owes both references. Once `SEC-5`
 retires the rotated placement's reference (`SEC-5` says "P's row 23 scan key and reference end,
 and nothing re-creates them"), the re-arm above and the `exec` wait no longer require that
 placement, a paste or late digest record arms nothing for it, and the new placement's reference
-is required in its place. Retiring that wait lifts this one prerequisite and clears no command
+is required alone. Retiring that wait lifts this one prerequisite and clears no command
 hold, resource barrier, pending check, other unarmed-reference requirement, destructive
 restriction or unknown command outcome. Fresh output still owes every other release
 prerequisite; its scan is `SEC-5`'s, and `SEC-5` says "A rotation never counts as a scan: bytes

@@ -459,9 +459,10 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       material for Q.
       (j) Rotation (`SEC-5`, `ARC-43`, `SEC-6`): machines A and M are in one bound set, placement
       P on M is armed, and P is rotated to a new value differing from the old by a `place_secret`
-      job that completes. Before the rotation's first journal act, one job on A prints P's exact
-      value and finishes but is not yet collected, and another prints it again after the
-      rotation's last journal act. With the local store intact, the bytes of both not scanned
+      job that completes. Before the record made before the rotation's bytes leave, one job on A
+      prints P's exact value and finishes but is not yet collected, and another, dispatched then
+      too and still running, prints it again after the act that records the rotation, the
+      admission of the rotation job's zero-exit record. With the local store intact, the bytes of both not scanned
       against P's reference before the rotation stay withheld after the new placement's reference
       and every other required reference check them clean, whether re-collected, replayed,
       re-requested, displayed or given a later retrieval time, in the rotating session and in a
@@ -469,7 +470,7 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       that P checked clean before the rotation but that is withheld for another placement Q on M
       whose reference is unarmed stays withheld after the rotation until Q's reference checks it
       clean. A targeted control that releases such a pre-rotation range after the rotation must
-      produce this item's finding. A job on A dispatched after the rotation's last journal act is
+      produce this item's finding. A job on A dispatched after the act that records the rotation is
       released under every other prerequisite, including one that prints a withheld job's own
       record under `/var/lib/tau-web/jobs` back and then the new placement's file, with P's old
       value in it unredacted and the new value redacted, while the original range stays withheld.
@@ -479,7 +480,21 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       output stays withheld after every remaining reference checks it clean. The trust display
       states beside the new placement that output after the rotation is not checked for the old
       value. Browser persistence and an exported sheet hold no raw value, bare digest or expired
-      scan material for P after the rotation.
+      scan material for P after the rotation. Output of a job on A dispatched after the record
+      made before the rotation's bytes leave and before the act that records the rotation owes
+      both P's and the new placement's references, and a sheet exported then holds P's record
+      and none for the new placement; it imports, and a Restore from it restores P as placed,
+      owing its re-arm, and lists no new placement. In separate branches the rotation's job exits
+      nonzero, stays unresolved, or, left unresolved, its call is disposed under each of
+      `STA-24`'s continuations, with P armed and, in a further branch each, unarmed after a
+      Restore: none records the rotation, P stays listed live with its reference required,
+      armed or unarmed as before, the new placement is listed with its reference required, no
+      `reference_ended` mark is set, and a sheet exported in each holds P's record and none for
+      the new placement. In the disposition branches, a zero-exit job record of the rotation's
+      call collected afterwards records no rotation, and it is journaled and shown. A rotation of
+      a reported placement whose job exits nonzero leaves it in operator-reported history with
+      no required reference, and a sheet exported then holds its record and none for the new
+      placement.
 - [ ] **CNF-17 · BLOCKING** An untyped response containing a harness-held credential is
       redacted before it reaches the model or the record. Exact-value scan.
 - [ ] **CNF-18 · BLOCKING** The attest introduction is **single-use**, and single-use is the

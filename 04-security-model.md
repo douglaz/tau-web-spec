@@ -510,7 +510,7 @@ record or is still running across it, and its bytes not scanned against P's refe
 that record stay withheld; re-collecting, replaying, re-requesting or displaying a range
 dispatches no new job and makes it no newer; and a range whose production after the rotation is
 not established stays pre-rotation. A machine-reported time or sequence, and the new placement's
-recorded time, establish nothing about a range. This holds from the rotation's record on while
+recorded time, establish nothing about a range. This holds from the act that records the rotation on while
 the local store stays intact, in the rotating session and every later one, a rotation recorded
 after a Restore included; after a local-store loss that follows the rotation, the next paragraph
 governs. Output produced after the
@@ -518,9 +518,18 @@ rotation is no longer compared against P's reference, including a later command'
 prints back a range withheld before it, while the original range stays withheld; it owes the new
 placement's reference and every other required reference and release prerequisite. P's identity
 and the rotation are protected and non-secret: no raw application value, bare digest or expired
-scan material is retained or exported for them. Which act of the rotation's `place_secret`
-records the rotation, and what a rotation whose job fails or stays unresolved (`STA-8`) does to
-P's reference, are not yet specified.
+scan material is retained or exported for them. The act that records the rotation is the one that
+admits the rotation job's completed root-only job record with a zero exit; `STA-20` says such a
+record "MUST instead supply its real output and exit under the existing settlement and admission
+rules"
+([ADR-0063](./docs/adr/0063-a-rotation-is-recorded-by-its-zero-exit-job-record.md)). The
+record made before the bytes leave (`ARC-8`), a nonzero exit, a job that stays unresolved
+(`STA-8`) and a disposition (`STA-24`) record no rotation: P's scan key and reference stay as they
+were, armed or unarmed; a P without a report stays live and required, a reported P stays in
+operator-reported history; and no `reference_ended` mark is set. A job record of a rotation call
+that a disposition disposed records no rotation, whenever collected; it is journaled and shown.
+`ARC-43` owns the new placement's listing and its required reference from the record made before
+its bytes leave.
 
 **After store loss, a machine marked for an ended unreported placement keeps its older job
 records withheld.** A placement Q without a report leaves later sheets when its secret is
