@@ -929,33 +929,39 @@ The checking interpretation is `TauWeb.Allocation.failUnsent`; its index preserv
 implementation evidence under `CNF-72`, independently of the serialized witnesses.
 
 **A different approved entry may replace a never-sent machine entry in the same session.**
-Within an unfinished one-machine setup and its live session, the operator may approve a
-distinct replacement entry (`ARC-15`) for a proposed machine entry whose allocation was never
-sent, never associated with a machine and never contacted. The sole writer admits the
-replacement in one atomic act: it records the Failed record above under that rule's own proof
-and sender fence, retires the old entry's prospective authorization and queued authority, then
-admits the approved replacement entry with its own reserved index, linked to the old entry as
-its predecessor. An allocation already Failed needs only the retirement and the admission. The
-act is explicit; a temporary hold still never becomes Failed by itself, and there is no other
-never-sent end state. The act is refused, and changes no admitted state, when there is no
-such approval; when the approval names the old entry's approved-entry identity or is a stale
-approval of the old entry; when it names other facts or another session; when Failed's proof
-does not hold; when any create for the old entry is possibly sent or a machine was associated
-with or contacted for it; when an applicable identity exclusion (`STA-24`) bars the
-replacement; or when its append fails. A fresh index, account or call, renaming the old entry
-or displaying it as historical is not this act and bypasses nothing. Old and new prospective
-authority never stand together: once the act is admitted, no stale approval or late completion
-authorizes a command or order on the old entry, and reconciliation of its old work that
-another rule permits renews no prospective authority. The old entry keeps its consumed
-identity, mapping, history, barrier and identity exclusions (`STA-24`). Failed's proof
-concerns only that allocation's create: an earlier preparation step of the old entry whose
-outcome is unknown stays unresolved and restricted, the act supplies no failure, success,
-non-execution, cancellation or deletion evidence for it, and the replacement does not reuse or
-repeat it under another label. Replay, export and import preserve the predecessor link and
-these restrictions without redispatch. The act removes no actual bound machine and grants no
-larger set (`SEC-1`). It is no successor for the same intended entry, which has none, and a
-bound set above one machine has no such route. The formal companion has no replacement act;
-`CNF-72`'s cases check it.
+Within an unfinished one-machine setup, in the live session that holds the old entry, with no
+session end and no successor session, the operator may approve a distinct replacement entry
+(`ARC-15`) for a proposed machine entry whose allocation was never sent, never associated with
+a machine and never contacted. The sole writer admits the replacement in one atomic act: it
+records the Failed record above under that rule's own proof and sender fence, retires the old
+entry's prospective authorization and queued authority, then admits the approved replacement
+entry with its own reserved index, linked to the old entry as its predecessor. An allocation
+already Failed in this journal needs only the retirement and the admission. The act is
+explicit; a temporary hold still never becomes Failed by itself, and there is no other
+never-sent end state. The act is refused, and changes no admitted state, when there is no such
+approval; when the approval names the old entry's approved-entry identity or is a stale
+approval of the old entry; when the replacement differs from the old entry only in its
+approved-entry identity, label, allocation, index, account, cost or call, which makes it the
+same intended entry; when the replacement's facts are other than those approved, or the
+approval is bound to another session, a fresh session continuing the setup included; when
+Failed's proof does not hold; when any create for the old entry is possibly sent or a machine
+was associated with or contacted for it; when an applicable identity exclusion (`STA-24`), or
+any other independent guard or check that applies to the replacement, bars it; when the
+replacement would reuse or repeat an unresolved preparation step of the old entry; or when its
+append fails. A fresh index, account or call, renaming the old entry or displaying it as
+historical is not this act and bypasses nothing. Old and new prospective authority never stand
+together: once the act is admitted, no stale approval or late completion authorizes a command
+or order on the old entry, and reconciliation of its old work that another rule permits renews
+no prospective authority. The old entry keeps its consumed identity, mapping, history, barrier
+and identity exclusions (`STA-24`). Failed's proof concerns only that allocation's create: an
+earlier preparation step of the old entry whose outcome is unknown stays unresolved and
+restricted, the act supplies no failure, success, non-execution, cancellation or deletion
+evidence for it, and the replacement does not reuse or repeat it under another label. Replay,
+export and import preserve the predecessor link and these restrictions without redispatch. The
+act removes no actual bound machine and grants no larger set (`SEC-1`). It is neither
+`ARC-16`'s third rung nor `ARC-22`'s in-setup replacement order, it is no successor for the
+same intended entry, which has none, and a bound set above one machine has no such route. The
+formal companion has no replacement act; `CNF-72`'s cases check it.
 
 Import checks the seed identifier, derives each listed public key and compares it, validates
 unique indices within each family and next-unused counters above all listed indices, and

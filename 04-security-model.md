@@ -74,10 +74,10 @@ it will be, what the added machine costs, its first-contact route, and every acc
 mode standing on the set (`SEC-14`); a mode the added machine needs is accepted on that card. The added machine's entry and its allocation index are
 journaled before any create is sent (`STA-22b`). No machine leaves a set while the session is
 alive — what the model has read from it stays in the context that commands the rest. A
-proposed entry that never became a machine is unrealized membership: in a one-machine setup's
-live session, `STA-22b`'s replacement entry retires an entry whose allocation was never sent,
-never associated and never contacted, and admits the approved replacement in its place, which
-removes no actual machine and leaves the set at one. An entry with a possibly sent create, or
+proposed entry that never became a machine, its allocation never sent, never associated and
+never contacted, is unrealized membership. `STA-22b` says “A different approved entry may
+replace a never-sent machine entry in the same session”; in a one-machine setup that
+replacement removes no actual machine and leaves the set at one. An entry with a possibly sent create, or
 associated with or contacted as a machine, is not unrealized and keeps its existing recovery
 and exposure obligations.
 

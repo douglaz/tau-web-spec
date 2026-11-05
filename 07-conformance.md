@@ -437,15 +437,21 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       reserved, never-sent, never-associated, never-contacted entry is admitted in one act that
       records Failed under its existing proof and fence and retires the old entry, and the
       replacement does useful work while the old entry's Failed record, barrier, identity
-      exclusions and an unresolved earlier preparation step stay recorded and restricted; an
-      already Failed allocation is retired and replaced without a second Failed record. Refused,
-      with no admitted state changed: no replacement act, including a temporary hold left to
-      become Failed by itself; an approval naming the old entry's identity, or a stale approval
-      of it; old and new prospective authority at once, including a pending sender of the old
-      entry racing the act, of which only one permission survives; a possibly sent create, an
-      associated machine or a contact for the old entry; an applicable identity exclusion,
-      one arising from the old entry included; facts other than those approved, or another
-      session; a bound set above one; a failed append. A fresh index, account or call, renaming
+      exclusions and an unresolved earlier preparation step stay recorded and restricted; the
+      replacement's predecessor link names exactly the retired entry's approved-entry identity
+      and its Failed allocation, and no other; an allocation already Failed in this journal is
+      retired and replaced without a second Failed record. Refused, with no admitted state
+      changed: no replacement act, including a temporary hold left to become Failed by itself;
+      an approval naming the old entry's identity, or a stale approval of it; a replacement
+      differing from the old entry only in its approved-entry identity, label, allocation,
+      index, account, cost or call; old and new prospective authority at once, including a
+      pending sender of the old entry racing the act, of which only one permission survives; a
+      possibly sent create, an associated machine or a contact for the old entry; an applicable
+      identity exclusion, one arising from the old entry included, or another applicable
+      independent guard, a declared independence bound included; reuse or repetition of the old
+      entry's unresolved preparation step, under its label or another; facts other than those
+      approved, or another session, a fresh session continuing the setup after an actual end
+      included; a bound set above one; a failed append. A fresh index, account or call, renaming
       the old entry or displaying it as historical admits nothing and bypasses no barrier.
       Replay, export and import preserve the predecessor link and the restrictions with no
       redispatch of either entry. Reconciliation of the old entry's work that another rule
