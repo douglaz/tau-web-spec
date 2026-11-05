@@ -70,3 +70,8 @@ Readings not selected:
 - **Release the old withheld backlog.** This record's rejected "Release the other machines' output
   without the disposed machine's references" stays rejected: `SEC-5` says "Unscanned bytes MUST
   be withheld".
+- **Filter a later command that prints a withheld range back.** Its output is new output, and
+  the original range stays withheld. Withholding keeps a range out of model input and the
+  transcript, not off the machine, so the limit is disclosed rather than filtered: `SEC-5` says
+  "Withholding keeps a range out of model input and the transcript, not off the machine", and
+  `SEC-6`'s trust display states it.
