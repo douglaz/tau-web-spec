@@ -479,7 +479,10 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       recorded, P needs no re-arm, a paste or late digest record arms nothing for it, and that
       output stays withheld after every remaining reference checks it clean. The trust display
       states beside the new placement that output after the rotation is not checked for the old
-      value. Browser persistence and an exported sheet hold no raw value, bare digest or expired
+      value, and that the rotation is not a revocation and revoking the old value at its service
+      is the operator's act. The rotation's `place_secret` card states the latter before the act,
+      in every branch here, whatever its job then does. A display or card that presents the
+      rotation as a revocation at the service must produce this item's finding. Browser persistence and an exported sheet hold no raw value, bare digest or expired
       scan material for P after the rotation. Output of a job on A dispatched after the record
       made before the rotation's bytes leave and before the act that records the rotation owes
       both P's and the new placement's references, and a sheet exported then holds P's record
