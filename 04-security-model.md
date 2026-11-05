@@ -392,7 +392,7 @@ outgrown, because adding a credential means adding a row.
 | 9 | Rescue root password, in a typed adapter's response | Vendor-generated, in an API response | Never stored | Never used | Root login the harness declines to use | **Redacted before the response is recorded or reaches a model.** Under an untyped vendor scope no adapter reads the response, so a vendor-generated password is outside this row and inside model context, and is shown as that (`SEC-4`) |
 | 10 | Recovery sheet passphrase | Operator-chosen | Never stored anywhere | Operator's memory | Unwraps the sheet | Not applicable |
 | 11 | Untyped-scope credential — a vendor's included, under `SEC-4`'s untyped vendor scope | Operator | Browser memory only | Until the operator revokes or rotates it | **Unbounded at that origin** | Operator revokes at the service |
-| 12 | **Application secret placed on a machine** | Operator, on `place_secret`'s card (`ARC-43`) | Browser memory until the placing session ends, then the machine alone; briefly in the local paste re-arm card (`ARC-43`), cleared after reference construction and never persisted or sent | Machine lifetime | Whatever the application it was placed for uses it for | Machine destroyed (at LNVPS, the vendor's confirmed deletion, not the stop that stands in for a destroy, `ARC-22`), or operator rotates |
+| 12 | **Application secret placed on a machine** | Operator, on `place_secret`'s card (`ARC-43`) | Browser memory until the placing session ends, then the machine alone; briefly in the local paste re-arm card (`ARC-43`), cleared after reference construction and never persisted or sent | Machine lifetime | Whatever the application it was placed for uses it for | Machine destroyed (at LNVPS, the vendor's confirmed deletion, not the stop that stands in for a destroy, `ARC-22`), operator rotates, or the operator reports that placement revoked at its service (`ARC-43`), which ends its live listing, not its exposure |
 | 13 | ~~Injected SSH host private key~~ | — | — | — | — | **Row retired. `CHN-R3` is abandoned**: user-data stays readable from the vendor's metadata endpoint for the instance's life, so the key would be permanently re-fetchable by anything on the machine. No exception wording fixes that. |
 | 14 | **Inference account credential** (procured only) | Operator, on funding an account-free balance | Encrypted at rest; **exported in the sheet** | Until the balance is spent | The remaining balance; minting and revoking row 2; attaching a funding source (`ARC-31a`) | Spent down or abandoned — **it is bearer and cannot be revoked** |
 | 15 | **Operator seed** | Operator, at first use; backed up by the operator | Encrypted at rest; **in the operator's head or seed backup**, never in the sheet; words displayed only in `STA-23`'s ceremony | Until replaced | Deriving rows 3, 4, 7, 16 and 17 — **every maintained machine, every relay pass, every future introduction, and every declared handoff** (`STA-22`) | Replaced by a new seed on Replace (`STA-17`); the old one is not revocable, only abandoned — and it is still needed *during* Replace, until the last step that needs it is done (`STA-17`) |
@@ -403,7 +403,7 @@ outgrown, because adding a credential means adding a row.
 | 20 | Data-encryption key (local store or sheet) | Browser CSPRNG, independent per store/export | Harness-worker memory; only an authenticated wrapped copy persists | Local store unlocked; sheet import/export operation | Decrypts the named local store or sheet, never another purpose | Cleared on lock/end; replaced on re-encryption |
 | 21 | **Jump-vendor credential**: a vendor credential supplied separately from the target's (`CHN-R6`) | Operator | Browser memory only, held by the jump-host flow; never given to a session | One jump-host flow, from the create to the confirmed destroy | Creating one jump host, reading its address and destroying it, through the jump vendor's adapter | Flow ends |
 | 22 | **Derived vendor identity** — not derivable today | — | — | — | — | No role exists for it. `STA-22` says "an implementation must not choose paths independently", and credential format v1 (`STA-22a`) defines no role, index family or known-answer vector for a vendor identity; until it does, none is derived or used (`OPN-26`) |
-| 23 | **Placed-secret scan key and reference**, per secret | Fresh independent browser-CSPRNG key `K` on placement or re-arm; reference `HMAC-SHA-256(K, SHA-256(value))` plus byte length `L` | Encrypted local store under `STA-23`; working copy only in browser memory. Neither key nor reference goes to the machine, sheet, model, transcript or app origin | Until rotation, machine destruction (at LNVPS, the vendor's confirmed deletion, not the stop that stands in for a destroy, `ARC-22`) or local-store loss; re-arm replaces it with a fresh key/reference | Local exact-value comparison only; no external authority | Cleared from working memory on explicit app Lock, worker shutdown or session end; an ordinary hide retains the working copy while its worker survives (`STA-23`: "An ordinary visibility-only hide MUST NOT end or pause an unlocked session, clear its runtime authority, or invalidate its approvals."); persistent copy removed on rotation/destruction, lost with the store |
+| 23 | **Placed-secret scan key and reference**, per secret | Fresh independent browser-CSPRNG key `K` on placement or re-arm; reference `HMAC-SHA-256(K, SHA-256(value))` plus byte length `L` | Encrypted local store under `STA-23`; working copy only in browser memory. Neither key nor reference goes to the machine, sheet, model, transcript or app origin | Until rotation, machine destruction (at LNVPS, the vendor's confirmed deletion, not the stop that stands in for a destroy, `ARC-22`), the operator's report of that placement (`ARC-43`) or local-store loss; re-arm replaces it with a fresh key/reference | Local exact-value comparison only; no external authority | Cleared from working memory on explicit app Lock, worker shutdown or session end; an ordinary hide retains the working copy while its worker survives (`STA-23`: "An ordinary visibility-only hide MUST NOT end or pause an unlocked session, clear its runtime authority, or invalidate its approvals."); persistent copy removed on rotation, destruction or the operator's report, lost with the store |
 
 For rows 5, 6, 12 and 23, LNVPS destruction means the durably recorded deletion confirmation.
 For its predicate, see `STG-21a`; for abandonment, see `ARC-22`.
@@ -446,6 +446,27 @@ it from a model that later reads the machine's filesystem with the root shell `O
 `SEC-6`'s trust display states it: "including a later command's output that prints back a range
 withheld before it". Output produced after the destruction is no longer compared against M's
 references.
+
+**An operator report retires one placement's row 23 reference; what was withheld stays
+withheld.** When the operator's report for placement P (`ARC-43`) is durably recorded (`STA-3`),
+P's row 23 scan key and reference end, and nothing re-creates them. The report claims neither
+erasure of the value nor that its copies or earlier disclosures are gone; the harness trusts it as
+the operator's statement and does not verify it at the service. A report never counts as a scan:
+bytes withheld before it stay withheld, and no old range becomes scanned, safe or releasable
+because P's reference retired, whichever reference withheld it. The destruction paragraph's
+boundary applies with P's report in place of M's deletion evidence: output is produced after the
+report only when the box-plane job that produced it was dispatched after the report was durably
+recorded; a job dispatched before that record and still running across it stays pre-report;
+re-collecting, replaying, re-requesting or displaying a range dispatches no new job and makes it
+no newer; and a range whose production after the report is not established stays pre-report. The
+report's recorded time and a machine-reported time or sequence establish nothing about a range.
+After local-store loss nothing restores P's ended reference: every job record from before the
+loss stays withheld for P, and a sheet's `operator_reported_at` classifies no output. Output
+produced after the report is no longer compared against P's reference and owes every other
+required reference and release prerequisite. P's identity and the report are protected and
+non-secret: no raw application value, bare digest or expired scan material is retained or
+exported for them. The report ends P only; another placement holding the same bytes keeps its own
+reference.
 
 Rows 18–20 use the versioned envelope in `STA-23`. Row 15 derives row 17 as well as the
 machine and relay credentials. Derivation indices, resource mappings and allocator counters
@@ -627,6 +648,13 @@ Where a machine's destruction has retired its placed-secret references, the trus
 that output produced after the destruction is not checked for that machine's values, including
 a later command's output that prints back a range withheld before it: `SEC-5` says "Output
 produced after the destruction is no longer compared against M's references."
+An operator report (`ARC-43`) ends one placement's count: the trust display lists that
+placement as operator-reported history, never as a live secret, and says the report is the
+operator's statement, unverified at the service. It states that output produced after the
+report is not checked for that placement's value, including a later command's output that prints
+back a range withheld before it: `SEC-5` says "Output produced after the report is no longer
+compared against P's reference". The machine's other placements without a report, its untyped
+scopes and the weaker modes standing on its set are counted as before.
 
 This replaces an absolute the root shell already defeated. A tenant that needs the absolute
 supplies it by procedure — `SEC-T4`.
@@ -852,7 +880,9 @@ maintained machine, or by the recovery ladder's escalation. A model's blast radi
 
 Those three are stated together because no one of them alone is the boundary. Every approved
 scope and every placed application secret appears in the trust display until revoked or
-rotated — closing an approval does not un-trust a service that still holds the key. Every
+rotated — closing an approval does not un-trust a service that still holds the key. A placed
+secret the operator reports revoked at its service (`ARC-43`) leaves the live listing for
+history labelled operator-reported, on the operator's word rather than the service's. Every
 acceptable weaker mode standing on a set is stated with them (`SEC-14`); for a machine first
 contacted from a jump host that statement is that its identity is as good as two paths
 agreeing once (`CHN-R6`).

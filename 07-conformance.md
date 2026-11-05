@@ -218,7 +218,8 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       (b) Later session, intact store: use the encrypted reference, preserving it when the
       machine reports changed bytes; never silently adopt the changed value.
       (c) Seed-plus-sheet Restore, alongside `CNF-84`: each placement recorded on the set's
-      machines, apart from one whose reference `SEC-5` has retired, is re-armed
+      machines, apart from one whose reference `SEC-5` has retired, whether by destruction or
+      by an operator report (case (h)), is re-armed
       before output collection or model commands on any machine of the set. The label is
       "re-armed from the machine's report", never "protected"; forgotten placements are not
       claimed covered. Machine-only entries are advisory and require an operator act to arm.
@@ -409,6 +410,31 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       from the seed, arms from machine bytes or replaces the intact reference. App Lock/end
       clear working copies, while encrypted references retain their stated lifetime.
       `SEC-5` says "For row 23, retained or reloaded scan material is the same independent random key and encrypted reference already recorded, never seed-derived, regenerated on hide or replaced by machine-reported bytes."
+
+      (h) Operator report (`ARC-43`, `SEC-5`): after local-store loss, machines A and M are in
+      one bound set; M carries placements P1 and P2, both unarmed, and output on A is withheld.
+      The operator reports P1 revoked. The card names P1 by machine, application name, secret
+      name, path and placement time, and says what a mistaken report risks and what a true one
+      does not erase. With the report's append failing,
+      nothing changes: P1 still waits and stays listed live. Once the report is recorded, P1
+      needs no re-arm, and a paste or a late digest record for P1 arms nothing; P2 still waits,
+      so output on A stays withheld until P2 is armed. A report of P1 alone never releases
+      output for P2. Output withheld before the report stays withheld once P2 is armed, whether
+      it is re-collected, replayed, re-requested or displayed, and so does output of a job
+      dispatched before the report record and still running across it. Output of a job
+      dispatched after the record is released once P2 checks it clean and every other
+      prerequisite holds, and P1's exact value in it is not redacted for P1; in a separate
+      branch, an armed placement P3 on M holding the same bytes keeps its own reference and
+      redacts it. A reinstall, a new
+      installation, a missing file, a changed pin and the stop that stands in for a destroy
+      end nothing for P1 without a report. The report lifts no `STA-20` or `STA-24`
+      restriction: with a destructive disposition standing on M, everything that disposition
+      holds stays held. Replay restores the report from its journal record alone. A sheet
+      exported after the report restores P1 with no wait and no re-arm, while every pre-loss
+      job record stays withheld for P1, and its `operator_reported_at` classifies no output. A
+      sheet exported before the report, and a version 3 to 6 sheet, restore P1's wait.
+      Browser persistence and the exported sheet hold no raw value, bare digest or expired
+      scan material for P1.
 - [ ] **CNF-17 · BLOCKING** An untyped response containing a harness-held credential is
       redacted before it reaches the model or the record. Exact-value scan.
 - [ ] **CNF-18 · BLOCKING** The attest introduction is **single-use**, and single-use is the
@@ -872,7 +898,8 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       coverage and says "It does not mean <app> works" with that name substituted; the declaration
       states its outbound destinations and its always-on service, and, where it has its own model
       and its secret is placed, the trust display lists its model provider beside it (`TRU-E12`
-      says "listed in the trust display beside the application for as long as its secret is placed").
+      says "for as long as a placement without an operator report names that application on that
+      machine").
       Recovery of these facts is covered by `CNF-84` under `STA-16`. Where those destinations are declared as
       `listeners.outbound` restrictions, the delivery check finds each in place: verified by
       removing one declared restriction and confirming the check reports the difference as a
@@ -1597,8 +1624,21 @@ to the relay evidence in `CNF-81`, `CNF-87` and `CNF-113`.
       became part of what placing a secret promises. After Restore, the sheet's placement
       entries remain displayed (`STA-16`, `ARC-43`); machine reports may add labelled
       advisory entries and remove none. An absent file stays listed. Re-arming or a machine's
-      removal claim never drops an entry; only the owning rotation/destruction rules do.
+      removal claim never drops an entry; only the owning rotation/destruction rules do, and an
+      operator report moves its own entry to history.
       At LNVPS the stop that stands in for a destroy never drops one either.
+      An operator report (`ARC-43`) moves only its own placement from the live listing to
+      history labelled operator-reported, never "retired" or "rotated", with the statement that
+      the report is the operator's and unverified at the service and that output produced after
+      it is not checked for that placement's value (`SEC-6`). Verified with two placements on one
+      machine naming the same application, one reported: the other stays live, the application's
+      provider stays listed (`TRU-E12`), and the machine's untyped scopes and weaker modes are
+      counted as before; once the second is reported too, the provider is no longer listed beside
+      that application. A missing file, a changed pin, a reinstall, a new installation and the
+      stop that stands in for a destroy produce no report. After Restore a reported record is
+      shown in that history, never live, as of export, a destroyed machine's included, and a
+      sheet exported before the report lists the placement live. Escaped secret: a placement
+      shown as reported that the operator did not report is a live exposure dropped from view.
 - [ ] **CNF-93 · BLOCKING** An acceptable weaker mode is accepted by its label for one bound
       set before the first contact it governs — an acceptance after that contact is
       refused — and is never entered by failing
@@ -1806,12 +1846,41 @@ Not pass/fail. Required to be recorded.
       sheet its own import refuses. Refuse a placement with missing or
       malformed `application_name`, or one naming an application not recorded on that same
       machine, including a name recorded nowhere and one recorded only on another machine.
+      Version 7 ([credential format](docs/design/credential-format-v1.md#operator-reports-payload-version-7)):
+      round-trip placements with `report:"none"` and with a report object, including a reported
+      record kept after its secret's rotation beside the rotation's new placement and one kept
+      after its machine's destruction, whose allocation carries `destroyed: true`, has no
+      machine state and whose `application_name` is checked by form only. Refuse before binding
+      a placement record with a missing member or any member beyond its seven, a missing or
+      malformed `report`, a report object with a missing, extra or duplicate member,
+      a malformed time, a placement without a report on a destroyed allocation, a reported one on
+      an absent, failed, jump-host or non-machine allocation, `destroyed` with any other value or
+      on a live allocation, and a machine state for a destroyed allocation. Refuse duplicate
+      records equal in the six members other than `report`, and two records without a report at
+      one machine, application name, secret name and path. Refuse a missing or malformed
+      placement `seed_id` and one naming neither the payload's seed nor a retired allocation's.
+      Export after Replace a reported record on a machine destroyed before the migration: the new
+      seed's sheet carries that machine in `retired_allocations` under its old seed, index,
+      resource identity and recorded public key with `destroyed: true`, and the record keeps its
+      `seed_id` and `machine_index`, including where a migrated machine's new index equals that
+      index (`STG-20`); a migrated machine's records take the fresh seed's `seed_id` and its new
+      index. Import accepts that sheet's placements, retired allocation and allocations, and a
+      second Replace keeps the retired allocation's seed; what the sheet's other members hold
+      for that machine is not yet specified (credential format). Import accepts the retired
+      allocation's recorded key without deriving it, while a wrong key on a current-seed
+      allocation is still refused; the retired allocation restores no contact identity, pin,
+      binding or allocation, and a counter or unique-index check over `allocations` ignores it.
+      Refuse before binding a missing `retired_allocations`, a malformed, duplicate or extra-member
+      entry, one with the payload's seed, a non-machine family or `destroyed` absent or other than
+      `true`, one no placement names, and a record without a report naming one. A version 3 to 6
+      sheet restores every placement with `report:"none"` and the payload's seed, and with no
+      retired allocation.
       Confirm the restored application/provider list is complete, including an application with
       a recorded provider and no restored secret placement: its provider remains recorded and is not listed in the
       trust display. Include a restored placement with distinct `application_name` and secret
       `name`; confirm its named application's provider is listed beside that application on its
-      machine (`TRU-E12` says "listed in the trust display beside the
-      application for as long as its secret is placed"). The restored facts stay labelled as of
+      machine (`TRU-E12` says "for as long as a placement without an operator report names that
+      application on that machine"). The restored facts stay labelled as of
       export, through a machine re-check, until the harness records that application again,
       without a new approval or any implication of current installation or provider state. The no-model marker and empty list never mean unapproved.
       An imported local-store backup's machines are shown unchecked, their findings unknown,

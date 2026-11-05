@@ -447,7 +447,9 @@ here is non-waivable:
 - **An unsafe destination is refused**: a mode that lets any account but the owner read the
   file, and a path that is a symbolic link or passes through one. An existing file MUST be
   refused unless the placement records name it as this placement; placing a new secret must
-  not overwrite unrelated data.
+  not overwrite unrelated data. A placement record carrying an operator report (below) still
+  names its file for the rotation of that placement, at the same machine, application name,
+  secret name and path.
 - **`ARC-17`'s placement gates hold** — the fixed lockdown checks first, and the findings that
   refuse a secret. The card lists every lifecycle finding standing on the machine and says that
   placement clears none of them.
@@ -459,8 +461,10 @@ here is non-waivable:
   sent; without that confirmation nothing is placed. The harness cannot classify a value, so the
   confirmation is the operator's, recorded with the placement.
 - **The placed secret is listed in the trust display** until it is rotated or the machine is
-  destroyed (`SEC-6`; at LNVPS, the vendor's confirmed deletion, `SEC-5` row 12). After
-  a Restore the display starts from the placement records the sheet holds (`STA-16`). Machine
+  destroyed (`SEC-6`; at LNVPS, the vendor's confirmed deletion, `SEC-5` row 12), or until the
+  operator reports it revoked (below), when it moves to history labelled operator-reported. After
+  a Restore the display starts from the placement records the sheet holds (`STA-16`), listing
+  a record with an operator report in that history, never live. Machine
   records may add entries, visibly labelled as machine-reported and advisory, but MUST NOT
   remove any. An absent file stays listed; absence, scan re-arm, a machine's claim of removal
   and the stop that stands in for a destroy (`ARC-22`) are not rotation or destruction.
@@ -470,10 +474,12 @@ the best practice, and the card says so. The harness mints nothing for an applic
 minted from the inference account would be a harness credential on a machine (`ARC-1`).
 
 **Re-arming after store loss is harness work.** On binding a session after local-store loss,
-every placement the sheet records on that bound set's machines MUST have its required reference
-re-armed by `digest_secret` or the local paste below before any model command or collection of
-old or new job records can release output to either the model or the transcript on that bound
-set. `digest_secret` remains the default re-arm path. It reads the recorded path, refuses a
+every placement the sheet records on that bound set's machines without an operator report
+(below) MUST have its required reference re-armed by `digest_secret` or the local paste below
+before any model command or collection of old or new job records can release output to either
+the model or the transcript on that bound set. A placement with an operator report has no
+required reference, and neither `digest_secret` nor the paste arms one for it. `digest_secret`
+remains the default re-arm path. It reads the recorded path, refuses a
 symbolic link or a path traversing one, writes nothing to the placement, and outputs only SHA-256 of the file's bytes
 and their byte count, never the bytes. Normal machine-side capture remains `STA-20`'s; its
 raw digest output MUST reach neither model context nor transcript, which receive status only.
@@ -511,7 +517,8 @@ install, or a fix for a finding that refuses placement) wait on these references
 says that neither a reinstall nor the stop that stands in for a destroy (`ARC-22`) ends that
 wait. Under either disposition, at a vendor that offers the operator no destroy route, the
 card offers no destroy and says the secret stays listed until it is rotated or the vendor's
-deletion is confirmed.
+deletion is confirmed, or until the operator reports that placement revoked (below), when it
+moves to history labelled operator-reported.
 A digest record of a call named by a destructive disposition arms nothing, whenever collected;
 it is journaled and shown and cross-checks a paste. A digest result that arrives after the
 paste, a disposed digest's record among them, is a cross-check only: a mismatch is visible
@@ -548,6 +555,31 @@ unarmed-reference requirement, destructive restriction or unknown command outcom
 shrink an actual session's membership and authorizes no new contact with the destroyed machine.
 Fresh output still owes every other release prerequisite; its scan is `SEC-5`'s, and `SEC-5`
 says "Destruction never counts as a scan: bytes withheld before it stay withheld".
+
+**An operator report ends one lost-key placement's wait; what was withheld stays withheld.**
+After revoking a placement's key at its service, the operator may report that one placement
+revoked. The harness trusts the report as the operator's statement that the service revoked the
+right credential, not as service evidence. The card names the placement by machine, application
+name, secret name, path and placement time, and says that a mistaken report could expose a
+still-valid key in later output and understate live exposure, and that a true one erases no
+bytes, copies, earlier model access or earlier disclosure. The report is journaled before it
+takes effect: `STA-3` says "If the append fails, the transition does not occur." Once it is
+recorded, that placement's required reference ends: the re-arm and the `exec` wait above no
+longer require it, a paste or digest record arms nothing for it, and the trust display moves it
+from the live listing to history labelled operator-reported, never "retired" or "rotated". It
+ends that placement only. Another placement keeps its own reference and wait even when it holds
+the same bytes or names the same application, secret name or path, a later placement at that
+path included, and an application and its provider stay listed while a placement without a
+report names them. The report lifts no `STA-20` or `STA-24` restriction, replaces no destructive
+disposition, establishes no operation's outcome, authorizes no retry (`STA-6`), restores no
+ended runtime authority, and clears no command hold, resource barrier, pending check or other
+unarmed-reference requirement. A missing file, a changed pin, a reinstall, a new installation
+and the stop that stands in for a destroy (`ARC-22`) never produce it. Replay derives it only
+from its journal record. The sheet carries it (`STA-16`); a sheet exported before it restores the
+wait. Its scan ends under `SEC-5`: output withheld before the report stays withheld, and output
+produced after it is no longer compared against that placement's reference but owes every other
+reference and release prerequisite. Whether the report is offered while the placement's
+reference is armed, and whether a report can be corrected or withdrawn, are not yet specified.
 
 The model's tool set on the LNVPS path is exactly four: `exec` (a box-plane command it composed),
 `request_harness_job` (`fetch_artifact`, `ready_to_reset` or `place_secret`, by name, with the
