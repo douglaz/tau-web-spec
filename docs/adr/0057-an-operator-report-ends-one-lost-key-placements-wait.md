@@ -71,8 +71,10 @@ The Markdown, the credential format and the conformance cases change together: `
 display, `CNF-84` for the version-7 sheet and `CNF-95(h)` for the scan. The formal companion has
 no placement or scan-reference state and is unchanged. Still to be decided:
 
-- whether the report is offered while the placement's reference is armed;
-- whether a report can be corrected or withdrawn;
+- whether the report is offered while the placement's reference is armed, since decided in
+  [ADR-0062](./0062-the-lost-key-report-is-offered-only-while-unarmed-and-is-final.md);
+- whether a report can be corrected or withdrawn, since decided in
+  [ADR-0062](./0062-the-lost-key-report-is-offered-only-while-unarmed-and-is-final.md);
 - what keeps an ended unreported placement's withheld output withheld after a Restore from a later
   sheet, since decided in
   [ADR-0060](./0060-a-machine-mark-keeps-an-ended-unreported-placements-older-output-withheld.md);

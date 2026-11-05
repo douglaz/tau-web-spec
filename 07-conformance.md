@@ -414,8 +414,8 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       (h) Operator report (`ARC-43`, `SEC-5`): after local-store loss, machines A and M are in
       one bound set; M carries placements P1 and P2, both unarmed, and output on A is withheld.
       The operator reports P1 revoked. The card names P1 by machine, application name, secret
-      name, path and placement time, and says what a mistaken report risks and what a true one
-      does not erase. With the report's append failing,
+      name, path and placement time, and says what a mistaken report risks, what a true one
+      does not erase and that a report cannot be undone. With the report's append failing,
       nothing changes: P1 still waits and stays listed live. Once the report is recorded, P1
       needs no re-arm, and a paste or a late digest record for P1 arms nothing; P2 still waits,
       so output on A stays withheld until P2 is armed. A report of P1 alone never releases
@@ -434,7 +434,10 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       job record stays withheld for P1, and its `operator_reported_at` classifies no output. A
       sheet exported before the report, and a version 3 to 6 sheet, restore P1's wait.
       Browser persistence and the exported sheet hold no raw value, bare digest or expired
-      scan material for P1.
+      scan material for P1. The harness offers no act that withdraws or corrects P1's report, and
+      P1 stays in operator-reported history. In a separate branch,
+      P2's re-arm is journaled before its report, and the report is refused: P2 stays live and
+      keeps its scan, and no report is offered for P2 while its reference is armed.
       (i) Ended unreported placement (`SEC-5`, `ARC-43`, `SEC-6`): after a local-store loss,
       machines A and M are in one bound set, placement Q on M is unarmed, a job on A prints Q's
       exact value and is withheld for Q, and clean jobs run on A and M. Machine C is in a bound
@@ -1670,8 +1673,8 @@ to the relay evidence in `CNF-81`, `CNF-87` and `CNF-113`.
       At LNVPS the stop that stands in for a destroy never drops one either.
       An operator report (`ARC-43`) moves only its own placement from the live listing to
       history labelled operator-reported, never "retired" or "rotated", with the statement that
-      the report is the operator's and unverified at the service and that output produced after
-      it is not checked for that placement's value (`SEC-6`). Verified with two placements on one
+      the report is the operator's, unverified at the service and cannot be undone, and that
+      output produced after it is not checked for that placement's value (`SEC-6`). Verified with two placements on one
       machine naming the same application, one reported: the other stays live, the application's
       provider stays listed (`TRU-E12`), and the machine's untyped scopes and weaker modes are
       counted as before; once the second is reported too, the provider is no longer listed beside

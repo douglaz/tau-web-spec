@@ -724,7 +724,7 @@ a later command's output that prints back a range withheld before it: `SEC-5` sa
 produced after the destruction is no longer compared against M's references."
 An operator report (`ARC-43`) ends one placement's count: the trust display lists that
 placement as operator-reported history, never as a live secret, and says the report is the
-operator's statement, unverified at the service. It states that output produced after the
+operator's statement, unverified at the service, and cannot be undone. It states that output produced after the
 report is not checked for that placement's value, including a later command's output that prints
 back a range withheld before it: `SEC-5` says "Output produced after the report is no longer
 compared against P's reference". The machine's other placements without a report, its untyped
