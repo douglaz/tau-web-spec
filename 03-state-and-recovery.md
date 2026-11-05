@@ -1519,14 +1519,30 @@ the installed system's root labels, a root whose label reads in `STG-20`'s form,
 key to that root's `authorized_keys`, keeping every other line. If it finds none, which is the
 root-label stop, the job writes no key, the flow stops unfinished, and the only vendor call left
 to it is the reset into the installed system, under that reset's own prerequisites
-(`STA-20b`). Whether the installed host keys may be read after this stop is not decided, and
-neither is which root receives the key when more than one reads in that form. The root-label
+(`STA-20b`), which the scoped read below may meet. Which root receives the key when more than
+one reads in that form is not decided. The root-label
 stop opens no session binding: the re-entry below does not follow it, and whether a machine
 stopped there may later be bound is not decided. A label that passes proves nothing: it
 establishes no identity, authenticates no root contents and supplies no acceptance, and the
 operator's approval stays the only tie between this server and its entry. So with no sheet, a
 server whose root label is missing or damaged gets no rescue rekey from the harness, and
 nothing here grants a reinstall or an erasure to repair it.
+
+**After the root-label stop, one scoped read of the installed host keys serves that one reset
+back and is trusted for nothing later.** The `rescue_host_key_read` job (`ARC-43`) reads, in
+rescue, the installed host public keys of the one root that carries them. It writes nothing to
+any disk, follows no symbolic link, and mounts that root without replaying its file system's
+journal. It refuses, and the reset into the installed system is then neither offered nor sent,
+when it finds no host keys, when it finds host keys under more than one root, when the read
+fails, or when any key it reads shares a fingerprint with the rescue boot's own pin
+(`CHN-R1`). What it reads, journaled with the reset intent, serves only that reset: it is the
+reset's durable prerequisite under `STA-20b`, which `TauWeb.Dispatch.offersReset` reads as the
+current installation's prerequisite record, and the expected next pin with which `STG-4`'s
+predicate confirms it. The answer that confirms the reset admits no connection. The read is
+never an installed-system pin or a machine pin (`SEC-5` row 5) and is never `ready_to_reset`'s
+record; no later connection to the machine relies on it. It is kept as an as-of observation of
+that root, which a later comparison may use only to withhold an offer or refuse a pin, never to
+admit one. It gives no root a label, supplies no acceptance and installs no key.
 
 **A dedicated machine rekeyed through rescue keeps a proposed installation ordinal**
 ([ADR-0056](./docs/adr/0056-the-rescue-rekey-keeps-a-proposed-ordinal.md)). `STA-22b` says

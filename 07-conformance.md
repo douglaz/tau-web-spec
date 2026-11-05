@@ -2069,6 +2069,18 @@ Not pass/fail. Required to be recorded.
       flow stops unfinished, no vendor call other than the reset into the installed system is
       sent after it, that reset only under `STA-20b`'s prerequisites, and no session binds the
       machine through the re-entry. A model request for `rescue_install_key` is refused.
+      After that stop, give the server one root carrying host keys: `rescue_host_key_read`
+      writes nothing and replays no journal, the reset is offered on what it read, and its
+      confirmation admits no connection; once it is confirmed, a connection relying on those
+      keys is refused. Give it host keys under two roots, no host keys, a symbolic link in
+      place of the key files, and a key matching the rescue boot's pin: the read refuses, the
+      link is not followed, and no reset is offered or sent. Restart the harness after the
+      stop: the reset is shown again and offered only after its prerequisites are checked
+      again, and one whose intent was journaled before the restart is not sent again. Stop
+      the flow, and separately fail a call other than at the root-label stop, after the reset
+      into rescue is sent: no further call of the flow is sent, and the screen shows the
+      server as possibly in rescue, the flow unfinished and every unresolved call. A model
+      request for `rescue_host_key_read` is refused.
       Boundary-crossed and destroyed-data.
 - [ ] **CNF-87 · BLOCKING** The LNVPS path's relay uses the selected `/v2/` profile and a
       hand-recorded pass (`STG-18`; [paid-tcp-relay][relay-source] PAS-6). Demonstrate fresh

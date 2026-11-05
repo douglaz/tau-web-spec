@@ -312,6 +312,10 @@ output. The jobs are:
   rescue rekey, outside any session, that makes `STA-17`'s root-label check and writes the
   fresh-seed client key only as that check allows. The model MUST NOT request it through
   `request_harness_job` or supply its command. Its rules are `STA-17`'s.
+- `rescue_host_key_read` — a harness-initiated, read-only job in the rescue system after the
+  rescue rekey's root-label stop, outside any session, that reads one root's installed host keys
+  for the one reset back. The model MUST NOT request it through `request_harness_job` or supply
+  its command. Its rules are `STA-17`'s.
 
 Listener observations, outbound-restriction observations and service state/enablement
 observations used for delivery also MUST come from harness-composed reads. The signed

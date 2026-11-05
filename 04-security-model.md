@@ -283,9 +283,15 @@ barrier, and is the approved record (below). The flow is refused while a session
 (`STA-17`), and while a command hold (`STA-20`) or a standing destructive disposition (`STA-24`)
 stands for it. The grant ends when the reset into the installed system is confirmed by `STG-4`'s
 predicate, or on a failure other than `STA-17`'s root-label stop, an operator stop or `STA-17`'s
-changed-label stop, whichever comes first. After the root-label stop it keeps only the reset into
-the installed system, still under that reset's own prerequisites (`STA-20b`). A restart revives no
-authority that has ended and no stopped flow. The grant covers no reinstall, no erasure, no stop
+changed-label stop, whichever comes first. When it ends on such a failure or an operator stop once
+the reset into rescue has been sent, the screen MUST show that the server may be in rescue, that
+the flow is unfinished, and every call of the flow still unresolved (`STA-24`); the operator acts
+at Robot. What a new approval of the flow's card for that server does is not decided. After the
+root-label stop the grant keeps only the reset into the installed system, still under that
+reset's own prerequisites (`STA-20b`). A restart revives no authority that has ended and no
+stopped flow, and it does not end that kept reset: after a restart the reset is shown again and
+offered only once its prerequisites are checked again, and a reset whose intent the journal
+already holds may have been sent and is never sent again. The grant covers no reinstall, no erasure, no stop
 and no destroy, no other key, no other server and no other vendor call. It uses the operator's
 Robot credential as `SEC-5` row 1 describes it, it is checked at dispatch, and the check borrows no
 session authority. Replace's grant above is unchanged.
