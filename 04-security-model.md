@@ -490,6 +490,24 @@ non-secret: no raw application value, bare digest or expired scan material is re
 exported for them. The report ends P only; another placement holding the same bytes keeps its own
 reference.
 
+**After store loss, a machine marked for an ended unreported placement keeps its older job
+records withheld.** A placement Q without a report leaves later sheets when its secret is
+rotated or its machine is destroyed, so after local-store loss no sheet names Q and nothing
+restores its ended reference. The journal act that ends Q's row 23 reference by that rotation or
+by its machine's deletion evidence marks the `machine_states` entry of Q's machine while that
+machine stays live and of every live machine the exposure ledger records in a bound set with it
+(`STA-10`); the credential format's `reference_ended` member carries the mark, and nothing
+clears it
+([ADR-0060](./docs/adr/0060-a-machine-mark-keeps-an-ended-unreported-placements-older-output-withheld.md)). After a Restore, every job record from before the loss on a marked machine stays
+withheld, as it does for a reported placement. Only output whose box-plane job the restored
+journal records as dispatched after the loss is new, and it is scanned under the references
+still required and released under every other prerequisite. Re-collecting, replaying,
+re-requesting or displaying a pre-loss record, or giving it a later retrieval time, makes it no
+newer, and a machine-reported time or sequence establishes nothing. The mark names no placement,
+value or reference, and a sheet holds it as of export (`STA-16`): it covers no end the journal
+recorded after that sheet's export. How rotation treats output produced before it within the
+session is not yet specified.
+
 Rows 18–20 use the versioned envelope in `STA-23`. Row 15 derives row 17 as well as the
 machine and relay credentials. Derivation indices, resource mappings and allocator counters
 are encrypted recoverable metadata (`STA-22b`); a seed alone cannot discover them. A restored

@@ -486,7 +486,11 @@ every placement the sheet records on that bound set's machines without an operat
 (below) MUST have its required reference re-armed by `digest_secret` or the local paste below
 before any model command or collection of old or new job records can release output to either
 the model or the transcript on that bound set. A placement with an operator report has no
-required reference, and neither `digest_secret` nor the paste arms one for it. `digest_secret`
+required reference, and neither `digest_secret` nor the paste arms one for it. A placement
+that a rotation or destruction ended without a report is not on a later sheet and is not
+re-armed; on each machine whose machine state carries the `reference_ended` mark, every job
+record from before the loss stays withheld (`SEC-5`), and re-arming the other references
+releases none of it. `digest_secret`
 remains the default re-arm path. It reads the recorded path, refuses a
 symbolic link or a path traversing one, writes nothing to the placement, and outputs only SHA-256 of the file's bytes
 and their byte count, never the bytes. Normal machine-side capture remains `STA-20`'s; its
