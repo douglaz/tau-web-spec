@@ -2193,10 +2193,10 @@ Not pass/fail. Required to be recorded.
       without another write, and only that read confirms `b-7`; nothing rewrites the label
       automatically. Make the relabel job fail, or let the write succeed and the read show
       another label: the machine is not migrated and the old key stays.
-      (l) Every root these cases set up is one file system on one disk, no disk carries a
-      volume layer, and the rescue boot assembles or activates no volume; what holds otherwise
-      is not decided (`STA-17`). With no saved history, the flow's card names one server number
-      and preselects nothing; until it is approved, none of the flow's calls is sent, and a
+      (l) Every root (l)'s cases set up is one file system on one disk, no disk carries a
+      volume layer, and the rescue boot assembles or activates no volume (`STA-17` leaves those
+      cases not decided). With no saved history, the flow's card names one server number and
+      preselects nothing; until it is approved, none of the flow's calls is sent, and a
       failed append of the approval sends none. Every call that names a server names the approved
       entry's server number, whatever the account's listing then shows. Give the server one root
       labelled in `STG-20`'s form beside an unlabelled one: the key lands only in the labelled
