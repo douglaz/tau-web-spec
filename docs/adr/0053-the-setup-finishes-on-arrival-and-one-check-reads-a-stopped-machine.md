@@ -47,10 +47,11 @@ the order, `STA-17`.
 
 *Amended 2026-11-05:* the owner chose "Allow one read-back"; the panel split 3–1. After the
 renewal-off, Replace's flow may read that one old machine, under its own key, to confirm
-renewal is off, so the grant now names three calls. Renewal is then shown confirmed off, and
+renewal is off, so the grant now names three kinds of call. Renewal is then shown confirmed off, and
 Replace still reports complete only once the deletion is confirmed. The read confirms no stop
 and no deletion, and T44 still gates the key. Whether the renewal-off itself is a fresh call
-or a read-back of a state already off stays open. For the grant, see `SEC-4`.
+or a read-back of a state already off stays open, and so does whether the read may be repeated
+after one that leaves the renewal-off unresolved. For the grant, see `SEC-4`.
 
 ## What it costs
 
@@ -76,6 +77,7 @@ or a read-back of a state already off stays open. For the grant, see `SEC-4`.
 | Replace complete, with the old machine listed apart | Rejected by the owner. All three readings chose staying incomplete. |
 | Replace complete only if the old machine's old public key was removed before the stop | Rejected by the owner. |
 | Grant Replace's calls now and fix their order later | Rejected by the owner. All five readings chose the grant; three asked for the order in the same edit. |
+| No read to confirm Replace's renewal-off, so the renewal-off has no confirmation route under `SEC-4`'s grant (2026-11-05) | Rejected by the owner. Three of four readings chose the read, one chose no read. |
 | No grant for Replace's calls | Rejected by the owner: no route would stop the old machine or turn its renewal off. |
 | Reinstall the same machine as the rung, a deletion wait before every new order, or a same-domain restart shown as a collision | Not chosen. |
 
@@ -86,7 +88,8 @@ together with the conformance cases and the two LNVPS rows that cite these decis
 stay open: whether Replace's renewal-off for the old machine is a fresh call or a read-back of a
 state already off; whether the read that confirms that renewal-off is part of the renewal-off
 call, without which it has no confirmation route under `SEC-4`'s grant [decided 2026-11-05: a
-read after the renewal-off is granted; see the note above]; whether Replace's re-entry of each maintained machine reaches the old
+read after the renewal-off is granted; see the note above]; whether that read may be repeated
+after one that leaves the renewal-off unresolved; whether Replace's re-entry of each maintained machine reaches the old
 machine; which caller stops the old machine in the in-setup rung, beyond its existing authorized
 caller; the selectors `OPN-27` queues. Nothing here admits the in-setup replacement order, the
 deletion check or Replace's calls. This record makes no capability, readiness or runtime claim.
