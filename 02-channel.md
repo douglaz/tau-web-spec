@@ -75,13 +75,17 @@ boot's keys are still there until the new boot publishes), which happens about *
 the reset and some 10 s before the rescue's sshd answers**,
 together with a `boot_time`. The field holds **SHA-256 fingerprints, one per host-key
 algorithm, and no public key material**; the browser derives the presented key's fingerprint
-at first contact and compares. **Every rescue boot has fresh host keys**: confirmation
+at first contact and compares. Every host-key fingerprint the harness records or compares, on
+every route and in the journal, in a job's output and in the sheet, is the SHA-256 of the key's SSH
+public-key blob, written in standard base64 without padding and without the `SHA256:` prefix:
+the **host-pin fingerprint format**. **Every rescue boot has fresh host keys**: confirmation
 requires no fingerprint shared with the pre-reset snapshot, including a reordered set.
 The pin is per boot, not per machine, and the plain rescue endpoint reports inactive and empty
 once the boot
 has consumed the activation — only `/rescue/last` knows. Never trust-on-first-use: a client
 that connects before `/rescue/last` fills has nothing to check against and MUST wait. The
-input side, `authorized_key[]`, takes MD5 colon fingerprints of keys registered at Robot.
+input side, `authorized_key[]`, takes MD5 colon fingerprints of keys registered at Robot; these
+name client keys, not host keys, and are not in the host-pin fingerprint format.
 
 What a pin is held per — a boot, or a machine — is `TauWeb.Pins.Per` (ADR-0032), and the two
 rules above are `TauWeb.Pins.rescue_pin_per_boot` and

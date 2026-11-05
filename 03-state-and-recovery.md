@@ -1269,7 +1269,7 @@ Conceptual recovery navigation. In this figure, “Zero downtime” describes th
 key/pin recovery route, not preserved live-session authority, command completion, scan
 readiness, a delivery verdict or permission for new allocations. “Always works” names the
 design's dedicated-vendor rescue route, not integrated device/vendor evidence, and with no sheet
-that route needs a root label in the harness's form (`STA-15`). Evidence and
+that route has the root-label limits `STA-15` names. Evidence and
 its remaining limits live at [OPN-3](./08-open-questions.md#gates-by-path-and-capability),
 [OPN-28](./08-open-questions.md#design-level-still-open) and
 [Capability applicability and admission](./07-conformance.md#capability-applicability-and-admission).
@@ -1296,7 +1296,8 @@ flowchart TD
 **STA-15** The recovery sheet MUST be exported before a **maintained cloud** machine's setup
 completes. On Robot the ceremony always works, so there the sheet is an optimisation and stays
 optional, except that with no sheet a machine whose root label is missing or damaged, or that
-has more than one root labelled in the harness's form, gets no rescue rekey from the harness, no
+has more than one root labelled in the harness's form, or a possible root whose label probe does
+not resolve, gets no rescue rekey from the harness, no
 card of that rekey is approved whose admission would record its association as
 `quarantined/alias_unavailable`, which once the journal holds an unavailable-identity risk
 record of any entry is every later card, and no card of that rekey is approved for a server
@@ -1630,7 +1631,8 @@ never against a listing of the account's servers. In rescue, before the new clie
 written, the `rescue_install_key` job (`ARC-43`) MUST find, in its own harness-composed read of
 the installed system's root labels, a root whose label reads in `STG-20`'s form, and it adds the
 key to that root's `authorized_keys`, keeping every other line. If it finds none, or more than
-one, which is the root-label stop, the job writes no key and the flow stops unfinished, except for
+one, or a label probe it makes of a device it reads as a possible root does not resolve, which is
+the root-label stop, the job writes no key and the flow stops unfinished, except for
 the reset into
 the installed system, the one vendor call left to the grant (`SEC-4`), under that reset's own
 prerequisites (`STA-20b`), which the scoped read below may meet. The root-label
@@ -1639,10 +1641,13 @@ stopped there may later be bound is not decided. A label that passes proves noth
 establishes no identity, authenticates no root contents and supplies no acceptance, and the
 operator's approval stays the only tie between this server and its entry. So with no sheet, a
 server whose root label is missing or damaged, or that has more than one root whose label reads
-in that form, gets no rescue rekey from the harness, and
+in that form, or a possible root whose label probe does not resolve, gets no rescue rekey from the
+harness, and
 nothing here grants a reinstall or an erasure to repair it. For this job and for
 `rescue_host_key_read` below, what counts as one root where a root is other than one file system
-on one disk is not decided.
+on one disk is not decided. That includes a root under software RAID, LVM, encryption or another
+volume layer, even on one disk. What either job reads where the rescue boot has already assembled
+or activated a volume is not decided either, nor is what makes a label probe resolve.
 
 **After the root-label stop, one scoped read of the installed host keys serves that one reset
 back and is never trusted later to accept a key or make a connection.** The

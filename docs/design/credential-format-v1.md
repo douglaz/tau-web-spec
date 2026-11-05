@@ -576,7 +576,7 @@ the vendor API or from rescue. Replace's migration carries that ordinal to the m
 new index (`STA-17`); it does not restart at zero. `observations` is an array
 in recording order; each observation is `{keys: [...]}`, whose elements are
 `{family, fingerprint}`. `family` is exactly `ed25519`, `rsa` or `ecdsa`, at most once per
-observation; `fingerprint` uses the host-pin fingerprint format. An empty reading that opens
+observation; `fingerprint` uses the host-pin fingerprint format, which `CHN-R1` defines. An empty reading that opens
 the initial group appears as an empty `keys` array. Any installation's group may have
 `observations: []`, including the initial group opened by a job-read or attest pin without a
 publication. A reinstall group with no newly observed fingerprint also has
