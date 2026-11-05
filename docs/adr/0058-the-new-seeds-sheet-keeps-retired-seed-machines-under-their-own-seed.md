@@ -71,7 +71,8 @@ is ever contacted: the recorded key is never contact authority by itself.
 
 ## What this widens
 
-The owner accepted these by name under the 2026-11-05 panel rule:
+The owner accepted these by name under the 2026-11-05 panel rule. Each quote is the text as it
+stood before this change (commit `7998147`):
 
 - comment 110000001's "for that allocation only" widens to live retired machines and to destroyed
   retired machines no reported record names;
@@ -101,4 +102,6 @@ The owner accepted these by name under the 2026-11-05 panel rule:
 together. The formal companion is unchanged: its allocation module omits the sheet's import checks and
 Replace's re-entry, and nothing here allocates an index. Still to be decided:
 
-- what the new seed's sheet holds for a handoff allocated under a retired seed.
+- what the new seed's sheet holds for a handoff allocated under a retired seed;
+- what a later Replace does with a migration index whose reserved allocation is under the seed
+  that Replace retires.

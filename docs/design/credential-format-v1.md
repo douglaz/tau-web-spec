@@ -222,7 +222,9 @@ AAD, algorithms or known-answer vectors.
 ### Actual artifact history, payload version 5
 
 `artifact_history` is a required array with exactly one entry per non-jump machine, including
-retained destroyed-machine records: `{machine_index, known_unpinned, legacy}`.
+retained destroyed-machine records: `{machine_index, known_unpinned, legacy}`, and in version 7
+also `seed_id` ([version 7](#operator-reports-payload-version-7)). Neither a Failed allocation
+nor, in version 7, a reserved migration index is a machine with an entry.
 `known_unpinned` contains distinct increasing installation ordinals. Artifact history is
 independent of host-pin group creation: ordinal zero can record an actual initial
 installation/order dispatch before any publication, job-read or attest opens pin group zero.
@@ -424,7 +426,8 @@ without a report on it. After a Restore from this sheet, an outstanding machine 
 has no index to move to, since an imported seed allocates nothing (`STA-22b`), so its migration
 waits for another Replace with a freshly generated seed, which re-enters it under its own retired
 seed. What the new seed's sheet holds for a handoff allocated under a retired seed is not yet
-specified.
+specified, and neither is what a later Replace does with a `migration_index` whose reserved
+allocation is under the seed that Replace retires.
 
 Two placement records are duplicates when they are equal in the six members `seed_id`,
 `machine_index`, `application_name`, `name`, `path` and `placed_at`, whatever `report` holds.
@@ -469,7 +472,8 @@ route value before binding, as it does other malformed payload fields. Each inst
 pin also carries its `installation` ordinal, starting at zero for that machine; a rescue
 pin remains scoped by its rescue boot. Whether the installation
 carries an artifact pin is a different fact, carried per machine below. Each `machine_states` entry is
-`{machine_index, declaration, class, access_model, installation, weaker_modes, applications}`: the journaled
+`{machine_index, declaration, class, access_model, installation, weaker_modes, applications}`, and in
+version 7 also `seed_id` ([version 7](#operator-reports-payload-version-7)): the journaled
 declaration in force as a delivery-declaration version 2 document, the class `ARC-36a` records, the
 access model of `ARC-27`, `installation` as `"pinned"`, `"unpinned"` (`ARC-25`) or
 `"not_installed"` before any installation, and the labels of the acceptable weaker modes standing
@@ -484,7 +488,8 @@ allocation; never interpret a missing entry or an
 `"unapproved"` field as a default.
 
 `host_pin_installations` is a required array of installation groups in creation order.
-Each group is `{machine_index, installation, observations}`. The ordinal starts at zero
+Each group is `{machine_index, installation, observations}`, and in version 7 also `seed_id`
+([version 7](#operator-reports-payload-version-7)). The ordinal starts at zero
 per machine and increases by one only on an operator-chosen destructive reinstall, through
 the vendor API or from rescue. Replace's migration carries that ordinal to the machine's
 new index (`STA-17`); it does not restart at zero. `observations` is an array

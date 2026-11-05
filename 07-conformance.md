@@ -1808,7 +1808,8 @@ Not pass/fail. Required to be recorded.
       exported indices and reconnects using the old host pin, never a new first contact. A
       mismatched seed, duplicate mappings, invalid counters or malformed placement associations
       are refused before binding, and so is a live machine other than a jump host with a
-      missing, duplicate or malformed machine state, bound or not; a jump host's allocation
+      missing, duplicate or malformed machine state, bound or not, a version-7 reserved
+      migration index excepted (below); a jump host's allocation
       carries none and one carrying a machine state is refused, an unapproved field restores
       as unapproved, and a machine exported with
       an unpinned installation and an attested pin restores both. Export and Restore a
@@ -1885,12 +1886,14 @@ Not pass/fail. Required to be recorded.
       `reason:"awaiting_deletion"`, whose sheet-only Restore runs no deletion check (`SEC-4`)
       and which becomes `destroyed: true` in one journal act when its deletion evidence is
       durably recorded, losing its machine state and each placement without a report; a
-      retired pass with `reason:"awaiting_retirement_confirmation"`; and a retired Failed
+      retired pass with `reason:"awaiting_retirement_confirmation"`, whose key is used for nothing
+      after a Restore without its retired seed or with a wrong one, and may be used once the
+      derived key equals the recorded key; and a retired Failed
       allocation with `failed: true` whose replacement's predecessor link resolves to it.
       Export a dedicated machine after a failed relabel read: its entry has
       `reason:"relabel_unconfirmed"` and a `migration_index` naming the reserved allocation,
       which has the entry's resource identity and no record, machine state or artifact
-      history; every record keeps the retired-seed name. After a Restore that machine may
+      history, and the sheet imports; every record keeps the retired-seed name. After a Restore that machine may
       finish its migration to that index, moving every record in one journal act; an
       outstanding machine without a `migration_index` keeps its retired-seed name until another
       Replace. Refuse before binding a missing `retired_allocations`, a malformed, duplicate or

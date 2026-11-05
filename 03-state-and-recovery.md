@@ -980,8 +980,8 @@ such route. The formal companion has no replacement act; `CNF-72`'s cases check 
 Import checks the seed identifier, derives each listed public key and compares it, validates
 unique indices within each family and next-unused counters above all listed indices, and
 cross-checks vendor inventory before binding machines. The one exception is a sheet's retired-seed
-allocation: after Replace, the new seed's sheet carries each allocation the journal keeps under
-an earlier seed, under the seed it was allocated under ([credential
+allocation: after Replace, the new seed's sheet carries each machine and pass allocation the
+journal keeps under an earlier seed, under the seed it was allocated under ([credential
 format](docs/design/credential-format-v1.md#operator-reports-payload-version-7)). The journal
 keeps, through every later Replace, each destroyed machine and each Failed allocation allocated
 under a retired seed, each machine Replace has not migrated, and each pass `STA-17`'s screen
@@ -1308,7 +1308,7 @@ procured path, the **inference account credential**, wrapped under a passphrase 
 state, and a part not yet approved when an earlier sheet is exported is marked unapproved there.
 None of the machine state is secret, and all of it exists by the export `STA-15` requires.
 Every record that names a machine names it by its seed and index. After Replace, the sheet also
-carries each allocation the journal keeps under a retired seed (`STA-22b`) under that seed, with the records naming it: a machine Replace has not migrated keeps
+carries each machine and pass allocation the journal keeps under a retired seed (`STA-22b`) under that seed, with the records naming it: a machine Replace has not migrated keeps
 its machine state and its other records there, with the reason `STA-17`'s screen names it not yet
 migrated. **It no longer carries the SSH client keys**, which re-derive from the seed
 (`STA-22`). The export screen MUST say what the sheet can do in the wrong hands with the
@@ -1493,7 +1493,8 @@ failed relabel read below, its records keep its retired-seed name, and the reser
 linked to it as its migration index, not a second machine. After a Restore, a machine not yet
 migrated finishes its migration only to a migration index its sheet records; otherwise its
 migration waits for another Replace (`STA-22b`), which re-enters it under its own retired seed
-and keeps every earlier retired seed's entries.
+and keeps every earlier retired seed's entries; what a later Replace does with a migration index
+under the seed it retires is not yet specified (credential format).
 
 For the journal-knowledge and overlap boundary during Replace, see `STA-20` and `STA-24`
 in [Durable state](#durable-state).
