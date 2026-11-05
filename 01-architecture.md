@@ -584,12 +584,21 @@ withheld before it stay withheld".
 
 **An operator report ends one lost-key placement's wait; what was withheld stays withheld.**
 After revoking a placement's key at its service, the operator may report that one placement
-revoked. The harness trusts the report as the operator's statement that the service revoked the
+revoked while its required reference is unarmed, which is when the `exec` wait above stands for
+it.
+The harness trusts the report as the operator's statement that the service revoked the
 right credential, not as service evidence. The card names the placement by machine, application
 name, secret name, path and placement time, and says that a mistaken report could expose a
-still-valid key in later output and understate live exposure, and that a true one erases no
-bytes, copies, earlier model access or earlier disclosure. The report is journaled before it
-takes effect: `STA-3` says "If the append fails, the transition does not occur." Once it is
+still-valid key in later output and understate live exposure, that a true one erases no
+bytes, copies, earlier model access or earlier disclosure, and that a report cannot be undone.
+The report is journaled before it
+takes effect: `STA-3` says "If the append fails, the transition does not occur." The reference's
+state is read at that journal act, so a re-arm journaled before it refuses the report. The card
+is not offered for an armed reference, which keeps its scan until a rotation, destruction or
+local-store loss ends it; once that reference is unarmed again, after a local-store loss for
+instance, the report is offered again. A placement whose key was revoked at its service while its
+reference is armed is ended by a rotation, once `ARC-17`'s placement gates admit that rotation, or
+by destruction. Once the report is
 recorded, that placement's required reference ends: the re-arm and the `exec` wait above no
 longer require it, a paste or digest record arms nothing for it, and the trust display moves it
 from the live listing to history labelled operator-reported, never "retired" or "rotated". It
@@ -604,8 +613,14 @@ and the stop that stands in for a destroy (`ARC-22`) never produce it. Replay de
 from its journal record. The sheet carries it (`STA-16`); a sheet exported before it restores the
 wait. Its scan ends under `SEC-5`: output withheld before the report stays withheld, and output
 produced after it is no longer compared against that placement's reference but owes every other
-reference and release prerequisite. Whether the report is offered while the placement's
-reference is armed, and whether a report can be corrected or withdrawn, are not yet specified.
+reference and release prerequisite. A recorded report is final: no act corrects or
+withdraws it. Only a Restore from a sheet that does not carry it, one exported before it or a
+version 3 to 6 sheet, brings back that placement's wait, as above. After a mistaken report the
+operator may revoke the key at its service, rotate the placement once its placement gates admit
+it, or destroy its machine. A rotation claims no revocation at the service (`SEC-5`), and none of
+these recalls output released after the report. Where the wrong placement was reported, the right
+one needs its own report, offered on the same terms, and the wrong one stays reported
+([ADR-0062](./docs/adr/0062-the-lost-key-report-is-offered-only-while-unarmed-and-is-final.md)).
 
 The model's tool set on the LNVPS path is exactly four: `exec` (a box-plane command it composed),
 `request_harness_job` (`fetch_artifact`, `ready_to_reset` or `place_secret`, by name, with the
