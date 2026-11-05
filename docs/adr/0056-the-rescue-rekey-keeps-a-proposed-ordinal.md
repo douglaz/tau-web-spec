@@ -1,11 +1,12 @@
 # The rescue rekey keeps a proposed installation ordinal
 
-Decided 2026-11-02, 2026-11-03 and 2026-11-04 (`tw-lq8` comments 37000001, 61000001,
-66000001, 72000001, 73000001, 75000001 and 76000001). `STA-17` owns the rescue rekey's
-ordinal acceptance, its relabel, its old-key removal and the session window; `STG-20` owns the
-shown id and the reinstall backstop's scope on this path; `STA-16` owns the partial history and
-its display; the credential format owns its version; `ARC-43` lists the job. The install brief
-carries the surfaced root. This record amends ADR-0045 by note and adds no rule of its own.
+Decided 2026-11-02, 2026-11-03, 2026-11-04 and 2026-11-05 (`tw-lq8` comments 37000001,
+61000001, 66000001, 72000001, 73000001, 75000001, 76000001 and 151000001). `STA-17` owns
+the rescue rekey's ordinal acceptance, its relabel, its old-key removal and the session window;
+`STG-20` owns the shown id and the reinstall backstop's scope on this path; `STA-16` owns the
+partial history and its display; the credential format owns its version; `ARC-43` lists the job.
+The install brief carries the surfaced root. This record amends ADR-0045 by note and adds no
+rule of its own.
 
 ## What was undecided
 
@@ -49,6 +50,12 @@ no new installation boundary.
 removes the exact old public key that checked retained records identify. An unknown key stays and
 revocation reads incomplete.
 
+**A machine that keeps an unknown key fails `CNF-5` until it reads clean** (2026-11-05). `CNF-5`
+is unchanged: it requires that "only that machine's public key appears in its
+`authorized_keys`", verified by reading the machine. A machine the rekey leaves with an
+unidentified key fails it until a read of the machine shows it clean, and is never shown as
+holding only its own key. A destructive reinstall stays the operator's choice, never a duty.
+
 **Later reinstall admission compares what is retained** (admission A, 2026-11-03). For this
 dedicated Robot path only, a later `ready_to_reset` pin is compared against every fact the harness
 retains, those below the accepted base included; any known overlap refuses, and the unknown
@@ -60,9 +67,9 @@ confirmation and `CHN-R7` admission are unchanged.
 **History below the base is kept** (technical common fact, 2026-11-03). Genuine admissible facts
 below the accepted base are preserved and the gaps around them shown as unknown.
 
-**An ordinary session waits for the flow to stop** (2026-11-03). While the flow runs no session
-binds the machine; after it stops unfinished the operator may bind one through `SEC-1`'s
-re-entry, which shows the pending id marked unconfirmed beside the labels read from the disk.
+**An ordinary session waits for the flow to stop** (2026-11-03). `STA-17` says "While this flow
+runs, no ordinary session binds the machine", and it owns when a session may bind after the
+flow stops unfinished and what that session is shown.
 In the install brief, a root not matching an unconfirmed id is surfaced, not erased or resumed,
 until a destructive reinstall of the machine is dispatched. This keeps a reinstall route open
 after a stop, since a dedicated reinstall needs a session.
@@ -90,6 +97,7 @@ the display rule that the history reads unknown, never unpinned, stands.
 | Late sheet | Keep only a found sheet's checked fingerprints. |
 | Late sheet | Keep the three withdrawn late-sheet decisions. |
 | Command filter | Any command filter on this machine. |
+| Unknown key and `CNF-5` | Exempt from `CNF-5` a machine whose revocation is reported incomplete. |
 
 Queued and unchosen: replacing the whole key file, operator-selected deletion of an unidentified
 key, admitting a seedless sheet for identification, clearing the unknown from a matching journal

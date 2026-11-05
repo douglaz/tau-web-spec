@@ -651,12 +651,15 @@ under `STA-17`'s condition (including its dedicated-machine relabel confirmation
 retired seed (`STA-22b`). Machine indices are distinct among machines allocated
 under the current seed. A retired-seed index can coincide with a migrated machine's new index.
 `n` is the journal's installation ordinal in decimal without leading zeros, starting at zero
-per machine. It is derived from the journal with no new journal field, unchanged across restart
-and Restore. After `STA-17`'s rescue rekey of a dedicated machine, `n` counts from the ordinal
-the operator accepted there as a proposal, read from that acceptance's journal record; the
-shown id is pending, marked unconfirmed, until a read shows it on the disk or a destructive
-reinstall of the machine is dispatched. Index 0 and ordinal 0 each render as `0`, so the first
-installation of index 0 is `0-0`.
+per machine. It is derived from the journal, unchanged across restart and Restore, with no new
+journal field except, on one path, the acceptance record `STA-17`'s rescue rekey journals. After
+that rekey of a dedicated machine, `n` counts from the ordinal the operator accepted there as a
+proposal, read from that acceptance's journal record; the shown id is pending, marked
+unconfirmed, until a read shows it on the disk or a destructive reinstall of the machine is
+dispatched. The companion does not model the accepted ordinal: `TauWeb.Dispatch.installationOf`
+says "The installation boundary is derived from dispatched intents, never from a choice", and
+counts from zero. Index 0 and ordinal 0 each render as `0`, so the first installation of index
+0 is `0-0`.
 [docs/design/credential-format-v1.md](./docs/design/credential-format-v1.md) says
 "Indices are integers from 0 through 2^31−1": the largest machine component is `7fffffff`,
 eight bytes. With the one-byte `-` separator, seven bytes remain for `n`, so its uniform bound

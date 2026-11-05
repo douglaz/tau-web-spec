@@ -1926,11 +1926,15 @@ Not pass/fail. Required to be recorded.
       for that login.
       (e) Report `a-9` for the same root before the write: the migration stops unfinished
       with no relabel intent and no write, no 9 is adopted, the acceptance and both
-      observations are retained under 7, and no hold is created.
-      (f) With the old public key identified by retained records, it is removed only after
-      the new-key login and a read showing `b-7`; the new key stays. With it unidentified,
-      every unidentified key stays, revocation is reported incomplete and no old-key login
-      test is reported passed. The stopped branch of (e) removes no key.
+      observations are retained under 7, and no hold is created. Restart the worker after
+      the stop: the migration stays stopped, no write is sent and it is not reported migrated.
+      (f) With the old public key identified by retained records and an unrelated
+      authorization in the same file, the old key is removed only after the new-key login and
+      a read showing `b-7`; the new key and the unrelated authorization stay. With it
+      unidentified, every unidentified key stays, revocation is reported incomplete and no
+      old-key login test is reported passed; a read of the machine still shows that key, and
+      the machine is never shown as holding only its own key. The stopped branch of (e)
+      removes no key.
       (g) After a later approved destructive reinstall, whose dispatch derives 8, offer a
       `ready_to_reset` pin overlapping a retained fact, one below 7 included: it is refused.
       A pin overlapping no retained fact is admitted, and the comparison over the unknown
@@ -1945,6 +1949,11 @@ Not pass/fail. Required to be recorded.
       (j) Present an old recovery sheet for the machine afterwards: none of its facts join
       the store or a later comparison. The trust display shows the earlier history as
       unknown, never unpinned.
+      (k) Let the relabel write succeed and lose its readback: `b-7` stays shown as the
+      pending destination, marked unconfirmed, apart from installed access and from `a-7` as
+      an as-of observation, and the old key stays. A later connection re-reads the label
+      without another write, and only that read confirms `b-7`; nothing rewrites the label
+      automatically.
       Boundary-crossed and destroyed-data.
 - [ ] **CNF-87 · BLOCKING** The LNVPS path's relay uses the selected `/v2/` profile and a
       hand-recorded pass (`STG-18`; [paid-tcp-relay][relay-source] PAS-6). Demonstrate fresh

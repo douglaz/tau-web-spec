@@ -305,9 +305,8 @@ output. The jobs are:
   stoppable. A halted key check ends a reconnect attempt: `ARC-41` says "the harness does not
   reconnect on its own". The same bytes sent through `exec` are an ordinary `STA-20` command.
 - `replace_root_label` — a harness-initiated rewrite of a dedicated machine's root label
-  during Replace's model-free direct re-entry migration or, in the installed system after a
-  login authenticated with the new client key, during the model-free rescue rekey, outside any
-  session. The model MUST NOT request it through `request_harness_job` or supply its command.
+  during Replace's model-free direct re-entry migration or the model-free rescue rekey, outside
+  any session. The model MUST NOT request it through `request_harness_job` or supply its command.
   Its rules are `STA-17`'s.
 
 Listener observations, outbound-restriction observations and service state/enablement
