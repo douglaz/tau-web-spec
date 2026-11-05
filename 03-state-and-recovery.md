@@ -1645,7 +1645,9 @@ nothing here grants a reinstall or an erasure to repair it.
 **After the root-label stop, one scoped read of the installed host keys serves that one reset
 back and is never trusted later to accept a key or make a connection.** The
 `rescue_host_key_read` job (`ARC-43`) reads, in
-rescue, the installed host public keys of the one root that carries them. It writes nothing to
+rescue, the installed host public keys of the one root that carries them; its captured output
+carries each key it reads as its `{family, fingerprint}` (`SEC-5` row 5) and no key bytes. It
+writes nothing to
 any disk, follows no symbolic link, reads no private key file, journals nothing of a file it
 refuses, and mounts every root it reads without replaying its file system's journal. It refuses, and
 the reset into the installed system is then neither offered
@@ -1680,7 +1682,8 @@ survives export and Restore with it (`STA-22b`); the companion carries no such r
 exported before the record was appended carries the entry without it, and `STA-16` says "A
 restored sheet is knowledge as of export": a Restore from that sheet alone brings the entry back
 without the bar, a known limit. How a
-Replace and the sheet's list of machine states treat an entry so barred is not decided. The
+Replace and the sheet's list of machine states treat an entry so barred is not decided, including
+whether the journal and the new seed's sheet keep the entry through a Replace. The
 screen MUST show what the harness may not have undone on that server, each item only when the
 journal holds the intent of the call or job behind it: a client key possibly registered at
 Robot, a rescue activation possibly armed, the server possibly in rescue and a key possibly
