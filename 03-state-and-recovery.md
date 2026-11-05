@@ -579,7 +579,17 @@ snapshot's keys, the reset's confirmation never holds and its barrier stands. Fr
 keys published by an unrequested rescue boot can satisfy that predicate and match the pinned
 SSH attempt; a late reset landing after first contact can then kill the install mid-write.
 The real bounds are key publication taking about 80 s after the reset (`CHN-R1`) and damage
-limited to disks already chosen for erasure. *What this requirement used to say* was that
+limited to disks already chosen for erasure. The rescue rekey (`STA-17`) chooses no disk for
+erasure, and a late reset of that flow reboots its one server into rescue or its installed
+system and erases nothing; key publication still takes about 80 s after the reset (`CHN-R1`).
+The writes such a reset can interrupt are `rescue_install_key`'s line in one root's
+`authorized_keys`, in rescue, and `replace_root_label`'s label write, in the installed system.
+Each is covered by its own rules in `STA-17`: the label write is confirmed only by a
+harness-composed read of the label, and the relabel runs "only after the installed system
+accepts a login authenticated with the new client key". For the key write, "erases nothing"
+holds only if an interrupted write keeps the file's other lines: `STA-17` says the job adds the
+key "keeping every other line", and whether that write keeps them when interrupted is not
+decided. *What this requirement used to say* was that
 "the pinned SSH attempt remains the bound"; that misses a reset landing after first contact.
 If the activation itself goes unresolved, its own barrier refuses the reset; evidence can
 settle that call but does not lift the reinstall's box-plane stop, which holds until the reset
