@@ -1648,12 +1648,17 @@ abandonment or vendor call other than the reads that resolve its calls still unr
 continuation of a disposition (`STA-24`) revives one. It is neither `STA-22b`'s Failed nor a
 disposition: the entry keeps its index, mapping and history, and every call still unresolved
 stays behind `STA-24`'s barrier. The record is kept with the entry's allocation metadata and
-survives export and Restore with it (`STA-22b`); the companion carries no such record. How a
+survives export and Restore with it (`STA-22b`); the companion carries no such record. A sheet
+exported before the record was appended carries the entry without it, and `STA-16` says "A
+restored sheet is knowledge as of export": a Restore from that sheet alone brings the entry back
+without the bar, a known limit. How a
 Replace and the sheet's list of machine states treat an entry so barred is not decided. The
 screen MUST show what the harness may not have undone on that server, each item only when the
 journal holds the intent of the call or job behind it: a client key possibly registered at
 Robot, a rescue activation possibly armed, the server possibly in rescue and a key possibly
-written to its root; the operator acts at Robot. The intended server takes a new card and a new
+written to its root; the operator acts at Robot. It MUST also tell the operator to export a new
+sheet, since a sheet exported earlier does not carry the record. The intended server takes a new
+card and a new
 entry at a new index.
 
 **A dedicated machine rekeyed through rescue keeps a proposed installation ordinal**

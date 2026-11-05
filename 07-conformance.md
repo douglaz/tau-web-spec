@@ -2165,8 +2165,9 @@ Not pass/fail. Required to be recorded.
       written: the same refusals hold and the screen shows a key possibly written. Record it at
       the root-label stop: the kept reset back is no longer offered. Record it while a session
       binds the machine: it is refused. Fail its append: the entry is not barred. A model, a
-      timer, a listing or a label cannot record it. A card for the intended server makes a new
-      entry at a new index.
+      timer, a listing or a label cannot record it. Each recorded bar's screen tells the
+      operator to export a new sheet. A card for the intended server makes a new entry at a new
+      index.
       (n) Give the journal an entry that maps a server number, each in its own run: one a
       session binds, one stopped at the root-label stop, one carrying the wrong-server record
       of (m), one completed, and one under another account reference; and separately one whose
