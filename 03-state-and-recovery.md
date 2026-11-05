@@ -900,8 +900,8 @@ implementation must not choose paths independently.
   reconstructs a key only when its role and index are known. Seed-only recovery is refused:
   a seed alone does not discover indices or relay purchases.
 - **A stolen seed is not revocable.** Replace (`STA-17`) is therefore a **new seed**, from which
-  new client keys derive, with the old public keys removed from every maintained machine during
-  re-entry — the same flow as before, with a different origin for the new keys and one more
+  new client keys derive, with the old public keys removed from every maintained machine once it
+  migrates — the same flow as before, with a different origin for the new keys and one more
   thing to back up again.
 
 *What this reverses.* ADR-0020 rooted recovery in the vendor account and rejected a seed-shaped
@@ -1026,15 +1026,15 @@ under a retired seed, each machine Replace has not migrated, each pass `STA-17`'
 names unrevoked or awaiting its retirement's confirmation, each handoff whose profile's declared
 lifetime still runs, with its credential's public half as its recorded key, each migration
 index a later Replace superseded under the seed it retired (`STA-17`), linked to its machine and
-not a second machine, and each pending removal: a retired key a migrated machine still awaits
-the confirmed removal of, linked to that machine and not a second machine. Replace's migration
-ends a machine's retired-seed entry and its superseded reservations as machine entries and keeps
-each of their keys as a pending removal. Import accepts a retired allocation's recorded public
+not a second machine, and each pending removal: a retired key whose absence from a migrated
+machine no durably appended read has yet shown, linked to that machine and not a second machine.
+Replace's migration ends a machine's retired-seed entry and its superseded reservations as
+entries that stand for the machine and keeps each of their keys as a pending removal. Import accepts a retired allocation's recorded public
 key without deriving it and keeps it out of the index and counter checks above. It restores from
 it no allocation, and from a destroyed or Failed one, a superseded reservation or a pending
 removal no contact identity or binding; a pending removal's key serves only its removal over
-its machine's own checked connection, never contact. For a
-live one, the check is deferred, not waived: before any contact with that machine, use of that
+its machine's own checked connection, never contact. For any other retired allocation, the
+check is deferred, not waived: before any contact with that machine, use of that
 pass's key, giving of that handoff's credential to the post-harness machinery, vendor read or
 call under its identity, or binding, the harness derives its key from the retired seed the
 operator supplies and compares it with the recorded key, and with no such seed or on a mismatch
@@ -1516,8 +1516,9 @@ wait for an LNVPS rebuild's old machine's deletion evidence (below) does not by 
 backup needed; where that machine's vendor key can come only from the retired seed, a read under
 that key is such a step. So is each use of a handoff allocated under the retired seed for as long
 as its profile's declared lifetime runs, since Replace issues no new handoff (`SEC-5` row 17), and
-the screen says the retired seed stays needed for it. Removing a migrated machine's old key is
-not such a step (below).
+the screen says the retired seed stays needed for it. Removing a migrated machine's old key needs
+no seed the key was allocated under, so it is not such a step (below); the connection it runs
+over still needs the machine's own key checked.
 If the old seed or an index is missing, direct re-entry and pass revocation cannot finish.
 Robot machines can still be rekeyed through vendor-authenticated rescue (`STA-15`). For a
 cloud machine, `STA-15` says "recovery adds no destructive authority" and "Otherwise the
@@ -1557,28 +1558,33 @@ record by record. That act keeps the machine's old key, and each of its supersed
 keys (below), as a pending removal under the seed it was allocated under, linked to the machine's
 new name and not a second machine, and moves every pending removal already linked to the machine
 to that name. After the migration act the old key's removal runs over the connection
-authenticated by the machine's own current key, which passed its own check (`STA-22b`), and
+authenticated by the machine's own current key under its existing pin, once that key has passed
+its own check (`STA-22b`): derived and compared for a machine of the payload's seed, and the
+deferred check for a machine still under a retired seed, which needs that machine's own seed. It
 takes out exactly the pending removal's recorded key, keeping the current key and every other
-authorization; it derives nothing from the retired seed. One journal act ends a pending removal
-once a harness-composed read of the machine's authorized keys, from captured job output
-(`ARC-43`), shows that key absent and is durably appended. A failed or lost removal, a read still
-showing the key and a failed append leave it pending, and Replace and revocation stay reported
-incomplete across restart, export and Restore. A Restore removes nothing by itself; after it, the
-removal is a step of Replace's flow, admitted once `STA-20` and `STA-24` allow it, with or without
-the retired seed. The act that records the machine's deletion evidence ends its pending removals
-too. While its new index is reserved and its migration unconfirmed, as after a
-failed relabel read below, its records keep its retired-seed name, and the reserved index is
+authorization, and derives nothing from the seed that key was allocated under. One journal act
+ends a pending removal once a harness-composed read of the machine's authorized keys, from
+captured job output (`ARC-43`), shows that key absent and is durably appended; one whose key is
+already absent, as after a removal whose result was lost, ends at the first such read. A failed
+or lost removal, a read still showing the key and a failed append leave it pending. While a
+pending removal stands, Replace and revocation stay reported incomplete, across restart, export
+and Restore. A Restore removes nothing by itself; after it, the removal is a step of Replace's
+flow, admitted once `STA-20` and `STA-24` allow it, with or without the seed the key was
+allocated under. The act that records the machine's deletion evidence ends its pending removals
+too. While its new index is reserved and its migration unconfirmed, as after a failed relabel
+read below, its records keep its retired-seed name, and the reserved index is
 linked to it as its migration index, not a second machine. After a Restore, a machine not yet
 migrated finishes its migration only to a migration index its sheet records; otherwise its
 migration waits for another Replace (`STA-22b`), which re-enters it under its own retired seed
 and keeps every earlier retired seed's entries. Where that machine's migration index is under the
 seed the later Replace retires, a dedicated machine first takes the label read below: a read
 showing that index's id confirms that migration in one journal act, which keeps the machine's
-original key as a pending removal linked to it at that index, and the machine then migrates like
-any machine of that seed. Otherwise one journal act supersedes the reservation: the machine
-keeps its retired-seed entry and may be given a fresh migration index, and the old reservation
-stays on the sheet linked to it, not a second machine, its key one more old public key re-entry
-removes. Every such migration index is settled before that Replace's export ([credential
+original key, and each superseded reservation's key naming it, as a pending removal linked to the
+machine at that index, and the machine then migrates like any machine of that seed. Otherwise one
+journal act supersedes the reservation: the machine keeps its retired-seed entry and may be given
+a fresh migration index, and the old reservation stays on the sheet linked to it, not a second
+machine, its key one more old public key to remove, kept as a pending removal once the machine
+migrates. Every such migration index is settled before that Replace's export ([credential
 format](docs/design/credential-format-v1.md#operator-reports-payload-version-7)).
 
 For the journal-knowledge and overlap boundary during Replace, see `STA-20` and `STA-24`

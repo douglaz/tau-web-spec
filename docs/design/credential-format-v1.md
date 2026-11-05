@@ -349,10 +349,11 @@ journal act. That act gives every record naming the machine the fresh seed's `se
 new index: its placements, a reported record's included, its artifact history, machine state,
 host pins and installation groups, and every exposure-ledger reference to it, including those in
 other machines' recorded bound sets. The same act ends the machine's retired-seed entry and every
-superseded reservation naming it (below) as machine entries, so no journal state, and no export,
-names one machine under two seeds. It keeps each of their recorded keys as a pending removal
-(below), linked to the machine's new name, and moves every pending removal already naming the
-machine to that name. Until that act every record
+superseded reservation naming it (below) as entries that stand for the machine, so no journal
+state, and no export, names one machine under two seeds. It keeps each of their recorded keys as
+a pending removal (below), which names a key and not the machine, linked to the machine's new
+name, and moves every pending removal already naming the machine to that name. Until that act
+every record
 keeps the machine's retired-seed name, the name `STG-20`'s installation id uses. Replace does not
 migrate a destroyed machine, so its records keep their `seed_id` and index.
 
@@ -371,13 +372,15 @@ journal keeps under a seed other than the payload's (`STA-22b`):
   runs (`SEC-5` row 17);
 - each superseded reservation (below): a migration index a later Replace found unconfirmed under
   the seed it retires;
-- each pending removal (below): a retired public key, a migrated machine's own or one of its
-  superseded reservations', whose removal from that machine no durably recorded read has yet
-  confirmed.
+- each pending removal (below): a retired public key, the old key of a machine since migrated or
+  the key of one of that machine's superseded reservations, whose absence from that machine no
+  durably recorded read has yet shown.
 
-A migrated machine has no machine entry; only its pending removals stay. The exporter copies each entry unchanged from the journal,
+A migrated machine has no entry that stands for it; only its pending removals, which are not a
+second machine, stay. The exporter copies each entry unchanged from the journal,
 keeping its seed through every later Replace: the next Replace's sheet carries this sheet's
-retired allocations unchanged beside the entries the then-retired seed adds.
+retired allocations unchanged beside the entries the then-retired seed adds, except where a
+journal act below ends an entry or moves a pending removal's link.
 
 Each entry is the journal's retired-seed entry: its `seed_id`, family `machine`, `pass` or
 `handoff`, index, stable resource identity and recorded expected public key as `STA-22b` maps
@@ -394,7 +397,8 @@ recorded key is its post-harness credential's role-4 public half. The state memb
   `reservation_of`, or, on a pending removal, the member `removal_of`.
 
 `reason` records why `STA-17`'s screen names the allocation not yet migrated, unrevoked,
-unconfirmed, still needing the retired seed or still installed. It is exactly one of these
+unconfirmed, still needing the retired seed or, for a pending removal, not yet shown removed. It
+is exactly one of these
 strings. For a machine:
 
 - `"not_started"`: Replace has completed none of its migration steps and recorded no other reason;
@@ -410,9 +414,10 @@ strings. For a machine:
 - `"unrecovered"`: a machine whose direct re-entry cannot finish because the retired seed or its
   index is missing;
 - `"superseded_reservation"`: a superseded reservation, whose recorded key is one more retired
-  public key re-entry removes from the machine it is linked to;
-- `"old_key_unremoved"`: a pending removal, whose recorded key is still to be removed from the
-  migrated machine it is linked to.
+  public key to remove from the machine it is linked to, kept as a pending removal once that
+  machine migrates;
+- `"old_key_unremoved"`: a pending removal, whose recorded key's absence from the machine it is
+  linked to no durably appended read has yet shown.
 
 For a pass: `"awaiting_revocation"` (the paid/public path's signed revocation is not yet made),
 `"awaiting_retirement_confirmation"` (the LNVPS path's manual relay retirement awaits the
@@ -429,8 +434,8 @@ unique among retired allocations. A `migration_index` must name a machine alloca
 `allocations` that is not destroyed, Failed or a jump host, that has the retired entry's stable
 resource identity, and that no other entry's `migration_index` names. That allocation is the
 machine's reserved new index, not a second machine: no record names it, it has no
-`machine_states` or `artifact_history` entry, and its shared resource identity is one of the three
-repeated mappings import accepts.
+`machine_states` or `artifact_history` entry, and its shared resource identity is a repeated
+mapping import accepts.
 
 `reservation_of` appears exactly on an entry whose `reason` is `"superseded_reservation"`, and
 such an entry carries neither `migration_index` nor `jump_host`. It is an object with exactly the
@@ -444,15 +449,16 @@ resource identity is another of the repeated mappings import accepts.
 `removal_of` appears exactly on an entry whose `reason` is `"old_key_unremoved"`, a pending
 removal, and such an entry carries none of `migration_index`, `reservation_of` and `jump_host`.
 It is an object with exactly the members `seed_id` and `machine_index`, in the forms a record's
-machine name uses, and it names the machine the recorded key is still installed on by that
-machine's current name: a machine allocation in `allocations` that is not destroyed or Failed, or
-an outstanding machine entry in `retired_allocations` that is neither a superseded reservation nor
-a pending removal, as after a later Replace's read-confirmed migration (below). That machine has
-the pending removal's stable resource identity, and its own key, derived for an `allocations`
-machine and recorded for a retired one, differs from the pending removal's recorded key. Several
-pending removals may name one machine. A pending removal is not a second machine either: no
-record names it, it has no `machine_states` or `artifact_history` entry, and its shared resource
-identity is the third repeated mapping import accepts. Every other repeat of a stable resource
+machine name uses, and it names the machine the recorded key is to be removed from, by that
+machine's current name: a machine allocation in `allocations` that is not destroyed or Failed and
+that no `migration_index` names, or an outstanding machine entry in
+`retired_allocations` that is neither a superseded reservation nor a pending removal, as while a
+later Replace has not yet migrated the machine (below). That machine has the pending removal's
+stable resource identity, and its own key, derived for an `allocations` machine and recorded for a
+retired one, differs from the pending removal's recorded key. Several pending removals may name
+one machine. A pending removal is not a second machine either: no record names it, it has no
+`machine_states` or `artifact_history` entry, and its shared resource identity is another repeated
+mapping import accepts. Every other repeat of a stable resource
 identity across both members stays refused, and a handoff's tenant and handoff ID are mapped by
 no other entry.
 
@@ -465,7 +471,8 @@ missing, second or malformed state member, `destroyed` or `failed` other than `t
 reason, a reason of another family, a malformed or unmatched `migration_index`, a missing,
 malformed or unmatched `reservation_of`, one on another reason, a superseded reservation with a
 `migration_index` or `jump_host`, a missing, malformed or unmatched `removal_of`, one on another
-reason, one naming a machine whose key equals the recorded key, a pending removal with a
+reason, one naming a reserved migration index or a machine whose key equals the recorded key, a
+pending removal with a
 `migration_index`, `reservation_of` or `jump_host`, a record naming a superseded reservation or a
 pending removal, a handoff whose tenant
 and handoff ID another entry maps, an `outstanding` object with a missing, extra or duplicate
@@ -483,34 +490,28 @@ the post-harness machinery, and any binding, the harness derives the key from th
 operator supplies and compares it with the recorded key. With no such seed, or on a mismatch, it
 makes none of them and the allocation stays outstanding. A superseded reservation restores no
 records and no contact identity: its recorded key serves only its removal from the machine it
-names, which re-entry makes with the machine's own key. A pending removal restores no records and
-no contact identity either. Its recorded key serves only its removal, a step of Replace's flow
-(`STA-17`), from the machine `removal_of` names: over a connection authenticated by that
-machine's own key once that key passes that machine's own check, derived and compared for an
-`allocations` machine and `STA-22b`'s deferred check for a retired one, under its existing pin,
-the removal takes out exactly the recorded key and keeps the machine's own key and every other
-authorization. Removing it derives nothing from the seed it was allocated under, so it runs the
-same with or without that seed. A Restore removes nothing by itself. A passing check is no first
-contact: the machine reconnects under its existing pin, as `STA-17`'s Restore does. The sheet holds no key, so a Restore from the sheet
-without the retired seed runs no deletion check for an `"awaiting_deletion"` machine: until its
+names, as a pending removal once that machine migrates. A pending removal restores no records and
+no contact identity either: its recorded key serves only its removal from the machine
+`removal_of` names, a step of Replace's flow that `STA-17` owns, and a Restore removes nothing by
+itself. A passing check is no first contact: the machine reconnects under its existing pin, as
+`STA-17`'s Restore does. The sheet holds no key, so a Restore from the sheet without the retired
+seed runs no deletion check for an `"awaiting_deletion"` machine: until its
 key is derived the check has no key and makes no read (`SEC-4`).
 
-One journal act ends a pending removal once a harness-composed read of the authorized keys on
-the machine it names, from captured job output (`ARC-43`), shows its recorded key absent and is
-durably appended; one whose key is already absent ends at the first such read. A failed or lost
-removal, a read still showing the key and a failed append leave it pending. The act that records
-the deletion evidence of the machine it names ends it too, and records that machine's
-destruction, not the key's removal. The act that migrates that machine moves its `removal_of` to
-the machine's new name (above).
+A pending removal ends in the journal act `STA-17` names for a read showing its key absent, or in
+the act that records the deletion evidence of the machine it names, which records that machine's
+destruction, not the key's removal. Either act drops it from the next export. The act that
+migrates that machine moves its `removal_of` to the machine's new name (above).
 
 An outstanding retired machine other than a superseded reservation or a pending removal becomes
 destroyed when its deletion evidence `SEC-5` admits is durably recorded. One journal act replaces
 its `outstanding` with `destroyed: true` and leaves it exactly the records a destroyed machine
 keeps: its machine state goes, and so does every placement without a report on it. The same act
 ends every superseded reservation and every pending removal naming it, where the act that
-migrates the machine keeps their keys as pending removals. After a Restore from
-this sheet, an outstanding machine with a `migration_index` may finish its migration to that
-index, an identity the sheet lists. One without has no index to move to, since an imported seed
+migrates the machine keeps their keys as pending removals. After a Restore from this sheet, an
+outstanding machine with a `migration_index` may finish its migration to that index, an identity
+the sheet lists. One without, other than a superseded reservation or a pending removal, has no
+index to move to, since an imported seed
 allocates nothing (`STA-22b`), so its migration waits for another Replace with a freshly
 generated seed, which re-enters it under its own retired seed.
 
@@ -529,7 +530,8 @@ machine. Replace may then reserve the machine a fresh index under its new seed a
 `migration_index`. Before that Replace's export, every `migration_index` naming an allocation
 under the seed it retires is settled one way or the other, so the export holds none. A further
 Replace copies each superseded reservation and each pending removal unchanged, as it copies every
-earlier retired entry.
+earlier retired entry, except as the act that migrates or destroys its machine moves its link or
+ends it.
 
 A handoff allocated under a retired seed is written only in `retired_allocations`, never in
 `allocations`, and Replace issues no new handoff for it: its public half is installed only during
@@ -590,9 +592,10 @@ access model of `ARC-27`, `installation` as `"pinned"`, `"unpinned"` (`ARC-25`) 
 on the machine's bound set (`SEC-14`). A field not yet approved at export carries the explicit
 marker `"unapproved"`, never an absent field; `installation` and `applications` are recorded,
 not approved. Every live machine other than a jump host has exactly one entry, bound to a session or not,
-including in version 7 an outstanding retired machine, whose entry names it by its retired seed; an
-allocation marked `jump_host: true` (`STA-22b`) or, in version 7, `destroyed: true` or
-`failed: true` has none, nor does a reserved migration index (above).
+including in version 7 an outstanding retired machine other than a superseded reservation or a
+pending removal, whose entry names it by its retired seed; an allocation marked `jump_host: true`
+(`STA-22b`) or, in version 7, `destroyed: true` or `failed: true` has none, nor does a reserved
+migration index, a superseded reservation or a pending removal (above).
 Reject a missing, duplicate or malformed entry and an entry for a jump host or a destroyed
 allocation; never interpret a missing entry or an
 `"unapproved"` field as a default.

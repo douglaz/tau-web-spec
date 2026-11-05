@@ -48,9 +48,10 @@ export, which holds none.
 
 *Amended 2026-11-05*
 ([ADR-0066](./0066-a-migrated-machines-unremoved-old-key-stays-on-the-sheet.md)): the act that
-migrates the machine ends its superseded reservations as machine entries and keeps each of their
-keys as a pending removal until a read confirms it removed. The act that destroys the machine
-still ends them.
+migrates the machine, and the act that confirms its migration on a read showing the reserved
+index's id, end its retired-seed entry and its superseded reservations as entries that stand for
+the machine and keep each of their keys as a pending removal until a read confirms it removed.
+The act that destroys the machine still ends them.
 
 **Version.** This amends payload version 7, as ADR-0058 did. Its text marked both points not yet
 specified, and nothing in the repository writes a version-7 sheet.

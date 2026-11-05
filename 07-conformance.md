@@ -624,17 +624,22 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       Interrupt after a machine's migration act and before its old key's removal is confirmed:
       the old key is still installed, the screen names the pending removal by its machine and
       its key's seed, and Replace and revocation stay reported incomplete across a restart and
-      after the new sheet's export. Restore from that sheet without the retired seed, and
-      separately with it: nothing is removed until the operator continues Replace's flow; the
-      removal then runs over a connection authenticated by the machine's current key under its
-      existing pin, never the old key, removes exactly the recorded key and keeps the current key
-      and every other line, and a harness-composed read showing the key absent, durably
-      appended, ends the pending removal in one journal act. A failed removal, a lost result, a
-      read still showing the key or a failed append leaves it pending and Replace incomplete.
+      after the new sheet's export. Restore from that sheet without the seed the old key was
+      allocated under, and separately with it: the screen still names the pending removal and
+      Replace stays incomplete, and nothing is removed until the operator continues Replace's
+      flow; the removal then runs over a connection authenticated by the machine's current key
+      under its existing pin, never the old key, removes exactly the recorded key and keeps the
+      current key and every other line, and a harness-composed read showing the key absent,
+      durably appended, ends the pending removal in one journal act. A failed removal, a lost
+      result, a read still showing the key or a failed append leaves it pending and Replace
+      incomplete. Remove the key, lose the result, then read: the first read showing the key
+      absent ends the pending removal. While a command hold or a destructive reinstall or
+      abandonment disposition stands on a migrated machine with a pending removal, no removal
+      is sent to it and Replace stays incomplete; once it ends, the removal proceeds.
       On an LNVPS Replace rebuild, Replace's own flow stops the old machine and then turns its
       automatic renewal off, each under that machine's own recorded vendor key (`SEC-4`,
-      `STA-17`). Request the stop before a pending re-entry of that machine or a pending removal
-      of its old public key has completed, and the renewal-off before the stop is confirmed:
+      `STA-17`). Request the stop while a re-entry of that machine, or a removal of its old
+      public key, is still to complete, and the renewal-off before the stop is confirmed:
       each is refused. Either call under the replacement machine's key or an SSH client key is
       refused, and so is any other vendor call this flow requests for the old machine, other
       than the read to confirm the renewal-off, and any call for another machine.
@@ -1885,7 +1890,8 @@ Not pass/fail. Required to be recorded.
       mismatched seed, duplicate mappings, invalid counters or malformed placement associations
       are refused before binding, and so is a live machine other than a jump host with a
       missing, duplicate or malformed machine state, bound or not, a version-7 reserved
-      migration index excepted (below); a jump host's allocation
+      migration index, superseded reservation or pending removal excepted (below); a jump
+      host's allocation
       carries none and one carrying a machine state is refused, an unapproved field restores
       as unapproved, and a machine exported with
       an unpinned installation and an attested pin restores both. Export and Restore a
@@ -1974,11 +1980,15 @@ Not pass/fail. Required to be recorded.
       outstanding machine without a `migration_index` keeps its retired-seed name until another
       Replace. Run a second Replace on that machine without a Restore: where the label read
       shows the reserved index's id, one journal act confirms that migration, keeping the
-      original key as a pending removal linked to the machine at the reserved index, and the
+      original key, and the key of each superseded reservation naming the machine, as a pending
+      removal linked to the machine at the reserved index, and the
       machine then migrates like any machine of the seed being retired, whose act moves that
       link to the machine's new name and keeps the reserved index's key as a second pending
       removal; export between the two acts and the sheet carries the link to an outstanding
-      retired machine entry, and imports; where no read shows it, one
+      retired machine entry, and imports. Restore that sheet and continue Replace's flow without
+      that entry's own seed, and with a wrong one: no contact is made and nothing is removed;
+      with the right one, its key is derived and compared before the removal runs, and the seed
+      the original key was allocated under is not needed. Where no read shows it, one
       journal act keeps the machine's retired-seed entry, the new sheet carries the old
       reservation as a retired machine entry with `reason:"superseded_reservation"` and a
       `reservation_of` naming the machine, with the machine's resource identity and no record,
@@ -2009,11 +2019,12 @@ Not pass/fail. Required to be recorded.
       destroyed, Failed, a jump host, of another resource identity, named by another entry, or
       named by any record, a `reservation_of` that is malformed, missing on a superseded
       reservation, present on another reason, or naming no outstanding machine entry, a
-      superseded reservation, or one of another resource identity, a superseded reservation with
-      a `migration_index` or `jump_host`, a `removal_of` that is malformed, missing on a pending
-      removal, present on another reason, or naming no machine, a destroyed or Failed machine,
-      a superseded reservation, another pending removal, one of another resource identity or one
-      whose own key equals the recorded key, a pending removal with a `migration_index`,
+      superseded reservation, a pending removal, or one of another resource identity, a
+      superseded reservation with a `migration_index` or `jump_host`, a `removal_of` that is
+      malformed, missing on a pending removal, present on another reason, or naming no machine,
+      a destroyed or Failed machine, a reserved migration index, a superseded reservation,
+      another pending removal, one of another resource identity or one whose own key equals the
+      recorded key, a pending removal with a `migration_index`,
       `reservation_of` or `jump_host`, a record naming a superseded reservation or a pending
       removal, any other
       repeat of a stable resource identity, and a handoff whose tenant and handoff ID another
