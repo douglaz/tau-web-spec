@@ -730,7 +730,8 @@ hold; `STA-24`'s untyped-vendor-scope hold is a separate rule.
 **"Approve"** means two different things and both are in play — an *operation* (structured
 facts about one action) or a *scope* (a class of activity, in advance). `ARC-4`.
 
-**"Observation"** is used in these senses; qualify it where the sense matters.
+**"Observation"** is used in several senses, among them these; qualify it where the sense
+matters.
 - **A machine's word** over the notify channel (`CHN-17`): what a machine tells "is an
   **observation**: typed untrusted, never gating, never acting" (`01-architecture.md`).
 - **A copied job record**: before a planned reset `STA-20b` copies tracked commands' records into

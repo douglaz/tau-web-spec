@@ -76,7 +76,7 @@ the reset and some 10 s before the rescue's sshd answers**,
 together with a `boot_time`. The field holds **SHA-256 fingerprints, one per host-key
 algorithm, and no public key material**; the browser derives the presented key's fingerprint
 at first contact and compares. Every host-key fingerprint the harness records or compares, on
-every route and in the journal, a job's output and the sheet, is the SHA-256 of the key's SSH
+every route and in the journal, in a job's output and in the sheet, is the SHA-256 of the key's SSH
 public-key blob, written in standard base64 without padding and without the `SHA256:` prefix:
 the **host-pin fingerprint format**. **Every rescue boot has fresh host keys**: confirmation
 requires no fingerprint shared with the pre-reset snapshot, including a reordered set.
