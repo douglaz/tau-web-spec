@@ -2027,6 +2027,10 @@ Not pass/fail. Required to be recorded.
       including partial overlap, withholds the offer and tells the operator before reboot;
       a later different read does not restore that installation's offer. Kept old keys are
       refused by the freshness backstop, including overlap with earlier observations.
+      A `ready_to_reset` read whose key shares a fingerprint with the current rescue boot's pin,
+      one whose key file is a symbolic link, and one whose key file holds a private key or
+      anything but one public key, each in its own run, withhold the offer and tell the operator
+      before reboot; no private key byte is journaled.
       Disjoint successor keys can establish the new pin and offer the reset. `STG-20` says
       "The label steers the model; nothing checks it". Destroyed-data.
 
@@ -2146,6 +2150,26 @@ Not pass/fail. Required to be recorded.
       shown, nothing is journaled or reserved and no call is sent. A card naming a server number
       no entry holds is approved, also when the journal holds other entries under the same
       account reference and an association quarantined for another number.
+      (o) Each in its own run, with otherwise eligible inputs: an approval rendered on Replace's
+      card, and one rendered on a session's card, offered as this flow's approval, is refused and
+      nothing is sent. While the flow runs, a reinstall, a stop, a second key's registration, a
+      rescue deactivation and a key deregistration are each refused at dispatch and not sent,
+      and so is a call of the flow naming another server number. With the flow's entry bound by
+      a session, under a command hold or under a standing destructive disposition, each in its
+      own run, the flow's next call is refused and not sent.
+      (p) Each in its own run: the card says that approving resets the server into rescue and
+      writes the harness's key to a root, and is not approved until the operator enters its
+      server number. A card whose admission would record `quarantined/alias_unavailable` is
+      refused with the risk records shown, and nothing is journaled or reserved. A server with
+      two roots whose labels read in `STG-20`'s form takes the root-label stop: no key is
+      written and only the reset back stays. A scoped read meeting a root it cannot read, or a
+      key file holding anything but one public key, refuses, and the reset back is neither
+      offered nor sent. Stop the flow once the rescue activation is confirmed and before the
+      reset into rescue's intent: the screen shows the server in its installed system, the
+      activation possibly armed and the key registered, and no deactivation is sent. After an
+      operator stop with the reset into rescue unconfirmed, the read that resolves it is still
+      sent. A completed flow's screen names the key it registered at Robot, and no
+      deregistration is sent.
       Boundary-crossed and destroyed-data.
 - [ ] **CNF-87 · BLOCKING** The LNVPS path's relay uses the selected `/v2/` profile and a
       hand-recorded pass (`STG-18`; [paid-tcp-relay][relay-source] PAS-6). Demonstrate fresh
