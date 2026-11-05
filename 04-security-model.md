@@ -275,7 +275,8 @@ the `GET /boot/{n}/rescue` reads that confirm it, including the read `STG-4` req
 before every reset into rescue; the read of `/boot/{n}/rescue/last` journaled before the reset into
 rescue, the reset itself, and the polls of `/boot/{n}/rescue/last` after it; and the reset into the
 installed system. The flow, never a session, is the caller of these `STG-4` operations, and
-`STG-4`'s predicates apply to it unchanged. The one server is the one the flow's own operator
+`STG-4`'s predicates apply to it, the reset back after `STA-17`'s root-label stop confirmed by
+the predicate `STG-4` gives that reset. The one server is the one the flow's own operator
 approval card names, and the approved machine entry these calls act on is the one `STA-17` ties to
 it; no listing of the account's servers is relied on. That card is apart from Replace's and from
 every session's. Each call journals its intent before it is sent (`STA-4`), sits behind `STA-24`'s
@@ -284,14 +285,16 @@ barrier, and is the approved record (below). The flow is refused while a session
 stands for it. The grant ends when the reset into the installed system is confirmed by `STG-4`'s
 predicate, or on a failure other than `STA-17`'s root-label stop, an operator stop or `STA-17`'s
 changed-label stop, whichever comes first. When it ends on such a failure or an operator stop once
-the reset into rescue has been sent, the screen MUST show that the server may be in rescue, that
-the flow is unfinished, and every call of the flow still unresolved (`STA-24`); the operator acts
-at Robot. What a new approval of the flow's card for that server does is not decided. After the
-root-label stop the grant keeps only the reset into the installed system, still under that
-reset's own prerequisites (`STA-20b`). A restart revives no authority that has ended and no
-stopped flow, and it does not end that kept reset: after a restart the reset is shown again and
-offered only once its prerequisites are checked again, and a reset whose intent the journal
-already holds may have been sent and is never sent again. The grant covers no reinstall, no erasure, no stop
+the intent of the reset into rescue is journaled, the screen MUST show that the server is in
+rescue if that reset is confirmed and may be in rescue if not, that the flow is unfinished, and
+every call of the flow still unresolved (`STA-24`); the operator acts at Robot. A new card of the
+flow naming that server is refused (`STA-17`). After the root-label stop the grant keeps only
+the reset into the installed system, still under that reset's own prerequisites (`STA-20b`).
+A restart revives no authority that has ended and no stopped flow, and it does not end that kept
+reset: after a restart the reset is shown again and offered only once `STA-20b`'s offer check is
+made again. Once the journal holds that kept reset's intent, the reset may have been sent
+(`STA-4`) and is never sent again, before or after a restart, and no disposition (`STA-24`)
+reissues it. The grant covers no reinstall, no erasure, no stop
 and no destroy, no other key, no other server and no other vendor call. It uses the operator's
 Robot credential as `SEC-5` row 1 describes it, it is checked at dispatch, and the check borrows no
 session authority. Replace's grant above is unchanged.
@@ -391,7 +394,7 @@ outgrown, because adding a credential means adding a row.
 | 2 | Inference **session** key | Minted from row 14 (procured); supplied by the operator (BYO) | Procured: encrypted local store under the data key and working memory (`ARC-31a`); BYO: browser memory only | One session | Inference spend, **up to its own cap** (procured contract: `ARC-31a`) | Revoked at session end (procured); session ends (BYO) |
 | 3 | **SSH client private key, one per machine** | **Derived** from row 15 at that machine's index (`STA-22`) | Re-derived on demand; nothing to export. Given to the machine's bound session and no other; a jump host's, at the jump host's own index, is given to no session (`CHN-R6`); during Replace, the machine's old and new keys are held by the harness's model-free Replace flow and given to no session (`STA-17`); during the dedicated rescue rekey, the machine's new key is held by that model-free flow and given to no session (`STA-17`) | Machine lifetime | Login to **that one machine** | Removed from the machine on Replace (`STA-17`), which is a new seed; a jump host's dies with the jump host |
 | 4 | **Relay key**, one per pass | Derived from row 15 (`STA-22`); its public half is what the relay binds a bought pass to (`CHN-15`), and what the LNVPS path hands the publisher out of band | Re-derived on demand; nothing to store | Until the pass expires or is revoked | Reaching the destinations recorded against its pass, on any port; recording destinations; revoking (`CHN-16`) | Pass expires or replacement is confirmed under `STA-17`, by signed revocation or the LNVPS path's manual retirement |
-| 5 | Host-key pins | Harness `ready_to_reset` job read (`ARC-43`), vendor publication (`CHN-R7`), rescue (`CHN-R1`), attest (`CHN-R5`), or a first contact from a jump host (`CHN-R6`), recorded with which | Encrypted at rest; exported in the sheet | Installed system: until that machine's reinstall or destruction. Rescue: one boot (`CHN-R1`). A jump host's: one first contact | Nothing — integrity reference | Installed pin retired on that machine's reinstall and removed on destruction; rescue pin discarded at the reset; a jump host's pin discarded with the jump host, the route label (`CHN-R6`) being what the display keeps |
+| 5 | Host-key pins | Harness `ready_to_reset` job read (`ARC-43`), vendor publication (`CHN-R7`), rescue (`CHN-R1`), attest (`CHN-R5`), or a first contact from a jump host (`CHN-R6`), recorded with which; `STA-17`'s scoped host-key read, which is no pin, held beside them | Encrypted at rest; exported in the sheet | Installed system: until that machine's reinstall or destruction. Rescue: one boot (`CHN-R1`). A jump host's: one first contact; the scoped read: trusted for that one reset back only | Nothing — integrity reference | Installed pin retired on that machine's reinstall and removed on destruction; rescue pin discarded at the reset; a jump host's pin discarded with the jump host, the route label (`CHN-R6`) being what the display keeps |
 | 6 | Exposure ledger | Harness-derived | Encrypted at rest; exported in the sheet | Machine lifetime | Nothing — record | Machine destroyed |
 | 7 | **Attest sender key**, one per machine — a jump host pinned by attest included, at its own index | Derived from row 15 (`STA-22`) | Boot user-data; **never stored in the browser**, re-derived to check the seal | Until the browser accepts one introduction, or its window closes | **One** host-key introduction (`CHN-7`) | **The browser stops listening (`CHN-5`)** — that is the bound; scrubbed from disk as defence in depth (`CHN-6`); the metadata copy is permanent and worthless |
 | 8 | ~~Drop-box collection token~~ | — | — | — | — | **Row retired.** The drop-box is gone (`CHN-4`); the attest post is a gift-wrapped event to an inbox any Nostr relay provides. |
