@@ -395,15 +395,27 @@ reinstall or a disposition is not this boundary and retires no row 23 reference.
 "A stopped machine, installation failure, loss, disposition or allocation status is not deletion
 evidence." The boundary claims neither physical erasure nor revocation of the credential at its
 service. Destruction never counts as a scan: bytes withheld before it stay withheld, and no old
-range becomes scanned, safe or releasable because a reference retired. The withholding decision
-follows the record or range, not the time it is read: re-collecting, replaying, re-requesting or
-displaying a pre-destruction range after the destruction, or giving it a later retrieval time,
-does not make it new output, and a range whose production after the destruction is not
-established stays pre-destruction. A machine-reported time or sequence establishes nothing:
-`STA-21` says "The job record is machine-reported and advisory." That identity and
-classification are protected and non-secret: no raw application value, bare digest or expired
-scan material is retained or exported for them. Output produced after the destruction is no
-longer compared against M's references.
+range becomes scanned, safe or releasable because a reference retired. That holds whichever
+reference withheld the range: a range withheld before the destruction only for another
+machine's unarmed reference stays withheld after that reference is re-armed and checks it
+clean. The withholding decision follows the record or range, not the time it is read:
+re-collecting, replaying, re-requesting or displaying a pre-destruction range after the
+destruction, or giving it a later retrieval time, does not make it new output, and a range
+whose production after the destruction is not established stays pre-destruction. A
+machine-reported time or sequence establishes nothing: `STA-21` says "The job record is
+machine-reported and advisory." That identity and classification are protected and non-secret:
+no raw application value, bare digest or expired scan material is retained or exported for
+them. Output is produced after the destruction only when the box-plane job that produced it was
+dispatched after that deletion evidence was durably recorded; a job dispatched before that
+record and still running across it stays pre-destruction. Such a later job's output is new
+output even when its command reads a file written before the destruction: it is scanned under
+the references still required and released under every other prerequisite. That includes a later
+command that prints a withheld range back, from a copy or from the withheld job's own record
+under `/var/lib/tau-web/jobs` (`STA-20`), while the original range stays withheld. Withholding
+keeps a range out of model input and the transcript, not off the machine, as row 12's caveat
+says of a placed secret: `place_secret` "does not keep it from a model that later reads the
+machine's filesystem with the root shell `OVR-2` grants". `SEC-6`'s trust display states this
+limit. Output produced after the destruction is no longer compared against M's references.
 
 Rows 18–20 use the versioned envelope in `STA-23`. Row 15 derives row 17 as well as the
 machine and relay credentials. Derivation indices, resource mappings and allocator counters
@@ -582,8 +594,9 @@ blast-radius statement and the trust display for as long as they are live. Every
 weaker mode standing on a set (`SEC-14`) is counted and shown the same way, for the set.
 Where Delivered appears, the trust display carries `ARC-43`'s evidence labels where applicable.
 Where a machine's destruction has retired its placed-secret references, the trust display states
-that output produced after the destruction is not checked for that machine's values: `SEC-5`
-says "Output produced after the destruction is no longer compared against M's references."
+that output produced after the destruction is not checked for that machine's values, including
+a later command's output that prints back a range withheld before it: `SEC-5` says "Output
+produced after the destruction is no longer compared against M's references."
 
 This replaces an absolute the root shell already defeated. A tenant that needs the absolute
 supplies it by procedure — `SEC-T4`.

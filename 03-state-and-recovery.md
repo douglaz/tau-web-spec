@@ -941,16 +941,19 @@ explicit; a temporary hold still never becomes Failed by itself, and there is no
 never-sent end state. The act is refused, and changes no admitted state, when there is no such
 approval; when the approval names the old entry's approved-entry identity or is a stale
 approval of the old entry; when the replacement differs from the old entry only in its
-approved-entry identity, label, allocation, index, account, cost or call, which makes it the
-same intended entry; when the replacement's facts are other than those approved, or the
+approved-entry identity, label, allocation, index, account, cost, call, bundle commit or an
+incidental argument such as an order's reference code, which makes it the same intended entry;
+when the replacement's facts are other than those approved, or the
 approval is bound to another session, a fresh session continuing the setup included; when
 Failed's proof does not hold; when any create for the old entry is possibly sent or a machine
 was associated with or contacted for it; when an applicable identity exclusion (`STA-24`), or
 any other independent guard or check that applies to the replacement, bars it; when the
 replacement would reuse or repeat an unresolved preparation step of the old entry; or when its
-append fails. A fresh index, account or call, renaming the old entry or displaying it as
-historical is not this act and bypasses nothing. Old and new prospective authority never stand
-together: once the act is admitted, no stale approval or late completion authorizes a command
+append fails. A replacement whose vendor, plan or size, region or image differs from the old
+entry's is a distinct entry for this act; that settles only distinctness, and every refusal
+above still applies to it. A fresh index, account or call, renaming the old entry or displaying
+it as historical is not this act and bypasses nothing. Old and new prospective authority never
+stand together: once the act is admitted, no stale approval or late completion authorizes a command
 or order on the old entry, and reconciliation of its old work that another rule permits renews
 no prospective authority. The old entry keeps its consumed identity, mapping, history, barrier
 and identity exclusions (`STA-24`). Failed's proof concerns only that allocation's create: an
