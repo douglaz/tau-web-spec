@@ -2253,7 +2253,9 @@ Not pass/fail. Required to be recorded.
       written and only the reset back stays. A scoped read meeting a root it cannot read, or a
       key file holding anything but one public key, refuses, and the reset back is neither
       offered nor sent. Neither `ready_to_reset` nor the scoped read opens a private key file,
-      and nothing of a file either refuses is journaled. With a scoped read journaled and its
+      and nothing of a file either refuses is journaled. The journal, job records included,
+      holds each key either reads as its family and fingerprint and no key bytes. With a scoped
+      read journaled and its
       reset back confirmed, a later installation's first durable prerequisite read of that
       machine sharing a fingerprint with the scoped read withholds the offer, and no connection relies on the scoped read; after a Restore from an
       exported sheet the scoped read withholds nothing. Stop the flow once the rescue
