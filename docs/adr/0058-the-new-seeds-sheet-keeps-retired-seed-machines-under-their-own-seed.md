@@ -100,7 +100,8 @@ stood before this change (commit `7998147`):
 
 `STA-16`, `STA-17`, `STA-22b`, the credential format's payload version 7 and `CNF-84` change
 together. The formal companion is unchanged: its allocation module omits the sheet's import checks and
-Replace's re-entry, and nothing here allocates an index. Still to be decided:
+Replace's re-entry, and nothing here allocates an index. Still to be decided, since decided in
+[ADR-0059](./0059-a-retired-seed-handoff-stays-and-a-pending-migration-index-is-superseded.md):
 
 - what the new seed's sheet holds for a handoff allocated under a retired seed;
 - what a later Replace does with a migration index whose reserved allocation is under the seed

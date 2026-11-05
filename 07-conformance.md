@@ -1896,13 +1896,34 @@ Not pass/fail. Required to be recorded.
       history, and the sheet imports; every record keeps the retired-seed name. After a Restore that machine may
       finish its migration to that index, moving every record in one journal act; an
       outstanding machine without a `migration_index` keeps its retired-seed name until another
-      Replace. Refuse before binding a missing `retired_allocations`, a malformed, duplicate or
-      extra-member entry, one with the payload's seed, another family, a missing, second or
-      malformed state member, `destroyed` or `failed` other than `true`, a machine-only member
-      on a pass, an unknown reason or one of the other family's, an `outstanding` object with a
-      missing, extra or duplicate member, and a `migration_index` that is malformed, names no
-      such allocation, or names one that is destroyed, Failed, a jump host, of another resource
-      identity, named by another entry, or named by any record. Refuse before binding a missing
+      Replace. Run a second Replace on that machine without a Restore: where the label read
+      shows the reserved index's id, one journal act confirms that migration and the machine
+      then migrates like any machine of the seed being retired; where no read shows it, one
+      journal act keeps the machine's retired-seed entry, the new sheet carries the old
+      reservation as a retired machine entry with `reason:"superseded_reservation"` and a
+      `reservation_of` naming the machine, with the machine's resource identity and no record,
+      machine state or artifact history, the machine may carry a fresh `migration_index` under
+      the new seed, no `migration_index` names an allocation under the retired seed, and the
+      sheet imports. A third Replace copies that superseded reservation unchanged, and the act
+      that migrates or destroys the machine ends it. Export after Replace a handoff allocated
+      under the retired seed whose declared lifetime runs: its entry has family `handoff`, its
+      tenant and handoff ID, its role-4 public half and `reason:"lifetime_running"`, and no
+      handoff for it appears in `allocations`. After Restore without the retired seed, and with
+      a wrong one, the post-harness machinery is given no credential; with the right one the
+      derived key equals the recorded key and the credential is given; the entry ends in one
+      journal act when the journal records the declared end. Refuse before binding a missing
+      `retired_allocations`, a malformed, duplicate or extra-member entry, one with the payload's
+      seed, another family, a missing, second or malformed state member, `destroyed` or `failed`
+      other than `true`, a machine-only member on a pass or a handoff, an unknown reason or one
+      of another family's, an `outstanding` object with a missing, extra or duplicate member, a
+      `migration_index` that is malformed, names no such allocation, or names one that is
+      destroyed, Failed, a jump host, of another resource identity, named by another entry, or
+      named by any record, a `reservation_of` that is malformed, missing on a superseded
+      reservation, present on another reason, or naming no outstanding machine entry, a
+      superseded reservation, or one of another resource identity, a superseded reservation with
+      a `migration_index` or `jump_host`, a record naming a superseded reservation, any other
+      repeat of a stable resource identity, and a handoff whose tenant and handoff ID another
+      entry maps. Refuse before binding a missing
       or malformed `seed_id` on any placement, artifact history, machine state, host pin,
       installation group or exposure-ledger machine reference, and one naming neither an
       `allocations` machine under the payload's seed nor a retired allocation. A version 3 to 6
