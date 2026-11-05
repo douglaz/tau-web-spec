@@ -1642,7 +1642,8 @@ server whose root label is missing or damaged, or that has more than one root wh
 in that form, gets no rescue rekey from the harness, and
 nothing here grants a reinstall or an erasure to repair it. For this job and for
 `rescue_host_key_read` below, what counts as one root where a root is other than one file system
-on one disk is not decided.
+on one disk is not decided. That includes a root under software RAID, LVM, encryption or another
+volume layer, even on one disk.
 
 **After the root-label stop, one scoped read of the installed host keys serves that one reset
 back and is never trusted later to accept a key or make a connection.** The
