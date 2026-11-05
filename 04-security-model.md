@@ -306,8 +306,11 @@ installed system, still under that reset's own prerequisites (`STA-20b`). A rest
 authority that has ended and no stopped flow, and it does not end that kept reset: after a
 restart the reset is shown again and offered only once `STA-20b`'s offer check is made again.
 Once the journal holds that kept reset's approval decision and intent, the reset may have been
-sent (`STA-4`) and is never sent again, before or after a restart, and no disposition
-(`STA-24`) reissues it. The grant covers no reinstall, no erasure, no stop
+sent (`STA-4`) and is never sent again, before or after a restart, and no disposition (`STA-24`)
+reissues it. A restart after the card's approval and before `rescue_install_key`'s root-label
+check does not end the grant either: the flow resumes from its journal, each of its calls still
+unresolved is reconciled first (`STA-5`), and its next call is sent only once the operator
+approves it again. The grant covers no reinstall, no erasure, no stop
 and no destroy, no other key, no other server and no other vendor call. It uses the operator's
 Robot credential as `SEC-5` row 1 describes it, it is checked at dispatch, and the check borrows no
 session authority. Replace's grant above is unchanged.

@@ -2051,7 +2051,9 @@ Not pass/fail. Required to be recorded.
       A `ready_to_reset` read whose key shares a fingerprint with the current rescue boot's pin,
       and one meeting a key file that holds a private key or anything but one public key, each
       in its own run, withhold the offer and tell the operator before reboot; nothing of the
-      refused file is journaled. A key file that is a symbolic link is not followed.
+      refused file is journaled. The read sharing the rescue boot's pin journals no pin and
+      stands as no prerequisite read: a later read of the installed system's own keys offers the
+      reset. A key file that is a symbolic link is not followed.
       Disjoint successor keys can establish the new pin and offer the reset. `STG-20` says
       "The label steers the model; nothing checks it". Destroyed-data.
 
@@ -2179,12 +2181,17 @@ Not pass/fail. Required to be recorded.
       rescue deactivation and a key deregistration are each refused at dispatch and not sent,
       and so is a call of the flow naming another server number. With the journal set up so that
       a session binds the flow's entry, or a command hold or a standing destructive disposition
-      stands for it, each in its own run, the flow's next call is refused and not sent.
+      stands for it, each in its own run, the flow's next call is refused and not sent. Restart
+      the harness after the card's approval and before the root-label check, once with a call's
+      response lost: the grant has not ended, that call is not sent again before a read resolves
+      it, and the flow's next call is sent only once the operator approves it again.
       (p) Each in its own run: the card says that approving resets the server into rescue and
       writes the harness's key to a root, and is not approved until the operator enters its
       server number; with a different number entered it is not approved. A card whose admission
       would record `quarantined/alias_unavailable`, among them one naming a number no entry
-      holds while the journal holds an association quarantined for another number, is refused
+      holds while the journal holds an association quarantined for another number and one while
+      it holds only an unavailable-identity risk record of an entry under another account
+      reference, is refused
       with the risk records shown, and nothing is journaled or reserved. With the fresh seed
       lacking its ceremony record, the flow's relay pass is not allocated and no call of the
       flow is sent. A server with

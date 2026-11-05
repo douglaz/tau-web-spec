@@ -284,7 +284,8 @@ output. The jobs are:
   compares against the bundle's value and halts the install on a mismatch (`STG-6`).
 - `ready_to_reset` — reads `/mnt/etc/ssh/ssh_host_*_key.pub`, following no symbolic link and
   reading no private key file. It refuses, journaling nothing of that file, when a file it reads
-  holds anything but one public key; otherwise it journals the pins, unmounts the target, and
+  holds anything but one public key, and journals no pin of a read `STA-20b` refuses for sharing
+  the rescue boot's pin; otherwise it journals the pins, unmounts the target, and
   only then offers the reset typed operation (`STA-20b`'s planned-reset ordering), unless
   `STA-20b` withholds the offer.
 - `place_secret` — writes one **application secret** (`SEC-5` row 12) to a file on a named

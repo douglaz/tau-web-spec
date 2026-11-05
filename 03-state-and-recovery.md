@@ -287,9 +287,10 @@ refuses a file it reads (`ARC-43`), or when a key it read shares a fingerprint w
 rescue boot's own pin: `CHN-R1` says "Every rescue boot has fresh host keys", so a match means
 the read did not reach the installed system's keys or that system would answer with the rescue
 boot's, and a reset confirmed on them could not be told from a server still in rescue; the
-operator is told then, before reboot. Whether a read sharing the rescue boot's pin stands as the
-installation's first durable prerequisite read, and so whether a later read may still make the
-offer, is not decided. The offer MUST NOT be made when the current
+operator is told then, before reboot. A read sharing the rescue boot's pin is refused before its
+keys are journaled as pins: it is no pin and no prerequisite read, so a later read may still
+make the offer under every prerequisite here. Whether that read's fingerprints are kept as an
+observation is not decided. The offer MUST NOT be made when the current
 installation's first durable prerequisite read shares a fingerprint with any earlier
 installation's prerequisite read or installed-system pin of that machine; the operator is told
 then, before reboot. The offer MUST use the current installation's durable prerequisites to
@@ -311,8 +312,10 @@ machine pin. Where that
 first read shares a fingerprint with an earlier installation's prerequisite read or
 installed-system pin, the offer stays withheld for that installation whatever a later read
 shows; a new destructive reinstall is needed. `offersReset` reads no earlier observation
-and no rescue pin: a first read refused only for overlapping an earlier observation, or for
-sharing a fingerprint with the rescue boot's pin, is outside it.
+and no rescue pin: a first read refused only for overlapping an earlier observation is outside
+it, and a read sharing a fingerprint with the rescue boot's pin never reaches it, since
+`ready_to_reset` journals no pin of it; `TauWeb.Pins` carries no such refusal, which is
+Markdown-only.
 `TauWeb.Dispatch.installationOf` derives that boundary from the journal's vendor reinstall
 call, the reset into rescue that dispatches a standing reinstall disposition, or the reset
 bound to a separately journaled reinstall approval not withdrawn since.
