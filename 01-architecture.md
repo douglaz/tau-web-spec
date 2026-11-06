@@ -627,8 +627,8 @@ state is read at that journal act, so a re-arm journaled before it refuses the r
 is not offered for an armed reference, which keeps its scan until a rotation, destruction or
 local-store loss ends it; once that reference is unarmed again, after a local-store loss for
 instance, the report is offered again. A placement whose key was revoked at its service while its
-reference is armed is ended by a rotation, once `ARC-17`'s placement gates admit that rotation, or
-by destruction. Once the report is
+reference is armed is ended by a rotation that records that placement's rotation under `SEC-5`,
+once `ARC-17`'s placement gates admit it, or by destruction. Once the report is
 recorded, that placement's required reference ends: the re-arm and the `exec` wait above no
 longer require it, a paste or digest record arms nothing for it, and the trust display moves it
 from the live listing to history labelled operator-reported, never "retired" or "rotated". It

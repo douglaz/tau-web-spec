@@ -499,6 +499,7 @@ exported for them. The report ends P only; another placement holding the same by
 reference.
 
 **A rotation retires the old placement's row 23 reference; what was withheld stays withheld.**
+The disposed-placement exception below qualifies P's end as well as every additional end.
 When the journal act that records the rotation of placement P through `place_secret` (`ARC-43`)
 is durably recorded (`STA-3`), P's row 23 scan key and reference end, and nothing re-creates
 them; the new placement's reference is its own
@@ -548,12 +549,24 @@ The no-revocation and no-erasure limit applies to every value whose reference th
 The next paragraph's mark follows each unreported placement's recorded rotation, including
 when P has a report and only an earlier unreported attempt's reference ends
 ([ADR-0069](./docs/adr/0069-first-placements-are-recorded-before-send-and-completed-attempts-rotate-together.md)).
-Whether the act records the rotation of a placement at that machine, application name,
-secret name and path whose call the journal records as disposed, and whose completed
-root-only job record was not admitted before this rotation's pre-send record, is not yet
-decided, whether that placement is P or an earlier one, the first at its destination
-included. P's end above does not decide this case; the credential format's replacement
-sentence follows that same open boundary.
+The act does not record the rotation of a placement at that machine, application name,
+secret name and path whose call the journal records as disposed and whose completed
+root-only job record was not admitted before this rotation's pre-send record, whether
+that placement is P or an earlier one, the first at its destination included. Its job
+may still write after this rotation. That placement stays live and its reference stays
+required, armed or unarmed as before. Output produced after this rotation still owes that
+retained placement's reference and every other release prerequisite; the paragraph's
+cessation of comparison applies only to placements whose rotation the act records.
+A completed record admitted after pre-send, before
+or after this rotation's zero-exit admission, does not enlarge this rotation's fixed end
+set retroactively. A later eligible rotation whose pre-send record follows that completed
+record's admission can end the placement under the completed-attempt rule above; its
+existing destruction and operator-report ends retain their terms. A disposed call's
+completed record still records no rotation of its own. The later rotation's zero-exit
+record is admitted and its rotation recorded even when it ends no predecessor; a
+retained predecessor sets no `reference_ended` mark. Each other placement actually ended
+keeps this paragraph's scan boundary and the next paragraph's mark
+([ADR-0070](./docs/adr/0070-a-rotation-keeps-a-possibly-unfinished-predecessors-reference.md)).
 
 **After store loss, a machine marked for an ended unreported placement keeps its older job
 records withheld.** A placement Q without a report leaves later sheets when its secret is
@@ -765,10 +778,11 @@ scopes and the weaker modes standing on its set are counted as before.
 Beside each live placement whose required reference is armed, the trust display MUST state
 that revocation at the service alone ends neither its live listing nor its scan, that the
 operator report is offered only while the reference is unarmed, and that ending the placement
-while its reference stays armed requires a rotation, once its placement gates admit it, or
+while its reference stays armed requires a rotation that records that placement's end,
+once its placement gates admit it, or
 destruction: `ARC-43` says "A placement whose key was revoked at its service while its
-reference is armed is ended by a rotation, once `ARC-17`'s placement gates admit that rotation, or
-by destruction."
+reference is armed is ended by a rotation that records that placement's rotation under `SEC-5`,
+once `ARC-17`'s placement gates admit it, or by destruction."
 ([ADR-0068](./docs/adr/0068-the-trust-display-explains-an-armed-placements-live-listing.md)).
 While the journal records that a rotation (`ARC-43`) has replaced a placement, the trust display
 states beside the new placement that output produced after the rotation is not checked for the

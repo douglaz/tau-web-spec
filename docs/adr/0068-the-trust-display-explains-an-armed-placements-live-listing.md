@@ -49,3 +49,5 @@ nor another operator assertion and its persistence rules.
 `SEC-6`, the listing pointer under `SEC-CLAIM`, `CNF-42` and `CNF-95(h)` change together.
 `ARC-43`, `SEC-5`, row 23, `STA-16` and the credential format are unchanged. The formal
 companion has no placement or scan-reference state and is unchanged.
+The later qualification of which rotation ends a disposed placement is recorded in
+[ADR-0070](./0070-a-rotation-keeps-a-possibly-unfinished-predecessors-reference.md).
