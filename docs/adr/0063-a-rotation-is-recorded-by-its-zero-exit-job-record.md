@@ -102,7 +102,8 @@ These stay open:
 - what a failed first placement does to its listing, its reference and the export, on which the
   text was silent, since decided for its listing, reference and export start in
   [ADR-0069](./0069-first-placements-are-recorded-before-send-and-completed-attempts-rotate-together.md).
-  That record keeps a disposed predecessor's end and its successor's sheet replacement open.
+  That record left a disposed predecessor's end and its successor's sheet replacement open,
+  since decided in [ADR-0070](./0070-a-rotation-keeps-a-possibly-unfinished-predecessors-reference.md).
 
 ## Consequences
 

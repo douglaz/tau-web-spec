@@ -1433,6 +1433,8 @@ unknown, until a re-check runs, and no secret is placed on it before that re-che
 is reapproval of a declaration or weaker mode. The missing-placement question and re-arm
 procedure belong to `ARC-43`; reapproval cannot establish an inventory of forgotten secrets.
 These knowledge limits are additional to the allocation restriction in `STA-22b`.
+For a retained disposed first placement's delayed successor, including a known placement
+omitted before export, see the credential format's placement-export rule.
 
 Restore MUST retain every recorded installation boundary, its publication observations,
 and each installed pin's active or retired status from the sheet. An active pin remains

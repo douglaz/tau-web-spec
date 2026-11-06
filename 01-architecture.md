@@ -486,7 +486,7 @@ here is non-waivable:
   unresolved, a disposition or a late completed record of a disposed call ends neither
   that listing nor that required reference. A
   rotation's new placement is listed from the record made before its bytes leave, whatever its
-  job then does, and until `SEC-5` records the rotation the old placement stays beside it as it
+  job then does, and until `SEC-5` records that old placement's rotation it stays beside the new one as it
   was, listed live or in operator-reported history.
   After a Restore the display starts from the placement records the sheet holds (`STA-16`), listing
   a record with an operator report in that history, never live. Machine
@@ -597,9 +597,9 @@ says "Destruction never counts as a scan: bytes withheld before it stay withheld
 **A rotation ends the old placement's wait; what was withheld stays withheld.** A rotation's new
 placement's reference is required from the record made before its bytes leave, whatever its job
 then does, since from that record on its bytes may have left: `STA-4` says an intent with no
-terminal record means the call "may have been sent, never that it was not". Until `SEC-5` records
-the rotation, the reference of an old placement without a report stays required beside it, and
-output owes both references. Once `SEC-5`
+terminal record means the call "may have been sent, never that it was not". An old placement
+without a report keeps its reference required beside the new one's until `SEC-5` records
+that old placement's rotation, and output owes both references. Once `SEC-5`
 retires the rotated placement's reference (`SEC-5` says "P's row 23 scan key and reference end,
 and nothing re-creates them"), the re-arm above and the `exec` wait no longer require that
 placement, a paste or late digest record arms nothing for it, and the new placement's reference
@@ -627,8 +627,8 @@ state is read at that journal act, so a re-arm journaled before it refuses the r
 is not offered for an armed reference, which keeps its scan until a rotation, destruction or
 local-store loss ends it; once that reference is unarmed again, after a local-store loss for
 instance, the report is offered again. A placement whose key was revoked at its service while its
-reference is armed is ended by a rotation, once `ARC-17`'s placement gates admit that rotation, or
-by destruction. Once the report is
+reference is armed is ended by a rotation that records that placement's rotation under `SEC-5`,
+once `ARC-17`'s placement gates admit it, or by destruction. Once the report is
 recorded, that placement's required reference ends: the re-arm and the `exec` wait above no
 longer require it, a paste or digest record arms nothing for it, and the trust display moves it
 from the live listing to history labelled operator-reported, never "retired" or "rotated". It

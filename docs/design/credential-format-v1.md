@@ -314,8 +314,9 @@ A placement without a report is live: the export writes it until its secret is r
 machine is destroyed (`SEC-5` row 12). Its secret is rotated when `SEC-5` records the rotation
 ([ADR-0063](../adr/0063-a-rotation-is-recorded-by-its-zero-exit-job-record.md)); the recorded
 rotation replaces its record with the rotation's new placement. Its machine's destruction removes
-it from every later export. The replacement sentence does not decide the case of a
-disposed predecessor without a completed job record, left open below. After a Restore
+it from every later export. The retained disposed first placement below qualifies that
+replacement: its otherwise exportable successor waits until that first placement ends.
+After a Restore
 from a later sheet, its older output stays withheld through the `reference_ended` mark its end
 sets on the `machine_states` entry of each live machine the exposure ledger records in a bound
 set with its machine (below).
@@ -334,11 +335,25 @@ placements of two attempts at one rotation, would be two records without a repor
 and path, which the importer rejects (below).
 For a first placement whose completed root-only job record was admitted before the later
 rotation's pre-send record, the recorded rotation replaces that first placement's
-unreported sheet record. Whether the successor replaces a disposed first placement's sheet
-record when no completed record was admitted before the successor's pre-send record is
-not yet decided, with that placement's end (`SEC-5`); the general replacement sentence above
-does not decide this case. The first placement's own pre-send
-export start is independent of that open successor case.
+unreported sheet record. Where the disposed-placement exception in `SEC-5` retains an
+unreported first placement, the sheet keeps that first placement's record and writes none
+for any later unreported successor until the first placement ends. This applies through
+successive recorded rotations even when one ends a completed successor: the retained first
+placement still occupies the sheet position. The general replacement sentence above
+is qualified by this case. A completed record admitted after a successor's pre-send
+does not by itself end the first placement or free its sheet position. The successor
+remains listed and required locally; a sheet exported even after its successful job can
+omit that known placement. A Restore from such a sheet restores the first placement only,
+owing its re-arm from the recorded path's current bytes, and recovers neither the omitted
+successor's identity nor separate references for both historical values. This limitation
+includes placements already known before export, not just secrets placed since export;
+for the remaining after-Restore labels and coverage treatment, see `STA-16`. Once the
+first placement ends, an otherwise exportable successor still live and known locally can enter a
+later sheet under the ordinary live-placement, reported-history and destruction rules;
+ending the first placement never revives an ended successor or exports a destroyed machine's
+unreported successor.
+No sheet writes two records without a report at that destination. The first placement's
+own pre-send export start is unchanged.
 
 In version 7 a machine is named by a seed and a machine index together, and every record that
 names a machine carries both: a placement record its `seed_id` and `machine_index`; each

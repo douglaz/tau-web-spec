@@ -548,6 +548,39 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       controls that omit F1 from the pre-send export, end it at nonzero exit or disposition,
       replace F1's sheet record before F2's recording act, or export F1 and F2 together must
       each produce this item's finding.
+      In a separate branch F1 is disposed with a continuation that continues and no completed
+      root-only record is admitted before an admissible F2's pre-send record. F2 completes
+      with an admitted zero exit: its rotation is recorded, but F1 and F2 both stay listed
+      and required, the sheet holds F1 alone and no new mark is set. F1 then writes after
+      F2's act; a job dispatched after F2's recorded act that prints the file has F1's
+      value redacted for F1, and the display beside F2 makes no scan-limit statement for F1.
+      Repeat with F1's
+      completed record admitted after F2 pre-send but before F2's zero-exit admission, and
+      after that admission: neither retroactively ends F1 or replaces its sheet record.
+      A sheet exported after F2 succeeds still omits F2; Restore re-arms only F1 from the
+      current path and restores neither F2's identity nor a separate reference for it.
+      Before store loss both placements stay known locally. If the current file holds
+      F2's bytes, the machine-report label and its existing limits still apply to that
+      re-arm; an absent file offers the fallback. In a further branch with the store intact,
+      admit F1's completed record, then dispatch an admissible F3 after that admission:
+      F3's recorded rotation ends F1 and F2, writes F3 instead of F1 and sets the mark.
+      Targeted controls that end F1 at F2, set a mark when no placement ended, export F2
+      before F1 ends, export F1 and F2 together, release F1's value unredacted in that fresh
+      output, state F1's value unchecked beside F2, or reconstruct F2's identity on Restore
+      must each produce this item's finding. Destruction still exports no unreported
+      placement on that machine.
+      In another branch before F1's completed record arrives, F2 succeeds and then F3
+      succeeds: F3 ends F2, retains F1, and remains listed and required beside F1. The sheet
+      still holds F1 alone, omits F3 and carries the mark from F2's end. F1's completed
+      record is then admitted and an eligible F4 dispatched after that admission ends F1
+      and F3 at its recording act; the sheet writes F4 alone and never revives ended F2.
+      Controls that export F3 in F1's place while F1 is retained, omit F2's end mark or
+      revive F2 when F1 ends must each produce this item's finding.
+      In a separate Restore branch from the F1-only sheet before any mark was set, an
+      admissible F5 rotates the restored F1: the sheet carries no call or disposition to
+      retain F1 under the disposed-placement exception. F5's recording act ends F1 and
+      replaces its sheet entry; a control that retains the restored F1 at that act must
+      produce this item's finding.
       (m) Completed attempts at one destination (`SEC-5`, `ARC-43`, `SEC-6`): P is on M, and
       R1 is an attempt to rotate P that would place N1. Its completed root-only job record
       has a nonzero exit and is admitted.
@@ -577,6 +610,24 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       naming the changed set. A targeted control that sends R2 on the earlier approval must
       produce this item's finding; approval of the new card permits dispatch under all other
       guards.
+      In a further branch R1 is disposed with a continuation that continues, and no completed
+      root-only R1 record is admitted before R2 pre-send. R2 completes with an admitted zero
+      exit, then R1 writes N1's value and completes. R2 ends an eligible P but not N1:
+      N1 and N2 stay listed and required, the sheet holds N2, and only P's end sets the
+      mark. The display's scan-limit statement covers P, never N1.
+      A fresh job dispatched after R2's recorded act reads the file; N1's value is
+      still redacted for N1, alongside N2's and every other required scan. If N1 is unarmed,
+      its existing wait holds. Pre-act withheld output keeps its existing boundary. With P
+      already reported and no other placement ended, no new mark is set. Repeat with R1's
+      completed record admitted after R2 pre-send but before R2's zero-exit admission, and
+      after R2's act: N1 stays required in both; the disposed R1 records no rotation of its
+      own. An admissible R3 whose pre-send follows that completed-record admission ends N1
+      and N2 under the ordinary boundary, with both on its approved card. Failed appends
+      change none of these states; replay derives each end from its durable record only.
+      Targeted controls that end N1 at R2, release its exact value unredacted in the fresh
+      post-R2 output, retroactively enlarge R2's end set, or omit N1 from R3's card must
+      each produce this item's finding. The before-pre-send completed-record case above
+      remains the admitted counterpart; all dispatch, authority and placement guards hold.
 - [ ] **CNF-17 · BLOCKING** An untyped response containing a harness-held credential is
       redacted before it reaches the model or the record. Exact-value scan.
 - [ ] **CNF-18 · BLOCKING** The attest introduction is **single-use**, and single-use is the

@@ -4,7 +4,7 @@ Partly decided 2026-11-06 (`tw-x7k` comment 142000001). `ARC-43` owns the ceremo
 and wait; `SEC-5` owns which placements a rotation ends, their scan boundary and the mark;
 `SEC-6` owns the display; the credential format owns the sheet; `CNF-95(l)` and `(m)` own
 the new cases. This record adds no rule of its own. The disposed-attempt question below
-remains open.
+is since decided in [ADR-0070](./0070-a-rotation-keeps-a-possibly-unfinished-predecessors-reference.md).
 
 ## What was undecided
 
@@ -75,19 +75,20 @@ eligibility and finality, ADR-0067's reported-history reach and ADR-0068's armed
 explanation keep their decisions. ADR-0063's recording act and its exclusion of an
 unrecorded rotation attempt from export keep theirs.
 
-## Open: a disposed attempt that may still be running
+## A disposed attempt that may still be running, since decided
 
 Whether a later rotation also ends a disposed attempt when no completed root-only job
-record was admitted before that later rotation's pre-send record remains undecided.
+record was admitted before that later rotation's pre-send record was left undecided here.
 Three readers recommended ending it too, and one recommended retaining it: a disposition
 does not prove the old job stopped, so it could write after the replacement. The minority
-is the reader the panel rule requires for non-unanimous acceptance; this question goes
-to the owner. Their shared option heading did not settle this semantic difference.
+is the reader the panel rule requires for non-unanimous acceptance. Their shared option
+heading did not settle this semantic difference. The owner requested a second round;
+[ADR-0070](./0070-a-rotation-keeps-a-possibly-unfinished-predecessors-reference.md) records its decision.
 
 The sheet consequence is part of that question. If the disposed attempt was a first
 placement, its record is on the sheet. The retaining recommendation also delays exporting
 the successor until the retained first placement ends; the other recommendation replaces
-that record at the later recorded rotation. Neither consequence is chosen here.
+that record at the later recorded rotation. Neither consequence was chosen in this first round.
 
 The following also have no decision here: a proposed exception exporting a reported failed
 rotation attempt despite ADR-0063's no-sheet rule; an additional failed-job display label;
@@ -99,6 +100,6 @@ cores, rather than amendments hidden in them.
 `ARC-43`, `SEC-5`, `SEC-6`, the credential format and `CNF-95` change together. The cases
 cover nonzero first attempts, unresolved and disposed first attempts without a successor,
 completed-attempt consolidation, failed appends, tuple isolation, output boundaries and
-Restore. The disposed-attempt successor history awaits the owner. This is a partial
-amendment; `tw-x7k` stays open. The formal companion has no placement/reference state,
+Restore. This was a partial amendment; ADR-0070 owns the later decision record for the
+disposed-attempt successor history. The formal companion has no placement/reference state,
 and this change supplies no formal or runtime evidence.
