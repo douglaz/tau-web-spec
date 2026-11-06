@@ -100,7 +100,7 @@ These stay open:
   local store stays intact (a Restore does, above), partly decided for completed attempts in
   [ADR-0069](./0069-first-placements-are-recorded-before-send-and-completed-attempts-rotate-together.md);
 - what a failed first placement does to its listing, its reference and the export, on which the
-  text was silent, since decided for its start in
+  text was silent, since decided for its listing, reference and export start in
   [ADR-0069](./0069-first-placements-are-recorded-before-send-and-completed-attempts-rotate-together.md).
   That record keeps a disposed predecessor's end and its successor's sheet replacement open.
 

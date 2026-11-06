@@ -548,9 +548,12 @@ The no-revocation and no-erasure limit applies to every value whose reference th
 The next paragraph's mark follows each unreported placement's recorded rotation, including
 when P has a report and only an earlier unreported attempt's reference ends
 ([ADR-0069](./docs/adr/0069-first-placements-are-recorded-before-send-and-completed-attempts-rotate-together.md)).
-Whether the act also ends an earlier placement whose call was disposed and whose completed
-root-only job record was not admitted before this rotation's pre-send record is not yet
-decided, including when that earlier placement was the first at its destination.
+Whether the act records the rotation of a placement at that machine, application name,
+secret name and path whose call the journal records as disposed, and whose completed
+root-only job record was not admitted before this rotation's pre-send record, is not yet
+decided, whether that placement is P or an earlier one, the first at its destination
+included. P's end above does not decide this case; the credential format's replacement
+sentence follows that same open boundary.
 
 **After store loss, a machine marked for an ended unreported placement keeps its older job
 records withheld.** A placement Q without a report leaves later sheets when its secret is
@@ -776,7 +779,8 @@ service is the operator's act, which the harness does not verify: `SEC-5` says "
 claims neither revocation of the old value at its service nor erasure of its copies"
 ([ADR-0064](./docs/adr/0064-a-rotation-is-not-a-revocation-and-the-display-says-so.md)).
 Both statements cover each earlier attempt whose reference that act ended as well as the
-old placement's: `SEC-5` says "The no-revocation and no-erasure limit applies to every value whose reference the act ends."
+old placement's: `SEC-5` says "Each such placement ends as P does under this paragraph's scan boundary"
+and "The no-revocation and no-erasure limit applies to every value whose reference the act ends."
 A sheet records no rotation (the credential format's placement record), so after a Restore from a
 later sheet the `reference_ended` statement below is what the display shows for a rotated
 placement without a report.

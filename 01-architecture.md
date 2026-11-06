@@ -483,7 +483,8 @@ here is non-waivable:
   operator reports it revoked (below), when it moves to history labelled operator-reported.
   A first placement is listed, and its reference required, from the approved record made
   before its bytes leave, whatever its job then does. A nonzero exit, a job that stays
-  unresolved or a disposition ends neither that listing nor that required reference. A
+  unresolved, a disposition or a late completed record of a disposed call ends neither
+  that listing nor that required reference. A
   rotation's new placement is listed from the record made before its bytes leave, whatever its
   job then does, and until `SEC-5` records the rotation the old placement stays beside it as it
   was, listed live or in operator-reported history.
@@ -503,6 +504,8 @@ erasure of its copies".
 The card MUST name each placement the rotation would end, by machine, application name,
 secret name, path and placement time. Its no-revocation statement covers every such
 placement's value, including an earlier attempt's value.
+The set is the one fixed at the record made before its bytes leave. If it differs from
+the set the approved card named, nothing is sent and a new card is composed.
 
 **Re-arming after store loss is harness work.** On binding a session after local-store loss,
 every placement the sheet records on that bound set's machines without an operator report

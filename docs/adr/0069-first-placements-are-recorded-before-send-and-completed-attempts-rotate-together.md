@@ -60,6 +60,12 @@ recommended by all four, and is accepted under the owner's 2026-11-05 panel rule
 - ending the earlier completed attempts with the later recorded rotation, under the
   qualification above, and applying the rotation boundary to each end.
 
+The card's naming of the placements it would end was explicitly recommended by three
+readers; the fourth did not address it. It is accepted under the same panel rule, with
+the required reader among those recommending it. That is a separate count from the
+unanimous behavioral cores above. The pre-send recheck of that set preserves the
+approved facts if a completed job record arrives after the operator approved the card.
+
 The first-placement rules fill the gap ADR-0063 left open. The additional ends widen what
 one rotation records under ADR-0063 and shorten those references' lifetime at that act;
 ADR-0061's withholding boundary and ADR-0064's disclosure now cover every ended attempt.

@@ -314,7 +314,8 @@ A placement without a report is live: the export writes it until its secret is r
 machine is destroyed (`SEC-5` row 12). Its secret is rotated when `SEC-5` records the rotation
 ([ADR-0063](../adr/0063-a-rotation-is-recorded-by-its-zero-exit-job-record.md)); the recorded
 rotation replaces its record with the rotation's new placement. Its machine's destruction removes
-it from every later export. After a Restore
+it from every later export. The replacement sentence does not decide the case of a
+disposed predecessor without a completed job record, left open below. After a Restore
 from a later sheet, its older output stays withheld through the `reference_ended` mark its end
 sets on the `machine_states` entry of each live machine the exposure ledger records in a bound
 set with its machine (below).
@@ -335,7 +336,8 @@ For a first placement whose completed root-only job record was admitted before t
 rotation's pre-send record, the recorded rotation replaces that first placement's
 unreported sheet record. Whether the successor replaces a disposed first placement's sheet
 record when no completed record was admitted before the successor's pre-send record is
-not yet decided, with that placement's end (`SEC-5`). The first placement's own pre-send
+not yet decided, with that placement's end (`SEC-5`); the general replacement sentence above
+does not decide this case. The first placement's own pre-send
 export start is independent of that open successor case.
 
 In version 7 a machine is named by a seed and a machine index together, and every record that

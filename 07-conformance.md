@@ -536,18 +536,21 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       record of the disposed call changes none of that. Restore from those sheets lists F1,
       requires its re-arm, and an absent file offers the existing fallback card; no sheet or
       persisted placement metadata holds its value, bare digest or scan material. An unresolved
-      F1 holds another placement job to M; a destructive continuation keeps its existing holds.
+      F1 holds another box-plane command to M; a destructive continuation keeps its existing holds.
       After F1's nonzero completed root-only record has been admitted, an admissible F2 at the
       same machine, application name, secret name and path is a rotation there. Before its
       recording act F1 and F2 are both listed and required, and the sheet holds F1 alone. Its
       admitted zero-exit recording act ends F1 under `SEC-5` and replaces F1's sheet record with
-      F2's, never exporting two records without a report at that tuple. Failed pre-send append
+      F2's, and sets `reference_ended` for F1 on M and its live ledger-recorded peers, never
+      exporting two records without a report at that tuple. Failed pre-send append
       starts no listing, reference or sheet record, and failed completion append ends none.
       A sheet predating F1 retains the existing post-export unknown-coverage treatment. Targeted
-      controls that omit F1 from the pre-send export, end it at nonzero exit or disposition, or
-      export F1 and F2 together must each produce this item's finding.
-      (m) Completed attempts at one destination (`SEC-5`, `ARC-43`, `SEC-6`): P on M is rotated
-      by R1 to N1, whose completed root-only job record has a nonzero exit and is admitted.
+      controls that omit F1 from the pre-send export, end it at nonzero exit or disposition,
+      replace F1's sheet record before F2's recording act, or export F1 and F2 together must
+      each produce this item's finding.
+      (m) Completed attempts at one destination (`SEC-5`, `ARC-43`, `SEC-6`): P is on M, and
+      R1 is an attempt to rotate P that would place N1. Its completed root-only job record
+      has a nonzero exit and is admitted.
       P and N1 stay listed and required; the sheet holds P alone and no mark is set. An
       admissible later rotation R2 at exactly that machine, application name, secret name and
       path adds N2 beside them from its pre-send record. Its card names P and N1 and states
@@ -568,6 +571,12 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       history or export. Targeted controls that retire N1 on R1's nonzero exit, retain it
       after R2's recording act, release its pre-act withheld peer output, omit its mark or
       warning, or retire another tuple's placement must each produce this item's finding.
+      In a separate branch R1 is disposed and R2's card is approved before R1's completed
+      record is admitted; that record is then admitted before R2's proposed pre-send record.
+      The set of placements R2 would end has changed. R2 is not sent and a new card is composed
+      naming the changed set. A targeted control that sends R2 on the earlier approval must
+      produce this item's finding; approval of the new card permits dispatch under all other
+      guards.
 - [ ] **CNF-17 · BLOCKING** An untyped response containing a harness-held credential is
       redacted before it reaches the model or the record. Exact-value scan.
 - [ ] **CNF-18 · BLOCKING** The attest introduction is **single-use**, and single-use is the
