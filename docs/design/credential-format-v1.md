@@ -306,11 +306,16 @@ reference accompanies it. Reject a missing `report`, `null`, any other string, a
 missing, extra or duplicate member, and a malformed time before binding. Reject too a version-7
 placement record with a missing member or any member other than its seven.
 
+A first placement enters the export from the approved record made before its bytes leave,
+even if its job exits nonzero, stays unresolved or is disposed. Its record asserts possible
+exposure, not successful placement. For which later placements are rotations at that
+destination, see `ARC-43`; a rotation's new placement follows the export timing below.
 A placement without a report is live: the export writes it until its secret is rotated or its
 machine is destroyed (`SEC-5` row 12). Its secret is rotated when `SEC-5` records the rotation
 ([ADR-0063](../adr/0063-a-rotation-is-recorded-by-its-zero-exit-job-record.md)); the recorded
 rotation replaces its record with the rotation's new placement. Its machine's destruction removes
-it from every later export. After a Restore
+it from every later export. The replacement sentence does not decide the case of a
+disposed predecessor without a completed job record, left open below. After a Restore
 from a later sheet, its older output stays withheld through the `reference_ended` mark its end
 sets on the `machine_states` entry of each live machine the exposure ledger records in a bound
 set with its machine (below).
@@ -327,6 +332,13 @@ as it was and no record for the new one, and a rotation that is never recorded l
 placement on no sheet. Otherwise a rotated placement without a report and its new one, or the new
 placements of two attempts at one rotation, would be two records without a report at one machine, application name, secret name
 and path, which the importer rejects (below).
+For a first placement whose completed root-only job record was admitted before the later
+rotation's pre-send record, the recorded rotation replaces that first placement's
+unreported sheet record. Whether the successor replaces a disposed first placement's sheet
+record when no completed record was admitted before the successor's pre-send record is
+not yet decided, with that placement's end (`SEC-5`); the general replacement sentence above
+does not decide this case. The first placement's own pre-send
+export start is independent of that open successor case.
 
 In version 7 a machine is named by a seed and a machine index together, and every record that
 names a machine carries both: a placement record its `seed_id` and `machine_index`; each
