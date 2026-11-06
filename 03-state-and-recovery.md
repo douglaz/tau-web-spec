@@ -1681,7 +1681,8 @@ that file or directory, the job follows no symbolic link and writes no file outs
 it refuses a path to `authorized_keys` that is a symbolic link or passes through one, and then
 writes no key. It also refuses a path to `authorized_keys` that ends in something other than a
 regular file or passes through something other than a directory, and then writes no key. Neither
-refusal is the root-label stop: each is a failure of the flow, so the grant ends on it (`SEC-4`).
+refusal is the root-label stop: each is a failure of the flow, and the grant ends "on a failure
+other than `STA-17`'s root-label stop" (`SEC-4`).
 Where each root on the server's disks is one file system on one disk and no disk carries a
 volume layer, the job writes nothing to a disk other than the one that
 carries the root it writes, and it reads every other device it reads as a possible root without
