@@ -1692,7 +1692,11 @@ is the one root it finds whose label reads in `STG-20`'s form; where there is no
 than one, the rule reads with no such root. What the job's
 read-write mount of the root it writes itself writes, the replay of that file system's journal
 and mount metadata included, is not decided, and
-neither is whether the job writes anything else to that root's disk. The root-label stop opens
+neither is whether the job writes anything else to that root's disk.
+Where the job writes the key, what mounts a root at `/mnt` for `ready_to_reset`'s read of the
+host keys before the reset into the installed system is not decided (`ARC-43` says that job
+"reads `/mnt/etc/ssh/ssh_host_*_key.pub`").
+The root-label stop opens
 no session binding: the re-entry below does not follow it, and whether a machine stopped there may later be bound is not decided. A label that passes
 proves nothing: it establishes no identity, authenticates no root contents and supplies no
 acceptance, and the operator's approval stays the only tie between this server and its entry.
