@@ -286,11 +286,13 @@ output. The jobs are:
   reading no private key file; its captured output carries each key it reads as its
   `{family, fingerprint}` (`SEC-5` row 5) and no key bytes. It refuses, journaling nothing of
   that file, when a file it reads
-  holds anything but one public key. It also refuses a read yielding no public key when no
-  entry matches `ssh_host_*_key.pub` or every matching entry is a symbolic link it does not
-  follow; it journals neither a pin nor a prerequisite result of that read. What the job does
-  with matching directories, FIFOs or device nodes, or with a missing or symbolic-link
-  component of the fixed path, is not decided. In the other cases specified here, it journals
+  holds anything but one public key. Outside the entry-type and parent-path cases left open
+  below, it also refuses a read yielding no public key when no entry matches
+  `ssh_host_*_key.pub` or every matching entry is a symbolic link it does not follow; it
+  journals neither a pin nor a prerequisite result of that read. Whether this additional
+  refusal or another terminal outcome applies to a matching directory, FIFO or device node,
+  or where a component of the fixed path is missing or a symbolic link, is not decided;
+  the no-follow and no-private-key rules still bind. In the other cases specified here, it journals
   the pins, except of a read `STA-20b`
   refuses ("A read sharing the rescue boot's pin is refused before its keys are journaled as
   pins"), unmounts the target, and

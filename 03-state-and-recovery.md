@@ -1730,7 +1730,7 @@ than one, the rule reads with no such root. What the job's
 read-write mount of the root it writes itself writes, the replay of that file system's journal
 and mount metadata included, is not decided, and
 neither is whether the job writes anything else to that root's disk, nor when its read-write
-mount ends, whether the job completes, fails or stops. `ARC-43` says `ready_to_reset`
+mount ends on a successful, failed or stopped path. `ARC-43` says `ready_to_reset`
 "unmounts the target, and only then offers the reset typed operation"; that does not specify
 when this job's read-write mount ends or identify the two jobs' mounts.
 Where the job writes the key, what mounts a root at `/mnt` for `ready_to_reset`'s read of the
