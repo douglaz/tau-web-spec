@@ -486,14 +486,13 @@ re-collecting, replaying, re-requesting or displaying a range dispatches no new 
 no newer; and a range whose production after the report is not established stays pre-report. The
 report's recorded time and a machine-reported time or sequence establish nothing about a range.
 After local-store loss nothing restores P's ended reference: every job record from before the
-loss on P's machine, and on every live machine the restored exposure ledger records in a bound
-set with P's machine (`STA-10`), stays withheld for P, whether P's machine is live or destroyed,
-and a sheet's `operator_reported_at` classifies no output
-([ADR-0067](./docs/adr/0067-a-reported-placements-older-output-stays-withheld-on-its-bound-machines.md)).
-P withholds no pre-loss record on a machine that ledger never records in a bound set with P's
-machine; such a record owes the references required on that machine and every other release
-prerequisite. Output
-produced after the report is no longer compared against P's reference and owes every other
+loss on P's machine, and on every live machine the sheet's exposure ledger records in a bound
+set with P's machine (`STA-10`), stays withheld for P, whether P's machine is live or destroyed
+([ADR-0067](./docs/adr/0067-a-reported-placements-older-output-stays-withheld-on-its-bound-machines.md)),
+and a sheet's `operator_reported_at` classifies no output. No pre-loss record on a machine that
+ledger never records in a bound set with P's machine is withheld for P; such a record owes every
+other required reference and release prerequisite. Which output is from before the loss is the
+loss boundary the mark paragraph below states. Output produced after the report is no longer compared against P's reference and owes every other
 required reference and release prerequisite. P's identity and the report are protected and
 non-secret: no raw application value, bare digest or expired scan material is retained or
 exported for them. The report ends P only; another placement holding the same bytes keeps its own
