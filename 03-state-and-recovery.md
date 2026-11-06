@@ -1000,14 +1000,22 @@ unknown stays unresolved and restricted, the act supplies no failure, success, n
 cancellation or deletion evidence for it, and the replacement does not reuse or repeat it under
 another label, at the act or at any later dispatch. Reusing or repeating it means re-sending its
 request, adopting its record as the replacement's own step, sending a step that targets the old
-entry's identity, resource (`STA-24`), key or own account, or relying on its result for a step
-or an order. The replacement's own preparation step for its own identity, resource, key and
-account is not a repeat, even when it is of the same kind and carries the same operator address,
-such as `STG-21`'s email submission to the replacement's own account; where both entries use one
-vendor account, a step there that names the replacement's own resource and key is its own step.
+entry's identity, resource (`STA-24`), key or own account, relying on its result for a step or
+an order, or, where both entries use one vendor account, sending a step there of the same kind
+that itself names no per-entry resource or key. The replacement's own preparation step for its
+own identity, resource, key and account is not a repeat, even when it is of the same kind and
+carries the same operator address, such as `STG-21`'s email submission to the replacement's own
+account; where both entries use one vendor account, a step there that names the replacement's
+own resource and key is its own step.
 Every barrier, hold and pause `STA-24` sets applies to that step on its own terms, so a step
 sent through a later untyped vendor scope at the same exact origin is barred by that scope's
-inheritance (ADR-0054). Opening the old step's verification link at the shared address verifies
+inheritance (ADR-0054). Where both entries use one vendor account, a replacement's step into it
+of the same kind as the old entry's unresolved step that itself names no per-entry resource or
+key, such as an account-level email submission, repeats that step even when its call or request
+bytes differ. Owing such a step does not refuse the act: the step is refused at its dispatch
+while the old step is unresolved, and once the old step has a terminal record, a disposition
+included, the act no longer refuses it and it may be sent only as `STA-24` permits after that
+record. Opening the old step's verification link at the operator's shared address verifies
 nothing for the replacement, whose order waits for verified status under its own identity
 (`STG-21`). Replay, export and import preserve the predecessor link and these restrictions
 without redispatch. The act removes no actual bound machine and grants no larger set (`SEC-1`).

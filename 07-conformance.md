@@ -554,7 +554,10 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       account, a step there naming the replacement's own resource and key is admitted as its
       own; where an old step is unresolved, the act's card shows it and, where the replacement
       owes its own step of the same kind, says that it is its own step and that the old step's
-      verification link verifies nothing for the replacement. Refused, with no admitted state
+      verification link verifies nothing for the replacement, and, where both entries use one
+      vendor account and the replacement's step of that kind itself names no per-entry resource
+      or key, says, in place of calling it its own step, that it waits for the old step's
+      terminal record. Refused, with no admitted state
       changed: no replacement act, including a temporary hold left to become Failed by itself;
       an approval naming the old entry's identity, or a stale approval of it; a replacement
       differing from the old entry only in its approved-entry identity, label, allocation,
@@ -567,8 +570,10 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       reuse or repetition of the old entry's unresolved preparation step, under its label or
       another, at the act or at any later dispatch after an admitted act: re-sending its
       request, adopting its record as the replacement's own step, a step targeting the old
-      entry's identity, resource, key or own account, or relying on its result for a step or an
-      order; the replacement's own step while a barrier, hold or pause `STA-24` sets bars it, a
+      entry's identity, resource, key or own account, relying on its result for a step or an
+      order, or, where both entries use one vendor account, a step there of the same kind that
+      itself names no per-entry resource or key, sent while the old step is unresolved, its call
+      and request bytes differing from the old step's; the replacement's own step while a barrier, hold or pause `STA-24` sets bars it, a
       step sent through a later untyped vendor scope at the same exact origin included; facts
       other than those approved, or another session, a fresh session continuing the setup after
       an actual end included; a bound set above one; a failed append. A fresh index, account or
