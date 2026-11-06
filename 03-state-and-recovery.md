@@ -1605,8 +1605,8 @@ its own check (`STA-22b`): derived and compared for a machine of the payload's s
 deferred check for a machine still under a retired seed, which needs that machine's own seed. It
 takes out exactly the pending removal's recorded key, keeping the current key and every other
 authorization, and derives nothing from the seed that key was allocated under.
-For a file it takes the key out of that already has another hard link, see the rescue rekey's
-old-key removal below.
+For a regular file at a removal target that has another hard link before the removal, see
+the rescue rekey's old-key removal below.
 One journal act
 ends a pending removal once a harness-composed read of the machine's authorized keys, from
 captured job output (`ARC-43`), shows that key absent and is durably appended; one whose key is
@@ -1866,9 +1866,9 @@ material is not missing public identity, and no impossible old-key login test is
 passed. A key those records do not identify stays untouched and revocation is reported
 incomplete; it supplies no deletion target, no replacement of the whole key file and no new
 command hold. A removal supports only its scoped effect.
-For this removal and for the removal of a pending removal's key (above), where a file the
-removal takes the key out of is a regular file that already has another hard link, whether
-that other name still shows the key after the removal is not decided. Only that other name's
+For this removal and for the removal of a pending removal's key (above), where a regular file
+at a removal target has another hard link before the removal, whether that other name still
+shows the key after the removal is not decided. Only that other name's
 result is open; each removal's own rules still bind it unchanged, including what ends a
 pending removal.
 The changed-label stop removes no key.
