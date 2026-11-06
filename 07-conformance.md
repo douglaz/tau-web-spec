@@ -501,6 +501,30 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       and shown. A rotation of a reported placement whose job exits nonzero leaves it in
       operator-reported history with no required reference, and a sheet exported then holds its
       record and none for the new placement.
+      (k) Reported placement after a Restore (`SEC-5`, `STA-10`): after a local-store loss,
+      machines A and M are in one bound set, placement P on M is unarmed, a job on A prints P's
+      exact value and is withheld for P, and clean jobs run on A and M. Machine C is in a bound
+      set the ledger never records with M. Machine D, earlier bound with M and holding no
+      placement, is in a bound set with machine E that the ledger never records with M, and a
+      job on E prints P's value copied from D. The operator reports P, D's deletion evidence is
+      recorded, and a sheet is exported; in a separate branch M, holding no placement without a
+      report, has its deletion evidence recorded before the export. Machine B, on that sheet and
+      never recorded with M, is then bound with M, and the local store is lost again. The Restore
+      lists P as operator-reported history, re-arms nothing for it, owes no wait for it, and sets
+      no `reference_ended` mark for P's report or for D's or M's destruction. Every job record
+      from before the loss on M and on A, the clean ones included, stays withheld for P after
+      every other required reference is armed and checks it clean, whether re-collected,
+      replayed, re-requested, displayed or given a later retrieval time, and so does output of a
+      job dispatched before the loss and still running across it; in the destroyed branch A's
+      stay withheld the same way, and nothing is sent to M. Nothing is sent to D. B's, C's and
+      E's pre-loss records are released once the references required on each check them clean,
+      with P's value in E's record unredacted, and binding C with M after the Restore withholds
+      none of C's pre-loss records for P. A job dispatched after the loss on any machine is
+      released under every other prerequisite with P's old value in it unredacted, including one
+      on A that prints a withheld record back, while the original record stays withheld. A
+      targeted control that releases a pre-loss record of A after the Restore, or withholds one
+      of C or E for P, must produce this item's finding. Browser persistence and the sheet hold
+      no raw value, bare digest or scan material for P.
 - [ ] **CNF-17 · BLOCKING** An untyped response containing a harness-held credential is
       redacted before it reaches the model or the record. Exact-value scan.
 - [ ] **CNF-18 · BLOCKING** The attest introduction is **single-use**, and single-use is the
