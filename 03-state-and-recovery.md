@@ -1694,8 +1694,8 @@ read-write mount of the root it writes itself writes, the replay of that file sy
 and mount metadata included, is not decided, and
 neither is whether the job writes anything else to that root's disk.
 Where the job writes the key, what mounts a root at `/mnt` for `ready_to_reset`'s read of the
-host keys before the reset into the installed system is not decided (`ARC-43` says that job
-"reads `/mnt/etc/ssh/ssh_host_*_key.pub`").
+host keys before the reset into the installed system is not decided (`ARC-43` says
+`ready_to_reset` "reads `/mnt/etc/ssh/ssh_host_*_key.pub`, following no symbolic link").
 The root-label stop opens
 no session binding: the re-entry below does not follow it, and whether a machine stopped there may later be bound is not decided. A label that passes
 proves nothing: it establishes no identity, authenticates no root contents and supplies no
