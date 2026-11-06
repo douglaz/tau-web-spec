@@ -411,7 +411,7 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       clear working copies, while encrypted references retain their stated lifetime.
       `SEC-5` says "For row 23, retained or reloaded scan material is the same independent random key and encrypted reference already recorded, never seed-derived, regenerated on hide or replaced by machine-reported bytes."
 
-      (h) Operator report (`ARC-43`, `SEC-5`): after local-store loss, machines A and M are in
+      (h) Operator report (`ARC-43`, `SEC-5`, `SEC-6`): after local-store loss, machines A and M are in
       one bound set; M carries placements P1 and P2, both unarmed, and output on A is withheld.
       The operator reports P1 revoked. The card names P1 by machine, application name, secret
       name, path and placement time, and says what a mistaken report risks, what a true one
@@ -438,6 +438,7 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       P1 stays in operator-reported history. In a separate branch, P2's card is shown and P2's
       re-arm is journaled before the report's journal act, and the report is refused: P2 stays
       live and keeps its scan, and no report is offered for P2 while its reference is armed.
+      For the display beside P2, see `CNF-42` (`SEC-6`).
       After a further local-store loss leaves P2 unarmed, the report is offered for P2 again.
       (i) Ended unreported placement (`SEC-5`, `ARC-43`, `SEC-6`): after a local-store loss,
       machines A and M are in one bound set, placement Q on M is unarmed, a job on A prints Q's
@@ -1729,9 +1730,10 @@ to the relay evidence in `CNF-81`, `CNF-87` and `CNF-113`.
       G's shape) and absent for case I's shape; the maker is read from the bundle's maker field
       (`ARC-31b`) and never from the slug — `CNF-41` says "never derived from the model name";
       the counts are unchanged.
-- [ ] **CNF-42 · BLOCKING** Every approved untyped scope and every placed application secret appears
-      in the trust display until revoked or rotated, not merely while the approval stands
-      (`SEC-6`). Escaped secret: a placed secret the display has dropped is a live exposure
+- [ ] **CNF-42 · BLOCKING** Every approved untyped scope appears in the trust display until revoked
+      or rotated, not merely while the approval stands (`SEC-6`). For placed application
+      secrets' live listing and its ends, see `ARC-43`.
+      Escaped secret: a placed secret the display has dropped is a live exposure
       the operator can no longer see. Promoted from PRE-SCALE on 2026-10-05, when the listing
       became part of what placing a secret promises. After Restore, the sheet's placement
       entries remain displayed (`STA-16`, `ARC-43`); machine reports may add labelled
@@ -1739,6 +1741,13 @@ to the relay evidence in `CNF-81`, `CNF-87` and `CNF-113`.
       removal claim never drops an entry; only the owning rotation/destruction rules do, and an
       operator report moves its own entry to history.
       At LNVPS the stop that stands in for a destroy never drops one either.
+      Beside each live placement whose required reference is armed, the display states that
+      revocation at the service alone ends neither its live listing nor its scan, that the report
+      is offered only while the reference is unarmed, and that ending the placement while its
+      reference stays armed requires a rotation or destruction (`SEC-6`), including while a
+      lockdown finding on its machine refuses that rotation (`ARC-17`). A targeted control that
+      drops that statement, or labels that placement revoked or moves it to operator-reported
+      history without a report, must produce this item's finding.
       An operator report (`ARC-43`) moves only its own placement from the live listing to
       history labelled operator-reported, never "retired" or "rotated", with the statement that
       the report is the operator's, unverified at the service and cannot be undone, and that
