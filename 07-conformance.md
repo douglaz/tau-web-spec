@@ -679,19 +679,20 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       replacement's order still waits for verified status under its own identity, opening the
       old step's verification link verifying nothing for it; where both entries use one vendor
       account, a step there naming the replacement's own resource and key is admitted as its
-       own; under `STA-22b`'s shared-account classification, a valid typed step naming only its
-       own derived key, or only the vendor machine id associated to its own entry, is admitted
-       as its own with the old preparation call still unresolved, for the same and a different
-       operation kind. Exercise a key-registration-shaped step whose request carries its own
-       key and whose intent has the assigned entry resource: the assigned resource alone
-       supplies no resource-naming fact. Exercise a per-entry fact identified only by the
-       specified confirmation predicate rather than the request; classification before send
-       needs no observed outcome of that dispatch. A genuinely different specified operation
-       naming neither per-entry fact is admitted as its own when no unresolved old preparation
-       call in that account is of its kind, including distinct operations touching the same
-       account field, independent guards clearing; the old call stays unresolved and restricted.
-       These valid typed fixture shapes establish no current adapter's complete replacement
-       route. Where an old step is unresolved, the act's card shows it and, where the replacement
+      own; under `STA-22b`'s shared-account classification, a valid typed step naming only its
+      own derived key, or only the vendor machine id associated to its own entry, is admitted
+      as its own with the old preparation call still unresolved, for the same and a different
+      operation kind. Exercise a key-registration-shaped step whose request carries its own
+      key and whose intent has the assigned entry resource: the assigned resource alone
+      supplies no resource-naming fact, and the step is admitted as its own key-only step.
+      Exercise a per-entry fact identified only by the specified confirmation predicate
+      rather than the request: the step is admitted as its own, and classification before
+      send needs no observed outcome of that dispatch. A genuinely different specified operation
+      naming neither per-entry fact is admitted as its own when no unresolved old preparation
+      call in that account is of its kind, including distinct operations touching the same
+      account field, independent guards clearing; the old call stays unresolved and restricted.
+      These valid typed fixture shapes establish no current adapter's complete replacement
+      route. Where an old step is unresolved, the act's card shows it and, where the replacement
       owes its own step of the same kind, says that it is its own step and that the old step's
       verification link verifies nothing for the replacement, and, where both entries use one
       vendor account and the replacement's step of that kind itself names no per-entry resource
@@ -712,18 +713,18 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       entry's identity, resource, key or own account, relying on its result for a step or an
       order, or, where both entries use one vendor account, a step there of the same kind that
       itself names no per-entry resource or key, sent while the old step is unresolved, its call
-       and request bytes differing from the old step's; repeat that refusal with the proposed
-       account-wide operation attributed to the replacement's intent resource or approval,
-       authenticated to the shared account, or carrying a replacement label or a key only as
-       incidental context in its request or specified confirmation predicate. Those facts
-       cannot turn it into an own-resource or own-key step. Different endpoints or HTTP forms
-       implementing that same specified operation still refuse; pair this with the admitted
-       genuinely different-operation case, rather than merely changing an operation name.
-       With two matching old preparation calls unresolved, a valid terminal record for just
-       one, a disposition included, leaves the other call's dispatch wait standing; failure to
-       append that record leaves both unresolved. Replay, export and import preserve that
-       remaining wait, and no automatic send follows a terminal record. The replacement's own
-       step while a barrier, hold or pause `STA-24` sets bars it, a
+      and request bytes differing from the old step's; repeat that refusal with the proposed
+      account-wide operation attributed to the replacement's intent resource or approval,
+      authenticated to the shared account, or carrying a replacement label or a key only as
+      incidental context in its request or specified confirmation predicate. Those facts
+      cannot turn it into an own-resource or own-key step. Different endpoints or HTTP forms
+      implementing that same specified operation still refuse; pair this with the admitted
+      genuinely different-operation case, rather than merely changing an operation name.
+      With two matching old preparation calls unresolved, a valid terminal record for just
+      one, a disposition included, leaves the other call's dispatch wait standing; failure to
+      append that record leaves both unresolved. Replay, export and import preserve that
+      remaining wait, and no automatic send follows a terminal record. The replacement's own
+      step while a barrier, hold or pause `STA-24` sets bars it, a
       step sent through a later untyped vendor scope at the same exact origin included; facts
       other than those approved, or another session, a fresh session continuing the setup after
       an actual end included; a bound set above one; a failed append. A fresh index, account or
