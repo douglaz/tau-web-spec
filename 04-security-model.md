@@ -743,6 +743,14 @@ report is not checked for that placement's value, including a later command's ou
 back a range withheld before it: `SEC-5` says "Output produced after the report is no longer
 compared against P's reference". The machine's other placements without a report, its untyped
 scopes and the weaker modes standing on its set are counted as before.
+Beside each live placement whose required reference is armed, the trust display MUST state
+that revocation at the service alone ends neither its live listing nor its scan, that the
+operator report is offered only while the reference is unarmed, and that ending the placement
+while its reference stays armed requires a rotation, once its placement gates admit it, or
+destruction: `ARC-43` says "A placement whose key was revoked at its service while its
+reference is armed is ended by a rotation, once `ARC-17`'s placement gates admit that rotation, or
+by destruction."
+([ADR-0068](./docs/adr/0068-the-trust-display-explains-an-armed-placements-live-listing.md)).
 While the journal records that a rotation (`ARC-43`) has replaced a placement, the trust display
 states beside the new placement that output produced after the rotation is not checked for the
 old value, including a later command's output that prints back a range withheld before it:
@@ -983,8 +991,9 @@ maintained machine, or by the recovery ladder's escalation. A model's blast radi
 - any application secret placed on a machine it is bound to, which its root shell can read.
 
 Those three are stated together because no one of them alone is the boundary. Every approved
-scope and every placed application secret appears in the trust display until revoked or
-rotated — closing an approval does not un-trust a service that still holds the key. A placed
+scope appears in the trust display until revoked or rotated — closing an approval does not
+un-trust a service that still holds the key. For a placed application secret's live listing and
+its ends, see `ARC-43`. A placed
 secret the operator reports revoked at its service (`ARC-43`) leaves the live listing for
 history labelled operator-reported, on the operator's word rather than the service's. Every
 acceptable weaker mode standing on a set is stated with them (`SEC-14`); for a machine first
