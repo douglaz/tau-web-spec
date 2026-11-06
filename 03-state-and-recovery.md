@@ -1681,12 +1681,15 @@ regular file or passes through something other than a directory, and then writes
 refusal reaches only what exists, so a missing file, `.ssh` or `/root` is created as above and
 not refused. Neither refusal is the root-label stop: each is a failure of the flow, and the grant ends "on a failure
 other than `STA-17`'s root-label stop" (`SEC-4`).
+Where an existing `authorized_keys` is a regular file with another hard link inside that root,
+whether that other name shows the key once it is written is not decided; every rule above
+still binds the write.
 Where each root on the server's disks is one file system on one disk and no disk carries a
 volume layer, the job writes nothing to a disk other than the one that
 carries the root it writes, and it reads every other device it reads as a possible root without
 mounting it read-write and without replaying its file system's journal. "The root it writes"
-is the one root it finds whose label reads in `STG-20`'s form; where there is none, the rule
-reads with no such root. What the job's
+is the one root it finds whose label reads in `STG-20`'s form; where there is none, or more
+than one, the rule reads with no such root. What the job's
 read-write mount of the root it writes itself writes, the replay of that file system's journal
 and mount metadata included, is not decided, and
 neither is whether the job writes anything else to that root's disk. The root-label stop opens
