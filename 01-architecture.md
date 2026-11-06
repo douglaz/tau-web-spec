@@ -857,10 +857,11 @@ shows it as `STA-24`'s card for a different entry does, which “shows the unres
 that it may be billing”, and, where the replacement owes its own step of the same kind, says
 that it is its own step, such as its own email submission (`STG-21`), and where the old step is
 an email submission, that its verification link verifies nothing for the replacement. Where
-both entries use one vendor account and that step names no per-entry resource or key, it is not
-the replacement's own: `STA-22b` says it “repeats that step even when its call or request bytes
-differ”, and the card says instead that it waits for the old step's terminal record. It is
-never a re-order of the old entry or a new label for it.
+both entries use one vendor account and the replacement's step of that kind itself names no
+per-entry resource or key, `STA-22b` says it “repeats that step even when its call or request
+bytes differ”, that step being the old entry's; the card, in place of calling it the
+replacement's own step, says that it waits for the old step's terminal record and is then sent
+only as `STA-24` permits. The replacement is never a re-order of the old entry or a new label for it.
 
 **ARC-16** Recovery is a ladder. Retry; then escalate to a stronger model behind the same
 proxy; then destroy the machine and restart under a different domain, which costs a server.
