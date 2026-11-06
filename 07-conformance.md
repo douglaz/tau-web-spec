@@ -2278,7 +2278,12 @@ Not pass/fail. Required to be recorded.
       Every root the cases set up is one file system on one disk, no disk carries a volume
       layer, the rescue boot assembles or activates no volume, and the rescue boot itself writes
       nothing to any disk while `rescue_install_key` or `rescue_host_key_read` runs (`STA-17`
-      leaves the cases these exclude not decided).
+      leaves the cases these exclude not decided: `STA-17` says "what counts
+      as one root where a root is other than one file system on one disk is not
+      decided", "That includes a root under software RAID, LVM, encryption or another
+      volume layer, even on one disk" and "What either job reads where the rescue boot
+      has already assembled or activated a volume is not decided either, nor is what
+      the rescue boot itself writes to a disk while either job runs").
       (a) Without an operator acceptance no ordinal is adopted from the label and no `b-7` is
       shown; make the acceptance's append fail: no acceptance is recorded, shown or used. An
       acceptance a retained fact contradicts is refused.
