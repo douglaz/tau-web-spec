@@ -2283,7 +2283,9 @@ Not pass/fail. Required to be recorded.
       entry's server number, whatever the account's listing then shows. Give the server one root
       labelled in `STG-20`'s form beside an unlabelled one: the key lands only in the labelled
       root's `authorized_keys`, every other line kept, and that file is the root account's
-      `/root/.ssh/authorized_keys` inside it. Each in its own run, remove that file, separately
+      `/root/.ssh/authorized_keys` inside it. Give that file a last line without a terminating
+      newline: after a completed write, that line's content is kept and the key lands on its own
+      line. Each in its own run, remove that file, separately
       its `.ssh` directory, and separately `/root` itself: the job creates what is missing,
       owned by the root account, each directory with mode 700 and the file with mode 600, the
       file holding the key. Give an
@@ -2365,9 +2367,11 @@ Not pass/fail. Required to be recorded.
       response lost: the grant has not ended, that call is reconciled before any other call of
       the flow is sent, and the flow's next call is sent only once the operator approves it
       again.
-      (p) Each in its own run: the card says that approving resets the server into rescue and
-      writes the harness's client key into the `authorized_keys` of a root on its disks, and is
-      not approved until the operator enters its
+      (p) Each in its own run: the card shows the facts `STA-18`'s listing reads for the server
+      as the vendor's word at one moment, says that no saved record ties this server to this
+      harness, says that approving resets the server into rescue, rebooting whatever runs on it,
+      and writes the harness's client key into the `authorized_keys` of a root on its disks, and
+      is not approved until the operator enters its
       server number; with a different number entered it is not approved. A card whose admission
       would record `quarantined/alias_unavailable`, among them one naming a number no entry
       holds while the journal holds an association quarantined for another number and one while
