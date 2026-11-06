@@ -464,6 +464,10 @@ here is non-waivable:
   secret name and path. The harness records each placement's time later than that of every
   placement record already at that machine, application name, secret name and path, whatever the
   device clock reads, so a reported record and a later placement there never share one.
+  A later `place_secret` at a machine, application name, secret name and path already named
+  by a placement record is a rotation there, even if the earlier placement's job never
+  succeeded. A machine here is its recorded seed and machine index together. This admits
+  no overwrite at another destination and waives none of the destination checks above.
 - **`ARC-17`'s placement gates hold** — the fixed lockdown checks first, and the findings that
   refuse a secret. The card lists every lifecycle finding standing on the machine and says that
   placement clears none of them.
@@ -476,7 +480,10 @@ here is non-waivable:
   confirmation is the operator's, recorded with the placement.
 - **The placed secret is listed in the trust display** until it is rotated or the machine is
   destroyed (`SEC-6`; at LNVPS, the vendor's confirmed deletion, `SEC-5` row 12), or until the
-  operator reports it revoked (below), when it moves to history labelled operator-reported. A
+  operator reports it revoked (below), when it moves to history labelled operator-reported.
+  A first placement is listed, and its reference required, from the approved record made
+  before its bytes leave, whatever its job then does. A nonzero exit, a job that stays
+  unresolved or a disposition ends neither that listing nor that required reference. A
   rotation's new placement is listed from the record made before its bytes leave, whatever its
   job then does, and until `SEC-5` records the rotation the old placement stays beside it as it
   was, listed live or in operator-reported history.
@@ -493,6 +500,9 @@ rotation's card says, before the operator approves it, that the rotation is not 
 that revoking the old value at its service is the operator's act, which the harness does not
 verify: `SEC-5` says "The rotation claims neither revocation of the old value at its service nor
 erasure of its copies".
+The card MUST name each placement the rotation would end, by machine, application name,
+secret name, path and placement time. Its no-revocation statement covers every such
+placement's value, including an earlier attempt's value.
 
 **Re-arming after store loss is harness work.** On binding a session after local-store loss,
 every placement the sheet records on that bound set's machines without an operator report
@@ -590,7 +600,10 @@ output owes both references. Once `SEC-5`
 retires the rotated placement's reference (`SEC-5` says "P's row 23 scan key and reference end,
 and nothing re-creates them"), the re-arm above and the `exec` wait no longer require that
 placement, a paste or late digest record arms nothing for it, and the new placement's reference
-is required alone. Retiring that wait lifts this one prerequisite and clears no command
+stays required alongside every other placement the act did not end. The same wait retirement
+applies to each additional placement whose rotation that act records under `SEC-5`:
+"The same journal act also records the rotation of every earlier still-live placement without a report".
+Retiring that wait lifts this one prerequisite and clears no command
 hold, resource barrier, pending check, other unarmed-reference requirement, destructive
 restriction or unknown command outcome. Fresh output still owes every other release
 prerequisite; its scan is `SEC-5`'s, and `SEC-5` says "A rotation never counts as a scan: bytes
