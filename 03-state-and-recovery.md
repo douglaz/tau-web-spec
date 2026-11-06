@@ -1308,11 +1308,8 @@ flowchart TD
 
 **STA-15** The recovery sheet MUST be exported before a **maintained cloud** machine's setup
 completes. On Robot the ceremony always works, so there the sheet is an optimisation and stays
-optional, except that with no sheet a machine whose root label is missing or damaged, or that
-has more than one root labelled in the harness's form, or a possible root whose label probe does
-not resolve, or a labelled root whose path to `authorized_keys` is or passes through a symbolic
-link, or ends in something other than a regular file or passes through something other than a
-directory, gets no rescue rekey from the harness, no
+optional, except that with no sheet the servers named in `STA-17`'s sentence that opens
+"So with no sheet" get no rescue rekey from the harness, no
 card of that rekey is approved whose admission would record its association as
 `quarantined/alias_unavailable`, which once the journal holds an unavailable-identity risk
 record of any entry is every later card, and no card of that rekey is approved for a server
