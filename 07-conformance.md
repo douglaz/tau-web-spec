@@ -2176,7 +2176,8 @@ Not pass/fail. Required to be recorded.
       every other prerequisite of `STA-20b`, offers the reset. A key file that is a symbolic
       link is not followed.
       Disjoint successor keys can establish the new pin and offer the reset. `STG-20` says
-      "The label steers the model; nothing checks it". Destroyed-data.
+      "The label steers the model; nothing checks how the install brief uses it".
+      Destroyed-data.
 
       `STA-23` says "An ordinary visibility-only hide MUST NOT end or pause an unlocked session, clear its runtime authority, or invalidate its approvals."
       Preserve a standing dedicated reinstall approval while hidden, satisfy its original
