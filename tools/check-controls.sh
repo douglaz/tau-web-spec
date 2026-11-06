@@ -1500,11 +1500,15 @@ control "identifiers: a duplicate definition" "$IDS" \
   "printf '\n**ARC-1** A second definition of an identifier already defined.\n' >> 00-overview.md" \
   "DUPES" "ARC-1"
 
-# STA-12 is defined, cited nowhere, and not its family's highest number, so
-# removing its definition opens a gap and nothing else.
+# A synthetic lettered family isolates the gap from the corpus's citations.
+# Its complete sequence must pass; leaving its middle number undefined must
+# produce only the gap finding, even when real requirements gain new citations.
+passes "identifiers: a complete synthetic sequence" "$IDS" \
+  "printf '\n**STA-Z1** First synthetic requirement.\n**STA-Z2** Middle synthetic requirement.\n**STA-Z3** Last synthetic requirement.\n' >> 03-state-and-recovery.md"
+
 control "identifiers: an unlisted gap" "$IDS" \
-  "sed -i 's/^\*\*STA-12\*\*/**gone**/' 03-state-and-recovery.md && grep -q '^\*\*gone\*\*' 03-state-and-recovery.md" \
-  "NUMBER GAPS" "'STA-': \[12\]"
+  "printf '\n**STA-Z1** First synthetic requirement.\n**STA-Z3** Last synthetic requirement.\n' >> 03-state-and-recovery.md" \
+  "NUMBER GAPS" "'STA-Z': \[2\]"
 
 control "identifiers: an id far above its neighbours" "$IDS" \
   "printf '\n**ARC-9999** An identifier far above its neighbours.\n' >> 01-architecture.md" \
