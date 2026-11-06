@@ -308,9 +308,8 @@ placement record with a missing member or any member other than its seven.
 
 A first placement enters the export from the approved record made before its bytes leave,
 even if its job exits nonzero, stays unresolved or is disposed. Its record asserts possible
-exposure, not successful placement. A later placement at that machine, application name,
-secret name and path is a rotation there (`ARC-43`), even if the first job never succeeded;
-the rotation's new placement follows the export timing below.
+exposure, not successful placement. For which later placements are rotations at that
+destination, see `ARC-43`; a rotation's new placement follows the export timing below.
 A placement without a report is live: the export writes it until its secret is rotated or its
 machine is destroyed (`SEC-5` row 12). Its secret is rotated when `SEC-5` records the rotation
 ([ADR-0063](../adr/0063-a-rotation-is-recorded-by-its-zero-exit-job-record.md)); the recorded
