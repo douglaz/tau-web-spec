@@ -417,7 +417,7 @@ outgrown, because adding a credential means adding a row.
 | 9 | Rescue root password, in a typed adapter's response | Vendor-generated, in an API response | Never stored | Never used | Root login the harness declines to use | **Redacted before the response is recorded or reaches a model.** Under an untyped vendor scope no adapter reads the response, so a vendor-generated password is outside this row and inside model context, and is shown as that (`SEC-4`) |
 | 10 | Recovery sheet passphrase | Operator-chosen | Never stored anywhere | Operator's memory | Unwraps the sheet | Not applicable |
 | 11 | Untyped-scope credential — a vendor's included, under `SEC-4`'s untyped vendor scope | Operator | Browser memory only | Until the operator revokes or rotates it | **Unbounded at that origin** | Operator revokes at the service |
-| 12 | **Application secret placed on a machine** | Operator, on `place_secret`'s card (`ARC-43`) | Browser memory until the placing session ends, then the machine alone; briefly in the local paste re-arm card (`ARC-43`), cleared after reference construction and never persisted or sent | Machine lifetime | Whatever the application it was placed for uses it for | Machine destroyed (at LNVPS, the vendor's confirmed deletion, not the stop that stands in for a destroy, `ARC-22`), operator rotates, or the operator reports that placement revoked at its service (`ARC-43`), which ends its live listing, not its exposure |
+| 12 | **Application secret placed on a machine** | Operator, on `place_secret`'s card (`ARC-43`) | Browser memory until the placing session ends, then the machine alone; briefly in the local paste re-arm card (`ARC-43`), cleared after reference construction and never persisted or sent | Machine lifetime | Whatever the application it was placed for uses it for | Machine destroyed (at LNVPS, the vendor's confirmed deletion, not the stop that stands in for a destroy, `ARC-22`), that placement's recorded rotation (the rotation paragraph below), or the operator reports that placement revoked at its service (`ARC-43`), which ends its live listing, not its exposure |
 | 13 | ~~Injected SSH host private key~~ | — | — | — | — | **Row retired. `CHN-R3` is abandoned**: user-data stays readable from the vendor's metadata endpoint for the instance's life, so the key would be permanently re-fetchable by anything on the machine. No exception wording fixes that. |
 | 14 | **Inference account credential** (procured only) | Operator, on funding an account-free balance | Encrypted at rest; **exported in the sheet** | Until the balance is spent | The remaining balance; minting and revoking row 2; attaching a funding source (`ARC-31a`) | Spent down or abandoned — **it is bearer and cannot be revoked** |
 | 15 | **Operator seed** | Operator, at first use; backed up by the operator | Encrypted at rest; **in the operator's head or seed backup**, never in the sheet; words displayed only in `STA-23`'s ceremony | Until replaced | Deriving rows 3, 4, 7, 16 and 17 — **every maintained machine, every relay pass, every future introduction, and every declared handoff** (`STA-22`) | Replaced by a new seed on Replace (`STA-17`); the old one is not revocable, only abandoned — and it is still needed *during* Replace, until the last step that needs it is done, and for each use of a row-17 handoff allocated under it while that handoff's declared lifetime runs (`STA-17`) |
@@ -428,7 +428,7 @@ outgrown, because adding a credential means adding a row.
 | 20 | Data-encryption key (local store or sheet) | Browser CSPRNG, independent per store/export | Harness-worker memory; only an authenticated wrapped copy persists | Local store unlocked; sheet import/export operation | Decrypts the named local store or sheet, never another purpose | Cleared on lock/end; replaced on re-encryption |
 | 21 | **Jump-vendor credential**: a vendor credential supplied separately from the target's (`CHN-R6`) | Operator | Browser memory only, held by the jump-host flow; never given to a session | One jump-host flow, from the create to the confirmed destroy | Creating one jump host, reading its address and destroying it, through the jump vendor's adapter | Flow ends |
 | 22 | **Derived vendor identity** — not derivable today | — | — | — | — | No role exists for it. `STA-22` says "an implementation must not choose paths independently", and credential format v1 (`STA-22a`) defines no role, index family or known-answer vector for a vendor identity; until it does, none is derived or used (`OPN-26`) |
-| 23 | **Placed-secret scan key and reference**, per secret | Fresh independent browser-CSPRNG key `K` on placement or re-arm; reference `HMAC-SHA-256(K, SHA-256(value))` plus byte length `L` | Encrypted local store under `STA-23`; working copy only in browser memory. Neither key nor reference goes to the machine, sheet, model, transcript or app origin | Until rotation, machine destruction (at LNVPS, the vendor's confirmed deletion, not the stop that stands in for a destroy, `ARC-22`), the operator's report of that placement (`ARC-43`) or local-store loss; re-arm replaces it with a fresh key/reference | Local exact-value comparison only; no external authority | Cleared from working memory on explicit app Lock, worker shutdown or session end; an ordinary hide retains the working copy while its worker survives (`STA-23`: "An ordinary visibility-only hide MUST NOT end or pause an unlocked session, clear its runtime authority, or invalidate its approvals."); persistent copy removed on rotation, destruction or the operator's report, lost with the store |
+| 23 | **Placed-secret scan key and reference**, per secret | Fresh independent browser-CSPRNG key `K` on placement or re-arm; reference `HMAC-SHA-256(K, SHA-256(value))` plus byte length `L` | Encrypted local store under `STA-23`; working copy only in browser memory. Neither key nor reference goes to the machine, sheet, model, transcript or app origin | Until that placement's recorded rotation (the rotation paragraph below), machine destruction (at LNVPS, the vendor's confirmed deletion, not the stop that stands in for a destroy, `ARC-22`), the operator's report of that placement (`ARC-43`) or local-store loss; re-arm replaces it with a fresh key/reference | Local exact-value comparison only; no external authority | Cleared from working memory on explicit app Lock, worker shutdown or session end; an ordinary hide retains the working copy while its worker survives (`STA-23`: "An ordinary visibility-only hide MUST NOT end or pause an unlocked session, clear its runtime authority, or invalidate its approvals."); persistent copy removed on that placement's recorded rotation, destruction or the operator's report, lost with the store |
 
 For rows 5, 6, 12 and 23, LNVPS destruction means the durably recorded deletion confirmation.
 For its predicate, see `STG-21a`; for abandonment, see `ARC-22`.
@@ -560,7 +560,8 @@ cessation of comparison applies only to placements whose rotation the act record
 A completed record admitted after pre-send, before
 or after this rotation's zero-exit admission, does not enlarge this rotation's fixed end
 set retroactively. A later eligible rotation whose pre-send record follows that completed
-record's admission can end the placement under the completed-attempt rule above; its
+record's admission ends the placement when that later rotation's act is recorded under
+the completed-attempt rule above; its
 existing destruction and operator-report ends retain their terms. A disposed call's
 completed record still records no rotation of its own. The later rotation's zero-exit
 record is admitted and its rotation recorded even when it ends no predecessor; a
@@ -784,7 +785,7 @@ destruction: `ARC-43` says "A placement whose key was revoked at its service whi
 reference is armed is ended by a rotation that records that placement's rotation under `SEC-5`,
 once `ARC-17`'s placement gates admit it, or by destruction."
 ([ADR-0068](./docs/adr/0068-the-trust-display-explains-an-armed-placements-live-listing.md)).
-While the journal records that a rotation (`ARC-43`) has replaced a placement, the trust display
+While the journal records that a rotation (`ARC-43`) has ended a placement's reference, the trust display
 states beside the new placement that output produced after the rotation is not checked for the
 old value, including a later command's output that prints back a range withheld before it:
 `SEC-5` says "Output produced after the rotation is no longer compared against P's reference".
@@ -793,8 +794,10 @@ service is the operator's act, which the harness does not verify: `SEC-5` says "
 claims neither revocation of the old value at its service nor erasure of its copies"
 ([ADR-0064](./docs/adr/0064-a-rotation-is-not-a-revocation-and-the-display-says-so.md)).
 Both statements cover each earlier attempt whose reference that act ended as well as the
-old placement's: `SEC-5` says "Each such placement ends as P does under this paragraph's scan boundary"
+old placement's when that act ended it: `SEC-5` says "Each such placement ends as P does under this paragraph's scan boundary"
 and "The no-revocation and no-erasure limit applies to every value whose reference the act ends."
+Neither statement covers a placement the disposed-placement exception retains: `SEC-5`
+says "the paragraph's cessation of comparison applies only to placements whose rotation the act records".
 A sheet records no rotation (the credential format's placement record), so after a Restore from a
 later sheet the `reference_ended` statement below is what the display shows for a rotated
 placement without a report.

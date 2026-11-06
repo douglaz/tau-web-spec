@@ -67,3 +67,5 @@ the old reference.
 `SEC-6`, `ARC-43` and `CNF-95(j)` change together, and ADR-0061 notes that its last open point is
 decided here. `SEC-5`, row 23, `CNF-42` and the credential format are unchanged. The formal
 companion has no placement or scan-reference state and is unchanged.
+The later qualification for references a rotation actually ends is recorded in
+[ADR-0070](./0070-a-rotation-keeps-a-possibly-unfinished-predecessors-reference.md).

@@ -56,6 +56,8 @@ No additional retirement act, evidence form, schema member or importer change wa
   still live, not expired material kept after an end. Each actual end keeps ADR-0060's
   mark and ADR-0061's output boundary.
 - ADR-0068's armed-placement explanation now qualifies which rotation ends that placement.
+  The scan-limit statement recorded by ADR-0064 applies only to references the act actually
+  ended; it never describes a retained predecessor's value as unchecked.
   ADR-0062's unarmed-only final report and ADR-0064's no-revocation and no-erasure limits
   retain their decisions. Dispatch, authority and placement guards remain in force.
 

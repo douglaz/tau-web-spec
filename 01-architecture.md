@@ -486,7 +486,7 @@ here is non-waivable:
   unresolved, a disposition or a late completed record of a disposed call ends neither
   that listing nor that required reference. A
   rotation's new placement is listed from the record made before its bytes leave, whatever its
-  job then does, and until `SEC-5` records the rotation the old placement stays beside it as it
+  job then does, and until `SEC-5` records that old placement's rotation it stays beside the new one as it
   was, listed live or in operator-reported history.
   After a Restore the display starts from the placement records the sheet holds (`STA-16`), listing
   a record with an operator report in that history, never live. Machine
@@ -598,7 +598,7 @@ says "Destruction never counts as a scan: bytes withheld before it stay withheld
 placement's reference is required from the record made before its bytes leave, whatever its job
 then does, since from that record on its bytes may have left: `STA-4` says an intent with no
 terminal record means the call "may have been sent, never that it was not". Until `SEC-5` records
-the rotation, the reference of an old placement without a report stays required beside it, and
+that old placement's rotation, its reference without a report stays required beside the new one, and
 output owes both references. Once `SEC-5`
 retires the rotated placement's reference (`SEC-5` says "P's row 23 scan key and reference end,
 and nothing re-creates them"), the re-arm above and the `exec` wait no longer require that

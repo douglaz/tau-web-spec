@@ -337,8 +337,10 @@ For a first placement whose completed root-only job record was admitted before t
 rotation's pre-send record, the recorded rotation replaces that first placement's
 unreported sheet record. Where the disposed-placement exception in `SEC-5` retains an
 unreported first placement, the sheet keeps that first placement's record and writes none
-for its successor until the first placement ends. The general replacement sentence above
-is qualified by this case. A completed record admitted after the successor's pre-send
+for any later unreported successor until the first placement ends. This applies through
+successive recorded rotations even when one ends a completed successor: the retained first
+placement still occupies the sheet position. The general replacement sentence above
+is qualified by this case. A completed record admitted after a successor's pre-send
 does not by itself end the first placement or free its sheet position. The successor
 remains listed and required locally; a sheet exported even after its successful job can
 omit that known placement. A Restore from such a sheet restores the first placement only,
@@ -346,9 +348,10 @@ owing its re-arm from the recorded path's current bytes, and recovers neither th
 successor's identity nor separate references for both historical values. This limitation
 includes placements already known before export, not just secrets placed since export;
 for the remaining after-Restore labels and coverage treatment, see `STA-16`. Once the
-first placement ends, an otherwise exportable successor still known locally can enter a
+first placement ends, an otherwise exportable successor still live and known locally can enter a
 later sheet under the ordinary live-placement, reported-history and destruction rules;
-ending the first placement never exports a destroyed machine's unreported successor.
+ending the first placement never revives an ended successor or exports a destroyed machine's
+unreported successor.
 No sheet writes two records without a report at that destination. The first placement's
 own pre-send export start is unchanged.
 
