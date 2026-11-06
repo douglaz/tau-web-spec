@@ -2251,7 +2251,8 @@ Not pass/fail. Required to be recorded.
       its `.ssh` directory, and separately `/root` itself: the job creates what is missing,
       owned by the root account, each directory with mode 700 and the file with mode 600, the
       file holding the key. Give an
-      existing `.ssh` and file other modes and another owner: the job keeps them as they were.
+      existing `/root`, `.ssh` and file other modes and another owner: the job keeps them as they
+      were.
       Give it no root labelled in that form,
       once with no label and once with a damaged one: `rescue_install_key` writes no key, the
       flow stops unfinished, no vendor call other than the reset into the installed system is
@@ -2342,7 +2343,7 @@ Not pass/fail. Required to be recorded.
       two roots whose labels read in `STG-20`'s form takes the root-label stop: no key is
       written and only the reset back stays. So does a server with one such root beside a
       possible root whose label probe no reading resolves, for example a device every read of
-      which fails (`STA-17` leaves what makes a label probe resolve not decided). A scoped read meeting a root it cannot read, or a
+      which fails (`STA-17` leaves "what makes a label probe resolve" not decided). A scoped read meeting a root it cannot read, or a
       key file holding anything but one public key, refuses, and the reset back is neither
       offered nor sent. Neither `ready_to_reset` nor the scoped read opens a private key file,
       and nothing of a file either refuses is journaled. Each one's captured output, and so the
