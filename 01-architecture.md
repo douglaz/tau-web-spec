@@ -597,9 +597,9 @@ says "Destruction never counts as a scan: bytes withheld before it stay withheld
 **A rotation ends the old placement's wait; what was withheld stays withheld.** A rotation's new
 placement's reference is required from the record made before its bytes leave, whatever its job
 then does, since from that record on its bytes may have left: `STA-4` says an intent with no
-terminal record means the call "may have been sent, never that it was not". Until `SEC-5` records
-that old placement's rotation, its reference without a report stays required beside the new one, and
-output owes both references. Once `SEC-5`
+terminal record means the call "may have been sent, never that it was not". An old placement
+without a report keeps its reference required beside the new one's until `SEC-5` records
+that old placement's rotation, and output owes both references. Once `SEC-5`
 retires the rotated placement's reference (`SEC-5` says "P's row 23 scan key and reference end,
 and nothing re-creates them"), the re-arm above and the `exec` wait no longer require that
 placement, a paste or late digest record arms nothing for it, and the new placement's reference
