@@ -2261,7 +2261,11 @@ Not pass/fail. Required to be recorded.
       separately a directory on its path, each once pointing outside the root and once inside
       it: `rescue_install_key` writes no key anywhere, the link is not followed, the root-label
       stop is not taken, no reset into the installed system is offered or sent, the grant ends
-      and the screen below is shown.
+      and the screen below is shown. Each in its own run, make the labelled root's
+      `authorized_keys` a directory, a FIFO and a device node, and separately put a regular file
+      where its `.ssh` directory belongs, and again where `/root` belongs: `rescue_install_key`
+      writes no key anywhere, the root-label stop is not taken, no reset into the installed system
+      is offered or sent, the grant ends and the screen below is shown.
       After the root-label stop, give the server one root carrying host keys, with a file
       system journal left unreplayed by an unclean unmount: every disk's bytes are the same
       before and after `rescue_host_key_read`, the reset is offered on what it read, and its
@@ -2325,7 +2329,8 @@ Not pass/fail. Required to be recorded.
       the flow is sent, and the flow's next call is sent only once the operator approves it
       again.
       (p) Each in its own run: the card says that approving resets the server into rescue and
-      writes the harness's key to a root, and is not approved until the operator enters its
+      writes the harness's client key into the `authorized_keys` of a root on its disks, and is
+      not approved until the operator enters its
       server number; with a different number entered it is not approved. A card whose admission
       would record `quarantined/alias_unavailable`, among them one naming a number no entry
       holds while the journal holds an association quarantined for another number and one while
