@@ -2370,7 +2370,8 @@ Not pass/fail. Required to be recorded.
       (p) Each in its own run: the card shows the facts `STA-18`'s listing reads for the server
       as the vendor's word at one moment, says that no saved record ties this server to this
       harness, says that approving resets the server into rescue, rebooting whatever runs on it,
-      and writes the harness's client key into the `authorized_keys` of a root on its disks, and
+      and that approving writes the harness's client key into the `authorized_keys` of a root on
+      its disks, and
       is not approved until the operator enters its
       server number; with a different number entered it is not approved. A card whose admission
       would record `quarantined/alias_unavailable`, among them one naming a number no entry
