@@ -38,7 +38,8 @@ No restart clause of its own is added; the existing limits on worker authority, 
 and automatic retry apply.
 
 **The relabel runs in the installed system after the new-key login** (job-order A). A failed
-login leaves `a-7` untouched; a pinned host answer or a rescue login is not acceptance of the
+login leaves `a-7` untouched and stops the migration unfinished (amended 2026-11-06,
+`tw-4mz` comment 204000001); a pinned host answer or a rescue login is not acceptance of the
 key. The readback is kept apart from access, revocation and the completion of Replace, and the
 machine counts as migrated only when a read shows `b-7`. Whether that placement can relabel and
 read back the mounted root safely still needs implementation evidence.

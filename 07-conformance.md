@@ -2334,6 +2334,21 @@ Not pass/fail. Required to be recorded.
       stands as no prerequisite read: a later read of the installed system's own keys, meeting
       every other prerequisite of `STA-20b`, offers the reset. A key file that is a symbolic
       link is not followed.
+      Each in its own run, give `ready_to_reset` no entry matching `ssh_host_*_key.pub`,
+      and give it only matching entries that are symbolic links to a valid host-key set that
+      is not rescue's: the read refuses, no link is followed, no pin or prerequisite result
+      of it is journaled, no reset into the installed system is offered or dispatched,
+      including through a separately requested typed operation, and the operator is told
+      before reboot. The refusal creates no first durable prerequisite read.
+      Repeat after an earlier valid durable read and an already-rendered reset approval:
+      the refusal withholds the offer and that approval's dispatch, while every earlier pin,
+      record and first-read anchor stays intact. In an independently admitted ordinary-job
+      run with no other withholding condition, a later durable read matching that first
+      anchor and meeting every other prerequisite permits the offer again; one with different
+      keys does not. In a separate run with a first prerequisite read that overlaps an earlier
+      installation, a refusal and later disjoint read do not lift that installation's
+      permanent withholding. No case supplies authority for a later read or renews an ended
+      grant.
       Disjoint successor keys can establish the new pin and offer the reset. `STG-20` says
       "The label steers the model; nothing checks how the install brief uses it".
       Destroyed-data.
@@ -2352,11 +2367,12 @@ Not pass/fail. Required to be recorded.
       vendor-authenticated rescue to a fresh-seed index `b`, its one root labelled `a-7`.
       Every root the cases set up is one file system on one disk, no disk carries a volume
       layer, the rescue boot assembles or activates no volume, and the rescue boot itself writes
-      nothing to any disk while `rescue_install_key` or `rescue_host_key_read` runs (`STA-17`
-      leaves the cases these exclude not decided: `STA-17` says "what counts
+      nothing to any disk while `rescue_install_key` or `rescue_host_key_read` runs (this fixture
+      is deliberately restricted; the related open points have their home in `STA-17`:
+      `STA-17` says "what counts
       as one root where a root is other than one file system on one disk is not
-      decided", "That includes a root under software RAID, LVM, encryption or another
-      volume layer, even on one disk" and "What either job reads where the rescue boot
+      decided"; `STA-17` says "That includes a root under software RAID, LVM, encryption or another
+      volume layer, even on one disk"; `STA-17` says "What either job reads where the rescue boot
       has already assembled or activated a volume is not decided either, nor is what
       the rescue boot itself writes to a disk while either job runs").
       (a) Without an operator acceptance no ordinal is adopted from the label and no `b-7` is
@@ -2371,10 +2387,16 @@ Not pass/fail. Required to be recorded.
       (c) Restart the worker and resume the unchanged migration: it continues from the
       journaled acceptance without asking again. A different target or a changed proposal is
       refused, and nothing is retried automatically.
-      (d) Make the new-key login to the installed system fail: no relabel job is sent and the
-      label still reads `a-7`. A pinned host answer or a login in rescue does not stand in
-      for that login. Let it succeed: the relabel write and its readback run in the installed
-      system, never in rescue.
+      (d) With 7 accepted and the reset into the installed system confirmed, make the new-key
+      login fail: the migration stops unfinished, no relabel intent, relabel write or old-key
+      removal is sent, the label still reads `a-7`, and the new and old keys remain.
+      `b-7` stays the pending destination marked unconfirmed, with `a-7` shown as an as-of
+      observation; migration, Replace and revocation are not reported complete, also after
+      restart. The existing post-stop re-entry conditions apply without supplying successful
+      access or renewed vendor authority. A run without acceptance shows no `b-7`.
+      A pinned host answer or a login in rescue does not stand in for the installed-system
+      login. In a separate successful-login run, the relabel write and its readback run in the
+      installed system, never in rescue; this is not a continuation of the stopped run.
       (e) Report `a-9` for the same root before the write: the migration stops unfinished
       with no relabel intent and no write, no 9 is adopted, the acceptance and both
       observations are retained under 7, and no hold is created. Restart the worker after
@@ -2434,6 +2456,12 @@ Not pass/fail. Required to be recorded.
       where its `.ssh` directory belongs, and again where `/root` belongs: `rescue_install_key`
       writes no key anywhere, the root-label stop is not taken, no reset into the installed system
       is offered or sent, the grant ends and the screen below is shown.
+      In a separate run with no pending journal replay affecting the file, make that root's
+      regular `authorized_keys` another hard link to an unrelated root-owned regular file
+      inside the same root, in a `.ssh` directory controlled by an actor who cannot directly
+      edit that file: the job refuses, writes no key anywhere, and the unrelated file's
+      contents, mode and owner are unchanged. The root-label stop is not taken, no reset into
+      the installed system is offered or sent, the grant ends and the screen below is shown.
       After the root-label stop, give the server one root carrying host keys, with a file
       system journal left unreplayed by an unclean unmount: every disk's bytes are the same
       before and after `rescue_host_key_read`, the reset is offered on what it read, and its

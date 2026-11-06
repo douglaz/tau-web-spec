@@ -283,7 +283,7 @@ whose filesystem label equals the installation id the harness shows (`STG-20`). 
 installed system's keys requires a destructive reinstall. The reset into the installed system
 MUST NOT be offered when the newest `ready_to_reset` read differs from the active installed pin;
 the operator is told then, before reboot. It MUST NOT be offered either when `ready_to_reset`
-refuses a file it reads (`ARC-43`), or when a key it read shares a fingerprint with the current
+refuses its read (`ARC-43`), or when a key it read shares a fingerprint with the current
 rescue boot's own pin: `CHN-R1` says "Every rescue boot has fresh host keys", so a match means
 the read did not reach the installed system's keys or that system would answer with the rescue
 boot's, and a reset confirmed on them could not be told from a server still in rescue; the
@@ -296,6 +296,13 @@ installation's prerequisite read or installed-system pin of that machine, or wit
 scoped host-key read of it; the operator is told
 then, before reboot. The offer MUST use the current installation's durable prerequisites to
 make the offer; earlier installations' records are read only to withhold it.
+
+A no-public-key refusal under `ARC-43` MUST withhold both the offer and dispatch of the reset
+into the installed system, even when an earlier read supplied prerequisites or an approval
+was already rendered. Earlier pins and durable prerequisite reads stay intact; the refusal
+is not a first durable prerequisite read. A later independently admitted read lifts this
+refusal's withholding only under every prerequisite here, including the retained first-read
+anchor; it revives no ended authority.
 
 After an unexpected rescue reboot, a changed boot ID proves the old command cannot still be
 running; it does **not** prove its effects or exit status. Missing output, a missing job record,
@@ -318,6 +325,10 @@ it, and the keys of a read sharing a fingerprint with the rescue boot's pin neve
 since `ready_to_reset` journals neither a pin nor a prerequisite result of that read;
 `TauWeb.Pins` carries no such refusal, which is
 Markdown-only.
+The no-public-key refusal and its connection to withholding are Markdown-only too. The
+companion's list of durable prerequisite reads uses one opaque ordinal for each key set;
+nonemptiness of that list is not a public-key cardinality check. The companion does not carry
+file discovery or establish how this refusal maps to a collection without a durable result.
 `TauWeb.Dispatch.installationOf` derives that boundary from the journal's vendor reinstall
 call, the reset into rescue that dispatches a standing reinstall disposition, or the reset
 bound to a separately journaled reinstall approval not withdrawn since.
@@ -1593,7 +1604,10 @@ authenticated by the machine's own current key under its existing pin, once that
 its own check (`STA-22b`): derived and compared for a machine of the payload's seed, and the
 deferred check for a machine still under a retired seed, which needs that machine's own seed. It
 takes out exactly the pending removal's recorded key, keeping the current key and every other
-authorization, and derives nothing from the seed that key was allocated under. One journal act
+authorization, and derives nothing from the seed that key was allocated under.
+For a regular file at a removal target that has another hard link before the removal, see
+the rescue rekey's old-key removal below.
+One journal act
 ends a pending removal once a harness-composed read of the machine's authorized keys, from
 captured job output (`ARC-43`), shows that key absent and is durably appended; one whose key is
 already absent, as after a removal whose result was lost, ends at the first such read. A failed
@@ -1703,11 +1717,10 @@ it refuses a path to `authorized_keys` that is a symbolic link or passes through
 writes no key. It also refuses a path to `authorized_keys` that ends in something other than a
 regular file or passes through something other than a directory, and then writes no key; that
 refusal reaches only what exists, so a missing file, `.ssh` or `/root` is created as above and
-not refused. Neither refusal is the root-label stop: each is a failure of the flow, and the grant ends "on a failure
-other than `STA-17`'s root-label stop" (`SEC-4`).
-Where an existing `authorized_keys` is a regular file with another hard link inside that root,
-whether that other name shows the key once it is written is not decided; every rule above
-still binds the write.
+not refused. It also refuses an existing regular `authorized_keys` file with a total link
+count greater than one, writes no key and, on that refusal, does not alter that file's contents.
+None of these refusals is the root-label stop: each is a failure of the flow, and the grant
+ends "on a failure other than `STA-17`'s root-label stop" (`SEC-4`).
 Where each root on the server's disks is one file system on one disk and no disk carries a
 volume layer, the job writes nothing to a disk other than the one that
 carries the root it writes, and it reads every other device it reads as a possible root without
@@ -1716,7 +1729,10 @@ is the one root it finds whose label reads in `STG-20`'s form; where there is no
 than one, the rule reads with no such root. What the job's
 read-write mount of the root it writes itself writes, the replay of that file system's journal
 and mount metadata included, is not decided, and
-neither is whether the job writes anything else to that root's disk.
+neither is whether the job writes anything else to that root's disk, nor when its read-write
+mount ends on a successful, failed or stopped path. `ARC-43` says `ready_to_reset`
+"unmounts the target, and only then offers the reset typed operation"; that does not specify
+when this job's read-write mount ends or identify the two jobs' mounts.
 Where the job writes the key, what mounts a root at `/mnt` for `ready_to_reset`'s read of the
 host keys before the reset into the installed system is not decided (`ARC-43` says
 `ready_to_reset` "reads `/mnt/etc/ssh/ssh_host_*_key.pub`, following no symbolic link").
@@ -1727,8 +1743,9 @@ acceptance, and the operator's approval stays the only tie between this server a
 So with no sheet, a server whose root label is missing or damaged, or that has more than one
 root whose label reads in that form, or a possible root whose label probe does not resolve, or
 a labelled root whose path to `authorized_keys` is or passes through a symbolic link, or ends in
-something other than a regular file or passes through something other than a directory, gets no
-rescue rekey from the harness, and nothing here grants a reinstall or an erasure to repair it.
+something other than a regular file or passes through something other than a directory, or
+whose existing regular `authorized_keys` in that root has a total link count greater than one,
+gets no rescue rekey from the harness, and nothing here grants a reinstall or an erasure to repair it.
 For this job and for `rescue_host_key_read` below, what counts as one root where a root is other
 than one file system on one disk is not decided. That includes a root under software RAID, LVM,
 encryption or another volume layer, even on one disk. What either job reads where the rescue boot
@@ -1817,8 +1834,9 @@ On this path the relabel is the same `replace_root_label` job (`ARC-43`), record
 transmission (`ARC-8`) with its machine-side job record (`STA-20`), and it writes `b-7`. It MUST
 run in the installed system, and only after the installed system accepts a login authenticated
 with the new client key; the harness then confirms the write by a harness-composed read of the
-label, as above. A failed new-key login leaves `a-7` untouched. A pinned host answer, or an
-authentication in rescue, is not installed-system acceptance of the key. The captured readback
+label, as above. A failed new-key login leaves `a-7` untouched, and the flow MUST stop this
+migration unfinished: it issues no relabel intent or write and removes no key. A pinned host
+answer, or an authentication in rescue, is not installed-system acceptance of the key. The captured readback
 confirms the label only, and is kept distinct from installed access, old-key revocation and the
 completion of Replace. Until a read of the label succeeds, the harness MUST re-read it on each
 later connection to the machine, once `STA-20` and `STA-24` admit the re-read; re-issuing the
@@ -1847,7 +1865,13 @@ confirmed `b-7` readback. It keeps the new key and unrelated authorizations. Mis
 material is not missing public identity, and no impossible old-key login test is reported
 passed. A key those records do not identify stays untouched and revocation is reported
 incomplete; it supplies no deletion target, no replacement of the whole key file and no new
-command hold. A removal supports only its scoped effect. The changed-label stop removes no key.
+command hold. A removal supports only its scoped effect.
+For this removal and for the removal of a pending removal's key (above), where a regular file
+at a removal target has another hard link before the removal, whether that other name still
+shows the key after the removal is not decided. Only that other name's
+result is open; each removal's own rules still bind it unchanged, including what ends a
+pending removal.
+The changed-label stop removes no key.
 
 While this flow runs, no ordinary session binds the machine. Once it has stopped unfinished,
 unless its entry carries the wrong-server record above, the operator MAY bind one through `SEC-1`'s re-entry; `SEC-1` says "by re-entry, on a maintained
