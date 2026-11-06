@@ -1311,7 +1311,8 @@ completes. On Robot the ceremony always works, so there the sheet is an optimisa
 optional, except that with no sheet a machine whose root label is missing or damaged, or that
 has more than one root labelled in the harness's form, or a possible root whose label probe does
 not resolve, or a labelled root whose path to `authorized_keys` is or passes through a symbolic
-link, gets no rescue rekey from the harness, no
+link, or ends in something other than a regular file or passes through something other than a
+directory, gets no rescue rekey from the harness, no
 card of that rekey is approved whose admission would record its association as
 `quarantined/alias_unavailable`, which once the journal holds an unavailable-identity risk
 record of any entry is every later card, and no card of that rekey is approved for a server
@@ -1666,7 +1667,7 @@ destinations is not decided. Every call of the flow is checked against that entr
 never against a listing of the account's servers. How the flow ties the credential it calls
 under to the entry's account reference is not decided. In rescue, before the new client key is
 written, the `rescue_install_key` job (`ARC-43`) MUST find, in its own harness-composed read of
-the installed system's root labels, a root whose label reads in `STG-20`'s form, and it adds the
+the root labels on the server's disks, a root whose label reads in `STG-20`'s form, and it adds the
 key to the root account's `authorized_keys` in that root (`/root/.ssh/authorized_keys` inside
 it), keeping every other line. Where that file or its `.ssh` directory is missing, the job
 creates what is missing, owned by the root account, the directory with mode 700 and the file
@@ -1678,9 +1679,12 @@ the installed system, the one vendor call left to the grant (`SEC-4`), under tha
 prerequisites (`STA-20b`), which the scoped read below may meet. Writing the key, and creating
 that file or directory, the job follows no symbolic link and writes no file outside that root:
 it refuses a path to `authorized_keys` that is a symbolic link or passes through one, and then
-writes no key. That refusal is not the root-label stop: it is a failure of the flow, so the
-grant ends on it (`SEC-4`). Where each root on the server's disks is one file system on one disk
-and no disk carries a volume layer, the job writes nothing to a disk other than the one that
+writes no key. It also refuses a path to `authorized_keys` that ends in something other than a
+regular file or passes through something other than a directory, and then writes no key. Neither
+refusal is the root-label stop: each is a failure of the flow, and the grant ends "on a failure
+other than `STA-17`'s root-label stop" (`SEC-4`).
+Where each root on the server's disks is one file system on one disk and no disk carries a
+volume layer, the job writes nothing to a disk other than the one that
 carries the root it writes, and it reads every other device it reads as a possible root without
 mounting it read-write and without replaying its file system's journal. What the job's
 read-write mount of the root it writes itself writes, the replay of that file system's journal
@@ -1691,7 +1695,8 @@ proves nothing: it establishes no identity, authenticates no root contents and s
 acceptance, and the operator's approval stays the only tie between this server and its entry.
 So with no sheet, a server whose root label is missing or damaged, or that has more than one
 root whose label reads in that form, or a possible root whose label probe does not resolve, or
-a labelled root whose path to `authorized_keys` is or passes through a symbolic link, gets no
+a labelled root whose path to `authorized_keys` is or passes through a symbolic link, or ends in
+something other than a regular file or passes through something other than a directory, gets no
 rescue rekey from the harness, and nothing here grants a reinstall or an erasure to repair it.
 For this job and for `rescue_host_key_read` below, what counts as one root where a root is other
 than one file system on one disk is not decided. That includes a root under software RAID, LVM,
