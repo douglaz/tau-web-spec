@@ -1007,6 +1007,16 @@ own identity, resource, key and account is not a repeat, even when it is of the 
 carries the same operator address, such as `STG-21`'s email submission to the replacement's own
 account; where both entries use one vendor account, a step there that names the replacement's
 own resource and key is its own step.
+Where both entries use one vendor account, a step there names a per-entry resource or key
+when, and only when, its request or the confirmation predicate its adapter specifies before
+send identifies the replacement's key derived at its reserved index (`STA-22`) or the vendor
+machine id associated to its approved entry (`STA-24`) as a fact of that operation rather than
+incidental context; the resource its intent record names, its approval, shared-account
+authentication, a label or another incidental argument alone supplies neither fact.
+Subject to the reuse or repetition refusals above, a step there naming only the replacement's
+own key or only its own resource is also its own step, whether of the same or a different
+kind. These classifications read the specified request and confirmation contract before
+send, never an observed successful outcome of the proposed dispatch.
 Every barrier, hold and pause `STA-24` sets applies to that step on its own terms, so a step
 sent through a later untyped vendor scope at the same exact origin is barred by that scope's
 inheritance (ADR-0054). Where both entries use one vendor account, a replacement's step into it
@@ -1015,7 +1025,19 @@ key, such as an account-level email submission, repeats that step even when its 
 bytes differ. Owing such a step does not refuse the act: the step is refused at its dispatch
 while the old step is unresolved, and once the old step has a terminal record, a disposition
 included, the act no longer refuses it and it may be sent only as `STA-24` permits after that
-record. Opening the old step's verification link at the operator's shared address verifies
+record. If several old preparation calls in that account are of the proposed step's kind,
+this dispatch wait remains until every such call has a valid durable terminal record;
+terminalizing only one releases no other call's wait, and a failed append leaves that call
+unresolved. Ending this wait sends nothing automatically.
+For this shared-account rule, kind is the actual operation specified by its owning
+requirement, not an adapter's or caller's chosen name: different calls, endpoints, HTTP
+methods or request spellings implementing the same specified operation remain of that kind.
+Subject to the other reuse or repetition refusals above, a step there naming neither
+per-entry fact is its own step when no unresolved preparation step of the old entry in that
+account is of its kind. Possible overlap in account state alone adds no refusal by this
+act and establishes no independence of external effects; every independent dispatch check
+still applies.
+Opening the old step's verification link at the operator's shared address verifies
 nothing for the replacement, whose order waits for verified status under its own identity
 (`STG-21`). Replay, export and import preserve the predecessor link and these restrictions
 without redispatch. The act removes no actual bound machine and grants no larger set (`SEC-1`).
