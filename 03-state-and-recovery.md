@@ -1669,24 +1669,27 @@ under to the entry's account reference is not decided. In rescue, before the new
 written, the `rescue_install_key` job (`ARC-43`) MUST find, in its own harness-composed read of
 the root labels on the server's disks, a root whose label reads in `STG-20`'s form, and it adds the
 key to the root account's `authorized_keys` in that root (`/root/.ssh/authorized_keys` inside
-it), keeping every other line. Where that file or its `.ssh` directory is missing, the job
-creates what is missing, owned by the root account, the directory with mode 700 and the file
-with mode 600; it changes no mode or owner of anything it does not create. If it finds none, or
+it), keeping every other line. Where that file, its `.ssh` directory or `/root` itself is
+missing, the job creates what is missing, owned by the root account, each directory with mode
+700 and the file with mode 600; it changes no mode or owner of anything it does not create. If it finds none, or
 more than one, or a label probe it makes of a device it reads as a possible root does not resolve, which is
 the root-label stop, the job writes no key and the flow stops unfinished, except for
 the reset into
 the installed system, the one vendor call left to the grant (`SEC-4`), under that reset's own
 prerequisites (`STA-20b`), which the scoped read below may meet. Writing the key, and creating
-that file or directory, the job follows no symbolic link and writes no file outside that root:
+what is missing, the job follows no symbolic link and writes no file outside that root:
 it refuses a path to `authorized_keys` that is a symbolic link or passes through one, and then
 writes no key. It also refuses a path to `authorized_keys` that ends in something other than a
-regular file or passes through something other than a directory, and then writes no key. Neither
-refusal is the root-label stop: each is a failure of the flow, and the grant ends "on a failure
+regular file or passes through something other than a directory, and then writes no key; that
+refusal reaches only what exists, so a missing file, `.ssh` or `/root` is created as above and
+not refused. Neither refusal is the root-label stop: each is a failure of the flow, and the grant ends "on a failure
 other than `STA-17`'s root-label stop" (`SEC-4`).
 Where each root on the server's disks is one file system on one disk and no disk carries a
 volume layer, the job writes nothing to a disk other than the one that
 carries the root it writes, and it reads every other device it reads as a possible root without
-mounting it read-write and without replaying its file system's journal. What the job's
+mounting it read-write and without replaying its file system's journal. "The root it writes"
+is the one root it finds whose label reads in `STG-20`'s form; where there is none, the rule
+reads with no such root. What the job's
 read-write mount of the root it writes itself writes, the replay of that file system's journal
 and mount metadata included, is not decided, and
 neither is whether the job writes anything else to that root's disk. The root-label stop opens

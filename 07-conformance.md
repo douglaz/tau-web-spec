@@ -2190,6 +2190,10 @@ Not pass/fail. Required to be recorded.
       (`STA-17`, `STG-20`, `STA-16`, ADR-0056). These are **dedicated-path evidence** under the
       applicability table. Recover a dedicated machine with no recovery sheet through
       vendor-authenticated rescue to a fresh-seed index `b`, its one root labelled `a-7`.
+      Every root the cases set up is one file system on one disk, no disk carries a volume
+      layer, the rescue boot assembles or activates no volume, and the rescue boot itself writes
+      nothing to any disk while `rescue_install_key` or `rescue_host_key_read` runs (`STA-17`
+      leaves the cases these exclude not decided).
       (a) Without an operator acceptance no ordinal is adopted from the label and no `b-7` is
       shown; make the acceptance's append fail: no acceptance is recorded, shown or used. An
       acceptance a retained fact contradicts is refused.
@@ -2237,21 +2241,18 @@ Not pass/fail. Required to be recorded.
       without another write, and only that read confirms `b-7`; nothing rewrites the label
       automatically. Make the relabel job fail, or let the write succeed and the read show
       another label: the machine is not migrated and the old key stays.
-      (l) Every root the cases of (l) through (p) set up is one file system on one disk, no disk
-      carries a volume layer, the rescue boot assembles or activates no volume, and the rescue
-      boot itself writes nothing to any disk while `rescue_install_key` or
-      `rescue_host_key_read` runs (`STA-17` leaves the cases these exclude not decided). With no
-      saved history, the flow's card names one server number and
+      (l) With no saved history, the flow's card names one server number and
       preselects nothing; until it is approved, none of the flow's calls is sent, and a
       failed append of the approval sends none. Every call that names a server names the approved
       entry's server number, whatever the account's listing then shows. Give the server one root
       labelled in `STG-20`'s form beside an unlabelled one: the key lands only in the labelled
       root's `authorized_keys`, every other line kept, and that file is the root account's
-      `/root/.ssh/authorized_keys` inside it. Each in its own run, remove that file, and
-      separately its `.ssh` directory: the job creates what is missing, owned by the root
-      account, the directory with mode 700 and the file with mode 600, the file holding the
-      key. Give an
-      existing `.ssh` and file other modes and another owner: the job keeps them as they were.
+      `/root/.ssh/authorized_keys` inside it. Each in its own run, remove that file, separately
+      its `.ssh` directory, and separately `/root` itself: the job creates what is missing,
+      owned by the root account, each directory with mode 700 and the file with mode 600, the
+      file holding the key. Give an
+      existing `/root`, `.ssh` and file other modes and another owner: the job keeps them as they
+      were.
       Give it no root labelled in that form,
       once with no label and once with a damaged one: `rescue_install_key` writes no key, the
       flow stops unfinished, no vendor call other than the reset into the installed system is
@@ -2341,7 +2342,8 @@ Not pass/fail. Required to be recorded.
       flow is sent. A server with
       two roots whose labels read in `STG-20`'s form takes the root-label stop: no key is
       written and only the reset back stays. So does a server with one such root beside a
-      possible root whose label probe does not resolve. A scoped read meeting a root it cannot read, or a
+      possible root whose label probe no reading resolves, for example a device every read of
+      which fails (`STA-17` leaves "what makes a label probe resolve" not decided). A scoped read meeting a root it cannot read, or a
       key file holding anything but one public key, refuses, and the reset back is neither
       offered nor sent. Neither `ready_to_reset` nor the scoped read opens a private key file,
       and nothing of a file either refuses is journaled. Each one's captured output, and so the
