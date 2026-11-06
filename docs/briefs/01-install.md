@@ -47,8 +47,8 @@ reconnect through the harness; do not try to re-pin anything.
 
 You stop when the installed system is on the disk and you have requested `ready_to_reset`.
 That job reads the installed host public keys from `/mnt`, journals their fingerprints,
-unmounts, and offers the reset to the operator unless `STA-20b` withholds it: changed keys,
-an earlier installation's keys, or no durable result. The operator is then told before reboot.
+unmounts, and offers the reset to the operator only under `STA-20b`'s prerequisites.
+The operator is told of a refusal before reboot; `ARC-43` owns the job's read refusals.
 **You do not reboot and you do not unmount.**
 If the installed system does not answer within `installed.wait_max` (`bundle/timing.toml`),
 the harness reports unreachability and offers a reinstall (`STG-20`). It first reconciles
@@ -260,11 +260,11 @@ strength of this brief.
 ## Step 8 — request `ready_to_reset`
 
 Request the harness job. It reads `/mnt/etc/ssh/ssh_host_*_key.pub`, following no symbolic
-link and reading no private key file, refuses a file holding anything but one public key,
-derives the fingerprints and journals them as pins, except those of a read sharing the rescue
+link and reading no private key file, applies `ARC-43`'s read refusals and, on a non-refused
+read, derives the fingerprints and journals them as pins, except those of a read sharing the rescue
 boot's pin, syncs and unmounts `/mnt`, and offers the reset typed
 operation to the operator (`STG-4`, `CNF-22`), unless `STA-20b` withholds it for changed keys,
-an earlier installation's keys, a key sharing the rescue boot's pin, a refused file, or no
+an earlier installation's keys, a key sharing the rescue boot's pin, a refused read, or no
 durable result; the operator is then told before reboot.
 Once the reset is offered and approved, the harness resets and connects to the installed system
 with those keys and nothing else. On this run the keys on the wire after the reboot were
