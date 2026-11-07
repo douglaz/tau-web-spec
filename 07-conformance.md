@@ -911,15 +911,15 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       keys come from the harness's own `ready_to_reset` job output (`ARC-43`); verified by
       having the model emit a different key in its text and confirming the pin is the job's.
 
-      Exercise the ordinary dedicated ceremony's consumer-side destination rule
+      Exercise the ordinary install ceremony's consumer-side destination rule
       (`CHN-16`) with otherwise valid pins and relay authorization. The build-named
       Robot host is recorded before the first tunneled Robot call. A server-specific
       Robot read returns the approved entry's requested server number and a host;
       its journaled matching record precedes dialing, signing an addition or asking
       for recording. Refuse each action with a missing or different response-carried
       number, a locally attached expected number alone, an account-list source, a
-      relay/model-supplied host or a failed source-record append. Exercise the dial
-      refusal with an already recorded pass. Reuse a retained matching read without
+      relay/model-supplied host or a failed source-record append. Exercise those
+      source refusals before dialing with an already recorded pass. Reuse a retained matching read without
       demanding a new source read merely for another connection. Existing account,
       binding and dispatch checks still apply; no additional account-proof method
       is supplied by this case.

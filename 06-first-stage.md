@@ -307,7 +307,7 @@ sequenceDiagram
     OP->>B: bind this session to this machine
     Note over B: derives a keypair for<br/>THIS machine only — SEC-1, STA-22
     Note over B,RL: Robot serves no CORS headers, so these<br/>ride a browser-terminated TLS session<br/>pinned to Robot's issuer — CHN-12a, STG-3a
-    Note over B,RL: Robot's build-named host is recorded first;<br/>destination sources and signed-addition approval — CHN-16
+    Note over B,RL: Relay destination sources and admission — CHN-16
     B->>RL: open tunnel to Robot
     B->>RB: register client public key (typed op 1)
     B->>RB: activate rescue with that fingerprint (typed op 2)
@@ -316,7 +316,7 @@ sequenceDiagram
     B->>RB: reset, to boot into rescue (typed op 3)
     B->>RB: poll /boot/{n}/rescue/last after boot
     RB-->>B: booted rescue host-key fingerprints
-    Note over B,RL: Server host from a journaled server-specific Robot reply<br/>carrying the requested server number — CHN-16;<br/>concrete approval before any signed addition
+    Note over B,RL: Server destination source and admission — CHN-16
     Note over B: pin the rescue fingerprint before SSH
     B->>RL: open WebSocket
     RL->>M: TCP :22
@@ -360,7 +360,7 @@ server** (`docs/findings/2026-09-08-first-stage-rehearsal.md`). The activation r
 carries a generated **root password**; it is never used on this route, and it is **redacted
 before the response is recorded or reaches a model**.
 
-For the ordinary dedicated ceremony's relay-destination source and signed-addition
+For the ordinary install ceremony's relay-destination source and signed-addition
 admission, see `CHN-16`.
 
 **Every Robot mutation journals intent before it is sent (`STA-4`) and is confirmed by

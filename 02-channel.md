@@ -693,7 +693,7 @@ closes its live connections and refuses new ones (`PAS-5`), which is the teardow
 was waiting for. For revocation's rationale, see that set's ADR 0003; for eligible-target
 equality and unavailable coverage, see `ARC-41`.
 
-**The ordinary dedicated ceremony's destinations** (`STG-4`;
+**The ordinary install ceremony's destinations** (`STG-4`;
 [ADR-0071](./docs/adr/0071-the-dedicated-ceremony-uses-a-vendor-read-and-approves-concrete-destinations.md)).
 The Robot API host comes from the build: `CHN-12a` says "A vendor API is named at
 build time and there are a handful of them." That host MUST already be recorded on
@@ -713,8 +713,10 @@ and its relation to the approved entry before dialing that host, signing or send
 its addition, or asking to have it recorded. Without that journaled matching read
 it makes none of those actions, even on a pass whose destination is already recorded.
 A retained matching read suffices for a later dial; this selects no fresh read per
-connection or address-refresh policy. The rule creates no binding, waives no
-existing account or dispatch check, and selects no new proof that the credential
+connection or address-refresh policy. This source-before-dial rule governs the
+ordinary install ceremony; address admission on later maintained-machine re-entry
+or Restore is not decided here. The rule creates no binding, waives no
+existing account, binding or dispatch check, and selects no new proof that the credential
 matches the entry's account reference or procedure for making that match. It is
 not permission to use a wrong account.
 
@@ -727,7 +729,8 @@ its relation to the approved machine entry. It MUST show that recording authoriz
 the host on the shared any-port terms, not only the port used for that purpose.
 One approval MAY cover additions whose concrete hosts and sources are already
 known; a server host learned later requires approval of that concrete addition.
-A binding alone or a newly journaled address supplies no such approval.
+A build-named API host, a binding alone or a newly journaled address supplies no
+such approval.
 
 Before signing or sending, the harness MUST durably record the exact approved
 request, approval decision and idempotency identity: `STA-4` says "A side-effecting
@@ -742,7 +745,7 @@ Reconnecting to a host already recorded on the same pass requires no new
 destination-addition approval merely by reconnecting, and waives no other admission
 check.
 
-These are consumer-side rules for the ordinary dedicated ceremony, not relay-side
+These are consumer-side rules for the ordinary install ceremony, not relay-side
 proof of destination ownership. They change neither the shared eligible-host policy
 nor host-key admission. They select no pass-procurement or recording wire, hand-recording
 mechanism, addition retry class, reconciliation predicate, resource-barrier mapping,
