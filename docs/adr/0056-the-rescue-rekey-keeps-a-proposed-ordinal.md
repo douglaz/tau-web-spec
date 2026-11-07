@@ -98,6 +98,7 @@ the display rule that the history reads unknown, never unpinned, stands.
 | Changed label | A separate new confirmation of the same 7. |
 | Changed label | Merge it with late-sheet conflict rules. |
 | Changed label | A compare-and-set inside the relabel job. |
+| Refused ordinary read after the key write | Keep the flow running for an operator-chosen later read. |
 | Restart | A restart clause of its own. |
 | Reinstall admission | B: refuse whenever the comparison includes unavailable history. |
 | Reinstall admission | Reading A as no relaxation of `STG-20`. |

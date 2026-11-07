@@ -2394,13 +2394,15 @@ Not pass/fail. Required to be recorded.
       refuses without opening or reading the offending entry, journals no pin or prerequisite
       result, creates no first-read anchor, and withholds offer and dispatch with the operator
       told before reboot. Repeat the mixed FIFO and mixed socket cases, in separate runs,
-      after an earlier good durable read and a rendered reset approval, using the same valid
-      regular key: the retained approval cannot dispatch and every earlier pin, record and
-      first-read anchor stays intact.
+      after an earlier good durable read and a rendered reset approval, using a valid regular
+      key matching that earlier read's first-read anchor: the offer and that retained approval's
+      dispatch stay withheld and every earlier pin, record and first-read anchor stays intact.
       In a separate mixed regular-file/symbolic-link run, the entire read refuses, follows no
-      link, supplies no partial pin or prerequisite result and withholds offer and dispatch.
-      For each of `/mnt`, `/mnt/etc` and `/mnt/etc/ssh`, each in its own run make that parent
-      missing, a symbolic link and an existing non-directory: the entire read refuses, follows
+      link, supplies no partial pin or prerequisite result, creates no first-read anchor,
+      preserves earlier pins, records and anchors and withholds offer and dispatch.
+      For each of `/mnt`, `/mnt/etc` and `/mnt/etc/ssh`, and for each of these reasons in its
+      own run, make that parent missing, a symbolic link, or an existing non-directory:
+      the entire read refuses, follows
       no link, supplies no pin or prerequisite result, preserves earlier pins, records and
       anchors and withholds offer and dispatch. No case supplies a repair, mount or retry duty.
       Restart after a discovery refusal, once with no earlier prerequisite read and once with
@@ -2410,7 +2412,7 @@ Not pass/fail. Required to be recorded.
       and retained-approval dispatch stay withheld. A successful append permits lifting this
       refusal's withholding only under every other prerequisite; neither restart nor an old
       approval waives one.
-      In one new same-installation late-result run, an earlier admitted `ready_to_reset`
+      In one same-installation late-result run, an earlier admitted `ready_to_reset`
       completes and its good durable result supplies the first-read anchor and a rendered
       reset approval. A newer admitted read refuses with no matching public-key file.
       Re-collect the older completed command's result: it remains that command's historical
@@ -2536,7 +2538,7 @@ Not pass/fail. Required to be recorded.
       admitted ordinary `ready_to_reset`, each in its own run: no matching public-key file;
       and a valid regular public-key file sharing a fingerprint with rescue's pin. Each read
       refuses, journals no pin or prerequisite result, creates no first-read anchor, stops the
-      migration unfinished and ends any still-standing grant. The failure screen below is
+      migration unfinished and ends any still-standing grant. The screen below is
       shown; no reset back or further `ready_to_reset` through the stopped flow is sent,
       including after restart. These conditional fixtures select no mount actor or arrangement
       and do not identify the fixed path's root with the root that received the client key.

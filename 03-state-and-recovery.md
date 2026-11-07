@@ -297,7 +297,7 @@ scoped host-key read of it; the operator is told
 then, before reboot. The offer MUST use the current installation's durable prerequisites to
 make the offer; earlier installations' records are read only to withhold it.
 
-The no-match, matching-entry-type and parent-path refusals of `ARC-43` ("It refuses the entire
+The no-match, matching-entry and parent-path refusals of `ARC-43` ("It refuses the entire
 read") MUST withhold both the offer and dispatch of the reset into the installed system, even
 when an earlier read supplied prerequisites or an approval was already rendered. Earlier pins
 and durable prerequisite reads stay intact; the refusal is not a first durable prerequisite
@@ -1755,7 +1755,7 @@ Where the job writes the key, what mounts a root at `/mnt` for `ready_to_reset`'
 host keys before the reset into the installed system is not decided (`ARC-43` says
 `ready_to_reset` "reads `/mnt/etc/ssh/ssh_host_*_key.pub`, following no symbolic link").
 On an otherwise admitted `ready_to_reset` read in this active key-written rescue-rekey flow,
-any job refusal under `ARC-43`, or the rescue-pin-overlap refusal here (`STA-20b` says "A read
+any job refusal under `ARC-43`, or `STA-20b`'s rescue-pin-overlap refusal (`STA-20b` says "A read
 sharing the rescue boot's pin is refused before its keys are journaled as pins"), MUST stop
 this migration unfinished as a failure other than the root-label stop. This ends any grant
 still standing: `SEC-4` says "on a failure other than `STA-17`'s root-label stop". No reset back
