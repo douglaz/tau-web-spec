@@ -48,6 +48,14 @@ read back the mounted root safely still needs implementation evidence.
 root reporting, say, `a-9` before the write stops it unfinished, with no write, no 9 adopted and
 no new installation boundary.
 
+**A refused ordinary host-key read after the key write stops the migration** (2026-11-07,
+`tw-4mz` comments 212000001 and 217000001). For the job-refusal and rescue-pin-refusal reach,
+see `STA-17`, which says "MUST stop this migration unfinished as a failure other than the
+root-label stop". This chooses failure over keeping the flow running for an operator-chosen
+later read; it may leave the server in rescue even when the refusal's cause is correctable.
+It supplies no repair route or renewed vendor authority. The mount-arrangement open point and
+the distinction from a valid read's withheld offer stay at `STA-17`.
+
 **Only an identified old key is removed** (old-key A). After the login and the readback, the flow
 removes the exact old public key that checked retained records identify. An unknown key stays and
 revocation reads incomplete.

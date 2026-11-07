@@ -297,12 +297,17 @@ scoped host-key read of it; the operator is told
 then, before reboot. The offer MUST use the current installation's durable prerequisites to
 make the offer; earlier installations' records are read only to withhold it.
 
-A no-public-key refusal under `ARC-43` MUST withhold both the offer and dispatch of the reset
-into the installed system, even when an earlier read supplied prerequisites or an approval
-was already rendered. Earlier pins and durable prerequisite reads stay intact; the refusal
-is not a first durable prerequisite read. A later independently admitted read lifts this
-refusal's withholding only under every prerequisite here, including the retained first-read
-anchor; it revives no ended authority.
+The no-match, matching-entry-type and parent-path refusals of `ARC-43` ("It refuses the entire
+read") MUST withhold both the offer and dispatch of the reset into the installed system, even
+when an earlier read supplied prerequisites or an approval was already rendered. Earlier pins
+and durable prerequisite reads stay intact; the refusal is not a first durable prerequisite
+read. Restart MUST NOT erase this withholding or create an empty first-read anchor. Only an
+independently admitted `ready_to_reset` command issued after the refused command, in the
+browser journal's issue order, may lift this refusal's withholding with its durably appended
+prerequisite result and under every prerequisite here, including the retained first-read
+anchor. A delayed or duplicate collection of an older-issued command's result may remain
+historical evidence but MUST NOT lift this withholding, irrespective of collection arrival,
+reported read time or append time. Lifting it revives no ended authority.
 
 After an unexpected rescue reboot, a changed boot ID proves the old command cannot still be
 running; it does **not** prove its effects or exit status. Missing output, a missing job record,
@@ -325,10 +330,14 @@ it, and the keys of a read sharing a fingerprint with the rescue boot's pin neve
 since `ready_to_reset` journals neither a pin nor a prerequisite result of that read;
 `TauWeb.Pins` carries no such refusal, which is
 Markdown-only.
-The no-public-key refusal and its connection to withholding are Markdown-only too. The
+The discovery refusals and their connection to withholding are Markdown-only too. The
 companion's list of durable prerequisite reads uses one opaque ordinal for each key set;
 nonemptiness of that list is not a public-key cardinality check. The companion does not carry
-file discovery or establish how this refusal maps to a collection without a durable result.
+file discovery or establish how these refusals map to a collection without a durable result.
+It also lacks the originating-command correlation and issue-order mapping needed to distinguish
+a delayed or duplicate old result from a genuinely later-issued read. Its collection and
+prerequisite-result event is coupled and derives the installation at processing; this is no
+faithful translation of late results or proof of actual reset dispatch checks.
 `TauWeb.Dispatch.installationOf` derives that boundary from the journal's vendor reinstall
 call, the reset into rescue that dispatches a standing reinstall disposition, or the reset
 bound to a separately journaled reinstall approval not withdrawn since.
@@ -1589,6 +1598,14 @@ Replace migrates the others. After the hold, or a destructive reinstall's restri
 ends, its migration steps are first issues, starting with the key install in the order
 above; the completion refusal above applies.
 
+For ordinary Replace's new-key installation, where an existing regular destination file has
+another hard link before installation, the harness MUST preserve that original file's contents,
+mode and owner under every name reaching that file. It MAY refuse the installation or use a
+preserving installation strategy; no target pathname or algorithm is chosen here. On refusal
+it MUST write no new key, keep the old key and show the machine as not yet migrated with the
+reason; Replace MUST remain incomplete. A successful preserving installation still requires
+the connection authenticated by the new key before old-key removal, as in Replace's order above.
+
 Replace's export of the new seed's sheet is one of its finished steps and does not complete
 Replace. That sheet carries, under the retired seed and with the reason this screen names, each
 machine not yet migrated, a jump host and an LNVPS rebuild's old machine awaiting its deletion
@@ -1609,7 +1626,8 @@ For a regular file at a removal target that has another hard link before the rem
 the rescue rekey's old-key removal below.
 One journal act
 ends a pending removal once a harness-composed read of the machine's authorized keys, from
-captured job output (`ARC-43`), shows that key absent and is durably appended; one whose key is
+captured job output (`ARC-43`), shows that key absent and is durably appended. Which accounts,
+files or other authorization sources that read covers is not decided. One whose key is
 already absent, as after a removal whose result was lost, ends at the first such read. A failed
 or lost removal, a read still showing the key and a failed append leave it pending. While a
 pending removal stands, Replace and revocation stay reported incomplete, across restart, export
@@ -1736,6 +1754,14 @@ when this job's read-write mount ends or identify the two jobs' mounts.
 Where the job writes the key, what mounts a root at `/mnt` for `ready_to_reset`'s read of the
 host keys before the reset into the installed system is not decided (`ARC-43` says
 `ready_to_reset` "reads `/mnt/etc/ssh/ssh_host_*_key.pub`, following no symbolic link").
+On an otherwise admitted `ready_to_reset` read in this active key-written rescue-rekey flow,
+any job refusal under `ARC-43`, or the rescue-pin-overlap refusal here (`STA-20b` says "A read
+sharing the rescue boot's pin is refused before its keys are journaled as pins"), MUST stop
+this migration unfinished as a failure other than the root-label stop. This ends any grant
+still standing: `SEC-4` says "on a failure other than `STA-17`'s root-label stop". No reset back
+or further `ready_to_reset` is sent through that stopped flow; an independently admitted
+ordinary read neither resumes it nor revives the grant. A valid read whose offer is merely
+withheld is not such a refusal.
 The root-label stop opens
 no session binding: the re-entry below does not follow it, and whether a machine stopped there may later be bound is not decided. A label that passes
 proves nothing: it establishes no identity, authenticates no root contents and supplies no
@@ -1872,6 +1898,8 @@ shows the key after the removal is not decided. Only that other name's
 result is open; each removal's own rules still bind it unchanged, including what ends a
 pending removal.
 The changed-label stop removes no key.
+How this rescue removal's confirmation and ending relate to the ordinary pending-removal
+journal act and absent-key read above is not decided.
 
 While this flow runs, no ordinary session binds the machine. Once it has stopped unfinished,
 unless its entry carries the wrong-server record above, the operator MAY bind one through `SEC-1`'s re-entry; `SEC-1` says "by re-entry, on a maintained
@@ -1882,6 +1910,9 @@ proposal with its basis. It never relies on prior pin provenance, retired pins, 
 history, zero exposure, complete revocation or a passed comparison over the unknown
 installations, and every ordinary check still applies. For the root the install brief surfaces
 in this window, see [docs/briefs/01-install.md](./docs/briefs/01-install.md).
+How the operator stops a continuing local migration after confirmation of the reset into the
+installed system has ended the vendor grant is not decided (`SEC-4` says the grant ends "when
+the reset into the installed system is confirmed").
 
 **Replace cannot cover the inference account credential, and MUST say so.** This credential
 has no account behind it, so there is nothing to revoke against (`SEC-5` row 14). What Replace *can* do is revoke every session key

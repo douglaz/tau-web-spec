@@ -286,13 +286,14 @@ output. The jobs are:
   reading no private key file; its captured output carries each key it reads as its
   `{family, fingerprint}` (`SEC-5` row 5) and no key bytes. It refuses, journaling nothing of
   that file, when a file it reads
-  holds anything but one public key. Outside the entry-type and parent-path cases left open
-  below, it also refuses a read yielding no public key when no entry matches
-  `ssh_host_*_key.pub` or every matching entry is a symbolic link it does not follow; it
-  journals neither a pin nor a prerequisite result of that read. Whether this additional
-  refusal or another terminal outcome applies to a matching directory, FIFO or device node,
-  or where a component of the fixed path is missing or a symbolic link, is not decided;
-  the no-follow and no-private-key rules still bind. In the other cases specified here, it journals
+  holds anything but one public key. It refuses the entire read when no entry matches
+  `ssh_host_*_key.pub`, when any matching entry is a symbolic link or is otherwise not a
+  regular file (a directory, FIFO, device node or socket included), or when any of `/mnt`,
+  `/mnt/etc` and `/mnt/etc/ssh` is missing, is a symbolic link or is not a directory. It
+  does not open or read a matching non-regular entry or follow a link; a valid regular
+  public-key file beside a refused entry does not supply a partial result. These discovery
+  refusals journal neither a pin nor a prerequisite result of the entire read. In the other
+  cases specified here, it journals
   the pins, except of a read `STA-20b`
   refuses ("A read sharing the rescue boot's pin is refused before its keys are journaled as
   pins"), unmounts the target, and
@@ -413,8 +414,8 @@ jump-host first contact
 (`CHN-R6`) is not among `TauWeb.Pins.Source`'s cases (T45). The
 pin-source and delivery-reboot settlement clauses of `ARC-43` are formalized, except that
 `ready_to_reset` journals no pin of a read sharing the rescue boot's pin, which is Markdown-only
-(`STA-20b`). The no-public-key refusal above and its connection to reset-offer withholding are
-also Markdown-only: the companion has no file-discovery input. The rules of
+(`STA-20b`). The discovery refusals above and their connection to reset-offer and dispatch
+withholding are also Markdown-only: the companion has no file-discovery input. The rules of
 `place_secret` and `digest_secret` below are not, and this text is their home (ADR-0032, "Authority is per
 clause").
 

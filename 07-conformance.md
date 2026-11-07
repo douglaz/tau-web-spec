@@ -777,6 +777,17 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       as a first issue in the same order. Inject elevation failure or unavailable job
       collection during migration: no unsupported completed migration or revocation is shown.
       No dedicated-path relabel is dispatched to LNVPS.
+      In a separate static ordinary-install run with no concurrent edits or pending journal
+      replay affecting the file, make the existing regular new-key destination a hard link to
+      an unrelated root-owned regular file, with the destination's directory controlled by an
+      actor who cannot directly edit that file. Arrange successful old-key entry through
+      another consulted authorization source so installation is actually reached. Before any
+      later old-key removal, the original file's contents, mode and owner under its other name
+      are unchanged. Either
+      installation preserves that file and the new-key connection confirms before any old-key
+      removal, or installation refuses, writes no new key, keeps the old key and shows the
+      machine not yet migrated with its reason and Replace incomplete. This case chooses no
+      ordinary destination pathname or authorization-source inventory.
       Interrupt after a machine's migration act and before its old key's removal is confirmed:
       the old key is still installed, the screen names the pending removal by its machine and
       its key's seed, and Replace and revocation stay reported incomplete across a restart and
@@ -2378,6 +2389,35 @@ Not pass/fail. Required to be recorded.
       installation, a refusal and later disjoint read do not lift that installation's
       permanent withholding. No case supplies authority for a later read or renews an ended
       grant.
+      Each in its own run, give `ready_to_reset` a matching directory, FIFO, device node and
+      socket, each alone and each beside a valid regular public-key file: the entire read
+      refuses without opening or reading the offending entry, journals no pin or prerequisite
+      result, creates no first-read anchor, and withholds offer and dispatch with the operator
+      told before reboot. Repeat the mixed FIFO and mixed socket cases, in separate runs,
+      after an earlier good durable read and a rendered reset approval, using the same valid
+      regular key: the retained approval cannot dispatch and every earlier pin, record and
+      first-read anchor stays intact.
+      In a separate mixed regular-file/symbolic-link run, the entire read refuses, follows no
+      link, supplies no partial pin or prerequisite result and withholds offer and dispatch.
+      For each of `/mnt`, `/mnt/etc` and `/mnt/etc/ssh`, each in its own run make that parent
+      missing, a symbolic link and an existing non-directory: the entire read refuses, follows
+      no link, supplies no pin or prerequisite result, preserves earlier pins, records and
+      anchors and withholds offer and dispatch. No case supplies a repair, mount or retry duty.
+      Restart after a discovery refusal, once with no earlier prerequisite read and once with
+      earlier good prerequisites and a rendered approval: withholding remains, no empty first
+      anchor appears and existing pins, records and anchors remain. In a separate independently
+      admitted later-issued matching-good-read run, fail its result's durable append: offer
+      and retained-approval dispatch stay withheld. A successful append permits lifting this
+      refusal's withholding only under every other prerequisite; neither restart nor an old
+      approval waives one.
+      In one new same-installation late-result run, an earlier admitted `ready_to_reset`
+      completes and its good durable result supplies the first-read anchor and a rendered
+      reset approval. A newer admitted read refuses with no matching public-key file.
+      Re-collect the older completed command's result: it remains that command's historical
+      evidence, offer and retained-approval dispatch stay withheld, and the earlier pins,
+      records and first-read anchor remain. Only an otherwise admitted genuinely later-issued
+      read's durably appended matching result may lift that withholding under every other
+      prerequisite. No unresolved-command hold is bypassed to construct this history.
       Disjoint successor keys can establish the new pin and offer the reset. `STG-20` says
       "The label steers the model; nothing checks how the install brief uses it".
       Destroyed-data.
@@ -2491,6 +2531,15 @@ Not pass/fail. Required to be recorded.
       edit that file: the job refuses, writes no key anywhere, and the unrelated file's
       contents, mode and owner are unchanged. The root-label stop is not taken, no reset into
       the installed system is offered or sent, the grant ends and the screen below is shown.
+      After a successful key write in an otherwise eligible active rescue-rekey flow, set up
+      real accessible directories at `/mnt`, `/mnt/etc` and `/mnt/etc/ssh` for an otherwise
+      admitted ordinary `ready_to_reset`, each in its own run: no matching public-key file;
+      and a valid regular public-key file sharing a fingerprint with rescue's pin. Each read
+      refuses, journals no pin or prerequisite result, creates no first-read anchor, stops the
+      migration unfinished and ends any still-standing grant. The failure screen below is
+      shown; no reset back or further `ready_to_reset` through the stopped flow is sent,
+      including after restart. These conditional fixtures select no mount actor or arrangement
+      and do not identify the fixed path's root with the root that received the client key.
       After the root-label stop, give the server one root carrying host keys, with a file
       system journal left unreplayed by an unclean unmount: every disk's bytes are the same
       before and after `rescue_host_key_read`, the reset is offered on what it read, and its
