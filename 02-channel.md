@@ -693,6 +693,62 @@ closes its live connections and refuses new ones (`PAS-5`), which is the teardow
 was waiting for. For revocation's rationale, see that set's ADR 0003; for eligible-target
 equality and unavailable coverage, see `ARC-41`.
 
+**The ordinary dedicated ceremony's destinations** (`STG-4`;
+[ADR-0071](./docs/adr/0071-the-dedicated-ceremony-uses-a-vendor-read-and-approves-concrete-destinations.md)).
+The Robot API host comes from the build: `CHN-12a` says "A vendor API is named at
+build time and there are a handful of them." That host MUST already be recorded on
+the pass before the first tunneled Robot call; obtaining a server address through
+Robot is not a prerequisite for recording Robot's build-named host.
+
+The server host the harness dials through the relay, records on a pass or asks to
+have recorded MUST come from a server-specific Robot read over the browser-terminated
+pinned tunnel (`CHN-12a`, `STG-3a`). The read MUST name the approved machine entry's
+immutable server number, and its response MUST carry that same number and the host.
+A missing or different response-carried number supplies no admissible source; an
+expected number attached locally does not supply the echo. An account listing is
+not that server-specific read: `SEC-4` says "What an adapter can list of the account
+is displayed and never relied on". Relay metadata and model text MUST NOT supply
+or substitute the host. The harness MUST durably journal the host, the source read
+and its relation to the approved entry before dialing that host, signing or sending
+its addition, or asking to have it recorded. Without that journaled matching read
+it makes none of those actions, even on a pass whose destination is already recorded.
+A retained matching read suffices for a later dial; this selects no fresh read per
+connection or address-refresh policy. The rule creates no binding, waives no
+existing account or dispatch check, and selects no new proof that the credential
+matches the entry's account reference or procedure for making that match. It is
+not permission to use a wrong account.
+
+**Each signed destination addition on this ordinary path is approved on structured
+facts.** `SEC-4` says "A typed cloud-plane operation MUST be approved on structured
+facts, never on command text"; this addition follows that approval form without
+deciding the relay key's cloud-plane classification. Its operator approval MUST
+name the affected pass, concrete host, purpose and source, and, for a server host,
+its relation to the approved machine entry. It MUST show that recording authorizes
+the host on the shared any-port terms, not only the port used for that purpose.
+One approval MAY cover additions whose concrete hosts and sources are already
+known; a server host learned later requires approval of that concrete addition.
+A binding alone or a newly journaled address supplies no such approval.
+
+Before signing or sending, the harness MUST durably record the exact approved
+request, approval decision and idempotency identity: `STA-4` says "A side-effecting
+call MUST have a durable record, an approval decision, and an idempotency identity
+**before execution begins**." What is signed and sent MUST be that approved,
+journaled request, never one rebuilt at dispatch from session state or model text;
+`SEC-4` says "What is dispatched is the approved record". A failed prerequisite
+append sends nothing: `STA-3` says "If the append fails, the transition does not
+occur." An addition whose outcome is uncertain stays unresolved with no automatic
+resend: `STA-8` says "It MUST NOT be retried automatically and no timer may clear it."
+Reconnecting to a host already recorded on the same pass requires no new
+destination-addition approval merely by reconnecting, and waives no other admission
+check.
+
+These are consumer-side rules for the ordinary dedicated ceremony, not relay-side
+proof of destination ownership. They change neither the shared eligible-host policy
+nor host-key admission. They select no pass-procurement or recording wire, hand-recording
+mechanism, addition retry class, reconciliation predicate, resource-barrier mapping,
+address export or refresh rule. They decide nothing for the rescue rekey: `STA-17`
+says "How the flow obtains that pass and records its destinations is not decided."
+
 **CHN-16a Destination authorization never grants access to the relay's private network.**
 For the destination policy, see [paid-tcp-relay][relay-source] DST-4–DST-7; for the LNVPS path's
 hand-recorded pass, see PAS-6. For the publisher-specific hosting adoption, see `CHN-11`.
