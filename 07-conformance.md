@@ -806,7 +806,7 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       On an LNVPS Replace rebuild, Replace's own flow stops the old machine and then turns its
       automatic renewal off, each under that machine's own recorded vendor key (`SEC-4`,
       `STA-17`). For the removal check, an earlier Replace migrated this same old machine and
-      left its old key pending removal, linked to that machine through this later rebuild.
+      left that Replace's old key pending removal, linked to that machine through this later rebuild.
       Request the stop while a re-entry of that machine, or a removal of its old
       public key, is still to complete, and the renewal-off before the stop is confirmed:
       each is refused. Either call under the replacement machine's key or an SSH client key is

@@ -1611,7 +1611,7 @@ it MUST write no new key, keep the old key and show the machine as not yet migra
 reason; Replace MUST remain incomplete. A successful preserving installation still requires
 the connection authenticated by the new key before old-key removal, as in Replace's order above.
 
-Within the required login route, how ordinary Replace selects its new-key destination file or
+Subject to the required login route (`STG-21` for LNVPS), how ordinary Replace selects its new-key destination file or
 authorization source, creates missing paths, preserves existing contents, mode and owner beyond
 the pre-existing hard-link protection above, and treats symbolic links is not decided. The
 rescue key-install job's separate contract below supplies none of those choices for ordinary
@@ -1800,12 +1800,12 @@ refuses, and mounts every root it reads without replaying its file system's jour
 the reset into the installed system is then neither offered
 nor sent, when it finds no host keys, when it finds host keys under more than one root, when any
 key it reads shares a fingerprint with the rescue boot's own pin (`CHN-R1`), when a file it reads
-holds anything but one public key, or when it cannot read a root. A refused read is a failure
-of the flow, so the grant ends on it (`SEC-4`). It also MUST refuse the entire scoped read when
+holds anything but one public key, or when it cannot read a root. It also MUST refuse the entire scoped read when
 any entry it would otherwise read as an installed host-public-key file is a symbolic link,
 evaluating that selection before excluding an entry because it is a link. A regular public-key
 file beside it supplies no successful partial prerequisite result or expected next keys.
-What it reads, journaled with the reset intent,
+On that refusal the reset into the installed system is neither offered nor sent. A refused
+read is a failure of the flow, so the grant ends on it (`SEC-4`). What it reads, journaled with the reset intent,
 stands in for `ready_to_reset`'s pins only for that reset, as its durable prerequisite and
 expected next keys (`STA-20b`, `STG-4`). The answer that confirms the reset admits no
 connection. What it reads is no pin of any source `SEC-5` row 5 lists and is never
