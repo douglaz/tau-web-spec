@@ -805,7 +805,9 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       is sent to it and Replace stays incomplete; once it ends, the removal proceeds.
       On an LNVPS Replace rebuild, Replace's own flow stops the old machine and then turns its
       automatic renewal off, each under that machine's own recorded vendor key (`SEC-4`,
-      `STA-17`). Request the stop while a re-entry of that machine, or a removal of its old
+      `STA-17`). For the removal check, an earlier Replace migrated this same old machine and
+      left its old key pending removal, linked to that machine through this later rebuild.
+      Request the stop while a re-entry of that machine, or a removal of its old
       public key, is still to complete, and the renewal-off before the stop is confirmed:
       each is refused. Either call under the replacement machine's key or an SSH client key is
       refused, and so is any other vendor call this flow requests for the old machine, other
@@ -2554,7 +2556,14 @@ Not pass/fail. Required to be recorded.
       own run, give it host keys under two roots, no host keys, a key matching the rescue boot's
       pin, and a symbolic link in place of the key files pointing at a valid host-key set that is
       not rescue's: the read refuses, the link is not followed, no reset is offered or sent, the
-      grant ends and the screen below is shown. Fail the append of what it read: no reset is
+      grant ends and the screen below is shown. In one separate run, after an otherwise admitted
+      root-label stop with its terminal record collected, give the scoped read one readable root
+      with a regular public-key file beside a symbolic link, both entries it would otherwise
+      read as installed host-public-key files. The link points to valid non-rescue public-key
+      material and the relevant keys overlap no rescue pin: the entire read refuses, follows no
+      link and accepts no successful partial prerequisite result or expected next keys from the
+      regular file. No reset is offered or sent, the grant ends and the screen below is shown.
+      Fail the append of what it read: no reset is
       offered or sent. Restart the harness after the stop: the reset is shown again and offered
       only after `STA-20b`'s offer check is made again. Journal the reset's intent and lose its
       response, then, each in its own run, restart, choose each disposition in turn, and do
