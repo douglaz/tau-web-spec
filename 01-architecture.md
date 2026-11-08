@@ -1173,6 +1173,45 @@ that looks for it is a read and is permitted (`STA-24`); on Robot the match is b
 registered key fingerprint the entry holds. A jump host whose destroy is unresolved (`CHN-R6`)
 is named the same way: it may still exist and bill.
 
+**The unfinished setup presents one resumable view of the next needed action and its observed status.** The
+view reuses recorded facts, keeping each machine's facts separate, and names the actual reason
+for a wait or block. For LNVPS, useful statuses include:
+
+| Step | Useful status |
+|---|---|
+| Email | Waiting for verification of this machine's account. |
+| Relay | Waiting for publisher enrollment of the public key. |
+| Machine payment | Awaiting payment or qualifying vendor confirmation. |
+| Installation | Ready, running, blocked or complete, with the actual reason. |
+| Recovery | Current recovery sheet still needs to be saved. |
+
+These describe progress, not a layout or a schema. Prerequisites are checked as early as the
+authorized protocol permits, especially before a billable order; a prerequisite that cannot
+yet be checked is shown as such. The view discloses dependence on publisher enrollment before
+the operator commits. For the path's limits, `STG-18` says "There is no purchase flow or
+automated reacquisition story" and "Assumed already funded."
+
+Returning from email or a wallet reconciles through the authorized evidence path. Opening a
+link, returning, elapsed time and an operator report supply no observation of success or extra
+authority. Reopening reuses the recorded approved entry, order, invoice and unresolved state;
+it authorizes no extra purchase, mutation, account or credential. For the email handoff, see
+`STG-21`. For invoice payment, `ARC-30` says "The operator pays each invoice; nothing pays one
+for them." `ARC-30` also says "For an LNVPS machine, the wallet invoice MUST come over TLS from the vendor's
+recorded HTTP order or renew response." For reconciliation, `STA-24` says "Confirmation
+evidence MUST identify the expected account, machine and operation and be durably appended
+before taking effect." For order confirmation, `STG-21a` says "It establishes no host
+creation, IP allocation, invoice production, payment, boot or contact readiness." For retries,
+replay and interruption handling, see `STA-5`, `STA-7`, `STA-8` and `STA-23`; a handoff itself
+does not determine whether a worker survives or what work may resume.
+
+The recovery status presents the recorded export state; `STA-15` says "The recovery sheet
+MUST be exported before a **maintained cloud** machine's setup completes." For its contents
+and saved-file confirmation, see `STA-16` and the
+[credential format](docs/design/credential-format-v1.md#recovery-sheet). The view keeps
+infrastructure delivery distinct from application functionality: `STG-18` says "Hermes's
+functional behavior, and whether its provider answers, are not gates of the LNVPS path".
+For Delivered and handed over with findings, see `ARC-17`.
+
 **An unfinished setup is device-bound.** It is resumed on the device that started it, or
 abandoned. That follows from all-or-nothing plus exposure ending with the machine (`SEC-1`),
 and needs no new mechanism. A second device shows a clean app while the first device's
@@ -1538,7 +1577,7 @@ Lifetime is entered as a whole number of minutes from 1 through 1440 inclusive, 
 
 **Confirmation, binding and one attempt.**
 
-Before a procured session starts, the operator MUST explicitly confirm its displayed limit and lifetime. Confirming unchanged visible defaults counts; merely opening the screen, leaving fields blank, hiding, returning, or issuing an inference request does not. Confirmation binds the exact canonical amount and unit, lifetime, session identity, local account identity and credential generation, pinned profile version and a unique choice generation. The worker may reserve the session identity before admission; reserving it supplies no session authority. The local account identity and credential generation is the journal record number of the event that admitted the inference account credential; a different or replacement credential is a different record and therefore a different generation. It is never the bearer credential, a digest of it or any other value derived from it. A choice generation is never reused within the store. Changed fields, session, account credential generation or profile invalidate any unconsumed confirmation and require another explicit confirmation. Cancellation processed before the mint intent prevents that mint; it does not erase or imply non-execution of an already recorded preflight or account read.
+Before a procured session starts, the operator MUST explicitly confirm its displayed limit and lifetime. The primary Start action explicitly confirms both displayed values for this session in one action, without a separate confirmation ceremony. Confirming unchanged visible defaults counts; merely opening the screen, leaving fields blank, hiding, returning, or issuing an inference request does not. Confirmation binds the exact canonical amount and unit, lifetime, session identity, local account identity and credential generation, pinned profile version and a unique choice generation. The worker may reserve the session identity before admission; reserving it supplies no session authority. The local account identity and credential generation is the journal record number of the event that admitted the inference account credential; a different or replacement credential is a different record and therefore a different generation. It is never the bearer credential, a digest of it or any other value derived from it. A choice generation is never reused within the store. Changed fields, session, account credential generation or profile invalidate any unconsumed confirmation and require another explicit confirmation. Cancellation processed before the mint intent prevents that mint; it does not erase or imply non-execution of an already recorded preflight or account read.
 
 The worker MUST serialize the one mint attempt per session and compare that tuple before recording intent and again before transmission. The recorded top-up-off read MUST belong to the same local account identity and credential generation as the confirmed choice and mint intent. The confirmed choice and the mint intent MUST be durably related before a request can leave; an append failure supplies no authority to send. Intent records the choice/account/session/profile identities, exact requested cap/unit/lifetime, original expiry and its clock-origin evidence. Terminal evidence records success, refusal or uncertainty and preserves the distinction between requested limits and whatever accepted limits or issuer facts were actually observed. It MUST NOT present copied request values as independent observations.
 
@@ -1572,7 +1611,7 @@ bound. Unknown spend is unaccounted, never zero or refunded.
 
 **Exact validation.**
 
-Accept only unsigned ASCII decimal amounts consisting of one or more integer digits, optionally followed by a decimal point and exactly one or two fractional digits, subject to the supported exact grid and bounds; a decimal point with no following digit or no preceding digit is refused. Canonicalize only by adding trailing fractional zeros or removing redundant leading integer zeros, before confirmation. Accept only ASCII decimal whole minutes consisting of one or more digits, within supported bounds; their only canonicalization is removal of redundant leading zeros. Whitespace, signs, exponent notation, separators, locale commas, extra precision, non-finite values, missing input, zero, negatives, out-of-range and unsupported values MUST be visibly refused; no float conversion, rounding, truncation, clamping or fallback is permitted. A canonical form is always shown before confirmation.
+Accept unsigned ASCII decimal amounts consisting of one or more integer digits, optionally followed by a decimal point and exactly one or two fractional digits, subject to the supported exact grid and bounds. The interface MAY also translate its selected locale's unambiguous decimal separator using exact decimal parsing before confirmation; a comma-decimal interface can translate `0,10` to exactly `0.10`. This permission changes only the amount's decimal separator: digits remain ASCII, and a separator with no following digit or no preceding digit is refused. Do not infer locale from the input, guess a separator or accept grouping, mixed separators, other separators or ambiguous notation. Apart from this exact separator translation, canonicalize only by adding trailing fractional zeros or removing redundant leading integer zeros, before confirmation. The canonical amount MUST be shown on the Start confirmation; the exact confirmed value MUST be the value the worker authorizes and preserves through intent, journal, wire and cap display. Localized numeric strings MUST NOT cross the interface-to-worker, journal or issuer boundaries; those boundaries retain canonical exact values. Accept only ASCII decimal whole minutes consisting of one or more digits, within supported bounds; their only canonicalization is removal of redundant leading zeros. The amount's separator translation does not apply to lifetime. Whitespace, signs, exponent notation, disallowed separators, grouping, ambiguity, extra precision, non-finite values, missing input, zero, negatives, out-of-range and unsupported values MUST be visibly refused; no float conversion, rounding, truncation, clamping, fallback or value-changing normalization is permitted. In particular, `0.105` and translated-path `0,105` are refused, never rounded or shortened to supported precision. A canonical form is always shown before confirmation.
 
 Worker-owned checks MUST establish the exact confirmed tuple, current session/account/profile, top-up-off evidence, unused one-mint slot, valid expiry/clock, and durable-evidence availability before the mint intent. Before every transmission, including after route probing, append or other await, current authority and the same limits/expiry are checked again. Missing/stale confirmation, unsupported protocol semantics, uncertainty or a failed durable append MUST prevent the mint send. A post-intent refusal preserves the existing intent truthfully and does not free the mint slot. A refusal displays its reason and creates no session inference authority. Foreground and scheduled hidden work use identical checks.
 
@@ -1644,9 +1683,11 @@ the request boundary after a valid original assessment, with
 
 **Display.**
 
-Before confirmation, show the exact cap with its truthful account unit and supported range, selected whole-minute lifetime, the visible offered defaults 0.10 and 15 minutes, and a clear confirm/start action naming both limits for this session. Explain the chosen lifetime origin, that delays and hidden time after that origin consume it, that there is one mint and no renewal, and that a cap is neither reserved balance nor a guarantee of useful work. Show the account's local display identity without exposing its bearer credential. Cancellation before the mint intent sends no mint; edits or changed binding invalidate the earlier confirmation.
+Before confirmation, show the supported exact cap and selected whole-minute lifetime together on one Start surface, editable in place, with the cap's truthful account unit and supported range, the visible offered defaults 0.10 and 15 minutes, and a clear primary Start action naming both limits for this session. Explain that the lifetime starts at mint authorization after confirmation, before a response or first completion, and that subsequent delays and hidden, frozen and suspended time consume it. Explain that there is one mint and no renewal, and that the cap is not reserved funds, a balance guarantee, an affordability claim or a promise of useful work. It bounds spending in the evidenced account unit only conditionally, as above: where issuer acceptance was evidenced, issuer enforcement holds and automatic top-up is off. Choice-generation identifiers and clock-evidence mechanics MUST stay internal to the worker, journal, binding and validation duties above, outside this ordinary decision surface. Show the account's local display identity without exposing its bearer credential. Cancellation before the mint intent sends no mint; edits or changed binding invalidate the earlier confirmation.
 
 After mint authorization, distinguish offered defaults, confirmed choice, requested original absolute expiry and actually observed issuer facts. Show the original requested expiry in unambiguous UTC, optionally with a labeled local-time view, and a remaining-time estimate only while the clock is valid. Uncertainty is displayed as unknown/verification required, not a reset countdown. Remaining spend is based on observed accounting and labels unaccounted spend; no estimate is shown as a reserved or guaranteed balance. Mint pending/refused/unresolved, clock-withheld, expired/exhausted, ended and locked/lost states remain distinct. A late reply does not restore a live action or rewrite a request as an issuer observation.
+
+After expiry, show observed completed work, unresolved operations and the next eligible Start action, distinguishing completed work from outcomes that have not been established. Retained progress and its presentation supply no remote-completion evidence or fresh actionable result under the ended session. Keep the original session visibly ended, with its outstanding accounting and cleanup visible. For the next Start's separate session, admission and outstanding machine-operation holds, see `STA-23`.
 
 Ordinary hide/return preserves the same session and confirmation and needs no fresh consent or passphrase merely for the hide. `STA-23` says "Before session admission, and beside the app Lock action, the harness MUST plainly show that switching apps or locking the device screen may leave data-key, seed, account and machine authority unlocked in memory indefinitely; permitted work, including already approved destructive actions such as a disk wipe, may run unseen." The display updates at the next execution opportunity; it promises neither a deadline callback while frozen nor remote cancellation or erasure.
 

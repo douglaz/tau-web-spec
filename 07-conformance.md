@@ -770,7 +770,17 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       manually recorded relay pass and enrollment of the new key; withholding confirmation
       keeps revocation incomplete. Signed revocation is `CNF-60`'s paid/public case.
       Interrupt machine migration and pass retirement separately: neither partial result is
-      complete revocation. The screen names application-secret rotation at its service,
+      complete revocation. Inspect the separate progress projections against the retained
+      records (`STA-17`): a usable replacement pass and a saved fresh-seed sheet establish no
+      retirement of old access. Reopen with a migrated machine's pending removal, a pass
+      awaiting publisher confirmation and a finished export step: each recorded completed
+      step stays complete while the named outstanding obligations keep Replace and revocation
+      incomplete. Show an LNVPS old machine awaiting deletion separately as existing and billed;
+      the replacement's otherwise eligible work remains available under its own checks.
+      Missing credentials and an unavailable deletion check are named limitations with only
+      permitted remedies, never indefinite loading or a callable check without its admitted
+      capability. Export progress claims no proof of continued file retention or currency.
+      The screen names application-secret rotation at its service,
       the unrevocable inference account credential, and possible thief persistence with a
       destroy/rebuild offer; scan re-arm is never described as a remedy for any of these.
       On LNVPS, exercise `STG-21`'s route to the `arch` account with fresh old-key entry and
@@ -905,6 +915,42 @@ an item that tests a mode's conditions or its label is tiered by them like any o
 
       Required evidence includes: explicit unchanged-default confirmation and edited exact values reaching intent/wire/display; every grammar/boundary/support/overflow refusal; cancelled, missing, stale and cross-session/account/profile confirmation; concurrent callers and single mint after refused/lost/late/failed-terminal outcomes; failed append and post-append pre-send fences; retained original origin/expiry/consumption through hidden scheduled work, repeated hide/return and freeze with suppressed/delayed notifications; clock rollback/forward jump, monotonic loss, unknown and repaired validity, overflow, equality immediately before/at/after expiry, a delayed mint/first use, cap exhaustion and funding-credit changes; broader or missing issuer acceptance; concurrent/in-flight cap behavior, unknown spend, late completion/accounting, late mint identifiers, real End versus surviving Lock and unresolved revocation across replay. A timestamp refresh never shifts the fixed expiry. Worker loss restores only the procured key from its committed validated sealed terminal,
       with current issuer/clock validation; all other memory-only credentials retain their custody.
+
+      For amount-input evidence, use the grammar and supported grid/bounds owned by
+      `ARC-31a`, with labeled synthetic profiles. Exercise canonical `0.10` and, when
+      selected-locale translation is enabled in a comma-decimal interface, `0,10`.
+      Follow both through the production UI-to-worker path: show exactly `0.10` on the
+      primary Start confirmation, confirm in that one action without another dialog,
+      and compare the exact confirmed cap with worker authorization, intent/journal,
+      wire and canonical cap display. Check the whole confirmation binding, not only
+      the amount. Localized strings never reach the worker, journal or issuer boundary.
+      Keep requested values distinct from independently obtained issuer acceptance;
+      copied request values supply no acceptance evidence.
+
+      Exercise translation only for the selected locale's unambiguous separator.
+      Visibly refuse grouping, mixed or other separators and ambiguous notation;
+      include `1,000`, `0,1.0` and `0;10`, and comma input when translation is disabled
+      or the selected locale does not use a decimal comma. Check that the interface
+      neither infers locale from input nor blindly replaces commas with periods.
+      Refuse `0.105` and `0,105`, paired respectively with supported exact `0.10`
+      and `0,10` under the same fixture support. Include excess trailing-zero
+      precision (`0.100` / `0,100`) rather than shortening it to fit. Exercise the
+      permitted redundant-leading-integer-zero and fractional-zero-padding cases
+      (`000.1` / `000,1` to `0.10`) without changing value.
+
+      Retain visible refusals for whitespace, signs, exponent notation, missing
+      integer or fractional digits on either separator path, non-ASCII digits,
+      non-finite values, missing input, zero, negatives, out-of-range and unsupported
+      values, and overflow. Pair every refusal with its nearest eligible case,
+      including precision and supported lower/upper bounds from the grammar owner
+      and the pinned fixture profile. Inspect exact parsing and boundary transfers
+      for absence of float conversion, rounding, truncation, clamping, fallback or
+      value-changing normalization. Independently exercise the whole-minute lifetime
+      grammar, its leading-zero-only canonicalization, supported bounds and overflow;
+      fractional or localized lifetime, whitespace, signs, exponent notation,
+      non-finite values, missing input, zero, negatives and unsupported or out-of-range
+      lifetimes remain refused with nearest eligible cases even when amount
+      translation is enabled.
 
       Pair each refusal with its nearest eligible continuation, including scheduled hidden work and a still-valid unchanged key after justified clock revalidation. Browser tests exercise the actual production UI-to-worker confirmation and pre-send/post-await lifecycle fences, not only exported fixture hooks. Mutation controls remove confirmation, binding, exact validation, durable-before-send, expiry/clock and stale-publication fences one at a time; each control must fail for its intended observed bad send/evidence/action and pass restored, with a positive control preventing a refuse-everything implementation from passing. Identify calls by kind and original identity rather than ambiguous total OPTIONS counts. Fixture issuer rules cannot prove current issuer behavior or phone scheduling.
 
@@ -2113,8 +2159,14 @@ Not pass/fail. Required to be recorded.
       allocation. The mnemonic passphrase is empty regardless of local unlock passphrase.
       Boundary-crossed: an ambiguous mapping can reuse keys across roles or machines.
 - [ ] **CNF-84 · BLOCKING** A seed plus sheet restores machine and relay identities from their
-      exported indices and reconnects using the old host pin, never a new first contact. A
-      mismatched seed, duplicate mappings, invalid counters or malformed placement associations
+      exported indices and reconnects using the old host pin, never a new first contact.
+      A recovery sheet or local-store backup import explains the imported-seed allocation
+      refusal before import (`STA-17`). Inspect progress separately for restored identities,
+      contact readiness and allocation eligibility: no imported seed is shown ready to allocate,
+      and a retained pin alone is not shown as available contact. Reopening reconstructs only
+      the progress the retained records carry, preserving completed facts and pending reasons
+      without promoting as-of-export knowledge to current fact.
+      A mismatched seed, duplicate mappings, invalid counters or malformed placement associations
       are refused before binding, and so is a live machine other than a jump host with a
       missing, duplicate or malformed machine state, bound or not, a version-7 reserved
       migration index, superseded reservation or pending removal excepted (below); a jump
