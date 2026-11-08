@@ -85,7 +85,10 @@ of an ad-hoc machine, the harness MUST use the conservative multi-tenant class w
 separate classification question when the task can proceed within that class's restrictions.
 For that admission, the harness MUST journal the class and its provenance with the machine
 before binding (`SEC-1`), and so before installation (`ARC-44`), distinguishing a harness
-default from an operator's explicit answer. A default is not an operator answer.
+default from an operator's explicit answer. A default is not an operator answer. Here an
+ad-hoc machine's *initial admission* is its setup up to the machine's first binding
+(`SEC-1`), and *setup approval* is the operator's batched approval of that setup on
+`ARC-15`'s setup screen.
 
 While an ad-hoc machine's initial admission remains open, through setup approval and before
 binding, if no explicit operator answer has yet been journaled for that machine, the harness

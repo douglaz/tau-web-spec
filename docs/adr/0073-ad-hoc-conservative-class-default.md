@@ -66,6 +66,14 @@ it on that machine in that session. The relaxation trades mandatory up-front que
 for this cost; a request after binding receives an explanation and a refusal, without a
 question whose answer could be mistaken for permission to proceed.
 
+The after-binding refusal was chosen rather than instructed, and it **narrows** the owner's
+instruction. That instruction asked that, when a later request conflicts with the
+conservative restrictions, the concrete conflict be explained before the relevant question is
+asked. Here the question path stays open only during initial admission; after binding the
+conflict is explained and no question is asked. A review panel picked the refusal, three of
+four readers with a fifth seat unavailable, accepted under the owner's 2026-11-05 panel rule.
+The dissent was to ask after binding and then admit the behavior through every check.
+
 Conformance for class admission and same-session refusal is in `CNF-100`; dependent
 restriction cases are in `CNF-92`, `CNF-52`, `CNF-94` and `CNF-99`. Maintained access and
 pre-installation journaling are covered by `CNF-101`.
