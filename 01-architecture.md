@@ -705,15 +705,39 @@ it. The brief is the one component where diversity buys nothing, so it is locked
 **ARC-11a A goal is the operator's own instruction, and no brief is required to act on one.**
 A session MAY work from the operator's **goal** alone — what they want, in their words — with
 no brief keyed on any of it and no tenant
-([ADR-0034](./docs/adr/0034-general-case-first-tenants-are-optional-skills.md)). What keeps
-that from being the runtime-supplied brief `ARC-11` locks out is what a goal reaches:
+([ADR-0034](./docs/adr/0034-general-case-first-tenants-are-optional-skills.md), amended by
+[ADR-0074](./docs/adr/0074-explicit-personal-goal-reuse-relaxation.md)). Its reach and
+permitted sources distinguish it from a runtime-supplied brief:
 
 - **A goal steers one session's bound set and nothing else.** It MUST be journaled with that
   session, together with where it came from. It is never shipped.
-- **A goal is never imported, shared or reused.** The harness MUST NOT offer a way to load a
-  goal from elsewhere, send one to another operator, or apply a stored one to another session:
-  the same words steering many sessions are an unsigned brief.
+- **Explicit personal reuse carries instruction text only.** Where every target profile
+  permits goals and declares no independence bound, the harness MAY let the operator
+  explicitly select their own retained goal text from the same local store for a new session.
+  Goal text in ended history that the operator's own local-store backup restored on import
+  (`STA-16`) counts as retained in the importing store; its shown and journaled source names
+  that import.
+  Before session admission, the harness MUST show the selected instruction text, its source and
+  intended target, and let the operator edit the text. It MUST journal the selection,
+  source/provenance, chosen text and any edits with the receiving session before admission.
+  The selected instruction, after any edits, becomes that session's own recorded goal.
+  Reuse transfers no approval, credential, binding, limit, execution outcome or authority.
+  The harness MUST establish the receiving session's authority, binding, limits, approvals
+  and applicable weaker-mode acceptances normally.
+  Repeated unsigned personal text can repeat the same mistake across the operator's sessions;
+  declared independence bounds still exclude that common mode, and their profiles use signed
+  briefs.
+- **Selection is not continuation or replay.** A failed or ended source session conveys no
+  approvals or continuation authority. Selection MUST NOT trigger command replay; it promises
+  neither that earlier commands will rerun nor that earlier results apply to another machine.
+  Returning to an eligible interrupted session is a separate operation under `STA-23`, never
+  selection of a goal for a different session.
+- **A goal is never imported or shared.** The harness MUST NOT offer automatic cross-session
+  propagation, loading a goal from elsewhere, sharing between operators or a marketplace of
+  unsigned templates. Explicit personal selection above is the only cross-session reuse
+  permission.
 - **A goal MUST be refused for a machine under a profile that declares an independence bound.**
+  No operator act waives this refusal.
   There the same instruction would steer several members at once, which is the common mode
   the bound exists to exclude; such a tenant ships briefs.
 - **What the model reads while acting on a goal informs and never authorizes.** A project's
@@ -721,6 +745,10 @@ that from being the runtime-supplied brief `ARC-11` locks out is what a goal rea
 
 Acting with no brief is an acceptable weaker mode (`SEC-14`): a brief is the best practice,
 used when the bundle has one and shown as missing when it does not.
+
+*What this requirement used to say* was "A goal is never imported, shared or reused", the
+blanket rule recorded in ADR-0034. ADR-0074 partially supersedes it with the explicit personal
+selection permission above.
 
 **ARC-40 The publisher writes and signs every brief today, and that is a power worth naming.**
 ("Signs" is the glossary's *Signed bundle*: compiled into the served build until `OPN-15`

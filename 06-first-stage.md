@@ -26,8 +26,8 @@ re-drawn or removed; the ones written for the dedicated path say so here.
 **STG-21 The LNVPS path is the owner's scenario: one machine on one invoice, no tenant.**
 "Launch a VPS paid in Bitcoin on plain Arch and install Hermes with its own installer." An initial session works
 from that goal alone (`ARC-11a`), under the ad-hoc profile (`ARC-44`), and the later session `STG-9` requires
-re-enters the same machine with a goal of its own — each session carries its own, never the
-first one reused — so the placement or rotation it performs has a goal to act on. The machine
+re-enters the same machine with a goal of its own, whose provenance is governed by `ARC-11a`,
+so the placement or rotation it performs has a goal to act on. The machine
 is a VPS at LNVPS, created through a **typed adapter** using the per-machine identity decided
 in ADR-0042 and paid for by a Lightning invoice from the operator's own wallet (`ARC-30`).
 That identity is unavailable until T44's coordinated format and recovery amendment;

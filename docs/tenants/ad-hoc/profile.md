@@ -1,7 +1,7 @@
 # ad-hoc — the built-in profile for a machine with no tenant
 
 Owned by the publisher and shipped in the bundle. Records: this file. Briefs supplied: none;
-a machine here is steered by the operator's goal (`ARC-11a`).
+a machine here is steered by the operator's goal (for permitted goal sources, see `ARC-11a`).
 Profile revision: 3 (2026-10-06).
 
 Schema: ADR-0030. Every machine runs under a profile, and this is the one a machine with no
