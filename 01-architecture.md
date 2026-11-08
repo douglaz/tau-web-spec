@@ -87,21 +87,25 @@ For that admission, the harness MUST journal the class and its provenance with t
 before binding (`SEC-1`), and so before installation (`ARC-44`), distinguishing a harness
 default from an operator's explicit answer. A default is not an operator answer.
 
-For an ad-hoc machine, before admitting requested behavior that requires a less restrictive
-class, the harness MUST obtain an explicit operator answer to the classification questions
-for that machine. The questions are authored by the harness and ship in the signed bundle,
-with nothing preselected.
-The answer MUST be journaled before admitting that behavior, and before binding and installation
-when sought at initial admission. The model MUST NOT word the questions, answer them or
+While an ad-hoc machine's initial admission remains open, through setup approval and before
+binding, the harness MUST explain the concrete conflict before asking the classification
+questions for requested behavior that requires a less restrictive class. It MUST obtain an
+explicit operator answer before admitting that behavior. The questions are authored by the
+harness and ship in the signed bundle, with nothing preselected.
+The answer MUST be journaled before admitting that behavior, and before binding and installation.
+The model MUST NOT word the questions, answer them or
 preselect an answer. Model text, a suggested or previously displayed answer, restored UI state
 and replay of default provenance MUST NOT manufacture an operator answer. An operator who
 answers "not sure" has a **multi-tenant** machine. The model MAY propose a tightening,
 single-purpose to multi-tenant, and nothing else: it never relaxes a class or supplies or
 relaxes the operator's answer.
 
-For an already-bound machine, the same explicit-answer prerequisite applies before any
-requested relaxing behavior; it supplies no reclassification route or exception to `SEC-1`'s
-binding, re-entry, growth or exposure checks. A multi-tenant machine is always bound alone
+Once an ad-hoc machine has been bound under the harness default, the harness MUST refuse a
+request requiring a less restrictive class for the rest of that session, explaining the
+concrete conflict without presenting the classification questions. Its class does not relax
+in that session; those requests MUST leave the journaled class and harness-default provenance
+unchanged. The question path supplies no exception to `SEC-1`'s binding, re-entry, growth or
+exposure checks. A multi-tenant machine is always bound alone
 (`SEC-1`). The restrictions apply in full to a harness-defaulted machine: `ARC-37` says
 "A multi-tenant machine MUST NOT hold **spendable** key material", and `ARC-43` says "the
 operator confirms the value is not spendable before it is sent; without that confirmation

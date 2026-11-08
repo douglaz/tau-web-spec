@@ -28,11 +28,13 @@ classification rule. `ARC-44` remains the owner of profile use and per-machine j
 before installation, and `ARC-39` of declaration approval. Tenant presets and maintained
 access retain their treatment.
 
-The relaxation removes the separate classification question only while the task fits the
-conservative class. `ARC-36a` says "For an ad-hoc machine, before admitting requested behavior
-that requires a less restrictive class, the harness MUST obtain an explicit operator answer
-to the classification questions for that machine." The signed question text, answer mapping and note in
-`bundle/lockdown.toml` are unchanged. No policy-inference subsystem is introduced.
+The question path resolves class only during initial admission. `ARC-36a` says "While an
+ad-hoc machine's initial admission remains open, through setup approval and before binding,
+the harness MUST explain the concrete conflict before asking the classification questions
+for requested behavior that requires a less restrictive class." `ARC-36a` says "The answer
+MUST be journaled before admitting that behavior, and before binding and installation."
+The signed question text, answers, class mapping and note in `bundle/lockdown.toml` are
+unchanged. No policy-inference subsystem is introduced.
 
 The restrictions retain their owners. `ARC-37` says "A multi-tenant machine MUST NOT hold
 **spendable** key material." `SEC-1` says "A multi-tenant machine (`ARC-36`) is always bound
@@ -41,22 +43,30 @@ without that confirmation nothing is placed". These apply equally under the defa
 declaration approval is no waiver. Application credentials and tenant key material retain
 their separate treatment in the delivery-declaration companion.
 
-The question path supplies a prerequisite for relaxing behavior, not authority for an
-already-bound class transition. `ARC-36a` says "it supplies no reclassification route or
-exception to `SEC-1`'s binding, re-entry, growth or exposure checks." No transition,
-grandfathering rule, history reset or admission route is chosen here. The rejection of
-model-proposed classification in ADR-0034 therefore stands, including when a suggestion was
-displayed before interruption or UI state was restored.
+For the already-bound defaulted case, `ARC-36a` says "Once an ad-hoc machine has been bound
+under the harness default, the harness MUST refuse a request requiring a less restrictive
+class for the rest of that session, explaining the concrete conflict without presenting the
+classification questions." This resolves that case in the relaxing direction only.
+`ARC-36a` says "Its class does not relax in that session; those requests MUST leave the
+journaled class and harness-default provenance unchanged." No later-session re-entry policy
+is chosen here. Tightening after binding remains open in `TASKS.md`; `ARC-36a` says "The
+model MAY propose a tightening, single-purpose to multi-tenant, and nothing else".
+The rejection of model-proposed classification in ADR-0034 stands, including when a
+suggestion was displayed before interruption or UI state was restored.
 
 ## Consequences
 
-`CNF-100` exercises admission and provenance, the signed-question prerequisite and attempts
-to manufacture an answer. The directly dependent multi-tenant cases are `CNF-92`, `CNF-52`
-and `CNF-94`; declaration refusal remains covered by `CNF-99`. `CNF-101` continues to cover
-maintained access and journaling before installation.
+An operator who did not request the less restrictive capability before binding cannot obtain
+it on that machine in that session. The relaxation trades mandatory up-front questioning
+for this cost; a request after binding receives an explanation and a refusal, without a
+question whose answer could be mistaken for permission to proceed.
+
+Conformance for class admission and same-session refusal is in `CNF-100`; dependent
+restriction cases are in `CNF-92`, `CNF-52`, `CNF-94` and `CNF-99`. Maintained access and
+pre-installation journaling are covered by `CNF-101`.
 
 The recovery format retains a recorded class value without treating a harness default as
 unapproved or turning that value into an operator answer. No format version or field changes.
 The declaration companion consumes the class as a Boolean; its spendable-material refusal
-and its theorem are unchanged. This decision changes admission provenance, not that refusal
-or any capability's conformance admission.
+and its theorem are unchanged. Admission provenance and the same-session refusal under
+`ARC-36a` change neither that declaration refusal nor any capability's conformance admission.

@@ -1208,23 +1208,36 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       With no tenant, take an ordinary one-machine goal needing no wallet through setup
       approval without a separate classification screen. Inspect the journal before binding
       and installation: the class is multi-tenant and its provenance is a harness default,
-      distinct from an operator's explicit answer. A tenant profile's class preset retains
-      its treatment.
-      Request behavior requiring a less restrictive class at initial admission: it is not
-      admitted before an explicit operator answer to the signed, harness-authored questions,
-      with the answer journaled before binding and installation. Nothing is preselected;
-      "not sure" yields multi-tenant. The question text, answer mapping and note match
-      `bundle/lockdown.toml`.
+      distinct from an operator's explicit answer. Repeat admission with each tenant profile
+      in `docs/tenants/` that presets a class: the journaled class matches that profile's
+      Machine class slot, with neither ad-hoc harness-default provenance nor an ad-hoc
+      classification question substituted for the preset.
+      Request behavior requiring a less restrictive class while initial admission remains
+      open, both before setup approval and after it but before binding: the concrete conflict
+      is explained before the signed, harness-authored questions are presented, with nothing
+      preselected. Withhold an answer: the behavior is not admitted. Answer each option in
+      separate admissions: the question text, answers, class mapping and note match
+      `bundle/lockdown.toml`; the explicit answer and resulting class are journaled before
+      the behavior is admitted, binding or installation. "Not sure" yields multi-tenant
+      with operator-answer provenance, not harness-default provenance; a further relaxing
+      request does not relax that answer or admit the behavior.
       Attempt to word a question, supply or preselect an answer through model text, a suggested
       or previously displayed answer, restored UI state and replayed default provenance: none
-      manufactures an operator answer or admits relaxing behavior. The model can propose
-      multi-tenant for a single-purpose machine and cannot propose the reverse or relax the
-      operator's answer. Repeat a relaxing request on an already-bound machine: the
-      explicit-answer prerequisite still holds, and an answer alone creates no reclassification
-      route, history reset or exception to the binding checks (`SEC-1`).
+      manufactures an operator answer or admits relaxing behavior. Submit model proposals to
+      tighten single-purpose to multi-tenant, to relax multi-tenant to single-purpose, and to
+      relax an operator's answer: only the tightening proposal is permitted, without treating
+      that permission as a decision on tightening after binding (`TASKS.md`).
+      Bind an ad-hoc machine under the harness default, then request behavior requiring a
+      less restrictive class: the harness refuses with the concrete conflict explained and
+      presents no classification question. Inspect the journal: the multi-tenant class and
+      harness-default provenance are unchanged, with no operator answer manufactured. Repeat
+      the request in the same session, including after same-session resume: each is refused
+      with the same explanation, absent question and unchanged class and provenance.
       Exercise `CNF-92`, `CNF-52`, `CNF-94` and `CNF-99` with a defaulted machine, including a
-      goal or declaration attempting to permit spendable material: default provenance bypasses
-      no restriction or placement confirmation. Escaped secret: the class is what switches
+      goal or setup/declaration approval attempting to permit spendable material or bypass
+      non-spendable confirmation: the singleton binding is enforced, no spendable material
+      is present, unconfirmed placement is refused, and the spendable declaration amendment
+      is refused, as those items require. Escaped secret: the class is what switches
       `CNF-52` on.
 - [ ] **CNF-101 · PRE-SCALE** With no tenant a machine's access model is maintained, and
       neither a goal nor a model's proposal seals one (`ARC-27`). Class, access model and
