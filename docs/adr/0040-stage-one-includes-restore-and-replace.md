@@ -49,7 +49,7 @@ revocation stays in the paid/public row. These applicability changes move no sev
 `STA-17` owns the remote key order, manual confirmation and partial-Replace reporting: "The
 UI MUST NOT claim the old pass revoked before that confirmation".
 
-Recovery knowledge is separate from recovered access. `STA-16` owns the "unknown since
+Recovery knowledge is separate from contact readiness. `STA-16` owns the "unknown since
 export" state of placements, weaker modes and the declaration, and its reapproval boundary.
 The sheet carries each live machine's state as approved — declaration, class, access model and
 standing weaker modes, with installation pin status and each pin's route beside it — because none of it is secret and a Restore that had to
