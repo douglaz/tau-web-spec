@@ -1182,8 +1182,9 @@ The ceremony presents **“Check all words”** and **“Skip check”** with th
 beside them. Check all words means re-entering the complete mnemonic to catch transcription
 errors; it checks that entry against this seed, not whether a backup was safely retained.
 Skip check means completing the ceremony without checking the words, leaving transcription
-errors undetected. Both choices complete the ceremony on the durable record above; skipping
-needs no second confirmation. For what to retain alongside the seed, see `STA-15`'s checklist.
+errors undetected. Either choice completes the ceremony only through the durable record
+above, so a mismatched re-entry completes nothing; skipping needs no second confirmation.
+For what to retain alongside the seed, see `STA-15`'s checklist.
 
 Key derivation gives a session only its permitted child credentials. **Explicit app Lock**
 is the operator's local lock action. An ordinary visibility-only hide is a visibility change
@@ -1384,8 +1385,8 @@ checklist:
 | Item to retain | Purpose |
 |---|---|
 | Seed backup | Re-derives keys for recorded identities. |
-| Current recovery sheet (the encrypted recovery file) | Carries the metadata and recovery records needed alongside the seed. |
-| Recovery-file passphrase (the recovery-sheet passphrase) | Decrypts that file. |
+| Current recovery sheet (a passphrase-encrypted file) | Carries the metadata and recovery records needed alongside the seed. |
+| Recovery-sheet passphrase | Decrypts the sheet. |
 
 The interface says plainly: **“For this recovery path, the seed alone is insufficient.”**
 The checklist explains the seed-and-sheet path; the dedicated rescue exception is described

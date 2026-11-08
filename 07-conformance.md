@@ -757,7 +757,7 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       complete without it (`STA-15`).
       Inspect the export view's recovery checklist against `STA-15`, with each retained
       item's distinct purpose and the seed-alone insufficiency message. The sheet is
-      explained as the encrypted recovery file, distinct from a local-store backup; the
+      explained as a passphrase-encrypted file, distinct from a local-store backup; the
       guidance does not turn the dedicated rescue exception into a sheet requirement.
       Confirming that the current sheet was saved occurs in this export view, as defined
       in the credential format, without an additional modal or a seed-ceremony confirmation.
