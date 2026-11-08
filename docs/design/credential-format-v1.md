@@ -700,7 +700,7 @@ add no fact after separate partial observations, so no complete observation is
 required in the group. Later refused observations may add facts after that prefix;
 they remain recorded and MUST NOT invalidate an already admitted pin. Missing
 or invalid history MUST NOT become empty history. `STA-16` owns what Restore does with
-these facts. These fields remain required in payload version 4 and later and in the version-3
+these facts, including contact revalidation of a retained pin. These fields remain required in payload version 4 and later and in the version-3
 compatibility input; the envelope and derivation are unchanged.
 
 `applications` is a required JSON array of objects, each with exactly the required members

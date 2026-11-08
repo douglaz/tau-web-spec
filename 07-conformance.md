@@ -972,7 +972,9 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       pin from any source whose group has no publication. Status polling is permitted within
       `lnvps.published_key_wait_max`; after its
       deadline, first contact is unresolved, with no login or timer-driven retry. The harness
-      offers operator-chosen reinstall or abandonment, never automatic reinstall, fallback
+      offers operator-chosen reinstall or abandonment for initial first contact without a
+      previously admitted restored pin; restored-pin revalidation is exercised in item 84
+      under `STA-16`. It never offers automatic reinstall, fallback
       login or trust on first use. Abandonment stops the machine, turns renewal off and leaves
       it shown as existing and billed until deletion is confirmed (`ARC-22`). Exercise each
       refusal and deadline against the integrated harness, including a status response that
@@ -1005,7 +1007,8 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       answer on the machine's address inside the vendor's network at scan time** (`TRU-E1`,
       `TRU-E13`). The disclosure and every refusal block this route. Export and Restore keep
       `lnvps_retrieve` provenance and installation groups with the pin (`CNF-84`); they do not start
-      a new first contact. A pin admitted after an empty prior installation group does not
+      a new first contact. Exercise restored-pin revalidation separately in item 84; these
+      initial-contact cases retain their deadline and no-timer-retry refusal. A pin admitted after an empty prior installation group does not
       confirm reinstall; `STG-21a` says "An empty prior group can admit a pin under `CHN-R7` but cannot confirm this
       reinstall; the cloud barrier and existing permitted-read rules still apply independently."
       An operation receipt or
@@ -2122,11 +2125,35 @@ Not pass/fail. Required to be recorded.
       `CHN-R7` installed-system pin too: the distinct `lnvps_retrieve` route survives with
       the stored pin and its retrieval disclosure, while the installation's artifact-pin
       status remains independent. Restore reconnects under that existing pin, not a new
-      first contact, only after the vendor's current published set reads complete and equal
-      to it; with a fixture vendor reporting an empty or different set, or the status read
-      failing, no contact is made, no pin is retired and no new first contact opens on that
-      reading: the machine is unresolved until the operator chooses a reinstall or
-      abandonment. Round-trip the recorded installation groups, including incomplete and
+      first contact, only after a complete matching current publication passes the retained
+      history and installation checks (`STA-16`). A transport failure followed by a qualifying
+      matching publication admits contact without reinstall. Empty and incomplete readings
+      with no conflicting fingerprint leave revalidation unresolved and offer another
+      authorized verification read, with no contact and no forced reinstall or abandonment.
+      Inspect the actual requests: retry sends only the authorized direct vendor-status read,
+      never a mutation, mutation resend, replacement-pin acceptance, installation opening,
+      attest renewal or automatic reinstall. Refuse an unauthorized verification read; retry
+      supplies no new authority and settles no uncertain remote operation. Contact is not
+      retried on a timer. Destructive recovery remains separately explained and authorized.
+      A partial reading containing any conflicting fingerprint and a complete mismatch keep
+      the identity hold when durably appended; retain those recorded observations across
+      retry, restart, journal replay and export/Restore. A later complete matching response
+      admits no contact in either case, including when the contradiction was recorded before
+      export. Once a contradiction is durably recorded, no further verification read is
+      offered: first contact is unresolved as past `CHN-R7`'s maximum wait, and the operator
+      chooses a destructive reinstall (`ARC-22`) or abandonment; a read that still occurs is
+      compared and retained. Compare against prior
+      knowledge before retention; inspect compact history and unchanged pin/provenance.
+      Fail the required evidence append on a qualifying read: contact stays withheld,
+      including after restart/replay; no uncommitted verification result authorizes contact.
+      Fail the append of a conflicting partial observation too: contact stays withheld,
+      including after restart/replay; the saved pin and recorded history are unchanged,
+      and another authorized verification read is offered. In both failed-append cases,
+      a later qualifying authorized read can admit contact.
+      Retain the saved pin throughout these cases without treating its preservation as
+      permission to use it. For initial contact without a previously admitted restored pin,
+      run item 23. Round-trip the recorded
+      installation groups, including incomplete and
       refused observations, an initial empty group opened by a job read or attest, empty
       reinstall boundaries and the active or retired status of pins from
       each source. Export and Restore a pin admitted after separate partial observations
