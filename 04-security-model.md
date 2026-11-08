@@ -1001,6 +1001,10 @@ no label, no answer and no operator act sets aside.
   application secret (`ARC-43`), paying an invoice, a destroy or a reinstall, adding a machine
   among them — together with every other mode standing on the set, because acceptances do not
   compose silently.
+  `SEC-14` says "it MUST be restated at every later irreversible act on any machine of the set".
+  This restatement MAY be concise: a short label for each standing mode with its readable
+  consequence visible on the card and its full explanation in expandable detail. All standing
+  modes are shown together on the card.
 - **Recorded and shown.** Each mode is journaled with the set and appears in the trust display
   for as long as it stands (`SEC-6`).
 
