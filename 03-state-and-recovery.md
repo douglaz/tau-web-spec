@@ -1546,7 +1546,12 @@ this retry available. A partial publication containing any fingerprint outside t
 set is contradictory evidence, as is a complete mismatch: retain it under the existing
 history rules. Durably appended contradictions remain in all subsequent comparisons across
 retry, restart, replay and export/Restore. A later matching publication MUST NOT discard or
-bypass that recorded evidence; the identity hold remains. Revalidation considers refused
+bypass that recorded evidence; the identity hold remains. After a durably appended
+contradiction, the restored pin admits no contact and the machine's first contact is
+unresolved, as past `CHN-R7`'s maximum wait: that reading alone opens no new first contact and
+retires no pin, the interface offers no further verification read, and the operator chooses a
+destructive reinstall (`ARC-22`), which opens a new installation, or abandonment. A read that
+still occurs is compared and retained as above. Revalidation considers refused
 observations retained before export as well as those read after Restore.
 
 This retry is only revalidation of an already admitted, restored `lnvps_retrieve` pin, using
@@ -1560,7 +1565,8 @@ authorization; a chosen reinstall opens a new installation. No verification read
 retires the saved pin or opens a new first contact.
 
 `TauWeb.Pins.verifyRestored` states the symbolic revalidation transition;
-`TauWeb.Pins.offersVerification` states its retry availability. The pins witness file carries
+`TauWeb.Pins.offersVerification` states which reads it processes, and
+`TauWeb.Pins.retryAvailable` states its retry availability. The pins witness file carries
 matching completion after unavailable evidence, retained contradictions and failed evidence
 append; it establishes no integrated contact or storage behavior.
 

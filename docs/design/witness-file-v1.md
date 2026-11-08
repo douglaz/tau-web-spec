@@ -416,7 +416,9 @@ across restart, and the next authorized qualifying read can still succeed. Empty
 repeats that neither add evidence nor admit contact require no append. `restore` starts from
 admitted, import-validated pins and history; import byte validation is outside these symbolic
 events. The `authorized` input represents existing vendor-status read
-authority; retry grants none.
+authority; retry grants none. `retry_available` is false once a durably recorded observation
+in the current installation holds a fingerprint outside the saved pin (`STA-16`); a `verify`
+event that still arrives is processed and retained.
 Restart preserves those journaled facts,
 including refusal of a second introduction and publication history; window and status-poll timing
 are outside this file. A halted handshake after an attempted connection does not demonstrate
@@ -433,7 +435,7 @@ introduction across restart, failed-append then valid admission, independent mac
 introduction after a job pin, and LNVPS source, completeness, incomplete history, freshness,
 pending reinstall across restart and machine-isolation cases. Restore witnesses additionally
 exercise failed-read retry, empty/partial completion, durably appended contradictions retained
-before Restore or during revalidation, unauthorized verification, failed evidence append with
+before Restore or during revalidation with retry withdrawn, unauthorized verification, failed evidence append with
 retry still available, later qualifying completion after failed append (including a conflicting
 read), and retired-pin refusal. These named
 traces do not extend the bounded alphabet or its decided coverage. The named traces also include

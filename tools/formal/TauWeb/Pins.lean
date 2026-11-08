@@ -445,11 +445,20 @@ installed first-contact check is in `journal`. -/
   (!p.publishedFresh || fresh k m keys) &&
   (!p.publishedWithin || withinInstallation k m keys)
 
-/-- Retry remains available for an unresolved, already admitted restored publication pin.
-It conveys no read authority. Initial first contact and retired pins do not enter this path. -/
+/-- A verification read is processed for an unresolved, already admitted restored publication
+pin. It conveys no read authority. Initial first contact and retired pins do not enter this
+path. -/
 @[req "STA-16"] def offersVerification (k : Knowledge) (m : Entry) : Bool :=
   k.pendingVerification.contains m &&
     (pinAt k m .machine).any (·.source == .published)
+
+/-- Another verification read is offered only while no durably recorded observation in the
+current installation holds a fingerprint outside the saved pin. Once a contradiction is
+recorded the choice is reinstall or abandonment; a read that still occurs is processed under
+`offersVerification`. An unrecorded (failed-append) reading changes neither. -/
+@[req "STA-16"] def retryAvailable (k : Knowledge) (m : Entry) : Bool :=
+  offersVerification k m &&
+    (pinAt k m .machine).any (fun pin => withinInstallation k m pin.keys)
 
 /-- Compare with the saved pin and prior history before retaining even refused evidence.
 No source is journaled here, and no installation, provenance or introduction changes. -/
@@ -1846,20 +1855,31 @@ def restoreRetiredEvents : List Event := restoredEvents ++
 @[req "STA-16"] theorem restore_partial_retry_admits :
     let waiting := run current init (restoredEvents ++
       [.verify entryA (some []) true false, .verify entryA (some [51]) true false])
-    offersVerification waiting entryA = true ∧ pinFor waiting entryA .installed = none ∧
+    offersVerification waiting entryA = true ∧ retryAvailable waiting entryA = true ∧
+    pinFor waiting entryA .installed = none ∧
     (run current init restorePartialEvents).sessions.map (·.keys) = [publishedKey] := by
   decide +kernel
 
 @[req "STA-16"] theorem restore_prior_contradiction_refused :
     let k := run current init restorePriorContradictionEvents
     k.pendingVerification = [entryA] ∧ k.sessions = [] ∧
-    (currentGroup k entryA).map (·.observations) = some [[999], publishedKeys] := by decide +kernel
+    (currentGroup k entryA).map (·.observations) = some [[999], publishedKeys] ∧
+    retryAvailable (run current init (restorePriorContradictionEvents.take 3)) entryA = false ∧
+    retryAvailable k entryA = false := by decide +kernel
 
 @[req "STA-16"] theorem restore_complete_mismatch_refused :
     let k := run current init restoreMismatchEvents
     k.pendingVerification = [entryA] ∧ k.sessions = [] ∧
-    (currentGroup k entryA).map (·.observations) = some [nextPublishedKeys, publishedKeys] := by
+    (currentGroup k entryA).map (·.observations) = some [nextPublishedKeys, publishedKeys] ∧
+    retryAvailable k entryA = false := by
   decide +kernel
+
+/-- A durably recorded conflicting partial withdraws the retry offer, while reads that still
+occur are processed and retained. -/
+@[req "STA-16"] theorem restore_contradiction_withdraws_retry :
+    let k := run current init (restoreContradictionEvents.take 3)
+    k.pendingVerification = [entryA] ∧ offersVerification k entryA = true ∧
+    retryAvailable k entryA = false := by decide +kernel
 
 @[req "STA-16"] theorem restore_retired_pin_refused :
     let k := run current init restoreRetiredEvents
@@ -1871,14 +1891,15 @@ def restoreRetiredEvents : List Event := restoredEvents ++
     let before := run current init restoredEvents
     k = before ∧ k.pendingVerification = before.pendingVerification ∧
     k.sessions = [] ∧ k.publicationGroups = before.publicationGroups ∧
-    k.pins = before.pins ∧ offersVerification k entryA = true := by decide +kernel
+    k.pins = before.pins ∧ offersVerification k entryA = true ∧
+    retryAvailable k entryA = true := by decide +kernel
 
 @[req "STA-16"] theorem restore_failed_append_retry_admits :
     let before := run current init restoredEvents
     let waiting := run current init (restoredEvents ++
       [.verify entryA (some publishedKeys) true false, .restart])
     waiting = before ∧ offersVerification waiting entryA = true ∧
-    pinFor waiting entryA .installed = none ∧
+    retryAvailable waiting entryA = true ∧ pinFor waiting entryA .installed = none ∧
     let matched := run current init (restoreFailedAppendRetryEvents publishedKeys)
     let conflicted := run current init (restoreFailedAppendRetryEvents [999])
     matched.sessions.map (·.keys) = [publishedKey] ∧

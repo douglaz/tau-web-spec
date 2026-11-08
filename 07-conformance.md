@@ -2139,7 +2139,10 @@ Not pass/fail. Required to be recorded.
       the identity hold when durably appended; retain those recorded observations across
       retry, restart, journal replay and export/Restore. A later complete matching response
       admits no contact in either case, including when the contradiction was recorded before
-      export. Compare against prior
+      export. Once a contradiction is durably recorded, no further verification read is
+      offered: first contact is unresolved as past `CHN-R7`'s maximum wait, and the operator
+      chooses a destructive reinstall (`ARC-22`) or abandonment; a read that still occurs is
+      compared and retained. Compare against prior
       knowledge before retention; inspect compact history and unchanged pin/provenance.
       Fail the required evidence append on a qualifying read: contact stays withheld,
       including after restart/replay; no uncommitted verification result authorizes contact.
