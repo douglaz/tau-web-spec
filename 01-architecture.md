@@ -864,8 +864,10 @@ share every layer by construction, and are shown as one unit (`SEC-1`).
 approvals MUST batch:
 one screen showing the whole setup and its true recurring cost — each session's bound set,
 machine by machine, and any jump host a first contact will need (`CHN-R6`), with what it
-costs. A machine added to a bound set afterwards is one operator act per machine, through the
-mid-flight queue, on the card `SEC-1` describes. An untyped call's scope
+costs. Approvals placed on the setup screen under their owning rules MUST be presented
+together, rather than as sequential confirmations. Shared presentation does not authorize facts
+unavailable for approval. A machine added to a bound set afterwards is one operator act
+per machine, through the mid-flight queue, on the card `SEC-1` describes. An untyped call's scope
 rides the same rules — approved with the up-front batch when the brief names the service,
 joining the mid-flight queue when one is discovered later. **No untyped call runs before its
 scope is approved.** When an untyped vendor scope's local permission closes is `SEC-4`'s. Five concurrent workers producing interleaved popups on a phone is
