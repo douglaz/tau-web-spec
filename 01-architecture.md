@@ -519,6 +519,7 @@ here is non-waivable:
 - **The placed secret is listed in the trust display** until it is rotated or the machine is
   destroyed (`SEC-6`; at LNVPS, the vendor's confirmed deletion, `SEC-5` row 12), or until the
   operator reports it revoked (below), when it moves to history labelled operator-reported.
+  A correction below restores its live listing unless independently ended, retaining that history.
   A first placement is listed, and its reference required, from the approved record made
   before its bytes leave, whatever its job then does. A nonzero exit, a job that stays
   unresolved, a disposition or a late completed record of a disposed call ends neither
@@ -527,7 +528,8 @@ here is non-waivable:
   job then does, and until `SEC-5` records that old placement's rotation it stays beside the new one as it
   was, listed live or in operator-reported history.
   After a Restore the display starts from the placement records the sheet holds (`STA-16`), listing
-  a record with an operator report in that history, never live. Machine
+  a record with an uncorrected operator report in that history, never live; a corrected
+  placement not independently ended is listed live as well as keeping its report history. Machine
   records may add entries, visibly labelled as machine-reported and advisory, but MUST NOT
   remove any. An absent file stays listed; absence, scan re-arm, a machine's claim of removal
   and the stop that stands in for a destroy (`ARC-22`) are not rotation or destruction.
@@ -545,16 +547,19 @@ placement's value, including an earlier attempt's value.
 The set is the one fixed at the record made before its bytes leave. If it differs from
 the set the approved card named, nothing is sent and a new card is composed.
 
-**Re-arming after store loss is harness work.** On binding a session after local-store loss,
-every placement the sheet records on that bound set's machines without an operator report
-(below) MUST have its required reference re-armed by `digest_secret` or the local paste below
-before any model command or collection of old or new job records can release output to either
-the model or the transcript on that bound set. A placement with an operator report has no
+**Re-arming after store loss or report correction is harness work.** On binding a session after
+local-store loss, every placement the sheet records on that bound set's machines without an
+uncorrected operator report, and not independently ended by rotation or confirmed destruction,
+MUST have its required reference re-armed by `digest_secret` or the local paste below before
+any model command or collection of old or new job records can release output to either the
+model or the transcript on that bound set. The same procedures apply to the future required
+reference restored by a report correction below. An uncorrected reported placement has no
 required reference, and neither `digest_secret` nor the paste arms one for it. A placement
-that a rotation or destruction ended without a report is not on a later sheet and is not
-re-armed; on each machine whose machine state carries the `reference_ended` mark, every job
-record from before the loss stays withheld (`SEC-5`), and re-arming the other references
-releases none of it. `digest_secret`
+independently ended by rotation or destruction is not re-armed, even when its report and
+correction history remain on the sheet. An ended placement without a report is not on a later
+sheet; on each machine whose machine state carries the `reference_ended` mark, every job record
+from before the loss stays withheld (`SEC-5`), and re-arming the other references releases none
+of it. `digest_secret`
 remains the default re-arm path. It reads the recorded path, refuses a
 symbolic link or a path traversing one, writes nothing to the placement, and outputs only SHA-256 of the file's bytes
 and their byte count, never the bytes. Normal machine-side capture remains `STA-20`'s; its
@@ -576,7 +581,7 @@ nothing to the machine; no scan material goes to the page, machine or sheet.
 The same job MUST run immediately after placement, cross-checking the browser-held value's
 hash and byte count. A mismatch is visible and MUST NOT silently replace the browser's
 reference. With an intact store, later sessions retain that reference: a machine report cannot
-overwrite it. After store loss there is no old reference with which to detect every rewrite.
+overwrite it. After store loss or a report there is no old reference with which to detect every rewrite.
 A machine-derived reference MUST be labelled **"re-armed from the machine's report"**, never
 "protected" or proof that the original value was recovered. It covers no forgotten placement.
 Further changed-file detection policy remains open in T48.
@@ -636,7 +641,7 @@ says "Destruction never counts as a scan: bytes withheld before it stay withheld
 placement's reference is required from the record made before its bytes leave, whatever its job
 then does, since from that record on its bytes may have left: `STA-4` says an intent with no
 terminal record means the call "may have been sent, never that it was not". An old placement
-without a report keeps its reference required beside the new one's until `SEC-5` records
+without an uncorrected report keeps its reference required beside the new one's until `SEC-5` records
 that old placement's rotation, and output owes both references. Once `SEC-5`
 retires the rotated placement's reference (`SEC-5` says "P's row 23 scan key and reference end,
 and nothing re-creates them"), the re-arm above and the `exec` wait no longer require that
@@ -658,7 +663,9 @@ The harness trusts the report as the operator's statement that the service revok
 right credential, not as service evidence. The card names the placement by machine, application
 name, secret name, path and placement time, and says that a mistaken report could expose a
 still-valid key in later output and understate live exposure, that a true one erases no
-bytes, copies, earlier model access or earlier disclosure, and that a report cannot be undone.
+bytes, copies, earlier model access or earlier disclosure, and that correction can restore
+future protection only, leaving the interval without an active scan requirement and any output
+already released.
 The report is journaled before it
 takes effect: `STA-3` says "If the append fails, the transition does not occur." The reference's
 state is read at that journal act, so a re-arm journaled before it refuses the report. The card
@@ -668,12 +675,13 @@ instance, the report is offered again. A placement whose key was revoked at its 
 reference is armed is ended by a rotation that records that placement's rotation under `SEC-5`,
 once `ARC-17`'s placement gates admit it, or by destruction. Once the report is
 recorded, that placement's required reference ends: the re-arm and the `exec` wait above no
-longer require it, a paste or digest record arms nothing for it, and the trust display moves it
+longer require it, a paste or digest record arms nothing for it while the report is uncorrected,
+and the trust display moves it
 from the live listing to history labelled operator-reported, never "retired" or "rotated". It
 ends that placement only. Another placement keeps its own reference and wait even when it holds
 the same bytes or names the same application, secret name or path, a later placement at that
-path included, and an application and its provider stay listed while a placement without a
-report names them. The report lifts no `STA-20` or `STA-24` restriction, replaces no destructive
+path included, and an application and its provider stay listed while a live placement without an
+uncorrected report names them (`TRU-E12`). The report lifts no `STA-20` or `STA-24` restriction, replaces no destructive
 disposition, establishes no operation's outcome, authorizes no retry (`STA-6`), restores no
 ended runtime authority, and clears no command hold, resource barrier, pending check or other
 unarmed-reference requirement. A missing file, a changed pin, a reinstall, a new installation
@@ -681,14 +689,49 @@ and the stop that stands in for a destroy (`ARC-22`) never produce it. Replay de
 from its journal record. The sheet carries it (`STA-16`); a sheet exported before it restores the
 wait. Its scan ends under `SEC-5`: output withheld before the report stays withheld, and output
 produced after it is no longer compared against that placement's reference but owes every other
-reference and release prerequisite. A recorded report is final: no act corrects or
-withdraws it. Only a Restore from a sheet that does not carry it, one exported before it or a
-version 3 to 6 sheet, brings back that placement's wait, as above. After a mistaken report the
-operator may revoke the key at its service, rotate the placement once its placement gates admit
-it, or destroy its machine. A rotation claims no revocation at the service (`SEC-5`), and none of
-these recalls output released after the report. Where the wrong placement was reported, the right
-one needs its own report, offered on the same terms, and the wrong one stays reported
-([ADR-0062](./docs/adr/0062-the-lost-key-report-is-offered-only-while-unarmed-and-is-final.md)).
+reference and release prerequisite, subject to a later correction below. After a mistaken report
+the operator may also revoke the key at its service, rotate the placement once its placement
+gates admit it, or destroy its machine. A rotation claims no revocation at the service (`SEC-5`),
+and none of these recalls output released after the report. Where the wrong placement was
+reported, the right one needs its own report, offered on the same terms.
+
+**A report correction restores future protection, not the past.** The operator MAY correct an
+uncorrected revocation report for a placement not independently ended by rotation or confirmed
+destruction. The correction MUST preserve the original report and its timestamp and append the
+correction separately as a later journaled fact. It MUST restore a future required reference,
+initially unarmed, before affected output can be released. Eligibility, including the exact
+placement and report being corrected and the absence of an independent end, MUST be evaluated
+against the state at the durable append; a stale card cannot correct a placement ended before
+that boundary. If the append fails, the previous report state, listing and release behavior
+remain in force and the failure MUST be shown. No second approval ceremony is required merely
+because correction tightens protection.
+
+From that boundary, affected model work waits on the restored reference under the set-wide
+`exec` rule above. Every publication path to model or transcript MUST consult the current
+protection state before release, including output prepared, ready or checked before correction
+but released afterward. An earlier preparation or check supplies no bypass. Fresh re-arm or an
+ordinary rotation must meet its prerequisites before the restored requirement permits release;
+`SEC-5` owns the scan and the permanent withholding of earlier withheld output. Correction
+MUST NOT recall, recover or erase released output, release previously withheld output, erase
+history, supply a retroactive scan or claim the service reversed a revocation.
+
+Re-arm MUST construct fresh scan material under the procedures above, never resurrect a retired
+scan key or reference. Only a digest dispatched for this restored requirement after the
+correction may arm it; an earlier digest is status or a cross-check only, and a disposed digest
+still arms nothing. A local paste likewise arms only the current required reference. The
+minimum, custody checks, fallback, machine-report provenance and coverage limits, immediate
+placement cross-check, late cross-check, disposition and no-overwrite rules above all apply.
+Correction grants no contact, session authority, approval, command or retry, clears no
+resource barrier, command hold, pending check or disposition, and revives no independently
+ended placement. Another placement's reference is unaffected, even with equal bytes.
+
+The display is `SEC-6`'s; the provider-listing predicate is `TRU-E12`'s. Report and correction
+history survive replay, Export and Restore under `STA-16` and the credential format, including
+any independent end before or after correction. A later report remains offered only while the
+restored required reference is unarmed, under the report rule above; it adds a later report
+fact without rewriting the original report. Neither correction nor re-arm repairs forgotten or
+omitted placements or missing exposure-ledger edges
+([ADR-0075](./docs/adr/0075-report-correction-restores-future-protection.md)).
 
 The model's tool set on the LNVPS path is exactly four: `exec` (a box-plane command it composed),
 `request_harness_job` (`fetch_artifact`, `ready_to_reset` or `place_secret`, by name, with the

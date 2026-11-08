@@ -77,3 +77,6 @@ against the old value, touches that point.
 `ARC-43`, `SEC-6`, `CNF-42` and `CNF-95(h)` change together, and ADR-0057 notes that both its
 points are decided here. The formal companion has no placement or scan-reference state and is
 unchanged.
+
+*Partially superseded 2026-11-08:* [ADR-0075](./0075-report-correction-restores-future-protection.md)
+replaces report finality with prospective correction; the unarmed-only offer remains.

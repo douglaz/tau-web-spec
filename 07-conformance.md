@@ -223,7 +223,7 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       machine reports changed bytes; never silently adopt the changed value.
       (c) Seed-plus-sheet Restore, alongside `CNF-84`: each placement recorded on the set's
       machines, apart from one whose reference `SEC-5` has retired, whether by destruction or
-      by an operator report (case (h)), is re-armed
+      by an uncorrected operator report (case (h)), is re-armed
       before output collection or model commands on any machine of the set. The label is
       "re-armed from the machine's report", never "protected"; forgotten placements are not
       claimed covered. Machine-only entries are advisory and require an operator act to arm.
@@ -419,7 +419,8 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       one bound set; M carries placements P1 and P2, both unarmed, and output on A is withheld.
       The operator reports P1 revoked. The card names P1 by machine, application name, secret
       name, path and placement time, and says what a mistaken report risks, what a true one
-      does not erase and that a report cannot be undone. With the report's append failing,
+      does not erase and that correction restores future protection only, leaving the interval
+      without an active scan requirement and output already released. With the report's append failing,
       nothing changes: P1 still waits and stays listed live. Once the report is recorded, P1
       needs no re-arm, and a paste or a late digest record for P1 arms nothing; P2 still waits,
       so output on A stays withheld until P2 is armed. A report of P1 alone never releases
@@ -438,12 +439,75 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       job record stays withheld for P1, and its `operator_reported_at` classifies no output. A
       sheet exported before the report, and a version 3 to 6 sheet, restore P1's wait.
       Browser persistence and the exported sheet hold no raw value, bare digest or expired
-      scan material for P1. The harness offers no act that withdraws or corrects P1's report, and
-      P1 stays in operator-reported history. In a separate branch, P2's card is shown and P2's
+      scan material for P1. Until a correction is appended, P1 stays in operator-reported history. In a separate branch, P2's card is shown and P2's
       re-arm is journaled before the report's journal act, and the report is refused: P2 stays
       live and keeps its scan, and no report is offered for P2 while its reference is armed.
       For the display beside P2, see `CNF-42` (`SEC-6`).
       After a further local-store loss leaves P2 unarmed, the report is offered for P2 again.
+
+      Correct the mistaken report of P1 in separate digest and local-paste branches. Fail the
+      correction append first: report/time, history, absent live/provider listing, lack of P1's
+      wait and release behavior all stay unchanged; the failure is visible, including after
+      replay. Then append successfully without a second protective approval ceremony: retain
+      the original report/time and append the correction, restore P1's future required reference
+      unarmed and its live listing beside the history, and withhold affected model work and
+      release on the whole bound set. P2, and an armed P3 with equal bytes, retain their own
+      references and states. Use one P1-only application for the provider assertion in `CNF-42`.
+      Include output ready before correction, output already checked clean before correction,
+      old/reconnect collection and a read-only job visible only in the transcript: actual release
+      to either model or transcript consults the corrected state. Neither an earlier check nor
+      a prepared publication can bypass it. Output eligible but not yet released when correction
+      lands waits for its fresh scan and every other prerequisite. Output already withheld before
+      correction stays withheld even after re-arm, including the pre-report backlog and ranges
+      withheld only for P2; output released during the interval is never recalled, recovered or
+      erased. Inspect both sinks and keep collection itself available.
+
+      Re-arm with a fresh browser-only key/reference, never retired material. The default digest
+      reports current bytes, and the label remains "re-armed from the machine's report", with
+      no claim to the original secret or forgotten/omitted placements. Exercise changed current
+      bytes, minimum and custody refusal, absent-file and failed/refused/disposed-digest fallback,
+      the local paste's no-write/clearing/minimum rules, symlink refusal, intact/pasted-reference
+      preservation and mismatch cross-checks as in (a), (b), (d), (e), (f) and (g). A late digest
+      dispatched before correction arms nothing, even when not disposed; a disposed digest still
+      arms nothing whenever collected. A later digest cross-check never replaces a pasted
+      reference. Under destructive reinstall or abandonment keep those restrictions and the
+      operator-only re-issue rule; correction and paste grant no retry, contact, session authority,
+      approval, command, disposition change or resource-barrier release. Successful re-arm admits
+      only otherwise eligible future output, redacting P1's exact bytes across chunks in both sinks.
+
+      Race the correction card with an independently recorded rotation and, separately, confirmed
+      destruction: if either end precedes the correction append, refuse correction and revive
+      nothing. A stop, renewal-off, deletion date, reinstall, disposition, nonzero/unresolved or
+      disposed rotation job supplies no such end. Retain ordinary placement gates, zero-exit
+      admission, fixed end set and the disposed-predecessor exception in (j), (l) and (m).
+      Independently rotate a corrected placement after re-arm and, in another branch, destroy its
+      machine: its restored reference ends, the original report and correction survive, and no
+      further correction or late digest/paste revives it. An ordinary rotation before re-arm must
+      satisfy all its placement gates and end that exact placement before its wait retires.
+
+      Export/Restore and replay before correction, after correction but before re-arm, after
+      re-arm, and after each independent end, using payload version 8 (`CNF-84`). Report/time,
+      ordered corrections/later reports, each no-active-scan interval and independent ends
+      survive. A corrected live placement returns required and unarmed on Restore; re-arm
+      neither clears any `reference_ended` mark nor releases any pre-loss record withheld for
+      the original report on its machine and sheet-ledger-recorded peers. Repeat (k)'s unrelated,
+      indirect and missing-edge machines: correction repairs no omitted edge or placement and
+      supplies no retroactive scan. A corrected placement ended later stays history, with no
+      wait, re-arm or provider, including on a destroyed current-seed or retired-seed allocation.
+      A sheet after the report but before correction restores the uncorrected report; version 7
+      invents no correction and, for a live reported record, establishes no independent-end
+      eligibility. Versions 3 to 6 still restore their as-of-export unreported placements.
+      Reject malformed or incompatible correction encoding as `CNF-84` requires. Repeat a report
+      after correction while its restored reference is unarmed, then correct that later report:
+      retain the original report/time and all later facts through replay and Restore. No report
+      is offered after re-arm while the reference is armed. An old report/card or correction for
+      another placement cannot alter the latest unmatched report.
+      Independent controls that clear the original report, arm with retired/late material,
+      change state on failed append, release a prepared output without consulting corrected
+      state, release an earlier withheld range after re-arm, revive an independently ended
+      placement, invent correction from older data or omit an interval must each produce this
+      item's finding, then pass when restored. These are required implementation demonstrations,
+      not claims of integrated execution.
       (i) Ended unreported placement (`SEC-5`, `ARC-43`, `SEC-6`): after a local-store loss,
       machines A and M are in one bound set, placement Q on M is unarmed, a job on A prints Q's
       exact value and is withheld for Q, and clean jobs run on A and M. Machine C is in a bound
@@ -503,7 +567,7 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       reference required, no `reference_ended` mark is set, and a sheet exported in each holds
       P's record and none for the new placement. In the disposition branches, a zero-exit job
       record of the rotation's call collected afterwards records no rotation, and it is journaled
-      and shown. A rotation of a reported placement whose job exits nonzero leaves it in
+      and shown. A rotation of an uncorrected reported placement whose job exits nonzero leaves it in
       operator-reported history with no required reference, and a sheet exported then holds its
       record and none for the new placement.
       (k) Reported placement after a Restore (`SEC-5`, `STA-10`): after a local-store loss,
@@ -1298,7 +1362,7 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       coverage and says "It does not mean <app> works" with that name substituted; the declaration
       states its outbound destinations and its always-on service, and, where it has its own model
       and its secret is placed, the trust display lists its model provider beside it (`TRU-E12`
-      says "for as long as a placement without an operator report names that application on that
+      says "for as long as a live placement without an uncorrected operator report names that application on that
       machine").
       Recovery of these facts is covered by `CNF-84` under `STA-16`. Where those destinations are declared as
       `listeners.outbound` restrictions, the delivery check finds each in place: verified by
@@ -2039,16 +2103,31 @@ to the relay evidence in `CNF-81`, `CNF-87` and `CNF-113`.
       history without a report, must produce this item's finding.
       An operator report (`ARC-43`) moves only its own placement from the live listing to
       history labelled operator-reported, never "retired" or "rotated", with the statement that
-      the report is the operator's, unverified at the service and cannot be undone, and that
-      output produced after it is not checked for that placement's value (`SEC-6`). Verified with two placements on one
+      the report is the operator's, unverified at the service, and that output produced after it
+      is not checked for that placement's value while the report is uncorrected (`SEC-6`). Verified with two placements on one
       machine naming the same application, one reported: the other stays live, the application's
       provider stays listed (`TRU-E12`), and the machine's untyped scopes and weaker modes are
       counted as before; once the second is reported too, the provider is no longer listed beside
       that application. A missing file, a changed pin, a reinstall, a new installation and the
-      stop that stands in for a destroy produce no report. After Restore a reported record is
+      stop that stands in for a destroy produce no report. After Restore an uncorrected reported record is
       shown in that history, never live, as of export, a destroyed machine's included, and a
       sheet exported before the report lists the placement live. Escaped secret: a placement
       shown as reported that the operator did not report is a live exposure dropped from view.
+      In a separate single-placement case, the application's only placement is reported and then
+      corrected without independent end. The provider is listed again beside that application;
+      the retained original report never hides it. The live placement's future requirement is
+      unarmed, then armed by fresh re-arm, with the original report/time and correction still
+      visible. The display identifies the report-to-correction interval as having no active scan
+      requirement, distinguishes it from the restored live requirement's armed/unarmed status,
+      and states that correction restores future protection only, verifies no service reversal
+      and recovers no released output. Export/Restore the corrected placement: its provider is
+      listed again and the history, interval and unarmed requirement survive with the as-of-export
+      labels. Failed correction append restores no live placement or provider; an independent
+      rotation or confirmed destruction before correction refuses it, and one after correction
+      leaves history without reviving the placement or provider on Restore. Targeted controls
+      hiding the sole corrected placement's provider, erasing report/time or interval, claiming
+      external revocation was reversed, or listing an independently ended placement live must
+      each produce this item's finding.
 - [ ] **CNF-93 · BLOCKING** An acceptable weaker mode is accepted by its label for one bound
       set before the first contact it governs — an acceptance after that contact is
       refused — and is never entered by failing
@@ -2314,6 +2393,39 @@ Not pass/fail. Required to be recorded.
       one machine, application name, secret name and path. Rotate a reported placement with the
       device clock set to or before the reported record's placement time: the new record's
       `placed_at` is later than the reported record's, and the export imports.
+      Version 8 ([credential format](docs/design/credential-format-v1.md#report-corrections-payload-version-8)):
+      round-trip the original `report` unchanged, required `report_events` and `independent_end`,
+      including empty events, a correction, a later report and another correction in journal
+      order, corrected live records, and corrected records independently ended by rotation or
+      destruction. Preserve the first independent end, including rotation followed by destruction.
+      Restore a live corrected record required and unarmed, with its application/provider listed
+      and original report/time and no-active-scan interval in history (`CNF-42`, `CNF-95(h)`).
+      Restore an independently ended corrected record as history only: no reference, wait, live
+      provider or revived allocation. A destroyed allocation has no machine state/application
+      list; keep form-only application-name validation, and require an appropriate end marker.
+      A rotated reported record on a live machine still needs the same-machine application
+      association. Repeat with retired-seed records and migration, preserving events/end state
+      when the exact machine identity moves. Duplicate identities remain refused even when
+      report/events/end differ. Keep the refusal of two `report:"none"` records at one
+      destination, and accept distinct corrected reported records beside another placement at
+      that destination, each with its own required-reference state. Export imports without raw
+      values, digests, scan keys, lengths or other value-derived material.
+      Refuse before binding missing `report_events` or `independent_end`, wrong types, unknown
+      markers, malformed times, extra or duplicate members, nonalternating facts, a later report
+      as the first event, correction without an original report, events or an independent end on
+      an unreported record, `"unknown"` with correction evidence, `"none"` or `"unknown"` on a
+      destroyed reported record, or `"destruction"` on a live allocation. A sheet exported
+      before correction invents none. Validate versions 3 to 7 by their original rules, then
+      apply only the explicit conversions: events empty, unreported end `"none"`, destroyed
+      reported end `"destruction"`, live reported end `"unknown"`, no eligibility invented for
+      that unknown. Reject version-8 fields smuggled into version 7; an older reader refuses
+      version 8, and no export drops correction history to down-convert. Replay retains both
+      facts and end state; malformed, unversioned or unknown-version correction evidence, a wrong
+      placement/report ordinal or an ineligible correction stops replay without skipped records,
+      changed report state or invented authority. Earlier journal records supply no correction.
+      A correction leaves a set `reference_ended` mark set, and independently ending a corrected
+      reported record sets no mark of its own: its retained report still withholds pre-loss
+      output on its machine and recorded peers. Keep the unreported mark cases below unchanged.
       Export after Replace a reported record on a machine destroyed before the migration: the new
       seed's sheet carries that machine in `retired_allocations` under its old seed, index,
       resource identity and recorded public key with `destroyed: true`, and the record keeps its
@@ -2419,7 +2531,7 @@ Not pass/fail. Required to be recorded.
       a recorded provider and no restored secret placement: its provider remains recorded and is not listed in the
       trust display. Include a restored placement with distinct `application_name` and secret
       `name`; confirm its named application's provider is listed beside that application on its
-      machine (`TRU-E12` says "for as long as a placement without an operator report names that
+      machine (`TRU-E12` says "for as long as a live placement without an uncorrected operator report names that
       application on that machine"). The restored facts stay labelled as of
       export, through a machine re-check, until the harness records that application again,
       without a new approval or any implication of current installation or provider state. The no-model marker and empty list never mean unapproved.

@@ -1445,7 +1445,8 @@ per-machine installation groups and their compact recorded LNVPS publication fin
 installation to which each installed pin belongs, which marks it active or retired (`CHN-R7`), the
 exposure ledger, placement metadata
 (the seed and `machine_index` naming its machine, application name, secret name, path,
-placement time and whether the operator reported its key revoked, `ARC-43`), each live machine's
+placement time, the original operator report/time, later corrections or reports and any
+independent end, `ARC-43`), each live machine's
 **machine state as approved** — its declaration in force (`ARC-39`), its class (`ARC-36a`),
 its access model (`ARC-27`) and the acceptable weaker modes standing on its bound set (`SEC-14`) — with whether
 its installation is pinned (`ARC-25`), its installed applications and whether a rotation or a
@@ -1499,11 +1500,21 @@ harness records that application again: no re-check reads which applications are
 which provider each uses, so a re-check does not lift the label, and the list MUST NOT imply
 current installation or provider state while it stands. This
 list requires no reapproval. A restored provider is listed beside its application exactly where
-a restored placement without a report names that application on its machine: `TRU-E12` says "for
-as long as a placement without an operator report names that application on that machine". A
-restored reported placement is shown as operator-reported history, as of export, and re-arms
-nothing and owes no wait (`ARC-43`). A destroyed machine's reported placement is shown the same
-way, with no provider beside it. A machine whose restored state carries the `reference_ended`
+a restored live placement without an uncorrected report names that application on its machine: `TRU-E12` says "for
+as long as a live placement without an uncorrected operator report names that application on that machine". A
+restored uncorrected reported placement is shown as operator-reported history, as of export,
+and re-arms nothing and owes no wait (`ARC-43`). A corrected placement not independently ended
+returns live with its future required reference unarmed, retaining the report and correction
+history and the interval without an active scan requirement (`SEC-6`). An independently ended
+placement stays history, with no re-arm or wait, whether its report was corrected or not. A
+destroyed machine's reported placement is shown in history with no provider beside it.
+Export, Restore and replay MUST preserve the original report and timestamp, each subsequent
+correction or report, and any independent end. No import silently supplies a correction or
+clears a report: the credential format owns versioned validation, explicit older-data
+conversion and the limits of the correction eligibility older records establish. Correction
+and re-arm change no as-of-export qualification and recover neither omitted placements nor
+missing exposure-ledger edges; the report's pre-loss withholding remains `SEC-5`'s.
+A machine whose restored state carries the `reference_ended`
 mark (`SEC-5`) is shown as one where a placement reference that scanned it ended before export,
 naming no placement, with its job records from before the loss withheld and output produced
 after the Restore not checked for that ended value (`SEC-5`). The mark

@@ -196,8 +196,8 @@ whoever serves that model, under a key the operator supplied as an application s
 harness neither chooses that party nor asks anything of it: the retention request of `ARC-31a`
 and the counts of `ARC-14` cover the harness's own inference and none of the application's.
 Elective — it comes with the application the operator chose — and listed in the trust display
-beside the application for as long as a placement without an operator report names that
-application on that machine. A report (`ARC-43`) ends only its own placement's part in that
+beside the application for as long as a live placement without an uncorrected operator report names that
+application on that machine. An uncorrected report (`ARC-43`) ends only its own placement's part in that
 listing; it says nothing about what the provider already received. Recovery of that display is
 governed by `STA-16`, including its as-of-export qualification.
 
