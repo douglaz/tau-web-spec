@@ -237,8 +237,7 @@ this paragraph governs only the deterministic abandonment flow (`ARC-21`), inclu
 continuation across openings after the named holders' durable Ends. It borrows no session
 authority.
 
-**The deletion check is authorized outside any session.** It is one check, started by the
-operator from the screen that shows the machine (`ARC-22`); nothing starts it automatically.
+**The deletion check is authorized outside any session.**
 It MUST act only on a machine stopped under `ARC-22`'s unavailable-destroy treatment whose
 deletion is not yet confirmed, whichever flow stopped it — the in-setup replacement rung
 (`ARC-22`), Replace's own flow (`STA-17`) or an abandonment (`ARC-21`) — and whatever state
@@ -251,8 +250,33 @@ another machine's key. It supplies evidence only: `STA-24` owns the durable evid
 this authority, not the vendor side: these are authenticated reads the vendor receives and may
 record, and `STA-5` says such reads "can create its empty account row". The key is the
 machine's derived vendor identity, for which `SEC-5` row 22 says "not derivable today" and
-"none is derived or used" (T44); until it is derived, the check has no key and makes no read. This authorization is checked at
-dispatch, and the check borrows no session authority.
+"none is derived or used" (T44); until it is derived, the check has no key and makes no read.
+Deletion verification MUST remain unavailable until T44's vendor-key capability exists, and
+the interface MUST show it as unavailable with the reason. This permission enables no
+capability; the applicable deletion-check admission in `07-conformance.md` still applies.
+
+**An Abandon approval MAY also authorize follow-up deletion reads** only for its named
+machines that the abandonment flow itself stopped, when the single Abandon card's durably
+recorded facts (`ARC-21`) include the disclosure that status will be checked while the app is
+available. On relevant app availability or reopening, the harness MAY make bounded checks for
+those machines without a separate approval for each read. Availability is an opportunity to
+use that recorded authority, never authority by itself. This is no always-on polling service,
+promises no execution while the app is closed and promises no eventual deletion confirmation.
+The permission supplies only the deletion reads above, not another abandonment mutation; it
+MUST NOT replay stop, destroy, reinstall or renewal-off, or authorize a new target.
+
+Otherwise each read requires one operator-started check from the screen that shows the
+machine (`ARC-22`); nothing starts that check automatically. This manual rule includes
+approvals whose recorded facts lack the disclosure, Replace's old machine and every machine
+the in-setup replacement rung stopped, including when its setup is later abandoned under a
+disclosed card. Later abandonment cannot change which flow stopped a machine. There is no
+action to extend an approval lacking the disclosure. Stop task, End session, cancelling
+inference and browser closure convey no deletion-read authority.
+
+At every dispatch, the harness MUST check the recorded authorization, target eligibility,
+machine identity, its own recorded key and vendor route, and capability admission. Explicit
+app Lock, unavailable credentials or an unavailable capability MUST prevent dispatch,
+including after reopening. The check borrows no session authority.
 
 **Replace's own flow MAY issue exactly three kinds of vendor call for the old machine of an
 LNVPS Replace rebuild:** that machine's stop and its renewal-off, in the order `STA-17` fixes,

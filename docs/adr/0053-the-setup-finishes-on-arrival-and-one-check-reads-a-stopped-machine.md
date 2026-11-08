@@ -101,3 +101,9 @@ Changed-file navigation for this amendment:
 - `04-security-model.md`.
 - `07-conformance.md`.
 - `docs/adr/0053-the-setup-finishes-on-arrival-and-one-check-reads-a-stopped-machine.md`.
+
+*Amended 2026-11-08: partial supersession of the blanket operator-started deletion-check choice.*
+[ADR-0076](./0076-abandon-approval-deletion-check-relaxation.md) records the owner-directed
+relaxation and narrowing of R06, owned by `SEC-4`, with the disclosed Abandon approval facts
+owned by `ARC-21`. The blanket initiation choice above is history; the other decisions,
+alternatives and reasoning remain the historical record.
