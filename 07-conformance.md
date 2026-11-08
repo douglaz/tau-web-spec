@@ -755,6 +755,12 @@ an item that tests a mode's conditions or its label is tiered by them like any o
 - [ ] **CNF-19 · PRE-SCALE** The recovery sheet is passphrase-wrapped, its export screen states
       what it can do in the wrong hands, and a maintained cloud machine's setup does not
       complete without it (`STA-15`).
+      Inspect the export view's recovery checklist against `STA-15`, with each retained
+      item's distinct purpose and the seed-alone insufficiency message. The sheet is
+      explained as the encrypted recovery file, distinct from a local-store backup; the
+      guidance does not turn the dedicated rescue exception into a sheet requirement.
+      Confirming that the current sheet was saved occurs in this export view, as defined
+      in the credential format, without an additional modal or a seed-ceremony confirmation.
 - [ ] **CNF-20 · PRE-SCALE** Replace follows `STA-17`, as a model-free harness flow no session
       holds and no model drives: a fresh seed, re-entry using the old
       key and old pin, installation of the new client public key, then removal of the old
@@ -2041,7 +2047,12 @@ Not pass/fail. Required to be recorded.
       Inspect persisted bytes and worker inputs for forbidden plaintext keys. Exercise the
       persistent-storage request and visible refusal; the UI promises no immunity from loss.
       Exercise the generated-seed ceremony at create, creation-finishing unlock and Replace:
-      words are always shown outside sessions, hidden while answering, and all twelve words
+      before any words appear, the explanation warns that switching apps hides the seed and
+      showing it again requires the local unlock passphrase. Inspect the separate local
+      unlock explanation and both action explanations against `STA-23`: “Check all words”
+      catches transcription errors through full entry; “Skip check” leaves them unchecked,
+      without a second skip confirmation. Neither action claims a safely retained backup.
+      Words are always shown outside sessions, hidden while answering, and all twelve words
       are checked as an import yielding the same seed id; a mismatch returns to the display.
       Full re-entry and explicit skip are journaled distinctly and neither is shown as a
       verified backup. Close the tab, hide the page and kill the worker before completion:

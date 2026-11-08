@@ -309,7 +309,9 @@ inductive PauseReason
   | lock | pagehide | reload | shutdown | discard
   deriving DecidableEq, Repr
 
-/-- The full-reentry fact is the existing same-seed validation hypothesis, not cryptography. -/
+/-- “Check all words” supplies the same-seed validation hypothesis; “Skip check” supplies no
+word check. Neither choice establishes backup safety. The explanatory action text stays in
+the Markdown; the full-reentry fact is a validation hypothesis, not cryptography. -/
 inductive Completion
   | fullReentry (sameSeed : Bool)
   | skipped
@@ -363,7 +365,9 @@ def boundary (p : Params) (w : World) (work : Work) (ev : Evidence) : World :=
   | none => w
 
 
-/-- Local state only. End fences are separate from history and never cleared by admission. -/
+/-- Local state only. End fences are separate from history and never cleared by admission.
+The Markdown owns the pre-display app-switch/unlock warning and local unlock explanation;
+this transition checks processed interruption and unlock authority, not their display. -/
 def localAuthorityStep (p : Params) (dp : Dispatch.Params) (w : World) : Local → World
   | .hide => if w.ceremony then
       if p.ceremonyHideLocks then pauseAll w else w

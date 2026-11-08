@@ -754,9 +754,11 @@ imported seed owes no ceremony and allocates nothing regardless of this record (
 Replace clears it for the fresh seed. This member remains required in payload version 4 and later and the
 version-3 compatibility input; the envelope and derivation stay unchanged.
 
-Export asks the operator to retain both the seed backup and the separate sheet passphrase.
+For the recovery checklist, see `STA-15`; for the seed ceremony and local unlock explanation,
+see `STA-23`.
 For maintained cloud, setup completion requires confirmation that the current sheet was
-saved (`STA-15`). A stale or absent sheet may lose newer machines' metadata and relay quota.
+saved (`STA-15`). This confirmation is given in the export view, without an additional modal.
+A stale or absent sheet may lose newer machines' metadata and relay quota.
 The dedicated test bed covers local storage and derivation. The LNVPS path also requires export,
 Restore and Replace for maintained cloud; `CNF-20`'s relabel cases, Robot rescue and paid/public
 signed relay revocation follow their own rows in `07-conformance.md`'s applicability

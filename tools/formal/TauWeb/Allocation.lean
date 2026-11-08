@@ -210,7 +210,11 @@ record; the family's counter must also be below `indexLimit` (no wraparound). -/
     (!p.backupRecorded || j.ceremony.isSome) && j.next.get f < indexLimit
 
 /-- A ceremony completion takes effect only after its durable append. A failed append leaves
-no new record, so an interruption before completion is still owed at the next unlock. -/
+no new record, so an interruption before completion is still owed at the next unlock.
+The operator-facing actions are “Check all words” and “Skip check”; this transition records
+their completion choice, not backup safety. Their explanatory wording and the pre-display
+app-switch warning stay in the Markdown; display, passphrase handling and word entry remain
+outside this module's behavioral interpretation. -/
 @[req "STA-23"] def ceremony (w : World) (c : Completion) (appended : Bool) : World :=
   if appended then { w with journal := { w.journal with ceremony := some c } } else w
 
