@@ -189,5 +189,6 @@ The unlock-boundary paragraph's "lock/restart clears runtime authority" no longe
 session that has not ended: it resumes with its approvals, bound machines and sealed paid key.
 The passphrase still wraps an independent random data key, and only the harness worker unwraps
 it. The journal gains one record kind, the journaled End, and the format that adds it takes a
-new version; a journal of the older version replays its sessions as ended.
+new version; a journal of the older version is refused at open
+([ADR-0072](./0072-an-earlier-session-journal-is-refused-not-replayed.md)).
 The body and the 2026-10-27 amendment above record what was decided then.

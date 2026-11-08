@@ -2063,8 +2063,15 @@ Not pass/fail. Required to be recorded.
       Interrupted ceremony and failed completion append still refuse work; both existing
       durable completion choices restore eligible continuation. Every End path remains fenced
       through validation, resume, replay and attempted admission. A failed End append grants
-      no dependent operation; expiry/cap still withholds ordinary work. Pre-End journal
-      sessions replay ended; unknown versions refuse; import restores ended history only.
+      no dependent operation; expiry/cap still withholds ordinary work. A journal holding a
+      record of an earlier or unknown journal version, on an event or a snapshot, first or
+      after format-2 records, is refused at open with bytes unchanged, nothing appended, no
+      session resumed and no store cleared or reset. Its message tells an earlier format apart
+      from an unknown version and from corruption, says the data was left unchanged and warns
+      that clearing permanently deletes the store, seed record included, without prescribing
+      it; nothing offers a one-step clear. A local-store backup holding an earlier- or
+      unknown-version record is refused at import the same way and imports nothing; import
+      restores ended history only.
       BYO/local sessions have no idle/hidden timer. Paid expiry/cap ends at the next execution
       opportunity without extending expiry. A lost key or seal without a committed validated
       terminal holds all work including SSH until End/original expiry, retaining machines and
