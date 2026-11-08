@@ -447,7 +447,10 @@ its original placement shape. Perform the earlier explicit conversions unchanged
 `report_events:[]`. Supply `independent_end:"none"` for an unreported placement,
 `"destruction"` for a reported record on a destroyed allocation, and `"unknown"` for a
 reported record on a live allocation: version 7 did not encode whether that retained record
-was independently rotated. Conversion invents no correction and cannot establish that such a
+was independently rotated. For a reported record converted from version 7, including on its
+later exports and after a subsequent destruction replaces its `"unknown"`, `"destruction"`
+records the known destruction of its allocation, not that no rotation preceded it: version 7
+did not encode that order. Conversion invents no correction and cannot establish that such a
 reported record is eligible for one. Preserve the unknown on later exports unless retained
 journal evidence establishes its end state or a subsequent independent end is recorded.
 A sheet before a correction restores only the facts it actually holds, including its

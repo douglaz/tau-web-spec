@@ -1683,13 +1683,14 @@ Restore and Replace status shows separate progress facts alongside the overall r
 are display projections from the retained records, not canonical lifecycle states or a separate
 progress ledger. For example:
 
-- Recovered machine access is shown from validated allocation identities and the applicable
+- Contact readiness for a recovered machine is shown from validated allocation identities and the applicable
   contact checks. `STA-22b` says "Existing identities remain usable during non-revoking Restore";
   `STA-16` says "Preservation of an admitted pin is not permission to contact the machine before
-  that revalidation." Access is shown as restored and available only when those checks permit
-  it, never merely because an identity or pin was imported.
+  that revalidation." The machine is shown as available to contact only when those checks permit
+  it, never merely because an identity or pin was imported; passing them does not show that
+  the machine still accepts the recovered client key.
 - Allocation availability is shown from the seed's provenance, counters and ceremony record,
-  separately from recovered access. `STA-22b` says "allocation in every family — machines, relay
+  separately from contact readiness. `STA-22b` says "allocation in every family — machines, relay
   passes and handoffs — MUST be refused until that seed id has the journaled ceremony record of
   `STA-23`". Readiness under a fresh seed still depends on those checks, approvals and every
   other applicable guard; generating the seed alone establishes no readiness. The imported-seed

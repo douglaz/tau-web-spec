@@ -108,9 +108,12 @@ single-purpose to multi-tenant, and nothing else: it never relaxes a class or su
 relaxes the operator's answer.
 
 Once an ad-hoc machine has been bound under the harness default, the harness MUST refuse a
-request requiring a less restrictive class for the rest of that session, explaining the
-concrete conflict without presenting the classification questions. Its class does not relax
-in that session; those requests MUST leave the journaled class and harness-default provenance
+request requiring a less restrictive class for the rest of that session and in any later
+session that re-enters it (`SEC-1`), explaining the concrete conflict without presenting the
+classification questions. Its class does not relax in that session or in a later session that
+re-enters the machine (`SEC-1`), which is not its initial admission: the question path stays
+closed, and the journaled class and harness-default provenance carry over; those
+requests MUST leave the journaled class and harness-default provenance
 unchanged. The question path supplies no exception to `SEC-1`'s binding, re-entry, growth or
 exposure checks. A multi-tenant machine is always bound alone
 (`SEC-1`). The restrictions apply in full to a harness-defaulted machine: `ARC-37` says
