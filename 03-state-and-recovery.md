@@ -1274,9 +1274,15 @@ Account funding or payment settlement MUST NOT renew a session, replenish or rai
 At expiry or cap exhaustion, that session MUST end at the next execution opportunity before
 further ordinary dispatch or actionable continuation. Uncertain clock validity MUST withhold
 further authority until validity is established or the session ends. A new session requires
-separately confirmed limits and admission. In-flight uncertainty remains recorded; expiry
-does not turn an unknown outcome into failure or authorize retry. The procured-key units, selection, confirmation, expiry-origin, clock-validity and in-flight
-accounting contract has its single home in `ARC-31a`. No procured-key expiry is imputed to bring-your-own or local paths.
+separately confirmed limits and admission. The next eligible Start creates that separate
+session; it does not revive the ended session or its authority. Outstanding machine-operation
+holds still apply: `STA-20` says "While a box-plane command to a machine is unresolved (`STA-8`), the harness worker MUST NOT dispatch another box-plane command to that machine, whatever its call id, tool, requester or session";
+`STA-24` says "While any call naming a resource is unresolved (`STA-8`), the harness worker MUST NOT dispatch a side-effecting operation naming that resource — whatever its call id, through whichever tool, and whichever session or model requests it, including a session that re-enters or succeeds the one that raised it, and including the operator's abandonment flow."
+Expiry releases no such hold. In-flight uncertainty remains recorded; expiry
+does not turn an unknown outcome into failure or authorize retry. For progress and the next
+eligible Start action after expiry, see `ARC-31a`'s Display clause. The procured-key units,
+selection, confirmation, expiry-origin, clock-validity and in-flight accounting contract has
+its single home there. No procured-key expiry is imputed to bring-your-own or local paths.
 An inference expiry does not expire SSH, seed, data-key or account authority or stop arbitrary
 remote commands. Ending one session does not by itself lock the whole store or end another
 eligible session.
