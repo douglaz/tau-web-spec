@@ -222,8 +222,9 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       (b) Later session, intact store: use the encrypted reference, preserving it when the
       machine reports changed bytes; never silently adopt the changed value.
       (c) Seed-plus-sheet Restore, alongside `CNF-84`: each placement recorded on the set's
-      machines, apart from one whose reference `SEC-5` has retired, whether by destruction or
-      by an uncorrected operator report (case (h)), is re-armed
+      machines, apart from one whose reference `SEC-5` has retired, whether by an uncorrected
+      operator report or by an independent end through rotation or confirmed destruction, even
+      when its report and correction history remain (case (h); `ARC-43`), is re-armed
       before output collection or model commands on any machine of the set. The label is
       "re-armed from the machine's report", never "protected"; forgotten placements are not
       claimed covered. Machine-only entries are advisory and require an operator act to arm.

@@ -31,9 +31,9 @@ omitted placements and ledger edges remain missing.
 
 ## Widenings and partial reversal
 
-The owner directs these changes explicitly:
+The first change is the owner's instruction; the second was picked under the owner's panel rule:
 
-- **SEC-5/ARC-43 re-arm widening and ADR-0062 finality reversal.** ADR-0062 retained SEC-5's
+- **SEC-5/ARC-43 re-arm widening and ADR-0062 finality reversal (owner-directed).** ADR-0062 retained SEC-5's
   then-wording "nothing re-creates them" and ARC-43's "a paste or digest record arms nothing
   for it", rejecting withdrawal because it widened those rules. Correction makes fresh digest
   and local-paste re-arm available for a corrected placement. It restores a protective
@@ -45,6 +45,10 @@ The owner directs these changes explicitly:
   This restores visibility: the provider returns beside a sole corrected live placement even
   though its original report remains in history. Other application/provider policy is unchanged.
   ARC-43's matching predicate and the quotations in STA-16, CNF-84 and CNF-103 agree with it.
+  A review panel picked this reading and its reach, three of four readers each with a fifth
+  seat unavailable, accepted under the owner's 2026-11-05 panel rule. On the reading, the
+  fourth reader found that the sources could not settle it; on reach, the fourth called the
+  edit dependent in kind while agreeing that it needs this explicit grant.
 
 The offer condition is retained: `ARC-43` says "The card is not offered for an armed reference".
 Ordinary rotation keeps its placement gates, recording boundary, fixed end set and
