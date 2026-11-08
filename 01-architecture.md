@@ -989,6 +989,23 @@ journaled one is the declaration in force (ADR-0030's second guard). The lockdow
 scanner measure the machine against it, and **the finding is a difference from the
 declaration**, never a property the harness assumed.
 
+**The declaration schema is an internal contract, not a required user form.** Ordinary approval
+MUST present its meaningful effects in plain language. It MAY read as an installation preview
+combining the declaration and existing setup records: what will be installed, who can reach it
+(public listeners and access restrictions), startup and restart expectations, which application
+secrets it needs and where they go, known costs, and how completion is judged. This combines
+presentation only: it adds no schema field and moves no ownership. Departures from the signed
+minimum MUST be prominent; the structured declaration MUST remain available in details. The
+signed rendering in `bundle/lockdown.toml` keeps its field meanings and evidence limits.
+
+Approval MAY occur on the existing setup review, preserving `ARC-15`'s batching rule:
+"approvals MUST batch: one screen showing the whole setup and its true recurring cost".
+The exact accepted declaration MUST be the one summarized, and MUST be journaled with the machine
+before anything is installed. Changes to exposed services or other approved facts MUST be shown
+before acting on them, under their existing approval and amendment rules. This presentation
+changes no approval authority, timing, target or durable-record guard; unspecified facts and
+failed authoritative checks MUST NOT become success.
+
 **A proposed declaration carries no check the model wrote.** The model proposes typed values
 such as ports, service names and hosts; the operator approves them. It never supplies the
 procedure that measures them. Its `required` and `drift_checks` fields are the explicit empty
