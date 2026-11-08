@@ -1,8 +1,9 @@
 # Abandon approval deletion checks: an owner-directed relaxation
 
-Decided 2026-11-08 on the owner's instruction. This partially supersedes
+Decided 2026-11-08 (`tw-qe7.12`) on the owner's instruction, from review item R06, "Let
+machine cancellation include follow-up deletion checks". This partially supersedes
 [ADR-0053](./0053-the-setup-finishes-on-arrival-and-one-check-reads-a-stopped-machine.md)'s
-blanket choice of one operator-started deletion check per read. Its other decisions,
+blanket choice that every deletion check is started by the operator. Its other decisions,
 alternatives and reasoning remain the historical record. This is a permission-only relaxation,
 with no change to T44 or capability admission.
 
@@ -24,11 +25,12 @@ same card MUST also disclose: “Status will be checked while the app is availab
 This uses the recorded card facts, with no field, separate permission record, schema layer,
 format version or migration.
 
-For the permission's reach, `SEC-4` says "only for its named machines that the abandonment
-flow itself stopped" and requires "the single Abandon card's durably recorded facts" to
+For the permission's reach, `SEC-4` says "only for the abandoned setup's machines that the
+abandonment flow itself stopped, as the approval's recorded resource dispositions (`ARC-21`)
+identify them" and requires "the single Abandon card's durably recorded facts" to
 "include the disclosure that status will be checked while the app is available".
 For continuation, `SEC-4` says "On relevant app availability or reopening, the harness MAY
-make bounded checks for those machines without a separate approval for each read." Its
+make bounded checks for those machines without a separate operator start for each check." Its
 distinction is "Availability is an opportunity to use that recorded authority, never authority
 by itself." No execution while the app is closed or eventual confirmation is promised.
 
@@ -36,7 +38,8 @@ by itself." No execution while the app is closed or eventual confirmation is pro
 
 The owner chose Abandon setup only. R06's retirement half is left out: the old machine of an
 LNVPS Replace rebuild and a machine the in-setup replacement rung stopped retain manual
-checks. `SEC-4` says "Otherwise each read requires one operator-started check" and includes
+checks. `SEC-4` says "Otherwise each deletion check, which makes `STG-21a`'s reads once, is
+started by the operator" and includes
 "Replace's old machine and every machine the in-setup replacement rung stopped, including
 when its setup is later abandoned under a disclosed card". There is no Replace or retirement
 approval created, named or extended, and no disclosure is put on a Replace card.
@@ -72,10 +75,11 @@ limit remains "No post-confirmation reappearance handling is specified: the resu
 billing-display gap remains, and completion does not claim permanent id absence or coverage
 of that gap." Fewer operator starts change neither evidence nor trust.
 
-For the positive permission and refusals, see `CNF-26`'s deletion-check case. For Replace,
-`CNF-20` says "another read requires another operator start". The applicability table keeps
+For the positive permission and refusals, see `CNF-26`'s deletion-check case; the deletion
+predicate's own fixtures stay with `CNF-112`. For Replace, `CNF-20` says "another check
+requires another operator start". The applicability table keeps
 the abandonment, Replace and in-setup replacement admissions separate, including later abandonment of a
 rung-stopped machine's setup. These are capability-conditional demonstrations, not evidence
 that T44 is usable. `STA-17`'s pointer remains correct: "The deletion check (`SEC-4`) collects
-that evidence and adds no call to this flow." The glossary has no per-read initiation rule
+that evidence and adds no call to this flow." The glossary has no per-check initiation rule
 to synchronize, and the credential format's missing-key refusal is unchanged.
