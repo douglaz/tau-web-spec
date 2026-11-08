@@ -20,7 +20,7 @@ The permission and its guards live only in `ARC-11a`. `ARC-11a` says "Where ever
 permits goals and declares no independence bound, the harness MAY let the operator
 explicitly select their own retained goal text from the same local store for a new session."
 
-The selection is reviewable and recorded: `ARC-11a` says "Before Start/admission, the harness
+The selection is reviewable and recorded: `ARC-11a` says "Before session admission, the harness
 MUST show the selected instruction text, its source and intended target, and let the operator
 edit the text" and "It MUST journal the selection, source/provenance, chosen text and any edits
 with the receiving session before admission."
@@ -43,9 +43,7 @@ the signed application bundle"; ADR-0005's signed-brief decision stands.
 The owner accepts a common-mode risk across personal sessions: `ARC-11a` says "Repeated
 unsigned personal text can repeat the same mistake across the operator's sessions".
 The independence-bound refusal remains: `ARC-11a` says "A goal MUST be refused for a machine
-under a profile that declares an independence bound" and "A target with such a profile refuses
-the goal even in a mixed-target selection where another target permits it; no operator act
-waives this refusal."
+under a profile that declares an independence bound" and "No operator act waives this refusal."
 The rationale for independence-bound profiles and signed briefs stays with that owner and
 ADR-0005, rather than treating personal reuse as an unsigned brief distribution path.
 

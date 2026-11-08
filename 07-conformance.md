@@ -1214,7 +1214,7 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       select the operator's own retained text from the same local store for a different session
       whose target profiles all permit goals and declare no independence bound. Exercise a
       replacement machine, a desired outcome selected after the source session ended, and
-      recurring maintenance. Before Start/admission, confirm the chosen instruction, source
+      recurring maintenance. Before session admission, confirm the chosen instruction, source
       and intended target are shown and the text is editable; make an edit and inspect the
       receiving session's record for the selection, chosen text, provenance and edits. The
       resulting instruction is that session's own recorded goal and steers only its bound set.
@@ -1231,9 +1231,9 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       sharing between operators or marketplace of unsigned templates. Attempt selection from
       another store or operator and confirm refusal.
 
-      Refuse a goal for an independence-bound target, including a mixed selection with a
-      goal-permitting target; an operator's attempted waiver does not admit it. A fetched
-      document's source is recorded with the goal, and its text authorizes nothing (`CNF-35`).
+      Refuse a goal for an independence-bound target; an operator's attempted waiver does not
+      admit it. A fetched document's source is recorded with the goal, and its text authorizes
+      nothing (`CNF-35`).
       Boundary crossed: one instruction steering machines a tenant counts as independent.
 
       `STA-23` says "An ordinary visibility-only hide MUST NOT end or pause an unlocked session, clear its runtime authority, or invalidate its approvals."
