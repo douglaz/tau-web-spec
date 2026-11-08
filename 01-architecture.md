@@ -1228,9 +1228,13 @@ The single Abandon card MUST name every session holding any setup machine and sa
 “Abandon ends these sessions and loses their pending approvals. Their machines outside this
 setup lose their session but are not destroyed.” Show those sessions and outside machines
 explicitly, plus what may still bill. Bound-set selection remains under `SEC-1`.
+For machines this abandonment flow stops, the same card MUST also disclose:
+“Status will be checked while the app is available.”
 
 Serialize the approved holder list under the sole writer and durably record this existing
-Abandon approval and its resource dispositions. For each named holder, durably append its
+Abandon approval, including the card's deletion-read disclosure, and its resource dispositions.
+The Abandon approval carries the deletion-read permission through these journaled card facts;
+for its authority and initiation, see `SEC-4`. For each named holder, durably append its
 End under `STA-23`, then attempt its paid-key revocation and journal the attempt and observed
 outcome under `ARC-31a`. Every holder's End MUST be durable before the first destroy. A failed
 End append permits no destroy; previously committed Ends remain irreversible and the flow
@@ -1251,8 +1255,8 @@ restrictions remain `SEC-4`'s and `STA-24`'s. End or revocation is no deletion e
 opening screen retains each unresolved create and every possibly billed machine until its
 own admissible evidence settles it. At LNVPS the reader behind `ARC-22`'s "until deletion is
 confirmed under the LNVPS operation contract" is the deletion check (`SEC-4`), for an abandoned
-setup's stopped machines as for any other, and it is no part of this flow; for who starts it,
-see `SEC-4`.
+setup's stopped machines as for any other, and it is no part of this flow; for its authority
+and initiation, see `SEC-4`.
 
 **ARC-22** An unfinished setup MUST own the first screen. Nothing runs while the app is
 closed and no push channel exists, so the moment the app opens is the only moment the
@@ -1369,7 +1373,8 @@ vendor's stated deletion date, until `STG-21a`'s deletion evidence is durably re
 a display rule, not an authority, and it does not make a finished setup own the first screen.
 `SEC-5`'s duties for that machine are unchanged. The reader behind "until deletion is confirmed
 under the LNVPS operation contract", here and for an abandoned setup's machines, is the
-deletion check; for how it is started, see `SEC-4`.
+deletion check; for its authority and initiation, including the manual rule for a machine the
+in-setup replacement rung stopped even when its setup is later abandoned, see `SEC-4`.
 
 ## Machine networking
 
