@@ -112,8 +112,8 @@ command = "loginctl show-user --property=Linger --value -- {account}"
 command = "cat /proc/sys/kernel/random/boot_id"   # STA-20's boot identity; no new rule
 # Exit 0 is an answer; stdout carries the boot identity.
 
-# ARC-36a: the machine-class question, in the harness's words. Asked per machine with no tenant;
-# nothing preselected; the model never words, answers or preselects it.
+# ARC-36a owns when this harness-authored machine-class question is required for an ad-hoc
+# machine and distinguishes its explicit answer from the conservative harness default.
 
 [class]
 question = "Will this server serve parties you have never met, including visitors to a public website?"

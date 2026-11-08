@@ -635,9 +635,11 @@ version 7 also `seed_id` and `reference_ended` ([version 7](#operator-reports-pa
 declaration in force as a delivery-declaration version 2 document, the class `ARC-36a` records, the
 access model of `ARC-27`, `installation` as `"pinned"`, `"unpinned"` (`ARC-25`) or
 `"not_installed"` before any installation, and the labels of the acceptable weaker modes standing
-on the machine's bound set (`SEC-14`). A field not yet approved at export carries the explicit
-marker `"unapproved"`, never an absent field; `installation` and `applications` are recorded,
-not approved. Every live machine other than a jump host has exactly one entry, bound to a session or not,
+on the machine's bound set (`SEC-14`). For `class`, resolution and provenance follow `ARC-36a`;
+a recorded harness default carries its class value, not `"unapproved"`, and that value alone
+is not an operator answer. A class not yet recorded, or another field not yet approved at
+export, carries the explicit marker `"unapproved"`, never an absent field; `installation` and
+`applications` are recorded, not approved. Every live machine other than a jump host has exactly one entry, bound to a session or not,
 including in version 7 an outstanding retired machine other than a superseded reservation or a
 pending removal, whose entry names it by its retired seed; an allocation marked `jump_host: true`
 (`STA-22b`) or, in version 7, `destroyed: true` or `failed: true` has none, nor does a reserved

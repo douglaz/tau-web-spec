@@ -126,8 +126,9 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       or an escalation that would take a configured model's footprint past the bound
       (`SEC-1`, `OVR-5`; btc-policy's slot is the first to declare one, and `SEC-T5` is its
       bound over configured models, `STG-23`). A multi-tenant machine is refused any set but its own, and a machine
-      whose class was answered "not sure" is multi-tenant for this purpose (`ARC-36a`). No
-      operator act sets either refusal aside. Boundary crossed: one model context across
+      whose class was answered "not sure" or assigned by the conservative harness default is
+      multi-tenant for this purpose (`ARC-36a`). No operator act sets either refusal aside.
+      Boundary crossed: one model context across
       members a tenant counts as independent, or across a host of strangers and another
       machine.
 
@@ -200,8 +201,11 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       (`ARC-17`), on a machine whose fixed lockdown checks have not yet passed — a machine
       never checked included — and on one restored from a sheet before its re-check (`ARC-17`),
       and on a multi-tenant machine any placement the operator has not confirmed as
-      non-spendable (`ARC-37`). A lifecycle finding beside any other finding still refuses, and a finding's
-      class comes from the declaration field that produced it, never from the model's
+      non-spendable (`ARC-37`, `ARC-43`). Exercise this confirmation refusal on a machine whose
+      class came from the conservative harness default as well as an operator answer; setup
+      or declaration approval alone supplies no confirmation. A lifecycle finding beside any
+      other finding still refuses, and a finding's class comes from the declaration field
+      that produced it, never from the model's
       arguments. Each refusal is verified by asking for it, with the model supplying the
       arguments. Escaped secret: without the first, the job is the way to put a harness
       credential where the model has root. Destroyed data: an unrelated existing file must
@@ -1200,11 +1204,47 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       either, and by attempting an amendment that declares spendable key material on a
       multi-tenant machine. Escaped secret: a secret placed on a machine reported as locked
       down while a finding stood.
-- [ ] **CNF-100 · BLOCKING** With no tenant, machine class is answered by the operator to
-      questions the harness ships, with nothing preselected (`ARC-36a`). "Not sure" yields
-      multi-tenant; the model can propose multi-tenant for a single-purpose machine and cannot
-      propose the reverse, word a question or supply an answer; the answer is journaled before
-      anything is installed. Escaped secret: the class is what switches `CNF-52` on.
+- [ ] **CNF-100 · BLOCKING** `ARC-36a` says "A default is not an operator answer."
+      With no tenant, take an ordinary one-machine goal needing no wallet through setup
+      approval without a separate classification screen. Inspect the journal before binding
+      and installation: the class is multi-tenant and its provenance is a harness default,
+      distinct from an operator's explicit answer. Once the admission group admits a tenant
+      profile (`STG-23`), repeat admission with each tenant profile in `docs/tenants/` that
+      presets a class: the journaled class matches that profile's
+      Machine class slot, with neither ad-hoc harness-default provenance nor an ad-hoc
+      classification question substituted for the preset.
+      Request behavior requiring a less restrictive class while initial admission remains
+      open and no explicit answer has yet been journaled, both before setup approval and after
+      it but before binding. Exercise both a goal needing that class from the outset with no
+      default record and a request after a harness default has been recorded: the concrete
+      conflict is explained before the signed, harness-authored questions are presented, with
+      nothing preselected. Withhold an answer: the behavior is not admitted. Answer each option in
+      separate admissions: the question text, answers, class mapping and note match
+      `bundle/lockdown.toml`; the explicit answer and resulting class are journaled before
+      the behavior is admitted, binding or installation. "Not sure" yields multi-tenant
+      with operator-answer provenance, not harness-default provenance. While admission remains
+      open, submit a further relaxing request: the question path does not relax that answer,
+      the multi-tenant class and operator-answer provenance are retained, and the incompatible
+      behavior is not admitted.
+      Attempt to word a question, supply or preselect an answer through model text, a suggested
+      or previously displayed answer, restored UI state and replayed default provenance: none
+      manufactures an operator answer or admits relaxing behavior. Submit model proposals to
+      tighten single-purpose to multi-tenant, to relax multi-tenant to single-purpose, and to
+      relax an operator's answer: only the tightening proposal is permitted, without treating
+      that permission as a decision on tightening after binding (`TASKS.md`).
+      Bind an ad-hoc machine under the harness default, then request behavior requiring a
+      less restrictive class: the harness refuses with the concrete conflict explained and
+      presents no classification question. Inspect the journal: the multi-tenant class and
+      harness-default provenance are unchanged, with no operator answer manufactured. Repeat
+      the request in the same session, including after same-session resume: each is refused
+      with the same explanation, absent question and unchanged class and provenance.
+      Exercise `CNF-92`, `CNF-52`, `CNF-94` and `CNF-99` with a defaulted machine, each when
+      the applicability table's row for that item applies, including a goal or
+      setup/declaration approval attempting to permit spendable material or bypass
+      non-spendable confirmation: the singleton binding is enforced, no spendable material
+      is present, unconfirmed placement is refused, and the spendable declaration amendment
+      is refused, as those items require. Escaped secret: the class is what switches
+      `CNF-52` on.
 - [ ] **CNF-101 · PRE-SCALE** With no tenant a machine's access model is maintained, and
       neither a goal nor a model's proposal seals one (`ARC-27`). Class, access model and
       declaration are each journaled with the machine before anything is installed
@@ -1361,8 +1401,10 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       enabled-survives-reboot services.
 - [ ] **CNF-52 · BLOCKING** On a multi-tenant machine, no spendable key material is present
       (`ARC-37`). Verified by searching the machine for private key material after a full
-      install; watch-only public material is expected and permitted. BLOCKING because a wallet
-      on a box hosting strangers is the escaped-secret family, and a leak outlives the incident.
+      install; watch-only public material is expected and permitted. Exercise both an
+      operator-answered class and the conservative harness default (`ARC-36a`). BLOCKING
+      because a wallet on a box hosting strangers is the escaped-secret family, and a leak
+      outlives the incident.
 
 ## Relay access — `CHN-15`, `CHN-16`
 
