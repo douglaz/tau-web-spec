@@ -435,7 +435,7 @@ gated on it.
       `TauWeb.Pins.observed_keys_after_reinstall_refused` /
       `TauWeb.Pins.observed_keys_pinned_without_guard`; `TauWeb.Pins.transitionSound`
       independently checks that admission. Its dedicated reinstall event follows the rescue
-      reset at dispatch; `docs/design/pins-witnesses-v5.json` is its schema 5 file.
+      reset at dispatch; `docs/design/pins-witnesses-v6.json` is its schema 6 file.
       *Amended 2026-10-17:* `approvedReinstallBoundary` carries
       `TauWeb.Dispatch.approved_reinstall_boundary_refused` /
       `TauWeb.Dispatch.approved_reinstall_boundary_admitted_without_guard`. The existing

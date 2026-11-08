@@ -854,7 +854,8 @@ pins_control "formal: valid LNVPS publication disabled" \
   split_partial_completion_admitted \
   partial_polls_complete_after_restart refused_observation_blocks_later_installation \
   duplicate_observation_does_not_restore_pin historic_session_survives_reinstall \
-  older_job_after_restart_refused other_machine_job_history_admitted disjoint_after_job_admitted
+  older_job_after_restart_refused other_machine_job_history_admitted disjoint_after_job_admitted \
+  restore_retry_after_failure_admits restore_partial_retry_admits restore_prior_contradiction_refused restore_complete_mismatch_refused restore_failed_conflict_stays_withheld restore_failed_storage_not_bypassed_by_reinstall restore_waiting_admitted_without_guard restore_contradiction_admitted_without_guard restore_unauthorized_read_admitted_without_guard restore_failed_append_admitted_without_guard restore_different_set_admitted_without_guard
 
 # The new observation witness now retains a predecessor pin when an incomplete publication is admitted.
 pins_control "formal: incomplete LNVPS publication admitted" \
@@ -888,7 +889,8 @@ pins_control "formal: earlier installed pins omitted from publication freshness"
 pins_control "formal: current installation contradicts an observation" \
   "sed -i 's/publishedWithin : Bool := true/publishedWithin : Bool := false/' $PINS && grep -q 'publishedWithin : Bool := false' $PINS" \
   complete_contradiction_after_incomplete_refused older_incomplete_history_refuses \
-  refused_complete_publication_remains_history bounded
+  refused_complete_publication_remains_history bounded \
+  restore_prior_contradiction_refused restore_complete_mismatch_refused restore_contradiction_refused
 
 # The new ready-to-reset observation witness also needs its incomplete predecessor history.
 pins_control "formal: incomplete LNVPS publications lost from history" \
@@ -897,7 +899,8 @@ pins_control "formal: incomplete LNVPS publications lost from history" \
   incomplete_history_refuses_after_reinstall_restart older_incomplete_history_refuses \
   compact_history_keeps_boundary partial_polls_complete_after_restart \
   split_partial_completion_admitted \
-  observed_keys_after_reinstall_refused
+  observed_keys_after_reinstall_refused \
+  restore_prior_contradiction_refused
 
 # The dedicated second ceremony and all new cross-installation traces need a boundary;
 # without it, their installation ordinals, pin admissions or contacts change.
@@ -916,7 +919,8 @@ pins_control "formal: reinstall keeps old installed pin active" \
   duplicate_observation_does_not_restore_pin historic_session_survives_reinstall \
   dedicated_reinstall_admitted earlier_job_exact_refused earlier_job_overlap_refused \
   earlier_attest_overlap_refused older_job_after_restart_refused disjoint_after_job_admitted \
-  kept_root_keys_after_reinstall_refused observed_keys_after_reinstall_refused
+  kept_root_keys_after_reinstall_refused observed_keys_after_reinstall_refused \
+  restore_retired_pin_refused
 
 # The older job-read pin remains earlier only if restart keeps the ordinal.
 # Both new freshness refusals also need restart to retain the installation ordinal.
@@ -933,7 +937,8 @@ pins_control "formal: restart loses publication history" \
   "sed -i 's/| .restart => { k with sessions := \[\], halts := \[\] }/| .restart => { k with publicationGroups := [], sessions := [], halts := [] }/' $PINS && grep -q '| .restart => { k with publicationGroups := \[\]' $PINS" \
   partial_polls_complete_after_restart incomplete_history_refuses_after_reinstall_restart \
   older_publication_still_refused_after_restart \
-  observed_keys_after_reinstall_refused
+  observed_keys_after_reinstall_refused \
+  restore_complete_mismatch_refused restore_failed_conflict_stays_withheld restore_contradiction_refused
 
 # The second dedicated job read without a reinstall is an additional same-installation trap.
 pins_control "formal: installed pin replaces another source without reinstall" \
@@ -1254,8 +1259,8 @@ schedule missing_toolchain
 
 WIT=tools/check_witnesses.py
 WITFILE=docs/design/allocation-witnesses-v3.json
-PINSWIT=docs/design/pins-witnesses-v5.json
-PINSEMIT=tools/formal/.lake/witnesses/pins-witnesses-v5.json
+PINSWIT=docs/design/pins-witnesses-v6.json
+PINSEMIT=tools/formal/.lake/witnesses/pins-witnesses-v6.json
 
 # Pair defects are written to BOTH copies, with mutation/equality assertions in
 # the helper. The stricter assertion above counts finding items, not output lines.
@@ -1316,16 +1321,16 @@ control "witnesses: a committed file no module emits" "$WIT" \
 
 # The renamed pins file is checked in both directions; each obsolete name must be visible
 # as an orphan. Each mutation gives the witness gate exactly one finding.
-passes "witnesses: allocation v3 and pins v5" "$WIT" \
+passes "witnesses: allocation v3 and pins v6" "$WIT" \
   "test -f $WITFILE && test -f $PINSWIT && test -f $PINSEMIT"
 
-control "witnesses: pins v5 committed drift" "$WIT" \
-  "sed -i 's/\"schema\": 5/\"schema\": 1/' $PINSWIT && ! cmp -s $PINSWIT $PINSEMIT" \
+control "witnesses: pins v6 committed drift" "$WIT" \
+  "sed -i 's/\"schema\": 6/\"schema\": 1/' $PINSWIT && ! cmp -s $PINSWIT $PINSEMIT" \
   "WITNESS DRIFT" "module pins"
 
-control "witnesses: pins v5 missing committed counterpart" "$WIT" \
+control "witnesses: pins v6 missing committed counterpart" "$WIT" \
   "rm $PINSWIT && test ! -e $PINSWIT" \
-  "WITNESS DRIFT" "pins-witnesses-v5.json is not committed"
+  "WITNESS DRIFT" "pins-witnesses-v6.json is not committed"
 
 control "witnesses: obsolete pins v2 orphan" "$WIT" \
   "cp $PINSWIT docs/design/pins-witnesses-v2.json" \
@@ -1399,7 +1404,7 @@ control "witnesses: obsolete dispatch v7 orphan" "$WIT" \
   "cp docs/design/dispatch-witnesses-v10.json docs/design/dispatch-witnesses-v7.json" \
   "WITNESS DRIFT" "dispatch-witnesses-v7.json is committed but no module emits it"
 
-control "witnesses: pins v5 emission carrying a CNF identifier" "$WIT" \
+control "witnesses: pins v6 emission carrying a CNF identifier" "$WIT" \
   "sed -i 's/\"module\": \"pins\"/\"module\": \"pins\", \"exercised_by\": \"CNF-18\"/' $PINSEMIT && grep -q CNF-18 $PINSEMIT" \
   "WITNESS DRIFT" "module pins carries a CNF identifier"
 
@@ -1664,9 +1669,9 @@ allocation_evidence|ATLAS LABELS|state-machine-atlas.md
 allocation_step_evidence|ATLAS LABELS|state-machine-atlas.md
 allocation_applicability|ATLAS LABELS|state-machine-atlas.md
 allocation_conformance_id|ATLAS INPUT|docs/design/allocation-witnesses-v3.json
-pins_schema|ATLAS HEADER|docs/design/pins-witnesses-v5.json
-pins_module|ATLAS HEADER|docs/design/pins-witnesses-v5.json
-pins_namespace|ATLAS HEADER|docs/design/pins-witnesses-v5.json
+pins_schema|ATLAS HEADER|docs/design/pins-witnesses-v6.json
+pins_module|ATLAS HEADER|docs/design/pins-witnesses-v6.json
+pins_namespace|ATLAS HEADER|docs/design/pins-witnesses-v6.json
 pins_missing|ATLAS SELECTION|old_pin_refused_pending_reinstall
 pins_ambiguous|ATLAS SELECTION|old_pin_refused_pending_reinstall
 pins_unresolved|ATLAS DECLARATIONS|absent_atlas_declaration
@@ -1683,7 +1688,7 @@ pins_start|ATLAS DRIFT|state-machine-atlas.md
 pins_evidence|ATLAS LABELS|state-machine-atlas.md
 pins_step_evidence|ATLAS LABELS|state-machine-atlas.md
 pins_applicability|ATLAS LABELS|state-machine-atlas.md
-pins_conformance_id|ATLAS INPUT|docs/design/pins-witnesses-v5.json
+pins_conformance_id|ATLAS INPUT|docs/design/pins-witnesses-v6.json
 declaration_schema|ATLAS HEADER|docs/design/declaration-witnesses-v1.json
 declaration_module|ATLAS HEADER|docs/design/declaration-witnesses-v1.json
 declaration_namespace|ATLAS HEADER|docs/design/declaration-witnesses-v1.json

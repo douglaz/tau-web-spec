@@ -222,7 +222,7 @@ structure Module where
 
 /-- The schema version of each emitted module. Allocation, pins and dispatch changed shape. -/
 def schemaVersion (name : String) : Nat :=
-  if name == "authority" then 4 else if name == "allocation" then 3 else if name == "pins" then 5 else if name == "dispatch" then 10 else 1
+  if name == "authority" then 4 else if name == "allocation" then 3 else if name == "pins" then 6 else if name == "dispatch" then 10 else 1
 
 /-- The header pretty, one trace per line: a diff names the trace that moved. -/
 def fileText (name : String) (ns : Name) (bound : Json) (witnesses enumeration : List Json) :
@@ -1280,14 +1280,14 @@ per entry — the snapshot, the boot — is read over those and not over an asso
 older entries a lookup never reaches. -/
 def entriesOf (k : Knowledge) : List TauWeb.Pins.Entry :=
   (k.pins.map (·.entry) ++ k.snapshot.map (·.1) ++ k.boot.map (·.1) ++ k.awaiting.map (·.entry) ++
-    k.publicationGroups.map (·.entry) ++ k.installedGeneration.map (·.1) ++ k.pendingReinstall ++
+    k.publicationGroups.map (·.entry) ++ k.installedGeneration.map (·.1) ++ k.pendingReinstall ++ k.pendingVerification ++ k.verificationAppendFailed ++
     k.confirmed.map (·.1) ++ k.sessions.map (·.entry) ++
     k.halts.map (·.entry) ++ k.consumed).reverse.eraseDups
 
 /-- The machine an event names, if it names one. -/
 def eventEntry : TauWeb.Pins.Event → Option TauWeb.Pins.Entry
   | .reset m _ | .rescueLast m _ | .readyToReset m _ | .attest m _ _ _ _
-  | .published m _ _ | .reinstall m | .claim m _ _
+  | .published m _ _ | .reinstall m | .restore m | .verify m _ _ _ | .claim m _ _
   | .connect m _ _ => some m
   | .restart => none
 
@@ -1312,6 +1312,8 @@ def knowledgeJson (k : Knowledge) (named : List TauWeb.Pins.Entry) : Json :=
     ("current_installations", Json.arr ((entriesOf k).map fun m =>
       Json.mkObj [("entry", toJson m), ("installation", toJson (installationOf k m))]).toArray),
     ("pending_reinstall", toJson k.pendingReinstall.reverse),
+    ("pending_verification", toJson k.pendingVerification.reverse),
+    ("verification_append_failed", toJson k.verificationAppendFailed.reverse),
     ("snapshot", Json.arr ((entriesOf k).filterMap fun m =>
       (k.snapshot.lookup m).map fun f =>
         Json.mkObj [("entry", toJson m),
@@ -1346,6 +1348,14 @@ def eventJson : TauWeb.Pins.Event → Json
        ("source", Json.str "published"), ("entry", toJson m), ("keys", toJson keys)] ++ perJson pr)
   | .reinstall m => Json.mkObj [
       ("kind", "reinstall"), ("provenance", "operator act"), ("entry", toJson m)]
+  | .restore m => Json.mkObj [
+      ("kind", "restore"), ("provenance", "import or restore"), ("entry", toJson m)]
+  | .verify m keys authorized durable => Json.mkObj [
+      ("kind", "verify"), ("provenance", "adapter observation"), ("entry", toJson m),
+      ("keys", match keys with | some f => toJson f | none => Json.null),
+      ("authorized", toJson authorized),
+      ("append", Json.mkObj [("provenance", "storage outcome of an append"),
+                             ("durable", toJson durable)])]
   | .restart => Json.mkObj [("kind", "restart"), ("provenance", "crash")]
   | .claim m pr f => Json.mkObj (
       [("kind", Json.str "claim"), ("provenance", Json.str "model request"),
@@ -1361,6 +1371,9 @@ def stepJson (p : TauWeb.Pins.Params) (k : Knowledge) (e : TauWeb.Pins.Event)
   let k' := TauWeb.Pins.step p k e
   let outcome := match e with
     | .reset m _ => [("boot", toJson (bootOf k' m))]
+    | .restore m | .verify m _ _ _ =>
+      [("verification_pending", toJson (k'.pendingVerification.contains m)),
+       ("retry_available", toJson (offersVerification k' m))]
     | .restart => [("replayed", toJson true)]
     | .attest m _ _ _ _ =>
       [("pinned", toJson (decide (k.pins.length < k'.pins.length))),
@@ -1395,11 +1408,15 @@ def assumptionsJson (p : TauWeb.Pins.Params) : Json :=
     ("reinstallRetiresPin", toJson p.reinstallRetiresPin),
     ("installedFirstContact", toJson p.installedFirstContact),
     ("readyAfterReinstallFresh", toJson p.readyAfterReinstallFresh),
+    ("restoreBeforeContact", toJson p.restoreBeforeContact),
+    ("restoreReadAuthorized", toJson p.restoreReadAuthorized),
+    ("restoreSavedPin", toJson p.restoreSavedPin),
+    ("restoreEvidenceDurable", toJson p.restoreEvidenceDurable),
     ("senderAssociation", "planted sender ordinal equals machine entry; fixed across restart"),
     ("sealAuthor", "observed author after unwrap; cryptography assumed"),
     ("journalAppend", "successful append atomically persists machine, pins and consumed state; restart retains them"),
     ("window", "attest observations delivered during the browser introduction window"),
-    ("publication", "observed vendor status response; all recorded observations, including incomplete and refused publications, and pending reinstall records persist across restart; their failed append is outside this companion, as are TLS, scan honesty, timing and no-contact behavior")]
+    ("publication", "observed vendor status response; all recorded observations, including incomplete and refused publications, and pending reinstall records persist across restart; ordinary publication and reinstall append failures remain outside this companion; verify carries read authorization, transport failure and atomic evidence/revalidation append outcome, with no committed evidence or contact release on failure; failed-storage traces stop revalidation across symbolic restart, with storage recovery outside this companion and no claim of durably recording the failure itself; Restore starts with validated admitted pins/history; TLS, scan honesty, timing and integrated no-contact behavior remain outside")]
 
 def Trace.json (t : Trace)
     (named : List TauWeb.Pins.Entry := namedBy t.start t.events) : Json :=
@@ -1409,6 +1426,34 @@ def Trace.json (t : Trace)
   traceJson t.decls (assumptionsJson t.params) t.pair (knowledgeJson t.start named) steps
 
 def witnesses : List Trace := [
+  { decls := ["TauWeb.Pins.restore_failed_storage_not_bypassed_by_reinstall"], events := restoreReinstallEvents },
+  { decls := ["TauWeb.Pins.restore_failed_conflict_stays_withheld"], events := restoreFailedConflictEvents },
+  { decls := ["TauWeb.Pins.restore_waiting_refused"], events := restoreWaitingEvents,
+    params := TauWeb.Pins.current, pair := some (.refused, "TauWeb.Pins.restore_waiting_admitted_without_guard") },
+  { decls := ["TauWeb.Pins.restore_waiting_admitted_without_guard"], events := restoreWaitingEvents,
+    params := { TauWeb.Pins.current with restoreBeforeContact := false }, pair := some (.admitted, "TauWeb.Pins.restore_waiting_refused") },
+  { decls := ["TauWeb.Pins.restore_contradiction_refused"], events := restoreContradictionEvents,
+    params := TauWeb.Pins.current, pair := some (.refused, "TauWeb.Pins.restore_contradiction_admitted_without_guard") },
+  { decls := ["TauWeb.Pins.restore_contradiction_admitted_without_guard"], events := restoreContradictionEvents,
+    params := { TauWeb.Pins.current with publishedWithin := false }, pair := some (.admitted, "TauWeb.Pins.restore_contradiction_refused") },
+  { decls := ["TauWeb.Pins.restore_unauthorized_read_refused"], events := restoreUnauthorizedEvents,
+    params := TauWeb.Pins.current, pair := some (.refused, "TauWeb.Pins.restore_unauthorized_read_admitted_without_guard") },
+  { decls := ["TauWeb.Pins.restore_unauthorized_read_admitted_without_guard"], events := restoreUnauthorizedEvents,
+    params := { TauWeb.Pins.current with restoreReadAuthorized := false }, pair := some (.admitted, "TauWeb.Pins.restore_unauthorized_read_refused") },
+  { decls := ["TauWeb.Pins.restore_failed_append_refused"], events := restoreFailedAppendEvents,
+    params := TauWeb.Pins.current, pair := some (.refused, "TauWeb.Pins.restore_failed_append_admitted_without_guard") },
+  { decls := ["TauWeb.Pins.restore_failed_append_admitted_without_guard"], events := restoreFailedAppendEvents,
+    params := { TauWeb.Pins.current with restoreEvidenceDurable := false }, pair := some (.admitted, "TauWeb.Pins.restore_failed_append_refused") },
+  { decls := ["TauWeb.Pins.restore_different_set_refused"], events := restoreDifferentEvents,
+    params := { TauWeb.Pins.current with publishedWithin := false }, pair := some (.refused, "TauWeb.Pins.restore_different_set_admitted_without_guard") },
+  { decls := ["TauWeb.Pins.restore_different_set_admitted_without_guard"], events := restoreDifferentEvents,
+    params := { TauWeb.Pins.current with publishedWithin := false, restoreSavedPin := false }, pair := some (.admitted, "TauWeb.Pins.restore_different_set_refused") },
+  { decls := ["TauWeb.Pins.restore_retry_after_failure_admits"], events := restoreRetryEvents },
+  { decls := ["TauWeb.Pins.restore_partial_retry_admits"], events := restorePartialEvents },
+  { decls := ["TauWeb.Pins.restore_prior_contradiction_refused"], events := restorePriorContradictionEvents },
+  { decls := ["TauWeb.Pins.restore_complete_mismatch_refused"], events := restoreMismatchEvents },
+  { decls := ["TauWeb.Pins.restore_retired_pin_refused"], events := restoreRetiredEvents },
+
   { decls := ["TauWeb.Pins.kept_root_keys_after_reinstall_refused"], events := keptRootEvents,
     pair := some (.refused, "TauWeb.Pins.kept_root_keys_pinned_without_guard") },
   { decls := ["TauWeb.Pins.kept_root_keys_pinned_without_guard"], events := keptRootEvents,

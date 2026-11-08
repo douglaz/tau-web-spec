@@ -326,7 +326,8 @@ MUST offer only operator-chosen vendor reinstall, which starts a new first conta
 abandonment under `ARC-22`. It MUST NOT log in, retry the unresolved contact on a timer,
 automatically reinstall, fall back to an unpinned login, or trust on first use.
 For abandonment, see `ARC-22`. Polling during the allowed wait is not a retry after its
-deadline.
+deadline. For revalidation of an already admitted, restored `lnvps_retrieve` pin,
+see `STA-16`; its recovery exception is separate from this initial-contact deadline.
 
 The trust display MUST identify the pin as **retrieved from the vendor's hypervisor scan**,
 never attested, and MUST state the residual in full: **the vendor, and anyone able to

@@ -1,5 +1,5 @@
 import TauWeb.Req
-/-! Module 5, the host-pin lifecycle (ADR-0032's inventory): `SEC-11`, `CHN-R1`, `CHN-R5`, `CHN-R7`, `CHN-5` and `ARC-43`.
+/-! Module 5, the host-pin lifecycle (ADR-0032's inventory): `SEC-11`, `CHN-R1`, `CHN-R5`, `CHN-R7`, `CHN-5`, `STA-16` and `ARC-43`.
 
 **What a pin is held per is a type.** `CHN-R1`: "Every rescue boot has fresh host keys, so the
 pin is per boot, not per machine", and the installed system's keys are "generated there, per
@@ -24,8 +24,15 @@ an author supplied by the introduction. An attest event reports the seal author 
 and the storage outcome if appending the machine, keys and consumed state together is attempted.
 A successful append is assumed durable and atomic; a failed append writes none of them. `restart` retains
 that journal, the grouped publication history and installed generations, and drops
-session/handshake records. Durability of status observations and reinstall records is assumed;
-their failed append is not an event here. This proves the acceptance rule across such
+session/handshake records. Ordinary publication and reinstall appends are assumed durable; their failures remain outside
+this companion. Restore revalidation separately carries read authorization, transport failure
+and an atomic evidence/revalidation append outcome. A failed verification append retains the
+unresolved contact hold and commits no evidence. Such a trace stops revalidation, including
+across the symbolic restart; recovery of failed storage is outside this companion. This
+conservative stop is not a claim that a failed append durably records its own failure, nor
+proof of real storage behavior.
+Restore here starts from already validated admitted pins and retained history, not raw import
+bytes. Read authorization is a supplied fact, not derived or granted by retry. This proves the acceptance rule across such
 restarts, not real browser durability, signature verification, first-boot timing, or window expiry.
 Attest events are delivered while the browser's introduction window is open; timing remains T40.
 
@@ -146,6 +153,10 @@ pair. -/
   /-- After a dispatched reinstall, ready_to_reset shares no key with earlier installations'
   pins or observations. Vacuous before any reinstall; it does not prove disk erasure. -/
   readyAfterReinstallFresh : Bool := true
+  restoreBeforeContact : Bool := true
+  restoreReadAuthorized : Bool := true
+  restoreSavedPin : Bool := true
+  restoreEvidenceDurable : Bool := true
   deriving DecidableEq, Repr
 
 /-- The rule as it stands. -/
@@ -246,6 +257,12 @@ structure Knowledge where
   installedGeneration : List (Entry × Nat) := []
   /-- Reinstalled machines awaiting a new installed pin from any source. -/
   pendingReinstall : List Entry := []
+  /-- Restored published pins awaiting revalidation, retained across restart/replay.
+  The pin remains historical knowledge while this list withholds contact. -/
+  pendingVerification : List Entry := []
+  /-- Storage-failed verification paths are stopped; recovery of failed storage is not
+  represented. Retaining this stop across symbolic restart admits no recovered access. -/
+  verificationAppendFailed : List Entry := []
   deriving DecidableEq, Repr
 
 /-- Nothing known: no pin, no boot counted, nothing outstanding. -/
@@ -294,7 +311,9 @@ def pinAt (k : Knowledge) (m : Entry) (pr : Per) : Option Pin :=
 the boot the machine is in. A pin from the previous boot is still in the journal and is not this;
 `CHN-R1` makes that the whole rule — "with a set sharing no fingerprint with the one snapshotted before the reset" is a new pin, not the old one reused. -/
 @[req "SEC-11"] def pinFor (k : Knowledge) (m : Entry) (sys : System) : Option Pin :=
-  pinAt k m (perNow k m sys)
+  if sys == .installed &&
+      (k.pendingVerification.contains m || k.verificationAppendFailed.contains m) then none
+  else pinAt k m (perNow k m sys)
 
 /-- `CHN-R1`'s confirmation of the reset into rescue: the field fills "with a set sharing no fingerprint with
 the one snapshotted before the reset". Three halves and not one — the reset is outstanding, the
@@ -362,6 +381,13 @@ inductive Event
   on a dedicated server. It starts a new installation and first contact. Any other rescue reset,
   recovery, reboot or Restore is not this event. -/
   | reinstall (entry : Entry)
+  /-- Restore of a previously admitted pin/history, already import-validated. Does not
+  establish a pin, open an installation, or grant read authorization. -/
+  | restore (entry : Entry)
+  /-- Result of a verification read under the existing vendor-status reader. `none` means
+  transport failure; `some []` means an empty publication. Append outcome covers required
+  evidence and successful revalidation together; no mutation is represented by this event. -/
+  | verify (entry : Entry) (keys : Option Keys) (authorized : Bool) (durable : Bool)
   /-- Restart from the durable journal, without volatile session/handshake records. -/
   | restart
   /-- A host-key set named in model text, held per what the model says. -/
@@ -388,6 +414,8 @@ def firstContactRequired (p : Params) (src : Source) : Bool :=
                ensureGroup pin.entry k.publicationGroups else k.publicationGroups,
              pendingReinstall := if pin.per == .machine then
                k.pendingReinstall.filter (· != pin.entry) else k.pendingReinstall,
+             pendingVerification := if pin.per == .machine then
+               k.pendingVerification.filter (· != pin.entry) else k.pendingVerification,
              consumed := if pin.source.isAttest then pin.entry :: k.consumed else k.consumed }
   else k
 
@@ -421,6 +449,32 @@ installed first-contact check is in `journal`. -/
   (!p.publishedComplete || complete keys) &&
   (!p.publishedFresh || fresh k m keys) &&
   (!p.publishedWithin || withinInstallation k m keys)
+
+/-- Retry remains available for an unresolved, already admitted restored publication pin.
+It conveys no read authority. Initial first contact and retired pins do not enter this path. -/
+@[req "STA-16"] def offersVerification (k : Knowledge) (m : Entry) : Bool :=
+  k.pendingVerification.contains m && !k.verificationAppendFailed.contains m &&
+    (pinAt k m .machine).any (·.source == .published)
+
+/-- Compare with the saved pin and prior history before retaining even refused evidence.
+No source is journaled here, and no installation, provenance or introduction changes. -/
+@[req "STA-16"] def verifyRestored (p : Params) (k : Knowledge) (m : Entry)
+    (response : Option Keys) (authorized durable : Bool) : Knowledge :=
+  if offersVerification k m && (!p.restoreReadAuthorized || authorized) then
+    match response with
+    | none => k
+    | some keys =>
+      let savedEqual :=  (pinAt k m .machine).any (fun pin =>
+        !p.restoreSavedPin || pin.keys == keys)
+      let qualifies := savedEqual && publicationAdmissible p k m keys
+      let groups := recordObservation m keys k.publicationGroups
+      let requiresAppend := qualifies || decide (groups ≠ k.publicationGroups)
+      if !requiresAppend || !p.restoreEvidenceDurable || durable then
+        { k with publicationGroups := groups,
+                 pendingVerification := if qualifies then
+                   k.pendingVerification.filter (· != m) else k.pendingVerification }
+      else { k with verificationAppendFailed := m :: k.verificationAppendFailed.filter (· != m) }
+  else k
 
 /-- The reset into the installed system, recorded confirmed where the handshake confirmed it
 (`STG-4`) — which is read of the presented set and not of the pin the probe was checking
@@ -472,6 +526,12 @@ the presented set is the reset's confirmation or is not, whichever pin the probe
                installedGeneration := (m, installationOf k m + 1) :: k.installedGeneration,
                publicationGroups := ⟨m, []⟩ :: ensureGroup m k.publicationGroups }
     else k
+  | .restore m =>
+    if p.restoreBeforeContact && (pinAt k m .machine).any (·.source == .published) then
+      { k with pendingVerification := m :: k.pendingVerification.filter (· != m),
+               sessions := k.sessions.filter (·.entry != m) }
+    else k
+  | .verify m keys authorized durable => verifyRestored p k m keys authorized durable
   | .restart => { k with sessions := [], halts := [] }
   | .claim m pr f => journal p k ⟨m, pr, f, .modelText, 0⟩
   | .connect m sys keys =>
@@ -507,10 +567,12 @@ theorem pinFor_sound {k : Knowledge} {m : Entry} {sys : System} {pin : Pin}
     (h : pinFor k m sys = some pin) :
     pin ∈ k.pins ∧ pin.entry = m ∧ pin.per = perNow k m sys := by
   unfold pinFor at h
-  unfold pinAt at h
-  obtain ⟨hmem, hpred⟩ := find?_sound h
-  simp only [Bool.and_eq_true, beq_iff_eq] at hpred
-  exact ⟨hmem, hpred.1.1, hpred.1.2⟩
+  split at h
+  · contradiction
+  · unfold pinAt at h
+    obtain ⟨hmem, hpred⟩ := find?_sound h
+    simp only [Bool.and_eq_true, beq_iff_eq] at hpred
+    exact ⟨hmem, hpred.1.1, hpred.1.2⟩
 
 /-- A halt the reset explains is one the presented set earned: `check` answers `confirmsReset`
 only where the set is the pin the reset intent named. -/
@@ -615,6 +677,16 @@ theorem confirmIfReset_parts (k : Knowledge) (m : Entry) (keys : Fingerprint) :
   · rename_i hno
     exact ⟨rfl, rfl, rfl, fun _ hx => hx, fun hc => absurd hc (by simp_all)⟩
 
+theorem inv_verifyRestored (p : Params) (k : Knowledge) (hk : Inv p k)
+    (m : Entry) (keys : Option Keys) (authorized durable : Bool) :
+    Inv p (verifyRestored p k m keys authorized durable) := by
+  unfold verifyRestored
+  split
+  · cases keys with
+    | none => exact hk
+    | some keys => dsimp only; split <;> exact hk
+  · exact hk
+
 theorem inv_step (p : Params) (k : Knowledge) (hk : Inv p k) (e : Event) : Inv p (step p k e) := by
   obtain ⟨hs, hp, hh⟩ := hk
   cases e with
@@ -647,6 +719,12 @@ theorem inv_step (p : Params) (k : Knowledge) (hk : Inv p k) (e : Event) : Inv p
   | reinstall m =>
     simp only [step]
     split <;> exact ⟨hs, hp, hh⟩
+  | restore m =>
+    simp only [step]; split
+    · exact ⟨fun s hsm => hs s ((List.mem_filter.mp hsm).1), hp, hh⟩
+    · exact ⟨hs, hp, hh⟩
+  | verify m keys authorized durable =>
+    exact inv_verifyRestored p k ⟨hs, hp, hh⟩ m keys authorized durable
   | restart => exact ⟨by simp [step], hp, by simp [step]⟩
   | claim m pr f => exact inv_journal p k ⟨m, pr, f, .modelText, 0⟩ ⟨hs, hp, hh⟩
   | connect m sys keys =>
@@ -807,6 +885,13 @@ theorem consumed_step (p : Params) (k : Knowledge) (m : Entry) (hm : m ∈ k.con
     · split <;> exact hm
   | reinstall n => simp only [step]; split <;> exact hm
   | claim n pr keys => exact journal_consumed _ _ _ _ _ hm
+  | restore n => simp only [step]; split <;> exact hm
+  | verify n keys authorized durable =>
+    simp only [step, verifyRestored]; split
+    · cases keys with
+      | none => exact hm
+      | some keys => dsimp only; split <;> exact hm
+    · exact hm
   | restart => simp_all only [step]
   | connect n sys keys =>
     simp only [step]; split <;> simp only [confirmIfReset] <;> split <;> exact hm
@@ -1042,14 +1127,17 @@ whether a harness implementation attempted a network connection; that is a confo
 @[req "CHN-R7"] theorem retired_pin_not_active (k : Knowledge) (m : Entry)
     (h : ∀ pin ∈ k.pins, pin.entry = m → pin.per = .machine →
       pin.installation < installationOf k m) : pinFor k m .installed = none := by
-  unfold pinFor pinAt
-  apply List.find?_eq_none.mpr
-  intro pin hmem hpred
-  simp only [Bool.and_eq_true, beq_iff_eq] at hpred
-  have hlt := h pin hmem hpred.1.1 hpred.1.2
-  have heq : pin.installation = installationOf k m := by
-    simpa [perNow] using hpred.2
-  exact (Nat.ne_of_lt hlt) heq
+  unfold pinFor
+  split
+  · rfl
+  · unfold pinAt
+    apply List.find?_eq_none.mpr
+    intro pin hmem hpred
+    simp only [Bool.and_eq_true, beq_iff_eq] at hpred
+    have hlt := h pin hmem hpred.1.1 hpred.1.2
+    have heq : pin.installation = installationOf k m := by
+      simpa [perNow] using hpred.2
+    exact (Nat.ne_of_lt hlt) heq
 
 def publishedKeys : Keys := [51, 151, 251]
 def nextPublishedKeys : Keys := [52, 152, 252]
@@ -1699,6 +1787,149 @@ observation it is vacuous. Labels and formatting are outside this companion. -/
     let k := run staleReadyAllowed init observedRootEvents
     (pinFor k entryA .installed).map (·.keys) = some installedKeys ∧
     k.sessions.map (·.keys) = [installedKey] := by decide +kernel
+
+/-! ## Restored published pins: revalidation, without new first contact -/
+
+def restoredEvents : List Event :=
+  [.published entryA .machine publishedKeys, .restore entryA]
+
+def restoreWaitingEvents : List Event := restoredEvents ++
+  [.connect entryA .installed publishedKey]
+
+def restoreRetryEvents : List Event := restoredEvents ++
+  [.verify entryA none true true, .connect entryA .installed publishedKey,
+   .verify entryA (some publishedKeys) true true, .connect entryA .installed publishedKey]
+
+def restorePartialEvents : List Event := restoredEvents ++
+  [.verify entryA (some []) true false, .verify entryA (some [51]) true false,
+   .connect entryA .installed publishedKey, .restart,
+   .verify entryA (some publishedKeys) true true, .connect entryA .installed publishedKey]
+
+def restoreContradictionEvents : List Event := restoredEvents ++
+  [.verify entryA (some [999]) true true, .restart,
+   .verify entryA (some publishedKeys) true true, .connect entryA .installed publishedKey]
+
+def restorePriorContradictionEvents : List Event :=
+  [.published entryA .machine publishedKeys, .published entryA .machine [999],
+   .restore entryA, .verify entryA (some publishedKeys) true true,
+   .connect entryA .installed publishedKey]
+
+def restoreMismatchEvents : List Event := restoredEvents ++
+  [.verify entryA (some nextPublishedKeys) true true, .restart,
+   .verify entryA (some publishedKeys) true true, .connect entryA .installed publishedKey]
+
+def restoreUnauthorizedEvents : List Event := restoredEvents ++
+  [.verify entryA (some publishedKeys) false true, .connect entryA .installed publishedKey]
+
+def restoreFailedAppendEvents : List Event := restoredEvents ++
+  [.verify entryA (some publishedKeys) true false, .restart,
+   .connect entryA .installed publishedKey]
+
+def restoreFailedConflictEvents : List Event := restoredEvents ++
+  [.verify entryA (some [999]) true false, .restart,
+   .verify entryA (some publishedKeys) true true, .connect entryA .installed publishedKey]
+
+/-- Even a separately observed reinstall cannot bypass failed required evidence. Recovery
+of failed storage is outside this checking trace, rather than inferred from a later read. -/
+def restoreReinstallEvents : List Event := restoredEvents ++
+  [.verify entryA (some [52]) true false, .reinstall entryA,
+   .published entryA .machine nextPublishedKeys, .restore entryA,
+   .verify entryA (some nextPublishedKeys) true true, .connect entryA .installed nextPublishedKey]
+
+/-- Disable the within-installation guard on both sides to isolate saved-pin equality;
+otherwise the original admitted publication independently refuses the different set. -/
+def restoreDifferentEvents : List Event := restoredEvents ++
+  [.verify entryA (some nextPublishedKeys) true true, .connect entryA .installed publishedKey]
+
+def restoreRetiredEvents : List Event := restoredEvents ++
+  [.reinstall entryA, .restore entryA, .verify entryA (some publishedKeys) true true,
+   .connect entryA .installed publishedKey]
+
+@[req "STA-16"] theorem restore_retry_after_failure_admits :
+    let k := run current init restoreRetryEvents
+    k.sessions.map (·.keys) = [publishedKey] ∧ k.pendingVerification = [] ∧
+    k.pins = (run current init restoredEvents).pins ∧
+    k.publicationGroups = (run current init restoredEvents).publicationGroups ∧
+    k.installedGeneration = [] ∧ k.pendingReinstall = [] := by decide +kernel
+
+@[req "STA-16"] theorem restore_partial_retry_admits :
+    let waiting := run current init (restoredEvents ++
+      [.verify entryA (some []) true false, .verify entryA (some [51]) true false])
+    offersVerification waiting entryA = true ∧ pinFor waiting entryA .installed = none ∧
+    (run current init restorePartialEvents).sessions.map (·.keys) = [publishedKey] := by
+  decide +kernel
+
+@[req "STA-16"] theorem restore_prior_contradiction_refused :
+    let k := run current init restorePriorContradictionEvents
+    k.pendingVerification = [entryA] ∧ k.sessions = [] ∧
+    (currentGroup k entryA).map (·.observations) = some [[999], publishedKeys] := by decide +kernel
+
+@[req "STA-16"] theorem restore_complete_mismatch_refused :
+    let k := run current init restoreMismatchEvents
+    k.pendingVerification = [entryA] ∧ k.sessions = [] ∧
+    (currentGroup k entryA).map (·.observations) = some [nextPublishedKeys, publishedKeys] := by
+  decide +kernel
+
+@[req "STA-16"] theorem restore_retired_pin_refused :
+    let k := run current init restoreRetiredEvents
+    pinFor k entryA .installed = none ∧ k.pendingReinstall = [entryA] ∧ k.sessions = [] ∧
+    k.pins = (run current init restoredEvents).pins := by decide +kernel
+
+@[req "STA-16"] theorem restore_failed_conflict_stays_withheld :
+    let k := run current init restoreFailedConflictEvents
+    k.verificationAppendFailed = [entryA] ∧ k.pendingVerification = [entryA] ∧
+    k.sessions = [] ∧ k.publicationGroups = (run current init restoredEvents).publicationGroups := by
+  decide +kernel
+
+@[req "STA-16"] theorem restore_failed_storage_not_bypassed_by_reinstall :
+    let k := run current init restoreReinstallEvents
+    k.sessions = [] ∧ k.verificationAppendFailed = [entryA] ∧
+    k.pendingVerification = [entryA] := by decide +kernel
+
+/-- Revalidation cannot mutate pins, provenance, installations or consumed introductions.
+This holds even under the deliberately weakened guard parameters. -/
+@[req "STA-16"] theorem verification_read_only (p : Params) (k : Knowledge) (m : Entry)
+    (keys : Option Keys) (authorized durable : Bool) :
+    let k' := verifyRestored p k m keys authorized durable
+    k'.pins = k.pins ∧ k'.installedGeneration = k.installedGeneration ∧
+    k'.pendingReinstall = k.pendingReinstall ∧ k'.consumed = k.consumed ∧
+    k'.awaiting = k.awaiting ∧ k'.confirmed = k.confirmed ∧ k'.sessions = k.sessions := by
+  unfold verifyRestored
+  split
+  · cases keys with
+    | none => exact ⟨rfl, rfl, rfl, rfl, rfl, rfl, rfl⟩
+    | some keys => dsimp only; split <;> exact ⟨rfl, rfl, rfl, rfl, rfl, rfl, rfl⟩
+  · exact ⟨rfl, rfl, rfl, rfl, rfl, rfl, rfl⟩
+
+@[req "STA-16"] theorem restore_waiting_refused :
+    (run (current) init restoreWaitingEvents).sessions.map (·.keys) = [] := by decide +kernel
+
+@[req "STA-16"] theorem restore_waiting_admitted_without_guard :
+    (run ({ current with restoreBeforeContact := false }) init restoreWaitingEvents).sessions.map (·.keys) = [publishedKey] := by decide +kernel
+
+@[req "STA-16"] theorem restore_contradiction_refused :
+    (run (current) init restoreContradictionEvents).sessions.map (·.keys) = [] := by decide +kernel
+
+@[req "STA-16"] theorem restore_contradiction_admitted_without_guard :
+    (run ({ current with publishedWithin := false }) init restoreContradictionEvents).sessions.map (·.keys) = [publishedKey] := by decide +kernel
+
+@[req "STA-16"] theorem restore_unauthorized_read_refused :
+    (run (current) init restoreUnauthorizedEvents).sessions.map (·.keys) = [] := by decide +kernel
+
+@[req "STA-16"] theorem restore_unauthorized_read_admitted_without_guard :
+    (run ({ current with restoreReadAuthorized := false }) init restoreUnauthorizedEvents).sessions.map (·.keys) = [publishedKey] := by decide +kernel
+
+@[req "STA-16"] theorem restore_failed_append_refused :
+    (run (current) init restoreFailedAppendEvents).sessions.map (·.keys) = [] := by decide +kernel
+
+@[req "STA-16"] theorem restore_failed_append_admitted_without_guard :
+    (run ({ current with restoreEvidenceDurable := false }) init restoreFailedAppendEvents).sessions.map (·.keys) = [publishedKey] := by decide +kernel
+
+@[req "STA-16"] theorem restore_different_set_refused :
+    (run ({ current with publishedWithin := false }) init restoreDifferentEvents).sessions.map (·.keys) = [] := by decide +kernel
+
+@[req "STA-16"] theorem restore_different_set_admitted_without_guard :
+    (run ({ current with publishedWithin := false, restoreSavedPin := false }) init restoreDifferentEvents).sessions.map (·.keys) = [publishedKey] := by decide +kernel
 
 /-! ## The bound -/
 

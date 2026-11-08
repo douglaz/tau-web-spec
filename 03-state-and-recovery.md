@@ -1515,8 +1515,9 @@ For a retained disposed first placement's delayed successor, including a known p
 omitted before export, see the credential format's placement-export rule.
 
 Restore MUST retain every recorded installation boundary, its publication observations,
-and each installed pin's active or retired status from the sheet. An active pin remains
-usable under its recorded route; a retired pin admits no new contact. `CHN-R7` says
+and each installed pin's active or retired status from the sheet. An active pin is retained
+under its recorded route, subject to the revalidation below;
+a retired pin admits no new contact. `CHN-R7` says
 "A complete candidate for the current installation MUST share no fingerprint with any observation or installed-system
 pin from any source in any earlier installation of that machine" and "Within the current
 installation, a complete candidate MUST contain every fingerprint previously observed there".
@@ -1525,11 +1526,38 @@ Restore does not open an installation group, renew a consumed attest introductio
 authorize a new first contact under an old pin. The sheet says nothing about vendor
 observations or reinstalls after export, so before an active `lnvps_retrieve` pin restored
 from it admits a contact, the harness MUST read the machine's current published set by
-`CHN-R7`'s direct fetch. Only a complete set equal to the pin keeps it active. Otherwise —
-an empty, partial or different set, or a failed read — the restored pin admits no contact and
-the machine's first contact is unresolved, as past `CHN-R7`'s maximum wait: no new first contact
-opens and no pin is retired on that reading alone; the operator chooses a destructive reinstall
-(`ARC-22`), which opens a new installation, or abandonment.
+`CHN-R7`'s direct fetch, with the existing vendor-status read authorization. Contact
+MUST remain withheld and revalidation unresolved until a complete set equal to the saved
+pin passes the publication-history and current-installation checks above, compared against
+prior knowledge before retaining the read. Preservation of an admitted pin is not permission
+to contact the machine before that revalidation. Retain compact observations, including
+refused candidates, without changing the saved pin or its provenance. A failed append of
+required evidence MUST leave contact withheld.
+
+A failed or incomplete verification read that supplies no contradictory identity evidence
+MUST NOT, by itself, require reinstall or abandonment. The interface MUST permit another
+authorized verification read while retaining the saved pin and all publication observations.
+An empty or partial publication with no conflicting fingerprint admits no contact but leaves
+this retry available. A partial publication containing any fingerprint outside the saved
+set is contradictory evidence, as is a complete mismatch: retain it under the existing
+history rules, including across retry, restart and replay. A later matching publication
+MUST NOT discard or bypass that evidence; the identity hold remains. Revalidation considers
+refused observations retained before export as well as those read after Restore.
+
+This retry is only revalidation of an already admitted, restored `lnvps_retrieve` pin, using
+the existing authorized direct vendor-status reader. It performs no mutation retry, opens no
+installation, accepts no replacement pin, renews no attest introduction and proves nothing
+about an uncertain remote operation. It grants no new read authority and does not retry
+contact on a timer or automatically reinstall. For initial first contact without such a
+restored pin, see `CHN-R7`. Destructive
+recovery remains a separately explained operator choice under `ARC-22`, with its existing
+authorization; a chosen reinstall opens a new installation. No verification reading alone
+retires the saved pin or opens a new first contact.
+
+`TauWeb.Pins.verifyRestored` states the symbolic revalidation transition;
+`TauWeb.Pins.offersVerification` states its retry availability. The pins witness file carries
+matching completion after unavailable evidence, retained contradictions and failed evidence
+append; it establishes no integrated contact or storage behavior.
 
 Every import, whether sheet or local-store backup, MUST restore ended session history only.
 It grants no live authority, binding, usable approval or usable sealed key and attempts no
