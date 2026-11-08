@@ -88,11 +88,15 @@ before binding (`SEC-1`), and so before installation (`ARC-44`), distinguishing 
 default from an operator's explicit answer. A default is not an operator answer.
 
 While an ad-hoc machine's initial admission remains open, through setup approval and before
-binding, the harness MUST explain the concrete conflict before asking the classification
-questions for requested behavior that requires a less restrictive class. It MUST obtain an
-explicit operator answer before admitting that behavior. The questions are authored by the
-harness and ship in the signed bundle, with nothing preselected.
-The answer MUST be journaled before admitting that behavior, and before binding and installation.
+binding, if no explicit operator answer has yet been journaled for that machine, the harness
+MUST explain the concrete conflict before asking the classification questions for requested
+behavior that requires a less restrictive class. It MUST obtain an explicit operator answer
+before admitting that behavior. The questions are authored by the harness and ship in the
+signed bundle, with nothing preselected.
+The explicit answer and its resolved class MUST be journaled before admitting that behavior,
+and before binding and installation. A further relaxing request MUST NOT use the question
+path to relax an operator-answered restrictive class or admit behavior incompatible with that
+class; its operator-answer provenance MUST be retained.
 The model MUST NOT word the questions, answer them or
 preselect an answer. Model text, a suggested or previously displayed answer, restored UI state
 and replay of default provenance MUST NOT manufacture an operator answer. An operator who

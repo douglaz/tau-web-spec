@@ -1213,14 +1213,18 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       Machine class slot, with neither ad-hoc harness-default provenance nor an ad-hoc
       classification question substituted for the preset.
       Request behavior requiring a less restrictive class while initial admission remains
-      open, both before setup approval and after it but before binding: the concrete conflict
-      is explained before the signed, harness-authored questions are presented, with nothing
-      preselected. Withhold an answer: the behavior is not admitted. Answer each option in
+      open and no explicit answer has yet been journaled, both before setup approval and after
+      it but before binding. Exercise both a goal needing that class from the outset with no
+      default record and a request after a harness default has been recorded: the concrete
+      conflict is explained before the signed, harness-authored questions are presented, with
+      nothing preselected. Withhold an answer: the behavior is not admitted. Answer each option in
       separate admissions: the question text, answers, class mapping and note match
       `bundle/lockdown.toml`; the explicit answer and resulting class are journaled before
       the behavior is admitted, binding or installation. "Not sure" yields multi-tenant
-      with operator-answer provenance, not harness-default provenance; a further relaxing
-      request does not relax that answer or admit the behavior.
+      with operator-answer provenance, not harness-default provenance. While admission remains
+      open, submit a further relaxing request: the question path does not relax that answer,
+      the multi-tenant class and operator-answer provenance are retained, and the incompatible
+      behavior is not admitted.
       Attempt to word a question, supply or preselect an answer through model text, a suggested
       or previously displayed answer, restored UI state and replayed default provenance: none
       manufactures an operator answer or admits relaxing behavior. Submit model proposals to

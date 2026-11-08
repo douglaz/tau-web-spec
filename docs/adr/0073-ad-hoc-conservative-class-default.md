@@ -30,9 +30,14 @@ access retain their treatment.
 
 The question path resolves class only during initial admission. `ARC-36a` says "While an
 ad-hoc machine's initial admission remains open, through setup approval and before binding,
-the harness MUST explain the concrete conflict before asking the classification questions
-for requested behavior that requires a less restrictive class." `ARC-36a` says "The answer
-MUST be journaled before admitting that behavior, and before binding and installation."
+if no explicit operator answer has yet been journaled for that machine, the harness MUST
+explain the concrete conflict before asking the classification questions for requested
+behavior that requires a less restrictive class." `ARC-36a` says "The explicit answer and
+its resolved class MUST be journaled before admitting that behavior, and before binding and
+installation." This first-answer path requires no prior default record. `ARC-36a` says
+"A further relaxing request MUST NOT use the question path to relax an operator-answered
+restrictive class or admit behavior incompatible with that class; its operator-answer
+provenance MUST be retained."
 The signed question text, answers, class mapping and note in `bundle/lockdown.toml` are
 unchanged. No policy-inference subsystem is introduced.
 
