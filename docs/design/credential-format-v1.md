@@ -131,7 +131,7 @@ to unlock itself. Credential inventory rows 18–20 cover this boundary.
 ## Session journal format 2
 
 This journal version is distinct from derivation v1, local wrapping envelope v1/v2, sheet
-envelope v1, recovery payload v5 and every witness schema. Every event and snapshot plaintext
+envelope v1, recovery payload versions and every witness schema. Every event and snapshot plaintext
 wrapper has `journal_version:2`, authenticated by its existing encrypted record. The version
 member loosens no check: the wrapped event or snapshot keeps every closed-object and refusal
 check it has without it. Snapshots retain admitted session identities, durable Ends,
@@ -157,7 +157,7 @@ and their protected read-only reading applies only to a store whose records are 
 Evidence payload shapes inside a format-2 record, and the recovery sheet and export payloads,
 keep their own versions and old-data rules.
 
-The only new event kind is `end`, with session identity and one reason from `explicit`,
+The session End event kind is `end`, with session identity and one reason from `explicit`,
 `replace`, `expiry`, `cap_exhaustion`, `abandon`. End is irreversible, including for a
 not-currently-running session; an idempotent repeat cannot revive it. The existing admission
 approval remains `STA-3`'s. The existing mint terminal gains a private paid-key member inside
@@ -207,12 +207,12 @@ nonce and AAD `tau-web/sheet/v1/<id>/payload`; only the wrapped key persists. Th
 envelope adds `payload_nonce` and `payload` to the fields above. Never reuse a local-store
 key or envelope as a sheet. Local and sheet purposes cannot be interchanged.
 
-New exports use an authenticated UTF-8 JSON payload containing `version: 7` (below),
+Exports use an authenticated UTF-8 JSON payload containing `version: 8` (below),
 `derivation_version: 1`, `seed_id`, `exported_at` (UTC RFC 3339), `journal_sequence`,
 `next_indices` (machine/pass/handoff), `seed_backup`, `allocations` (including consumed
 tombstones), `retired_allocations`, `host_pins`,
 `host_pin_installations`, `relay_discovery`, `exposure_ledger`, `artifact_history`,
-`placements: [{seed_id, machine_index, application_name, name, path, placed_at, report}]`, `machine_states`,
+`placements: [{seed_id, machine_index, application_name, name, path, placed_at, report, report_events, independent_end}]`, `machine_states`,
 and optional
 `inference_account_credential`. Each allocation has its family, index, stable
 resource identity and expected public key as required by `STA-22b`, and a jump host's entry
@@ -236,7 +236,7 @@ Imported starting URLs never replace the compiled discovery set B.
 
 Version 3 is accepted only by an explicit compatibility conversion that preserves every other
 version-3 field and its validation, wraps each recorded relay URL as `{"url":R}`, and supplies
-`relay_discovery:[]`. Never infer publisher identity from URL equality. Versions 4 to 7 use
+`relay_discovery:[]`. Never infer publisher identity from URL equality. Versions 4 to 8 use
 only the typed locator. Unknown payload versions and versions 1 and 2 remain unsupported. For
 publisher-key mismatch and migration, see `CHN-19`.
 This compatibility conversion changes neither the v1 encryption envelope nor derivation version 1,
@@ -300,11 +300,11 @@ ordinal below. Version 6 carries no representation for a recovery sheet found la
 names, the encoding of its gaps, whether the per-machine `installation` value needs an explicit
 unknown, what that machine's `legacy` and `known_unpinned` members hold, and how the
 ordinal-continuity rules apply to that machine are not yet specified. A new export writes
-version 7 (below), never version 6.
+version 8 (below), never version 6.
 
 ### Operator reports, payload version 7
 
-Every new export writes version 7. Version 7 keeps every version-6 rule and adds two required
+Version 7 keeps every version-6 rule and adds two required
 members, `report` and `seed_id`, to every placement record, a required `seed_id` to every other
 record that names a machine (below), a required `reference_ended` to every `machine_states`
 entry (below), and one required payload member, `retired_allocations`. It
@@ -323,7 +323,8 @@ or a machine-reported time. It is protected and non-secret: an operator-act time
 secret-derived data, and no value, digest, scan key, byte length or other value-derived
 reference accompanies it. Reject a missing `report`, `null`, any other string, an object with a
 missing, extra or duplicate member, and a malformed time before binding. Reject too a version-7
-placement record with a missing member or any member other than its seven.
+placement record with a missing member or any member beyond its identity members and `report`
+as listed above without the version-8 additions. Version 7 accepts no correction evidence.
 
 A first placement enters the export from the approved record made before its bytes leave,
 even if its job exits nonzero, stays unresolved or is disposed. Its record asserts possible
@@ -340,11 +341,12 @@ from a later sheet, its older output stays withheld through the `reference_ended
 sets on the `machine_states` entry of each live machine the exposure ledger records in a bound
 set with its machine (below).
 
-A placement with a report is ended. Its record stays in `placements` on every later export,
+In version 7, a placement with a report is ended. Its record stays in `placements` on every later export,
 after its secret is rotated and after its machine is destroyed (at LNVPS, the vendor's confirmed
 deletion); the rotation's new placement is a separate record beside it. Re-arming, the
 required-reference wait, the trust display's live listing and a restored provider's listing
-read only placements without a report (`ARC-43`, `STA-16`).
+read only placements without a report. Version 8 below qualifies this for corrected reports
+(`ARC-43`, `STA-16`).
 
 A rotation's new placement enters the export only once `SEC-5` records the rotation, whether or
 not the rotated placement has a report: a sheet exported before then holds the rotated placement
@@ -373,6 +375,109 @@ ending the first placement never revives an ended successor or exports a destroy
 unreported successor.
 No sheet writes two records without a report at that destination. The first placement's
 own pre-send export start is unchanged.
+
+### Report corrections, payload version 8
+
+Every export writes version 8. It preserves version 7's `report` unchanged and adds required
+placement members `report_events` and `independent_end`. Every other version-7 field and
+validation remains, including its unspecified partial-history encoding; this extension defines
+no further partial-history machinery. A placement record has exactly the identity members
+`seed_id`, `machine_index`, `application_name`, `name`, `path`, `placed_at`, and the members
+`report`, `report_events`, `independent_end`.
+
+`report_events` is an array, `[]` when empty. When `report` is an object, that object remains
+the original report and timestamp forever. Subsequent facts are appended in journal order:
+an object with exactly `operator_corrected_at`, then optionally an object with exactly
+`operator_reported_at`, alternating thereafter. Each value is a UTC RFC 3339 time. The first
+event must be a correction of the original report, each correction names the immediately
+preceding unmatched report, and each later report follows a correction. A placement with
+`report:"none"` has `report_events:[]`. Neither a correction nor a later report overwrites the
+original `report`. Array order, not clock order, records the sequence; times label the intervals
+from each report to its correction, or the open interval after the last uncorrected report.
+They classify no output and prove no external revocation or reversal. The report is uncorrected
+when its object has no later correction, or the final event is a later report. When the final
+event is a correction and `independent_end` is `"none"`, the placement's future reference is
+required, unarmed after Restore; the live/provider display follows `ARC-43`, `SEC-6` and
+`TRU-E12`. Its original report still supplies `SEC-5`'s pre-loss withholding.
+
+`independent_end` is exactly `"none"`, `"rotation"`, `"destruction"` or `"unknown"`. It records
+the first independently recorded end, separately from the report facts: the rotation act that
+actually ends this placement under `SEC-5`, or the admitted, durably recorded deletion evidence
+of its machine. A later destruction does not erase an already recorded rotation. `"none"`
+means the retained history establishes no independent end through export. `"unknown"` records
+only the older-data conversion below; it is not permission to correct. Correction requires
+`"none"` at its append. No correction is appended after an independent end, and an independent
+end after correction leaves the report/events unchanged and ends the restored reference.
+A history with an independent end restores no live placement, wait, re-arm or provider listing,
+even when its final report event is a correction. An unknown end with an uncorrected report
+also restores history only, and supplies no correction eligibility; the display says its
+independent-end history is unavailable. Only retained journal evidence establishing eligibility
+can supply it, never a missing file, current machine report or operator assertion of no end.
+
+Every reported record stays on all later exports, with its report/events and independent-end
+state, after rotation and destruction. The rotation's successor is separate, under the existing
+export timing and retained-first-placement omission rules above. Unreported placements retain
+those rules unchanged and have `report_events:[]` and `independent_end:"none"` while exported.
+An independent end removes an unreported record as before. A reported record sets no
+`reference_ended` mark at correction or independent end: the retained original report already
+carries its older-output withholding, including after correction. A mark set by any unreported
+placement's end is never cleared by correction or re-arm.
+
+Reject before binding a missing field, wrong type, unknown marker, malformed time, extra or
+duplicate member, nonalternating events, events without an original report, or an unreported
+record with an independent end. Reject `"unknown"` with any correction evidence. On a destroyed
+allocation, a reported record must have `"rotation"` or `"destruction"`, never `"none"` or
+`"unknown"`; its application name is checked by form only, as in version 7. No correction
+revives that allocation or supplies an application/provider list for it. A live allocation
+cannot carry `"destruction"`. A live machine with a rotated reported record still owes the
+same application association as any reported record on a live machine. Report history is
+copied unchanged from the journal, including when migration renames the machine's seed/index.
+
+Duplicate identity is still equality of `seed_id`, `machine_index`, `application_name`, `name`,
+`path`, `placed_at`, regardless of `report`, events or end state. Reject duplicates even if
+their histories differ; never merge them into correction evidence. The destination refusal of
+two records with `report:"none"` at one machine, application, secret name and path remains.
+It does not reject corrected reported records beside another placement there: each has its
+own identity, history and required-reference state. No correction invents a later placement or
+permits an unrelated-file overwrite. All allocation, seed and application association refusals
+below still apply.
+
+Validate versions 3 to 7 under their own rules before conversion; version 7 still accepts only
+its original placement shape. Perform the earlier explicit conversions unchanged, then supply
+`report_events:[]`. Supply `independent_end:"none"` for an unreported placement,
+`"destruction"` for a reported record on a destroyed allocation, and `"unknown"` for a
+reported record on a live allocation: version 7 did not encode whether that retained record
+was independently rotated. Conversion invents no correction and cannot establish that such a
+reported record is eligible for one. Preserve the unknown on later exports unless retained
+journal evidence establishes its end state or a subsequent independent end is recorded.
+A sheet before a correction restores only the facts it actually holds, including its
+uncorrected report and as-of-export limits. A reader predating version 8 refuses it as an
+unknown payload; do not down-convert corrected history to version 7 or drop it. Versions 1 and
+2 and unknown payload versions remain refused.
+
+The local correction event has exactly `report_correction_version:1`, `placement` (the exact
+identity members listed above), `report_ordinal` (a positive integer: the original report is
+ordinal 1, followed by later reports in array order), and `operator_corrected_at` (UTC RFC
+3339). The append corrects only that currently uncorrected report; `ARC-43` owns eligibility
+and the durable boundary. Subsequent report acts retain the same placement identity and
+append their time to `report_events`, never clear `report`. A snapshot containing correction
+evidence carries `report_correction_version:1` alongside its retained original report,
+ordered follow-up facts and independent-end state. Replay of an incremental correction event
+applies the same eligibility test at that event's recorded boundary. Loading a sheet or
+snapshot projects its final state: it does not re-execute an earlier correction against an
+end that occurred afterward. Ends derive only from admitted rotation/destruction records or
+imported end facts. Invalid association or ordinal, nonalternating facts, missing/unknown
+correction evidence version, extra/duplicate members or malformed correction encoding stops
+replay as a decoding failure; it never skips a record or clears a report. Earlier journal
+evidence and snapshots with no correction evidence supply no correction; project their ends
+from the admitted records they actually retain, preserving any imported unknown. Failed
+appends supply no fact or state change. The evidence extension changes neither
+`journal_version:2` nor the journal's encryption envelope, AAD, chain, attempt fences or
+session authority.
+
+All report/correction/end data is protected, non-secret metadata. Export no raw application
+value, bare digest, scan key, byte length or other secret-derived scan material. Sheet envelope
+v1, derivation v1, local envelopes and all witness versions remain separate and unchanged.
 
 In version 7 a machine is named by a seed and a machine index together, and every record that
 names a machine carries both: a placement record its `seed_id` and `machine_index`; each
@@ -586,7 +691,8 @@ needs the retired seed and waits for the deferred check above. Its entry ends in
 when the journal records the end of the lifetime its profile's handoff slot declares.
 
 Two placement records are duplicates when they are equal in the six members `seed_id`,
-`machine_index`, `application_name`, `name`, `path` and `placed_at`, whatever `report` holds.
+`machine_index`, `application_name`, `name`, `path` and `placed_at`, whatever `report` holds
+(and, in version 8, whatever `report_events` and `independent_end` hold).
 `ARC-43` says "The harness records each placement's time later than that of every placement
 record already at that machine, application name, secret name and path", so a reported record and
 a later placement there are never duplicates.
@@ -618,8 +724,8 @@ and `host_pins` entry, `host_pin_installations` group and exposure-ledger machin
 payload's `seed_id`, giving every `machine_states` entry `reference_ended:false`, and supplying
 `retired_allocations:[]`. The conversion invents no report, no mark and no retired allocation:
 an older sheet restores each placement's as-of-export wait and each machine's as-of-export
-withholding (`STA-16`). A reader that predates version 7 refuses a version-7
-sheet as an unknown version. Versions 1 and 2 and unknown versions stay refused. Sheet envelope
+withholding (`STA-16`). Then apply the explicit version-8 conversion above. A reader that predates version 7 refuses
+a version-7 sheet as an unknown version. Versions 1 and 2 and unknown versions stay refused. Sheet envelope
 v1, derivation v1, algorithms, AAD and known-answer vectors stay unchanged.
 
 Each `host_pins` entry names the host-key route that produced it: `retrieve` (`CHN-R1`),
@@ -653,8 +759,8 @@ records a rotation of a placement without a report, and the act that records the
 deletion evidence of a machine holding one, set it, whether or not that placement's reference is
 armed, on that placement's machine while that machine stays live and on every live machine the
 exposure ledger records in a bound set with it (`STA-10`). A reported placement's end sets
-nothing, since its record stays. Nothing clears
-the mark: a re-arm, a re-check, a reinstall, a new installation, a reapproval, a report and a
+nothing, since its record stays, including its correction history in version 8. Nothing clears
+the mark: a re-arm, a re-check, a reinstall, a new installation, a reapproval, a report, a correction and a
 Replace leave it standing, and a migrating machine's entry keeps it. The exporter copies it from
 the journal. It is recorded, not approved, and never `"unapproved"`. It is protected and
 non-secret: it names no placement, and no value, digest, scan key, byte length or other
@@ -740,7 +846,7 @@ checked by form only. No placement
 value, digest, scan key, byte length or other value-derived reference is included. Payload
 versions 1 and 2 and unknown payload versions are unsupported: refuse them explicitly. Version 3
 has only the explicit compatibility conversion above, and missing placement or application lists
-are never interpreted as empty. Payload versions 4 to 7 change neither the v1 envelope,
+are never interpreted as empty. Payload versions 4 to 8 change neither the v1 envelope,
 derivation paths, algorithms, AAD nor known-answer vectors.
 Reject unknown versions, duplicate identities/indices and malformed fields before binding
 anything; imported data never creates a binding without vendor reconciliation and an

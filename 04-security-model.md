@@ -417,7 +417,7 @@ outgrown, because adding a credential means adding a row.
 | 9 | Rescue root password, in a typed adapter's response | Vendor-generated, in an API response | Never stored | Never used | Root login the harness declines to use | **Redacted before the response is recorded or reaches a model.** Under an untyped vendor scope no adapter reads the response, so a vendor-generated password is outside this row and inside model context, and is shown as that (`SEC-4`) |
 | 10 | Recovery sheet passphrase | Operator-chosen | Never stored anywhere | Operator's memory | Unwraps the sheet | Not applicable |
 | 11 | Untyped-scope credential — a vendor's included, under `SEC-4`'s untyped vendor scope | Operator | Browser memory only | Until the operator revokes or rotates it | **Unbounded at that origin** | Operator revokes at the service |
-| 12 | **Application secret placed on a machine** | Operator, on `place_secret`'s card (`ARC-43`) | Browser memory until the placing session ends, then the machine alone; briefly in the local paste re-arm card (`ARC-43`), cleared after reference construction and never persisted or sent | Machine lifetime | Whatever the application it was placed for uses it for | Machine destroyed (at LNVPS, the vendor's confirmed deletion, not the stop that stands in for a destroy, `ARC-22`), that placement's recorded rotation (the rotation paragraph below), or the operator reports that placement revoked at its service (`ARC-43`), which ends its live listing, not its exposure |
+| 12 | **Application secret placed on a machine** | Operator, on `place_secret`'s card (`ARC-43`) | Browser memory until the placing session ends, then the machine alone; briefly in the local paste re-arm card (`ARC-43`), cleared after reference construction and never persisted or sent | Machine lifetime | Whatever the application it was placed for uses it for | Machine destroyed (at LNVPS, the vendor's confirmed deletion, not the stop that stands in for a destroy, `ARC-22`), that placement's recorded rotation (the rotation paragraph below), or the operator reports that placement revoked at its service (`ARC-43`), which ends its live listing, not its exposure; report correction follows `ARC-43` |
 | 13 | ~~Injected SSH host private key~~ | — | — | — | — | **Row retired. `CHN-R3` is abandoned**: user-data stays readable from the vendor's metadata endpoint for the instance's life, so the key would be permanently re-fetchable by anything on the machine. No exception wording fixes that. |
 | 14 | **Inference account credential** (procured only) | Operator, on funding an account-free balance | Encrypted at rest; **exported in the sheet** | Until the balance is spent | The remaining balance; minting and revoking row 2; attaching a funding source (`ARC-31a`) | Spent down or abandoned — **it is bearer and cannot be revoked** |
 | 15 | **Operator seed** | Operator, at first use; backed up by the operator | Encrypted at rest; **in the operator's head or seed backup**, never in the sheet; words displayed only in `STA-23`'s ceremony | Until replaced | Deriving rows 3, 4, 7, 16 and 17 — **every maintained machine, every relay pass, every future introduction, and every declared handoff** (`STA-22`) | Replaced by a new seed on Replace (`STA-17`); the old one is not revocable, only abandoned — and it is still needed *during* Replace, until the last step that needs it is done, and for each use of a row-17 handoff allocated under it while that handoff's declared lifetime runs (`STA-17`) |
@@ -428,7 +428,7 @@ outgrown, because adding a credential means adding a row.
 | 20 | Data-encryption key (local store or sheet) | Browser CSPRNG, independent per store/export | Harness-worker memory; only an authenticated wrapped copy persists | Local store unlocked; sheet import/export operation | Decrypts the named local store or sheet, never another purpose | Cleared on lock/end; replaced on re-encryption |
 | 21 | **Jump-vendor credential**: a vendor credential supplied separately from the target's (`CHN-R6`) | Operator | Browser memory only, held by the jump-host flow; never given to a session | One jump-host flow, from the create to the confirmed destroy | Creating one jump host, reading its address and destroying it, through the jump vendor's adapter | Flow ends |
 | 22 | **Derived vendor identity** — not derivable today | — | — | — | — | No role exists for it. `STA-22` says "an implementation must not choose paths independently", and credential format v1 (`STA-22a`) defines no role, index family or known-answer vector for a vendor identity; until it does, none is derived or used (`OPN-26`) |
-| 23 | **Placed-secret scan key and reference**, per secret | Fresh independent browser-CSPRNG key `K` on placement or re-arm; reference `HMAC-SHA-256(K, SHA-256(value))` plus byte length `L` | Encrypted local store under `STA-23`; working copy only in browser memory. Neither key nor reference goes to the machine, sheet, model, transcript or app origin | Until that placement's recorded rotation (the rotation paragraph below), machine destruction (at LNVPS, the vendor's confirmed deletion, not the stop that stands in for a destroy, `ARC-22`), the operator's report of that placement (`ARC-43`) or local-store loss; re-arm replaces it with a fresh key/reference | Local exact-value comparison only; no external authority | Cleared from working memory on explicit app Lock, worker shutdown or session end; an ordinary hide retains the working copy while its worker survives (`STA-23`: "An ordinary visibility-only hide MUST NOT end or pause an unlocked session, clear its runtime authority, or invalidate its approvals."); persistent copy removed on that placement's recorded rotation, destruction or the operator's report, lost with the store |
+| 23 | **Placed-secret scan key and reference**, per secret | Fresh independent browser-CSPRNG key `K` on placement or re-arm; reference `HMAC-SHA-256(K, SHA-256(value))` plus byte length `L` | Encrypted local store under `STA-23`; working copy only in browser memory. Neither key nor reference goes to the machine, sheet, model, transcript or app origin | Until that placement's recorded rotation (the rotation paragraph below), machine destruction (at LNVPS, the vendor's confirmed deletion, not the stop that stands in for a destroy, `ARC-22`), the operator's report of that placement (`ARC-43`) or local-store loss; re-arm replaces it with a fresh key/reference, including after report correction (`ARC-43`) | Local exact-value comparison only; no external authority | Cleared from working memory on explicit app Lock, worker shutdown or session end; an ordinary hide retains the working copy while its worker survives (`STA-23`: "An ordinary visibility-only hide MUST NOT end or pause an unlocked session, clear its runtime authority, or invalidate its approvals."); persistent copy removed on that placement's recorded rotation, destruction or the operator's report, lost with the store |
 
 For rows 5, 6, 12 and 23, LNVPS destruction means the durably recorded deletion confirmation.
 For its predicate, see `STG-21a`; for abandonment, see `ARC-22`.
@@ -474,7 +474,8 @@ references.
 
 **An operator report retires one placement's row 23 reference; what was withheld stays
 withheld.** When the operator's report for placement P (`ARC-43`) is durably recorded (`STA-3`),
-P's row 23 scan key and reference end, and nothing re-creates them. The report claims neither
+P's row 23 scan key and reference end. A correction under `ARC-43` restores a future required
+reference with fresh material only; it never re-creates the ended key or reference. The report claims neither
 erasure of the value nor that its copies or earlier disclosures are gone; the harness trusts it as
 the operator's statement and does not verify it at the service. A report never counts as a scan:
 bytes withheld before it stay withheld, and no old range becomes scanned, safe or releasable
@@ -492,8 +493,16 @@ set with P's machine (`STA-10`), stays withheld for P, whether P's machine is li
 and a sheet's `operator_reported_at` classifies no output. No pre-loss record on a machine that
 ledger never records in a bound set with P's machine is withheld for P; such a record owes every
 other required reference and release prerequisite. Which output is from before the loss is the
-loss boundary the mark paragraph below states. Output produced after the report is no longer compared against P's reference and owes every other
-required reference and release prerequisite. P's identity and the report are protected and
+loss boundary the mark paragraph below states.
+Output produced after the report is no longer compared against P's reference while the report
+is uncorrected and owes every other required reference and release prerequisite. Once a
+correction is durably appended, every affected unreleased range owes the restored required
+reference, even if its output was ready or checked before correction; both model and transcript
+publication consult the current state. No earlier check exempts it. Any output withheld before
+correction stays withheld, even after a successful fresh re-arm; output already released is
+never recalled, recovered or erased. The pre-report and pre-loss boundaries above remain in
+force, including on recorded peers: correction and re-arm supply no retroactive scan and
+repair no omitted placement or ledger edge. P's identity and the report are protected and
 non-secret: no raw application value, bare digest or expired scan material is retained or
 exported for them. The report ends P only; another placement holding the same bytes keeps its own
 reference.
@@ -503,8 +512,9 @@ The disposed-placement exception below qualifies P's end as well as every additi
 When the journal act that records the rotation of placement P through `place_secret` (`ARC-43`)
 is durably recorded (`STA-3`), P's row 23 scan key and reference end, and nothing re-creates
 them; the new placement's reference is its own
-([ADR-0061](./docs/adr/0061-a-rotation-keeps-the-old-placements-older-output-withheld.md)). A
-placement whose report already ended its reference loses nothing more at its rotation. The
+([ADR-0061](./docs/adr/0061-a-rotation-keeps-the-old-placements-older-output-withheld.md)). An
+uncorrected reported placement loses no reference at its rotation; a corrected placement's
+restored reference ends at that act under the same scan boundary. The
 rotation claims neither revocation of the old value at its service nor erasure of its copies. A
 rotation never counts as a scan: bytes withheld before it stay withheld, and no old range becomes
 scanned, safe or releasable because P's reference retired, whichever reference withheld it, a
@@ -531,8 +541,9 @@ rules"
 ([ADR-0063](./docs/adr/0063-a-rotation-is-recorded-by-its-zero-exit-job-record.md)). The
 record made before the bytes leave (`ARC-8`), a nonzero exit, a job that stays unresolved
 (`STA-8`) and a disposition (`STA-24`) record no rotation: P's scan key and reference stay as they
-were, armed or unarmed; a P without a report stays live and required, a reported P stays in
-operator-reported history; and no `reference_ended` mark is set. A job record of a rotation call
+were, armed or unarmed; a P without an uncorrected report stays live and required unless
+independently ended, and an uncorrected reported P stays in operator-reported history; no
+`reference_ended` mark is set. A job record of a rotation call
 that a disposition disposed records no rotation, whenever collected; it is journaled and shown.
 `ARC-43` owns the new placement's listing and its required reference from the record made before
 its bytes leave.
@@ -544,7 +555,12 @@ bytes leave. The machine is identified by its seed and machine index together; e
 that placement's pre-send record precedes this rotation's pre-send record in journal order,
 never a comparison of placement times, values, digests or machine claims. Each such placement
 ends as P does under this paragraph's scan boundary, in the same durable act; its reference
-ends, nothing re-creates it, and a placement already carrying a report loses nothing more.
+ends and nothing re-creates it; an uncorrected reported placement loses no reference.
+For this end-set rule, a corrected reported placement not independently ended is still-live,
+as a placement without a report is; it owes the same completed-record and disposed-placement
+checks. An uncorrected reported placement has no restored reference to lose. Every recorded
+rotation also records an independent end for each reported placement it actually ends, so no
+later correction or Restore revives it.
 The no-revocation and no-erasure limit applies to every value whose reference the act ends.
 The next paragraph's mark follows each unreported placement's recorded rotation, including
 when P has a report and only an earlier unreported attempt's reference ends
@@ -769,13 +785,23 @@ Where a machine's destruction has retired its placed-secret references, the trus
 that output produced after the destruction is not checked for that machine's values, including
 a later command's output that prints back a range withheld before it: `SEC-5` says "Output
 produced after the destruction is no longer compared against M's references."
-An operator report (`ARC-43`) ends one placement's count: the trust display lists that
-placement as operator-reported history, never as a live secret, and says the report is the
-operator's statement, unverified at the service, and cannot be undone. It states that output produced after the
-report is not checked for that placement's value, including a later command's output that prints
-back a range withheld before it: `SEC-5` says "Output produced after the report is no longer
-compared against P's reference". The machine's other placements without a report, its untyped
-scopes and the weaker modes standing on its set are counted as before.
+An uncorrected operator report (`ARC-43`) ends one placement's count: the trust display lists
+that placement as operator-reported history, never as a live secret, and says the report is the
+operator's statement, unverified at the service. It states that output produced after the report
+is not checked for that placement's value while the report is uncorrected, including a later
+command's output that prints back a range withheld before it: `SEC-5` says "Output produced
+after the report is no longer compared against P's reference while the report is uncorrected".
+A correction restores the live count and listing unless the placement independently ended.
+The display MUST retain the original report/time and each correction and later report, identify
+each interval with **no active scan requirement** from report to correction (or still open),
+and describe the restored live requirement and its armed or unarmed status. It MUST state that
+correction restores future protection only, leaves released output and prior withholding as
+they stand, and neither verifies the service nor reverses an external revocation. The history
+and intervals remain visible after re-arm, rotation, destruction and Restore; independent ends
+are shown as such, never as live corrected placements. Where older data establishes no
+independent-end eligibility, the display states that this history is unavailable. Restored facts carry `STA-16`'s
+as-of-export qualification. The machine's other placements without an uncorrected report, its
+untyped scopes and the weaker modes standing on its set are counted as before.
 Beside each live placement whose required reference is armed, the trust display MUST state
 that revocation at the service alone ends neither its live listing nor its scan, that the
 operator report is offered only while the reference is unarmed, and that ending the placement
@@ -798,9 +824,9 @@ old placement's when that act ended it: `SEC-5` says "Each such placement ends a
 and "The no-revocation and no-erasure limit applies to every value whose reference the act ends."
 Neither statement covers a placement the disposed-placement exception retains: `SEC-5`
 says "the paragraph's cessation of comparison applies only to placements whose rotation the act records".
-A sheet records no rotation (the credential format's placement record), so after a Restore from a
-later sheet the `reference_ended` statement below is what the display shows for a rotated
-placement without a report.
+For a rotated placement without a report, the `reference_ended` statement below is what the
+display shows after Restore from a later sheet. A reported record retains its independent end
+and any correction history under the credential format's payload version 8.
 Where a restored machine state carries the `reference_ended` mark (`SEC-5`), the trust display
 says that a placement reference that scanned the machine ended before export, names no
 placement, and states that output produced after the Restore is not checked for that ended
