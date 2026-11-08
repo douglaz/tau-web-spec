@@ -79,17 +79,35 @@ must demonstrate is whatever its declaration states under `ARC-39` — including
 surface, since `SEC-T1`'s deny-everything-but-one-port is btc-policy's rule and binds only
 there.
 
-**ARC-36a Machine class is asked, never inferred.** Every machine carries a class,
-single-purpose or multi-tenant. A tenant's profile presets it. With no tenant, the operator
-answers for each machine, to questions the harness wrote: they ship in the signed bundle, and
-nothing is preselected. The model MUST NOT word the questions, answer them or preselect an
-answer. An operator who answers "not sure" has a **multi-tenant** machine — the class whose
-costs are `ARC-37`'s removal, which a machine needing no wallet never notices, and being bound
-alone (`SEC-1`), which a one-machine session never notices. The model MAY
-propose a tightening, single-purpose to multi-tenant, and nothing else: it never relaxes a
-class. The answer is journaled with the machine before it is bound (`SEC-1`), and so before
-anything is installed (`ARC-44`). A
-multi-tenant machine is always bound alone (`SEC-1`).
+**ARC-36a Machine class defaults conservatively, never from the model.** Every machine carries
+a class, single-purpose or multi-tenant. A tenant's profile presets it. For initial admission
+of an ad-hoc machine, the harness MUST use the conservative multi-tenant class without a
+separate classification question when the task can proceed within that class's restrictions.
+For that admission, the harness MUST journal the class and its provenance with the machine
+before binding (`SEC-1`), and so before installation (`ARC-44`), distinguishing a harness
+default from an operator's explicit answer. A default is not an operator answer.
+
+For an ad-hoc machine, before admitting requested behavior that requires a less restrictive
+class, the harness MUST obtain an explicit operator answer to the classification questions
+for that machine. The questions are authored by the harness and ship in the signed bundle,
+with nothing preselected.
+The answer MUST be journaled before admitting that behavior, and before binding and installation
+when sought at initial admission. The model MUST NOT word the questions, answer them or
+preselect an answer. Model text, a suggested or previously displayed answer, restored UI state
+and replay of default provenance MUST NOT manufacture an operator answer. An operator who
+answers "not sure" has a **multi-tenant** machine. The model MAY propose a tightening,
+single-purpose to multi-tenant, and nothing else: it never relaxes a class or supplies or
+relaxes the operator's answer.
+
+For an already-bound machine, the same explicit-answer prerequisite applies before any
+requested relaxing behavior; it supplies no reclassification route or exception to `SEC-1`'s
+binding, re-entry, growth or exposure checks. A multi-tenant machine is always bound alone
+(`SEC-1`). The restrictions apply in full to a harness-defaulted machine: `ARC-37` says
+"A multi-tenant machine MUST NOT hold **spendable** key material", and `ARC-43` says "the
+operator confirms the value is not spendable before it is sent; without that confirmation
+nothing is placed". A goal or declaration supplies no exception. A one-machine task needing
+no wallet can proceed under these restrictions without a classification screen
+([ADR-0073](./docs/adr/0073-ad-hoc-conservative-class-default.md)).
 
 *What this requirement used to say* was that hardening a multi-tenant machine is a different
 problem and that `ARC-17` and `OPN-14` were written for the single-purpose case. Both are now
@@ -785,14 +803,15 @@ machines carry — and the harness works with none
 ([ADR-0034](./docs/adr/0034-general-case-first-tenants-are-optional-skills.md)). A machine with
 no tenant runs under the publisher's built-in **ad-hoc profile**
 ([`docs/tenants/ad-hoc/profile.md`](./docs/tenants/ad-hoc/profile.md)), which fixes the access
-model at maintained and leaves its other per-machine slots for the operator to fill by answering
-the harness's own questions.
+model at maintained, resolves machine class under `ARC-36a`, and uses the operator-approved
+per-machine declaration under `ARC-39`.
 
 Three facts the harness acts on exist for every machine either way: its machine class
-(`ARC-36a`), its access model (`ARC-27`) and its delivery declaration (`ARC-39`). Each is preset
-by a profile or approved by the operator in plain language, and each MUST be journaled
-with the machine before anything is installed on it. A tenant's presets make that path faster
-and more reliable; they are never a precondition for it.
+(`ARC-36a`), its access model (`ARC-27`) and its delivery declaration (`ARC-39`). Class and its
+provenance follow `ARC-36a`; the other facts are preset by a profile or approved by the operator
+in plain language. Each MUST be journaled with the machine before anything is installed on it.
+A tenant's presets make that path faster and more reliable; they are never a precondition
+for it.
 
 ## Sessions, binding, and diversity
 

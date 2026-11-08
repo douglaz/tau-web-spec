@@ -97,8 +97,8 @@ path's acceptance run uses the plain-Arch goal above (`OPN-25`). This machine us
 notify channel (`CHN-17`) and needs no publisher Nostr relay for attest (`CHN-18`). Beyond
 the channel and the journal, the path needs:
 
-- **goal input, and the harness's own questions** for machine class and the declaration
-  (`ARC-36a`, `ARC-39`);
+- **goal input, machine-class resolution and declaration approval** under `ARC-36a` and
+  `ARC-39`;
 - **`place_secret` and its scan/re-arm paths**, for the application's key (`ARC-43`, `SEC-5`):
   `CNF-95`'s LNVPS-path cases pass before the path delivers a machine to an operator (`OPN-28`);
 - **the unpinned label, or a publisher pin for Arch** (`ARC-25`);

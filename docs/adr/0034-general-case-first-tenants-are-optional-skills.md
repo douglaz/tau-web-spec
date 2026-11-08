@@ -207,3 +207,9 @@ relaxation, owned by `ARC-11a`, and the dependent `STG-21` synchronization. The 
 prohibition and its present-tense attribution above are history: "A goal is never imported,
 shared or reused" remains in `ARC-11a` as a labelled historical trap. The other decisions,
 rejected options and reasoning above remain the historical record.
+
+*Partially superseded 2026-11-08:* [ADR-0073](./0073-ad-hoc-conservative-class-default.md)
+relaxes mandatory up-front ad-hoc classification questions when the conservative multi-tenant
+class supports the whole task. The machine-class decision above is history to that extent;
+the rejection of model-proposed classification and the other decisions remain in force, apart
+from ADR-0074's amendment above.

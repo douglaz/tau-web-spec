@@ -2,12 +2,12 @@
 
 Owned by the publisher and shipped in the bundle. Records: this file. Briefs supplied: none;
 a machine here is steered by the operator's goal (for permitted goal sources, see `ARC-11a`).
-Profile revision: 3 (2026-10-06).
+Profile revision: 4 (2026-11-08).
 
 Schema: ADR-0030. Every machine runs under a profile, and this is the one a machine with no
-tenant runs under (`ARC-44`). Its access model is fixed below; its other per-machine slots carry
-no preset: the operator fills them by answering the harness's own questions, and each answer is journaled with the machine before
-anything is installed. Rules that only make sense inside a profile are that profile's;
+tenant runs under (`ARC-44`). Its access model is fixed below; machine class and provenance
+follow `ARC-36a`, and its per-machine declaration follows `ARC-39`. Per-machine journaling
+before installation is `ARC-44`'s. Rules that only make sense inside a profile are that profile's;
 everything cited below is the harness's.
 
 ## Access model
@@ -17,8 +17,8 @@ offered here: it needs a tenant whose own design calls for it.
 
 ## Machine class
 
-Asked per machine, never preset (`ARC-36a`). The operator answers the harness's questions with
-nothing preselected, and "not sure" is multi-tenant.
+Resolved per machine under `ARC-36a`: the conservative harness default and the conditional
+signed-question path, with their distinct provenance (ADR-0073).
 
 ## Vendor products targeted
 
