@@ -418,7 +418,8 @@ admitted, import-validated pins and history; import byte validation is outside t
 events. The `authorized` input represents existing vendor-status read
 authority; retry grants none. `retry_available` is false once a durably recorded observation
 in the current installation holds a fingerprint outside the saved pin (`STA-16`); a `verify`
-event that still arrives is processed and retained.
+event that still arrives is processed and retained. That check is the `publishedWithin`
+assumption, so a trace whose assumptions turn it off still shows retry available.
 Restart preserves those journaled facts,
 including refusal of a second introduction and publication history; window and status-poll timing
 are outside this file. A halted handshake after an attempted connection does not demonstrate

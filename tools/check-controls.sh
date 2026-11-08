@@ -830,6 +830,12 @@ pins_control "formal: Restore verification releases before a durable append" \
   "sed -i 's/(run (current) init restoreFailedAppendEvents)/(run ({ current with restoreEvidenceDurable := false }) init restoreFailedAppendEvents)/' $PINS && grep -qF '(run ({ current with restoreEvidenceDurable := false }) init restoreFailedAppendEvents).sessions.map (·.keys) = []' $PINS" \
   restore_failed_append_refused
 
+# The same form for the retry offer: disable the within-installation guard at the retry check
+# inside its own theorem, leaving the trace's run under current. Only that declaration turns red.
+pins_control "formal: Restore retry offered after a recorded contradiction" \
+  "sed -i 's/retryAvailable (current) k entryA = false/retryAvailable ({ current with publishedWithin := false }) k entryA = false/' $PINS && grep -qF 'retryAvailable ({ current with publishedWithin := false }) k entryA = false' $PINS" \
+  restore_contradiction_withdraws_retry
+
 # Attest is a first contact only (CHN-5): with the guard removed an introduction replaces a job
 # pin, which its refused witness sees and bounded sees through its firstContactOnly clause -- the
 # one control that makes that clause false.
@@ -874,7 +880,8 @@ pins_control "formal: valid LNVPS publication disabled" \
   partial_polls_complete_after_restart refused_observation_blocks_later_installation \
   duplicate_observation_does_not_restore_pin historic_session_survives_reinstall \
   older_job_after_restart_refused other_machine_job_history_admitted disjoint_after_job_admitted \
-  restore_retry_after_failure_admits restore_partial_retry_admits restore_failed_append_retry_admits restore_prior_contradiction_refused restore_complete_mismatch_refused restore_failed_conflict_stays_withheld restore_waiting_admitted_without_guard restore_contradiction_admitted_without_guard restore_unauthorized_read_admitted_without_guard restore_failed_append_admitted_without_guard restore_different_set_admitted_without_guard
+  restore_retry_after_failure_admits restore_partial_retry_admits restore_failed_append_retry_admits restore_prior_contradiction_refused restore_complete_mismatch_refused restore_failed_conflict_stays_withheld restore_waiting_admitted_without_guard restore_contradiction_admitted_without_guard restore_unauthorized_read_admitted_without_guard restore_failed_append_admitted_without_guard restore_different_set_admitted_without_guard \
+  restore_contradiction_withdraws_retry restore_contradiction_retry_offered_without_guard
 
 # The new observation witness now retains a predecessor pin when an incomplete publication is admitted.
 pins_control "formal: incomplete LNVPS publication admitted" \
@@ -909,7 +916,8 @@ pins_control "formal: current installation contradicts an observation" \
   "sed -i 's/publishedWithin : Bool := true/publishedWithin : Bool := false/' $PINS && grep -q 'publishedWithin : Bool := false' $PINS" \
   complete_contradiction_after_incomplete_refused older_incomplete_history_refuses \
   refused_complete_publication_remains_history bounded \
-  restore_prior_contradiction_refused restore_complete_mismatch_refused restore_contradiction_refused
+  restore_prior_contradiction_refused restore_complete_mismatch_refused restore_contradiction_refused \
+  restore_contradiction_withdraws_retry
 
 # The new ready-to-reset observation witness also needs its incomplete predecessor history.
 pins_control "formal: incomplete LNVPS publications lost from history" \

@@ -1372,7 +1372,7 @@ def stepJson (p : TauWeb.Pins.Params) (k : Knowledge) (e : TauWeb.Pins.Event)
     | .reset m _ => [("boot", toJson (bootOf k' m))]
     | .restore m | .verify m _ _ _ =>
       [("verification_pending", toJson (k'.pendingVerification.contains m)),
-       ("retry_available", toJson (retryAvailable k' m))]
+       ("retry_available", toJson (retryAvailable p k' m))]
     | .restart => [("replayed", toJson true)]
     | .attest m _ _ _ _ =>
       [("pinned", toJson (decide (k.pins.length < k'.pins.length))),
@@ -1452,6 +1452,8 @@ def witnesses : List Trace := [
   { decls := ["TauWeb.Pins.restore_partial_retry_admits"], events := restorePartialEvents },
   { decls := ["TauWeb.Pins.restore_prior_contradiction_refused"], events := restorePriorContradictionEvents },
   { decls := ["TauWeb.Pins.restore_contradiction_withdraws_retry"], events := restoreContradictionEvents.take 3 },
+  { decls := ["TauWeb.Pins.restore_contradiction_retry_offered_without_guard"], events := restoreContradictionEvents.take 3,
+    params := { TauWeb.Pins.current with publishedWithin := false } },
   { decls := ["TauWeb.Pins.restore_complete_mismatch_refused"], events := restoreMismatchEvents },
   { decls := ["TauWeb.Pins.restore_retired_pin_refused"], events := restoreRetiredEvents },
 

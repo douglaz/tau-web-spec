@@ -455,10 +455,12 @@ path. -/
 /-- Another verification read is offered only while no durably recorded observation in the
 current installation holds a fingerprint outside the saved pin. Once a contradiction is
 recorded the choice is reinstall or abandonment; a read that still occurs is processed under
-`offersVerification`. An unrecorded (failed-append) reading changes neither. -/
-@[req "STA-16"] def retryAvailable (k : Knowledge) (m : Entry) : Bool :=
+`offersVerification`. An unrecorded (failed-append) reading changes neither. The check is
+CHN-R7's within-installation guard (`publishedWithin`) applied to the saved pin: the offer is
+withdrawn exactly where a matching read could no longer qualify. -/
+@[req "STA-16"] def retryAvailable (p : Params) (k : Knowledge) (m : Entry) : Bool :=
   offersVerification k m &&
-    (pinAt k m .machine).any (fun pin => withinInstallation k m pin.keys)
+    (pinAt k m .machine).any (fun pin => !p.publishedWithin || withinInstallation k m pin.keys)
 
 /-- Compare with the saved pin and prior history before retaining even refused evidence.
 No source is journaled here, and no installation, provenance or introduction changes. -/
@@ -1855,7 +1857,7 @@ def restoreRetiredEvents : List Event := restoredEvents ++
 @[req "STA-16"] theorem restore_partial_retry_admits :
     let waiting := run current init (restoredEvents ++
       [.verify entryA (some []) true false, .verify entryA (some [51]) true false])
-    offersVerification waiting entryA = true ∧ retryAvailable waiting entryA = true ∧
+    offersVerification waiting entryA = true ∧ retryAvailable current waiting entryA = true ∧
     pinFor waiting entryA .installed = none ∧
     (run current init restorePartialEvents).sessions.map (·.keys) = [publishedKey] := by
   decide +kernel
@@ -1864,14 +1866,14 @@ def restoreRetiredEvents : List Event := restoredEvents ++
     let k := run current init restorePriorContradictionEvents
     k.pendingVerification = [entryA] ∧ k.sessions = [] ∧
     (currentGroup k entryA).map (·.observations) = some [[999], publishedKeys] ∧
-    retryAvailable (run current init (restorePriorContradictionEvents.take 3)) entryA = false ∧
-    retryAvailable k entryA = false := by decide +kernel
+    retryAvailable current (run current init (restorePriorContradictionEvents.take 3)) entryA = false ∧
+    retryAvailable current k entryA = false := by decide +kernel
 
 @[req "STA-16"] theorem restore_complete_mismatch_refused :
     let k := run current init restoreMismatchEvents
     k.pendingVerification = [entryA] ∧ k.sessions = [] ∧
     (currentGroup k entryA).map (·.observations) = some [nextPublishedKeys, publishedKeys] ∧
-    retryAvailable k entryA = false := by
+    retryAvailable current k entryA = false := by
   decide +kernel
 
 /-- A durably recorded conflicting partial withdraws the retry offer, while reads that still
@@ -1879,7 +1881,14 @@ occur are processed and retained. -/
 @[req "STA-16"] theorem restore_contradiction_withdraws_retry :
     let k := run current init (restoreContradictionEvents.take 3)
     k.pendingVerification = [entryA] ∧ offersVerification k entryA = true ∧
-    retryAvailable k entryA = false := by decide +kernel
+    retryAvailable (current) k entryA = false := by decide +kernel
+
+/-- The same trace with the within-installation guard off at the retry check offers another
+read: the guard is what withdraws it. -/
+@[req "STA-16"] theorem restore_contradiction_retry_offered_without_guard :
+    let k := run current init (restoreContradictionEvents.take 3)
+    retryAvailable ({ current with publishedWithin := false }) k entryA = true := by
+  decide +kernel
 
 @[req "STA-16"] theorem restore_retired_pin_refused :
     let k := run current init restoreRetiredEvents
@@ -1892,14 +1901,14 @@ occur are processed and retained. -/
     k = before ∧ k.pendingVerification = before.pendingVerification ∧
     k.sessions = [] ∧ k.publicationGroups = before.publicationGroups ∧
     k.pins = before.pins ∧ offersVerification k entryA = true ∧
-    retryAvailable k entryA = true := by decide +kernel
+    retryAvailable current k entryA = true := by decide +kernel
 
 @[req "STA-16"] theorem restore_failed_append_retry_admits :
     let before := run current init restoredEvents
     let waiting := run current init (restoredEvents ++
       [.verify entryA (some publishedKeys) true false, .restart])
     waiting = before ∧ offersVerification waiting entryA = true ∧
-    retryAvailable waiting entryA = true ∧ pinFor waiting entryA .installed = none ∧
+    retryAvailable current waiting entryA = true ∧ pinFor waiting entryA .installed = none ∧
     let matched := run current init (restoreFailedAppendRetryEvents publishedKeys)
     let conflicted := run current init (restoreFailedAppendRetryEvents [999])
     matched.sessions.map (·.keys) = [publishedKey] ∧
