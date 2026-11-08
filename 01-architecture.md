@@ -714,6 +714,9 @@ permitted sources distinguish it from a runtime-supplied brief:
 - **Explicit personal reuse carries instruction text only.** Where every target profile
   permits goals and declares no independence bound, the harness MAY let the operator
   explicitly select their own retained goal text from the same local store for a new session.
+  Goal text in ended history that the operator's own local-store backup restored on import
+  (`STA-16`) counts as retained in the importing store; its shown and journaled source names
+  that import.
   Before session admission, the harness MUST show the selected instruction text, its source and
   intended target, and let the operator edit the text. It MUST journal the selection,
   source/provenance, chosen text and any edits with the receiving session before admission.

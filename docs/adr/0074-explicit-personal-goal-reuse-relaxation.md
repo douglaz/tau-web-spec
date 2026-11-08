@@ -35,6 +35,13 @@ continuation authority" and "Selection MUST NOT trigger command replay".
 The relaxation leaves distribution outside the permission: `ARC-11a` says "The harness MUST NOT
 offer automatic cross-session propagation, loading a goal from elsewhere, sharing between
 operators or a marketplace of unsigned templates."
+An operator's own restored history is not "elsewhere": `ARC-11a` says "Goal text in ended
+history that the operator's own local-store backup restored on import (`STA-16`) counts as
+retained in the importing store; its shown and journaled source names that import." Treating
+such text as loading a goal from elsewhere, and refusing it, was considered and rejected: an
+operator's own backup on their own new device distributes nothing, and refusing it would take
+the reuse away whenever the phone is replaced along with the server. A recovery sheet carries
+no goal text, so a sheet-only Restore leaves nothing to select.
 This is distinct from runtime-supplied shared briefs: `ARC-11` says "Briefs MUST ship inside
 the signed application bundle"; ADR-0005's signed-brief decision stands.
 

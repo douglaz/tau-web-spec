@@ -1229,7 +1229,9 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       promises rerunning commands or applying earlier outcomes to another machine.
       Confirm no goal propagates automatically and the interface offers no external loading,
       sharing between operators or marketplace of unsigned templates. Attempt selection from
-      another store or operator and confirm refusal.
+      another store or operator and confirm refusal. Import the operator's own local-store backup
+      and confirm its ended sessions' goal text is selectable under the conditions above, with
+      the import shown and journaled as its source.
 
       Refuse a goal for an independence-bound target; an operator's attempted waiver does not
       admit it. A fetched document's source is recorded with the goal, and its text authorizes
