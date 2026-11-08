@@ -1133,12 +1133,17 @@ placed-secret scan references (`SEC-5` row 23);
 only a passphrase-wrapped data key persists. The credential format defines the local envelopes, KDF and authentication rules,
 including the authenticated fenced-key birth extension for fresh local stores. There is no plaintext or device-synced fallback.
 
+The unlock view explains the local unlock passphrase as access to this device's encrypted
+store, separate from the items retained for recovery in `STA-15`'s checklist.
+
 The harness worker alone unwraps and holds the data key and seed. The UI passes the
 passphrase once and clears its input; it never receives the unwrapped data key. The mnemonic
 MUST always be shown in the dedicated seed-backup ceremony, outside any session, and MUST
 be hidden while the operator answers. This is its only display, including re-display on
 demand: the same ceremony, after the local passphrase is entered again, with no session
-running. The ceremony starts by pausing dispatch and closing execution channels as Lock
+running. Before displaying the words, the ceremony tells the operator: switching apps hides
+the seed; showing it again requires the local unlock passphrase. The ceremony starts by
+pausing dispatch and closing execution channels as Lock
 below does; sessions and approvals survive. During the seed-backup ceremony an ordinary hide MUST take this full Lock path too,
 clear displayed words and input, preserve owed completion and never re-display the words automatically.
 An interrupted ceremony continues to withhold ordinary work across Lock, replay, reload,
@@ -1172,6 +1177,14 @@ skips the check. The record MUST say `full_reentry` or `skipped`, for that seed 
 be durably appended before it takes effect (`STA-3`: "A canonical event MUST be durably
 appended **before** it is applied to in-memory state"). A failed append leaves no completion.
 Neither completion is displayed as a verified backup (`SEC-2`).
+
+The ceremony presents **“Check all words”** and **“Skip check”** with their consequences
+beside them. Check all words means re-entering the complete mnemonic to catch transcription
+errors; it checks that entry against this seed, not whether a backup was safely retained.
+Skip check means completing the ceremony without checking the words, leaving transcription
+errors undetected. Either choice completes the ceremony only through the durable record
+above, so a mismatched re-entry completes nothing; skipping needs no second confirmation.
+For what to retain alongside the seed, see `STA-15`'s checklist.
 
 Key derivation gives a session only its permitted child credentials. **Explicit app Lock**
 is the operator's local lock action. An ordinary visibility-only hide is a visibility change
@@ -1365,6 +1378,23 @@ another entry already holds (`STA-17`). A sealed tenant's machines need none: th
 sealing, and a phone
 lost mid-setup is answered by the tenant's own all-or-nothing rule — abandon and recreate.
 This asymmetry is stated, not smoothed over.
+
+For recovery with a seed and sheet, the export view explains what to retain and why as one
+checklist:
+
+| Item to retain | Purpose |
+|---|---|
+| Seed backup | Re-derives keys for recorded identities. |
+| Current recovery sheet (a passphrase-encrypted file) | Carries the metadata and recovery records needed alongside the seed. |
+| Recovery-sheet passphrase | Decrypts the sheet. |
+
+The interface says plainly: **“For this recovery path, the seed alone is insufficient.”**
+The checklist explains the seed-and-sheet path; the dedicated rescue exception is described
+above. The sheet is distinct from a
+local-store backup. For derivation and recorded-identity limits, see `STA-22` and `STA-22b`;
+for the seed ceremony and local unlock explanation, see `STA-23`; for sheet contents, see
+`STA-16`; for the encrypted file's format and saved-file confirmation, see the
+[credential format](docs/design/credential-format-v1.md#recovery-sheet).
 
 **Where a maintained cloud machine's pin is lost with no sheet anyway, recovery adds no
 destructive authority.** For a machine that existing authorization cannot admit, the harness
