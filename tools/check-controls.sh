@@ -1399,6 +1399,10 @@ control "witnesses: obsolete pins v4 orphan" "$WIT" \
   "cp $PINSWIT docs/design/pins-witnesses-v4.json" \
   "WITNESS DRIFT" "pins-witnesses-v4.json is committed but no module emits it"
 
+control "witnesses: obsolete pins v5 orphan" "$WIT" \
+  "cp $PINSWIT docs/design/pins-witnesses-v5.json" \
+  "WITNESS DRIFT" "pins-witnesses-v5.json is committed but no module emits it"
+
 control "witnesses: obsolete dispatch v2 orphan" "$WIT" \
   "cp docs/design/dispatch-witnesses-v10.json docs/design/dispatch-witnesses-v2.json" \
   "WITNESS DRIFT" "dispatch-witnesses-v2.json is committed but no module emits it"

@@ -340,8 +340,9 @@ inductive Check
   deriving DecidableEq, Repr
 
 /-- `SEC-11`, whole: the presented set is checked against the stored pin, "and a key that does
-not match MUST halt the session"; with no pin stored there is nothing to check against, which
-`CHN-R1` makes a wait and never a first-use acceptance. A halt the reset explains — the presented
+not match MUST halt the session"; with no eligible pin there is nothing to check against, which
+`CHN-R1` makes a wait and never a first-use acceptance. A restored pin can be stored but
+ineligible while its revalidation is unresolved (`STA-16`); `pinFor` returns none for it. A halt the reset explains — the presented
 set is the pin the reset intent named — is `STA-20b`'s confirmation and not the error. Total, and
 the order is the function's, so no halt can be answered out of its place. -/
 @[req "SEC-11"] def check (k : Knowledge) (m : Entry) (sys : System)
