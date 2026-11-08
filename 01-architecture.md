@@ -112,7 +112,7 @@ request requiring a less restrictive class for the rest of that session and in a
 session that re-enters it (`SEC-1`), explaining the concrete conflict without presenting the
 classification questions. Its class does not relax in that session or in a later session that
 re-enters the machine (`SEC-1`), which is not its initial admission: the question path stays
-closed, and the journaled class and harness-default provenance carry over (`STA-16`); those
+closed, and the journaled class and harness-default provenance carry over; those
 requests MUST leave the journaled class and harness-default provenance
 unchanged. The question path supplies no exception to `SEC-1`'s binding, re-entry, growth or
 exposure checks. A multi-tenant machine is always bound alone

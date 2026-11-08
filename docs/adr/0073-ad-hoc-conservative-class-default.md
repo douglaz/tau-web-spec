@@ -55,7 +55,7 @@ explaining the concrete conflict without presenting the classification questions
 resolves that case in the relaxing direction only. `ARC-36a` says "Its class does not relax in
 that session or in a later session that re-enters the machine (`SEC-1`), which is not its
 initial admission: the question path stays closed, and the journaled class and
-harness-default provenance carry over (`STA-16`); those requests MUST leave the journaled class
+harness-default provenance carry over; those requests MUST leave the journaled class
 and harness-default provenance unchanged." A later session that re-enters the machine finds
 the question path closed and the class unchanged, and it receives the same explained refusal;
 no route to relax it is added here. Tightening after binding remains open in `TASKS.md`; `ARC-36a` says "The
@@ -78,12 +78,12 @@ conflict is explained and no question is asked. A review panel picked the refusa
 four readers with a fifth seat unavailable, accepted under the owner's 2026-11-05 panel rule.
 The dissent was to ask after binding and then admit the behavior through every check.
 
-Conformance for class admission and same-session refusal is in `CNF-100`; dependent
+Conformance for class admission and the after-binding refusal is in `CNF-100`; dependent
 restriction cases are in `CNF-92`, `CNF-52`, `CNF-94` and `CNF-99`. Maintained access and
 pre-installation journaling are covered by `CNF-101`.
 
 The recovery format retains a recorded class value without treating a harness default as
 unapproved or turning that value into an operator answer. No format version or field changes.
 The declaration companion consumes the class as a Boolean; its spendable-material refusal
-and its theorem are unchanged. Admission provenance and the same-session refusal under
+and its theorem are unchanged. Admission provenance and the after-binding refusal under
 `ARC-36a` change neither that declaration refusal nor any capability's conformance admission.
