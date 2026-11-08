@@ -1649,7 +1649,7 @@ distinct, and the screen says which one is happening
 
 Before importing a recovery sheet or local-store backup, the screen MUST explain the allocation
 limit: `STA-22b` says "every imported seed may restore listed identities but MUST NOT allocate
-new ones" and "To allocate again, use Replace with a freshly generated seed". Restoring access
+new ones" and "To allocate again, use Replace with a freshly generated seed". Contact readiness
 and permission to allocate are separate progress facts.
 
 **Direct Replace needs both seeds and the old allocation metadata, and MUST say so before
