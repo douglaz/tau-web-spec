@@ -1282,7 +1282,7 @@ Expiry releases no such hold. In-flight uncertainty remains recorded; expiry
 does not turn an unknown outcome into failure or authorize retry. For progress and the next
 eligible Start action after expiry, see `ARC-31a`'s Display clause. The procured-key units,
 selection, confirmation, expiry-origin, clock-validity and in-flight accounting contract has
-its single home there. No procured-key expiry is imputed to bring-your-own or local paths.
+its single home in `ARC-31a`. No procured-key expiry is imputed to bring-your-own or local paths.
 An inference expiry does not expire SSH, seed, data-key or account authority or stop arbitrary
 remote commands. Ending one session does not by itself lock the whole store or end another
 eligible session.
