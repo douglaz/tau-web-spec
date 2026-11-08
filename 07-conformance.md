@@ -1306,6 +1306,8 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       harness-default provenance are unchanged, with no operator answer manufactured. Repeat
       the request in the same session, including after same-session resume: each is refused
       with the same explanation, absent question and unchanged class and provenance.
+      Re-enter the machine in a later session and repeat the request: it is refused with the
+      same explanation, absent question and unchanged class and provenance.
       Exercise `CNF-92`, `CNF-52`, `CNF-94` and `CNF-99` with a defaulted machine, each when
       the applicability table's row for that item applies, including a goal or
       setup/declaration approval attempting to permit spendable material or bypass

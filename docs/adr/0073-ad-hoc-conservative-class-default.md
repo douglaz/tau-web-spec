@@ -50,11 +50,15 @@ their separate treatment in the delivery-declaration companion.
 
 For the already-bound defaulted case, `ARC-36a` says "Once an ad-hoc machine has been bound
 under the harness default, the harness MUST refuse a request requiring a less restrictive
-class for the rest of that session, explaining the concrete conflict without presenting the
-classification questions." This resolves that case in the relaxing direction only.
-`ARC-36a` says "Its class does not relax in that session; those requests MUST leave the
-journaled class and harness-default provenance unchanged." No later-session re-entry policy
-is chosen here. Tightening after binding remains open in `TASKS.md`; `ARC-36a` says "The
+class for the rest of that session and in any later session that re-enters it (`SEC-1`),
+explaining the concrete conflict without presenting the classification questions." This
+resolves that case in the relaxing direction only. `ARC-36a` says "Its class does not relax in
+that session or in a later session that re-enters the machine (`SEC-1`), which is not its
+initial admission: the question path stays closed, and the journaled class and
+harness-default provenance carry over (`STA-16`); those requests MUST leave the journaled class
+and harness-default provenance unchanged." A later session that re-enters the machine finds
+the question path closed and the class unchanged, and it receives the same explained refusal;
+no route to relax it is added here. Tightening after binding remains open in `TASKS.md`; `ARC-36a` says "The
 model MAY propose a tightening, single-purpose to multi-tenant, and nothing else".
 The rejection of model-proposed classification in ADR-0034 stands, including when a
 suggestion was displayed before interruption or UI state was restored.
@@ -62,7 +66,7 @@ suggestion was displayed before interruption or UI state was restored.
 ## Consequences
 
 An operator who did not request the less restrictive capability before binding cannot obtain
-it on that machine in that session. The relaxation trades mandatory up-front questioning
+it on that machine in that session or one that re-enters it. The relaxation trades mandatory up-front questioning
 for this cost; a request after binding receives an explanation and a refusal, without a
 question whose answer could be mistaken for permission to proceed.
 
