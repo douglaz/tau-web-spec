@@ -43,9 +43,10 @@ authorizes no dependent work, and established expiry/exhaustion still withholds 
 each durably appended before the session gains authority; a failed append admits nothing. The
 only new record kind is the journaled End, which is irreversible: an ended session's authority
 and pending approvals do not revive, and the fence is not reset to implement continuation. The
-journal format that adds End records takes a new version, and a journal of the older version
-replays its sessions as ended, because under the rules it was written by those sessions had
-already ended. For the existing admission records, see `STA-3` and, on the paid path,
+journal format that adds End records takes a new version. A journal of the older version is
+refused at open, not replayed
+([ADR-0072](./0072-an-earlier-session-journal-is-refused-not-replayed.md)). For the existing
+admission records, see `STA-3` and, on the paid path,
 `ARC-31a`; for journal versions, see
 [the credential format](../design/credential-format-v1.md#session-journal-format-2).
 

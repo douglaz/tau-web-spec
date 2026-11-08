@@ -1239,7 +1239,8 @@ End records session identity and reason (`explicit`, `replace`, `expiry`, `cap_e
 including after replay, validation, unlock and attempted readmission. A failed End append
 ends nothing and authorizes no dependent operation; established expiry/exhaustion still
 withholds ordinary work until the End can be committed. Data loss ends by absence, never
-by a claimed journaled transition. The credential format versions End and pre-End replay.
+by a claimed journaled transition. The credential format versions End, and refuses a journal
+in an earlier format at open instead of replaying it.
 
 `STA-8` says "It MUST NOT be retried automatically and no timer may clear it."
 `STA-7` says "**No model turn is silently resumed from an uncertain destructive operation.**"

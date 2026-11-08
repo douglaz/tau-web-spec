@@ -131,14 +131,31 @@ to unlock itself. Credential inventory rows 18–20 cover this boundary.
 ## Session journal format 2
 
 This journal version is distinct from derivation v1, local wrapping envelope v1/v2, sheet
-envelope v1, recovery payload v5 and every witness schema. New event/snapshot plaintext
-wrappers have `journal_version:2`, authenticated by their existing encrypted record. A
-pre-End wrapper (absent version or journal version 1) retains its original validation and
-replays all its sessions as ended. A version-2 suffix can follow that validated prefix without
-rewriting old ciphertext: only admissions in the suffix can start a live session. Reject an
-unknown journal version or a version-1 record after a version-2 suffix. Snapshots retain the
-version boundary, admitted session identities, durable Ends, approvals and binding history;
-they cannot promote prefix sessions to live authority.
+envelope v1, recovery payload v5 and every witness schema. Every event and snapshot plaintext
+wrapper has `journal_version:2`, authenticated by its existing encrypted record. The version
+member loosens no check: the wrapped event or snapshot keeps every closed-object and refusal
+check it has without it. Snapshots retain admitted session identities, durable Ends,
+approvals and binding history.
+
+**An earlier journal is refused, not read**
+([ADR-0072](../adr/0072-an-earlier-session-journal-is-refused-not-replayed.md)). At open,
+before replay, a journal holding any record that is not format 2 is refused as a whole: an
+earlier wrapper (absent version or journal version 1) or an unknown journal version, on an
+event or a snapshot, as the first record or after format-2 records. Nothing is projected or
+appended, no session is admitted or resumes, and the stored bytes stay unchanged. The refusal
+never deletes, creates, resets or overwrites a store, and nothing offers to do so in one step.
+Its message tells an earlier format apart from an unknown version and from corruption (a
+record that fails authentication or decoding, which stops replay as above), and says that
+the data was left unchanged. It also warns that clearing the store permanently deletes it,
+seed record included, without prescribing clearing: the choice is the operator's, and what
+survives clearing is what survives a lost phone (`STA-14`).
+
+This refusal comes before any replay or report and reads only the journal version. The local
+envelope rules below decide whether a data key unwraps and may encrypt, and stay as written:
+a store under either envelope version is refused here when one of its records is not format 2,
+and their protected read-only reading applies only to a store whose records are all format 2.
+Evidence payload shapes inside a format-2 record, and the recovery sheet and export payloads,
+keep their own versions and old-data rules.
 
 The only new event kind is `end`, with session identity and one reason from `explicit`,
 `replace`, `expiry`, `cap_exhaustion`, `abandon`. End is irreversible, including for a
@@ -154,7 +171,9 @@ No separate seal or resume event kind is added. Staged append recovery, nonce un
 attempt budget, canonical chain bytes and record/snapshot AAD remain unchanged. Invalid
 terminal evidence, a missing terminal or a seal alone supplies no usable key.
 
-Import is a separate history-only operation under `STA-16`, even for a format-2 backup.
+Import is a separate history-only operation under `STA-16`. A local-store backup's journal is
+read under the rule above, so a backup holding a record that is not format 2 is refused at
+import the same way and imports nothing.
 A copied paid-key seal never becomes usable through import and import revokes no old-phone key.
 
 ## Fenced local-key birth extension, 2026-10-28
