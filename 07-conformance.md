@@ -1184,7 +1184,8 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       lockdown, after disconnect and after reboot; the root check jobs and their
       collection still work without any password, prompt or login fallback. A connection
       alone or unavailable collection supplies no successful check verdict.
-      Where the session acts on a goal — necessarily a new one (`ARC-11a`) —
+      Where the session acts on its own recorded goal, exercise both freshly entered text and,
+      if offered, explicit personal selection under `ARC-11a` (`CNF-102`). In either case,
       acting with no brief is accepted with it before the model's first command; a session
       that only re-runs the check accepts no mode (`SEC-14`).
 - [ ] **CNF-99 · BLOCKING** A machine on which a finding stands is **handed over with
@@ -1209,11 +1210,31 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       declaration are each journaled with the machine before anything is installed
       (`ARC-44`).
 - [ ] **CNF-102 · BLOCKING** A goal steers one session's bound set (`ARC-11a`, `STG-21`): it is journaled
-      with that session and its source, the interface offers no import, sharing or reuse of
-      one, and a goal is refused for a machine under a profile that declares an independence
-      bound. A fetched document's source is recorded with the goal, and its text authorizes
-      nothing (`CNF-35`). Boundary crossed: one instruction steering machines a tenant counts
-      as independent.
+      with that session and its source. If the interface offers explicit personal reuse,
+      select the operator's own retained text from the same local store for a different session
+      whose target profiles all permit goals and declare no independence bound. Exercise a
+      replacement machine, a desired outcome selected after the source session ended, and
+      recurring maintenance. Before Start/admission, confirm the chosen instruction, source
+      and intended target are shown and the text is editable; make an edit and inspect the
+      receiving session's record for the selection, chosen text, provenance and edits. The
+      resulting instruction is that session's own recorded goal and steers only its bound set.
+      Attempt admission without that display or journal record and confirm refusal.
+
+      Give the source session approvals, credentials, a binding, limits, outcomes and
+      weaker-mode acceptances; confirm selection transfers none of them or any authority.
+      The receiving session obtains ordinary admission, binding, limits and approvals, and
+      accepts each applicable weaker mode itself. No command runs before its ordinary
+      authority is established. Repeat selection from failed and ended source sessions:
+      neither transfers approvals or continuation authority, initiates command replay, nor
+      promises rerunning commands or applying earlier outcomes to another machine.
+      Confirm no goal propagates automatically and the interface offers no external loading,
+      sharing between operators or marketplace of unsigned templates. Attempt selection from
+      another store or operator and confirm refusal.
+
+      Refuse a goal for an independence-bound target, including a mixed selection with a
+      goal-permitting target; an operator's attempted waiver does not admit it. A fetched
+      document's source is recorded with the goal, and its text authorizes nothing (`CNF-35`).
+      Boundary crossed: one instruction steering machines a tenant counts as independent.
 
       `STA-23` says "An ordinary visibility-only hide MUST NOT end or pause an unlocked session, clear its runtime authority, or invalidate its approvals."
       Continue an eligible goal loop while hidden and scheduled; a pending operator approval
@@ -1225,7 +1246,10 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       Reconstruct the same session's own journaled goal and safe protected transcript after
       execution loss (`STA-23`); no model-context checkpoint or prompt bodies are persisted,
       no other session's goal is loaded and an unfinished unjournaled turn is discarded.
-      This supplies no ended-session goal or acceptance carry-over exception.
+      Recovery of the same session is distinct from selecting text for a different session;
+      it supplies no ended-session authority or acceptance carry-over exception. Explicit
+      selection from ended history, if offered, follows the admission cases above and never
+      resumes the source session.
 
 - [ ] **CNF-103 · PRE-SCALE** A machine carrying an operator's application says so (`ARC-1a`):
       the delivery card carries the application's sentence with its name, explains Delivered's

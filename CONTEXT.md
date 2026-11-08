@@ -73,9 +73,8 @@ a **layering**: a brief can tell the AI to invoke an lnrent hook as a determinis
 
 **Goal** · `ARC-11a`
 The operator's own instruction for one session, in their words — "launch a VPS paid in
-Bitcoin and install Hermes on Omarchy". It steers only that session's bound set, where a brief
-steers every machine that reads it; how it is kept, and that it can stand alone, are `ARC-11a`'s
-(decided 2026-10-04).
+Bitcoin and install Hermes on Omarchy". For its reach, retention, permitted sources (including
+explicit personal selection of retained text) and use without a brief, see `ARC-11a`.
 _Avoid_: prompt, task, request (a *call*'s word), intent (the journal's *intent record*, `STA-4`)
 
 **Signed bundle** · `SEC-7`, `ARC-32`, `ADR-0031`

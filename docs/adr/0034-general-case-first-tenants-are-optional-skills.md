@@ -200,3 +200,10 @@ declaration, briefs 2–3, the Robot lockdown checklist and `OPN-27`'s closure g
 admission group (`STG-23`): the tenants, the dedicated path offered to an operator and a
 post-harness handoff profile. `07-conformance.md`'s applicability table admits each path and
 capability by its own rows.
+
+*Amended 2026-11-08: partial supersession of the personal cross-session goal-reuse prohibition.*
+[ADR-0074](./0074-explicit-personal-goal-reuse-relaxation.md) records the owner-directed
+relaxation, owned by `ARC-11a`, and the dependent `STG-21` synchronization. The blanket
+prohibition and its present-tense attribution above are history: "A goal is never imported,
+shared or reused" remains in `ARC-11a` as a labelled historical trap. The other decisions,
+rejected options and reasoning above remain the historical record.
