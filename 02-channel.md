@@ -729,6 +729,8 @@ its relation to the approved machine entry. It MUST show that recording authoriz
 the host on the shared any-port terms, not only the port used for that purpose.
 One approval MAY cover additions whose concrete hosts and sources are already
 known; a server host learned later requires approval of that concrete addition.
+Additions permitted to share a review MUST be presented together in that review,
+rather than as sequential confirmations.
 A build-named API host, a binding alone or a newly journaled address supplies no
 such approval.
 
