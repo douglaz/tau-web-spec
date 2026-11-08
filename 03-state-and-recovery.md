@@ -1629,7 +1629,11 @@ distinct, and the screen says which one is happening
   is saved, the machines are shown as having no current sheet.
 - **Restore** (for a phone that died in hand): the same seed plus sheet re-derives the same
   keys and reuses the old host pin, with no first contact, explicitly presented as non-revoking.
-  New allocations remain barred until Replace with a fresh seed (`STA-22b`).
+
+Before importing a recovery sheet or local-store backup, the screen MUST explain the allocation
+limit: `STA-22b` says "every imported seed may restore listed identities but MUST NOT allocate
+new ones" and "To allocate again, use Replace with a freshly generated seed". Restoring access
+and permission to allocate are separate progress facts.
 
 **Direct Replace needs both seeds and the old allocation metadata, and MUST say so before
 it starts.** Re-entering a machine not yet migrated
@@ -1657,6 +1661,53 @@ and unrevocable passes, and never reports a complete Replace or complete revocat
 either remains outstanding, including a manual relay retirement awaiting confirmation, an
 LNVPS rebuild's old machine awaiting its deletion evidence and a pending removal (below), which
 it names by its machine and its key's seed.
+
+Restore and Replace status shows separate progress facts alongside the overall result. These
+are display projections from the retained records, not canonical lifecycle states or a separate
+progress ledger. For example:
+
+- Recovered machine access is shown from validated allocation identities and the applicable
+  contact checks. `STA-22b` says "Existing identities remain usable during non-revoking Restore";
+  `STA-16` says "Preservation of an admitted pin is not permission to contact the machine before
+  that revalidation." Access is shown as restored and available only when those checks permit
+  it, never merely because an identity or pin was imported.
+- Allocation availability is shown from the seed's provenance, counters and ceremony record,
+  separately from recovered access. `STA-22b` says "allocation in every family — machines, relay
+  passes and handoffs — MUST be refused until that seed id has the journaled ceremony record of
+  `STA-23`". Readiness under a fresh seed still depends on those checks, approvals and every
+  other applicable guard; generating the seed alone establishes no readiness. The imported-seed
+  refusal is explained before import as above.
+- Old-access retirement names the affected machine and key's seed or relay pass from the
+  migration, pending-removal and outstanding-pass records, with its recorded reason. A working
+  replacement relay pass supplies no evidence that the old pass was retired. Saving the fresh
+  seed's sheet supplies no evidence that old keys or passes were retired.
+- Old-resource cleanup reads the retained old-machine entry and its durably recorded deletion
+  evidence. An LNVPS old machine whose deletion is unconfirmed stays shown as existing and
+  billed; `ARC-22` says "A stop is neither confirmed destruction nor confirmed billing cessation."
+- Recovery-export progress distinguishes an export still required from a finished export step
+  and the saved-file confirmation in the
+  [credential format's export view](docs/design/credential-format-v1.md#recovery-sheet).
+  That confirmation concerns that exported sheet, not proof that the file remains retained or
+  current after later journal changes; it supplies no durable saved-file record to reconstruct
+  after store loss.
+
+On reopening, reconstruct pending and completed progress from the retained journal or imported
+recovery metadata, only to the extent those records carry it. Do not reset a recorded completed
+step merely because another obligation remains. Preserve the knowledge limits on imported
+facts: `STA-16` says "A restored sheet is knowledge as of export". An as-of-export observation
+does not become a current fact on reopening. Replace or revocation remains incomplete while
+any required obligation remains; completed work can be shown complete and otherwise eligible
+actions remain available under their own checks. This grants no overlap or retry beyond the
+rules governing each action.
+
+Missing credentials and unavailable remedies are named limitations with the affected machine
+or pass and the reason, not indefinite loading. Show only actions the owning recovery text
+permits: the missing-seed/index routes above and `STA-15`'s recovery remedies, which say
+"Otherwise the operator acts at the vendor, where the vendor offers an actual route." Do not
+promise credential recovery or vendor deletion. For an unavailable deletion check, name the
+missing capability and keep deletion unconfirmed; `SEC-4` says "until it is derived, the check
+has no key and makes no read". The check is offered only with its admitted capability and
+authority, never as a way around the limitation.
 
 Replace's machine-migration MUST move the machine component to the machine's new index and
 carry its installation ordinal `n` with it (`STG-20`). It MUST refuse to migrate a machine

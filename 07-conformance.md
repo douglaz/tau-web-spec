@@ -770,7 +770,17 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       manually recorded relay pass and enrollment of the new key; withholding confirmation
       keeps revocation incomplete. Signed revocation is `CNF-60`'s paid/public case.
       Interrupt machine migration and pass retirement separately: neither partial result is
-      complete revocation. The screen names application-secret rotation at its service,
+      complete revocation. Inspect the separate progress projections against the retained
+      records (`STA-17`): a usable replacement pass and a saved fresh-seed sheet establish no
+      retirement of old access. Reopen with a migrated machine's pending removal, a pass
+      awaiting publisher confirmation and a finished export step: each recorded completed
+      step stays complete while the named outstanding obligations keep Replace and revocation
+      incomplete. Show an LNVPS old machine awaiting deletion separately as existing and billed;
+      the replacement's otherwise eligible work remains available under its own checks.
+      Missing credentials and an unavailable deletion check are named limitations with only
+      permitted remedies, never indefinite loading or a callable check without its admitted
+      capability. Export progress claims no proof of continued file retention or currency.
+      The screen names application-secret rotation at its service,
       the unrevocable inference account credential, and possible thief persistence with a
       destroy/rebuild offer; scan re-arm is never described as a remedy for any of these.
       On LNVPS, exercise `STG-21`'s route to the `arch` account with fresh old-key entry and
@@ -2113,8 +2123,14 @@ Not pass/fail. Required to be recorded.
       allocation. The mnemonic passphrase is empty regardless of local unlock passphrase.
       Boundary-crossed: an ambiguous mapping can reuse keys across roles or machines.
 - [ ] **CNF-84 · BLOCKING** A seed plus sheet restores machine and relay identities from their
-      exported indices and reconnects using the old host pin, never a new first contact. A
-      mismatched seed, duplicate mappings, invalid counters or malformed placement associations
+      exported indices and reconnects using the old host pin, never a new first contact.
+      A recovery sheet or local-store backup import explains the imported-seed allocation
+      refusal before import (`STA-17`). Inspect progress separately for restored identities,
+      contact readiness and allocation eligibility: no imported seed is shown ready to allocate,
+      and a retained pin alone is not shown as available contact. Reopening reconstructs only
+      the progress the retained records carry, preserving completed facts and pending reasons
+      without promoting as-of-export knowledge to current fact.
+      A mismatched seed, duplicate mappings, invalid counters or malformed placement associations
       are refused before binding, and so is a live machine other than a jump host with a
       missing, duplicate or malformed machine state, bound or not, a version-7 reserved
       migration index, superseded reservation or pending removal excepted (below); a jump
