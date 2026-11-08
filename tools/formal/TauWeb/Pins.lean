@@ -26,11 +26,9 @@ A successful append is assumed durable and atomic; a failed append writes none o
 that journal, the grouped publication history and installed generations, and drops
 session/handshake records. Ordinary publication and reinstall appends are assumed durable; their failures remain outside
 this companion. Restore revalidation separately carries read authorization, transport failure
-and an atomic evidence/revalidation append outcome. A failed verification append retains the
-unresolved contact hold and commits no evidence. Such a trace stops revalidation, including
-across the symbolic restart; recovery of failed storage is outside this companion. This
-conservative stop is not a claim that a failed append durably records its own failure, nor
-proof of real storage behavior.
+and an atomic evidence/revalidation append outcome. A failed verification append records nothing and leaves knowledge unchanged;
+the pending revalidation hold stands, so the next authorized read can still succeed. This is
+not proof of real storage behavior.
 Restore here starts from already validated admitted pins and retained history, not raw import
 bytes. Read authorization is a supplied fact, not derived or granted by retry. This proves the acceptance rule across such
 restarts, not real browser durability, signature verification, first-boot timing, or window expiry.
@@ -260,9 +258,6 @@ structure Knowledge where
   /-- Restored published pins awaiting revalidation, retained across restart/replay.
   The pin remains historical knowledge while this list withholds contact. -/
   pendingVerification : List Entry := []
-  /-- Storage-failed verification paths are stopped; recovery of failed storage is not
-  represented. Retaining this stop across symbolic restart admits no recovered access. -/
-  verificationAppendFailed : List Entry := []
   deriving DecidableEq, Repr
 
 /-- Nothing known: no pin, no boot counted, nothing outstanding. -/
@@ -311,8 +306,7 @@ def pinAt (k : Knowledge) (m : Entry) (pr : Per) : Option Pin :=
 the boot the machine is in. A pin from the previous boot is still in the journal and is not this;
 `CHN-R1` makes that the whole rule — "with a set sharing no fingerprint with the one snapshotted before the reset" is a new pin, not the old one reused. -/
 @[req "SEC-11"] def pinFor (k : Knowledge) (m : Entry) (sys : System) : Option Pin :=
-  if sys == .installed &&
-      (k.pendingVerification.contains m || k.verificationAppendFailed.contains m) then none
+  if sys == .installed && k.pendingVerification.contains m then none
   else pinAt k m (perNow k m sys)
 
 /-- `CHN-R1`'s confirmation of the reset into rescue: the field fills "with a set sharing no fingerprint with
@@ -453,7 +447,7 @@ installed first-contact check is in `journal`. -/
 /-- Retry remains available for an unresolved, already admitted restored publication pin.
 It conveys no read authority. Initial first contact and retired pins do not enter this path. -/
 @[req "STA-16"] def offersVerification (k : Knowledge) (m : Entry) : Bool :=
-  k.pendingVerification.contains m && !k.verificationAppendFailed.contains m &&
+  k.pendingVerification.contains m &&
     (pinAt k m .machine).any (·.source == .published)
 
 /-- Compare with the saved pin and prior history before retaining even refused evidence.
@@ -473,7 +467,7 @@ No source is journaled here, and no installation, provenance or introduction cha
         { k with publicationGroups := groups,
                  pendingVerification := if qualifies then
                    k.pendingVerification.filter (· != m) else k.pendingVerification }
-      else { k with verificationAppendFailed := m :: k.verificationAppendFailed.filter (· != m) }
+      else k
   else k
 
 /-- The reset into the installed system, recorded confirmed where the handshake confirmed it
@@ -1826,15 +1820,11 @@ def restoreFailedAppendEvents : List Event := restoredEvents ++
    .connect entryA .installed publishedKey]
 
 def restoreFailedConflictEvents : List Event := restoredEvents ++
-  [.verify entryA (some [999]) true false, .restart,
-   .verify entryA (some publishedKeys) true true, .connect entryA .installed publishedKey]
+  [.verify entryA (some [999]) true false, .restart]
 
-/-- Even a separately observed reinstall cannot bypass failed required evidence. Recovery
-of failed storage is outside this checking trace, rather than inferred from a later read. -/
-def restoreReinstallEvents : List Event := restoredEvents ++
-  [.verify entryA (some [52]) true false, .reinstall entryA,
-   .published entryA .machine nextPublishedKeys, .restore entryA,
-   .verify entryA (some nextPublishedKeys) true true, .connect entryA .installed nextPublishedKey]
+def restoreFailedAppendRetryEvents (keys : Keys) : List Event := restoredEvents ++
+  [.verify entryA (some keys) true false, .restart,
+   .verify entryA (some publishedKeys) true true, .connect entryA .installed publishedKey]
 
 /-- Disable the within-installation guard on both sides to isolate saved-pin equality;
 otherwise the original admitted publication independently refuses the different set. -/
@@ -1877,14 +1867,25 @@ def restoreRetiredEvents : List Event := restoredEvents ++
 
 @[req "STA-16"] theorem restore_failed_conflict_stays_withheld :
     let k := run current init restoreFailedConflictEvents
-    k.verificationAppendFailed = [entryA] ∧ k.pendingVerification = [entryA] ∧
-    k.sessions = [] ∧ k.publicationGroups = (run current init restoredEvents).publicationGroups := by
-  decide +kernel
+    let before := run current init restoredEvents
+    k = before ∧ k.pendingVerification = before.pendingVerification ∧
+    k.sessions = [] ∧ k.publicationGroups = before.publicationGroups ∧
+    k.pins = before.pins ∧ offersVerification k entryA = true := by decide +kernel
 
-@[req "STA-16"] theorem restore_failed_storage_not_bypassed_by_reinstall :
-    let k := run current init restoreReinstallEvents
-    k.sessions = [] ∧ k.verificationAppendFailed = [entryA] ∧
-    k.pendingVerification = [entryA] := by decide +kernel
+@[req "STA-16"] theorem restore_failed_append_retry_admits :
+    let before := run current init restoredEvents
+    let waiting := run current init (restoredEvents ++
+      [.verify entryA (some publishedKeys) true false, .restart])
+    waiting = before ∧ offersVerification waiting entryA = true ∧
+    pinFor waiting entryA .installed = none ∧
+    let matched := run current init (restoreFailedAppendRetryEvents publishedKeys)
+    let conflicted := run current init (restoreFailedAppendRetryEvents [999])
+    matched.sessions.map (·.keys) = [publishedKey] ∧
+    conflicted.sessions.map (·.keys) = [publishedKey] ∧
+    matched.pendingVerification = [] ∧ conflicted.pendingVerification = [] ∧
+    matched.pins = before.pins ∧ conflicted.pins = before.pins ∧
+    matched.publicationGroups = before.publicationGroups ∧
+    conflicted.publicationGroups = before.publicationGroups := by decide +kernel
 
 /-- Revalidation cannot mutate pins, provenance, installations or consumed introductions.
 This holds even under the deliberately weakened guard parameters. -/

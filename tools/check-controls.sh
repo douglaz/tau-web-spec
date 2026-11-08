@@ -811,6 +811,25 @@ pins_control "formal: attest admits before a durable append" \
   "sed -i 's/attestDurable : Bool := true/attestDurable : Bool := false/' $PINS && grep -q 'attestDurable : Bool := false' $PINS" \
   failed_attest_refused
 
+# Disable one Restore guard at its refusal's run, leaving the proposition and the
+# independent guards unchanged. Each mutation must refute exactly that declaration;
+# the separate admitted witness and the other production traces must still build.
+pins_control "formal: restored pin used before revalidation" \
+  "sed -i 's/(run (current) init restoreWaitingEvents)/(run ({ current with restoreBeforeContact := false }) init restoreWaitingEvents)/' $PINS && grep -qF '(run ({ current with restoreBeforeContact := false }) init restoreWaitingEvents).sessions.map (·.keys) = []' $PINS" \
+  restore_waiting_refused
+
+pins_control "formal: Restore verification without read authority" \
+  "sed -i 's/(run (current) init restoreUnauthorizedEvents)/(run ({ current with restoreReadAuthorized := false }) init restoreUnauthorizedEvents)/' $PINS && grep -qF '(run ({ current with restoreReadAuthorized := false }) init restoreUnauthorizedEvents).sessions.map (·.keys) = []' $PINS" \
+  restore_unauthorized_read_refused
+
+pins_control "formal: Restore verification accepts a different saved set" \
+  "sed -i 's/(run ({ current with publishedWithin := false }) init restoreDifferentEvents)/(run ({ current with publishedWithin := false, restoreSavedPin := false }) init restoreDifferentEvents)/' $PINS && grep -qF '(run ({ current with publishedWithin := false, restoreSavedPin := false }) init restoreDifferentEvents).sessions.map (·.keys) = []' $PINS" \
+  restore_different_set_refused
+
+pins_control "formal: Restore verification releases before a durable append" \
+  "sed -i 's/(run (current) init restoreFailedAppendEvents)/(run ({ current with restoreEvidenceDurable := false }) init restoreFailedAppendEvents)/' $PINS && grep -qF '(run ({ current with restoreEvidenceDurable := false }) init restoreFailedAppendEvents).sessions.map (·.keys) = []' $PINS" \
+  restore_failed_append_refused
+
 # Attest is a first contact only (CHN-5): with the guard removed an introduction replaces a job
 # pin, which its refused witness sees and bounded sees through its firstContactOnly clause -- the
 # one control that makes that clause false.
@@ -855,7 +874,7 @@ pins_control "formal: valid LNVPS publication disabled" \
   partial_polls_complete_after_restart refused_observation_blocks_later_installation \
   duplicate_observation_does_not_restore_pin historic_session_survives_reinstall \
   older_job_after_restart_refused other_machine_job_history_admitted disjoint_after_job_admitted \
-  restore_retry_after_failure_admits restore_partial_retry_admits restore_prior_contradiction_refused restore_complete_mismatch_refused restore_failed_conflict_stays_withheld restore_failed_storage_not_bypassed_by_reinstall restore_waiting_admitted_without_guard restore_contradiction_admitted_without_guard restore_unauthorized_read_admitted_without_guard restore_failed_append_admitted_without_guard restore_different_set_admitted_without_guard
+  restore_retry_after_failure_admits restore_partial_retry_admits restore_failed_append_retry_admits restore_prior_contradiction_refused restore_complete_mismatch_refused restore_failed_conflict_stays_withheld restore_waiting_admitted_without_guard restore_contradiction_admitted_without_guard restore_unauthorized_read_admitted_without_guard restore_failed_append_admitted_without_guard restore_different_set_admitted_without_guard
 
 # The new observation witness now retains a predecessor pin when an incomplete publication is admitted.
 pins_control "formal: incomplete LNVPS publication admitted" \
@@ -938,7 +957,7 @@ pins_control "formal: restart loses publication history" \
   partial_polls_complete_after_restart incomplete_history_refuses_after_reinstall_restart \
   older_publication_still_refused_after_restart \
   observed_keys_after_reinstall_refused \
-  restore_complete_mismatch_refused restore_failed_conflict_stays_withheld restore_contradiction_refused
+  restore_complete_mismatch_refused restore_failed_conflict_stays_withheld restore_failed_append_retry_admits restore_contradiction_refused
 
 # The second dedicated job read without a reinstall is an additional same-installation trap.
 pins_control "formal: installed pin replaces another source without reinstall" \
@@ -1259,8 +1278,8 @@ schedule missing_toolchain
 
 WIT=tools/check_witnesses.py
 WITFILE=docs/design/allocation-witnesses-v3.json
-PINSWIT=docs/design/pins-witnesses-v6.json
-PINSEMIT=tools/formal/.lake/witnesses/pins-witnesses-v6.json
+PINSWIT=docs/design/pins-witnesses-v7.json
+PINSEMIT=tools/formal/.lake/witnesses/pins-witnesses-v7.json
 
 # Pair defects are written to BOTH copies, with mutation/equality assertions in
 # the helper. The stricter assertion above counts finding items, not output lines.
@@ -1321,16 +1340,16 @@ control "witnesses: a committed file no module emits" "$WIT" \
 
 # The renamed pins file is checked in both directions; each obsolete name must be visible
 # as an orphan. Each mutation gives the witness gate exactly one finding.
-passes "witnesses: allocation v3 and pins v6" "$WIT" \
+passes "witnesses: allocation v3 and pins v7" "$WIT" \
   "test -f $WITFILE && test -f $PINSWIT && test -f $PINSEMIT"
 
-control "witnesses: pins v6 committed drift" "$WIT" \
-  "sed -i 's/\"schema\": 6/\"schema\": 1/' $PINSWIT && ! cmp -s $PINSWIT $PINSEMIT" \
+control "witnesses: pins v7 committed drift" "$WIT" \
+  "sed -i 's/\"schema\": 7/\"schema\": 1/' $PINSWIT && ! cmp -s $PINSWIT $PINSEMIT" \
   "WITNESS DRIFT" "module pins"
 
-control "witnesses: pins v6 missing committed counterpart" "$WIT" \
+control "witnesses: pins v7 missing committed counterpart" "$WIT" \
   "rm $PINSWIT && test ! -e $PINSWIT" \
-  "WITNESS DRIFT" "pins-witnesses-v6.json is not committed"
+  "WITNESS DRIFT" "pins-witnesses-v7.json is not committed"
 
 control "witnesses: obsolete pins v2 orphan" "$WIT" \
   "cp $PINSWIT docs/design/pins-witnesses-v2.json" \
@@ -1404,7 +1423,7 @@ control "witnesses: obsolete dispatch v7 orphan" "$WIT" \
   "cp docs/design/dispatch-witnesses-v10.json docs/design/dispatch-witnesses-v7.json" \
   "WITNESS DRIFT" "dispatch-witnesses-v7.json is committed but no module emits it"
 
-control "witnesses: pins v6 emission carrying a CNF identifier" "$WIT" \
+control "witnesses: pins v7 emission carrying a CNF identifier" "$WIT" \
   "sed -i 's/\"module\": \"pins\"/\"module\": \"pins\", \"exercised_by\": \"CNF-18\"/' $PINSEMIT && grep -q CNF-18 $PINSEMIT" \
   "WITNESS DRIFT" "module pins carries a CNF identifier"
 
@@ -1669,9 +1688,9 @@ allocation_evidence|ATLAS LABELS|state-machine-atlas.md
 allocation_step_evidence|ATLAS LABELS|state-machine-atlas.md
 allocation_applicability|ATLAS LABELS|state-machine-atlas.md
 allocation_conformance_id|ATLAS INPUT|docs/design/allocation-witnesses-v3.json
-pins_schema|ATLAS HEADER|docs/design/pins-witnesses-v6.json
-pins_module|ATLAS HEADER|docs/design/pins-witnesses-v6.json
-pins_namespace|ATLAS HEADER|docs/design/pins-witnesses-v6.json
+pins_schema|ATLAS HEADER|docs/design/pins-witnesses-v7.json
+pins_module|ATLAS HEADER|docs/design/pins-witnesses-v7.json
+pins_namespace|ATLAS HEADER|docs/design/pins-witnesses-v7.json
 pins_missing|ATLAS SELECTION|old_pin_refused_pending_reinstall
 pins_ambiguous|ATLAS SELECTION|old_pin_refused_pending_reinstall
 pins_unresolved|ATLAS DECLARATIONS|absent_atlas_declaration
@@ -1688,7 +1707,7 @@ pins_start|ATLAS DRIFT|state-machine-atlas.md
 pins_evidence|ATLAS LABELS|state-machine-atlas.md
 pins_step_evidence|ATLAS LABELS|state-machine-atlas.md
 pins_applicability|ATLAS LABELS|state-machine-atlas.md
-pins_conformance_id|ATLAS INPUT|docs/design/pins-witnesses-v6.json
+pins_conformance_id|ATLAS INPUT|docs/design/pins-witnesses-v7.json
 declaration_schema|ATLAS HEADER|docs/design/declaration-witnesses-v1.json
 declaration_module|ATLAS HEADER|docs/design/declaration-witnesses-v1.json
 declaration_namespace|ATLAS HEADER|docs/design/declaration-witnesses-v1.json

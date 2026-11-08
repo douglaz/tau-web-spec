@@ -1532,7 +1532,11 @@ pin passes the publication-history and current-installation checks above, compar
 prior knowledge before retaining the read. Preservation of an admitted pin is not permission
 to contact the machine before that revalidation. Retain compact observations, including
 refused candidates, without changing the saved pin or its provenance. A failed append of
-required evidence MUST leave contact withheld.
+required evidence MUST leave canonical knowledge unchanged: contact under the restored pin
+remains withheld, its revalidation remains unresolved, and the interface MUST permit another
+authorized verification read. This also applies to a contradictory reading whose append
+failed; that unrecorded reading is not retained knowledge, and a later qualifying authorized
+read may succeed. `STA-3` says "If the append fails, the transition does not occur".
 
 A failed or incomplete verification read that supplies no contradictory identity evidence
 MUST NOT, by itself, require reinstall or abandonment. The interface MUST permit another
@@ -1540,9 +1544,10 @@ authorized verification read while retaining the saved pin and all publication o
 An empty or partial publication with no conflicting fingerprint admits no contact but leaves
 this retry available. A partial publication containing any fingerprint outside the saved
 set is contradictory evidence, as is a complete mismatch: retain it under the existing
-history rules, including across retry, restart and replay. A later matching publication
-MUST NOT discard or bypass that evidence; the identity hold remains. Revalidation considers
-refused observations retained before export as well as those read after Restore.
+history rules. Durably appended contradictions remain in all subsequent comparisons across
+retry, restart, replay and export/Restore. A later matching publication MUST NOT discard or
+bypass that recorded evidence; the identity hold remains. Revalidation considers refused
+observations retained before export as well as those read after Restore.
 
 This retry is only revalidation of an already admitted, restored `lnvps_retrieve` pin, using
 the existing authorized direct vendor-status reader. It performs no mutation retry, opens no

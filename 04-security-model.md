@@ -895,8 +895,9 @@ first contact only for the current installation." Its reinstall rule says "After
 reinstall, an unused introduction may establish the new pin only while its original browser
 window is still open." These are the companion's admission assumptions (`ARC-43`, `CHN-5`). The jump-host
 contact above remains outside it (T45); `check` has
-no branch that admits a handshake with no pin. Its halts are three and not one: nothing stored to check against, the key that does not
-match, and the halt `STA-20b`'s resume rule explains.
+no branch that admits a handshake with no eligible pin. Its halts distinguish no eligible
+pin, a key that does not match, and the halt `STA-20b`'s resume rule explains. A restored pin
+can be stored but ineligible for contact while revalidation is unresolved; see `STA-16`.
 `TauWeb.Pins.mismatch_not_the_reset` is that the last two are never the same answer.
 
 ### SEC-12 — every off-machine call is recorded before it is sent

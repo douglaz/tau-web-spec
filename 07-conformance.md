@@ -2136,14 +2136,17 @@ Not pass/fail. Required to be recorded.
       supplies no new authority and settles no uncertain remote operation. Contact is not
       retried on a timer. Destructive recovery remains separately explained and authorized.
       A partial reading containing any conflicting fingerprint and a complete mismatch keep
-      the identity hold; retain their new facts across retry, restart, journal replay and
-      export/Restore. A later complete matching response admits no contact in either case,
-      including when the contradiction was recorded before export. Compare against prior
+      the identity hold when durably appended; retain those recorded observations across
+      retry, restart, journal replay and export/Restore. A later complete matching response
+      admits no contact in either case, including when the contradiction was recorded before
+      export. Compare against prior
       knowledge before retention; inspect compact history and unchanged pin/provenance.
       Fail the required evidence append on a qualifying read: contact stays withheld,
       including after restart/replay; no uncommitted verification result authorizes contact.
-      Fail the append of a conflicting partial observation too: a subsequent matching
-      read cannot bypass the unrecorded required evidence to release contact.
+      Fail the append of a conflicting partial observation too: contact stays withheld,
+      including after restart/replay; the saved pin and recorded history are unchanged,
+      and another authorized verification read is offered. In both failed-append cases,
+      a later qualifying authorized read can admit contact.
       Retain the saved pin throughout these cases without treating its preservation as
       permission to use it. For initial contact without a previously admitted restored pin,
       run item 23. Round-trip the recorded

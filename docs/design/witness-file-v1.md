@@ -32,9 +32,12 @@ Schema 3 added the session-destroy and per-installation reset-offer guards, and 
 ordinal on `reset_prereqs`. Schema 2 added refused
 dispositions, the four continuations, the reinstall operation, assumptions, disposition and
 standing projections, and the witness starting from a journal already written. The pins
-module uses schema 6 in [`pins-witnesses-v6.json`](./pins-witnesses-v6.json) from `TauWeb.Pins`.
-It replaces schema 5 with Restore revalidation events, unresolved contact holds and failed
-verification append outcomes, under `STA-16`. Schema 5 replaced schema 4: the post-reinstall `ready_to_reset` freshness guard changes assumptions.
+module uses schema 7 in [`pins-witnesses-v7.json`](./pins-witnesses-v7.json) from `TauWeb.Pins`.
+Schema 7 replaces schema 6: failed required verification append leaves knowledge unchanged,
+without a separate failed-append stop field. The pending revalidation hold stands and the next
+authorized read can still succeed. Schema 6 added Restore revalidation events, unresolved contact
+holds and verification append outcomes, under `STA-16`. Schema 5 replaced schema 4: the
+post-reinstall `ready_to_reset` freshness guard changes assumptions.
 Schema 4 added installation groups, pin installation ordinals and compact observations.
 Schema 3 added LNVPS publication and reinstall events, per-fingerprint sets and presented keys.
 Schema 2 replaced schema 1 when attest and restart were added.
@@ -49,7 +52,7 @@ the trace that moved.
 
 | Member | What it holds |
 |---|---|
-| `schema` | `3` for allocation and `4` for authority; `1` for declaration and relay; `10` for dispatch and `6` for pins. A change to any shape below is a new version and a new file name for that module. |
+| `schema` | `3` for allocation and `4` for authority; `1` for declaration and relay; `10` for dispatch and `7` for pins. A change to any shape below is a new version and a new file name for that module. |
 | `module` | The inventory name, lower-case: `allocation`, `declaration`, `relay`, `dispatch`, `pins` for the host-pin lifecycle, and `authority` for the separate processed-authority file ([Authority schema 4](#authority-schema-4)). |
 | `namespace` | The Lean namespace the traces' declarations live in. |
 | `bound` | `declaration`, the tagged `bound` the decided property and the emitter share, and its value rendered under the module's own members. Allocation (`TauWeb.Allocation.bound`): `events`, the number, and `alphabet`, the events the enumeration draws from, including the ceremony. Declaration (`TauWeb.Declaration.bound`): `base`, the declaration and machine every case starts from; `presences`, per field, what the field is swept through, `missing` written as that word since a list has no absent member; `observations`, what the machine is made to show for it; `tenancies`. Relay (`TauWeb.Relay.bound`): `events`, the number; `alphabet`; and `start`, the opened connection every trace of the enumeration runs from. Dispatch (`TauWeb.Dispatch.bound`): `events`, the number; `alphabet`; and `start`, the journal every trace runs from, which carries the harness's associations and nothing dispatched. Pins (`TauWeb.Pins.bound`): the same shape; `start` carries one earlier `/rescue/last` snapshot, plus the fixed `planted_senders` list defined below from that starting knowledge and the alphabet. |
@@ -374,7 +377,7 @@ without a confirming activation dispatched since approval. `withdrawn_approval` 
 
 ### Pins
 
-In schema 6, `knowledge` is harness knowledge in `SEC-11`'s, `CHN-R1`'s, `CHN-R7`'s and `ARC-43`'s
+In schema 7, `knowledge` is harness knowledge in `SEC-11`'s, `CHN-R1`'s, `CHN-R7`'s and `ARC-43`'s
 vocabulary and never
 the companion's state layout. External state is not in the file: `snapshot` is what the
 vendor's field showed when it was read, a session's `presented` is what the far sshd presented, and
@@ -390,7 +393,6 @@ between publications and membership of a presented key in a pinned set.
 | `publication_groups` | Installation groups in creation order, each with its `entry`, zero-based `installation`, and compact `observations` in recording order. An empty reading is recorded when it opens a group. Any group may have no observations, including the initial one opened by a job read or attest; reinstall also opens a group with no observations, so its first empty reading adds none. Empty groups retain installation boundaries. |
 | `current_installations` | Each named machine's current installation ordinal, whether or not it has a publication or active pin. |
 | `pending_verification` | Restored, already admitted published pins whose contact remains withheld pending revalidation; retained across restart. Pin preservation is independent of contact permission. |
-| `verification_append_failed` | Contact and revalidation stopped by failed evidence/revalidation append. Restart retains this conservative stop; storage recovery is outside the checking interpretation. It does not claim that a failed append durably records its failure. |
 | `pending_reinstall` | Machine entries whose latest operator-chosen destructive reinstall, through the vendor API or from rescue, has no new installed pin from any source. This is explanatory state, not the gate on an active pin. |
 | `consumed_introductions` | Machine entries whose introductions have been accepted, in journal order; retained across restart. Pins and consumption are appended together before any connection can use them. |
 | `planted_senders` | A fixed list of machine entries and their independently configured sender ordinals, identical in `start` and every step. For a named witness, take entries from its starting knowledge, then event entries in trace order, keeping the first occurrence of each. For the enumeration, use entries from `bound.start`'s knowledge and then `bound.alphabet` in the same way; `bound.start` and every enumerated trace, including the empty trace, share that list. An event's entry is included even when the event is refused and journals nothing. The symbolic association is fixed by the assumptions, not supplied by the observed author; no private keys or key bytes are serialized. |
@@ -398,7 +400,7 @@ between publications and membership of a presented key in a pinned set.
 | `boot` | Per entry, the rescue boot the harness counts: `0` before the first reset into rescue, and the next one for each dispatched. Never the vendor's `boot_id`. |
 | `awaiting`, `confirmed` | The resets dispatched whose confirmation is outstanding, and those confirmed, each as the `entry` and the system it resets `into`. An outstanding one also carries what it `expects`: the pin the intent named as its expected next pin (`STA-20b`), `null` for a reset into rescue, whose next set nothing knows yet. |
 | `sessions` | The connections admitted, oldest first: the `entry`, the `system`, the `boot` and installation ordinal it was made in, the single fingerprint ordinal `presented`, and the `pin` it was checked against. Historical sessions remain intelligible after reinstall. |
-| `halts` | The handshakes halted, oldest first: the `entry`, the `system`, what was `presented`, and the `reason` — `no_pin` (nothing stored to check against), `mismatch` (the error `SEC-11` halts on), or `confirms_reset` (the halt the reset explains). |
+| `halts` | The handshakes halted, oldest first: the `entry`, the `system`, what was `presented`, and the `reason` — `no_pin` (no eligible pin: a restored pin can be stored but ineligible while revalidation is unresolved; see `STA-16`), `mismatch` (the error `SEC-11` halts on), or `confirms_reset` (the halt the reset explains). |
 
 The pin sources are the vocabulary of `TauWeb.Pins.Source`: `rescue_last`, `ready_to_reset`,
 `attest`, `published` and `model_text`. The event's observed author is compared with that machine's planted
@@ -408,12 +410,12 @@ succeed. The assumption of an atomic durable pin append and replay is a boundary
 not evidence about real storage or cryptography. Installation groups, recorded observations and
 reinstall records are assumed durable too; ordinary publication and reinstall append failures
 remain outside the companion. A `verify` event separately carries an atomic required-evidence
-and revalidation append outcome: failure of a required append commits no evidence and leaves contact withheld. Empty and
-contained repeats that neither add evidence nor admit contact require no append.
-The failed-storage path stops further revalidation, including after symbolic restart; recovery
-of failed storage is outside this interpretation. It asserts no real durability of a failure
-marker. `restore` starts from admitted, import-validated pins and history; import byte validation
-is outside these symbolic events. The `authorized` input represents existing vendor-status read
+and revalidation append outcome: a failed required append records nothing and leaves
+knowledge unchanged, including for a contradictory read. The pending revalidation hold stands
+across restart, and the next authorized qualifying read can still succeed. Empty and contained
+repeats that neither add evidence nor admit contact require no append. `restore` starts from
+admitted, import-validated pins and history; import byte validation is outside these symbolic
+events. The `authorized` input represents existing vendor-status read
 authority; retry grants none.
 Restart preserves those journaled facts,
 including refusal of a second introduction and publication history; window and status-poll timing
@@ -430,8 +432,10 @@ named traces additionally exercise rescue refusal, wrong-author then valid admis
 introduction across restart, failed-append then valid admission, independent machines and an
 introduction after a job pin, and LNVPS source, completeness, incomplete history, freshness,
 pending reinstall across restart and machine-isolation cases. Restore witnesses additionally
-exercise failed-read retry, empty/partial completion, contradictions retained before Restore or observed during
-revalidation, unauthorized verification, failed evidence append and retired-pin refusal. These named
+exercise failed-read retry, empty/partial completion, durably appended contradictions retained
+before Restore or during revalidation, unauthorized verification, failed evidence append with
+retry still available, later qualifying completion after failed append (including a conflicting
+read), and retired-pin refusal. These named
 traces do not extend the bounded alphabet or its decided coverage. The named traces also include
 the second dedicated ceremony and earlier job-read or attest pin overlap. Each
 new guard's refused/admitted pair changes only that guard, as the assumptions record, except

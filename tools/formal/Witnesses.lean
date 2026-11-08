@@ -222,7 +222,7 @@ structure Module where
 
 /-- The schema version of each emitted module. Allocation, pins and dispatch changed shape. -/
 def schemaVersion (name : String) : Nat :=
-  if name == "authority" then 4 else if name == "allocation" then 3 else if name == "pins" then 6 else if name == "dispatch" then 10 else 1
+  if name == "authority" then 4 else if name == "allocation" then 3 else if name == "pins" then 7 else if name == "dispatch" then 10 else 1
 
 /-- The header pretty, one trace per line: a diff names the trace that moved. -/
 def fileText (name : String) (ns : Name) (bound : Json) (witnesses enumeration : List Json) :
@@ -1280,7 +1280,7 @@ per entry — the snapshot, the boot — is read over those and not over an asso
 older entries a lookup never reaches. -/
 def entriesOf (k : Knowledge) : List TauWeb.Pins.Entry :=
   (k.pins.map (·.entry) ++ k.snapshot.map (·.1) ++ k.boot.map (·.1) ++ k.awaiting.map (·.entry) ++
-    k.publicationGroups.map (·.entry) ++ k.installedGeneration.map (·.1) ++ k.pendingReinstall ++ k.pendingVerification ++ k.verificationAppendFailed ++
+    k.publicationGroups.map (·.entry) ++ k.installedGeneration.map (·.1) ++ k.pendingReinstall ++ k.pendingVerification ++
     k.confirmed.map (·.1) ++ k.sessions.map (·.entry) ++
     k.halts.map (·.entry) ++ k.consumed).reverse.eraseDups
 
@@ -1313,7 +1313,6 @@ def knowledgeJson (k : Knowledge) (named : List TauWeb.Pins.Entry) : Json :=
       Json.mkObj [("entry", toJson m), ("installation", toJson (installationOf k m))]).toArray),
     ("pending_reinstall", toJson k.pendingReinstall.reverse),
     ("pending_verification", toJson k.pendingVerification.reverse),
-    ("verification_append_failed", toJson k.verificationAppendFailed.reverse),
     ("snapshot", Json.arr ((entriesOf k).filterMap fun m =>
       (k.snapshot.lookup m).map fun f =>
         Json.mkObj [("entry", toJson m),
@@ -1416,7 +1415,7 @@ def assumptionsJson (p : TauWeb.Pins.Params) : Json :=
     ("sealAuthor", "observed author after unwrap; cryptography assumed"),
     ("journalAppend", "successful append atomically persists machine, pins and consumed state; restart retains them"),
     ("window", "attest observations delivered during the browser introduction window"),
-    ("publication", "observed vendor status response; all recorded observations, including incomplete and refused publications, and pending reinstall records persist across restart; ordinary publication and reinstall append failures remain outside this companion; verify carries read authorization, transport failure and atomic evidence/revalidation append outcome, with no committed evidence or contact release on failure; failed-storage traces stop revalidation across symbolic restart, with storage recovery outside this companion and no claim of durably recording the failure itself; Restore starts with validated admitted pins/history; TLS, scan honesty, timing and integrated no-contact behavior remain outside")]
+    ("publication", "observed vendor status response; all recorded observations, including incomplete and refused publications, and pending reinstall records persist across restart; ordinary publication and reinstall append failures remain outside this companion; verify carries read authorization, transport failure and atomic evidence/revalidation append outcome, with no committed evidence or contact release on failure; failed append records nothing and leaves knowledge unchanged, the pending hold stands across restart, and the next authorized read can still succeed; Restore starts with validated admitted pins/history; TLS, scan honesty, timing and integrated no-contact behavior remain outside")]
 
 def Trace.json (t : Trace)
     (named : List TauWeb.Pins.Entry := namedBy t.start t.events) : Json :=
@@ -1426,8 +1425,9 @@ def Trace.json (t : Trace)
   traceJson t.decls (assumptionsJson t.params) t.pair (knowledgeJson t.start named) steps
 
 def witnesses : List Trace := [
-  { decls := ["TauWeb.Pins.restore_failed_storage_not_bypassed_by_reinstall"], events := restoreReinstallEvents },
   { decls := ["TauWeb.Pins.restore_failed_conflict_stays_withheld"], events := restoreFailedConflictEvents },
+  { decls := ["TauWeb.Pins.restore_failed_append_retry_admits"], events := restoreFailedAppendRetryEvents publishedKeys },
+  { decls := ["TauWeb.Pins.restore_failed_append_retry_admits"], events := restoreFailedAppendRetryEvents [999] },
   { decls := ["TauWeb.Pins.restore_waiting_refused"], events := restoreWaitingEvents,
     params := TauWeb.Pins.current, pair := some (.refused, "TauWeb.Pins.restore_waiting_admitted_without_guard") },
   { decls := ["TauWeb.Pins.restore_waiting_admitted_without_guard"], events := restoreWaitingEvents,

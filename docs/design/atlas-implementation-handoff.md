@@ -51,7 +51,7 @@ The wire contract is [Witness files](witness-file-v1.md#the-file), including its
 |---|---|---|
 | [`docs/design/dispatch-witnesses-v10.json`](dispatch-witnesses-v10.json) | `dispatch` / 10 | Typed resource and command knowledge; lifecycle, pending-check, untyped and inference-clock behavior omitted |
 | [`docs/design/allocation-witnesses-v3.json`](allocation-witnesses-v3.json) | `allocation` / 3 | Restore/Replace identities and ceremony; fresh entropy/import construction assumed |
-| [`docs/design/pins-witnesses-v6.json`](pins-witnesses-v6.json) | `pins` / 6 | Symbolic publication/pin knowledge; atomic append/restart assumed, no transport evidence |
+| [`docs/design/pins-witnesses-v7.json`](pins-witnesses-v7.json) | `pins` / 7 | Symbolic publication/pin knowledge; atomic append/restart assumed, no transport evidence |
 | [`docs/design/declaration-witnesses-v1.json`](declaration-witnesses-v1.json) | `declaration` / 1 | Field presence and opaque set differences; no lifecycle or secret-placement proof |
 | [`docs/design/authority-witnesses-v4.json`](authority-witnesses-v4.json) | `authority` / 4 | Named processed-event histories using shared Dispatch; not an atlas renderer input |
 | [`docs/design/relay-witnesses-v1.json`](relay-witnesses-v1.json) | `relay` / 1 | Historical `relay-protocol-v1.md` profile only; no current relay target selected |

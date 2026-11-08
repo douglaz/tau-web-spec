@@ -72,7 +72,7 @@ SELECTIONS = {
     "declaration": ("undeclared_listener_finding", "template_blocked", "absent_field_refused",
                     "empty_inbound_refused", "empty_inbound_admitted", "adhoc_delivered"),
 }
-VERSIONS = {"dispatch": 10, "allocation": 3, "pins": 6, "declaration": 1}
+VERSIONS = {"dispatch": 10, "allocation": 3, "pins": 7, "declaration": 1}
 PROJECTIONS = {"dispatch": "knowledge", "allocation": "journal", "pins": "knowledge", "declaration": "record"}
 APPLICABILITY = {
     "dispatch": "Typed Dispatch; session termination and single writer assumed. No pending-check, lifecycle, untyped, protected encoding/listing or inference-clock coverage.",
@@ -315,7 +315,7 @@ PIN_KNOWLEDGE = {
     "awaiting": [], "boot": [{"entry": int, "boot": int}], "confirmed": [],
     "consumed_introductions": [], "current_installations": [{"entry": int, "installation": int}],
     "halts": [{"entry": int, "presented": int, "reason": HALT, "system": SYSTEM}],
-    "pending_reinstall": [int], "pending_verification": [int], "verification_append_failed": [int],
+    "pending_reinstall": [int], "pending_verification": [int],
     "pins": [PIN], "planted_senders": [{"entry": int, "sender": int}],
     "publication_groups": [{"entry": int, "installation": int, "observations": [[int]]}],
     "sessions": [{"boot": int, "entry": int, "installation": int, "pin": PIN, "presented": int, "system": SYSTEM}],
