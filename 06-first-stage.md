@@ -62,6 +62,14 @@ wait as follows before submitting the machine's HTTP order through the vendor AP
 
 Ordering waits for authenticated account status showing the expected email and email_verified=true under the expected machine identity. Read-only reconciliation remains permitted. For an unopened expired link, the operator may open the original link, then explicitly request same-address PATCH. Reissue depends on successful token clearing. If the original link is unavailable, clearing fails or replacement cannot be obtained, offer operator-led vendor recovery or abandonment; promise no automated resend.
 
+For the resumable setup view, see `ARC-22`. The email handoff identifies the machine account
+awaiting verification, even when the operator uses the same address for other machines. It
+explains that opening the link and returning do not complete verification: the adapter checks
+the matching authenticated account status above and retains the result durably before ordering.
+The handoff exposes the expired-link route and its limits above, including the explicit
+same-address PATCH request after successful token clearing and the external-recovery or
+pre-order-abandonment fallback when reissue is unavailable. It offers no automatic PATCH.
+
 Expected email means the recorded operator address byte for byte. False, absent/null field,
 unreadable response, different address or different key does not verify; HTML success, PATCH
 success and notification settings do not verify. The adapter obtains no mail/token, invents no

@@ -1173,6 +1173,45 @@ that looks for it is a read and is permitted (`STA-24`); on Robot the match is b
 registered key fingerprint the entry holds. A jump host whose destroy is unresolved (`CHN-R6`)
 is named the same way: it may still exist and bill.
 
+**The unfinished setup presents one resumable view of the next needed action and its observed status.** The
+view reuses recorded facts, keeping each machine's facts separate, and names the actual reason
+for a wait or block. For LNVPS, useful statuses include:
+
+| Step | Useful status |
+|---|---|
+| Email | Waiting for verification of this machine's account. |
+| Relay | Waiting for publisher enrollment of the public key. |
+| Machine payment | Awaiting payment or qualifying vendor confirmation. |
+| Installation | Ready, running, blocked or complete, with the actual reason. |
+| Recovery | Current recovery sheet still needs to be saved. |
+
+These describe progress, not a layout or a schema. Prerequisites are checked as early as the
+authorized protocol permits, especially before a billable order; a prerequisite that cannot
+yet be checked is shown as such. The view discloses dependence on publisher enrollment before
+the operator commits. For the path's limits, `STG-18` says "There is no purchase flow or
+automated reacquisition story" and "Assumed already funded."
+
+Returning from email or a wallet reconciles through the authorized evidence path. Opening a
+link, returning, elapsed time and an operator report supply no observation of success or extra
+authority. Reopening reuses the recorded approved entry, order, invoice and unresolved state;
+it authorizes no extra purchase, mutation, account or credential. For the email handoff, see
+`STG-21`. For invoice payment, `ARC-30` says "The operator pays each invoice; nothing pays one
+for them." `ARC-30` also says "For an LNVPS machine, the wallet invoice MUST come over TLS from the vendor's
+recorded HTTP order or renew response." For reconciliation, `STA-24` says "Confirmation
+evidence MUST identify the expected account, machine and operation and be durably appended
+before taking effect." For order confirmation, `STG-21a` says "It establishes no host
+creation, IP allocation, invoice production, payment, boot or contact readiness." For retries,
+replay and interruption handling, see `STA-5`, `STA-7`, `STA-8` and `STA-23`; a handoff itself
+does not determine whether a worker survives or what work may resume.
+
+The recovery status presents the recorded export state; `STA-15` says "The recovery sheet
+MUST be exported before a **maintained cloud** machine's setup completes." For its contents
+and saved-file confirmation, see `STA-16` and the
+[credential format](docs/design/credential-format-v1.md#recovery-sheet). The view keeps
+infrastructure delivery distinct from application functionality: `STG-18` says "Hermes's
+functional behavior, and whether its provider answers, are not gates of the LNVPS path".
+For Delivered and handed over with findings, see `ARC-17`.
+
 **An unfinished setup is device-bound.** It is resumed on the device that started it, or
 abandoned. That follows from all-or-nothing plus exposure ending with the machine (`SEC-1`),
 and needs no new mechanism. A second device shows a clean app while the first device's
