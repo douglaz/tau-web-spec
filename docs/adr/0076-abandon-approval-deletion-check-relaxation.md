@@ -38,8 +38,8 @@ by itself." No execution while the app is closed or eventual confirmation is pro
 
 The owner chose Abandon setup only. R06's retirement half is left out: the old machine of an
 LNVPS Replace rebuild and a machine the in-setup replacement rung stopped retain manual
-checks. `SEC-4` says "Otherwise each deletion check, which makes `STG-21a`'s reads once, is
-started by the operator" and includes
+checks. `SEC-4` said, until 2026-11-10, "Otherwise each deletion check, which makes
+`STG-21a`'s reads once, is started by the operator" and included
 "Replace's old machine and every machine the in-setup replacement rung stopped, including
 when its setup is later abandoned under a disclosed card". There is no Replace or retirement
 approval created, named or extended, and no disclosure is put on a Replace card.
@@ -83,3 +83,10 @@ rung-stopped machine's setup. These are capability-conditional demonstrations, n
 that T44 is usable. `STA-17`'s pointer remains correct: "The deletion check (`SEC-4`) collects
 that evidence and adds no call to this flow." The glossary has no per-check initiation rule
 to synchronize, and the credential format's missing-key refusal is unchanged.
+
+*Amended 2026-11-10: partial supersession of the narrowing of R06, for Replace's old machine
+only.* [ADR-0077](./0077-replace-old-machine-card-deletion-check-relaxation.md) records the
+owner-directed widening (`tw-qe7.19`): a new Replace old-machine card, owned by `STA-17`, whose
+recorded facts let `SEC-4`'s follow-up deletion reads run for the old machine of an LNVPS Replace
+rebuild. A machine the in-setup replacement rung stopped keeps manual checks, as above. The
+narrowing as decided on 2026-11-08 remains the historical record.

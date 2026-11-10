@@ -107,3 +107,9 @@ Changed-file navigation for this amendment:
 relaxation and narrowing of R06, owned by `SEC-4`, with the disclosed Abandon approval facts
 owned by `ARC-21`. The blanket initiation choice above is history; the other decisions,
 alternatives and reasoning remain the historical record.
+
+*Amended 2026-11-10: a second partial supersession, for Replace's old machine only.*
+[ADR-0077](./0077-replace-old-machine-card-deletion-check-relaxation.md) records the
+owner-directed relaxation that lets a recorded Replace old-machine card (`STA-17`) carry
+`SEC-4`'s follow-up deletion reads for the old machine of an LNVPS Replace rebuild. Which caller
+stops the old machine in the in-setup rung stays open, as above.

@@ -2094,6 +2094,14 @@ its fresh seed's record". The deletion check (`SEC-4`) collects that evidence an
 to this flow. The deferred vendor-key
 carry-forward and disclosure amendment remains T44's, not an available Replace behavior.
 
+**An LNVPS Replace rebuild MUST show one Replace old-machine card for its old machine.** The
+card names that machine and says: “Status will be checked while the app is available.”
+Approving it durably records the card's facts, its disclosure included, as `ARC-21` records the
+Abandon approval's; for the follow-up deletion reads those facts authorize, see `SEC-4`. The
+card approves no call of this flow: no stop, renewal-off or read waits on it or follows from
+it. Declining it holds no other Replace step and leaves that machine's checks operator-started.
+It changes neither the incomplete-until-evidence rule above nor T44's gate on the check's key.
+
 **STA-18** Inventory recovery makes the vendor list authoritative. Listing the account is how
 a new phone learns what exists. That listing is performed by the deterministic recovery flow
 under the operator's approval, **before any session exists**, so it is not a session
