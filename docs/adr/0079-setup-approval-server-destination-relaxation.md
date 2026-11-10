@@ -65,19 +65,18 @@ refusals and the recorded request.
 - `SEC-4` is unchanged, and no sentence declares the addition outside the cloud plane. `CHN-16`
   says the addition follows `SEC-4`'s approval form "without deciding the relay key's cloud-plane
   classification".
-- The source rule: a server-specific read naming the entry's immutable server number, the
-  response-carried echo, no account listing, relay metadata or model text as a source, and the
-  host, source read and relation journaled before any dial, signing or request for recording. A
-  host without that journaled matching read stays refused.
+- `CHN-16`'s source rule for the server host is unchanged, and the advance approval rests on it:
+  `CHN-16` says "a host without that journaled matching read stays refused by the source rule
+  above".
 - Every addition outside the advance approval keeps the concrete approval: `CHN-16` says "A
   second addition, or a different server, pass, purpose or host-wide terms, requires approval of
   that concrete addition" and "No other card acquires that authority", so a machine added to a
   bound set afterwards keeps it too.
-- The durable record, approval decision and idempotency identity before signing; a failed
-  prerequisite append sends nothing; an uncertain addition stays unresolved with no automatic
-  resend; reconnecting needs no new approval.
-- Later maintained-machine re-entry, Restore address admission and the LNVPS path's manual
-  publisher enrolment are not decided. The rescue rekey stays separate: `STA-17` says "How the
+- `CHN-16`'s durable-record, failed-append, unresolved-addition and reconnection sentences are
+  unchanged.
+- This decision does not reach the LNVPS path's manual publisher enrolment, and `CHN-16` still
+  says "address admission on later maintained-machine re-entry or Restore is not decided here".
+  The rescue rekey stays separate: `STA-17` says "How the
   flow obtains that pass and records its destinations is not decided."
 - No theorem, formal declaration, witness or gate changes.
 
