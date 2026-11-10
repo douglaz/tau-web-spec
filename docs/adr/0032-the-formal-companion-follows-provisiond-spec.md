@@ -237,3 +237,17 @@ conflicts, so a push to a conflicted branch gets no automatic run. Such a pull r
 merge, and the push that resolves the conflict starts the run on the tip that will merge;
 `workflow_dispatch` gates the branch before then. The gates, their order and their negative
 controls are unchanged.
+
+*Amended 2026-11-10 (owner-directed):* the processed-authority interpretation refuses to record
+a sealed paid-key terminal while the store is locked. The owner picked "Refuse while locked"
+after a two-round review panel left the guard at three of five readers. Before this, a locked
+paused actor could take `sealTerminal` and keep its key at the next resume; every existing
+trace sealed unlocked. The guard is the `sealUnlocked` parameter, mirroring `ceremonyUnlocked`,
+with the refused/admitted pair `TauWeb.Authority.locked_seal_refused` and
+`TauWeb.Authority.locked_seal_without_check`, the progress trace
+`TauWeb.Authority.unlocked_seal_progress` (the same seal after unlock and before resume), a
+predicate-deleting mutation control and authority schema 5 in a new witness file
+([Authority schema 5](../design/witness-file-v1.md#authority-schema-5)). It is model only: no
+normative Markdown changes, and no existing theorem, trace, witness pair or result changes.
+The witness file states the input convention for a terminal append begun before Lock; it makes
+no storage-ordering claim.

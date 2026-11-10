@@ -139,6 +139,7 @@ structure Issued where
   ceremonyActive : Bool := true
   ceremonyRelease : Bool := true
   ceremonyUnlocked : Bool := true
+  sealUnlocked : Bool := true
   workerIdentity : Bool := true
   requestSession : Bool := true
   machineMembership : Bool := true
@@ -389,7 +390,11 @@ def localAuthorityStep (p : Params) (dp : Dispatch.Params) (w : World) : Local �
   | .replace => endAll w
   | .pause _ => pauseAll w
   | .resume old incarnation ok => resume p w old incarnation ok
-  | .sealTerminal who ok => if ok then updateActor w who fun a =>
+  -- A seal stands for a durably committed, validated terminal read under the data key, which a
+  -- locked store does not hold (`STA-23`), so it waits for `.unlock true`. This interpretation
+  -- takes a terminal append begun before Lock as presented after that unlock and before resume,
+  -- once opening's replay completes it; it makes no storage-ordering claim.
+  | .sealTerminal who ok => if ok && !(p.sealUnlocked && w.locked) then updateActor w who fun a =>
       { a with sealedTerminal := true } else w
   -- `.unlock true` stands for the local passphrase entry; ceremony entry or re-display while
   -- locked waits for it. Entry from an already unlocked store needs no further event here.
@@ -1433,6 +1438,21 @@ def lockedCeremonyEvents (ok : Bool) : List Event := startEvents ++ [
 @[req "STA-23"] theorem unlocked_ceremony_entry_progress :
     sent (result (lockedCeremonyEvents true)) readA.request.call = true ∧
     (result (lockedCeremonyEvents true)).ended = [] := by decide +kernel
+
+/-- A seal processed while locked supplies no terminal; the same seal after unlock and before
+resume keeps the paid key. -/
+def lockedSealEvents (ok : Bool) : List Event := procuredStart.take 3 ++ [
+  .lifecycle (.pause .lock), .lifecycle (.unlock ok), .lifecycle (.sealTerminal alice true),
+  .lifecycle (.unlock true), .lifecycle (.resume alice resumedAlice.incarnation true),
+  .lifecycle (.assessKey resumedAlice validKey),
+  .lifecycle (.validate resumedRead keyReady), .request resumedRead keyReady true]
+@[req "ARC-31a"] theorem locked_seal_refused :
+    sent (result (lockedSealEvents false)) readA.request.call = false ∧
+    (actor current (result (lockedSealEvents false)) resumedAlice).map (·.sealedTerminal) = some false := by decide +kernel
+@[req "ARC-31a"] theorem locked_seal_without_check :
+    sent (result (lockedSealEvents false) { current with sealUnlocked := false }) readA.request.call = true := by decide +kernel
+@[req "ARC-31a"] theorem unlocked_seal_progress :
+    sent (result (lockedSealEvents true)) readA.request.call = true := by decide +kernel
 
 def paidCeremonyEvents (choice : Completion) : List Event := procuredStart ++ [
   .lifecycle .enterCeremony, .lifecycle .hide, .lifecycle (.unlock true),

@@ -45,7 +45,7 @@ does not extend those regions.
 ## Fixture selection
 
 The wire contract is [Witness files](witness-file-v1.md#the-file), including its
-[Authority schema 4 extension](witness-file-v1.md#authority-schema-4). Exact files:
+[Authority schema 5 extension](witness-file-v1.md#authority-schema-5). Exact files:
 
 | Path relative to the specification root | `module` / `schema` | Use and local boundary |
 |---|---|---|
@@ -53,7 +53,7 @@ The wire contract is [Witness files](witness-file-v1.md#the-file), including its
 | [`docs/design/allocation-witnesses-v3.json`](allocation-witnesses-v3.json) | `allocation` / 3 | Restore/Replace identities and ceremony; fresh entropy/import construction assumed |
 | [`docs/design/pins-witnesses-v7.json`](pins-witnesses-v7.json) | `pins` / 7 | Symbolic publication/pin knowledge; atomic append/restart assumed, no transport evidence |
 | [`docs/design/declaration-witnesses-v1.json`](declaration-witnesses-v1.json) | `declaration` / 1 | Field presence and opaque set differences; no lifecycle or secret-placement proof |
-| [`docs/design/authority-witnesses-v4.json`](authority-witnesses-v4.json) | `authority` / 4 | Named processed-event histories using shared Dispatch; not an atlas renderer input |
+| [`docs/design/authority-witnesses-v5.json`](authority-witnesses-v5.json) | `authority` / 5 | Named processed-event histories using shared Dispatch; not an atlas renderer input |
 | [`docs/design/relay-witnesses-v1.json`](relay-witnesses-v1.json) | `relay` / 1 | Historical `relay-protocol-v1.md` profile only; no current relay target selected |
 
 For the atlas-displayed cases, the exact presentation selection remains
@@ -112,7 +112,7 @@ mapping rather than supplying it a pre-resolved resource.
 | Allocation 3 | `start` journal / `journal` | `allocation`, `identity`, `recorded`, `terminalized`, `sent`, `pending` |
 | Pins 5 | `start` knowledge / `knowledge` | `boot`, `check`, `consumed`, `halt`, `pending`, `pinned`, `replayed` |
 | Declaration 1 | `start.declaration`, `start.machine`, `start.record` / `record` | `verdict`, `delivered` |
-| Authority 4 | `start` / complete `knowledge`: `actors` (including `bound`), `ceremony`, `ceremony_owed`, `dispatch`, `ended_sessions`, `fenced`, `issued`, `locked`, `published` | `authority_eligible`, `sent`, `delegated_verdict`, `published`, `journal_changed` |
+| Authority 5 | `start` / complete `knowledge`: `actors` (including `bound`), `ceremony`, `ceremony_owed`, `dispatch`, `ended_sessions`, `fenced`, `issued`, `locked`, `published` | `authority_eligible`, `sent`, `delegated_verdict`, `published`, `journal_changed` |
 
 Absence of an optional outcome member is not false. Absence of delegation assigns
 no universal cross-layer refusal precedence. Preserve ordered arrays, exact

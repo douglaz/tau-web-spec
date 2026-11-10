@@ -222,7 +222,7 @@ structure Module where
 
 /-- The schema version of each emitted module. Allocation, pins and dispatch changed shape. -/
 def schemaVersion (name : String) : Nat :=
-  if name == "authority" then 4 else if name == "allocation" then 3 else if name == "pins" then 7 else if name == "dispatch" then 10 else 1
+  if name == "authority" then 5 else if name == "allocation" then 3 else if name == "pins" then 7 else if name == "dispatch" then 10 else 1
 
 /-- The header pretty, one trace per line: a diff names the trace that moved. -/
 def fileText (name : String) (ns : Name) (bound : Json) (witnesses enumeration : List Json) :
@@ -1719,6 +1719,7 @@ def assumptionsJson (p : TauWeb.Authority.Params) (dp : TauWeb.Dispatch.Params) 
   ("ceremonyPending", toJson p.ceremonyPending), ("ceremonyCompletion", toJson p.ceremonyCompletion),
   ("ceremonyAppend", toJson p.ceremonyAppend), ("ceremonyRelease", toJson p.ceremonyRelease),
   ("ceremonyActive", toJson p.ceremonyActive), ("ceremonyUnlocked", toJson p.ceremonyUnlocked),
+  ("sealUnlocked", toJson p.sealUnlocked),
   ("resumeAuthorized", toJson p.resumeAuthorized), ("resumeUnlocked", toJson p.resumeUnlocked),
   ("pauseRequired", toJson p.pauseRequired), ("resumeTerminal", toJson p.resumeTerminal), ("sealedTerminalRequired", toJson p.sealedTerminalRequired),
   ("endFence", toJson p.endFence), ("workerIdentity", toJson p.workerIdentity),
@@ -1757,6 +1758,8 @@ def witnesses : List Trace :=
   paired "fresh_actor_end_authority_refused" "fresh_actor_without_session_end" freshEndedRequest { TauWeb.Authority.current with endFence := false } TauWeb.Dispatch.current endedFreshActor ++
   paired "locked_ceremony_entry_refused" "locked_ceremony_entry_without_check" (lockedCeremonyEvents false) { TauWeb.Authority.current with ceremonyUnlocked := false } ++
   [{ declarations := [named "unlocked_ceremony_entry_progress"], events := lockedCeremonyEvents true }] ++
+  paired "locked_seal_refused" "locked_seal_without_check" (lockedSealEvents false) { TauWeb.Authority.current with sealUnlocked := false } ++
+  [{ declarations := [named "unlocked_seal_progress"], events := lockedSealEvents true }] ++
   paired "inactive_ceremony_completion_refused" "inactive_ceremony_without_guard" inactiveCompletionEvents { TauWeb.Authority.current with ceremonyActive := false } ++
   ([Completion.fullReentry true, .skipped].map fun c =>
     { declarations := [named "paid_ceremony_preserves_key_and_approval"], events := paidCeremonyEvents c }) ++
