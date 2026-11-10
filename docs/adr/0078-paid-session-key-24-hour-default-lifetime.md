@@ -11,9 +11,10 @@ else.
 R08 part B said to measure before changing the default: observe representative end-to-end setups,
 including provider waits and app switching, and amend the default only if 15 minutes caused
 avoidable restarts. The owner decided now, without that observation, so the evidence is no longer a
-precondition for this default. A session's lifetime runs through provider waits, hidden time and
-suspension, and expiry ends the session, so a short default can end useful work and force a new
-Start with its own confirmation.
+precondition for this default. R08's concern was that a session's lifetime runs through provider
+waits, hidden time and suspension, and expiry ends the session, so a short default might end useful
+work and force a new Start with its own confirmation. R08 called that a hypothesis to measure; the
+owner gave no further reason and chose the value.
 
 ## Decision and owner
 
@@ -32,8 +33,13 @@ in `ARC-31a` shows "the visible offered defaults 0.10 and 1440 minutes".
   default stays usable for up to 24 hours instead of 15 minutes. `ARC-31a`'s exposure bound does
   not rest on the lifetime and is unchanged: `ARC-31a` says "The exposure from a leaked session key
   is the lesser of the remaining balance and that key's cap." A key's read of the account's usage
-  history, which `ARC-31a` states as an unsolved limit, lasts as long as the key does. Any of this
-  was already possible by selecting 1440 minutes.
+  history lasts as long as the key does; `ARC-31a` says "One limit is stated rather than solved".
+- The paid session the default starts also ends at that expiry (ADR-0052: "for a paid session, its
+  key's expiry or cap exhaustion"), so by default its machines and standing approvals stay live for
+  up to 24 hours, and a lost-key hold lasts up to 24 hours: `ARC-31a` says "hold the session until
+  End or original expiry". The live paid key ADR-0028 accepted ("A live paid key now sits encrypted
+  on the phone") sits there for up to 24 hours too.
+- Any of this was already possible by selecting 1440 minutes.
 
 ## What stays
 
