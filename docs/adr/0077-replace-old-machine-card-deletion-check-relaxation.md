@@ -14,7 +14,7 @@ is permission only, with no change to T44 or capability admission.
 
 R06 assumed an existing "Retire old machine" approval could carry the follow-up deletion checks.
 A review panel, two rounds with four readers counted in each and one seat missing, found that
-premise does not hold: no existing approval carries that scope for Replace's old machine, because
+premise does not hold: no existing approval carries that reach for Replace's old machine, because
 Replace's stop rests on its flow grant and journals call facts, not card prose (three of four,
 one could not tell from the text). The narrowest form is a new card for Replace's old machine
 only (four of four). Every point was accepted under the owner's 2026-11-05 panel rule. The owner
@@ -73,5 +73,5 @@ own flow no further call".
 | Option | Disposition |
 |---|---|
 | Drop it: Replace's old machine keeps one operator start per check | Recommended, not chosen by the owner. |
-| Carry the scope on an existing Replace approval | Not available: no existing approval carries it (three of four). |
+| Carry the reach on an existing Replace approval | Not available: no existing approval carries it (three of four). |
 | Also cover a machine the in-setup rung stopped | Not chosen: the owner adopted the form for Replace's old machine only; that machine stays manual (four of four). |
