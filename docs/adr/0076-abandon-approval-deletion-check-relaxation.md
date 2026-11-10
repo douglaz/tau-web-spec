@@ -36,13 +36,13 @@ by itself." No execution while the app is closed or eventual confirmation is pro
 
 ## Narrowing of R06
 
-The owner chose Abandon setup only. R06's retirement half is left out: the old machine of an
-LNVPS Replace rebuild and a machine the in-setup replacement rung stopped retain manual
+The owner chose Abandon setup only. R06's retirement half was left out: the old machine of an
+LNVPS Replace rebuild and a machine the in-setup replacement rung stopped retained manual
 checks. `SEC-4` said, until 2026-11-10, "Otherwise each deletion check, which makes
 `STG-21a`'s reads once, is started by the operator" and included
 "Replace's old machine and every machine the in-setup replacement rung stopped, including
-when its setup is later abandoned under a disclosed card". There is no Replace or retirement
-approval created, named or extended, and no disclosure is put on a Replace card.
+when its setup is later abandoned under a disclosed card". There was no Replace or retirement
+approval created, named or extended, and no disclosure was put on a Replace card.
 
 Approvals are distinguished by recorded facts, never by date or product version. `SEC-4`
 includes "approvals whose recorded facts lack the disclosure" in that manual rule and says
@@ -76,8 +76,9 @@ billing-display gap remains, and completion does not claim permanent id absence 
 of that gap." Fewer operator starts change neither evidence nor trust.
 
 For the positive permission and refusals, see `CNF-26`'s deletion-check case; the deletion
-predicate's own fixtures stay with `CNF-112`. For Replace, `CNF-20` says "another check
-requires another operator start". The applicability table keeps
+predicate's own fixtures stay with `CNF-112`. For Replace with no recorded Replace old-machine
+card, `CNF-20` says "another check requires another operator start"; ADR-0077 records the
+recorded-card case. The applicability table keeps
 the abandonment, Replace and in-setup replacement admissions separate, including later abandonment of a
 rung-stopped machine's setup. These are capability-conditional demonstrations, not evidence
 that T44 is usable. `STA-17`'s pointer remains correct: "The deletion check (`SEC-4`) collects

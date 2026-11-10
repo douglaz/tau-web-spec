@@ -62,7 +62,8 @@ own flow no further call".
 - T44: `SEC-4` says "Deletion verification MUST remain unavailable until T44's vendor-key
   capability exists, and the interface MUST show it as unavailable with the reason." The use for
   this machine is offered only once item 20's deletion-check case passes, and each read still
-  needs that machine's own recorded vendor key.
+  needs that machine's own recorded vendor key and, where that key can come only from the
+  retired seed, that seed: `STA-17` says "a read under that key is such a step".
 - ADR-0053's open question of which caller stops the old machine in the in-setup rung.
 - No theorem, witness, gate or assumption boundary moves, and the credential format gains
   nothing (four of four). The non-session authority stays with its prose owner under ADR-0032.
@@ -73,4 +74,4 @@ own flow no further call".
 |---|---|
 | Drop it: Replace's old machine keeps one operator start per check | Recommended, not chosen by the owner. |
 | Carry the scope on an existing Replace approval | Not available: no existing approval carries it (three of four). |
-| Also cover a machine the in-setup rung stopped | Not chosen: it would need a second new approval for a stop act the text does not name (four of four for Replace only). |
+| Also cover a machine the in-setup rung stopped | Not chosen: the owner adopted the form for Replace's old machine only; that machine stays manual (four of four). |

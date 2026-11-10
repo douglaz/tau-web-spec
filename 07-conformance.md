@@ -932,10 +932,13 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       says "Status will be checked while the app is available." With a harness that uses this
       permission, relevant app availability collects that machine's status in a bounded check
       with no operator start, the check's authority, eligibility, recorded identity, key and
-      admission checked at dispatch. The card authorizes no read of another machine, no
-      mutation, no new target and no further Replace call, and no Replace step waits on it.
-      Then Restore from the recovery sheet alone: each check of that machine again needs its
-      own operator start, since the sheet brings back no such card. Without T44's key
+      admission checked at dispatch. Reopening with the card recorded collects that status the same way;
+      during explicit app Lock no read is dispatched, including on reopening. The card
+      authorizes no read of another machine, no mutation, no new target and no further Replace
+      call, and no Replace step waits on it.
+      Then Restore from the recovery sheet alone, with the operator supplying the retired seed:
+      the card is not offered again, and each check of that machine again needs its own
+      operator start, since the sheet brings back no such card. Without T44's key
       the check is unavailable and makes no read. It binds or borrows no session, holds no SSH
       client key and drives no model. Replace stays reported incomplete until that machine's deletion is durably
       recorded, a read that confirms no deletion leaving it incomplete; `STA-17` says "Replace
