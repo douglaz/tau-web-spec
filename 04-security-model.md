@@ -266,18 +266,30 @@ promises no execution while the app is closed and promises no eventual deletion 
 The permission supplies only the deletion reads above, not another abandonment mutation; it
 MUST NOT replay stop, destroy, reinstall or renewal-off, or authorize a new target.
 
+**A Replace old-machine card MAY also authorize follow-up deletion reads** only for the one
+machine it names, the old machine of an LNVPS Replace rebuild that Replace's own flow stopped,
+when the card's durably recorded facts (`STA-17`) include the disclosure that status will be
+checked while the app is available. For that machine the harness MAY make the same bounded
+checks, on relevant app availability or reopening and without a separate operator start for
+each check, under the same limits as the Abandon permission above. The card supplies only
+those deletion reads; it MUST NOT replay stop, destroy, reinstall or renewal-off, or authorize
+a new target, and it gives Replace's own flow no further call.
+
 Otherwise each deletion check, which makes `STG-21a`'s reads once, is started by the operator
 from the screen that shows the machine (`ARC-22`); nothing starts it automatically, and another
 check needs another operator start. This manual rule includes
-approvals whose recorded facts lack the disclosure, Replace's old machine and every machine
-the in-setup replacement rung stopped, including when its setup is later abandoned under a
-disclosed card. Later abandonment cannot change which flow stopped a machine. There is no
-action to extend an approval lacking the disclosure. Stop task, End session, cancelling
-inference and browser closure convey no deletion-read authority.
+approvals whose recorded facts lack the disclosure, Replace's old machine when no Replace
+old-machine card for it is recorded, including after a Restore from the recovery sheet alone,
+which brings back no such card, and every machine the in-setup replacement rung stopped,
+including when its setup is later abandoned under a disclosed card. Later abandonment cannot
+change which flow stopped a machine. There is no action to extend an approval lacking the
+disclosure. Stop task, End session, cancelling inference and browser closure convey no
+deletion-read authority.
 
-At every dispatch, the harness MUST check the check's authority (the operator's start, or the
-disclosed Abandon approval's recorded facts), target eligibility, the machine's recorded
-identity, its own recorded vendor key and capability admission. Explicit
+At every dispatch, the harness MUST check the check's authority (the operator's start, the
+disclosed Abandon approval's recorded facts or the disclosed Replace old-machine card's recorded
+facts), target eligibility,
+the machine's recorded identity, its own recorded vendor key and capability admission. Explicit
 app Lock, unavailable credentials or an unavailable capability MUST prevent dispatch,
 including after reopening. The check borrows no session authority.
 
