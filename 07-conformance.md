@@ -1072,14 +1072,27 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       binding and dispatch checks still apply; no additional account-proof method
       is supplied by this case.
 
-      Where the ordinary ceremony makes signed additions, inspect the structured
+      Where the ordinary ceremony makes signed additions, inspect each concrete
       approval's pass, concrete host, purpose, source, server-entry relationship
       and host-wide authorization. Exercise batching of already known additions
-      and a separate concrete approval for a host learned afterwards. A binding
-      alone, an unapproved host, a changed host or pass after approval, or a failed
-      prerequisite append sends no addition. Inspect the exact approved request,
-      approval decision and idempotency identity in the journal before signing and
-      sending; the signed and sent request is that record. Lose an addition's reply:
+      and a separate concrete approval for a host learned afterwards without an
+      advance approval. Exercise a setup approval that authorizes a server host's
+      addition in advance: inspect its pass, purpose, machine entry and server
+      number, its statement that the host is not yet known and comes only from
+      that entry's matching read, and its host-wide authorization, then confirm
+      one addition takes the host of the journaled matching read with no further
+      approval. Under that advance approval, a missing or mismatched read or
+      another source sends no addition, and a second addition, or another server,
+      pass, purpose or host-wide terms, sends none without approval of that
+      concrete addition. Advance authority offered on any other card, including
+      the mid-flight card for a machine added later, sends no addition without
+      approval of that concrete addition. A binding alone, an unapproved host, a
+      changed pass after approval, a changed host after a concrete approval, or a
+      failed prerequisite append sends no addition. Inspect the exact approved
+      request, approval decision and idempotency identity in the journal before
+      signing and sending; the signed and sent request is that record, and for an
+      advance-approved addition it carries the journaled read's host and the
+      advance approval's other facts. Lose an addition's reply:
       it remains unresolved without automatic resend. Reconnect on the same pass
       without a new destination-addition approval, subject to all other admission
       checks. These cases select no recording wire or reconciliation predicate.

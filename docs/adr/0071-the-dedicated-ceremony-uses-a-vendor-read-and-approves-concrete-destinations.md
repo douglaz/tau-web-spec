@@ -25,8 +25,8 @@ host can be recorded. What admits a later concrete pass addition was still open.
 | CHN-16 home, STG-4 pointer | Accepted under the same rule, 3 of 4 including the required reader |
 | Durable-effect core | Accepted under the same rule, 4 of 4 |
 | SINGLE source form and USE reach | Each accepted under the same rule, 4 of 4 in round two |
-| EXACT concrete-addition approval | Accepted under the same rule, 4 of 4 in round two |
-| Explicit approved-record dispatch fidelity in the addition clause | Accepted under the same rule, 3 of 4 including the required reader |
+| EXACT concrete-addition approval | Accepted under the same rule, 4 of 4 in round two; relaxed 2026-11-10 by [ADR-0079](./0079-setup-approval-server-destination-relaxation.md) |
+| Explicit approved-record dispatch fidelity in the addition clause | Accepted under the same rule, 3 of 4 including the required reader; relaxed 2026-11-10 by [ADR-0079](./0079-setup-approval-server-destination-relaxation.md) |
 | SERVER account condition | Owner pick on the surviving 2-to-2 round-two split |
 | ECHO server identity evidence | Owner pick on the surviving 2-to-2 round-two split |
 
@@ -64,3 +64,11 @@ The rescue rekey remains separate: `STA-17` says "How the flow obtains that pass
 and records its destinations is not decided." G5B/H3 and that entire open point
 are unchanged. Address refresh/export, pass procurement, recording wire and the
 addition's retry, reconciliation and resource-barrier contract are not decided here.
+
+*Amended 2026-11-10: EXACT and the dispatch-fidelity row are relaxed for one case.*
+[ADR-0079](./0079-setup-approval-server-destination-relaxation.md) records the
+owner-directed amendment that lets `ARC-15`'s setup screen authorize in advance the
+addition of a server host resolved later from the server-specific read, with the
+recorded request taking its host from that journaled read. SOURCE-BOUND's
+non-selection above is history for that case; the other decisions, alternatives and
+reasoning remain the historical record.
