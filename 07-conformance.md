@@ -1075,11 +1075,21 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       Where the ordinary ceremony makes signed additions, inspect the structured
       approval's pass, concrete host, purpose, source, server-entry relationship
       and host-wide authorization. Exercise batching of already known additions
-      and a separate concrete approval for a host learned afterwards. A binding
+      and a separate concrete approval for a host learned afterwards without an
+      advance approval. Exercise a setup approval that authorizes a server host's
+      addition in advance: inspect its pass, purpose, machine entry and server
+      number, its statement that the host comes only from that entry's matching
+      read, and its host-wide authorization, then confirm the addition takes the
+      host of the journaled matching read with no further approval. Under that
+      advance approval, a missing or mismatched read or another source sends no
+      addition, and another server, pass, purpose or host-wide terms, or a host
+      other than the one that addition records, sends none without approval of
+      that concrete addition. A binding
       alone, an unapproved host, a changed host or pass after approval, or a failed
       prerequisite append sends no addition. Inspect the exact approved request,
       approval decision and idempotency identity in the journal before signing and
-      sending; the signed and sent request is that record. Lose an addition's reply:
+      sending; the signed and sent request is that record, and for an
+      advance-approved addition it carries the journaled read's host. Lose an addition's reply:
       it remains unresolved without automatic resend. Reconnect on the same pass
       without a new destination-addition approval, subject to all other admission
       checks. These cases select no recording wire or reconciliation predicate.

@@ -970,7 +970,9 @@ one screen showing the whole setup and its true recurring cost — each session'
 machine by machine, and any jump host a first contact will need (`CHN-R6`), with what it
 costs. Approvals placed on the setup screen under their owning rules MUST be presented
 together, rather than as sequential confirmations. Shared presentation does not authorize facts
-unavailable for approval. A machine added to a bound set afterwards is one operator act
+unavailable for approval; the one exception is `CHN-16`'s advance approval of a server host
+resolved after this screen, an owner-directed amendment
+([ADR-0079](./docs/adr/0079-setup-approval-server-destination-relaxation.md)). A machine added to a bound set afterwards is one operator act
 per machine, through the mid-flight queue, on the card `SEC-1` describes. An untyped call's scope
 rides the same rules — approved with the up-front batch when the brief names the service,
 joining the mid-flight queue when one is discovered later. **No untyped call runs before its

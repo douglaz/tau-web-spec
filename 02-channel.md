@@ -729,18 +729,39 @@ name the affected pass, concrete host, purpose and source, and, for a server hos
 its relation to the approved machine entry. It MUST show that recording authorizes
 the host on the shared any-port terms, not only the port used for that purpose.
 One approval MAY cover additions whose concrete hosts and sources are already
-known; a server host learned later requires approval of that concrete addition.
+known; a server host learned later requires approval of that concrete addition,
+unless the setup approval authorized its addition in advance.
 Additions permitted to share a review MUST be presented together in that review,
 rather than as sequential confirmations.
 A build-named API host, a binding alone or a newly journaled address supplies no
 such approval.
+
+**Advance approval of a later server host** (owner-directed amendment,
+[ADR-0079](./docs/adr/0079-setup-approval-server-destination-relaxation.md)).
+`ARC-15`'s setup screen MAY authorize, for an approved machine entry it names, the
+signed addition of the server host that the server-specific Robot read above later
+returns for that entry's immutable server number. That advance approval MUST name the
+affected pass, the purpose, the approved machine entry and its server number, and
+that the host is not yet known and will come only from that read. It MUST show
+that recording authorizes the resolved host on the shared any-port terms. It
+authorizes one addition: the host carried by a matching read journaled under the
+source rule above, for that entry, pass and purpose. A different server, pass,
+purpose or host-wide terms, or a host other than the one that addition records,
+requires approval of that concrete addition; a host without that journaled
+matching read stays refused by the source rule above. No other card acquires that
+authority. Under an advance approval the operator does not see the concrete host
+before the relay may connect to it.
 
 Before signing or sending, the harness MUST durably record the exact approved
 request, approval decision and idempotency identity: `STA-4` says "A side-effecting
 call MUST have a durable record, an approval decision, and an idempotency identity
 **before execution begins**." What is signed and sent MUST be that approved,
 journaled request, never one rebuilt at dispatch from session state or model text;
-`SEC-4` says "What is dispatched is the approved record". A failed prerequisite
+`SEC-4` says "What is dispatched is the approved record". An advance-approved
+addition follows that form except for its host: its approval carries no concrete
+host, so the request the harness records before signing takes the host from the
+journaled matching read and every other fact from the advance approval, and what
+is signed and sent MUST be that recorded request. A failed prerequisite
 append sends nothing: `STA-3` says "If the append fails, the transition does not
 occur." An addition whose outcome is uncertain stays unresolved with no automatic
 resend: `STA-8` says "It MUST NOT be retried automatically and no timer may clear it."
