@@ -726,7 +726,9 @@ facts.** `SEC-4` says "A typed cloud-plane operation MUST be approved on structu
 facts, never on command text"; this addition follows that approval form without
 deciding the relay key's cloud-plane classification. Its operator approval MUST
 name the affected pass, concrete host, purpose and source, and, for a server host,
-its relation to the approved machine entry. It MUST show that recording authorizes
+its relation to the approved machine entry, except that an advance approval below
+names the facts its paragraph lists in place of the concrete host and source read.
+It MUST show that recording authorizes
 the host on the shared any-port terms, not only the port used for that purpose.
 One approval MAY cover additions whose concrete hosts and sources are already
 known; a server host learned later requires approval of that concrete addition,
@@ -744,13 +746,13 @@ returns for that entry's immutable server number. That advance approval MUST nam
 affected pass, the purpose, the approved machine entry and its server number, and
 that the host is not yet known and will come only from that read. It MUST show
 that recording authorizes the resolved host on the shared any-port terms. It
-authorizes one addition: the host carried by a matching read journaled under the
-source rule above, for that entry, pass and purpose. A different server, pass,
-purpose or host-wide terms, or a host other than the one that addition records,
-requires approval of that concrete addition; a host without that journaled
-matching read stays refused by the source rule above. No other card acquires that
-authority. Under an advance approval the operator does not see the concrete host
-before the relay may connect to it.
+authorizes one addition, to that pass for that purpose, of the host carried by a
+matching read for that entry journaled under the source rule above. A second
+addition, or a different server, pass, purpose or host-wide terms, requires
+approval of that concrete addition; a host without that journaled matching read
+stays refused by the source rule above. No other card acquires that authority.
+Under an advance approval the operator need not see the concrete host before the
+relay may connect to it.
 
 Before signing or sending, the harness MUST durably record the exact approved
 request, approval decision and idempotency identity: `STA-4` says "A side-effecting
