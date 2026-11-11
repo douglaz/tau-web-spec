@@ -70,5 +70,7 @@ in `ARC-31a` shows "the visible offered defaults 0.10 and 1440 minutes".
 The automatic renewal this record set aside is now drafted as
 [ADR-0085](./0085-one-automatic-paid-key-renewal-at-expiry.md). The 1440-minute default applies
 per key, so a session confirmed at the defaults can run up to about 48 hours and spend up to 0.20.
-"One mint per session, no renewal and no top-up" above records what was decided then; the top-up
-ban is unchanged.
+"One mint per session, no renewal and no top-up" above, and the bullet saying the session ends at
+that expiry with its machines and standing approvals live for up to 24 hours, record what was
+decided then; a lost-key hold still lasts until that key's own expiry, and the top-up ban is
+unchanged.

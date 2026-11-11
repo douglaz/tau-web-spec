@@ -4,7 +4,9 @@ Decided 2026-11-10 (`tw-qe7.15`, comments 245000001 and 252000001) on the owner'
 from review item R08, "Simplify paid inference choices and validate the real contract". The owner
 picked "Automatic renewal", whose option text was "Mint a new key silently at expiry. Removes
 your per-key spending OK, so it changes a security rule." A review panel worked out the
-mechanics, and the owner then picked "Adopt, 0.10 per key (Recommended)". This is an
+mechanics. The owner's adoption question offered three options: adopt at 0.10 per key
+(recommended), adopt at 0.05 per key, or drop it. The owner picked "Adopt, 0.10 per key
+(Recommended)". This is an
 owner-directed amendment that loosens a security rule, not a clarification. It reverses in part
 [ADR-0028](./0028-procured-inference-is-the-operators-balance.md)'s "There is still one mint per
 session" and the matching sentences of
@@ -43,8 +45,8 @@ opportunity." The Start surface in `ARC-31a` shows the per-key cap and lifetime 
 total of twice the cap". The offered per-key default stays 0.10, so by default a session spends at
 most 0.20 and runs up to about 48 hours at the 24-hour default lifetime
 ([ADR-0078](./0078-paid-session-key-24-hour-default-lifetime.md)). `STA-23` now ends a paid
-session "At cap exhaustion, or at expiry with no confirmed renewal left", and withholds work at
-an expiry with the renewal left.
+session "At cap exhaustion, or at an expiry at which `ARC-31a` leaves no renewal", and withholds
+work at an expiry where the renewal can still follow.
 
 ## What is loosened
 
@@ -90,7 +92,10 @@ Four statements in `TauWeb.Authority` change, as the adoption directs:
 `TauWeb.Authority.repair_cannot_renew` and `TauWeb.Authority.cap_end_cannot_repair` prove
 unchanged, with their statements and histories as before. New declarations model the renewal
 itself (`TauWeb.Authority.renew`, `TauWeb.Authority.renewalLeft`) and its refused/admitted pairs,
-including the two must-hold properties under renewal authority. Authority witness schema 6 adds
+including the two must-hold properties under renewal authority. A successor is installed only
+with the same cap and its own key, origin and expiry. Existing structures gain renewal fields
+that default to no renewal, the local step gains the renewal case, and existing candidates and
+histories keep their values. Authority witness schema 6 adds
 the renewal event and actor fields in a new file name; every schema-5 trace keeps its events and
 steps. No gate script's policy changes; controls follow the new guards. The per-key cap limit
 that makes renewal available, the session total and End's revocation of every key stay outside

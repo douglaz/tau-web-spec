@@ -1006,12 +1006,14 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       expired/exhausted or clock-uncertain authority before new dispatch, end the affected
       session when required, and admit no replacement mint other than the one confirmed
       renewal at expiry.
-      Where the Start action confirmed the renewal, at a cap of 50.00 or less, exercise it:
+      At a cap of 50.00 or less, check that the Start surface shows the per-key cap and
+      lifetime and the session total of twice the cap, with no hard stop promised.
+      Where the Start action confirmed the renewal, exercise it:
       ordinary work withheld from the first key's established expiry; the renewal intent
       recorded only once the lower bound reaches that expiry, with the same cap, unit,
-      lifetime and bindings, a fresh top-up-off read and the renewed key's own origin and
+      lifetime and bindings, its top-up-off evidence and the renewed key's own origin and
       expiry; no use before its sealed validated terminal; the superseded key's evidence
-      refused. Cap exhaustion of either key and the renewed key's expiry end the session with
+      refused. Cap exhaustion of the current key and the renewed key's expiry end the session with
       no further mint. A changed binding or a refused, lost, malformed or uncertain renewal
       ends it without retry. An unsealed first key or a lost-key hold ends it at expiry. An
       unresolved mint or revoke, or an uncertain clock, mints nothing and keeps work withheld

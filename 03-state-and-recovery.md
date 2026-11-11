@@ -1262,8 +1262,8 @@ promised; current checks apply even without notification.
 When an untyped vendor scope's local permission closes is `SEC-4`'s, and what the scope's calls
 and dispositions keep after it is `STA-24`'s.
 The actual end fence is irreversible and MUST NOT be reset to implement continuation.
-Explicit End, Replace, established paid expiry with no confirmed renewal left, a failed paid
-renewal (`ARC-31a`) and established cap exhaustion MUST durably append End for the affected
+Explicit End, Replace, an established paid expiry or a paid renewal at which `ARC-31a` ends the
+session, and established cap exhaustion MUST durably append End for the affected
 session before applying the transition (`STA-3`). Replace ends every
 local session before its migration work; Abandon ends only its named holders under `ARC-21`.
 End records session identity and reason (`explicit`, `replace`, `expiry`, `cap_exhaustion`,
@@ -1290,9 +1290,9 @@ approval, automatic retry or permission to bypass holds.
 
 Ordinary hiding, suspension and return MUST NOT extend a procured session key's original absolute expiry, replenish its remaining cap, mint a replacement key or renew that key.
 Account funding or payment settlement MUST NOT renew a session, replenish or raise its key's cap, extend its expiry, or revive an ended session.
-At cap exhaustion, or at expiry with no confirmed renewal left, that session MUST end at the next
-execution opportunity before further ordinary dispatch or actionable continuation. At expiry
-with its one confirmed renewal left, ordinary dispatch and actionable continuation stay withheld
+At cap exhaustion, or at an expiry at which `ARC-31a` leaves no renewal, that session MUST end at
+the next execution opportunity before further ordinary dispatch or actionable continuation. At an
+expiry where `ARC-31a`'s one confirmed renewal can still follow, ordinary dispatch and actionable continuation stay withheld
 until the renewed key is usable or the session ends. The renewal's rules, including when it
 ends the session instead, have their single home in `ARC-31a`. Uncertain clock validity MUST withhold
 further authority until validity is established or the session ends. A new session requires

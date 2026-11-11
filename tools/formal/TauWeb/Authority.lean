@@ -132,7 +132,7 @@ structure Candidate where
 
 /-- Each true field is an external hypothesis about one renewal attempt. `sameTerms` covers the
 unchanged cap, unit, lifetime, session, account credential generation, profile and choice
-generation and a fresh top-up-off read; `minted` a well-formed, validated successor response.
+generation and the mint's top-up-off evidence; `minted` a well-formed, validated successor response.
 A false `clockValid`, `resolved` or `appended` field means no renewal intent was recorded. -/
 structure RenewalEvidence where
   sameTerms : Bool
@@ -418,7 +418,8 @@ successor keeps the current cap and needs its own sealed terminal and assessment
     | .procured original =>
       if !(renewalLeft p a && (!p.renewalAtExpiry || a.renewalDue) && ev.clockValid && ev.resolved && ev.appended) then w
       else if ev.minted && (!p.renewalTerms || (ev.sameTerms && s.cap == (currentLimits a original).cap &&
-          s.key != (currentLimits a original).key && s.expiry != (currentLimits a original).expiry)) then
+          s.key != (currentLimits a original).key && s.origin != (currentLimits a original).origin &&
+          s.expiry != (currentLimits a original).expiry)) then
         updateActor w a.who fun a =>
           { a with successor := some s, renewalDue := false, sealedTerminal := false, keyWithheld := true, revision := a.revision + 1, validation := none }
       else if p.renewalFailureEnds then endOne w a.who else w
@@ -1645,10 +1646,10 @@ def failedRenewalEvents : List Event := renewingStart ++ [.lifecycle (.assessKey
 @[req "ARC-31a"] theorem failed_renewal_without_end :
     sent (result failedRenewalEvents { current with renewalFailureEnds := false }) readA.request.call = true := by decide +kernel
 
-/-- Changed terms stop the renewal: a changed cap, a reused expiry, or changed bindings. -/
+/-- Changed terms stop the renewal: a changed cap, a reused origin or expiry, or changed bindings. -/
 def changedTermsCases : List (Limits × RenewalEvidence) := [
-  ({ successorLimits with cap := 2 }, renewalOk), ({ successorLimits with expiry := 1 }, renewalOk),
-  (successorLimits, { renewalOk with sameTerms := false })]
+  ({ successorLimits with cap := 2 }, renewalOk), ({ successorLimits with origin := 1 }, renewalOk),
+  ({ successorLimits with expiry := 1 }, renewalOk), (successorLimits, { renewalOk with sameTerms := false })]
 def changedTermsEvents (s : Limits) (ev : RenewalEvidence) : List Event := renewingStart ++
   [.lifecycle (.assessKey alice expiredKey)] ++ renewalTail s ev ++
   [.request readA { ready with key := some { validKey with original := s } } true]
