@@ -854,7 +854,9 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       capability. Export progress claims no proof of continued file retention or currency.
       The screen names application-secret rotation at its service,
       the unrevocable inference account credential, and possible thief persistence with a
-      destroy/rebuild offer; scan re-arm is never described as a remedy for any of these.
+      destroy/rebuild offer; scan re-arm is never described as a remedy for any of these. It
+      names the accounts on each machine's login route as the scope of an old key's revocation
+      by an absence read, and claims nothing about other accounts.
       On LNVPS, exercise `STG-21`'s route to the `arch` account with fresh old-key entry and
       fresh privilege acquisition, new-key installation, a fresh connection authenticated by
       the new key before old-key removal, and new-sheet export. Failed new-key confirmation
@@ -884,13 +886,22 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       Replace stays incomplete, and nothing is removed until the operator continues Replace's
       flow; the removal then runs over a connection authenticated by the machine's current key
       under its existing pin, never the old key, removes exactly the recorded key and keeps the
-      current key and every other line, and a harness-composed read showing the key absent,
-      durably appended, ends the pending removal in one journal act. A failed removal, a lost
-      result, a read still showing the key or a failed append leaves it pending and Replace
-      incomplete. Remove the key, lose the result, then read: the first read showing the key
-      absent ends the pending removal. While a command hold or a destructive reinstall or
+      current key and every other line, and a covering harness-composed read (below) showing the
+      key absent, durably appended, ends the pending removal in one journal act. A failed
+      removal, a lost result, a read still showing the key or a failed append leaves it pending
+      and Replace incomplete. Remove the key, lose the result, then read: the first covering read
+      showing the key absent ends the pending removal. While a command hold or a destructive reinstall or
       abandonment disposition stands on a migrated machine with a pending removal, no removal
       is sent to it and Replace stays incomplete; once it ends, the removal proceeds.
+      Absence-read coverage (`STA-17`), each in its own run, with the recorded key removed from
+      the file the removal edited: let the machine's sshd effective configuration name a second
+      authorization source for an account on the login route that still holds the key; let it
+      name a key command; let a source apply under a condition the read cannot evaluate; let
+      the configuration, or a source it names, be unreadable. In each
+      the read ends nothing, the pending removal stands and Replace stays incomplete. With the
+      key absent from every source the configuration names for each account on the login route,
+      the read, durably appended, ends it. Put the key only in another account's source: the
+      covering read ends it, and the screen claims nothing about that account.
       Run Replace with an entry `STA-17`'s wrong-server record bars, each in its own run: once
       with a key possibly registered, and once barred before any intent of the flow's calls was
       journaled. In both the entry keeps its seed, bar, index, mapping and history, is not
@@ -2843,13 +2854,23 @@ Not pass/fail. Required to be recorded.
       with no relabel intent and no write, no 9 is adopted, the acceptance and both
       observations are retained under 7, and no hold is created. Restart the worker after
       the stop: the migration stays stopped, no write is sent and it is not reported migrated.
-      (f) With the old public key identified by retained records and an unrelated
+      (f) Where a history admits it, with the old public key identified by retained records
+      and named by a retired-seed entry and an unrelated
       authorization in the same file, the old key is removed only after the new-key login and
       a read showing `b-7`; the new key and the unrelated authorization stay. With it
       unidentified, every unidentified key stays, revocation is reported incomplete and no
       old-key login test is reported passed; a read of the machine still shows that key, and
       the machine is never shown as holding only its own key. The stopped branch of (e)
-      removes no key.
+      removes no key. In that first run, before the removal job is sent, one journal act ends
+      the naming entry as an entry that stands for the machine and keeps the key as a pending
+      removal at that entry's seed and index, linked to the machine at `b`; the new sheet
+      carries it with `reason:"old_key_unremoved"`, and with that append failed no job is sent. Let the job report the key removed with no
+      covering read: the pending removal stands, and Replace and revocation stay reported
+      incomplete across a restart, the new sheet's export and a Restore from it, after which
+      nothing is removed until Replace's flow continues; a read covering the login route's
+      sources, durably appended, then ends it (`CNF-20`). With the identified key named by no
+      retired-seed entry, it is not removed, no entry, seed or index is invented for it and
+      revocation is reported incomplete.
       (g) After a later approved destructive reinstall, whose dispatch derives 8, offer a
       `ready_to_reset` pin overlapping a retained fact, one below 7 included: it is refused.
       A pin overlapping no retained fact is admitted, and the comparison over the unknown
@@ -3016,7 +3037,15 @@ Not pass/fail. Required to be recorded.
       reference, is refused
       with the risk records shown, and nothing is journaled or reserved. With the fresh seed
       lacking its ceremony record, the flow's relay pass is not allocated and no call of the
-      flow is sent. A server with
+      flow is sent. With the pass allocated (`CHN-16`), each in its own run: with Robot's
+      build-named host not yet recorded on it, no tunneled Robot call is sent; with a
+      `/boot/{n}/rescue/last` response that carries no server number or another one, no server
+      host is journaled, no addition is signed and nothing dials the server; with the matching
+      read journaled and the server host's addition not approved, no job or login dials the
+      server, and the card's approval supplies no destination approval; a server host taken
+      from an account listing, relay metadata or model text is refused. With the matching read
+      journaled and that concrete addition approved and recorded, the flow's jobs dial the
+      server through the relay. A server with
       two roots whose labels read in `STG-20`'s form takes the root-label stop: no key is
       written and only the reset back stays, also when one of the two is a whole disk without a
       partition table. So does a server with one such root beside a possible root whose label

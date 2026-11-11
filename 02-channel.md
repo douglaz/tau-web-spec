@@ -715,7 +715,7 @@ its addition, or asking to have it recorded. Without that journaled matching rea
 it makes none of those actions, even on a pass whose destination is already recorded.
 A retained matching read suffices for a later dial; this selects no fresh read per
 connection or address-refresh policy. This source-before-dial rule governs the
-ordinary install ceremony; address admission on later maintained-machine re-entry
+ordinary install ceremony and, as below, the rescue rekey's relay pass; address admission on later maintained-machine re-entry
 or Restore is not decided here. The rule creates no binding, waives no
 existing account, binding or dispatch check, and selects no new proof that the credential
 matches the entry's account reference or procedure for making that match. It is
@@ -771,12 +771,29 @@ Reconnecting to a host already recorded on the same pass requires no new
 destination-addition approval merely by reconnecting, and waives no other admission
 check.
 
-These are consumer-side rules for the ordinary install ceremony, not relay-side
+**The rescue rekey's destinations** (owner-directed amendment,
+[ADR-0083](./docs/adr/0083-old-key-removal-reads-cover-the-login-route-and-the-rescue-pass-takes-the-ceremony-destination-rules.md)).
+The source, journal, structured-approval and durable-record rules above also govern the
+dedicated rescue rekey's relay pass (`STA-17`): the pass under that flow's fresh seed,
+allocated only after that seed's ceremony record. Its approved machine entry is the one
+the flow's card created. Robot's build-named host MUST be recorded on that pass before the
+flow's first tunneled Robot call. The server host MUST come only from a read of
+`/boot/{n}/rescue/last` that the flow makes under `SEC-4`'s rescue grant: it names the
+entry's server number, and under the source rule above its response MUST carry that same
+number and the host, which the harness journals with that read before any dial of that host. That
+server host's addition then takes an approval of that concrete addition. The flow's card
+approves no destination and does not acquire the advance approval above, which is
+`ARC-15`'s setup screen's alone. This widens no grant: for that flow, `SEC-4` says "the
+read of `/boot/{n}/rescue/last` journaled before the reset into rescue, the reset itself, and
+the polls of `/boot/{n}/rescue/last` after it".
+
+These are consumer-side rules for the ordinary install ceremony and the rescue rekey's
+pass, not relay-side
 proof of destination ownership. They change neither the shared eligible-host policy
 nor host-key admission. They select no pass-procurement or recording wire, hand-recording
 mechanism, addition retry class, reconciliation predicate, resource-barrier mapping,
-address export or refresh rule. They decide nothing for the rescue rekey: `STA-17`
-says "How the flow obtains that pass and records its destinations is not decided."
+address export or refresh rule. How the rescue rekey ties the credential it calls under to
+the entry's account reference stays `STA-17`'s open point.
 
 **CHN-16a Destination authorization never grants access to the relay's private network.**
 For the destination policy, see [paid-tcp-relay][relay-source] DST-4–DST-7; for the LNVPS path's

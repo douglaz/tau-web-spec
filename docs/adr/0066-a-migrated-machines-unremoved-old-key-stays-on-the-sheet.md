@@ -103,7 +103,13 @@ stood before this change (commit `d94429c`):
 - ADR-0056's rescue rekey keeps its own rule, "removes the exact old public key that checked
   retained records identify", for that flow. This removal takes a recorded key without deriving
   it; if "checked" there means derived and compared, that narrows it for this removal (comment
-  134000001).
+  134000001). (Amended 2026-11-11 by
+  [ADR-0083](./0083-old-key-removal-reads-cover-the-login-route-and-the-rescue-pass-takes-the-ceremony-destination-rules.md),
+  an owner-directed amendment: that flow's removal is now kept as a pending removal of this
+  record's kind, at the seed and index of the retired-seed entry naming the key, and ends as one
+  does, and it is narrowed to a key a retired-seed entry names. The read that ends any pending
+  removal must now cover every sshd authorization source for the accounts on the machine's login
+  route.)
 
 Held: "no journal state, and no export, names one machine under two seeds", since a pending removal
 names a key and its link points one way, to the machine's current name; ADR-0058's "the recorded
