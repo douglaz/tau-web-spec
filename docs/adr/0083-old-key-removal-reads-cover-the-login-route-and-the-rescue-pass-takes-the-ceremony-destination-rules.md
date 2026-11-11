@@ -30,24 +30,27 @@ Each quote is the text as it stood before this change (commit `120951e`).
 ## The shape chosen
 
 - **Row 05, coverage.** The read ends a pending removal only when its captured output establishes,
-  for each account on the machine's recorded login route, every authorization source the
-  machine's sshd honours for that account by its effective configuration, and shows the key
-  absent from each. A read that cannot establish those sources, cannot read one it lists, or meets
+  for each account on the machine's login route, every authorization source the machine's sshd
+  honours for that account by its effective configuration, and shows the key absent from each.
+  The route's accounts are those the harness enters the machine as over SSH, `arch` at LNVPS
+  (`STG-21`); an account reached only by elevation is not one. A read that cannot establish those sources, cannot read one it lists, or meets
   one it cannot enumerate (a key command, a condition it cannot evaluate) ends nothing, and the
   removal stays pending until a covering read or the deletion-evidence act. The core is five of
   five in round one; the login route's accounts only is four of five, with the required reader in
   the majority. The deletion-evidence ending is unchanged.
 - **Row 05, the limits statement.** Replace's existing limits statement also names the accounts on
-  each machine's recorded login route as the scope of an old key's revocation by an absence read,
+  each machine's login route as the scope of an old key's revocation by an absence read,
   and claims nothing about any other account. No new completion state is added. Four of four in
   round two.
 - **Row 07, an ordinary pending removal.** Before the rescue removal job is sent, one durable
-  journal act keeps the key it removes as a pending removal under the seed the retired-seed entry
-  naming it was allocated under, linked to the machine at `b`. Only the covering read or the
-  deletion-evidence act ends it; the job's own result ends nothing. Replace and revocation stay
-  reported incomplete across restart, export and Restore, and a Restore removes nothing. Five of
-  five in round one. The credential format already carries it: its pending removal is "the old key
-  of a machine since migrated", and the rescue rekey is that machine's migration to `b`.
+  journal act does what Replace's migration act does for a migrated machine: it ends the
+  retired-seed entry naming the key as an entry that stands for the machine, and keeps the key as
+  a pending removal at that entry's seed and index, linked to the machine at `b`. Only a covering
+  read or the deletion-evidence act ends it; the job's own result ends nothing. Replace and
+  revocation stay reported incomplete across restart, export and Restore, and a Restore removes
+  nothing. Five of five in round one, as the ordinary act. The credential format already carries
+  it: its pending removal is "the old key of a machine since migrated", and the rescue rekey is
+  that machine's migration to `b`.
 - **Row 07, a key no retired-seed entry names.** It is not removed, no entry, seed or index is
   invented for it, and revocation is reported incomplete; having no pending removal for it never
   reads as complete. Three of four in round two, with the required reader in the majority.
@@ -57,9 +60,10 @@ Each quote is the text as it stood before this change (commit `120951e`).
   tunneled Robot call; the server host only from a read of `/boot/{n}/rescue/last` the grant
   already permits, whose response echoes the entry's server number, journaled before any dial;
   then an approval of that concrete addition. No call and no dial before a recorded destination,
-  and the flow's card approves no destination. Five of five in round one.
-- **Row 17, the address source.** Round one could not tell whether the rescue grant included a
-  read carrying the server's address. The committed rehearsal capture of
+  and the flow's card approves no destination. Five of five in round one. How the flow obtains
+  the pass stays not decided.
+- **Row 17, the address source.** The panel checked whether the rescue grant includes a read
+  carrying the server's address (262000001). The committed rehearsal capture of
   `GET /boot/{n}/rescue/last` (`docs/findings/2026-09-08-first-stage-rehearsal/rescue-last.json`)
   carries `server_number` and `server_ip`: one observation of the vendor's response, not integrated
   harness evidence. That read is already in the grant, so no grant is widened. Where a response
@@ -80,7 +84,7 @@ Each quote is the text as it stood before this change (commit `120951e`).
 - **Narrowed, by name (row 07):** the rescue removal permission. `STA-17`'s "removes only the exact
   old client public key that checked retained machine records for the same authorized machine
   identify" now also requires a retired-seed entry that names the key.
-- **Amended, by name (row 17):** `STA-17`'s open point on the pass and its destinations, and
+- **Amended, by name (row 17):** the destinations half of `STA-17`'s open point on the pass, and
   `CHN-16`'s "They decide nothing for the rescue rekey". The rescue rekey takes the ordinary
   ceremony's rules; `ADR-0079`'s advance approval stays `ARC-15`'s setup screen's alone.
 - Nothing is widened.
@@ -90,14 +94,23 @@ Each quote is the text as it stood before this change (commit `120951e`).
 - Row 06: whether another hard-link name still shows the key after a removal stays not decided.
 - Row 18: how the flow ties the credential it calls under to the entry's account reference stays
   not decided. `tw-kx8` is not reopened.
-- No pass-procurement or recording wire, address refresh or export rule is chosen.
+- How the flow obtains its pass stays not decided, and no pass-procurement or recording wire,
+  address refresh or export rule is chosen.
+- Whether any history reaches the removal is not established here. The card is refused where
+  another entry's admitted mapping equals the server number ([Protected browser evidence v1
+  §3a](../design/protected-evidence-v1.md#3a-protected-operation-evidence)), and `STA-17` says
+  "This opens no route for a server an entry already holds", so a retired-seed entry naming the
+  identified key may never stand beside an approved card. Where none does, nothing is removed
+  and revocation stays reported incomplete, which is the narrowing's fail-safe side; no rule is
+  added for it.
 - A pending removal linked to an entry the wrong-server record bars stays pending, as `ADR-0081`
   records; this change adds no refusal for it.
 - Accounts off the login route are outside the read; the limits statement says so rather than
   claiming them.
 - `SEC-4`'s rescue grant is unchanged.
 - The formal companion: nothing there models removals or the rescue pass, and `TauWeb.Relay` is
-  unchanged. No theorem, gate, witness or assumption boundary moves (five of five in round one).
+  unchanged. No theorem, gate or assumption boundary moves (five of five in round one), and no
+  witness changes.
 
 ## Alternatives considered
 

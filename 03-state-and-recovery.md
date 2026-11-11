@@ -1790,15 +1790,17 @@ the rescue rekey's old-key removal below.
 One journal act
 ends a pending removal once a harness-composed read of the machine's authorized keys, from
 captured job output (`ARC-43`), shows that key absent and is durably appended. That read ends it
-only when its captured output establishes, for each account on the machine's recorded login
-route (`STG-21` for LNVPS), every authorization source the machine's sshd honours for that
-account by its effective configuration, and shows the key absent from each
+only when its captured output establishes, for each account on the machine's login route, every
+authorization source the machine's sshd honours for that account by its effective
+configuration, and shows the key absent from each
 ([ADR-0083](./docs/adr/0083-old-key-removal-reads-cover-the-login-route-and-the-rescue-pass-takes-the-ceremony-destination-rules.md)).
+The login route's accounts are those the harness enters the machine as over SSH, `arch` at
+LNVPS (`STG-21`); an account it reaches only by elevation is not one.
 A read that cannot establish those sources, cannot read one it lists, or meets one it cannot
 enumerate, such as a key command or a condition it cannot evaluate, ends nothing, and the
-removal stays pending until a read that covers them or the deletion-evidence act below. The read
+removal stays pending until a covering read or the deletion-evidence act below. The read
 covers no other account. One whose key is
-already absent, as after a removal whose result was lost, ends at the first such read. A failed
+already absent, as after a removal whose result was lost, ends at the first covering read. A failed
 or lost removal, a read still showing the key and a failed append leave it pending. While a
 pending removal stands, Replace and revocation stay reported incomplete, across restart, export
 and Restore. A Restore removes nothing by itself; after it, the removal is a step of Replace's
@@ -1885,10 +1887,10 @@ append supplies no approval (`STA-3`). `STG-3a` says "Every Robot call rides the
 `fetch`", so the flow needs a relay pass, and it is a pass under the fresh seed, whose
 allocation therefore waits for that seed's ceremony record: `STA-22b` says "allocation in every
 family — machines, relay passes and handoffs — MUST be refused until that seed id has the
-journaled ceremony record of `STA-23`". That pass's destinations are recorded under `CHN-16`'s
-source, journal and structured-approval rules for this flow: until a destination is recorded on
-it under them, the flow sends no call to it and dials nothing there, and the flow's card approves
-no destination. Every call of the flow is checked against that entry,
+journaled ceremony record of `STA-23`". How the flow obtains that pass is not decided. Its
+destinations are recorded under `CHN-16`'s source, journal, structured-approval and
+durable-record rules for this flow: until a destination is recorded on it under them, the flow
+sends no call to it and dials nothing there. Every call of the flow is checked against that entry,
 never against a listing of the account's servers. How the flow ties the credential it calls
 under to the entry's account reference is not decided. In rescue, before the new client key is
 written, the `rescue_install_key` job (`ARC-43`) MUST find, in its own harness-composed read of
@@ -2117,14 +2119,15 @@ untouched and revocation is reported incomplete; it supplies no deletion target,
 of the whole key file and no new command hold. So does a key those records identify but no
 retired-seed entry names: no entry, seed or index is invented for it, and having no pending
 removal for it never shows revocation complete. A removal supports only its scoped effect.
-Before the removal job is sent, one durable journal act keeps the key it removes as a pending
-removal under the seed the retired-seed entry naming it was allocated under, linked to the
-machine at `b` and not a second machine; a failed append sends no job (`STA-3`). From then on it
-is a pending removal like those above: only the read above that covers the login route's
-sources, durably appended, or the act that records the machine's deletion evidence ends it, and
-the removal job's own result ends nothing. While it stands, Replace and revocation stay reported
-incomplete across restart, export and Restore, and a Restore removes nothing by itself (above).
-For this removal and for the removal of a pending removal's key (above), where a regular file
+Before the removal job is sent, one durable journal act ends the retired-seed entry naming the
+key as an entry that stands for the machine, as Replace's migration does (`STA-22b`), and keeps
+the key as a pending removal at that entry's seed and index, linked to the machine at `b` and not
+a second machine; a failed append sends no job (`STA-3`). From then on it is a pending removal
+like those above: only a covering read above, durably appended, or the act that records the
+machine's deletion evidence ends it, and the removal job's own result ends nothing. While it
+stands, Replace and revocation stay reported incomplete across restart, export and Restore, and
+a Restore removes nothing by itself (above).
+For the removal of any pending removal's key, this one included, where a regular file
 at a removal target has another hard link before the removal, whether that other name still
 shows the key after the removal is not decided. Only that other name's
 result is open; each removal's own rules still bind it unchanged, including what ends a
@@ -2156,7 +2159,7 @@ Application secrets a thief could have read require rotation at their services; 
 SSH keys or re-arming a scan does not revoke them. A thief may also have left persistence on
 a machine. Replace MUST state these limits and offer destroy/rebuild where persistence is
 suspected; a successful key replacement is no claim that the machine is clean. The statement
-also names the accounts on each machine's recorded login route as the scope of an old key's
+also names the accounts on each machine's login route as the scope of an old key's
 revocation by a read showing it absent (above), and claims nothing about any other account.
 
 For LNVPS rebuilds, `ARC-22` says "it is a new order under the new seed's key"; the old machine

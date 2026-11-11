@@ -886,17 +886,18 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       Replace stays incomplete, and nothing is removed until the operator continues Replace's
       flow; the removal then runs over a connection authenticated by the machine's current key
       under its existing pin, never the old key, removes exactly the recorded key and keeps the
-      current key and every other line, and a harness-composed read showing the key absent,
-      durably appended, ends the pending removal in one journal act. A failed removal, a lost
-      result, a read still showing the key or a failed append leaves it pending and Replace
-      incomplete. Remove the key, lose the result, then read: the first read showing the key
-      absent ends the pending removal. While a command hold or a destructive reinstall or
+      current key and every other line, and a covering harness-composed read (below) showing the
+      key absent, durably appended, ends the pending removal in one journal act. A failed
+      removal, a lost result, a read still showing the key or a failed append leaves it pending
+      and Replace incomplete. Remove the key, lose the result, then read: the first covering read
+      showing the key absent ends the pending removal. While a command hold or a destructive reinstall or
       abandonment disposition stands on a migrated machine with a pending removal, no removal
       is sent to it and Replace stays incomplete; once it ends, the removal proceeds.
       Absence-read coverage (`STA-17`), each in its own run, with the recorded key removed from
       the file the removal edited: let the machine's sshd effective configuration name a second
       authorization source for an account on the login route that still holds the key; let it
-      name a key command; let the configuration, or a source it names, be unreadable. In each
+      name a key command; let a source apply under a condition the read cannot evaluate; let
+      the configuration, or a source it names, be unreadable. In each
       the read ends nothing, the pending removal stands and Replace stays incomplete. With the
       key absent from every source the configuration names for each account on the login route,
       the read, durably appended, ends it. Put the key only in another account's source: the
@@ -2853,15 +2854,17 @@ Not pass/fail. Required to be recorded.
       with no relabel intent and no write, no 9 is adopted, the acceptance and both
       observations are retained under 7, and no hold is created. Restart the worker after
       the stop: the migration stays stopped, no write is sent and it is not reported migrated.
-      (f) With the old public key identified by retained records and an unrelated
+      (f) Where a history admits it, with the old public key identified by retained records
+      and named by a retired-seed entry and an unrelated
       authorization in the same file, the old key is removed only after the new-key login and
       a read showing `b-7`; the new key and the unrelated authorization stay. With it
       unidentified, every unidentified key stays, revocation is reported incomplete and no
       old-key login test is reported passed; a read of the machine still shows that key, and
       the machine is never shown as holding only its own key. The stopped branch of (e)
-      removes no key. With the identified key named by a retired-seed entry, the journal keeps
-      it as a pending removal linked to the machine at `b` before the removal job is sent, and
-      with that append failed no job is sent. Let the job report the key removed with no
+      removes no key. In that first run, before the removal job is sent, one journal act ends
+      the naming entry as an entry that stands for the machine and keeps the key as a pending
+      removal at that entry's seed and index, linked to the machine at `b`; the new sheet
+      carries it with `reason:"old_key_unremoved"`, and with that append failed no job is sent. Let the job report the key removed with no
       covering read: the pending removal stands, and Replace and revocation stay reported
       incomplete across a restart, the new sheet's export and a Restore from it, after which
       nothing is removed until Replace's flow continues; a read covering the login route's

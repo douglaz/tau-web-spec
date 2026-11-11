@@ -775,12 +775,12 @@ check.
 [ADR-0083](./docs/adr/0083-old-key-removal-reads-cover-the-login-route-and-the-rescue-pass-takes-the-ceremony-destination-rules.md)).
 The source, journal, structured-approval and durable-record rules above also govern the
 dedicated rescue rekey's relay pass (`STA-17`): the pass under that flow's fresh seed,
-allocated only after that seed's ceremony record, whose approved machine entry is the one
+allocated only after that seed's ceremony record. Its approved machine entry is the one
 the flow's card created. Robot's build-named host MUST be recorded on that pass before the
 flow's first tunneled Robot call. The server host MUST come only from a read of
 `/boot/{n}/rescue/last` that the flow makes under `SEC-4`'s rescue grant: it names the
 entry's server number, and under the source rule above its response MUST carry that same
-number and the host, which the harness journals with that read before any dial. That
+number and the host, which the harness journals with that read before any dial of that host. That
 server host's addition then takes an approval of that concrete addition. The flow's card
 approves no destination and does not acquire the advance approval above, which is
 `ARC-15`'s setup screen's alone. This widens no grant: for that flow, `SEC-4` says "the

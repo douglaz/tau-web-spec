@@ -78,5 +78,6 @@ reasoning remain the historical record.
 records the owner-directed amendment (`tw-74f` row 17) that applies `CHN-16`'s source, journal,
 structured-approval and durable-record rules to the rescue rekey's fresh-seed pass, with the server
 host taken from the granted `/boot/{n}/rescue/last` read and a concrete approval of its addition.
-The advance approval of ADR-0079 does not extend to it. The open point quoted above is closed;
-pass procurement and the recording wire stay unchosen.
+The advance approval of ADR-0079 does not extend to it. The destinations half of the open point
+quoted above is closed; how the flow obtains the pass stays not decided, and no recording wire is
+chosen.
