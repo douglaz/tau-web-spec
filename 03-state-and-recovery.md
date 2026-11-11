@@ -1619,6 +1619,13 @@ recovery sheet found later stays outside the store: no act joins its facts to th
 and none is kept for later comparison. The credential format versions this partial history;
 older-version validation is unchanged.
 
+A machine whose rescue rekey in `STA-17` stopped with no ordinal accepted has a partial history
+too, with no accepted ordinal, and export and Restore MUST round-trip it: the stop, with the
+migration, Replace and revocation it leaves incomplete, the unknown past, the unconfirmed mark on
+the machine's shown id (`STG-20`) and each observed label as an as-of observation. No acceptance
+is invented, and the rules above for a partial history hold for it, except those about an
+accepted ordinal and its basis. A sheet exported before the stop does not carry it.
+
 In the maintained-machine Restore case above, operator binding can precede contact. Failed or
 unavailable restored-pin/publication readiness alone does not prevent an eligible session's
 acceptance and otherwise authorized reinstall. This establishes no universal future recovery
@@ -2041,6 +2048,17 @@ write is a fresh issue the operator chooses, never automatic. The machine counts
 and `b-7` becomes its confirmed current id, only when a read shows `b-7`, never before the disk
 does.
 
+**With no ordinal accepted, the migration stops after the new-key login.** If the installed
+system accepts a login authenticated with the new client key while no acceptance is on record,
+`a-7` is left untouched and the flow MUST stop this migration unfinished: it issues no relabel
+intent or write and removes no key. The new key stays, and so does every key already on the
+machine, so the machine is never shown as holding only its own key. Migration, Replace and
+revocation are reported incomplete, also after restart, and nothing in the flow is retried
+automatically (`STA-6`). The harness MUST refuse an acceptance whose ordinal is above
+9 999 999 before it is recorded: the label is shown only as an as-of observation, with no proposed id, and the flow then
+runs as with no acceptance. Whether a later acceptance may leave this stop is not decided. For
+the id shown after this stop, see `STG-20`; for the partial history it leaves, see `STA-16`.
+
 After acceptance the screen MUST show `b-7` as the pending destination and distinguish the
 allocation `b`, the observed disk text `a-7`, installed access and label confirmation. Once a write
 is sent, `a-7` is only an as-of observation, not an assertion about the disk's current label. Label
@@ -2074,10 +2092,11 @@ journal act and absent-key read above is not decided.
 
 While this flow runs, no ordinary session binds the machine. Once it has stopped unfinished,
 unless its entry carries the wrong-server record above, the operator MAY bind one through `SEC-1`'s re-entry; `SEC-1` says "by re-entry, on a maintained
-machine only". The model is shown the pending id marked unconfirmed, with each label the harness
+machine only". The model is shown the pending id marked unconfirmed or, after the stop with no
+ordinal accepted, the id `STG-20` shows there, marked unconfirmed, with each label the harness
 has read from the disk beside it as an as-of observation; no observed label becomes the id. The
-session may rely on an independently admitted active pin and on the accepted number as a
-proposal with its basis. It never relies on prior pin provenance, retired pins, the unknown
+session may rely on an independently admitted active pin and, where one was accepted, on the
+accepted number as a proposal with its basis. It never relies on prior pin provenance, retired pins, the unknown
 history, zero exposure, complete revocation or a passed comparison over the unknown
 installations, and every ordinary check still applies. For the root the install brief surfaces
 in this window, see [docs/briefs/01-install.md](./docs/briefs/01-install.md).

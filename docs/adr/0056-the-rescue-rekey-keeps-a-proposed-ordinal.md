@@ -56,6 +56,30 @@ later read; it may leave the server in rescue even when the refusal's cause is c
 It supplies no repair route or renewed vendor authority. The mount-arrangement open point and
 the distinction from a valid read's withheld offer stay at `STA-17`.
 
+**With no ordinal accepted, a successful new-key login stops the migration** (owner-directed
+amendment, 2026-11-10, `tw-74f` comment 261000001, rows 01 and 02, after a review panel in two
+rounds). Before this, no sentence said what follows a successful installed-system login with
+no acceptance on record, and nothing said what happens to a proposal above `STG-20`'s bound.
+Now `STA-17` stops that migration unfinished: `a-7` untouched, no relabel intent or write, no
+key removed, the new key kept, and migration, Replace and revocation reported incomplete, also
+after restart, with nothing retried. An acceptance whose ordinal is above 9 999 999 is refused
+before it is recorded, and the flow then runs as with no acceptance. Whether a later acceptance
+may leave this stop is not decided. `STG-20` shows `b-0` marked unconfirmed and says that no
+ordinal was accepted; no read ends that mark, only a dispatched destructive reinstall, which
+derives 1; and its reinstall refusal now reads "at or above 10 000 000". The install brief
+surfaces every root of that machine, one whose label equals the shown id included, and never
+erases, resumes or treats it as found complete until that dispatch. `STA-16` round-trips the
+stop, the unknown past, the mark and each observed label through export and Restore, and the
+credential format's partial-history section follows, choosing no member name or encoding.
+
+This adds rules. Named: it widens the install brief's unconfirmed exception, which covered only
+a root whose label differs from the shown id, to a matching root on this path; it widens
+`STA-16`'s round-trip duty, which covered only a machine with an accepted ordinal, to this stop;
+and leaving the later acceptance undecided is narrower than the stop option first put to the
+panel, which let the operator accept later. No theorem, gate or assumption boundary changes, and
+no decision above is reopened. The panel's counts and the owner's picks for the shown id ("Show
+0, unconfirmed") and the refusal's wording ("Limit only") are in that comment.
+
 **Only an identified old key is removed** (old-key A). After the login and the readback, the flow
 removes the exact old public key that checked retained records identify. An unknown key stays and
 revocation reads incomplete.
@@ -110,6 +134,13 @@ the display rule that the history reads unknown, never unpinned, stands.
 | Command filter | Any command filter on this machine. |
 | Unknown key and `CNF-5` | Rewrite `authorized_keys` to the new key alone. |
 | Unknown key and `CNF-5` | Exempt from `CNF-5` a machine whose revocation is reported incomplete. |
+| No ordinal accepted | Continue with `n` = 0 and relabel to `b-0` after the login. |
+| No ordinal accepted | Continue the migration and leave the label `a-7` with no ordinal recorded. |
+| No ordinal accepted | Show no installation id until a reinstall, which would derive 0. |
+| No ordinal accepted | Let a later acceptance leave the stop. |
+| Ordinal above the bound | Accept it as a proposal and write no relabel. |
+| Ordinal above the bound | Also refuse on the 16-byte label size, or restate that argument in the refusal. |
+| Record of the 2026-11-10 amendment | A new decision record. |
 
 Queued and unchosen: replacing the whole key file, operator-selected deletion of an unidentified
 key, admitting a seedless sheet for identification, clearing the unknown from a matching journal
@@ -123,3 +154,6 @@ Payload version 6 is defined by what it must carry; its member names and gap enc
 chosen here. These rules remain prose only: the formal companion does not carry the accepted
 base, and `TauWeb.Pins.fresh` compares against the knowledge it is given. This record makes no
 capability, readiness or runtime claim; the dedicated path stays behind its admission row.
+The 2026-11-10 amendment changes `STA-17`, `STG-20`, `STA-16`, the credential format's
+partial-history section, the install brief, ADR-0045's note, `CNF-86`'s reinstall bound and
+`CNF-117`'s cases (q) to (s); it stays prose only as well.

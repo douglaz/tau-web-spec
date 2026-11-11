@@ -82,7 +82,7 @@ lsblk -dno NAME,SIZE,MODEL,SERIAL,WWN; ls -l /dev/disk/by-id/ | grep -v part; [ 
   and every probe error or other status, including 4 and 8. Match the beginnings of lines:
   `PART_ENTRY_TYPE=`, `PART_ENTRY_NAME=` and `LABEL_FATBOOT=` establish neither case.
   Only a matching root is this installation and eligible for **Resume** or "found complete,
-  do not wipe". Two roots with that id mean stop and surface, never erase.
+  do not wipe", except when no ordinal was accepted (below). Two roots with that id mean stop and surface, never erase.
 - An unmarked root, another installation's id or another machine's id is the predecessor,
   including a hand-installed root. It is erased on the selected disks as approved for this
   install; never resume it merely because it looks complete. The label steers you; nothing
@@ -92,6 +92,11 @@ lsblk -dno NAME,SIZE,MODEL,SERIAL,WWN; ls -l /dev/disk/by-id/ | grep -v part; [ 
   the shown id is not the predecessor: surface it to the operator, and never erase it, resume
   it or treat it as found complete, until a destructive reinstall of this machine is
   dispatched. After that dispatch it is the predecessor as above.
+- When the harness also says that rescue rekey accepted no ordinal, no read ends the mark; only
+  a dispatched destructive reinstall of this machine does (`STG-20`). Until then no root on the
+  machine is this installation or the predecessor, a root whose label equals the shown id
+  included: surface every root to the operator, and never erase it, resume it or treat it as
+  found complete. After that dispatch each root is handled as above.
 - Decide the complete installation disk set by WWN before any write, and state it in your
   next command: the root disk, and the explicitly selected additional disks (or none). Never
   the whole disk list. Every disk you name will be erased. Re-read identities in the rescue
@@ -112,7 +117,7 @@ the bundle's value binds.
 ## Step 3 — partition, format, mount
 
 First inspect the labels probed in step 1. A single root whose label equals the shown
-`<installation-id>` is yours: if partial, follow **Resume** without formatting; if complete,
+`<installation-id>` is yours, unless the harness says no ordinal was accepted (step 1): if partial, follow **Resume** without formatting; if complete,
 **found complete, do not wipe** — inspect it and request `ready_to_reset`, preserving its keys.
 An installed-system pin already recorded means continuing keeps that root and its keys; changing
 those keys requires a separately approved destructive reinstall (`STA-20b`). An unresolved label probe
@@ -283,7 +288,7 @@ rehearsal never resumed; it only ever wiped. What a resume should look like, unt
   mounted and its disk-probed label equals the shown id, inspect the package, network and boot state and
   re-issue only the blocks whose work is missing. Steps 5–7 as a whole are **not** declared
   idempotent: step 7's additional-disk block erases. Resume only this installation's matching
-  root and preserve its host keys. If it is complete, do not wipe: inspect it and request
+  root, never one step 1 says to surface, and preserve its host keys. If it is complete, do not wipe: inspect it and request
   `ready_to_reset`. An unmarked or foreign-id root is the approved predecessor, not a resume
   (under an unconfirmed id, see step 1); two matching roots or an unresolved label probe mean
   stop and surface, never erase.

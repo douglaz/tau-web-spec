@@ -2696,7 +2696,7 @@ Not pass/fail. Required to be recorded.
       component is distinct among machines allocated under the current seed. Check lowercase
       hexadecimal for the machine index and decimal for the installation ordinal, neither with
       leading zeros. The longest label `7fffffff-9999999` fits the root label. A reinstall that
-      would make the ordinal 10 000 000 is refused before dispatch on both paths, saying that
+      would make the ordinal 10 000 000 or more is refused before dispatch on both paths, saying that
       the installation id would exceed its limit. Replace moves the machine component to the
       new index and carries the ordinal; an unmigrated retired-seed index can coincide with
       a migrated machine's new index. Replace refuses to migrate an install unfinished in
@@ -3020,6 +3020,28 @@ Not pass/fail. Required to be recorded.
       operator stop with the reset into rescue unconfirmed, the read that resolves it is still
       sent. A completed flow's screen names the key it registered at Robot, and no
       deregistration is sent.
+      (q) Decline the acceptance, confirm the reset into the installed system and let the
+      new-key login succeed: the migration stops unfinished, no relabel intent, relabel write or
+      key removal is sent, the label still reads `a-7`, and the new key and every earlier key
+      remain; the machine is never shown as holding only its own key. Migration, Replace and
+      revocation are not reported complete, also after restart, and nothing is retried. The
+      shown id is `b-0` marked unconfirmed, the harness says no ordinal was accepted, and `a-7`
+      is beside it as an as-of observation, never as its id. Re-entry then binds a session, and
+      in it a return to rescue without a destructive reinstall finds the root labelled `a-7`:
+      the install brief surfaces it, and neither erases it as the predecessor, resumes it nor
+      treats it as found complete. In its own run, give the one root the label `b-0` before the
+      flow and decline its acceptance too: after the stop, a read showing `b-0` ends no mark, and
+      the brief surfaces that root the same way. After a destructive reinstall of the machine is
+      dispatched, that dispatch derives 1 and the root is the approved predecessor.
+      (r) Stop as in (q), then export and import: the stop, with the migration, Replace and
+      revocation left incomplete, the unknown earlier installations, the unconfirmed mark and
+      `a-7` as an as-of observation round-trip without the journal. No acceptance, earlier
+      group, observation, pin or empty-history placeholder is invented, and (q)'s surfacing of
+      the root holds after the Restore.
+      (s) Where the flow offers an acceptance for a root whose label reads an ordinal above
+      9 999 999, such as `a-12345678`, accept it: the acceptance is refused before it is
+      recorded, nothing is journaled as accepted, the label is shown only as an as-of
+      observation with no proposed id, and a successful new-key login then stops as in (q).
       Boundary-crossed and destroyed-data.
 - [ ] **CNF-87 · BLOCKING** The LNVPS path's relay uses the selected `/v2/` profile and a
       hand-recorded pass (`STG-18`; [paid-tcp-relay][relay-source] PAS-6). Demonstrate fresh
