@@ -60,20 +60,24 @@ the distinction from a valid read's withheld offer stay at `STA-17`.
 amendment, 2026-11-10, `tw-74f` comment 261000001, rows 01 and 02, after a review panel in two
 rounds). Before this, no sentence said what follows a successful installed-system login with
 no acceptance on record, and nothing said what happens to a proposal above `STG-20`'s bound.
-Now `STA-17` stops that migration unfinished: `a-7` untouched, no relabel intent or write, no
-key removed, the new key kept, and migration, Replace and revocation reported incomplete, also
-after restart, with nothing retried. An acceptance whose ordinal is above 9 999 999 is refused
-before it is recorded, and the flow then runs as with no acceptance. Whether a later acceptance
-may leave this stop is not decided. `STG-20` shows `b-0` marked unconfirmed and says that no
-ordinal was accepted; no read ends that mark, only a dispatched destructive reinstall, which
-derives 1; and its reinstall refusal now reads "at or above 10 000 000". The install brief
-surfaces every root of that machine, one whose label equals the shown id included, and never
-erases, resumes or treats it as found complete until that dispatch. `STA-16` round-trips the
-stop, the unknown past, the mark and each observed label through export and Restore, and the
-credential format's partial-history section follows, choosing no member name or encoding.
-These rules reach only this stop: other stops of a run with no acceptance, such as a failed
-new-key login, keep today's text. What a root is to the install brief when its old label equals
-the id the later reinstall derives is not decided either.
+Now `STA-17` says "If the installed system accepts a login authenticated with the new client key
+while no acceptance is on record, `a-7` is left untouched and the flow MUST stop this migration
+unfinished: it issues no relabel intent or write and removes no key", and "Migration, Replace and
+revocation are reported incomplete, also after restart". For row 02, `STA-17` says "The harness
+MUST refuse an acceptance whose ordinal is above 9 999 999 before it is recorded", and it keeps
+the route out open: "Whether a later acceptance may leave this stop is not decided". `STG-20`
+says "the harness shows it marked unconfirmed and says that no ordinal was accepted" and "No read
+ends that mark, not even one showing `b-0` on the disk; only a dispatched destructive reinstall
+of the machine does, and that dispatch derives 1"; its reinstall refusal now reads "at or above
+10 000 000". The install brief's new branch surfaces every root of that machine, one whose label
+equals the shown id included, until that dispatch. `STA-16` says "A machine whose rescue rekey in
+`STA-17` stopped after a successful new-key login with no ordinal accepted has a partial history
+too, with no accepted ordinal, and export and Restore MUST round-trip it"; the credential
+format's partial-history section quotes it and chooses no member name or encoding. These rules
+reach only this stop: other stops of a run with no acceptance, such as a failed new-key login,
+keep today's text. `STA-17` says "What a root is to the install brief when, after a destructive
+reinstall of the machine is dispatched, its old label equals the id that dispatch derives is not
+decided".
 
 This amendment adds rules to `STA-17`, `STG-20` and `STA-16`; this record itself still adds none.
 Named: it widens the install brief's unconfirmed exception, which covered only
