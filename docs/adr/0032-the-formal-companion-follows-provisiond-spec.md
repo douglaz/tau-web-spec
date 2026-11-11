@@ -248,6 +248,8 @@ with the refused/admitted pair `TauWeb.Authority.locked_seal_refused` and
 `TauWeb.Authority.unlocked_seal_progress` (the same seal after unlock and before resume), a
 predicate-deleting mutation control and authority schema 5 in a new witness file
 ([Authority schema 5](../design/witness-file-v1.md#authority-schema-5)). It is model only: no
-normative Markdown changes, and no existing theorem, trace, witness pair or result changes.
+normative rule changes, only pointers to the new witness file name. No existing theorem, result
+or witness pair changes; every existing trace keeps its events and steps, with `sealUnlocked`
+true.
 The witness file states the input convention for a terminal append begun before Lock; it makes
 no storage-ordering claim.

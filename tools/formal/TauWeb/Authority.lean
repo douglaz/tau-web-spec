@@ -390,10 +390,10 @@ def localAuthorityStep (p : Params) (dp : Dispatch.Params) (w : World) : Local â
   | .replace => endAll w
   | .pause _ => pauseAll w
   | .resume old incarnation ok => resume p w old incarnation ok
-  -- A seal stands for a durably committed, validated terminal read under the data key, which a
-  -- locked store does not hold (`STA-23`), so it waits for `.unlock true`. This interpretation
-  -- takes a terminal append begun before Lock as presented after that unlock and before resume,
-  -- once opening's replay completes it; it makes no storage-ordering claim.
+  -- A seal stands for a durably committed, validated terminal, sealed under the data key, which
+  -- a locked store does not hold (`STA-23`), so it waits for `.unlock true`. As an input
+  -- convention, a terminal append begun before Lock is presented after the next unlock and
+  -- before resume, however it finishes; this interpretation makes no storage-ordering claim.
   | .sealTerminal who ok => if ok && !(p.sealUnlocked && w.locked) then updateActor w who fun a =>
       { a with sealedTerminal := true } else w
   -- `.unlock true` stands for the local passphrase entry; ceremony entry or re-display while
