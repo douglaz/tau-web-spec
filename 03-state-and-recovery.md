@@ -1082,9 +1082,10 @@ under a retired seed, each machine Replace has not migrated, each pass `STA-17`'
 names unrevoked or awaiting its retirement's confirmation, each handoff whose profile's declared
 lifetime still runs, with its credential's public half as its recorded key, each migration
 index a later Replace superseded under the seed it retired (`STA-17`), linked to its machine and
-not a second machine, and each pending removal: a retired key whose absence from a migrated
-machine no durably appended read has yet shown, linked to that machine and not a second machine.
-Replace's migration ends a machine's retired-seed entry and its superseded reservations as
+not a second machine, each pending removal: a retired key whose absence from a migrated
+machine no durably appended read has yet shown, linked to that machine and not a second machine,
+and each entry the rescue rekey's wrong-server record bars, with its bar, which no Replace
+migrates (`STA-17`). Replace's migration ends a machine's retired-seed entry and its superseded reservations as
 entries that stand for the machine and keeps each of their keys as a pending removal. Import accepts a retired allocation's recorded public
 key without deriving it and keeps it out of the index and counter checks above. It restores from
 it no allocation, and from a destroyed or Failed one, a superseded reservation or a pending
@@ -1459,7 +1460,9 @@ None of the machine state is secret, and all of it exists by the export `STA-15`
 Every record that names a machine names it by its seed and index. After Replace, the sheet also
 carries each machine and pass allocation the journal keeps under a retired seed (`STA-22b`) under that seed, with the records naming it: a machine Replace has not migrated keeps
 its machine state and its other records there, with the reason `STA-17`'s screen names it not yet
-migrated. **It no longer carries the SSH client keys**, which re-derive from the seed
+migrated, except that an entry `STA-17`'s wrong-server record bars keeps its bar there as its
+reason, in place of any other.
+**It no longer carries the SSH client keys**, which re-derive from the seed
 (`STA-22`). The export screen MUST say what the sheet can do in the wrong hands with the
 passphrase: **spend the remaining inference balance**. Reaching a machine needs the seed, and
 the seed is never in the sheet. Placement records carry no value, digest, scan key, byte
@@ -1761,7 +1764,8 @@ Replace's export of the new seed's sheet is one of its finished steps and does n
 Replace. That sheet carries, under the retired seed and with the reason this screen names, each
 machine not yet migrated, a jump host and an LNVPS rebuild's old machine awaiting its deletion
 evidence included, each pass not yet revoked or awaiting its manual retirement's
-confirmation, each handoff whose declared lifetime still runs, and each pending removal ([credential
+confirmation, each handoff whose declared lifetime still runs, each pending removal and each
+entry the wrong-server record below bars ([credential
 format](docs/design/credential-format-v1.md#operator-reports-payload-version-7)). A machine's
 migration moves its entry and every record naming it to the new index in one journal act, never
 record by record. That act keeps the machine's old key, and each of its superseded reservations'
@@ -1972,13 +1976,25 @@ stays behind `STA-24`'s barrier. The record is kept with the entry's allocation 
 survives export and Restore with it (`STA-22b`); the companion carries no such record. A sheet
 exported before the record was appended carries the entry without it, and `STA-16` says "A
 restored sheet is knowledge as of export": a Restore from that sheet alone brings the entry back
-without the bar, a known limit. How a
-Replace and the sheet's list of machine states treat an entry so barred is not decided, including
-whether the journal and the new seed's sheet keep the entry through a Replace. The
-screen MUST show what the harness may not have undone on that server, each item only when the
+without the bar, a known limit. Through every Replace the journal keeps an entry so barred under
+the seed it was allocated under, with its bar, index, mapping, history, intents, unresolved calls
+and the scoped read above, and no Replace migrates it: Replace's screen shows it barred and not
+migrated, and the sheet of each Replace that retires the seed it was allocated under, and of every
+later one, carries it with its bar, as the reason `"wrong_server"`
+([credential format](docs/design/credential-format-v1.md#report-corrections-payload-version-8),
+[ADR-0081](./docs/adr/0081-a-barred-entry-stays-through-replace-and-the-sheet-marks-it-wrong-server.md)).
+How a migration index a Replace reserved for the entry before the bar was recorded is settled is
+not decided. The screen MUST show what the harness may not have undone on that server, each item only when the
 journal holds the intent of the call or job behind it: a client key possibly registered at
 Robot, a rescue activation possibly armed, the server possibly in rescue and a key possibly
-written to its root; the operator acts at Robot. It MUST also tell the operator to export a new
+written to its root; the operator acts at Robot. While any such item stands, Replace and
+revocation stay reported incomplete, across restart and export; with no such item, the bar by
+itself holds neither. A sheet carries no intent, so
+after a Restore every entry it carries with the reason `"wrong_server"` holds Replace and
+revocation incomplete, including one barred before any intent was journaled. No item ends on the
+operator's word, an acknowledgement of the screen or an export, none of which proves anything
+about the server: only admitted, durably recorded evidence of that item's end could end it, and
+none is named for any of them. The screen MUST also tell the operator to export a new
 sheet, since a sheet exported earlier does not carry the record. The intended server takes a new
 card and a new
 entry at a new index.

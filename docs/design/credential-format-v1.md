@@ -72,8 +72,10 @@ its Failed target's `entry` member; it survives export and import with them and 
 authority to the retired entry or its replacement.
 
 The rescue rekey's wrong-server record (`STA-17`) survives export and import with its entry and
-restores no authority to that entry. Which member of the entry's allocation metadata carries it,
-under which payload version, is not decided.
+restores no authority to that entry. After a Replace, payload version 8 carries it on the entry's
+retired-seed entry as the reason `"wrong_server"` ([below](#report-corrections-payload-version-8)).
+Which member of a current-seed allocation's metadata carries it, and under which payload version,
+is not decided.
 
 Derivation v1 remains unchanged; the history export amendment below versions the recovery payload. A Failed machine allocation's consumed
 tombstone survives export as that allocation with `failed: true` and its `entry` and
@@ -385,9 +387,10 @@ own pre-send export start is unchanged.
 Every export writes version 8. It preserves version 7's `report` unchanged and adds required
 placement members `report_events` and `independent_end`, and, on each machine entry that stands
 for an approved entry, the members `entry` and `predecessor` (below). Every other version-7 field
-and validation remains, except that the retired-entry refusal of an extra member admits those two
-members where they belong (below), including its unspecified partial-history encoding; this extension defines
-no further partial-history machinery. A placement record has exactly the identity members
+and validation remains, including its unspecified partial-history encoding, except that the
+retired-entry refusal of an extra member admits those two members where they belong (below), and
+the refusal of an unknown reason admits the machine reason `"wrong_server"` (below); this
+extension defines no further partial-history machinery. A placement record has exactly the identity members
 `seed_id`, `machine_index`, `application_name`, `name`, `path`, `placed_at`, and the members
 `report`, `report_events`, `independent_end`.
 
@@ -538,7 +541,8 @@ journal keeps under a seed other than the payload's (`STA-22b`):
   the seed it retires;
 - each pending removal (below): a retired public key, the old key of a machine since migrated or
   the key of one of that machine's superseded reservations, whose absence from that machine no
-  durably recorded read has yet shown.
+  durably recorded read has yet shown;
+- each machine entry `STA-17`'s wrong-server record bars, which no Replace migrates.
 
 A migrated machine has no entry that stands for it; only its pending removals, which are not a
 second machine, stay. The exporter copies each entry unchanged from the journal,
@@ -582,7 +586,14 @@ strings. For a machine:
   public key to remove from the machine it is linked to, kept as a pending removal once that
   machine migrates;
 - `"old_key_unremoved"`: a pending removal, whose recorded key's absence from the machine it is
-  linked to no durably appended read has yet shown.
+  linked to no durably appended read has yet shown;
+- `"wrong_server"`, in version 8 only: an entry `STA-17`'s wrong-server record bars, which no
+  Replace migrates. A barred entry carries this reason whatever other machine reason would
+  apply. The reason carries the bar, so the entry grants none of what `STA-17`'s bar refuses, and
+  after a Restore it holds Replace and revocation incomplete (`STA-17`). The entry carries no
+  `migration_index`, and no `reservation_of` names it. A pending removal whose `removal_of` names
+  it stays pending, since the bar refuses the removal's connection. The entry's sheet record
+  carries no intent, no unresolved call and no scoped read, which stay in the journal.
 
 For a pass: `"awaiting_revocation"` (the paid/public path's signed revocation is not yet made),
 `"awaiting_retirement_confirmation"` (the LNVPS path's manual relay retirement awaits the
@@ -635,15 +646,17 @@ missing or malformed entry, a duplicate, an entry with the payload's seed, anoth
 missing, second or malformed state member, `destroyed` or `failed` other than `true`, an unknown
 reason, a reason of another family, a malformed or unmatched `migration_index`, a missing,
 malformed or unmatched `reservation_of`, one on another reason, a superseded reservation with a
-`migration_index` or `jump_host`, a missing, malformed or unmatched `removal_of`, one on another
-reason, one naming a reserved migration index or a machine whose key equals the recorded key, a
+`migration_index` or `jump_host`, a `"wrong_server"` entry with a `migration_index`, a
+`reservation_of` naming a `"wrong_server"` entry, a missing, malformed or unmatched
+`removal_of`, one on another reason, one naming a reserved migration index or a machine whose key equals the recorded key, a
 pending removal with a
 `migration_index`, `reservation_of` or `jump_host`, a record naming a superseded reservation or a
 pending removal, a handoff whose tenant
 and handoff ID another entry maps, an `outstanding` object with a missing, extra or duplicate
 member, and an extra member. In version 8, `entry` and `predecessor` (below) are not extra on a
 machine entry that version 8 requires to carry them; on every other entry, and on any entry of
-an older payload, they are.
+an older payload, they are. On a version-3-to-7 sheet `"wrong_server"` is an unknown reason, and
+conversion gives it to no entry.
 
 A destroyed or Failed retired allocation restores no contact identity, host pin authority,
 binding or session, takes part in no vendor reconciliation and has no `machine_states` entry; a
@@ -655,13 +668,15 @@ identity waits for `STA-22b`'s deferred check: before any contact with the machi
 pass's key, any vendor read or call under its identity, any giving of the handoff's credential to
 the post-harness machinery, and any binding, the harness derives the key from the retired seed the
 operator supplies and compares it with the recorded key. With no such seed, or on a mismatch, it
-makes none of them and the allocation stays outstanding. A superseded reservation restores no
+makes none of them and the allocation stays outstanding. A `"wrong_server"` entry restores its
+records with its bar: a passing check admits none of what `STA-17`'s bar refuses, and the entry
+stays outstanding, never migrated. A superseded reservation restores no
 records and no contact identity: its recorded key serves only its removal from the machine it
 names, as a pending removal once that machine migrates. A pending removal restores no records and
 no contact identity either: its recorded key serves only its removal from the machine
 `removal_of` names, a step of Replace's flow that `STA-17` owns, and a Restore removes nothing by
 itself. A passing check is no first contact: the machine reconnects under its existing pin, as
-`STA-17`'s Restore does. The sheet holds no key, so a Restore from the sheet without the retired
+`STA-17`'s Restore does, except a `"wrong_server"` entry, which does not reconnect. The sheet holds no key, so a Restore from the sheet without the retired
 seed runs no deletion check for an `"awaiting_deletion"` machine: until its
 key is derived the check has no key and makes no read (`SEC-4`).
 
@@ -677,8 +692,8 @@ keeps: its machine state goes, and so does every placement without a report on i
 ends every superseded reservation and every pending removal naming it, where the act that
 migrates the machine keeps their keys as pending removals. After a Restore from this sheet, an
 outstanding machine with a `migration_index` may finish its migration to that index, an identity
-the sheet lists. One without, other than a superseded reservation or a pending removal, has no
-index to move to, since an imported seed
+the sheet lists. One without, other than a superseded reservation, a pending removal or a
+`"wrong_server"` entry, which no Replace migrates or re-enters, has no index to move to, since an imported seed
 allocates nothing (`STA-22b`), so its migration waits for another Replace with a freshly
 generated seed, which re-enters it under its own retired seed.
 
