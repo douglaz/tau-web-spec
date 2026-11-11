@@ -339,7 +339,7 @@ The discovery refusals, `STA-17`'s written-root refusal among them, and their co
 withholding are Markdown-only too. The
 companion's list of durable prerequisite reads uses one opaque ordinal for each key set;
 nonemptiness of that list is not a public-key cardinality check. The companion does not carry
-file discovery or establish how these refusals map to a collection without a durable result.
+file discovery or root identity, or establish how these refusals map to a collection without a durable result.
 It also lacks the originating-command correlation and issue-order mapping needed to distinguish
 a delayed or duplicate old result from a genuinely later-issued read. Its collection and
 prerequisite-result event is coupled and derives the installation at processing; this is no
@@ -1912,11 +1912,12 @@ every partition, and every whole disk without a partition table, that the rescue
 the server's disks; it probes each one, and its captured output lists each device it probes with
 that probe's result. A probe resolves only when its reads succeed and establish one of three
 results: one file system whose label reads in `STG-20`'s form, one file system with no such
-label, or definitely no file-system signature. So a partition that carries no file system, such
-as a BIOS-boot partition, is not the root-label stop. A read error, a partial read, empty output,
-more than one signature or a signature the job does not recognise leaves the probe unresolved,
-which is the root-label stop. A volume layer's signature takes no result from this rule: a disk
-that carries one is outside this layout (below). What the job's
+label, or definitely no file-system signature. So a partition whose probe establishes definitely
+no file-system signature, such as a BIOS-boot partition, is not the root-label stop. A read error,
+a partial read, empty output, more than one signature or a signature the job does not recognise
+leaves the probe unresolved, which is the root-label stop. A volume layer's signature takes no
+result from this rule: a server any of whose disks carries one is outside this layout (below).
+What the job's
 read-write mount of the root it writes itself writes, the replay of that file system's journal
 and mount metadata included, is not decided, and
 neither is whether the job writes anything else to that root's disk, nor when its read-write
@@ -1973,9 +1974,10 @@ key it reads shares a fingerprint with the rescue boot's own pin (`CHN-R1`), whe
 holds anything but one public key, or when it cannot read a root. It also MUST refuse the entire scoped read when
 any entry it would otherwise read as an installed host-public-key file is a symbolic link or is
 otherwise not a regular file (a directory, FIFO, device node or socket included), or when anything
-on the path from its root to such an entry is a symbolic link or is not a directory, evaluating
-that selection before excluding an entry for any of these reasons. It opens no such entry and
-follows no such link. A regular public-key file beside it supplies no successful partial prerequisite result or expected next keys.
+on the path from its root to such an entry, other than the entry itself, is a symbolic link or is
+not a directory, evaluating that selection before excluding an entry for any of these reasons. It
+opens no such entry and follows no such link. A regular public-key file beside such an entry
+supplies no successful partial prerequisite result or expected next keys.
 On that refusal the reset into the installed system is neither offered nor sent. A refused
 read is a failure of the flow, so the grant ends on it (`SEC-4`). What it reads, journaled with the reset intent,
 stands in for `ready_to_reset`'s pins only for that reset, as its durable prerequisite and
