@@ -593,7 +593,7 @@ authority_control "formal: authority exclusiveBinding" \
 
 authority_control "formal: authority procuredEligibility" \
   "sed -i 's/  procuredEligibility : Bool := true/  procuredEligibility : Bool := false/' $AUTH" \
-  expired_session_ssh_refused expiry_spreads_without_scope uncertain_clock_then_unchanged_repair repair_cannot_renew both_clock_discrepancies_required cap_end_cannot_repair incompatible_acceptance_withheld validation_terminal_ends request_original_limits_refused resume_without_sealed_terminal_withholds lost_terminal_stays_withheld_until_end initial_without_terminal_refused no_terminal_resume_stays_held session_end_paths_fence lost_key_second_resume_refused
+  expired_session_ssh_refused expiry_spreads_without_scope uncertain_clock_then_unchanged_repair repair_cannot_renew both_clock_discrepancies_required cap_end_cannot_repair incompatible_acceptance_withheld validation_terminal_ends request_original_limits_refused resume_without_sealed_terminal_withholds lost_terminal_stays_withheld_until_end initial_without_terminal_refused no_terminal_resume_stays_held session_end_paths_fence lost_key_second_resume_refused locked_seal_refused
 
 authority_control "formal: authority scopedExpiry" \
   "sed -i 's/  scopedExpiry : Bool := true/  scopedExpiry : Bool := false/' $AUTH" \
@@ -708,6 +708,9 @@ authority_control "formal: growth while unlocked but still paused" \
 authority_control "formal: ceremony entry while locked" \
   "sed -i 's/(p.ceremonyUnlocked && w.locked)/false/' $AUTH" \
   locked_ceremony_entry_refused
+authority_control "formal: terminal seal while locked" \
+  "sed -i 's/!(p.sealUnlocked \&\& w.locked)/true/' $AUTH" \
+  locked_seal_refused
 
 authority_control "formal: unfinished ceremony bypasses authority" \
   "sed -i 's/(!p.ceremonyPending || !w.ceremonyOwed)/true/' $AUTH" \
@@ -1374,15 +1377,18 @@ control "witnesses: obsolete dispatch v8 orphan" "$WIT" \
   "cp docs/design/dispatch-witnesses-v10.json docs/design/dispatch-witnesses-v8.json" \
   "WITNESS DRIFT" "dispatch-witnesses-v8.json is committed but no module emits it"
 control "witnesses: obsolete authority v2 orphan" "$WIT" \
-  "cp docs/design/authority-witnesses-v4.json docs/design/authority-witnesses-v2.json" \
+  "cp docs/design/authority-witnesses-v5.json docs/design/authority-witnesses-v2.json" \
   "WITNESS DRIFT" "authority-witnesses-v2.json is committed but no module emits it"
 
 control "witnesses: obsolete dispatch v9 orphan" "$WIT" \
   "cp docs/design/dispatch-witnesses-v10.json docs/design/dispatch-witnesses-v9.json" \
   "WITNESS DRIFT" "dispatch-witnesses-v9.json is committed but no module emits it"
 control "witnesses: obsolete authority v3 orphan" "$WIT" \
-  "cp docs/design/authority-witnesses-v4.json docs/design/authority-witnesses-v3.json" \
+  "cp docs/design/authority-witnesses-v5.json docs/design/authority-witnesses-v3.json" \
   "WITNESS DRIFT" "authority-witnesses-v3.json is committed but no module emits it"
+control "witnesses: obsolete authority v4 orphan" "$WIT" \
+  "cp docs/design/authority-witnesses-v5.json docs/design/authority-witnesses-v4.json" \
+  "WITNESS DRIFT" "authority-witnesses-v4.json is committed but no module emits it"
 
 control "witnesses: authority vocabulary note drift" "$WIT" \
   "sed -i '/<!-- witness-vocabulary: authority -->/a\\changed' docs/design/witness-file-v1.md" \

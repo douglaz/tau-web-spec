@@ -12,7 +12,7 @@ import check_witnesses as witnesses
 
 class AuthorityNote(unittest.TestCase):
     def test_schema_change_is_detected_and_regeneration_preserves_owner_prose(self):
-        source = Path(witnesses.COMMITTED) / 'authority-witnesses-v4.json'
+        source = Path(witnesses.COMMITTED) / 'authority-witnesses-v5.json'
         document = (Path(witnesses.COMMITTED) / 'witness-file-v1.md').read_text()
         before, rest = document.split(witnesses.NOTE_BEGIN)
         _, after = rest.split(witnesses.NOTE_END)
@@ -33,7 +33,7 @@ class AuthorityNote(unittest.TestCase):
             self.assertEqual(updated.split(witnesses.NOTE_END)[1], after)
 
     def test_missing_and_duplicate_markers_are_refused_without_destroying_prose(self):
-        source = str(Path(witnesses.COMMITTED) / 'authority-witnesses-v4.json')
+        source = str(Path(witnesses.COMMITTED) / 'authority-witnesses-v5.json')
         with tempfile.TemporaryDirectory() as directory:
             note = Path(directory) / 'witness-file-v1.md'
             with patch.object(witnesses, 'COMMITTED', directory):
