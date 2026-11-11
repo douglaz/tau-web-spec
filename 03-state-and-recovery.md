@@ -356,8 +356,8 @@ file discovery or root identity, or establish how these refusals map to a collec
 It also lacks the originating-command correlation and issue-order mapping needed to distinguish
 a delayed or duplicate old result from a genuinely later-issued read, so the rule giving a
 `ready_to_reset` result to the installation current at its command's intent, and the withholding
-on out-of-order results whose key sets differ, both above, are Markdown-only. Its collection and
-prerequisite-result event is coupled and derives the installation at processing; this is no
+on out-of-order results whose key sets differ, both above, are Markdown-only. The companion's
+collection and prerequisite-result event is coupled and derives the installation at processing; this is no
 faithful translation of late results or proof of actual reset dispatch checks.
 `TauWeb.Dispatch.installationOf` derives that boundary from the journal's vendor reinstall
 call, the reset into rescue that dispatches a standing reinstall disposition, or the reset

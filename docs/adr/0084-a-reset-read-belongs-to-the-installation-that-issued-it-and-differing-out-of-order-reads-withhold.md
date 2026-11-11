@@ -16,11 +16,9 @@ Each quote is the text as it stood before this change (commit `d454852`).
   result belongs to when it is collected or appended after a reinstall boundary. The reset that
   dispatches a standing disposition's reinstall "does not wait for a command that disposition
   names", so such a command's result can still arrive later. Counted under the installation
-  current when it is processed, as the formal companion does (it "derives the installation at
-  processing; this is no faithful translation of late results"), an earlier installation's result
-  could become the current installation's first durable prerequisite read. Four of five readers
-  found that this could make a false offer, not only withhold one; the fifth could not tell
-  whether such a history can be built.
+  current when it is processed, as the formal companion does (`STA-20b` says its event "derives
+  the installation at processing; this is no faithful translation of late results"), an earlier
+  installation's result could become the current installation's first durable prerequisite read.
 - **Row 29, which out-of-order good read counts as newest.** `STA-20b` said: "Outside that
   lifting, where an older-issued `ready_to_reset` command's otherwise admitted prerequisite result
   is first durably appended after a later-issued command's result, which of the two is the newest
@@ -48,8 +46,9 @@ Each quote is the text as it stood before this change (commit `d454852`).
 
 Row 28 applies first, so row 29 compares only the current installation's results. Both use the
 issue order the refusal-lifting rule already uses. Whether either history can be built under the
-admission rules stays unsettled: `tw-4mz` comment 228000001 "establishes no constructible runtime
-history". If neither can be built, the rules cost nothing.
+admission rules stays unsettled. For row 29's out-of-order history, `tw-4mz` comment 228000001
+"establishes no constructible runtime history"; no record establishes row 28's late-result
+history either. A rule whose history cannot be built costs nothing.
 
 ## What this amends
 
@@ -61,13 +60,12 @@ history". If neither can be built, the rules cost nothing.
 - **Decided (row 29):** the open point that `tw-4mz` comment 228000001 recorded at `STA-20b`'s
   newest-read boundary ("Which of those is the newest read remains not decided"). The rule is a
   withholding only, not a general issue-order rule for choosing the newest read.
-- The adoption names no narrowing or widening. Each rule can only withhold the offer or dispatch
-  (five of five on each row).
+- The adoption names no narrowing or widening. Each rule can only withhold the offer or dispatch.
 
 ## What stays
 
-- The formal companion. No theorem, gate, witness or assumption boundary moves (five of five on
-  each row). `TauWeb.Dispatch.installationOf` still derives the installation when an event is
+- The formal companion. No theorem, gate or assumption boundary moves (five of five), and no
+  witness changes. `TauWeb.Dispatch.installationOf` still derives the installation when an event is
   processed. `STA-20b`'s disclosure of that limit stays and now names both rules as Markdown-only.
 - No conformance case is added: for row 28 by the owner's "No extra test", for row 29 four of
   five. `CNF-86`'s existing cases stand, including "After reinstall, predecessor prerequisites
@@ -80,11 +78,11 @@ history". If neither can be built, the rules cost nothing.
 
 | Option | Disposition |
 |---|---|
-| Leave each point open | The earlier recorded boundaries, now amended by the owner's "Adopt it". |
+| Leave each point open | The earlier recorded boundary and open point, now amended (row 28) and decided (row 29) by the owner's "Adopt it". |
 | Row 28: the installation at append, as the companion derives it, stated as the rule | Not selected (five of five for the issuing installation). An earlier installation's result could set the current first read. |
-| Row 28: change the companion (`installationOf`, the coupled collection event) | Not selected (five of five for keeping the disclosed limit). The Markdown rule is stricter and contradicts no theorem. |
+| Row 28: change the companion (`installationOf`, the coupled collection event) | Not selected (five of five for keeping the disclosed limit). The Markdown rule covers late results the companion does not translate, and contradicts no theorem. |
 | Row 28: one `CNF-86` history of a late result after the boundary | Not selected. Split two to two in round two; the owner picked "No extra test". |
-| Row 28: align the witness file's `reset_offer` note | Not adopted (two of five). The `STA-20b` disclosure carries the limit. |
+| Row 28: align the witness file's `reset_offer` note | Not adopted. The `STA-20b` disclosure carries the limit. |
 | Row 29: the later-issued result is the newest read | Not selected (five of five for withholding). It offers on that read while an older command's late result disagrees. |
 | Row 29: the later-appended result is the newest read | Not selected. It offers on a late older result while the later-issued read shows changed keys. |
 | Row 29: one conformance case | Not selected (four of five, with the required reader in the majority). |
