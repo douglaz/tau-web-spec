@@ -323,7 +323,9 @@ output. The jobs are:
   regular file (a directory, FIFO, device node or socket included), or when any of `/mnt`,
   `/mnt/etc` and `/mnt/etc/ssh` is missing, is a symbolic link or is not a directory. It
   does not open or read a matching non-regular entry or follow a link; a valid regular
-  public-key file beside a refused entry does not supply a partial result. These discovery
+  public-key file beside a refused entry does not supply a partial result. Where the rescue
+  rekey's `rescue_install_key` wrote the key, it also refuses the entire read when `/mnt` is not
+  the root that job wrote, as `STA-17` identifies it. These discovery
   refusals journal neither a pin nor a prerequisite result of the entire read. In the other
   cases specified here, it journals
   the pins, except of a read `STA-20b`
@@ -446,7 +448,8 @@ jump-host first contact
 (`CHN-R6`) is not among `TauWeb.Pins.Source`'s cases (T45). The
 pin-source and delivery-reboot settlement clauses of `ARC-43` are formalized, except that
 `ready_to_reset` journals no pin of a read sharing the rescue boot's pin, which is Markdown-only
-(`STA-20b`). The discovery refusals above and their connection to reset-offer and dispatch
+(`STA-20b`). The discovery refusals above, the written-root refusal among them, and their
+connection to reset-offer and dispatch
 withholding are also Markdown-only: the companion has no file-discovery input. The rules of
 `place_secret` and `digest_secret` below are not, and this text is their home (ADR-0032, "Authority is per
 clause").

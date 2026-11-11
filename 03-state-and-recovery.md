@@ -335,7 +335,8 @@ it, and the keys of a read sharing a fingerprint with the rescue boot's pin neve
 since `ready_to_reset` journals neither a pin nor a prerequisite result of that read;
 `TauWeb.Pins` carries no such refusal, which is
 Markdown-only.
-The discovery refusals and their connection to withholding are Markdown-only too. The
+The discovery refusals, `STA-17`'s written-root refusal among them, and their connection to
+withholding are Markdown-only too. The
 companion's list of durable prerequisite reads uses one opaque ordinal for each key set;
 nonemptiness of that list is not a public-key cardinality check. The companion does not carry
 file discovery or establish how these refusals map to a collection without a durable result.
@@ -1906,7 +1907,16 @@ volume layer, the job writes nothing to a disk other than the one that
 carries the root it writes, and it reads every other device it reads as a possible root without
 mounting it read-write and without replaying its file system's journal. "The root it writes"
 is the one root it finds whose label reads in `STG-20`'s form; where there is none, or more
-than one, the rule reads with no such root. What the job's
+than one, the rule reads with no such root. In that layout the job reads as a possible root
+every partition, and every whole disk without a partition table, that the rescue kernel lists on
+the server's disks; it probes each one, and its captured output lists each device it probes with
+that probe's result. A probe resolves only when its reads succeed and establish one of three
+results: one file system whose label reads in `STG-20`'s form, one file system with no such
+label, or definitely no file-system signature. So a partition that carries no file system, such
+as a BIOS-boot partition, is not the root-label stop. A read error, a partial read, empty output,
+more than one signature or a signature the job does not recognise leaves the probe unresolved,
+which is the root-label stop. A volume layer's signature takes no result from this rule: a disk
+that carries one is outside this layout (below). What the job's
 read-write mount of the root it writes itself writes, the replay of that file system's journal
 and mount metadata included, is not decided, and
 neither is whether the job writes anything else to that root's disk, nor when its read-write
@@ -1915,7 +1925,15 @@ mount ends on a successful, failed or stopped path. `ARC-43` says `ready_to_rese
 when this job's read-write mount ends or identify the two jobs' mounts.
 Where the job writes the key, what mounts a root at `/mnt` for `ready_to_reset`'s read of the
 host keys before the reset into the installed system is not decided (`ARC-43` says
-`ready_to_reset` "reads `/mnt/etc/ssh/ssh_host_*_key.pub`, following no symbolic link").
+`ready_to_reset` "reads `/mnt/etc/ssh/ssh_host_*_key.pub`, following no symbolic link"), but
+which root that read reads is. The job's captured output MUST record the identity of the root it
+writes: that file system's UUID and the major and minor numbers of the device that carries it,
+under the rescue boot ID its job record carries. On this key-written path `ready_to_reset`
+refuses its entire read unless `/mnt` is the root directory of that file system on that device,
+under that same boot ID (`ARC-43`); a directory below that root does not qualify. A recorded
+identity that is missing or was not established, a different file system or device, and a changed
+boot ID are each that refusal. Nothing here chooses a mount actor or arrangement, adds a duty to
+unmount on that refusal, or waives a prerequisite of the reset.
 On an otherwise admitted `ready_to_reset` read in this active key-written rescue-rekey flow,
 any job refusal under `ARC-43`, or `STA-20b`'s rescue-pin-overlap refusal (`STA-20b` says "A read
 sharing the rescue boot's pin is refused before its keys are journaled as pins"), MUST stop
@@ -1938,7 +1956,8 @@ For this job and for `rescue_host_key_read` below, what counts as one root where
 than one file system on one disk is not decided. That includes a root under software RAID, LVM,
 encryption or another volume layer, even on one disk. What either job reads where the rescue boot
 has already assembled or activated a volume is not decided either, nor is what the rescue boot
-itself writes to a disk while either job runs, nor what makes a label probe resolve.
+itself writes to a disk while either job runs, nor what makes a label probe resolve outside the
+layout above, where each root is one file system on one disk and no disk carries a volume layer.
 
 **After the root-label stop, one scoped read of the installed host keys serves that one reset
 back and is never trusted later to accept a key or make a connection.** The
@@ -1952,9 +1971,11 @@ the reset into the installed system is then neither offered
 nor sent, when it finds no host keys, when it finds host keys under more than one root, when any
 key it reads shares a fingerprint with the rescue boot's own pin (`CHN-R1`), when a file it reads
 holds anything but one public key, or when it cannot read a root. It also MUST refuse the entire scoped read when
-any entry it would otherwise read as an installed host-public-key file is a symbolic link,
-evaluating that selection before excluding an entry because it is a link. A regular public-key
-file beside it supplies no successful partial prerequisite result or expected next keys.
+any entry it would otherwise read as an installed host-public-key file is a symbolic link or is
+otherwise not a regular file (a directory, FIFO, device node or socket included), or when anything
+on the path from its root to such an entry is a symbolic link or is not a directory, evaluating
+that selection before excluding an entry for any of these reasons. It opens no such entry and
+follows no such link. A regular public-key file beside it supplies no successful partial prerequisite result or expected next keys.
 On that refusal the reset into the installed system is neither offered nor sent. A refused
 read is a failure of the flow, so the grant ends on it (`SEC-4`). What it reads, journaled with the reset intent,
 stands in for `ready_to_reset`'s pins only for that reset, as its durable prerequisite and
