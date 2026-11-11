@@ -891,6 +891,15 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       absent ends the pending removal. While a command hold or a destructive reinstall or
       abandonment disposition stands on a migrated machine with a pending removal, no removal
       is sent to it and Replace stays incomplete; once it ends, the removal proceeds.
+      Run Replace with an entry `STA-17`'s wrong-server record bars, each in its own run: once
+      with a key possibly registered, and once barred before any intent of the flow's calls was
+      journaled. In both the entry keeps its seed, bar, index, mapping and history, is not
+      migrated and is shown barred, and the new sheet carries it with `reason:"wrong_server"`.
+      In the first, Replace and revocation stay reported incomplete across a restart, the
+      operator's word that the server is clean, an acknowledgement of the screen and the
+      sheet's export; in the second the bar alone does not hold them. Restore from that sheet:
+      in both runs Replace and revocation stay incomplete, and a later Replace carries the entry
+      unchanged.
       On an LNVPS Replace rebuild, Replace's own flow stops the old machine and then turns its
       automatic renewal off, each under that machine's own recorded vendor key (`SEC-4`,
       `STA-17`). For the removal check, an earlier Replace migrated this same old machine and
@@ -2509,8 +2518,12 @@ Not pass/fail. Required to be recorded.
       durably recorded, losing its machine state and each placement without a report; a
       retired pass with `reason:"awaiting_retirement_confirmation"`, whose key is used for nothing
       after a Restore without its retired seed or with a wrong one, and may be used once the
-      derived key equals the recorded key; and a retired Failed
-      allocation with `failed: true` whose replacement's predecessor link resolves to it.
+      derived key equals the recorded key; a retired Failed
+      allocation with `failed: true` whose replacement's predecessor link resolves to it; and,
+      in version 8, an entry `STA-17`'s wrong-server record bars, with
+      `reason:"wrong_server"` and its `entry` and `predecessor`, which after a Restore with its
+      retired seed, without it and with a wrong one makes no contact, binding or vendor call,
+      is not migrated, and holds Replace and revocation incomplete.
       Version 8's `entry` and `predecessor`
       ([credential format](docs/design/credential-format-v1.md#report-corrections-payload-version-8)):
       round-trip both on every machine entry that carries them, `"none"` with no replacement; a
@@ -2564,7 +2577,8 @@ Not pass/fail. Required to be recorded.
       `entry` and `predecessor` are not extra on a machine entry that carries them), one with the
       payload's seed, another family, a missing, second or malformed state member, `destroyed` or `failed`
       other than `true`, a machine-only member on a pass or a handoff, an unknown reason or one
-      of another family's, an `outstanding` object with a missing, extra or duplicate member, a
+      of another family's, `"wrong_server"` on a version-3-to-7 sheet, an `outstanding` object
+      with a missing, extra or duplicate member, a
       `migration_index` that is malformed, names no such allocation, or names one that is
       destroyed, Failed, a jump host, of another resource identity, named by another entry, or
       named by any record, a `reservation_of` that is malformed, missing on a superseded
@@ -2938,7 +2952,9 @@ Not pass/fail. Required to be recorded.
       re-entry, an association, a retry, an acceptance, a relabel, a reinstall and an
       abandonment through that entry are each refused, also after export and Restore, and
       neither continuing disposition sends a call; the entry is not shown as Failed and keeps
-      its index and mapping. Record it once every call of the flow is confirmed and the key is
+      its index and mapping. Through a Replace, and after a Restore from the new seed's sheet,
+      the entry keeps its bar and the same refusals hold; its Replace cases are `CNF-20`'s.
+      Record it once every call of the flow is confirmed and the key is
       written: the same refusals hold and the screen shows a key possibly written. Record it at
       the root-label stop: the kept reset back is no longer offered. Record it while a session
       binds the machine: it is refused. Fail its append: the entry is not barred. A model, a
@@ -2947,7 +2963,7 @@ Not pass/fail. Required to be recorded.
       index.
       (n) Give the journal an entry that maps a server number, each in its own run: one a
       session binds, one stopped at the root-label stop, one carrying the wrong-server record
-      of (m), one completed, and one under another account reference; and separately one whose
+      of (m), also after a Replace and after a Restore from the new seed's sheet, one completed, and one under another account reference; and separately one whose
       association for that number was quarantined with retained qualifying identity evidence.
       Present the flow's card naming that number: approval is refused, the holding entry is
       shown, nothing is journaled or reserved and no call is sent. A card naming a server number

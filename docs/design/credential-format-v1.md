@@ -72,8 +72,10 @@ its Failed target's `entry` member; it survives export and import with them and 
 authority to the retired entry or its replacement.
 
 The rescue rekey's wrong-server record (`STA-17`) survives export and import with its entry and
-restores no authority to that entry. Which member of the entry's allocation metadata carries it,
-under which payload version, is not decided.
+restores no authority to that entry. After a Replace, payload version 8 carries it on the entry's
+retired-seed entry as the reason `"wrong_server"` ([below](#report-corrections-payload-version-8)).
+Which member of a current-seed allocation's metadata carries it, and under which payload version,
+is not decided.
 
 Derivation v1 remains unchanged; the history export amendment below versions the recovery payload. A Failed machine allocation's consumed
 tombstone survives export as that allocation with `failed: true` and its `entry` and
@@ -386,7 +388,8 @@ Every export writes version 8. It preserves version 7's `report` unchanged and a
 placement members `report_events` and `independent_end`, and, on each machine entry that stands
 for an approved entry, the members `entry` and `predecessor` (below). Every other version-7 field
 and validation remains, except that the retired-entry refusal of an extra member admits those two
-members where they belong (below), including its unspecified partial-history encoding; this extension defines
+members where they belong (below), and the refusal of an unknown reason admits the machine
+reason `"wrong_server"` (below), including its unspecified partial-history encoding; this extension defines
 no further partial-history machinery. A placement record has exactly the identity members
 `seed_id`, `machine_index`, `application_name`, `name`, `path`, `placed_at`, and the members
 `report`, `report_events`, `independent_end`.
@@ -538,7 +541,8 @@ journal keeps under a seed other than the payload's (`STA-22b`):
   the seed it retires;
 - each pending removal (below): a retired public key, the old key of a machine since migrated or
   the key of one of that machine's superseded reservations, whose absence from that machine no
-  durably recorded read has yet shown.
+  durably recorded read has yet shown;
+- each machine entry `STA-17`'s wrong-server record bars, which no Replace migrates.
 
 A migrated machine has no entry that stands for it; only its pending removals, which are not a
 second machine, stay. The exporter copies each entry unchanged from the journal,
@@ -582,7 +586,11 @@ strings. For a machine:
   public key to remove from the machine it is linked to, kept as a pending removal once that
   machine migrates;
 - `"old_key_unremoved"`: a pending removal, whose recorded key's absence from the machine it is
-  linked to no durably appended read has yet shown.
+  linked to no durably appended read has yet shown;
+- `"wrong_server"`, in version 8 only: an entry `STA-17`'s wrong-server record bars, which no
+  Replace migrates. The reason carries the bar, so the entry grants none of what `STA-17`'s bar
+  refuses, and after a Restore it holds Replace and revocation incomplete (`STA-17`). It carries
+  no intent, no unresolved call and no scoped read, which stay in the journal.
 
 For a pass: `"awaiting_revocation"` (the paid/public path's signed revocation is not yet made),
 `"awaiting_retirement_confirmation"` (the LNVPS path's manual relay retirement awaits the
@@ -643,7 +651,8 @@ pending removal, a handoff whose tenant
 and handoff ID another entry maps, an `outstanding` object with a missing, extra or duplicate
 member, and an extra member. In version 8, `entry` and `predecessor` (below) are not extra on a
 machine entry that version 8 requires to carry them; on every other entry, and on any entry of
-an older payload, they are.
+an older payload, they are. On a version-3-to-7 sheet `"wrong_server"` is an unknown reason, and
+conversion gives it to no entry.
 
 A destroyed or Failed retired allocation restores no contact identity, host pin authority,
 binding or session, takes part in no vendor reconciliation and has no `machine_states` entry; a
@@ -655,7 +664,9 @@ identity waits for `STA-22b`'s deferred check: before any contact with the machi
 pass's key, any vendor read or call under its identity, any giving of the handoff's credential to
 the post-harness machinery, and any binding, the harness derives the key from the retired seed the
 operator supplies and compares it with the recorded key. With no such seed, or on a mismatch, it
-makes none of them and the allocation stays outstanding. A superseded reservation restores no
+makes none of them and the allocation stays outstanding. A `"wrong_server"` entry restores its
+records with its bar: a passing check admits none of what `STA-17`'s bar refuses, and the entry
+stays outstanding, never migrated. A superseded reservation restores no
 records and no contact identity: its recorded key serves only its removal from the machine it
 names, as a pending removal once that machine migrates. A pending removal restores no records and
 no contact identity either: its recorded key serves only its removal from the machine
