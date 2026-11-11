@@ -800,7 +800,10 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       call, renaming the old entry or displaying it as historical admits nothing and bypasses no
       barrier.
       Replay, export and import preserve the predecessor link and the restrictions with no
-      redispatch of either entry. Reconciliation of the old entry's work that another rule
+      redispatch of either entry. Export after the act: each allocation of the replacement
+      carries a `predecessor` naming the Failed allocation's seed and index and the retired
+      entry's `entry` id, the Failed allocation carries `failed: true` and that same id, and the
+      sheet imports with the link intact (`CNF-84` holds the sheet's refusals). Reconciliation of the old entry's work that another rule
       permits renews no prospective authority for it, and a late completion authorizes no
       command or order on it. These writer-lock,
       durable-append and transport-handoff races are required before enabling this path;
@@ -2508,6 +2511,16 @@ Not pass/fail. Required to be recorded.
       after a Restore without its retired seed or with a wrong one, and may be used once the
       derived key equals the recorded key; and a retired Failed
       allocation with `failed: true` whose replacement's predecessor link resolves to it.
+      Version 8's `entry` and `predecessor`
+      ([credential format](docs/design/credential-format-v1.md#report-corrections-payload-version-8)):
+      round-trip both on every machine entry that carries them, `"none"` with no replacement; a
+      current-seed Failed allocation with `failed: true` and its replacement's link, whose
+      `entry_id` equals the Failed entry's own id; that link after Replace's migration, the
+      machine's new allocation under the fresh seed still naming the retired seed and index, and
+      after a second Replace unchanged; a replacement later replaced, keeping its own link; and
+      two links naming one Failed allocation, which import accepts. Convert versions 3 to 7: every
+      such entry gets `entry:"unknown"` and `predecessor:"unknown"`, never `"none"`, and a later
+      export keeps both.
       Export a dedicated machine after a failed relabel read: its entry has
       `reason:"relabel_unconfirmed"` and a `migration_index` naming the reserved allocation,
       which has the entry's resource identity and no record, machine state or artifact
@@ -2547,8 +2560,9 @@ Not pass/fail. Required to be recorded.
       a wrong one, the post-harness machinery is given no credential; with the right one the
       derived key equals the recorded key and the credential is given; the entry ends in one
       journal act when the journal records the declared end. Refuse before binding a missing
-      `retired_allocations`, a malformed, duplicate or extra-member entry, one with the payload's
-      seed, another family, a missing, second or malformed state member, `destroyed` or `failed`
+      `retired_allocations`, a malformed, duplicate or extra-member entry (in version 8,
+      `entry` and `predecessor` are not extra on a machine entry that carries them), one with the
+      payload's seed, another family, a missing, second or malformed state member, `destroyed` or `failed`
       other than `true`, a machine-only member on a pass or a handoff, an unknown reason or one
       of another family's, an `outstanding` object with a missing, extra or duplicate member, a
       `migration_index` that is malformed, names no such allocation, or names one that is
@@ -2564,7 +2578,15 @@ Not pass/fail. Required to be recorded.
       `reservation_of` or `jump_host`, a record naming a superseded reservation or a pending
       removal, any other
       repeat of a stable resource identity, and a handoff whose tenant and handoff ID another
-      entry maps. Refuse before binding a missing
+      entry maps. Refuse before binding a missing `entry` or `predecessor` on a machine entry
+      that carries them, either one on a pass, a handoff, a reserved migration index, a
+      superseded reservation or a pending removal, a malformed one, a `predecessor` object with
+      a missing, extra or duplicate member, a link naming no machine allocation, a reserved
+      migration index, a superseded reservation, a pending removal or an allocation without
+      `failed: true`, a link whose `entry_id` is not its target's id, a target with
+      `entry:"unknown"` included, a link naming its own entry, a cycle of links, either member
+      on a version-3-to-7 sheet, and `failed` with another value, on a pass or a handoff, or on
+      a reserved migration index. Refuse before binding a missing
       or malformed `seed_id` on any placement, artifact history, machine state, host pin,
       installation group or exposure-ledger machine reference, and one naming neither an
       `allocations` machine under the payload's seed nor a retired allocation. A version 3 to 6
