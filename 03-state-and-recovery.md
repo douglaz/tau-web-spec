@@ -1262,8 +1262,9 @@ promised; current checks apply even without notification.
 When an untyped vendor scope's local permission closes is `SEC-4`'s, and what the scope's calls
 and dispositions keep after it is `STA-24`'s.
 The actual end fence is irreversible and MUST NOT be reset to implement continuation.
-Explicit End, Replace, and established paid expiry or cap exhaustion MUST durably append
-End for the affected session before applying the transition (`STA-3`). Replace ends every
+Explicit End, Replace, established paid expiry with no confirmed renewal left, a failed paid
+renewal (`ARC-31a`) and established cap exhaustion MUST durably append End for the affected
+session before applying the transition (`STA-3`). Replace ends every
 local session before its migration work; Abandon ends only its named holders under `ARC-21`.
 End records session identity and reason (`explicit`, `replace`, `expiry`, `cap_exhaustion`,
 `abandon`). Dispatch and actionable publication MUST consult this durable session fence,
@@ -1289,8 +1290,11 @@ approval, automatic retry or permission to bypass holds.
 
 Ordinary hiding, suspension and return MUST NOT extend a procured session key's original absolute expiry, replenish its remaining cap, mint a replacement key or renew that key.
 Account funding or payment settlement MUST NOT renew a session, replenish or raise its key's cap, extend its expiry, or revive an ended session.
-At expiry or cap exhaustion, that session MUST end at the next execution opportunity before
-further ordinary dispatch or actionable continuation. Uncertain clock validity MUST withhold
+At cap exhaustion, or at expiry with no confirmed renewal left, that session MUST end at the next
+execution opportunity before further ordinary dispatch or actionable continuation. At expiry
+with its one confirmed renewal left, ordinary dispatch and actionable continuation stay withheld
+until the renewed key is usable or the session ends. The renewal's rules, including when it
+ends the session instead, have their single home in `ARC-31a`. Uncertain clock validity MUST withhold
 further authority until validity is established or the session ends. A new session requires
 separately confirmed limits and admission. The next eligible Start creates that separate
 session; it does not revive the ended session or its authority. Outstanding machine-operation
@@ -1332,7 +1336,7 @@ the fence through subsequent events, under their explicit guard hypotheses.
 `TauWeb.Authority.hide_identity` leaves the whole state unchanged for a processed ordinary hide
 outside the ceremony; `TauWeb.Authority.lifecycle_knowledge` leaves Dispatch
 knowledge untouched, while `TauWeb.Authority.replay_knowledge` rebuilds memory from the journal.
-The named finite histories in [the authority witness file](docs/design/authority-witnesses-v5.json)
+The named finite histories in [the authority witness file](docs/design/authority-witnesses-v6.json)
 include the shared Robot read-confirmation seam, suspension validation, exclusive succession,
 ceremony hide and conditional procured eligibility. They are decided witnesses, not an exhaustive
 lifecycle proof. The generated declaration index remains the inventory.

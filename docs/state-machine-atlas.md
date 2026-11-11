@@ -474,7 +474,7 @@ and conditional procured limits remain [ARC-31a](../01-architecture.md#money).
 
 `TauWeb.Authority.ordinary_refinement` checks the explicit shared request interface: symbolic
 eligibility and the unchanged Dispatch transition, with Dispatch's durable-before-apply premise.
-The [authority witness file](design/authority-witnesses-v5.json) contains the finite Robot
+The [authority witness file](design/authority-witnesses-v6.json) contains the finite Robot
 reset/read-confirmation composition. Its successor passes authority validation while Dispatch
 refuses behind the predecessor's unresolved reset. A failed confirmation append retains that
 refusal; durable qualifying confirmation and current validation admit fresh successor work.
@@ -487,7 +487,7 @@ durably completed ceremonies. Their full initial projections distinguish arbitra
 boundary probes from histories run from the initial world; see the witness schema.
 This extends no claim to LNVPS receipts, browser termination or production inference admission.
 
-The [witness schema](design/witness-file-v1.md#authority-schema-5) labels the hypotheses and
+The [witness schema](design/witness-file-v1.md#authority-schema-6) labels the hypotheses and
 finite-history bound. Downstream acceptance remains in [CNF-7/69/82/102](../07-conformance.md):
 there is no new comparison result, phone test or conformance completion here.
 
@@ -595,7 +595,7 @@ retain undecided cases. A pointer in this matrix supplies no permission by itsel
 ### Authority
 
 Pause/resume and durable End are owned by [STA-23](../03-state-and-recovery.md#durable-state).
-The separate [authority witness file](design/authority-witnesses-v5.json) distinguishes stale
+The separate [authority witness file](design/authority-witnesses-v6.json) distinguishes stale
 incarnations, eligible same-session resume and permanent End, including withheld paid keys.
 Import restores ended history under [STA-16](../03-state-and-recovery.md#recovery-by-access-model-and-vendor).
 Abandon's named holder Ends and deterministic continuation belong to

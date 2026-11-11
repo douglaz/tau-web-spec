@@ -52,8 +52,8 @@ the trace that moved.
 
 | Member | What it holds |
 |---|---|
-| `schema` | `3` for allocation and `5` for authority; `1` for declaration and relay; `10` for dispatch and `7` for pins. A change to any shape below is a new version and a new file name for that module. |
-| `module` | The inventory name, lower-case: `allocation`, `declaration`, `relay`, `dispatch`, `pins` for the host-pin lifecycle, and `authority` for the separate processed-authority file ([Authority schema 5](#authority-schema-5)). |
+| `schema` | `3` for allocation and `6` for authority; `1` for declaration and relay; `10` for dispatch and `7` for pins. A change to any shape below is a new version and a new file name for that module. |
+| `module` | The inventory name, lower-case: `allocation`, `declaration`, `relay`, `dispatch`, `pins` for the host-pin lifecycle, and `authority` for the separate processed-authority file ([Authority schema 6](#authority-schema-6)). |
 | `namespace` | The Lean namespace the traces' declarations live in. |
 | `bound` | `declaration`, the tagged `bound` the decided property and the emitter share, and its value rendered under the module's own members. Allocation (`TauWeb.Allocation.bound`): `events`, the number, and `alphabet`, the events the enumeration draws from, including the ceremony. Declaration (`TauWeb.Declaration.bound`): `base`, the declaration and machine every case starts from; `presences`, per field, what the field is swept through, `missing` written as that word since a list has no absent member; `observations`, what the machine is made to show for it; `tenancies`. Relay (`TauWeb.Relay.bound`): `events`, the number; `alphabet`; and `start`, the opened connection every trace of the enumeration runs from. Dispatch (`TauWeb.Dispatch.bound`): `events`, the number; `alphabet`; and `start`, the journal every trace runs from, which carries the harness's associations and nothing dispatched. Pins (`TauWeb.Pins.bound`): the same shape; `start` carries one earlier `/rescue/last` snapshot, plus the fixed `planted_senders` list defined below from that starting knowledge and the alphabet. |
 | `witnesses` | The named traces, one per decided witness, in the order the module states them. |
@@ -70,11 +70,12 @@ Both arrays hold traces of one shape:
 | `steps` | One object per event, in order: `event`, the outcome members for that event kind, and the projection after the step — `journal` for allocation, `record` for declaration, `connection` for relay, `knowledge` for dispatch and for pins. |
 
 <a id="authority-schema-2"></a>
+<a id="authority-schema-5"></a>
 
-## Authority schema 5
+## Authority schema 6
 
-[`authority-witnesses-v5.json`](./authority-witnesses-v5.json) is the separate processed-authority
-checking interpretation. Authority schema 5 embeds Dispatch schema 10, including the classified request and deletion/waiting projections. Schema 4 split irreversible session Ends from incarnation fences, added pause/resume and sealed-terminal withholding, and made ceremony entry a pause. The authority
+[`authority-witnesses-v6.json`](./authority-witnesses-v6.json) is the separate processed-authority
+checking interpretation. Authority schema 6 embeds Dispatch schema 10, including the classified request and deletion/waiting projections. Schema 4 split irreversible session Ends from incarnation fences, added pause/resume and sealed-terminal withholding, and made ceremony entry a pause. The authority
 file has the common header/trace envelope, an empty `enumeration`, and a `bound` naming
 `TauWeb.Authority.witnessBound`: a checked length cap for named finite histories, not an
 exhaustive alphabet. All identities and original key/origin/cap/expiry fields are symbolic
@@ -114,6 +115,26 @@ unlock and before resume, however the append finishes; opening's staging recover
 [protected evidence](./protected-evidence-v1.md) is one such route, and it completes only a
 complete authentic staged record. It makes no storage-ordering claim.
 
+Schema 6 adds the one automatic renewal at expiry (`ARC-31a`). A `fresh_admission` candidate
+carries `renewal`, the Start-confirmed renewal; each actor adds `renewal`, `successor` (the
+renewed key's symbolic limits, or null) and `renewal_due` (the current key's established expiry
+waiting for its renewal, with ordinary work withheld). The new `renew_key` event, provenance
+`adapter observation`, carries the actor's `authority`, the `successor` limits and `evidence`:
+`same_terms`, `clock_valid`, `resolved`, `appended` and `minted`, each a hypothesis about that
+attempt, where false means the fact has not been established. The guards add `renewalOnce`,
+`renewalAtExpiry`, `renewalTerms` and `renewalFailureEnds`, and the external hypotheses add the
+renewal evidence, with no cap arithmetic or revocation. Every schema-5 trace keeps its events and
+steps, each actor now showing `renewal` false, `successor` null and `renewal_due` false.
+`expired_session_ssh_refused` and `validation_terminal_ends` add their rollover traces, where
+expiry with renewal authority left withholds instead of ending. The new traces show the renewal
+admitted (`renewal_at_expiry_progress`); the superseded key, an unsealed successor, a third key,
+a renewal before expiry, a failed renewal and changed terms each refused against its
+counterfactual; a bar before the intent withholding without consuming the renewal; cap
+exhaustion, an unsealed predecessor, a lost-key hold and End leaving no renewal; and
+`repair_cannot_renew` and `cap_end_cannot_repair` under renewal authority. The per-key cap limit
+that makes renewal available, the session total and End's revocation of every key are
+`ARC-31a`'s and are not in the witnesses.
+
 The emitted vocabulary inventory below is regenerated by `tools/check_witnesses.py --write`
 from the companion's emission and checked by the same gate. It enumerates shape only; the
 owning requirements and the prose below retain their authority. No key material is emitted.
@@ -121,10 +142,10 @@ owning requirements and the prose below retain their authority. No key material 
 <!-- witness-vocabulary: authority -->
 | Emitted inventory | Value |
 |---|---|
-| schema | `5` |
-| events | `actionable_publication, assess_key, end_session, enter_ceremony, finish_ceremony, fresh_admission, grow_binding, hide, invalidate, ordinary_request, pause, received_record, replace_end, replay, resume, sealed_terminal, suspend, unlock, validate_continuation, visible` |
+| schema | `6` |
+| events | `actionable_publication, assess_key, end_session, enter_ceremony, finish_ceremony, fresh_admission, grow_binding, hide, invalidate, ordinary_request, pause, received_record, renew_key, replace_end, replay, resume, sealed_terminal, suspend, unlock, validate_continuation, visible` |
 | knowledge | `actors, ceremony, ceremony_owed, dispatch, ended_sessions, fenced, issued, locked, published` |
-| guards | `bindingSessionLifetime, ceremonyActive, ceremonyAppend, ceremonyCompletion, ceremonyHideLocks, ceremonyPending, ceremonyRelease, ceremonyUnlocked, endFence, exclusiveBinding, executionFresh, growthAvailable, growthExclusive, hidePreserves, individualOnly, lostKeySticky, machineMembership, pauseRequired, preserveKnowledge, procuredEligibility, publicationDispatch, publicationOrigin, requestOriginal, requestSession, resumeAuthorized, resumeTerminal, resumeUnlocked, resumeValidation, scopedExpiry, sealUnlocked, sealedTerminalRequired, unsentContinuation, validationMatches, validationRequired, validationTerminal, workerIdentity` |
+| guards | `bindingSessionLifetime, ceremonyActive, ceremonyAppend, ceremonyCompletion, ceremonyHideLocks, ceremonyPending, ceremonyRelease, ceremonyUnlocked, endFence, exclusiveBinding, executionFresh, growthAvailable, growthExclusive, hidePreserves, individualOnly, lostKeySticky, machineMembership, pauseRequired, preserveKnowledge, procuredEligibility, publicationDispatch, publicationOrigin, renewalAtExpiry, renewalFailureEnds, renewalOnce, renewalTerms, requestOriginal, requestSession, resumeAuthorized, resumeTerminal, resumeUnlocked, resumeValidation, scopedExpiry, sealUnlocked, sealedTerminalRequired, unsentContinuation, validationMatches, validationRequired, validationTerminal, workerIdentity` |
 <!-- /witness-vocabulary -->
 
 Schema 2 adds the explicit `requestSession`, `machineMembership`, `growthExclusive` and
@@ -153,7 +174,7 @@ non-operator global-end events, and `harness publication`, for the harness's act
 publication attempt. These labels are symbolic inputs, not evidence that a browser notification
 arrived or an adapter supplied a publication. Other events retain `operator act`, `model request`, `adapter observation`,
 `disposition` or `replay`; current readiness/issuer facts remain abstract hypotheses even where
-their provenance is `adapter observation`. This extension was introduced in authority schema 2 and is retained in schema 5.
+their provenance is `adapter observation`. This extension was introduced in authority schema 2 and is retained in schema 6.
 
 Events distinguish processed `hide`, `visible`, `suspend`, invalidation, operation-specific
 validation, individual/global End, pause (pagehide/bfcache, reload, shutdown and discard), resume,
@@ -182,7 +203,7 @@ comparison or evidence of scheduling, physical fencing, durability or issuer enf
 
 For the existing module schemas in the table below, each `event` has a `kind` and a
 `provenance` from ADR-0032's closed vocabulary; the members beside them are the event's
-arguments. Authority schema 5's explicit extension and event shapes are described above.
+arguments. Authority schema 6's explicit extension and event shapes are described above.
 Additional allocation events and outcomes are defined in [Allocation schema 3](#allocation-schema-3);
 additional deletion, opening and closure events are defined in [Dispatch schema 9](#dispatch-schema-9).
 

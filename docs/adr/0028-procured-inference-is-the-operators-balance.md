@@ -140,3 +140,14 @@ acceptance was unseen, the hard bound is the account balance. Spend stays unacco
 zero. A live paid key now sits encrypted on the phone; that cost was accepted knowingly.
 An export never makes the sealed key usable from an import, and an import never revokes it.
 The body above records what was decided then.
+
+## Amended 2026-11-11: one automatic renewal at expiry
+
+[ADR-0085](./0085-one-automatic-paid-key-renewal-at-expiry.md) reverses in part "There is still
+one mint per session", as an owner-directed amendment that loosens a security rule. Where the
+confirmed cap is 50.00 or less, the Start action also confirms one automatic renewal: at the
+first key's expiry one more key is minted with the same cap and lifetime, never a third, and cap
+exhaustion never renews. Nothing is revoked at renewal; End revokes every key the session minted.
+A session's spend is bounded by twice the shown cap, and its paid time can run to two lifetimes.
+The prepaid bound, the top-up ban and the two-tier separation are unchanged. The amendment above
+and the body record what was decided then.

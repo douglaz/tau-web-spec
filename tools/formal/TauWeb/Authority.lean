@@ -24,7 +24,13 @@ untyped-scope holds retain their owners and are not implemented here.
 Procured evidence is symbolic and conditional, with unchanged original key/limits, issuer
 acceptance, interval/rate/arithmetic/continuity and BOTH wall/monotonic discrepancy checks.
 There is no clock simulation, mint protocol, local spend reservation or production admission.
-Already accepted remote work may continue after local end. -/
+Already accepted remote work may continue after local end.
+
+The one automatic renewal is symbolic too: a Start-confirmed `renewal` flag, at most one
+successor key, renewal only after established expiry of the current key, and explicit
+hypotheses for unchanged terms, clock validity, resolved mints and revokes, a durable renewal
+intent and a well-formed successor. The per-key cap limit that makes renewal available, the
+session total and revocation of every key at End stay outside these proofs. -/
 namespace TauWeb.Authority
 
 open TauWeb.Dispatch (Request Approval Resource Entry Intent)
@@ -109,12 +115,31 @@ structure Actor where
   paused : Bool := false
   sealedTerminal : Bool := false
   lostKey : Bool := false
+  /-- One automatic expiry renewal confirmed by the Start action; false where it is unavailable. -/
+  renewal : Bool := false
+  /-- The renewed key's limits: at most one successor, replacing the original as current key. -/
+  successor : Option Limits := none
+  /-- The current key's established expiry is waiting for its renewal; ordinary work is withheld. -/
+  renewalDue : Bool := false
   deriving DecidableEq, Repr
 
 structure Candidate where
   who : Identity
   bound : List Entry
   path : Path := .independent
+  renewal : Bool := false
+  deriving DecidableEq, Repr
+
+/-- Each true field is an external hypothesis about one renewal attempt. `sameTerms` covers the
+unchanged cap, unit, lifetime, session, account credential generation, profile and choice
+generation and a fresh top-up-off read; `minted` a well-formed, validated successor response.
+A false `clockValid`, `resolved` or `appended` field means no renewal intent was recorded. -/
+structure RenewalEvidence where
+  sameTerms : Bool
+  clockValid : Bool
+  resolved : Bool
+  appended : Bool
+  minted : Bool
   deriving DecidableEq, Repr
 
 structure Issued where
@@ -158,6 +183,12 @@ structure Issued where
   exclusiveBinding : Bool := true
   procuredEligibility : Bool := true
   scopedExpiry : Bool := true
+  /-- Counterfactuals: a second renewal; renewal before established expiry; a successor with
+  changed terms; a failed renewal that leaves the session running for a retry. -/
+  renewalOnce : Bool := true
+  renewalAtExpiry : Bool := true
+  renewalTerms : Bool := true
+  renewalFailureEnds : Bool := true
   /-- Counterfactual: lifecycle validation fabricates a confirming observation. -/
   preserveKnowledge : Bool := true
   deriving DecidableEq, Repr
@@ -244,6 +275,15 @@ The authorization input includes stopped predecessor/single-writer custody as an
     | .inference => true
   | _, _ => false
 
+/-- The session's current key: the Start-confirmed original until its one renewal, then the
+successor. Never a third key, and never limits read from assessment evidence. -/
+def currentLimits (a : Actor) (original : Limits) : Limits := a.successor.getD original
+
+/-- Renewal authority left: confirmed at Start, not yet used, and a sealed predecessor with no
+lost-key hold. Without it, established expiry ends the session as before. -/
+@[req "ARC-31a"] def renewalLeft (p : Params) (a : Actor) : Bool :=
+  a.renewal && (!p.renewalOnce || a.successor.isNone) && a.sealedTerminal && !a.lostKey
+
 @[req "ARC-31a"] def keyEligible (p : Params) (a : Actor) (ev : Evidence) : Bool :=
   if !p.procuredEligibility then true else
   match a.path with
@@ -251,7 +291,7 @@ The authorization input includes stopped predecessor/single-writer custody as an
   | .procured original => (!p.sealedTerminalRequired || a.sealedTerminal) &&
     (!p.resumeTerminal || !a.lostKey) && !a.keyWithheld &&
     match ev.key with
-    | some k => (!p.requestOriginal || k.original == original) && k.valid
+    | some k => (!p.requestOriginal || k.original == currentLimits a original) && k.valid
     | none => false
 
 @[req "STA-23"] def validationCurrent (p : Params) (dp : Dispatch.Params) (w : World)
@@ -339,10 +379,13 @@ inductive Local
   | admit (candidate : Candidate) (authorized : Bool)
   | grow (who : Identity) (entry : Entry) (authorized : Bool)
   | assessKey (who : Identity) (evidence : KeyEvidence)
+  | renew (who : Identity) (successor : Limits) (evidence : RenewalEvidence)
   deriving DecidableEq, Repr
 
-/-- Assessment never replaces original limits. Expiry/cap end only the affected procured actor;
-uncertainty/incompatibility withhold. Valid repair invalidates prior continuation validation. -/
+/-- Assessment never replaces the current key's limits. Cap exhaustion, and expiry with no
+renewal authority left, end only the affected procured actor; expiry with renewal authority
+left withholds until the renewal, and no later assessment of that key repairs it.
+Uncertainty/incompatibility withhold. Valid repair invalidates prior continuation validation. -/
 @[req "ARC-31a"] def assess (p : Params) (w : World) (who : Identity) (k : KeyEvidence) : World :=
   match actor p w who with
   | none => w
@@ -353,10 +396,32 @@ uncertainty/incompatibility withhold. Valid repair invalidates prior continuatio
       if !p.scopedExpiry && (k.state == .expired || k.state == .exhausted) then endAll w else w
     | .procured original =>
       if !p.procuredEligibility then w else
-      if k.original == original && (k.state == .expired || k.state == .exhausted) then
-        if p.scopedExpiry then endOne w a.who else endAll w
+      if k.original == currentLimits a original && (k.state == .expired || k.state == .exhausted) then
+        if k.state == .expired && renewalLeft p a then updateActor w a.who fun a =>
+          { a with keyWithheld := true, renewalDue := true, revision := a.revision + 1, validation := none }
+        else if p.scopedExpiry then endOne w a.who else endAll w
       else updateActor w a.who fun a =>
-        { a with keyWithheld := !(k.original == original && k.valid), revision := a.revision + 1, validation := none }
+        { a with keyWithheld := a.renewalDue || !(k.original == currentLimits a original && k.valid), revision := a.revision + 1, validation := none }
+
+/-- The one automatic renewal, only after the current key's established expiry with renewal
+authority left; never at the cap. A missing clock, an unresolved mint or revoke, or a failed
+intent append mints nothing and leaves work withheld. Once the intent is durable, a refused,
+lost, malformed or uncertain mint, or changed terms, ends the session with no retry. A
+successor keeps the current cap and needs its own sealed terminal and assessment before use. -/
+@[req "ARC-31a"] def renew (p : Params) (w : World) (who : Identity) (s : Limits) (ev : RenewalEvidence) : World :=
+  match actor p w who with
+  | none => w
+  | some a =>
+    if w.fenced.contains a.who || w.ended.contains a.who.session || !available p w || a.paused then w else
+    match a.path with
+    | .independent => w
+    | .procured original =>
+      if !(renewalLeft p a && (!p.renewalAtExpiry || a.renewalDue) && ev.clockValid && ev.resolved && ev.appended) then w
+      else if ev.minted && (!p.renewalTerms || (ev.sameTerms && s.cap == (currentLimits a original).cap &&
+          s.key != (currentLimits a original).key && s.expiry != (currentLimits a original).expiry)) then
+        updateActor w a.who fun a =>
+          { a with successor := some s, renewalDue := false, sealedTerminal := false, keyWithheld := true, revision := a.revision + 1, validation := none }
+      else if p.renewalFailureEnds then endOne w a.who else w
 
 /-- A processed boundary carrying established expiry/cap evidence fences before admission.
 Other assessments have explicit local events; current key evidence is checked afresh below. -/
@@ -411,7 +476,7 @@ def localAuthorityStep (p : Params) (dp : Dispatch.Params) (w : World) : Local �
       (!p.endFence || (!w.fenced.contains c.who && !w.ended.contains c.who.session)) &&
       !(w.actors.any fun a => a.who.session == c.who.session) &&
       (!p.exclusiveBinding || bindingFree p w c.who c.bound) then
-      { w with actors := { who := c.who, bound := c.bound, path := c.path, keyWithheld := (match c.path with | .independent => false | .procured _ => true) } :: w.actors }
+      { w with actors := { who := c.who, bound := c.bound, path := c.path, renewal := c.renewal, keyWithheld := (match c.path with | .independent => false | .procured _ => true) } :: w.actors }
     else w
   | .grow who entry ok =>
     if ok && !w.fenced.contains who &&
@@ -420,6 +485,7 @@ def localAuthorityStep (p : Params) (dp : Dispatch.Params) (w : World) : Local �
       updateActor w who fun a => { a with bound := (entry :: a.bound).eraseDups }
     else w
   | .assessKey who ev => assess p w who ev
+  | .renew who s ev => renew p w who s ev
 
 @[req "STA-23"] def localStep (p : Params) (dp : Dispatch.Params) (x : Dispatch.External)
     (w : World) (event : Local) : World :=
@@ -495,8 +561,16 @@ private theorem assess_fence (p : Params) (w : World) (who : Identity) (k : KeyE
       · split
         · exact h
         · split
-          · split <;> simp_all [endOne, endAll, List.mem_append]
+          · split
+            · exact h
+            · split <;> simp_all [endOne, endAll, List.mem_append]
           · exact h
+
+private theorem renew_fence (p : Params) (w : World) (who : Identity) (s : Limits)
+    (ev : RenewalEvidence) (i : Identity) (h : i ∈ w.fenced) : i ∈ (renew p w who s ev).fenced := by
+  unfold renew
+  repeat' split
+  all_goals first | exact h | simp_all [endOne]
 
 private theorem boundary_fence (p : Params) (w : World) (work : Work) (ev : Evidence)
     (i : Identity) (h : i ∈ w.fenced) : i ∈ (boundary p w work ev).fenced := by
@@ -513,7 +587,7 @@ private theorem local_fence (p : Params) (dp : Dispatch.Params) (x : Dispatch.Ex
     i ∈ (localStep p dp x w e).fenced := by
   have ha : i ∈ (localAuthorityStep p dp w e).fenced := by
     cases e <;> simp only [localAuthorityStep]
-    all_goals first | exact h | (apply assess_fence; exact h) | skip
+    all_goals first | exact h | (apply assess_fence; exact h) | (apply renew_fence; exact h) | skip
     all_goals repeat first | split | exact h | (apply boundary_fence; exact h) | simp_all [endOne, endAll, resume, List.mem_append]
   unfold localStep
   split
@@ -558,8 +632,17 @@ private theorem assess_session_end (p : Params) (w : World) (who : Identity) (k 
       · split
         · exact h
         · split
-          · split <;> simp_all [endOne, endAll, List.mem_append]
+          · split
+            · exact h
+            · split <;> simp_all [endOne, endAll, List.mem_append]
           · exact h
+
+private theorem renew_session_end (p : Params) (w : World) (who : Identity) (s : Limits)
+    (ev : RenewalEvidence) (i : Dispatch.SessionId) (h : i ∈ w.ended) :
+    i ∈ (renew p w who s ev).ended := by
+  unfold renew
+  repeat' split
+  all_goals first | exact h | simp_all [endOne]
 
 private theorem boundary_session_end (p : Params) (w : World) (work : Work) (ev : Evidence)
     (i : Dispatch.SessionId) (h : i ∈ w.ended) : i ∈ (boundary p w work ev).ended := by
@@ -576,7 +659,7 @@ private theorem local_session_end (p : Params) (dp : Dispatch.Params) (x : Dispa
     i ∈ (localStep p dp x w e).ended := by
   have ha : i ∈ (localAuthorityStep p dp w e).ended := by
     cases e <;> simp only [localAuthorityStep]
-    all_goals first | exact h | (apply assess_session_end; exact h) | skip
+    all_goals first | exact h | (apply assess_session_end; exact h) | (apply renew_session_end; exact h) | skip
     all_goals repeat first | split | exact h | (apply boundary_session_end; exact h) | simp_all [endOne, endAll, resume, List.mem_append]
   unfold localStep
   split
@@ -616,6 +699,11 @@ private theorem assess_dispatch (p : Params) (w : World) (who : Identity) (k : K
   unfold assess
   repeat first | split | rfl
 
+private theorem renew_dispatch (p : Params) (w : World) (who : Identity) (s : Limits)
+    (ev : RenewalEvidence) : (renew p w who s ev).dispatch = w.dispatch := by
+  unfold renew
+  repeat first | split | rfl
+
 private theorem boundary_dispatch (p : Params) (w : World) (work : Work) (ev : Evidence) :
     (boundary p w work ev).dispatch = w.dispatch := by
   unfold boundary
@@ -628,7 +716,7 @@ private theorem boundary_dispatch (p : Params) (w : World) (work : Work) (ev : E
 private theorem local_dispatch (p : Params) (dp : Dispatch.Params) (w : World) (e : Local) :
     (localAuthorityStep p dp w e).dispatch = w.dispatch := by
   cases e <;> simp only [localAuthorityStep]
-  all_goals repeat first | split | rfl | apply boundary_dispatch | apply assess_dispatch
+  all_goals repeat first | split | rfl | apply boundary_dispatch | apply assess_dispatch | apply renew_dispatch
   all_goals unfold resume; dsimp only; split <;> (repeat first | split | rfl)
 
 @[req "STA-8"] theorem lifecycle_knowledge (p : Params) (dp : Dispatch.Params) (x : Dispatch.External)
@@ -769,9 +857,9 @@ private theorem actor_exact (p : Params) (w : World) (who : Identity) (a : Actor
 def alice : Identity := ⟨1, 10, Dispatch.sessionA⟩
 def bob : Identity := ⟨2, 20, Dispatch.sessionB⟩
 def sibling : Identity := ⟨3, 30, Dispatch.sessionC⟩
-def candidateA : Candidate := ⟨alice, [Dispatch.entryA], .independent⟩
-def candidateB : Candidate := ⟨bob, [Dispatch.entryA], .independent⟩
-def candidateSibling : Candidate := ⟨sibling, [Dispatch.entryB], .independent⟩
+def candidateA : Candidate := ⟨alice, [Dispatch.entryA], .independent, false⟩
+def candidateB : Candidate := ⟨bob, [Dispatch.entryA], .independent, false⟩
+def candidateSibling : Candidate := ⟨sibling, [Dispatch.entryB], .independent, false⟩
 def initial : World := { dispatch := Dispatch.init }
 def ready : Evidence := ⟨true, true, true, none⟩
 def custody : Custody := ⟨true, true, true⟩
@@ -1063,6 +1151,21 @@ def keyReady : Evidence := { ready with key := some validKey }
 def procuredStart : List Event := [.lifecycle (.unlock true),
   .lifecycle (.admit { candidateA with path := .procured originalLimits } true),
   .lifecycle (.assessKey alice validKey), .lifecycle (.sealTerminal alice true)]
+/-- The same start with the one automatic renewal confirmed; `procuredStart` has none. -/
+def renewingCandidate : Candidate := { candidateA with path := .procured originalLimits, renewal := true }
+def renewingStart : List Event := [.lifecycle (.unlock true),
+  .lifecycle (.admit renewingCandidate true),
+  .lifecycle (.assessKey alice validKey), .lifecycle (.sealTerminal alice true)]
+/-- The successor keeps the cap identity, with its own key, origin and expiry. -/
+def successorLimits : Limits := ⟨2, 2, 1, 2⟩
+def successorKey : KeyEvidence := { validKey with original := successorLimits }
+def successorReady : Evidence := { ready with key := some successorKey }
+def renewalOk : RenewalEvidence := ⟨true, true, true, true, true⟩
+def expiredKey : KeyEvidence := keyEvidenceFor .expired
+/-- Renew, seal the successor's terminal, then assess the successor. -/
+def renewalTail (s : Limits) (ev : RenewalEvidence) : List Event := [
+  .lifecycle (.renew alice s ev), .lifecycle (.sealTerminal alice true),
+  .lifecycle (.assessKey alice { validKey with original := s })]
 /-- Valid assessment uses the original tuple; only the later request presents a changed cap. -/
 def changedRequestKey : KeyEvidence := { validKey with original := { originalLimits with cap := 2 } }
 def changedRequestLimitsEvents : List Event := procuredStart ++ [
@@ -1079,8 +1182,14 @@ def originalRequestLimitsEvents : List Event := procuredStart ++ [.request readA
     sent (result originalRequestLimitsEvents) readA.request.call = true := by decide +kernel
 
 def expiryEvents : List Event := procuredStart ++ [.request execA { keyReady with key := some (keyEvidenceFor .expired) } true]
+/-- Rollover case: with renewal authority left, expiry refuses the SSH send and withholds,
+without ending the session. -/
+def renewingExpiryEvents : List Event := renewingStart ++ [.request execA { keyReady with key := some (keyEvidenceFor .expired) } true]
 @[req "ARC-31a"] theorem expired_session_ssh_refused :
-    sent (result expiryEvents) execA.request.call = false ∧ (result expiryEvents).fenced.contains alice = true := by decide +kernel
+    sent (result expiryEvents) execA.request.call = false ∧ (result expiryEvents).fenced.contains alice = true ∧
+    sent (result renewingExpiryEvents) execA.request.call = false ∧
+    (result renewingExpiryEvents).fenced.contains alice = false ∧
+    (actor current (result renewingExpiryEvents) alice).map (fun a => (a.keyWithheld, a.renewalDue)) = some (true, true) := by decide +kernel
 @[req "ARC-31a"] theorem expired_session_ssh_without_gate :
     sent (result expiryEvents { current with procuredEligibility := false }) execA.request.call = true := by decide +kernel
 
@@ -1149,10 +1258,18 @@ def validationEndEvents (state : KeyState) : List Event := procuredStart ++ [
   .lifecycle (.suspend alice),
   .lifecycle (.validate readA { keyReady with key := some (keyEvidenceFor state) }),
   .lifecycle (.validate readA keyReady), .request readA keyReady true]
+/-- Rollover case: the same validation boundary under renewal authority. -/
+def renewingValidationEndEvents (state : KeyState) : List Event := renewingStart ++
+  (validationEndEvents state).drop procuredStart.length
 @[req "ARC-31a"] theorem validation_terminal_ends :
     ([KeyState.expired, .exhausted].all fun state =>
       !sent (result (validationEndEvents state)) readA.request.call &&
-      (result (validationEndEvents state)).fenced.contains alice) = true := by decide +kernel
+      (result (validationEndEvents state)).fenced.contains alice) = true ∧
+    (!sent (result (renewingValidationEndEvents .expired)) readA.request.call &&
+      !(result (renewingValidationEndEvents .expired)).fenced.contains alice &&
+      (actor current (result (renewingValidationEndEvents .expired)) alice).map (·.renewalDue) == some true) = true ∧
+    (!sent (result (renewingValidationEndEvents .exhausted)) readA.request.call &&
+      (result (renewingValidationEndEvents .exhausted)).fenced.contains alice) = true := by decide +kernel
 @[req "ARC-31a"] theorem validation_terminal_without_guard :
     ([KeyState.expired, .exhausted].all fun state =>
       sent (result (validationEndEvents state) { current with validationTerminal := false }) readA.request.call) = true := by decide +kernel
@@ -1465,6 +1582,132 @@ def paidCeremonyEvents (choice : Completion) : List Event := procuredStart ++ [
       sent (result (paidCeremonyEvents c)) readA.request.call) = true ∧
     (actor current (result (paidCeremonyEvents .skipped)) resumedAlice).map (·.path) = some (.procured originalLimits) ∧
     (result (paidCeremonyEvents .skipped)).ended = [] := by decide +kernel
+
+/-! The one automatic renewal at expiry (`ARC-31a`): at most two keys, expiry only. -/
+
+def renewalEvents : List Event := renewingStart ++ [.lifecycle (.assessKey alice expiredKey)] ++
+  renewalTail successorLimits renewalOk ++ [.request readA successorReady true]
+@[req "ARC-31a"] theorem renewal_at_expiry_progress :
+    sent (result renewalEvents) readA.request.call = true ∧
+    (result renewalEvents).fenced.contains alice = false ∧
+    (actor current (result renewalEvents) alice).map (·.successor) = some (some successorLimits) := by decide +kernel
+
+/-- After the renewal, evidence for the superseded original key supplies no authority. -/
+def supersededEvents : List Event := renewingStart ++ [.lifecycle (.assessKey alice expiredKey)] ++
+  renewalTail successorLimits renewalOk ++ [.request readA keyReady true]
+@[req "ARC-31a"] theorem superseded_key_refused :
+    sent (result supersededEvents) readA.request.call = false := by decide +kernel
+@[req "ARC-31a"] theorem superseded_key_without_check :
+    sent (result supersededEvents { current with requestOriginal := false }) readA.request.call = true := by decide +kernel
+
+def unsealedSuccessorEvents : List Event := renewingStart ++ [.lifecycle (.assessKey alice expiredKey),
+  .lifecycle (.renew alice successorLimits renewalOk), .lifecycle (.assessKey alice successorKey),
+  .request readA successorReady true]
+@[req "ARC-31a"] theorem successor_requires_seal :
+    sent (result unsealedSuccessorEvents) readA.request.call = false := by decide +kernel
+@[req "ARC-31a"] theorem successor_seal_without_check :
+    sent (result unsealedSuccessorEvents { current with sealedTerminalRequired := false }) readA.request.call = true := by decide +kernel
+
+/-- The successor's expiry ends the session: no third key. -/
+def thirdLimits : Limits := ⟨3, 3, 1, 3⟩
+def thirdKeyEvents : List Event := renewalEvents ++
+  [.lifecycle (.assessKey alice { successorKey with state := .expired, upperBeforeExpiry := false })] ++
+  renewalTail thirdLimits renewalOk ++ [.request nextReadA { ready with key := some { validKey with original := thirdLimits } } true]
+@[req "ARC-31a"] theorem third_key_refused :
+    sent (result thirdKeyEvents) nextReadA.request.call = false ∧
+    (result thirdKeyEvents).fenced.contains alice = true := by decide +kernel
+@[req "ARC-31a"] theorem third_key_without_check :
+    sent (result thirdKeyEvents { current with renewalOnce := false }) nextReadA.request.call = true := by decide +kernel
+
+/-- Renewal only after established expiry: an earlier renewal attempt mints nothing. -/
+def earlyRenewalEvents : List Event := renewingStart ++ renewalTail successorLimits renewalOk ++
+  [.request readA successorReady true]
+@[req "ARC-31a"] theorem early_renewal_refused :
+    sent (result earlyRenewalEvents) readA.request.call = false ∧
+    (actor current (result earlyRenewalEvents) alice).map (·.successor) = some none := by decide +kernel
+@[req "ARC-31a"] theorem early_renewal_without_check :
+    sent (result earlyRenewalEvents { current with renewalAtExpiry := false }) readA.request.call = true := by decide +kernel
+
+/-- Cap exhaustion ends the session even with renewal authority left. -/
+def capRenewalEvents : List Event := renewingStart ++ [.lifecycle (.assessKey alice (keyEvidenceFor .exhausted))] ++
+  renewalTail successorLimits renewalOk ++ [.request readA successorReady true]
+@[req "ARC-31a"] theorem cap_exhaustion_never_renews :
+    sent (result capRenewalEvents) readA.request.call = false ∧
+    (result capRenewalEvents).fenced.contains alice = true := by decide +kernel
+
+/-- A recorded renewal that fails ends the session; it is never retried. -/
+def failedRenewalEvents : List Event := renewingStart ++ [.lifecycle (.assessKey alice expiredKey),
+  .lifecycle (.renew alice successorLimits { renewalOk with minted := false })] ++
+  renewalTail successorLimits renewalOk ++ [.request readA successorReady true]
+@[req "ARC-31a"] theorem failed_renewal_ends :
+    sent (result failedRenewalEvents) readA.request.call = false ∧
+    (result failedRenewalEvents).fenced.contains alice = true := by decide +kernel
+@[req "ARC-31a"] theorem failed_renewal_without_end :
+    sent (result failedRenewalEvents { current with renewalFailureEnds := false }) readA.request.call = true := by decide +kernel
+
+/-- Changed terms stop the renewal: a changed cap, a reused expiry, or changed bindings. -/
+def changedTermsCases : List (Limits × RenewalEvidence) := [
+  ({ successorLimits with cap := 2 }, renewalOk), ({ successorLimits with expiry := 1 }, renewalOk),
+  (successorLimits, { renewalOk with sameTerms := false })]
+def changedTermsEvents (s : Limits) (ev : RenewalEvidence) : List Event := renewingStart ++
+  [.lifecycle (.assessKey alice expiredKey)] ++ renewalTail s ev ++
+  [.request readA { ready with key := some { validKey with original := s } } true]
+@[req "ARC-31a"] theorem changed_terms_renewal_ends :
+    (changedTermsCases.all fun (s, ev) => !sent (result (changedTermsEvents s ev)) readA.request.call &&
+      (result (changedTermsEvents s ev)).fenced.contains alice) = true := by decide +kernel
+@[req "ARC-31a"] theorem changed_terms_renewal_without_check :
+    (changedTermsCases.all fun (s, ev) =>
+      sent (result (changedTermsEvents s ev) { current with renewalTerms := false }) readA.request.call) = true := by decide +kernel
+
+/-- A bar before the renewal intent mints nothing and keeps work withheld; once it clears, the
+one renewal can still proceed, since no attempt was recorded. -/
+def barredCases : List RenewalEvidence := [{ renewalOk with clockValid := false },
+  { renewalOk with resolved := false }, { renewalOk with appended := false }]
+def barredRenewalEvents (ev : RenewalEvidence) : List Event := renewingStart ++
+  [.lifecycle (.assessKey alice expiredKey), .lifecycle (.renew alice successorLimits ev),
+   .request readA successorReady true]
+@[req "ARC-31a"] theorem barred_renewal_withholds :
+    (barredCases.all fun ev => !sent (result (barredRenewalEvents ev)) readA.request.call &&
+      !(result (barredRenewalEvents ev)).fenced.contains alice &&
+      (actor current (result (barredRenewalEvents ev)) alice).map (·.successor) == some none) = true ∧
+    sent (result (barredRenewalEvents { renewalOk with resolved := false } ++
+      renewalTail successorLimits renewalOk ++ [.request readA successorReady true])) readA.request.call = true := by decide +kernel
+
+/-- An unsealed predecessor or a lost-key hold leaves no renewal authority: expiry ends. -/
+def unsealedExpiryEvents : List Event := renewingStart.take 3 ++ [.lifecycle (.assessKey alice expiredKey)]
+def lostKeyExpiryEvents : List Event := renewingStart.take 3 ++ [
+  .lifecycle (.sealTerminal alice false), .lifecycle (.pause .reload), .lifecycle (.unlock true),
+  .lifecycle (.resume alice resumedAlice.incarnation true), .lifecycle (.sealTerminal resumedAlice true),
+  .lifecycle (.assessKey resumedAlice expiredKey)]
+@[req "ARC-31a"] theorem held_key_expiry_ends :
+    (result unsealedExpiryEvents).fenced.contains alice = true ∧
+    (result lostKeyExpiryEvents).fenced.contains resumedAlice = true := by decide +kernel
+
+/-- End fences a pending renewal. -/
+def endedRenewalEvents : List Event := renewingStart ++ [.lifecycle (.assessKey alice expiredKey),
+  .lifecycle (.endSession alice .explicit)] ++ renewalTail successorLimits renewalOk ++
+  [.request readA successorReady true]
+@[req "ARC-31a"] theorem ended_session_cannot_renew :
+    sent (result endedRenewalEvents) readA.request.call = false ∧
+    (actor current (result endedRenewalEvents) alice).map (·.successor) = some none := by decide +kernel
+
+/-- `repair_cannot_renew`, `cap_end_cannot_repair` and their expiry counterpart under renewal
+authority: assessment never renews, and nothing repairs an established expiry or cap end. -/
+def renewingChangedLimitsEvents : List Event := renewingStart ++ [
+  .lifecycle (.assessKey alice { validKey with original := { originalLimits with expiry := 2 } }), .request readA keyReady true]
+def renewingCapEvents : List Event := renewingStart ++ [.lifecycle (.assessKey alice (keyEvidenceFor .exhausted)),
+  .lifecycle (.assessKey alice validKey), .request readA keyReady true]
+def expiredRepairEvents : List Event := renewingStart ++ [.lifecycle (.assessKey alice expiredKey),
+  .lifecycle (.assessKey alice validKey), .request readA keyReady true]
+@[req "ARC-31a"] theorem renewing_repair_cannot_renew :
+    sent (result renewingChangedLimitsEvents) readA.request.call = false ∧
+    (actor current (result renewingChangedLimitsEvents) alice).map (·.successor) = some none := by decide +kernel
+@[req "ARC-31a"] theorem renewing_cap_end_cannot_repair :
+    sent (result renewingCapEvents) readA.request.call = false ∧
+    (result renewingCapEvents).fenced.contains alice = true := by decide +kernel
+@[req "ARC-31a"] theorem expired_key_cannot_repair :
+    sent (result expiredRepairEvents) readA.request.call = false ∧
+    (result expiredRepairEvents).fenced.contains alice = false := by decide +kernel
 
 /-- Maximum length of these named histories, not an exhaustive event-alphabet bound. -/
 @[req "STA-23"] def witnessBound : Nat := 26

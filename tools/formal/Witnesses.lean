@@ -222,7 +222,7 @@ structure Module where
 
 /-- The schema version of each emitted module. Allocation, pins and dispatch changed shape. -/
 def schemaVersion (name : String) : Nat :=
-  if name == "authority" then 5 else if name == "allocation" then 3 else if name == "pins" then 7 else if name == "dispatch" then 10 else 1
+  if name == "authority" then 6 else if name == "allocation" then 3 else if name == "pins" then 7 else if name == "dispatch" then 10 else 1
 
 /-- The header pretty, one trace per line: a diff names the trace that moved. -/
 def fileText (name : String) (ns : Name) (bound : Json) (witnesses enumeration : List Json) :
@@ -1659,14 +1659,20 @@ def actorJson (a : Actor) : Json := Json.mkObj [
   ("authority", identityJson a.who), ("bound", toJson a.bound), ("path", pathJson a.path),
   ("interrupted", toJson a.interrupted), ("revision", toJson a.revision),
   ("validation", a.validation.map validationJson |>.getD Json.null), ("key_withheld", toJson a.keyWithheld), ("paused", toJson a.paused),
-  ("sealed_terminal", toJson a.sealedTerminal), ("lost_key", toJson a.lostKey)]
+  ("sealed_terminal", toJson a.sealedTerminal), ("lost_key", toJson a.lostKey),
+  ("renewal", toJson a.renewal), ("successor", a.successor.map limitsJson |>.getD Json.null),
+  ("renewal_due", toJson a.renewalDue)]
 def knowledgeJson (dp : TauWeb.Dispatch.Params) (w : TauWeb.Authority.World) : Json := Json.mkObj [
   ("dispatch", Dispatch.knowledgeJson dp w.dispatch), ("actors", toJson (w.actors.map actorJson)),
   ("fenced", toJson (w.fenced.map identityJson)), ("ended_sessions", toJson w.ended), ("locked", toJson w.locked),
   ("ceremony", toJson w.ceremony), ("ceremony_owed", toJson w.ceremonyOwed),
   ("issued", toJson (w.issued.map issuedJson)), ("published", toJson (w.published.map issuedJson))]
 def candidateJson (c : Candidate) : Json := Json.mkObj [
-  ("authority", identityJson c.who), ("bound", toJson c.bound), ("path", pathJson c.path)]
+  ("authority", identityJson c.who), ("bound", toJson c.bound), ("path", pathJson c.path),
+  ("renewal", toJson c.renewal)]
+def renewalJson (e : RenewalEvidence) : Json := Json.mkObj [
+  ("same_terms", toJson e.sameTerms), ("clock_valid", toJson e.clockValid),
+  ("resolved", toJson e.resolved), ("appended", toJson e.appended), ("minted", toJson e.minted)]
 def reasonName : EndReason → String
   | .explicit => "explicit" | .replace => "replace" | .expiry => "expiry"
   | .capExhaustion => "cap_exhaustion" | .abandon => "abandon"
@@ -1692,6 +1698,7 @@ def localJson : Local → Json
   | .admit c ok => Json.mkObj [("kind", "fresh_admission"), ("provenance", "operator act"), ("candidate", candidateJson c), ("authorized", toJson ok)]
   | .grow i e ok => Json.mkObj [("kind", "grow_binding"), ("provenance", "operator act"), ("authority", identityJson i), ("entry", toJson e), ("authorized", toJson ok)]
   | .assessKey i k => Json.mkObj [("kind", "assess_key"), ("provenance", "adapter observation"), ("authority", identityJson i), ("evidence", keyJson k)]
+  | .renew i s e => Json.mkObj [("kind", "renew_key"), ("provenance", "adapter observation"), ("authority", identityJson i), ("successor", limitsJson s), ("evidence", renewalJson e)]
 def eventJson : TauWeb.Authority.Event → Json
   | .lifecycle l => localJson l
   | .request w e ok => Json.mkObj [("kind", "ordinary_request"), ("provenance", "model request"), ("work", workJson w), ("evidence", evidenceJson e), ("appended", toJson ok)]
@@ -1730,11 +1737,14 @@ def assumptionsJson (p : TauWeb.Authority.Params) (dp : TauWeb.Dispatch.Params) 
   ("publicationDispatch", toJson p.publicationDispatch), ("publicationOrigin", toJson p.publicationOrigin), ("individualOnly", toJson p.individualOnly),
   ("exclusiveBinding", toJson p.exclusiveBinding), ("procuredEligibility", toJson p.procuredEligibility),
   ("scopedExpiry", toJson p.scopedExpiry), ("preserveKnowledge", toJson p.preserveKnowledge),
+  ("renewalOnce", toJson p.renewalOnce), ("renewalAtExpiry", toJson p.renewalAtExpiry),
+  ("renewalTerms", toJson p.renewalTerms), ("renewalFailureEnds", toJson p.renewalFailureEnds),
   ("dispatch", Dispatch.assumptionsJson dp),
   ("external_hypotheses", toJson (["single writer and current store custody", "processed-event ordering only",
     "operator admission and binding authorization", "symbolic identities; execution-name reuse is checked, not assumed away", "end represents stopped workers and closed channels",
     "current connection, scan and safe-unsent evidence", "full current issuer/clock/limits evidence including both discrepancy checks",
-    "original-call to continuation correlation is an interface convention"] : List String))]
+    "original-call to continuation correlation is an interface convention",
+    "renewal availability, terms, clock, resolution, intent and successor evidence; no cap arithmetic or revocation"] : List String))]
 
 structure Trace where
   declarations : List String
@@ -1813,6 +1823,27 @@ def witnesses : List Trace :=
   paired "failed_confirmation_keeps_barrier" "failed_confirmation_without_durability" (settlementEvents false) TauWeb.Authority.current { TauWeb.Dispatch.current with durableBeforeApply := false } ++
   paired "validation_preserves_uncertainty" "fabricated_validation_settles_without_guard" seamPrefix { TauWeb.Authority.current with preserveKnowledge := false } ++
   paired "expired_session_ssh_refused" "expired_session_ssh_without_gate" expiryEvents { TauWeb.Authority.current with procuredEligibility := false } ++
+  [{ declarations := [named "expired_session_ssh_refused"], events := renewingExpiryEvents }] ++
+  ([KeyState.expired, .exhausted].map fun s =>
+    { declarations := [named "validation_terminal_ends"], events := renewingValidationEndEvents s }) ++
+  paired "superseded_key_refused" "superseded_key_without_check" supersededEvents { TauWeb.Authority.current with requestOriginal := false } ++
+  paired "successor_requires_seal" "successor_seal_without_check" unsealedSuccessorEvents { TauWeb.Authority.current with sealedTerminalRequired := false } ++
+  paired "third_key_refused" "third_key_without_check" thirdKeyEvents { TauWeb.Authority.current with renewalOnce := false } ++
+  paired "early_renewal_refused" "early_renewal_without_check" earlyRenewalEvents { TauWeb.Authority.current with renewalAtExpiry := false } ++
+  paired "failed_renewal_ends" "failed_renewal_without_end" failedRenewalEvents { TauWeb.Authority.current with renewalFailureEnds := false } ++
+  (changedTermsCases.flatMap fun (s, ev) =>
+    paired "changed_terms_renewal_ends" "changed_terms_renewal_without_check" (changedTermsEvents s ev) { TauWeb.Authority.current with renewalTerms := false }) ++
+  (barredCases.map fun ev => { declarations := [named "barred_renewal_withholds"], events := barredRenewalEvents ev }) ++
+  [ { declarations := [named "renewal_at_expiry_progress"], events := renewalEvents },
+    { declarations := [named "barred_renewal_withholds"], events := barredRenewalEvents { renewalOk with resolved := false } ++
+        renewalTail successorLimits renewalOk ++ [.request readA successorReady true] },
+    { declarations := [named "cap_exhaustion_never_renews"], events := capRenewalEvents },
+    { declarations := [named "held_key_expiry_ends"], events := unsealedExpiryEvents },
+    { declarations := [named "held_key_expiry_ends"], events := lostKeyExpiryEvents },
+    { declarations := [named "ended_session_cannot_renew"], events := endedRenewalEvents },
+    { declarations := [named "renewing_repair_cannot_renew"], events := renewingChangedLimitsEvents },
+    { declarations := [named "renewing_cap_end_cannot_repair"], events := renewingCapEvents },
+    { declarations := [named "expired_key_cannot_repair"], events := expiredRepairEvents } ] ++
   paired "procured_expiry_keeps_independent_session" "expiry_spreads_without_scope" expiryIsolationEvents { TauWeb.Authority.current with scopedExpiry := false } ++
   paired "ordinary_append_failure_refused" "ordinary_append_failure_without_durability" failedIntentEvents TauWeb.Authority.current { TauWeb.Dispatch.current with durableBeforeApply := false } ++
   [ { declarations := [named "current_connection_and_scan_required"], events := readinessEvents },
