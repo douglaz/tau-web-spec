@@ -21,8 +21,8 @@ sheet form:
   Replace migrates it;
 - an LNVPS rebuild's old machine awaiting its deletion evidence, which the rebuilding Replace
   never migrates. (Editorial qualification, 2026-11-11: this item first said only that the old
-  machine "never migrates". An earlier Replace may have migrated that same machine, as `CNF-20`
-  checks. It adds and removes no rule.)
+  machine "never migrates". An earlier Replace may have migrated that same machine: `CNF-20`
+  says "an earlier Replace migrated this same old machine". It adds and removes no rule.)
 
 ## The shape chosen
 
