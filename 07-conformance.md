@@ -2911,8 +2911,19 @@ Not pass/fail. Required to be recorded.
       refuses, journals no pin or prerequisite result, creates no first-read anchor, stops the
       migration unfinished and ends any still-standing grant. The screen below is
       shown; no reset back or further `ready_to_reset` through the stopped flow is sent,
-      including after restart. These conditional fixtures select no mount actor or arrangement
-      and do not identify the fixed path's root with the root that received the client key.
+      including after restart. These conditional fixtures select no mount actor or arrangement;
+      in each, `/mnt` is the root directory of the file system that received the client key, on
+      the device that `rescue_install_key`'s captured output records and under the rescue boot ID
+      its job record carries.
+      With the key written and the same setup otherwise, each in its own run: `/mnt` is the root
+      of another file system holding a valid host-key set that is not rescue's; a copy of the
+      written file system with the same UUID on another device; a directory below the written
+      file system's root holding such a set; the written root under a changed rescue boot ID; and
+      the written root with the identity missing from `rescue_install_key`'s captured output.
+      Each `ready_to_reset` read refuses as a whole, journals no pin or prerequisite result,
+      creates no first-read anchor, stops the migration unfinished and ends any still-standing
+      grant. The screen below is shown; no reset back or further `ready_to_reset` through the
+      stopped flow is sent, including after restart.
       After the root-label stop, give the server one root carrying host keys, with a file
       system journal left unreplayed by an unclean unmount: every disk's bytes are the same
       before and after `rescue_host_key_read`, the reset is offered on what it read, and its
@@ -2932,6 +2943,14 @@ Not pass/fail. Required to be recorded.
       material and the relevant keys overlap no rescue pin: the entire read refuses, follows no
       link and accepts no successful partial prerequisite result or expected next keys from the
       regular file. No reset is offered or sent, the grant ends and the screen below is shown.
+      In separate runs set up the same way, put a directory, a FIFO, a device node and a socket
+      in that symbolic link's place: the entire read refuses, opens no entry that is not a
+      regular file and accepts no successful partial prerequisite result or expected next keys
+      from the regular file. In two more runs, make the directory holding the key files, and
+      again a directory above it inside the root, a symbolic link to a directory holding valid
+      non-rescue public-key material: the entire read refuses, follows no link and accepts no
+      successful prerequisite result or expected next keys. In each of these runs no reset is
+      offered or sent, the grant ends and the screen below is shown.
       Fail the append of what it read: no reset is
       offered or sent. Restart the harness after the stop: the reset is shown again and offered
       only after `STA-20b`'s offer check is made again. Journal the reset's intent and lose its
@@ -2999,9 +3018,18 @@ Not pass/fail. Required to be recorded.
       lacking its ceremony record, the flow's relay pass is not allocated and no call of the
       flow is sent. A server with
       two roots whose labels read in `STG-20`'s form takes the root-label stop: no key is
-      written and only the reset back stays. So does a server with one such root beside a
-      possible root whose label probe no reading resolves, for example a device every read of
-      which fails (`STA-17` leaves "what makes a label probe resolve" not decided). A scoped read meeting a root it cannot read, or a
+      written and only the reset back stays, also when one of the two is a whole disk without a
+      partition table. So does a server with one such root beside a possible root whose label
+      probe does not resolve, each in its own run: a device every read of which fails, one
+      whose probe read returns only part of what it asked for, one whose probe returns empty
+      output, a partition whose probe finds more than one file-system signature, and one whose
+      signature the job does not recognise. Give a server one such root beside a BIOS-boot
+      partition carrying no file-system signature: the root-label stop is not taken and the key
+      lands in the labelled root. In each of these runs the job's captured output lists every
+      partition, and every whole disk without a partition table, that the rescue kernel lists on
+      the server's disks, with each probe's result, the BIOS-boot partition's as no file-system
+      signature.
+      A scoped read meeting a root it cannot read, or a
       key file holding anything but one public key, refuses, and the reset back is neither
       offered nor sent. Neither `ready_to_reset` nor the scoped read opens a private key file,
       and nothing of a file either refuses is journaled. Each one's captured output, and so the
