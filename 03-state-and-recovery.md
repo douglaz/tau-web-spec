@@ -295,7 +295,14 @@ installation's first durable prerequisite read shares a fingerprint with any ear
 installation's prerequisite read or installed-system pin of that machine, or with `STA-17`'s
 scoped host-key read of it; the operator is told
 then, before reboot. The offer MUST use the current installation's durable prerequisites to
-make the offer; earlier installations' records are read only to withhold it.
+make the offer; earlier installations' records are read only to withhold it. A
+`ready_to_reset` result belongs to the installation that was current when its command's intent
+was journaled, in the browser journal's issue order, whenever the result is collected or
+appended. A result of a command issued before the current installation began is an earlier
+installation's record, read only to withhold the offer: it MUST NOT become the current
+installation's first durable prerequisite read, its active pin or any other current
+prerequisite. The command ID its record carries (above) ties it to that intent
+([ADR-0084](./docs/adr/0084-a-reset-read-belongs-to-the-installation-that-issued-it-and-differing-out-of-order-reads-withhold.md)).
 
 The no-match, matching-entry and parent-path refusals of `ARC-43` ("It refuses the entire
 read") MUST withhold both the offer and dispatch of the reset into the installed system, even
@@ -309,10 +316,16 @@ anchor. A delayed or duplicate collection of an older-issued command's result ma
 historical evidence but MUST NOT lift this withholding, irrespective of collection arrival,
 reported read time or append time. Lifting it revives no ended authority.
 
-Outside that lifting, where an older-issued `ready_to_reset` command's otherwise admitted
-prerequisite result is first durably appended after a later-issued command's result, which of
-the two is the newest read is not decided. Every existing first-durable-anchor, active-pin,
-durable-result and authority requirement here still applies.
+Outside that lifting, where, among results that belong to the current installation, an
+older-issued `ready_to_reset` command's otherwise admitted prerequisite result is first durably
+appended after a later-issued command's result and the two results' key sets differ, the
+harness MUST withhold both the offer and dispatch of the reset into the installed system, even
+when an approval was already rendered. Only an independently admitted `ready_to_reset` command
+issued after both, in the browser journal's issue order, may lift that withholding, with its
+durably appended prerequisite result and under every prerequisite here, the retained first-read
+anchor and the active pin included. Where the two key sets are equal, this withholding does not
+apply. Every existing first-durable-anchor, active-pin, durable-result and authority requirement
+here still applies.
 
 After an unexpected rescue reboot, a changed boot ID proves the old command cannot still be
 running; it does **not** prove its effects or exit status. Missing output, a missing job record,
@@ -341,7 +354,9 @@ companion's list of durable prerequisite reads uses one opaque ordinal for each 
 nonemptiness of that list is not a public-key cardinality check. The companion does not carry
 file discovery or root identity, or establish how these refusals map to a collection without a durable result.
 It also lacks the originating-command correlation and issue-order mapping needed to distinguish
-a delayed or duplicate old result from a genuinely later-issued read. Its collection and
+a delayed or duplicate old result from a genuinely later-issued read, so the rule giving a
+`ready_to_reset` result to the installation current at its command's intent, and the withholding
+on out-of-order results whose key sets differ, both above, are Markdown-only. Its collection and
 prerequisite-result event is coupled and derives the installation at processing; this is no
 faithful translation of late results or proof of actual reset dispatch checks.
 `TauWeb.Dispatch.installationOf` derives that boundary from the journal's vendor reinstall
