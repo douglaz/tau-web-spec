@@ -67,7 +67,7 @@ check, sender fence and admission duties have one home in `STA-22b`.
 
 A replacement entry admitted by `STA-22b`'s replacement act names, as its predecessor, the
 retired entry's approved-entry identity and its Failed allocation. On the
-[recovery sheet](#recovery-sheet) the link is the replacement's `predecessor` member, matched to
+[recovery sheet](#report-corrections-payload-version-8) the link is the replacement's `predecessor` member, matched to
 its Failed target's `entry` member; it survives export and import with them and supplies no
 authority to the retired entry or its replacement.
 
@@ -75,9 +75,9 @@ The rescue rekey's wrong-server record (`STA-17`) survives export and import wit
 restores no authority to that entry. Which member of the entry's allocation metadata carries it,
 under which payload version, is not decided.
 
-Derivation v1 remains unchanged; the history export amendment below versions the recovery payload. A consumed tombstone survives export as its
-allocation with `failed: true` and its `entry` and `predecessor` members; recovering
-that tombstone does not create fresh failure proof or authority. This local journal proof is
+Derivation v1 remains unchanged; the history export amendment below versions the recovery payload. A Failed machine allocation's consumed
+tombstone survives export as that allocation with `failed: true` and its `entry` and
+`predecessor` members; recovering that tombstone does not create fresh failure proof or authority. This local journal proof is
 not a new mandatory recovery-payload field, and existing payloads remain readable. See
 [Allocation schema 3](witness-file-v1.md#allocation-schema-3) for the separate symbolic witness
 representation and its limitations.
@@ -219,9 +219,10 @@ and optional
 resource identity and expected public key as required by `STA-22b`, and a jump host's entry
 carries `jump_host: true`, recording that it is in no session's bound set, and no other
 allocation carries the field; a failed allocation may
-have no vendor resource ID, but retains its index, and a machine allocation carries `failed: true`
-and the `entry` and `predecessor` members as version 8 states below. No seed or derived private
-key is included.
+have no vendor resource ID, but retains its index. A Failed machine allocation carries
+`failed: true`, and a machine allocation other than a reserved migration index carries the
+`entry` and `predecessor` members, as version 8 states below. No seed or derived private key is
+included.
 
 In payload version 4, a pass allocation's resource identity is the member `relay_locator`, exactly
 one of `{"publisher":"<P>"}` and `{"url":"<R>"}`. For P's encoding and R's contact admission,
@@ -382,9 +383,10 @@ own pre-send export start is unchanged.
 ### Report corrections, payload version 8
 
 Every export writes version 8. It preserves version 7's `report` unchanged and adds required
-placement members `report_events` and `independent_end`, and on machine entries the members
-`entry` and `predecessor` (below). Every other version-7 field and
-validation remains, including its unspecified partial-history encoding; this extension defines
+placement members `report_events` and `independent_end`, and, on each machine entry that stands
+for an approved entry, the members `entry` and `predecessor` (below). Every other version-7 field
+and validation remains, except that the retired-entry refusal of an extra member admits those two
+members where they belong (below), including its unspecified partial-history encoding; this extension defines
 no further partial-history machinery. A placement record has exactly the identity members
 `seed_id`, `machine_index`, `application_name`, `name`, `path`, `placed_at`, and the members
 `report`, `report_events`, `independent_end`.
@@ -523,8 +525,8 @@ journal keeps under a seed other than the payload's (`STA-22b`):
 
 - each destroyed machine allocated under a retired seed, whether or not a placement record names
   it;
-- each Failed allocation under a retired seed, with its consumed index and its `entry` and
-  `predecessor` members (below), so a replacement entry's predecessor link (`STA-22b`) still
+- each Failed machine allocation under a retired seed, with its consumed index and its `entry`
+  and `predecessor` members (below), so a replacement entry's predecessor link (`STA-22b`) still
   resolves;
 - each machine Replace has not migrated, a jump host and an LNVPS rebuild's old machine awaiting
   its deletion evidence included;
@@ -639,8 +641,9 @@ pending removal with a
 `migration_index`, `reservation_of` or `jump_host`, a record naming a superseded reservation or a
 pending removal, a handoff whose tenant
 and handoff ID another entry maps, an `outstanding` object with a missing, extra or duplicate
-member, and an extra member. The `entry` and `predecessor` members (below) are not extra on a
-machine entry that carries them.
+member, and an extra member. In version 8, `entry` and `predecessor` (below) are not extra on a
+machine entry that version 8 requires to carry them; on every other entry, and on any entry of
+an older payload, they are.
 
 A destroyed or Failed retired allocation restores no contact identity, host pin authority,
 binding or session, takes part in no vendor reconciliation and has no `machine_states` entry; a
@@ -727,15 +730,16 @@ other value or on any other allocation.
 In version 8 every machine entry that stands for an approved entry carries the members `entry` and
 `predecessor`: each machine allocation in `allocations` other than a reserved migration index, and
 each machine entry in `retired_allocations` other than a superseded reservation or a pending
-removal, a Failed, destroyed or jump-host entry included. No other entry carries either member: a
-pass, a handoff, a reserved migration index, a superseded reservation and a pending removal stand
-for no approved entry. A reserved migration index takes the machine's members when Replace's
-migration moves the machine to it (above).
+removal, a Failed, destroyed or jump-host entry included. No other entry carries either member. A
+pass and a handoff carry none. A reserved migration index, a superseded reservation and a pending
+removal are each not a second machine (above), and the machine's own entry carries its members: a
+reserved migration index takes them when Replace's migration moves the machine to it (above).
 
 `entry` is the approved-entry identity that `STA-22b`'s mapping records for the allocation: the
 object `{"id":"<A>"}`, where A is a nonempty string, or the exact string `"unknown"` (conversion,
-below). A is opaque. The exporter writes one string per approved entry, the same on every
-allocation of that entry and on every export, and a different one for every other entry; import
+below). A is opaque. The exporter writes one A per approved entry, the same on every machine
+entry of that approved entry that carries `entry` and on every export, and a different A for every
+other approved entry; `"unknown"` is the same string on every converted entry. Import
 compares it by exact string equality and derives nothing from it. It is not the
 [protected-evidence](protected-evidence-v1.md#closed-raw-and-stored-grammars) `approved_entry`
 and is never rebuilt from an allocation index, which can differ between attempts at one entry.
@@ -758,11 +762,13 @@ missing, extra or duplicate member, a link that names no machine allocation, or 
 migration index, a superseded reservation, a pending removal or an allocation without
 `failed: true`, a link whose `entry_id` is not its target's `entry` id, a target with
 `entry:"unknown"` included, a link whose `entry_id` is its own entry's id, and a chain of links,
-each followed from an entry to the entry its target stands for, that returns to an entry already
-on it.
+each followed from a machine entry to the Failed allocation its link names, that returns to a
+machine entry already on it.
 
-The explicit version-8 conversion of versions 3 to 7 (above) also supplies `entry:"unknown"` and
-`predecessor:"unknown"` on every entry that carries them. No older version encoded either, so a
+Versions 3 to 7 carry neither member: validated under their own rules, an older payload with
+either one is refused. The explicit version-8 conversion of versions 3 to 7 (above) then supplies
+`entry:"unknown"` and `predecessor:"unknown"` on every entry that carries them. No older version
+encoded either, so a
 converted link is unknown, never `"none"`. Later exports keep both unknowns unchanged, and nothing
 replaces one from a matching index, resource identity or vendor.
 

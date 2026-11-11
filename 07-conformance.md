@@ -2560,9 +2560,9 @@ Not pass/fail. Required to be recorded.
       a wrong one, the post-harness machinery is given no credential; with the right one the
       derived key equals the recorded key and the credential is given; the entry ends in one
       journal act when the journal records the declared end. Refuse before binding a missing
-      `retired_allocations`, a malformed, duplicate or extra-member entry (a machine entry's
-      `entry` and `predecessor` are not extra members), one with the payload's
-      seed, another family, a missing, second or malformed state member, `destroyed` or `failed`
+      `retired_allocations`, a malformed, duplicate or extra-member entry (in version 8,
+      `entry` and `predecessor` are not extra on a machine entry that carries them), one with the
+      payload's seed, another family, a missing, second or malformed state member, `destroyed` or `failed`
       other than `true`, a machine-only member on a pass or a handoff, an unknown reason or one
       of another family's, an `outstanding` object with a missing, extra or duplicate member, a
       `migration_index` that is malformed, names no such allocation, or names one that is
@@ -2584,8 +2584,9 @@ Not pass/fail. Required to be recorded.
       a missing, extra or duplicate member, a link naming no machine allocation, a reserved
       migration index, a superseded reservation, a pending removal or an allocation without
       `failed: true`, a link whose `entry_id` is not its target's id, a target with
-      `entry:"unknown"` included, a link naming its own entry, a cycle of links, and `failed`
-      with another value or on a non-machine allocation. Refuse before binding a missing
+      `entry:"unknown"` included, a link naming its own entry, a cycle of links, either member
+      on a version-3-to-7 sheet, and `failed` with another value, on a pass or a handoff, or on
+      a reserved migration index. Refuse before binding a missing
       or malformed `seed_id` on any placement, artifact history, machine state, host pin,
       installation group or exposure-ledger machine reference, and one naming neither an
       `allocations` machine under the payload's seed nor a retired allocation. A version 3 to 6
