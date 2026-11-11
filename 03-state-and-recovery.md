@@ -1065,7 +1065,8 @@ still applies.
 Opening the old step's verification link at the operator's shared address verifies
 nothing for the replacement, whose order waits for verified status under its own identity
 (`STG-21`). Replay, export and import preserve the predecessor link and these restrictions
-without redispatch. The act removes no actual bound machine and grants no larger set (`SEC-1`).
+without redispatch. On the recovery sheet the link is the replacement's `predecessor` member
+([credential format](docs/design/credential-format-v1.md#recovery-sheet)). The act removes no actual bound machine and grants no larger set (`SEC-1`).
 It is neither `ARC-16`'s third rung nor `ARC-22`'s in-setup replacement order, it is no
 successor for the same intended entry, which has none, and a bound set above one machine has no
 such route. The formal companion has no replacement act; `CNF-72`'s cases check it.
