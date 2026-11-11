@@ -897,7 +897,9 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       migrated and is shown barred, and the new sheet carries it with `reason:"wrong_server"`.
       In the first, Replace and revocation stay reported incomplete across a restart, the
       operator's word that the server is clean, an acknowledgement of the screen and the
-      sheet's export; in the second the bar alone does not hold them. Restore from that sheet:
+      sheet's export, and with a call left unresolved before the Replace, that call stays behind
+      `STA-24`'s barrier after it and its resolving read is the only call sent; in the second
+      the bar alone does not hold them. Restore from that sheet:
       in both runs Replace and revocation stay incomplete, and a later Replace carries the entry
       unchanged.
       On an LNVPS Replace rebuild, Replace's own flow stops the old machine and then turns its
@@ -2583,8 +2585,9 @@ Not pass/fail. Required to be recorded.
       destroyed, Failed, a jump host, of another resource identity, named by another entry, or
       named by any record, a `reservation_of` that is malformed, missing on a superseded
       reservation, present on another reason, or naming no outstanding machine entry, a
-      superseded reservation, a pending removal, or one of another resource identity, a
-      superseded reservation with a `migration_index` or `jump_host`, a `removal_of` that is
+      superseded reservation, a pending removal, a `"wrong_server"` entry, or one of another
+      resource identity, a superseded reservation with a `migration_index` or `jump_host`, a
+      `"wrong_server"` entry with a `migration_index`, a `removal_of` that is
       malformed, missing on a pending removal, present on another reason, or naming no machine,
       a destroyed or Failed machine, a reserved migration index, a superseded reservation,
       another pending removal, one of another resource identity or one whose own key equals the

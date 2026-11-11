@@ -78,22 +78,35 @@ Each quote is the text as it stood before this change (commit `397f88f`).
   carries and the format's `retired_allocations` list each gain the barred entry.
 - The format's open sentence narrows: after a Replace the record is the reason. Which member of a
   current-seed allocation's metadata carries it, and under which payload version, is still not
-  decided (four of four in round two left the carrier open).
+  decided, as the adopted round-two option kept it.
+- **Narrowed, by name, on the new reason only:** import refuses a `"wrong_server"` entry with a
+  `migration_index` and a `reservation_of` naming one. Neither could appear on a sheet before this
+  change, since the reason did not exist.
 - `CNF-20` gains the Replace runs, with and without an item, before and after a Restore. `CNF-84`
-  gains the round trip and the version-3-to-7 refusal. `CNF-117` (m) points to them, and (n)'s
-  card refusal holds after a Replace and a Restore.
+  gains the round trip and the refusals. `CNF-117` (m) points to them, and (n)'s card refusal
+  holds after a Replace and a Restore.
 
 ## Resolved in drafting
 
+Each point follows from the settled design; none is a new choice.
+
 - **Live completion with no item.** The round-two design names the widening as the no-intent case
-  after a Restore. The draft therefore states that, live, the bar alone does not hold Replace
-  incomplete when the screen shows no item. This follows from the settled text; it is not a new
-  choice.
-- **The scoped read.** It stays journal-only (`SEC-5` row 5), so a Restore still loses it as an
-  input that withholds. That limit is unchanged.
+  after a Restore. So `STA-17` says "with no such item, the bar by itself holds
+  neither".
+- **Which reason.** The reason is the bar's only carrier on the sheet, so a barred entry carries
+  `"wrong_server"` whatever other machine reason (a hold, for one) would apply. Otherwise the bar
+  would be lost from the sheet.
+- **Never migrated, on the sheet.** The format's migration-index, superseded-reservation,
+  re-entry and reconnect rules exclude a `"wrong_server"` entry, and import refuses the two shapes
+  above. A pending removal linked to a barred entry stays pending, since the bar refuses the
+  removal's connection.
+- **Left undecided:** how a migration index that a Replace reserved for the entry before the bar
+  was recorded is settled, as `STA-17` records.
 
 ## What stays
 
+- The scoped read stays journal-only (`SEC-5` row 5), so a Restore still loses it as an input that
+  withholds.
 - The bar itself, its refusals, and the known limit of a sheet exported before the bar, which
   restores the entry without it.
 - `STA-24`'s barrier over the entry's unresolved calls, and the reads that resolve them.

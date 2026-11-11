@@ -1460,7 +1460,8 @@ None of the machine state is secret, and all of it exists by the export `STA-15`
 Every record that names a machine names it by its seed and index. After Replace, the sheet also
 carries each machine and pass allocation the journal keeps under a retired seed (`STA-22b`) under that seed, with the records naming it: a machine Replace has not migrated keeps
 its machine state and its other records there, with the reason `STA-17`'s screen names it not yet
-migrated, and an entry `STA-17`'s wrong-server record bars keeps its bar there as its reason.
+migrated, except that an entry `STA-17`'s wrong-server record bars keeps its bar there as its
+reason, in place of any other.
 **It no longer carries the SSH client keys**, which re-derive from the seed
 (`STA-22`). The export screen MUST say what the sheet can do in the wrong hands with the
 passphrase: **spend the remaining inference balance**. Reaching a machine needs the seed, and
@@ -1978,19 +1979,22 @@ restored sheet is knowledge as of export": a Restore from that sheet alone bring
 without the bar, a known limit. Through every Replace the journal keeps an entry so barred under
 the seed it was allocated under, with its bar, index, mapping, history, intents, unresolved calls
 and the scoped read above, and no Replace migrates it: Replace's screen shows it barred and not
-migrated, and the new seed's sheet carries it with its bar, as the reason `"wrong_server"`
-([credential format](docs/design/credential-format-v1.md#operator-reports-payload-version-7),
+migrated, and the sheet of each Replace that retires the seed it was allocated under, and of every
+later one, carries it with its bar, as the reason `"wrong_server"`
+([credential format](docs/design/credential-format-v1.md#report-corrections-payload-version-8),
 [ADR-0081](./docs/adr/0081-a-barred-entry-stays-through-replace-and-the-sheet-marks-it-wrong-server.md)).
-The screen MUST show what the harness may not have undone on that server, each item only when the
+How a migration index a Replace reserved for the entry before the bar was recorded is settled is
+not decided. The screen MUST show what the harness may not have undone on that server, each item only when the
 journal holds the intent of the call or job behind it: a client key possibly registered at
 Robot, a rescue activation possibly armed, the server possibly in rescue and a key possibly
 written to its root; the operator acts at Robot. While any such item stands, Replace and
-revocation stay reported incomplete, across restart and export. A sheet carries no intent, so
+revocation stay reported incomplete, across restart and export; with no such item, the bar by
+itself holds neither. A sheet carries no intent, so
 after a Restore every entry it carries with the reason `"wrong_server"` holds Replace and
 revocation incomplete, including one barred before any intent was journaled. No item ends on the
 operator's word, an acknowledgement of the screen or an export, none of which proves anything
 about the server: only admitted, durably recorded evidence of that item's end could end it, and
-none is named for any of them. It MUST also tell the operator to export a new
+none is named for any of them. The screen MUST also tell the operator to export a new
 sheet, since a sheet exported earlier does not carry the record. The intended server takes a new
 card and a new
 entry at a new index.

@@ -122,9 +122,10 @@ the other two follow from it.
 ## What stays
 
 - `STA-22b`'s duty is unchanged; its text gains a pointer to the member.
-- The wrong-server record's member stays undecided: the format still said "Which member of the
+- The wrong-server record's member stayed undecided: the format still said "Which member of the
   entry's allocation metadata carries it, under which payload version, is not decided" (kept apart,
-  five of five in round one). ADR-0081 later settled it for a retired-seed entry.
+  five of five in round one). ADR-0081 later settled it for a retired-seed entry; for a
+  current-seed allocation it is still not decided.
 - The formal companion, the credential vectors and their checker, derivation version 1, the sheet
   envelope and its AAD are unchanged (five of five in round one). No theorem, gate or assumption boundary moves.
 - `CNF-72`'s link "names exactly the retired entry's approved-entry identity and its Failed

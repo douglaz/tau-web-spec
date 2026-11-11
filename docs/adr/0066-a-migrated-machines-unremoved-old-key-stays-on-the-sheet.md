@@ -110,8 +110,8 @@ names a key and its link points one way, to the machine's current name; ADR-0058
 key is never contact authority by itself"; ADR-0053's rejected row "Replace complete only if the old
 machine's old public key was removed before the stop", which concerns the LNVPS rebuild's old
 machine, which the rebuilding Replace never migrates. An earlier Replace may have migrated that
-same machine and left its old key pending removal, linked to it, and `CNF-20` refuses the stop
-"while a re-entry of that machine, or a removal of its old public key, is still to complete".
+same machine and left its old key pending removal, linked to it, and `CNF-20` checks that the stop
+is refused "while a re-entry of that machine, or a removal of its old public key, is still to complete".
 (Editorial qualification, 2026-11-11: this sentence first said only that the old machine "never
 migrates". It adds and removes no rule.)
 
