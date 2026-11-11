@@ -994,9 +994,9 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       does for the scanner — a refusal test cannot distinguish an absent credential from one the
       harness declined to use. Escaped-secret: this credential is bearer, unrevocable, and holds
       spendable balance.
-- [ ] **CNF-69 · BLOCKING** On the procured path, the session inference key is minted with a
-      **spend cap and an expiry** and is **revoked when the session ends** (`ARC-31a`); a
-      bring-your-own key has no minting to test. Where the attempt completes with established
+- [ ] **CNF-69 · BLOCKING** On the procured path, each session inference key is minted with a
+      **spend cap and an expiry**, and every key the session minted is **revoked when the
+      session ends** (`ARC-31a`); a bring-your-own key has no minting to test. Where the attempt completes with established
       revocation, verify by using the key after actual End and confirming refusal; Lock or close alone is no revocation event. Without this, `SEC-5` row 2's "one
       session" lifetime is an assertion rather than a bound.
 
@@ -1004,7 +1004,22 @@ an item that tests a mode's conditions or its label is tiered by them like any o
       Check unchanged key identity and original absolute expiry across hide/freeze/return,
       with all consumption preserved and no replenishment of remaining cap; withhold
       expired/exhausted or clock-uncertain authority before new dispatch, end the affected
-      session when required, and admit no silent replacement mint.
+      session when required, and admit no replacement mint other than the one confirmed
+      renewal at expiry.
+      At a cap of 50.00 or less, check that the Start surface shows the per-key cap and
+      lifetime and the session total of twice the cap, with no hard stop promised.
+      Where the Start action confirmed the renewal, exercise it:
+      ordinary work withheld from the first key's established expiry; the renewal intent
+      recorded only once the lower bound reaches that expiry, with the same cap, unit,
+      lifetime and bindings, its top-up-off evidence and the renewed key's own origin and
+      expiry; no use before its sealed validated terminal; the superseded key's evidence
+      refused. Cap exhaustion of either key, the superseded first key's included, and the renewed key's expiry end the session with
+      no further mint. A changed binding or a refused, lost, malformed or uncertain renewal
+      ends it without retry. An unsealed first key or a lost-key hold ends it at expiry. An
+      unresolved mint or revoke, or an uncertain clock, mints nothing and keeps work withheld
+      without using the attempt; End before the renewal intent prevents it; End revokes both
+      keys. Above 50.00, the Start surface shows renewal as unavailable and expiry ends the
+      session.
       `SEC-12` says "**Every off-machine call made with an operator credential MUST be recorded before it is sent.**"
       `STA-8` says "It MUST NOT be retried automatically and no timer may clear it."
       Exercise end racing a mint or response and an unresolved revoke through journal
@@ -2337,7 +2352,8 @@ Not pass/fail. Required to be recorded.
 - [ ] **CNF-116 · BLOCKING** Session pause/resume (`STA-3`, `STA-7`, `STA-23`, `ARC-12`,
       `ARC-31a`, `SEC-1`, `SEC-4`): exercise Lock, pagehide/bfcache, reload, worker shutdown,
       freeze and discard with approvals and bindings retained. A committed validated sealed
-      paid key resumes with its original cap/expiry and one mint; locked access, stale
+      paid key resumes with its original cap/expiry and no mint beyond the session's confirmed
+      renewal; locked access, stale
       incarnation, unsafe continuation and actual End refuse. Refuse dispatch and actionable
       publication before the resumed incarnation's validation; pair with the nearest validated
       continuation. Refuse self-resume, current/retired execution-identity collisions and reuse
@@ -2357,10 +2373,12 @@ Not pass/fail. Required to be recorded.
       it; nothing offers a one-step clear. A local-store backup holding an earlier- or
       unknown-version record is refused at import the same way and imports nothing; import
       restores ended history only.
-      BYO/local sessions have no idle/hidden timer. Paid expiry/cap ends at the next execution
-      opportunity without extending expiry. A lost key or seal without a committed validated
-      terminal holds all work including SSH until End/original expiry, retaining machines and
-      approvals with no second mint or same-key recovery. A late terminal followed by another
+      BYO/local sessions have no idle/hidden timer. Paid cap exhaustion, and expiry with no
+      confirmed renewal left, end at the next execution opportunity without extending expiry;
+      expiry with the renewal left withholds work until the renewed key is usable (`ARC-31a`).
+      A lost key or seal without a committed validated terminal holds all work including SSH
+      until End or that key's own expiry, retaining machines and approvals with no further
+      mint, the renewal included, or same-key recovery. A late terminal followed by another
       pause/resume cannot clear latched key loss; contrast repeated resumes with a previously
       durable valid seal. Preserve issuer evidence, unknown
       spend and revocation; exercise the conditional cap bound and top-up-off requirement.

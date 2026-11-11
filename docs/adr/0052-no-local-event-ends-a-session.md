@@ -190,3 +190,15 @@ Changed-file navigation for this amendment:
 - `tools/tests/coverage_control.py`.
 - `tools/tests/test_coverage_control.py`.
 - `tools/tests/test_witness_note.py`.
+
+## Amended 2026-11-11: one automatic renewal at expiry
+
+[ADR-0085](./0085-one-automatic-paid-key-renewal-at-expiry.md) amends this record in part, as an
+owner-directed amendment that loosens a security rule. "There is still one mint per session" and
+the "one mint per session stands" disposition of a second mint now admit the one automatic
+renewal that the Start action confirms at a cap of 50.00 or less. A paid session ends at its
+key's expiry only with no renewal left; with the renewal left it withholds work and renews once.
+Cap exhaustion still ends it. A lost-key hold still gets no second mint and no recovery of the
+same key: the hold bars the renewal, and the session ends at that key's own expiry. Revocation
+still comes at End, now for every key the session minted. Lock and close still end no session,
+and the rest of this record stands. The body above records what was decided then.

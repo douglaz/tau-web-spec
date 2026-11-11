@@ -540,8 +540,8 @@ authority_control "formal: authority growth exclusivity check removed" \
   live_entry_growth_refused fenced_binding_growth_refused
 
 authority_control "formal: authority request original limits check removed" \
-  "sed -i 's/(!p.requestOriginal || k.original == original)/true/' $AUTH" \
-  request_original_limits_refused
+  "sed -i 's/(!p.requestOriginal || k.original == currentLimits a original)/true/' $AUTH" \
+  request_original_limits_refused superseded_key_refused
 
 authority_control "formal: authority unsentContinuation" \
   "sed -i 's/  unsentContinuation : Bool := true/  unsentContinuation : Bool := false/' $AUTH" \
@@ -557,7 +557,7 @@ authority_control "formal: authority publicationDispatch" \
 
 authority_control "formal: authority endFence" \
   "sed -i 's/  endFence : Bool := true/  endFence : Bool := false/' $AUTH" \
-  ended_refused late_publication_refused validation_and_readmission_cannot_revive session_end_paths_fence end_cannot_resume historical_record_without_revival cap_end_cannot_repair validation_terminal_ends fresh_identity_end_refused fresh_actor_end_authority_refused self_resume_fences_without_check
+  ended_refused late_publication_refused validation_and_readmission_cannot_revive session_end_paths_fence end_cannot_resume historical_record_without_revival cap_end_cannot_repair validation_terminal_ends fresh_identity_end_refused fresh_actor_end_authority_refused self_resume_fences_without_check renewing_cap_end_cannot_repair superseded_cap_exhaustion_ends
 
 authority_control "formal: authority workerIdentity" \
   "sed -i 's/  workerIdentity : Bool := true/  workerIdentity : Bool := false/' $AUTH" \
@@ -593,7 +593,50 @@ authority_control "formal: authority exclusiveBinding" \
 
 authority_control "formal: authority procuredEligibility" \
   "sed -i 's/  procuredEligibility : Bool := true/  procuredEligibility : Bool := false/' $AUTH" \
-  expired_session_ssh_refused expiry_spreads_without_scope uncertain_clock_then_unchanged_repair repair_cannot_renew both_clock_discrepancies_required cap_end_cannot_repair incompatible_acceptance_withheld validation_terminal_ends request_original_limits_refused resume_without_sealed_terminal_withholds lost_terminal_stays_withheld_until_end initial_without_terminal_refused no_terminal_resume_stays_held session_end_paths_fence lost_key_second_resume_refused locked_seal_refused
+  expired_session_ssh_refused expiry_spreads_without_scope uncertain_clock_then_unchanged_repair repair_cannot_renew both_clock_discrepancies_required cap_end_cannot_repair incompatible_acceptance_withheld validation_terminal_ends request_original_limits_refused resume_without_sealed_terminal_withholds lost_terminal_stays_withheld_until_end initial_without_terminal_refused no_terminal_resume_stays_held session_end_paths_fence lost_key_second_resume_refused locked_seal_refused \
+  renewal_at_expiry_progress superseded_key_refused successor_requires_seal third_key_refused early_renewal_refused cap_exhaustion_never_renews failed_renewal_ends changed_terms_renewal_ends barred_renewal_withholds held_key_expiry_ends renewing_repair_cannot_renew renewing_cap_end_cannot_repair superseded_cap_exhaustion_ends expired_key_cannot_repair
+
+authority_control "formal: authority renewalOnce" \
+  "sed -i 's/  renewalOnce : Bool := true/  renewalOnce : Bool := false/' $AUTH" \
+  third_key_refused
+
+authority_control "formal: authority renewalAtExpiry" \
+  "sed -i 's/  renewalAtExpiry : Bool := true/  renewalAtExpiry : Bool := false/' $AUTH" \
+  early_renewal_refused
+
+authority_control "formal: authority renewalTerms" \
+  "sed -i 's/  renewalTerms : Bool := true/  renewalTerms : Bool := false/' $AUTH" \
+  changed_terms_renewal_ends
+
+authority_control "formal: authority renewalFailureEnds" \
+  "sed -i 's/  renewalFailureEnds : Bool := true/  renewalFailureEnds : Bool := false/' $AUTH" \
+  failed_renewal_ends changed_terms_renewal_ends
+
+# Delete each renewal predicate at its own boundary.
+authority_control "formal: renewal at cap exhaustion" \
+  "sed -i 's/k.state == .expired \&\& renewalLeft p a/renewalLeft p a/' $AUTH" \
+  validation_terminal_ends cap_exhaustion_never_renews renewing_cap_end_cannot_repair
+authority_control "formal: superseded key's cap exhaustion does not end" \
+  "sed -i 's/(k.original == original \&\& k.state == .exhausted)/false/' $AUTH" \
+  superseded_cap_exhaustion_ends
+authority_control "formal: assessment repairs an expired key" \
+  "sed -i 's/a.renewalDue || !(k.original/!(k.original/' $AUTH" \
+  expired_key_cannot_repair
+authority_control "formal: renewal without a sealed predecessor" \
+  "sed -i 's/ \&\& a.sealedTerminal \&\& !a.lostKey/ \&\& !a.lostKey/' $AUTH" \
+  held_key_expiry_ends
+authority_control "formal: renewal despite a lost-key hold" \
+  "sed -i 's/a.sealedTerminal \&\& !a.lostKey/a.sealedTerminal/' $AUTH" \
+  held_key_expiry_ends
+authority_control "formal: renewal before its intent is established" \
+  "sed -i 's/ \&\& ev.clockValid \&\& ev.resolved \&\& ev.appended//' $AUTH" \
+  barred_renewal_withholds
+authority_control "formal: failed renewal installs a successor" \
+  "sed -i 's/else if ev.minted \&\& /else if /' $AUTH" \
+  failed_renewal_ends
+authority_control "formal: renewal after End" \
+  "sed -i 's/if w.fenced.contains a.who || w.ended.contains a.who.session || !available p w || a.paused then w else/if false then w else/' $AUTH" \
+  ended_session_cannot_renew
 
 authority_control "formal: authority scopedExpiry" \
   "sed -i 's/  scopedExpiry : Bool := true/  scopedExpiry : Bool := false/' $AUTH" \
@@ -649,7 +692,7 @@ authority_control "formal: authority pauseRequired" \
 
 authority_control "formal: authority sealedTerminalRequired" \
   "sed -i 's/  sealedTerminalRequired : Bool := true/  sealedTerminalRequired : Bool := false/' $AUTH" \
-  initial_without_terminal_refused
+  initial_without_terminal_refused successor_requires_seal
 
 authority_control "formal: authority resumeTerminal" \
   "sed -i 's/  resumeTerminal : Bool := true/  resumeTerminal : Bool := false/' $AUTH" \
@@ -1377,18 +1420,21 @@ control "witnesses: obsolete dispatch v8 orphan" "$WIT" \
   "cp docs/design/dispatch-witnesses-v10.json docs/design/dispatch-witnesses-v8.json" \
   "WITNESS DRIFT" "dispatch-witnesses-v8.json is committed but no module emits it"
 control "witnesses: obsolete authority v2 orphan" "$WIT" \
-  "cp docs/design/authority-witnesses-v5.json docs/design/authority-witnesses-v2.json" \
+  "cp docs/design/authority-witnesses-v6.json docs/design/authority-witnesses-v2.json" \
   "WITNESS DRIFT" "authority-witnesses-v2.json is committed but no module emits it"
 
 control "witnesses: obsolete dispatch v9 orphan" "$WIT" \
   "cp docs/design/dispatch-witnesses-v10.json docs/design/dispatch-witnesses-v9.json" \
   "WITNESS DRIFT" "dispatch-witnesses-v9.json is committed but no module emits it"
 control "witnesses: obsolete authority v3 orphan" "$WIT" \
-  "cp docs/design/authority-witnesses-v5.json docs/design/authority-witnesses-v3.json" \
+  "cp docs/design/authority-witnesses-v6.json docs/design/authority-witnesses-v3.json" \
   "WITNESS DRIFT" "authority-witnesses-v3.json is committed but no module emits it"
 control "witnesses: obsolete authority v4 orphan" "$WIT" \
-  "cp docs/design/authority-witnesses-v5.json docs/design/authority-witnesses-v4.json" \
+  "cp docs/design/authority-witnesses-v6.json docs/design/authority-witnesses-v4.json" \
   "WITNESS DRIFT" "authority-witnesses-v4.json is committed but no module emits it"
+control "witnesses: obsolete authority v5 orphan" "$WIT" \
+  "cp docs/design/authority-witnesses-v6.json docs/design/authority-witnesses-v5.json" \
+  "WITNESS DRIFT" "authority-witnesses-v5.json is committed but no module emits it"
 
 control "witnesses: authority vocabulary note drift" "$WIT" \
   "sed -i '/<!-- witness-vocabulary: authority -->/a\\changed' docs/design/witness-file-v1.md" \
