@@ -557,7 +557,7 @@ authority_control "formal: authority publicationDispatch" \
 
 authority_control "formal: authority endFence" \
   "sed -i 's/  endFence : Bool := true/  endFence : Bool := false/' $AUTH" \
-  ended_refused late_publication_refused validation_and_readmission_cannot_revive session_end_paths_fence end_cannot_resume historical_record_without_revival cap_end_cannot_repair validation_terminal_ends fresh_identity_end_refused fresh_actor_end_authority_refused self_resume_fences_without_check renewing_cap_end_cannot_repair
+  ended_refused late_publication_refused validation_and_readmission_cannot_revive session_end_paths_fence end_cannot_resume historical_record_without_revival cap_end_cannot_repair validation_terminal_ends fresh_identity_end_refused fresh_actor_end_authority_refused self_resume_fences_without_check renewing_cap_end_cannot_repair superseded_cap_exhaustion_ends
 
 authority_control "formal: authority workerIdentity" \
   "sed -i 's/  workerIdentity : Bool := true/  workerIdentity : Bool := false/' $AUTH" \
@@ -594,7 +594,7 @@ authority_control "formal: authority exclusiveBinding" \
 authority_control "formal: authority procuredEligibility" \
   "sed -i 's/  procuredEligibility : Bool := true/  procuredEligibility : Bool := false/' $AUTH" \
   expired_session_ssh_refused expiry_spreads_without_scope uncertain_clock_then_unchanged_repair repair_cannot_renew both_clock_discrepancies_required cap_end_cannot_repair incompatible_acceptance_withheld validation_terminal_ends request_original_limits_refused resume_without_sealed_terminal_withholds lost_terminal_stays_withheld_until_end initial_without_terminal_refused no_terminal_resume_stays_held session_end_paths_fence lost_key_second_resume_refused locked_seal_refused \
-  renewal_at_expiry_progress superseded_key_refused successor_requires_seal third_key_refused early_renewal_refused cap_exhaustion_never_renews failed_renewal_ends changed_terms_renewal_ends barred_renewal_withholds held_key_expiry_ends renewing_repair_cannot_renew renewing_cap_end_cannot_repair expired_key_cannot_repair
+  renewal_at_expiry_progress superseded_key_refused successor_requires_seal third_key_refused early_renewal_refused cap_exhaustion_never_renews failed_renewal_ends changed_terms_renewal_ends barred_renewal_withholds held_key_expiry_ends renewing_repair_cannot_renew renewing_cap_end_cannot_repair superseded_cap_exhaustion_ends expired_key_cannot_repair
 
 authority_control "formal: authority renewalOnce" \
   "sed -i 's/  renewalOnce : Bool := true/  renewalOnce : Bool := false/' $AUTH" \
@@ -616,6 +616,9 @@ authority_control "formal: authority renewalFailureEnds" \
 authority_control "formal: renewal at cap exhaustion" \
   "sed -i 's/k.state == .expired \&\& renewalLeft p a/renewalLeft p a/' $AUTH" \
   validation_terminal_ends cap_exhaustion_never_renews renewing_cap_end_cannot_repair
+authority_control "formal: superseded key's cap exhaustion does not end" \
+  "sed -i 's/(k.original == original \&\& k.state == .exhausted)/false/' $AUTH" \
+  superseded_cap_exhaustion_ends
 authority_control "formal: assessment repairs an expired key" \
   "sed -i 's/a.renewalDue || !(k.original/!(k.original/' $AUTH" \
   expired_key_cannot_repair

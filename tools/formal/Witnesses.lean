@@ -1838,6 +1838,7 @@ def witnesses : List Trace :=
     { declarations := [named "barred_renewal_withholds"], events := barredRenewalEvents { renewalOk with resolved := false } ++
         renewalTail successorLimits renewalOk ++ [.request readA successorReady true] },
     { declarations := [named "cap_exhaustion_never_renews"], events := capRenewalEvents },
+    { declarations := [named "superseded_cap_exhaustion_ends"], events := supersededCapEvents },
     { declarations := [named "held_key_expiry_ends"], events := unsealedExpiryEvents },
     { declarations := [named "held_key_expiry_ends"], events := lostKeyExpiryEvents },
     { declarations := [named "ended_session_cannot_renew"], events := endedRenewalEvents },

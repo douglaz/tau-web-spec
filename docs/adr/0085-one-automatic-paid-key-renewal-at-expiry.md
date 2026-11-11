@@ -80,8 +80,8 @@ Four statements in `TauWeb.Authority` change, as the adoption directs:
 
 - `TauWeb.Authority.assess`: expiry of the current key with renewal authority left withholds
   ordinary work and marks the renewal due instead of ending the session; no later assessment of
-  that key lifts the withholding. Cap exhaustion still ends, and so does expiry with no renewal
-  authority left.
+  that key lifts the withholding. Cap exhaustion of either key still ends, the superseded first
+  key's included, and so does expiry with no renewal authority left.
 - `TauWeb.Authority.keyEligible`: compares request evidence with the session's current key, the
   original until the renewal and then the successor, instead of only the single original key.
 - `TauWeb.Authority.expired_session_ssh_refused` and `TauWeb.Authority.validation_terminal_ends`:

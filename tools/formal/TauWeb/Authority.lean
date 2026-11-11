@@ -382,9 +382,10 @@ inductive Local
   | renew (who : Identity) (successor : Limits) (evidence : RenewalEvidence)
   deriving DecidableEq, Repr
 
-/-- Assessment never replaces the current key's limits. Cap exhaustion, and expiry with no
-renewal authority left, end only the affected procured actor; expiry with renewal authority
-left withholds until the renewal, and no later assessment of that key repairs it.
+/-- Assessment never replaces the current key's limits. Cap exhaustion of the current or the
+superseded first key, and expiry with no renewal authority left, end only the affected procured
+actor; expiry with renewal authority left withholds until the renewal, and no later assessment
+of that key repairs it.
 Uncertainty/incompatibility withhold. Valid repair invalidates prior continuation validation. -/
 @[req "ARC-31a"] def assess (p : Params) (w : World) (who : Identity) (k : KeyEvidence) : World :=
   match actor p w who with
@@ -396,7 +397,8 @@ Uncertainty/incompatibility withhold. Valid repair invalidates prior continuatio
       if !p.scopedExpiry && (k.state == .expired || k.state == .exhausted) then endAll w else w
     | .procured original =>
       if !p.procuredEligibility then w else
-      if k.original == currentLimits a original && (k.state == .expired || k.state == .exhausted) then
+      if (k.original == currentLimits a original && (k.state == .expired || k.state == .exhausted)) ||
+          (k.original == original && k.state == .exhausted) then
         if k.state == .expired && renewalLeft p a then updateActor w a.who fun a =>
           { a with keyWithheld := true, renewalDue := true, revision := a.revision + 1, validation := none }
         else if p.scopedExpiry then endOne w a.who else endAll w
@@ -1635,6 +1637,15 @@ def capRenewalEvents : List Event := renewingStart ++ [.lifecycle (.assessKey al
 @[req "ARC-31a"] theorem cap_exhaustion_never_renews :
     sent (result capRenewalEvents) readA.request.call = false ∧
     (result capRenewalEvents).fenced.contains alice = true := by decide +kernel
+
+/-- After the renewal, a late cap exhaustion of the superseded first key still ends the session;
+a later valid assessment of the renewed key does not repair it. -/
+def supersededCapEvents : List Event := renewalEvents ++
+  [.lifecycle (.assessKey alice (keyEvidenceFor .exhausted)), .lifecycle (.assessKey alice successorKey),
+   .request nextReadA successorReady true]
+@[req "ARC-31a"] theorem superseded_cap_exhaustion_ends :
+    sent (result supersededCapEvents) nextReadA.request.call = false ∧
+    (result supersededCapEvents).fenced.contains alice = true := by decide +kernel
 
 /-- A recorded renewal that fails ends the session; it is never retried. -/
 def failedRenewalEvents : List Event := renewingStart ++ [.lifecycle (.assessKey alice expiredKey),
