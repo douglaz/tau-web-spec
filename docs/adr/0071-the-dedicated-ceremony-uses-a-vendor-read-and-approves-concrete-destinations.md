@@ -60,9 +60,9 @@ eligible public target on SSH and other ports". Its case and shared eligibility
 remain separate from the consumer's source check. No formal declaration or theorem
 changes, and no runtime conformance or capability admission is claimed.
 
-The rescue rekey remains separate: `STA-17` says "How the flow obtains that pass
+The rescue rekey remained separate: `STA-17` said "How the flow obtains that pass
 and records its destinations is not decided." G5B/H3 and that entire open point
-are unchanged. Address refresh/export, pass procurement, recording wire and the
+were unchanged here (see the 2026-11-11 note below). Address refresh/export, pass procurement, recording wire and the
 addition's retry, reconciliation and resource-barrier contract are not decided here.
 
 *Amended 2026-11-10: EXACT and the dispatch-fidelity row are relaxed for one case.*
@@ -72,3 +72,11 @@ addition of a server host resolved later from the server-specific read, with the
 recorded request taking its host from that journaled read. SOURCE-BOUND's
 non-selection above is history for that case; the other decisions, alternatives and
 reasoning remain the historical record.
+
+*Amended 2026-11-11: the rescue rekey's pass takes these rules.*
+[ADR-0083](./0083-old-key-removal-reads-cover-the-login-route-and-the-rescue-pass-takes-the-ceremony-destination-rules.md)
+records the owner-directed amendment (`tw-74f` row 17) that applies `CHN-16`'s source, journal,
+structured-approval and durable-record rules to the rescue rekey's fresh-seed pass, with the server
+host taken from the granted `/boot/{n}/rescue/last` read and a concrete approval of its addition.
+The advance approval of ADR-0079 does not extend to it. The open point quoted above is closed;
+pass procurement and the recording wire stay unchosen.

@@ -92,7 +92,11 @@ only") are in that comment.
 
 **Only an identified old key is removed** (old-key A). After the login and the readback, the flow
 removes the exact old public key that checked retained records identify. An unknown key stays and
-revocation reads incomplete.
+revocation reads incomplete. (Amended 2026-11-11 by
+[ADR-0083](./0083-old-key-removal-reads-cover-the-login-route-and-the-rescue-pass-takes-the-ceremony-destination-rules.md),
+an owner-directed amendment: the key removed must also be one a retired-seed entry names, and it
+is kept as a pending removal before the removal job, ended only by a covering read or the
+deletion-evidence act.)
 
 **A machine that keeps an unknown key fails `CNF-5` until it reads clean** (2026-11-05). `CNF-5`
 is unchanged: it requires that "only that machine's public key appears in its

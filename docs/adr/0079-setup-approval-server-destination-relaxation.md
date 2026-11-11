@@ -76,8 +76,10 @@ refusals and the recorded request.
   unchanged.
 - This decision does not reach the LNVPS path's manual publisher enrolment, and `CHN-16` still
   says "address admission on later maintained-machine re-entry or Restore is not decided here".
-  The rescue rekey stays separate: `STA-17` says "How the
-  flow obtains that pass and records its destinations is not decided."
+  The rescue rekey stays separate: `STA-17` said "How the
+  flow obtains that pass and records its destinations is not decided." Since 2026-11-11 its pass
+  takes `CHN-16`'s concrete-addition approval, never this advance approval
+  ([ADR-0083](./0083-old-key-removal-reads-cover-the-login-route-and-the-rescue-pass-takes-the-ceremony-destination-rules.md)).
 - No theorem, formal declaration, witness or gate changes.
 
 **Formal coverage.** `TauWeb.Dispatch.dispatched_only_if` shows that a dispatched request's facts
