@@ -301,14 +301,15 @@ ordinal. Import reconstructs that
 partial history from the payload alone, without the journal. The unknown never becomes
 `legacy:"none"`, a known unpinned or pinned installation, an empty `known_unpinned` or empty
 history, and missing or invalid partial history is refused before binding. `STA-16` also says
-"A machine whose rescue rekey in `STA-17` stopped with no ordinal accepted has a partial history
-too, with no accepted ordinal": for that machine the payload carries what `STA-16` lists for
-it, with no accepted ordinal and no acceptance basis, and the same import rules apply. Validation of
-versions 3, 4 and 5 is unchanged, including the refusal of a duplicate or skipped installation
-ordinal below. Version 6 carries no representation for a recovery sheet found later. For either
-partial history, its member names, the encoding of its gaps, whether the per-machine `installation` value needs an explicit
-unknown, what that machine's `legacy` and `known_unpinned` members hold, and how the
-ordinal-continuity rules apply to that machine are not yet specified. A new export writes
+"A machine whose rescue rekey in `STA-17` stopped after a successful new-key login with no
+ordinal accepted has a partial history too, with no accepted ordinal": for that machine the
+payload carries what `STA-16` lists for it, with no accepted ordinal and no acceptance basis.
+Validation of versions 3, 4 and 5 is unchanged, including the refusal of a duplicate or skipped
+installation ordinal below. Version 6 carries no representation for a recovery sheet found
+later. For either partial history, its member names, the encoding of its gaps, whether the
+per-machine `installation` value needs an explicit unknown, what that machine's `legacy` and
+`known_unpinned` members hold, and how the ordinal-continuity rules apply to that machine are
+not yet specified. A new export writes
 version 8 (below), never version 6.
 
 ### Operator reports, payload version 7

@@ -674,11 +674,12 @@ journal field except, on one path, the acceptance record `STA-17`'s rescue rekey
 that rekey of a dedicated machine, `n` counts from the ordinal the operator accepted there as a
 proposal, read from that acceptance's journal record or, after Restore, from the partial
 history `STA-16` restores; the shown id is pending, marked unconfirmed, until a read shows it
-on the disk or a destructive reinstall of the machine is dispatched. When that rekey stops with
-no ordinal accepted (`STA-17`), `n` is the journal's own ordinal, zero, so the shown id is
-`b-0` for the machine's index `b`: the harness shows it marked unconfirmed and says that no ordinal was
-accepted. No read ends that mark, not even one showing `b-0` on the disk; only a dispatched
-destructive reinstall of the machine does, and that dispatch derives 1. The companion does not
+on the disk or a destructive reinstall of the machine is dispatched. When that rekey stops after
+a successful new-key login with no ordinal accepted (`STA-17`), `n` is the journal's own
+ordinal, zero, so the shown id is `b-0` for the machine's index `b`: the harness shows it marked
+unconfirmed and says that no ordinal was accepted. No read ends that mark, not even one showing
+`b-0` on the disk; only a dispatched destructive reinstall of the machine does, and that
+dispatch derives 1. The companion does not
 carry the accepted ordinal: `TauWeb.Dispatch.installationOf`
 says "The installation boundary is derived from dispatched intents, never from a choice", and
 counts from zero. Index 0 and ordinal 0 each render as `0`, so the first installation of index

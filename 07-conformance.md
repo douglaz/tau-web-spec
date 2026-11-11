@@ -2696,8 +2696,8 @@ Not pass/fail. Required to be recorded.
       component is distinct among machines allocated under the current seed. Check lowercase
       hexadecimal for the machine index and decimal for the installation ordinal, neither with
       leading zeros. The longest label `7fffffff-9999999` fits the root label. A reinstall that
-      would make the ordinal 10 000 000 or more is refused before dispatch on both paths, saying that
-      the installation id would exceed its limit. Replace moves the machine component to the
+      would make the ordinal 10 000 000 or more is refused before dispatch on both paths, saying
+      that the installation id would exceed its limit. Replace moves the machine component to the
       new index and carries the ordinal; an unmigrated retired-seed index can coincide with
       a migrated machine's new index. Replace refuses to migrate an install unfinished in
       rescue (`STA-17`), including
@@ -3023,8 +3023,8 @@ Not pass/fail. Required to be recorded.
       (q) Decline the acceptance, confirm the reset into the installed system and let the
       new-key login succeed: the migration stops unfinished, no relabel intent, relabel write or
       key removal is sent, the label still reads `a-7`, and the new key and every earlier key
-      remain; the machine is never shown as holding only its own key. Migration, Replace and
-      revocation are not reported complete, also after restart, and nothing is retried. The
+      remain. Migration, Replace and revocation are not reported complete, also after restart,
+      and nothing is retried. The
       shown id is `b-0` marked unconfirmed, the harness says no ordinal was accepted, and `a-7`
       is beside it as an as-of observation, never as its id. Re-entry then binds a session, and
       in it a return to rescue without a destructive reinstall finds the root labelled `a-7`:
@@ -3041,7 +3041,8 @@ Not pass/fail. Required to be recorded.
       (s) Where the flow offers an acceptance for a root whose label reads an ordinal above
       9 999 999, such as `a-12345678`, accept it: the acceptance is refused before it is
       recorded, nothing is journaled as accepted, the label is shown only as an as-of
-      observation with no proposed id, and a successful new-key login then stops as in (q).
+      observation with no proposed id, and a successful new-key login then stops as in (q), with
+      this label in place of `a-7`.
       Boundary-crossed and destroyed-data.
 - [ ] **CNF-87 · BLOCKING** The LNVPS path's relay uses the selected `/v2/` profile and a
       hand-recorded pass (`STG-18`; [paid-tcp-relay][relay-source] PAS-6). Demonstrate fresh

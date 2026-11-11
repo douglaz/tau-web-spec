@@ -71,14 +71,20 @@ surfaces every root of that machine, one whose label equals the shown id include
 erases, resumes or treats it as found complete until that dispatch. `STA-16` round-trips the
 stop, the unknown past, the mark and each observed label through export and Restore, and the
 credential format's partial-history section follows, choosing no member name or encoding.
+These rules reach only this stop: other stops of a run with no acceptance, such as a failed
+new-key login, keep today's text. What a root is to the install brief when its old label equals
+the id the later reinstall derives is not decided either.
 
-This adds rules. Named: it widens the install brief's unconfirmed exception, which covered only
+This amendment adds rules to `STA-17`, `STG-20` and `STA-16`; this record itself still adds none.
+Named: it widens the install brief's unconfirmed exception, which covered only
 a root whose label differs from the shown id, to a matching root on this path; it widens
 `STA-16`'s round-trip duty, which covered only a machine with an accepted ordinal, to this stop;
 and leaving the later acceptance undecided is narrower than the stop option first put to the
 panel, which let the operator accept later. No theorem, gate or assumption boundary changes, and
-no decision above is reopened. The panel's counts and the owner's picks for the shown id ("Show
-0, unconfirmed") and the refusal's wording ("Limit only") are in that comment.
+no decision above is reopened; a machine left holding a key retained records do not identify
+still fails `CNF-5` until a read shows it clean, as decided on 2026-11-05. The panel's counts
+and the owner's picks for the shown id ("Show 0, unconfirmed") and the refusal's wording ("Limit
+only") are in that comment.
 
 **Only an identified old key is removed** (old-key A). After the login and the readback, the flow
 removes the exact old public key that checked retained records identify. An unknown key stays and
@@ -138,7 +144,9 @@ the display rule that the history reads unknown, never unpinned, stands.
 | No ordinal accepted | Continue the migration and leave the label `a-7` with no ordinal recorded. |
 | No ordinal accepted | Show no installation id until a reinstall, which would derive 0. |
 | No ordinal accepted | Let a later acceptance leave the stop. |
+| No ordinal accepted | Keep `STA-16`'s partial history to a machine with an accepted ordinal. |
 | Ordinal above the bound | Accept it as a proposal and write no relabel. |
+| Ordinal above the bound | Keep the reinstall refusal at `n` = 10 000 000 only. |
 | Ordinal above the bound | Also refuse on the 16-byte label size, or restate that argument in the refusal. |
 | Record of the 2026-11-10 amendment | A new decision record. |
 
