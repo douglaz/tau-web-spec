@@ -582,8 +582,8 @@ strings. For a machine:
 - `"hold"`: a machine under `STA-20`'s hold;
 - `"disposition"`: a machine under a standing destructive reinstall or abandonment disposition
   (`STA-24`);
-- `"awaiting_deletion"`: an LNVPS rebuild's old machine, which never migrates, awaiting its
-  deletion evidence;
+- `"awaiting_deletion"`: an LNVPS rebuild's old machine, which the rebuilding Replace never
+  migrates, awaiting its deletion evidence;
 - `"unrecovered"`: a machine whose direct re-entry cannot finish because the retired seed or its
   index is missing;
 - `"superseded_reservation"`: a superseded reservation, whose recorded key is one more retired

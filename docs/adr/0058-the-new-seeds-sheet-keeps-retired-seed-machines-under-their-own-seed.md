@@ -19,7 +19,10 @@ sheet form:
   index, which `STG-20` says "can coincide with a migrated machine's new index";
 - a live machine Replace leaves unmigrated, which `STG-20` keeps "under the retired seed" until
   Replace migrates it;
-- an LNVPS rebuild's old machine awaiting its deletion evidence, which never migrates.
+- an LNVPS rebuild's old machine awaiting its deletion evidence, which the rebuilding Replace
+  never migrates. (Editorial qualification, 2026-11-11: this item first said only that the old
+  machine "never migrates". An earlier Replace may have migrated that same machine, as `CNF-20`
+  checks. It adds and removes no rule.)
 
 ## The shape chosen
 
@@ -92,7 +95,7 @@ stood before this change (commit `7998147`):
 |---|---|
 | Keep a destroyed machine only while a reported record names it | Not selected. It drops kept records a destroyed machine's history needs. |
 | A separate encoding whose absent seed means the payload's | Not selected. A missing member would be read as a default. |
-| Move the machine to a reserved new-seed index before the disk moves | Not selected. `STA-17` moves the shown identity "never before the disk does", the LNVPS old machine never migrates, and the record would carry a key the machine never held. |
+| Move the machine to a reserved new-seed index before the disk moves | Not selected. `STA-17` moves the shown identity "never before the disk does", the rebuilding Replace never migrates the LNVPS old machine, and the record would carry a key the machine never held. (Editorial qualification, 2026-11-11, as in the list above: this first said only that the old machine "never migrates".) |
 | Keep the machine only on the retired seed's last sheet | Not selected. Comment 110000001 rejected that for the same reason: no later sheet extends it. |
 | Leave the machine off the new sheet until its migration finishes | Not selected. Replace's export is one of its finished steps, and a Restore from it would lose the machine. |
 
