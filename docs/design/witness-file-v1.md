@@ -106,7 +106,9 @@ unchanged from schema 4, and every schema-4 trace keeps its events and steps, wi
 `sealUnlocked` true. `locked_seal_refused` and `locked_seal_without_check` are the
 refused/admitted pair, and `unlocked_seal_progress` processes the same seal after `unlock` and
 before `resume` and keeps the key. A seal stands for a durably committed, validated terminal,
-sealed under the data key, which the locked store does not hold (`STA-23`). As an input
+sealed under the data key, and a locked store does not hold that key: `STA-23` says "only a
+passphrase-wrapped data key persists", and processed Lock MUST "clear working keys and
+credential buffers, returning locked". As an input
 convention, this interpretation presents a terminal append begun before Lock after the next
 unlock and before resume, however the append finishes; opening's staging recovery in
 [protected evidence](./protected-evidence-v1.md) is one such route, and it completes only a
