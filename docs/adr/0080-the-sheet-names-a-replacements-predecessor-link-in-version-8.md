@@ -50,7 +50,11 @@ Failed predecessor or named either approved entry (five of five in round one).
   round one); either member on a record that does not carry it, and a cycle (four of five in round
   one). The id match is the owner's pick above. The draft defines the cycle over machine entries,
   following each link to the Failed allocation it names, and adds no refusal of differing links
-  among one entry's allocations.
+  among one entry's allocations. *Amended 2026-11-11 (owner-directed):*
+  [ADR-0087](./0087-the-sheet-refuses-differing-predecessor-links-for-one-entry.md) adds that
+  refusal in version 8 in place: two machine entries whose `entry` carries the same id, not
+  `"unknown"`, and whose `predecessor` values differ are refused before binding. It narrows what
+  version-8 import accepts.
 - **Older data.** Versions 3 to 7 convert with both members `"unknown"`, never `"none"` (four of
   five in round one), and later exports keep them.
 - **Two replacements of one Failed entry.** No refusal (owner's pick, "Don't add a check"). The

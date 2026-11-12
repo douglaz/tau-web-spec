@@ -2632,7 +2632,11 @@ Not pass/fail. Required to be recorded.
       `failed: true`, a link whose `entry_id` is not its target's id, a target with
       `entry:"unknown"` included, a link naming its own entry, a cycle of links, either member
       on a version-3-to-7 sheet, and `failed` with another value, on a pass or a handoff, or on
-      a reserved migration index. Refuse before binding a missing
+      a reserved migration index. Refuse before binding, each in its own run, two machine
+      entries whose `entry` carries the same id and whose `predecessor` values differ: one
+      with `"none"` and the other with a link, and two links naming different Failed
+      allocations, one entry in `allocations` and the other in `retired_allocations`. Refuse
+      before binding a missing
       or malformed `seed_id` on any placement, artifact history, machine state, host pin,
       installation group or exposure-ledger machine reference, and one naming neither an
       `allocations` machine under the payload's seed nor a retired allocation. A version 3 to 6
