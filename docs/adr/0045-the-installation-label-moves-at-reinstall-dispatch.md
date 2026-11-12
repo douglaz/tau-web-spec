@@ -76,6 +76,11 @@ treated as found complete, until a destructive reinstall of the machine is dispa
 *Amended 2026-11-10 (owner-directed):* ADR-0056's note of that date extends this, after a rescue
 rekey that stopped after a successful new-key login with no ordinal accepted, to every root of
 the machine, a matching one included, and no read ends it before that dispatch.
+*Amended 2026-11-11 (owner-directed):* ADR-0056's note of that date narrows "A matching root can
+be resumed or found complete" on that path: after the first reinstall's dispatch, where a label
+the harness read before it equals the derived id, a root carrying that id is surfaced, not
+resumed or found complete, until that installation's own installed-system pin is recorded or the
+next reinstall is dispatched.
 
 A continuing choice with an installed pin keeps that installation and its keys. The reset
 offer compares its newest prerequisite read against that installation's active pin, so a

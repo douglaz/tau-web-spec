@@ -75,9 +75,9 @@ equals the shown id included, until that dispatch. `STA-16` says "A machine whos
 too, with no accepted ordinal, and export and Restore MUST round-trip it"; the credential
 format's partial-history section quotes it and chooses no member name or encoding. These rules
 reach only this stop: other stops of a run with no acceptance, such as a failed new-key login,
-keep today's text. `STA-17` says "What a root is to the install brief when, after a destructive
-reinstall of the machine is dispatched, its old label equals the id that dispatch derives is not
-decided".
+keep today's text. What a root is to the install brief when, after a destructive reinstall of the
+machine is dispatched, its old label equals the id that dispatch derives was left not decided; the
+2026-11-11 amendment below decides it.
 
 This amendment adds rules to `STA-17`, `STG-20` and `STA-16`; this record itself still adds none.
 Named: it widens the install brief's unconfirmed exception, which covered only
@@ -89,6 +89,36 @@ no decision above is reopened; a machine left holding a key retained records do 
 still fails `CNF-5` until a read shows it clean, as decided on 2026-11-05. The panel's counts
 and the owner's picks for the shown id ("Show 0, unconfirmed") and the refusal's wording ("Limit
 only") are in that comment.
+
+**After that stop, a root whose old label equals the next id is surfaced** (owner-directed
+amendment, 2026-11-11, `tw-znr` comment 278000001, after a review panel in two rounds; the
+owner's pick "Adopt, stop on known clash"). Labels carry no seed, and `STG-20` says "A
+retired-seed index can coincide with a migrated machine's new index": an old root labelled `0-1`
+on a machine whose new index is 0 stops showing `0-0`, and the reinstall dispatch derives 1, so
+the new id equals the old label. The brief's general rule would then resume that root or keep it
+as found complete. `STG-20`'s backstop "is vacuous for a predecessor that never reached
+`ready_to_reset` and left no matching observation", so a root whose host keys changed after its
+pin, or a Restore from a sheet exported before that pin, could be kept and trusted instead of
+erased as approved. Now `STA-17` says "every root of the machine whose probed label equals that
+id is then surfaced and the install stops", on the first destructive reinstall after the stop,
+and only where "a label the harness read from the machine's disks before that dispatch, one it
+shows as an as-of observation (below), equals the id that dispatch derives"; the harness says so
+to the model. Within that installation it ends once a `ready_to_reset` result of a command issued
+in that installation records its installed-system pin; the rescue rekey's own pin does not end
+it. A later reinstall's dispatch makes such a root a plain predecessor. With no such label
+nothing changes, and an interrupted install of the new installation still resumes. The
+install brief's step 1 and step 3 surface the root, and `CNF-117` (q) and (r) gain the runs.
+
+This amendment adds a rule to `STA-17` and one display duty, the harness's statement; this record
+itself still adds none. Named: it narrows ADR-0045's "A matching root can be resumed or found
+complete" for this case, and it widens the install brief's protection for this machine, which
+ended at the first dispatch after the stop, past that dispatch for such a root, until the pin
+above or the next reinstall's dispatch. No export member, journal field or change to `STG-20`'s
+derivation is added. How `rescue_install_key`'s label read is journaled stays not decided; the
+rule relies on the labels the harness shows and exports as as-of observations. No theorem, gate
+or assumption boundary changes: `TauWeb.Pins.kept_root_keys_after_reinstall_refused` says
+"Labels and formatting are outside this companion". No `tw-74f` rows 01 and 02 pick and no
+`tw-lq8` decision is reopened. The panel's counts are in that comment.
 
 **Only an identified old key is removed** (old-key A). After the login and the readback, the flow
 removes the exact old public key that checked retained records identify. An unknown key stays and
@@ -157,6 +187,10 @@ the display rule that the history reads unknown, never unpinned, stands.
 | Ordinal above the bound | Keep the reinstall refusal at `n` = 10 000 000 only. |
 | Ordinal above the bound | Also refuse on the 16-byte label size, or restate that argument in the refusal. |
 | Record of the 2026-11-10 amendment | A new decision record. |
+| Equal label after the stop | Leave it not decided. |
+| Equal label after the stop | Surface any matching root on the first reinstall after the stop, with or without a label read before the dispatch. |
+| Equal label after the stop | End the surfacing only at the next reinstall's dispatch, not at that installation's own pin. |
+| Record of the 2026-11-11 amendment | A new decision record. |
 
 Queued and unchosen: replacing the whole key file, operator-selected deletion of an unidentified
 key, admitting a seedless sheet for identification, clearing the unknown from a matching journal
@@ -172,4 +206,6 @@ base, and `TauWeb.Pins.fresh` compares against the knowledge it is given. This r
 capability, readiness or runtime claim; the dedicated path stays behind its admission row.
 The 2026-11-10 amendment changes `STA-17`, `STG-20`, `STA-16`, the credential format's
 partial-history section, the install brief, ADR-0045's note, `CNF-86`'s reinstall bound and
-`CNF-117`'s cases (q) to (s); it stays prose only as well.
+`CNF-117`'s cases (q) to (s); it stays prose only as well. The 2026-11-11 amendment changes
+`STA-17`, the install brief, ADR-0045's note and `CNF-117`'s cases (q) and (r); it stays prose
+only too.

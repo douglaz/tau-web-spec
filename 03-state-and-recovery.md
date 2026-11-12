@@ -2110,9 +2110,22 @@ nothing in the flow is retried automatically (`STA-6`). The harness MUST refuse 
 whose ordinal is above 9 999 999 before it is recorded: the label is shown only as an as-of
 observation, with no proposed id, and the flow then runs as with no acceptance. Whether a later
 acceptance may leave this stop is not decided. For the id shown after this stop, see `STG-20`;
-for the partial history it leaves, see `STA-16`. What a root is to the install brief when, after
-a destructive reinstall of the machine is dispatched, its old label equals the id that dispatch
-derives is not decided.
+for the partial history it leaves, see `STA-16`.
+
+**After this stop, a root whose old label equals the next id is surfaced, not trusted**
+([ADR-0056](./docs/adr/0056-the-rescue-rekey-keeps-a-proposed-ordinal.md)). This applies to the
+first destructive reinstall of the machine dispatched after this stop, and only where a label the
+harness read from the machine's disks before that dispatch, one it shows as an as-of observation
+(below), equals the id that dispatch derives. When it shows the new id, the harness MUST then say
+to the model that a label it read before the dispatch equals that id. To the install brief, every
+root of the machine whose probed label equals that id is then surfaced and the install stops: it
+is never erased, resumed or treated as found complete. Within that installation this ends once a
+`ready_to_reset` result of a command issued in that installation records its installed-system
+pin; the rescue rekey's own pin, retired at the dispatch, does not end it. A later, separately
+approved destructive reinstall derives the next id, and at its dispatch such a root is the
+predecessor under the brief's general rule. With no such label, nothing here applies, and an
+interrupted install of the new installation resumes under the brief's general rule. No journal
+field or export member is added, and `STG-20`'s derivation is unchanged.
 
 After acceptance the screen MUST show `b-7` as the pending destination and distinguish the
 allocation `b`, the observed disk text `a-7`, installed access and label confirmation. Once a write

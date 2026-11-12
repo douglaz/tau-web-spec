@@ -3108,11 +3108,25 @@ Not pass/fail. Required to be recorded.
       flow and decline its acceptance too: after the stop, a read showing `b-0` ends no mark, and
       the brief surfaces that root the same way. After a destructive reinstall of the machine is
       dispatched, that dispatch derives 1 and the root is the approved predecessor.
+      In its own run, give the machine index 0 and its one root the label `0-1`, and stop as
+      in (q): the shown id is `0-0` marked unconfirmed, with `0-1` beside it as an as-of
+      observation. After a destructive reinstall of the machine is dispatched, which derives 1,
+      the shown id is `0-1` and the harness says that a label it read before the dispatch
+      equals it; the install brief surfaces the root labelled `0-1` and stops, and neither
+      erases it as the predecessor, resumes it nor treats it as found complete. Where a
+      `ready_to_reset` result of a command issued in that installation has recorded its
+      installed-system pin, a root labelled `0-1` is kept as that installation's; the rescue
+      rekey's own pin ends nothing. A second destructive reinstall, once dispatched, derives 2,
+      and the root labelled `0-1` is the approved predecessor. In the first (q) run, where no
+      label the harness read equals `b-1`, the harness says nothing of the kind, and after the
+      reinstall's dispatch an interrupted install whose root carries `b-1` is resumed.
       (r) Stop as in (q), then export and import: the stop, with the migration, Replace and
       revocation left incomplete, the unknown earlier installations, the unconfirmed mark and
       `a-7` as an as-of observation round-trip without the journal. No acceptance, earlier
       group, observation, pin or empty-history placeholder is invented, and (q)'s surfacing of
-      the root holds after the Restore.
+      the root holds after the Restore. Stop as in (q)'s `0-1` run, then export and import
+      before the reinstall's dispatch: after the dispatch the harness says the same of `0-1`,
+      and the install brief surfaces that root the same way.
       (s) Where the flow offers an acceptance for a root whose label reads an ordinal above
       9 999 999, such as `a-12345678`, accept it: the acceptance is refused before it is
       recorded, nothing is journaled as accepted, the label is shown only as an as-of
