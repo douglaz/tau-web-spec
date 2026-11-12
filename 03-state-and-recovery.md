@@ -1940,12 +1940,18 @@ is the one root it finds whose label reads in `STG-20`'s form; where there is no
 than one, the rule reads with no such root. In that layout the job reads as a possible root
 every partition, and every whole disk without a partition table, that the rescue kernel lists on
 the server's disks; it probes each one, and its captured output lists each device it probes with
-that probe's result. A probe resolves only when its reads succeed and establish one of three
+that probe's result. A probe resolves only when its reads succeed and establish one of four
 results: one file system whose label reads in `STG-20`'s form, one file system with no such
-label, or definitely no file-system signature. So a partition whose probe establishes definitely
-no file-system signature, such as a BIOS-boot partition, is not the root-label stop. A read error,
-a partial read, empty output, more than one signature or a signature the job does not recognise
-leaves the probe unresolved, which is the root-label stop. A volume layer's signature takes no
+label, definitely no file-system signature, or exactly one plain swap signature and nothing else
+([ADR-0086](./docs/adr/0086-a-lone-plain-swap-area-is-not-a-possible-root.md)). So a partition whose probe establishes definitely
+no file-system signature, such as a BIOS-boot partition, is not the root-label stop. Nor is a
+device whose only signature is one plain swap area, whatever label it carries: its probe
+resolves as not a root, a swap label in `STG-20`'s form never counts as a root whose label reads
+in that form, and the job writes nothing to that device. A swap signature beside any other
+signature on the same device is more than one signature, and a swap area holding a saved
+hibernation image is not a plain swap area; each leaves the probe unresolved. A read error, a partial read, empty output, more than
+one signature, a signature the job does not recognise, or any other signature that is neither a
+file system's nor a volume layer's leaves the probe unresolved, which is the root-label stop. A volume layer's signature takes no
 result from this rule: a server any of whose disks carries one is outside this layout (below).
 What the job's
 read-write mount of the root it writes itself writes, the replay of that file system's journal

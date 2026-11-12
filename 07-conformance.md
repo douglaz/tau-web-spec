@@ -3072,10 +3072,14 @@ Not pass/fail. Required to be recorded.
       output, a partition whose probe finds more than one file-system signature, and one whose
       signature the job does not recognise. Give a server one such root beside a BIOS-boot
       partition carrying no file-system signature: the root-label stop is not taken and the key
-      lands in the labelled root. In each of these runs the job's captured output lists every
+      lands in the labelled root. Give a server one such root beside a partition whose only
+      signature is one plain swap area, each in its own run with the swap area unlabelled and
+      with a label in `STG-20`'s form: the root-label stop is not taken, the key lands in the
+      labelled root and nothing is written to the swap partition. In each of these runs the
+      job's captured output lists every
       partition, and every whole disk without a partition table, that the rescue kernel lists on
       the server's disks, with each probe's result, the BIOS-boot partition's as no file-system
-      signature.
+      signature and the swap partition's as one plain swap area.
       A scoped read meeting a root it cannot read, or a
       key file holding anything but one public key, refuses, and the reset back is neither
       offered nor sent. Neither `ready_to_reset` nor the scoped read opens a private key file,
