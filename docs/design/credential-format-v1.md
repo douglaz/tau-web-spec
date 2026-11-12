@@ -771,6 +771,8 @@ entry's Failed allocation in the forms a record's machine name uses, and resolve
 does, in `allocations` or `retired_allocations`; `entry_id` is that retired entry's A. The link
 sits on the replacement's side only: a Failed allocation names no replacement, and a replacement
 that is itself later replaced keeps its own link. Several links may name one Failed allocation.
+Every machine entry of one approved entry carries the same `predecessor`, so the exporter writes
+one `predecessor` value per `entry` id; an `entry` of `"unknown"` carries none.
 The exporter copies both members unchanged from the journal, and never infers a link from a
 matching index, resource identity or vendor. Neither member restores any contact identity,
 binding, allocation or authority.
@@ -780,9 +782,14 @@ member on any other entry, a malformed `entry` or `predecessor`, a `predecessor`
 missing, extra or duplicate member, a link that names no machine allocation, or names a reserved
 migration index, a superseded reservation, a pending removal or an allocation without
 `failed: true`, a link whose `entry_id` is not its target's `entry` id, a target with
-`entry:"unknown"` included, a link whose `entry_id` is its own entry's id, and a chain of links,
+`entry:"unknown"` included, a link whose `entry_id` is its own entry's id, a chain of links,
 each followed from a machine entry to the Failed allocation its link names, that returns to a
-machine entry already on it.
+machine entry already on it, and two machine entries, in either list or one in each, whose
+`entry` carries the same id and whose `predecessor` values differ: two different strings, a
+string and a link, or two links that differ in any of `seed_id`, `machine_index` and `entry_id`
+([ADR-0087](../adr/0087-the-sheet-refuses-differing-predecessor-links-for-one-entry.md)). An
+`entry` of `"unknown"` carries no id, so this comparison leaves those entries out. No rule
+picks one of two differing links.
 
 Versions 3 to 7 carry neither member: validated under their own rules, an older payload with
 either one is refused. The explicit version-8 conversion of versions 3 to 7 (above) then supplies

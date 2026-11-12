@@ -87,6 +87,15 @@ the root-label stop, and row 26's belongs to the scoped read, which stays outsid
   parent refuses, and the reset back is neither offered nor sent.
 - Nothing is widened.
 
+*Amended 2026-11-11 (owner-directed):*
+[ADR-0086](./0086-a-lone-plain-swap-area-is-not-a-possible-root.md) adds a fourth result to row
+15's plain-layout probe: exactly one plain swap signature and nothing else resolves as not a root,
+and the job writes nothing to that device. A swap signature beside any other signature, and a swap
+area holding a saved hibernation image, still leave the probe unresolved, as does every other
+signature that is neither a file system's nor a volume layer's. It widens recovery eligibility by
+name, so "Nothing is widened" above, and row 15's "Anything else is the root-label stop", no longer
+hold for a lone plain swap area.
+
 ## What stays
 
 - What mounts a root at `/mnt`, and when the job's read-write mount ends.

@@ -1940,17 +1940,27 @@ is the one root it finds whose label reads in `STG-20`'s form; where there is no
 than one, the rule reads with no such root. In that layout the job reads as a possible root
 every partition, and every whole disk without a partition table, that the rescue kernel lists on
 the server's disks; it probes each one, and its captured output lists each device it probes with
-that probe's result. A probe resolves only when its reads succeed and establish one of three
+that probe's result. A probe resolves only when its reads succeed and establish one of four
 results: one file system whose label reads in `STG-20`'s form, one file system with no such
-label, or definitely no file-system signature. So a partition whose probe establishes definitely
-no file-system signature, such as a BIOS-boot partition, is not the root-label stop. A read error,
-a partial read, empty output, more than one signature or a signature the job does not recognise
-leaves the probe unresolved, which is the root-label stop. A volume layer's signature takes no
+label, definitely no file-system or other signature, or exactly one plain swap signature and
+nothing else
+([ADR-0086](./docs/adr/0086-a-lone-plain-swap-area-is-not-a-possible-root.md)). So a partition whose probe establishes definitely
+no signature, such as a BIOS-boot partition, is not the root-label stop. Nor is a
+device whose only signature is one plain swap area, whatever label it carries: its probe
+resolves as not a root, a swap label in `STG-20`'s form never counts as a root whose label reads
+in that form, and the job writes nothing to that device. A swap signature beside any other
+signature on the same device is more than one signature, and a swap area holding a saved
+hibernation image is not a plain swap area; each leaves the probe unresolved. A read error, a
+partial read, empty output, more than one signature, a signature the job does not recognise, or
+a signature that is neither a file system's, a volume layer's nor one plain swap area's, which
+establishes none of the four results, leaves the probe unresolved, which is the root-label stop.
+A volume layer's signature takes no
 result from this rule: a server any of whose disks carries one is outside this layout (below).
 What the job's
 read-write mount of the root it writes itself writes, the replay of that file system's journal
 and mount metadata included, is not decided, and
-neither is whether the job writes anything else to that root's disk, nor when its read-write
+neither is whether, beyond a lone plain swap device on it, the job writes anything else to that
+root's disk, nor when its read-write
 mount ends on a successful, failed or stopped path. `ARC-43` says `ready_to_reset`
 "unmounts the target, and only then offers the reset typed operation"; that does not specify
 when this job's read-write mount ends or identify the two jobs' mounts.
@@ -2110,9 +2120,22 @@ nothing in the flow is retried automatically (`STA-6`). The harness MUST refuse 
 whose ordinal is above 9 999 999 before it is recorded: the label is shown only as an as-of
 observation, with no proposed id, and the flow then runs as with no acceptance. Whether a later
 acceptance may leave this stop is not decided. For the id shown after this stop, see `STG-20`;
-for the partial history it leaves, see `STA-16`. What a root is to the install brief when, after
-a destructive reinstall of the machine is dispatched, its old label equals the id that dispatch
-derives is not decided.
+for the partial history it leaves, see `STA-16`.
+
+**After this stop, a root whose old label equals the next id is surfaced, not trusted**
+([ADR-0056](./docs/adr/0056-the-rescue-rekey-keeps-a-proposed-ordinal.md)). This applies to the
+first destructive reinstall of the machine dispatched after this stop, and only where a label the
+harness read from the machine's disks before that dispatch, one it shows as an as-of observation
+(below), equals the id that dispatch derives. When it shows the new id, the harness MUST then say
+to the model that a label it read before the dispatch equals that id. To the install brief, every
+root of the machine whose probed label equals that id is then surfaced and the install stops: it
+is never erased, resumed or treated as found complete. Within that installation this ends once a
+`ready_to_reset` result of a command issued in that installation records its installed-system
+pin; the rescue rekey's own pin, retired at the dispatch, does not end it. A later, separately
+approved destructive reinstall derives the next id, and at its dispatch such a root is the
+predecessor under the brief's general rule. With no such label, nothing here applies, and an
+interrupted install of the new installation resumes under the brief's general rule. No journal
+field or export member is added, and `STG-20`'s derivation is unchanged.
 
 After acceptance the screen MUST show `b-7` as the pending destination and distinguish the
 allocation `b`, the observed disk text `a-7`, installed access and label confirmation. Once a write

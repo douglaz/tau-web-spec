@@ -2632,7 +2632,12 @@ Not pass/fail. Required to be recorded.
       `failed: true`, a link whose `entry_id` is not its target's id, a target with
       `entry:"unknown"` included, a link naming its own entry, a cycle of links, either member
       on a version-3-to-7 sheet, and `failed` with another value, on a pass or a handoff, or on
-      a reserved migration index. Refuse before binding a missing
+      a reserved migration index. Refuse before binding, each in its own run, two machine
+      entries whose `entry` carries the same id and whose `predecessor` values differ: one
+      with `"none"` and the other with a link, both in `allocations`, and two links naming
+      different Failed allocations, one machine entry in `allocations` and the other in
+      `retired_allocations`. Import accepts a replacement entry with two allocations, one a
+      later Failed attempt, both carrying the same link. Refuse before binding a missing
       or malformed `seed_id` on any placement, artifact history, machine state, host pin,
       installation group or exposure-ledger machine reference, and one naming neither an
       `allocations` machine under the payload's seed nor a retired allocation. A version 3 to 6
@@ -3072,10 +3077,15 @@ Not pass/fail. Required to be recorded.
       output, a partition whose probe finds more than one file-system signature, and one whose
       signature the job does not recognise. Give a server one such root beside a BIOS-boot
       partition carrying no file-system signature: the root-label stop is not taken and the key
-      lands in the labelled root. In each of these runs the job's captured output lists every
+      lands in the labelled root. Give a server one such root beside a partition whose only
+      signature is one plain swap area, each in its own run with the swap area unlabelled and
+      with a label in `STG-20`'s form: the root-label stop is not taken, the key lands in the
+      labelled root and nothing is written to the swap partition. In each of these runs the
+      job's captured output lists every
       partition, and every whole disk without a partition table, that the rescue kernel lists on
-      the server's disks, with each probe's result, the BIOS-boot partition's as no file-system
-      signature.
+      the server's disks, with each probe's result: in the BIOS-boot run the BIOS-boot
+      partition's as no file-system signature, and in each swap run the swap partition's as one
+      plain swap area.
       A scoped read meeting a root it cannot read, or a
       key file holding anything but one public key, refuses, and the reset back is neither
       offered nor sent. Neither `ready_to_reset` nor the scoped read opens a private key file,
@@ -3108,11 +3118,26 @@ Not pass/fail. Required to be recorded.
       flow and decline its acceptance too: after the stop, a read showing `b-0` ends no mark, and
       the brief surfaces that root the same way. After a destructive reinstall of the machine is
       dispatched, that dispatch derives 1 and the root is the approved predecessor.
+      In its own run, give the machine index 0 and its one root the label `0-1`, and stop as
+      in (q): the shown id is `0-0` marked unconfirmed, with `0-1` beside it as an as-of
+      observation. After a destructive reinstall of the machine is dispatched, which derives 1,
+      the shown id is `0-1` and the harness says that a label it read before the dispatch
+      equals it; the install brief surfaces the root labelled `0-1` and stops, and neither
+      erases it as the predecessor, resumes it nor treats it as found complete, although the
+      rescue rekey's own pin is on record. In its own run, after the harness's statement,
+      remove the root labelled `0-1` before the install's probe, let the install format a root
+      labelled `0-1` and record its installed-system pin through `ready_to_reset`, then
+      interrupt it: that root is kept as this installation's. A second destructive reinstall,
+      once dispatched, derives 2, and the root labelled `0-1` is the approved predecessor. In the first (q) run, where no
+      label the harness read equals `b-1`, the harness says nothing of the kind, and after the
+      reinstall's dispatch an interrupted install whose root carries `b-1` is resumed.
       (r) Stop as in (q), then export and import: the stop, with the migration, Replace and
       revocation left incomplete, the unknown earlier installations, the unconfirmed mark and
       `a-7` as an as-of observation round-trip without the journal. No acceptance, earlier
       group, observation, pin or empty-history placeholder is invented, and (q)'s surfacing of
-      the root holds after the Restore.
+      the root holds after the Restore. Stop as in (q)'s `0-1` run, then export and import
+      before the reinstall's dispatch: after the dispatch the harness says the same of `0-1`,
+      and the install brief surfaces that root the same way.
       (s) Where the flow offers an acceptance for a root whose label reads an ordinal above
       9 999 999, such as `a-12345678`, accept it: the acceptance is refused before it is
       recorded, nothing is journaled as accepted, the label is shown only as an as-of

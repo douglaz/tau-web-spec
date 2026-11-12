@@ -82,7 +82,7 @@ lsblk -dno NAME,SIZE,MODEL,SERIAL,WWN; ls -l /dev/disk/by-id/ | grep -v part; [ 
   and every probe error or other status, including 4 and 8. Match the beginnings of lines:
   `PART_ENTRY_TYPE=`, `PART_ENTRY_NAME=` and `LABEL_FATBOOT=` establish neither case.
   Only a matching root is this installation and eligible for **Resume** or "found complete,
-  do not wipe", except when no ordinal was accepted (below). Two roots with that id mean stop
+  do not wipe", except where the bullets below say to surface it. Two roots with that id mean stop
   and surface, never erase.
 - An unmarked root, another installation's id or another machine's id is the predecessor,
   including a hand-installed root. It is erased on the selected disks as approved for this
@@ -98,7 +98,13 @@ lsblk -dno NAME,SIZE,MODEL,SERIAL,WWN; ls -l /dev/disk/by-id/ | grep -v part; [ 
   no root on the machine is this installation or the predecessor, a root whose label equals the
   shown id included: surface every root to the operator, and never erase it, resume it or treat
   it as found complete. After that dispatch a root whose label does not equal the new shown id
-  is the predecessor as above; what a root whose label equals it is, `STA-17` leaves undecided.
+  is the predecessor as above. A root whose label equals it is this installation as above,
+  except when the harness says a label it read before that dispatch equals the new shown id
+  (`STA-17`): then that root may be the machine's old root, not yours. Surface every root whose
+  label equals the shown id to the operator and stop: never erase it, resume it or treat it as
+  found complete, until the harness shows an installed-system pin recorded in this
+  installation. Another destructive reinstall of this machine, once dispatched, makes it the
+  predecessor as above.
 - Decide the complete installation disk set by WWN before any write, and state it in your
   next command: the root disk, and the explicitly selected additional disks (or none). Never
   the whole disk list. Every disk you name will be erased. Re-read identities in the rescue
@@ -121,8 +127,10 @@ the bundle's value binds.
 First inspect the labels probed in step 1. A single root whose label equals the shown
 `<installation-id>` is yours: if partial, follow **Resume** without formatting; if complete,
 **found complete, do not wipe** — inspect it and request `ready_to_reset`, preserving its keys.
-When the harness says no ordinal was accepted, step 1 applies instead: you neither resume that
-root nor treat it as found complete.
+When the harness says no ordinal was accepted and no destructive reinstall has been dispatched
+since, or says that a label it read before this reinstall's dispatch equals the shown id and no
+installed-system pin is recorded in this installation, step 1 applies instead: you neither resume
+that root nor treat it as found complete.
 An installed-system pin already recorded means continuing keeps that root and its keys; changing
 those keys requires a separately approved destructive reinstall (`STA-20b`). An unresolved label probe
 or two roots carrying the current id means stop and surface, never erase.
