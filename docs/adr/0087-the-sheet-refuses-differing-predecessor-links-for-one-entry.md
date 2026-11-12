@@ -42,7 +42,9 @@ linking to B's Failed record, which links back to A's Failed record, passed ever
   approved entry carries the same `predecessor`, so the exporter writes one value per known `entry`
   id. No sheet a conforming exporter writes is newly refused.
 - **One `CNF-84` case**, in two runs: `"none"` against a link, and two links naming different Failed
-  allocations, across `allocations` and `retired_allocations` (four of four).
+  allocations, across `allocations` and `retired_allocations` (four of four). The same case
+  accepts a replacement entry with two allocations carrying the same link, so an import that
+  refuses every repeated `entry` id fails it; this adds no rule.
 
 The panel split two to two on whether today's undefined restore could drop `STA-22b`'s dispatch
 wait. The rule does not depend on that point, so it took no second round.
@@ -52,7 +54,7 @@ wait. The rule does not depend on that point, so it took no second round.
 This follows ADR-0080 and ADR-0081, which amended payload version 8 in place on the ground that
 nothing writes a version-8 sheet (four of four).
 
-Re-checked at drafting, 2026-11-12: nothing writes a version-8 sheet. This repository holds no
+Re-checked at landing, 2026-11-12: nothing writes a version-8 sheet. This repository holds no
 sheet writer in its tools, workflows or prototypes. The implementation repository (`tau-web-rust`)
 `main` is still at `c01f980`, where ADR-0080's check found its recovery-sheet export ticket open and
 no `retired_allocations` in its source.
@@ -62,7 +64,7 @@ no `retired_allocations` in its source.
 - **Narrowed, by name:** what version-8 import accepts, against ADR-0080's "adds no refusal of
   differing links among one entry's allocations". A sheet giving one known `entry` id differing
   `predecessor` values was accepted and is now refused before binding.
-- It also closes the cross-entry cycle above, since one of A's two records is now refused.
+- It also closes the cross-entry cycle above, since A's two records now differ and the sheet is refused.
 
 ## What stays
 

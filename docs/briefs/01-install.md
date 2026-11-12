@@ -127,9 +127,10 @@ the bundle's value binds.
 First inspect the labels probed in step 1. A single root whose label equals the shown
 `<installation-id>` is yours: if partial, follow **Resume** without formatting; if complete,
 **found complete, do not wipe** — inspect it and request `ready_to_reset`, preserving its keys.
-When the harness says no ordinal was accepted, or says that a label it read before this
-reinstall's dispatch equals the shown id, step 1 applies instead: you neither resume that root nor
-treat it as found complete.
+When the harness says no ordinal was accepted and no destructive reinstall has been dispatched
+since, or says that a label it read before this reinstall's dispatch equals the shown id and no
+installed-system pin is recorded in this installation, step 1 applies instead: you neither resume
+that root nor treat it as found complete.
 An installed-system pin already recorded means continuing keeps that root and its keys; changing
 those keys requires a separately approved destructive reinstall (`STA-20b`). An unresolved label probe
 or two roots carrying the current id means stop and surface, never erase.

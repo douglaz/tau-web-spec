@@ -52,7 +52,10 @@ and the split survived, so it went to the owner, who picked the bounded resolve 
 - **Narrowed, by name:** a signature that is neither a file system's, a volume layer's nor a plain
   swap area's. Today's text was open on such a signature as well; the rule now says it leaves the
   probe unresolved, so a job that read one as "definitely no file-system signature" no longer
-  conforms.
+  conforms. The third result now reads "definitely no file-system or other signature" to say so.
+- **Decided, by name:** `STA-17` left "whether the job writes anything else to that root's disk"
+  not decided. For a lone plain swap device on that disk it is now decided: the job writes nothing
+  to it. The rest of that open point stays.
 - The mixed swap-and-file-system run and the hibernation-image run were each suggested by one
   reader and not voted. They go beyond the one swap case the owner picked, so `CNF-117` (p) does
   not add them; the rule covers both.
@@ -64,6 +67,9 @@ and the split survived, so it went to the owner, who picked the bounded resolve 
   outcomes stay that brief's, not this job's rule (ADR-0082).
 - The three earlier results, the BIOS-boot run in `CNF-117` (p), the volume-layer exclusion and
   rows 13 and 14's open points.
+- `CNF-117` (p)'s run of "a partition whose probe finds more than one file-system signature" is
+  unchanged; the panel noted it is narrower than `STA-17`'s "more than one signature", and a
+  swap-plus-file-system run was not voted.
 - No journal field, export member or change to `STG-20`'s label form.
 - The formal companion: no theorem, gate, witness or assumption boundary moves (three of four in
   round one); the companion does not model the probe.

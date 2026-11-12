@@ -772,7 +772,7 @@ does, in `allocations` or `retired_allocations`; `entry_id` is that retired entr
 sits on the replacement's side only: a Failed allocation names no replacement, and a replacement
 that is itself later replaced keeps its own link. Several links may name one Failed allocation.
 Every machine entry of one approved entry carries the same `predecessor`, so the exporter writes
-one `predecessor` value per `entry` id other than `"unknown"`.
+one `predecessor` value per `entry` id; an `entry` of `"unknown"` carries none.
 The exporter copies both members unchanged from the journal, and never infers a link from a
 matching index, resource identity or vendor. Neither member restores any contact identity,
 binding, allocation or authority.

@@ -2634,9 +2634,10 @@ Not pass/fail. Required to be recorded.
       on a version-3-to-7 sheet, and `failed` with another value, on a pass or a handoff, or on
       a reserved migration index. Refuse before binding, each in its own run, two machine
       entries whose `entry` carries the same id and whose `predecessor` values differ: one
-      with `"none"` and the other with a link, and two links naming different Failed
-      allocations, one entry in `allocations` and the other in `retired_allocations`. Refuse
-      before binding a missing
+      with `"none"` and the other with a link, both in `allocations`, and two links naming
+      different Failed allocations, one machine entry in `allocations` and the other in
+      `retired_allocations`. Import accepts a replacement entry with two allocations, one a
+      later Failed attempt, both carrying the same link. Refuse before binding a missing
       or malformed `seed_id` on any placement, artifact history, machine state, host pin,
       installation group or exposure-ledger machine reference, and one naming neither an
       `allocations` machine under the payload's seed nor a retired allocation. A version 3 to 6
@@ -3082,8 +3083,9 @@ Not pass/fail. Required to be recorded.
       labelled root and nothing is written to the swap partition. In each of these runs the
       job's captured output lists every
       partition, and every whole disk without a partition table, that the rescue kernel lists on
-      the server's disks, with each probe's result, the BIOS-boot partition's as no file-system
-      signature and the swap partition's as one plain swap area.
+      the server's disks, with each probe's result: in the BIOS-boot run the BIOS-boot
+      partition's as no file-system signature, and in each swap run the swap partition's as one
+      plain swap area.
       A scoped read meeting a root it cannot read, or a
       key file holding anything but one public key, refuses, and the reset back is neither
       offered nor sent. Neither `ready_to_reset` nor the scoped read opens a private key file,
@@ -3121,11 +3123,12 @@ Not pass/fail. Required to be recorded.
       observation. After a destructive reinstall of the machine is dispatched, which derives 1,
       the shown id is `0-1` and the harness says that a label it read before the dispatch
       equals it; the install brief surfaces the root labelled `0-1` and stops, and neither
-      erases it as the predecessor, resumes it nor treats it as found complete. Where a
-      `ready_to_reset` result of a command issued in that installation has recorded its
-      installed-system pin, a root labelled `0-1` is kept as that installation's; the rescue
-      rekey's own pin ends nothing. A second destructive reinstall, once dispatched, derives 2,
-      and the root labelled `0-1` is the approved predecessor. In the first (q) run, where no
+      erases it as the predecessor, resumes it nor treats it as found complete, although the
+      rescue rekey's own pin is on record. In its own run, after the harness's statement,
+      remove the root labelled `0-1` before the install's probe, let the install format a root
+      labelled `0-1` and record its installed-system pin through `ready_to_reset`, then
+      interrupt it: that root is kept as this installation's. A second destructive reinstall,
+      once dispatched, derives 2, and the root labelled `0-1` is the approved predecessor. In the first (q) run, where no
       label the harness read equals `b-1`, the harness says nothing of the kind, and after the
       reinstall's dispatch an interrupted install whose root carries `b-1` is resumed.
       (r) Stop as in (q), then export and import: the stop, with the migration, Replace and
